@@ -3,7 +3,6 @@ package com.constellio.app.services.collections;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +32,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -70,7 +70,7 @@ public class CollectionsManager implements StatefulService {
 
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
 
-	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
+	private Map<String, CollectionInfo> collectionInfoCache = new HashMap<>();
 
 	private List<String> newDisabledCollections = new ArrayList<>();
 
@@ -275,23 +275,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public List<String> getCollectionLanguages(final String collection) {
-
-		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
-			return asList(modelLayerFactory.getConfiguration().getMainDataLanguage());
-		}
-
-		List<String> collectionLanguages = collectionLanguagesCache.get(collection);
-
-		if (collectionLanguages == null) {
-			try {
-				collectionLanguages = getCollection(collection).getLanguages();
-				collectionLanguagesCache.put(collection, collectionLanguages);
-			} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
-				LOGGER.debug("Collection '" + collection + "' not found.", e);
-				return Collections.emptyList();
-			}
-		}
-		return collectionLanguages;
+		return getCollectionInfo(collection).getCollectionLanguesCodes();
 	}
 
 	@Override
@@ -346,7 +330,7 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 
-		collectionLanguagesCache.put(code, languages);
+		collectionInfoCache.put(code, new CollectionInfo(code, mainDataLanguage, languages));
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages);
 		Set<String> returnList = new HashSet<>();
@@ -411,5 +395,34 @@ public class CollectionsManager implements StatefulService {
 				cache.configureCache(CacheConfig.permanentCache(types.getSchemaType(schemaType)));
 			}
 		}
+	}
+
+	public CollectionInfo getCollectionInfo(String collectionCode) {
+		CollectionInfo cachedInfo = collectionInfoCache.get(collectionCode);
+
+		try {
+			if (cachedInfo == null) {
+				String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
+				if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
+					cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, asList(mainDataLanguage));
+
+				} else {
+					List<String> collectionLanguages = getCollection(collectionCode).getLanguages();
+					cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, collectionLanguages);
+				}
+
+				synchronized (collectionInfoCache) {
+					collectionInfoCache.put(collectionCode, cachedInfo);
+				}
+			}
+		} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
+			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			LOGGER.debug("Collection '" + collectionCode + "' not found.", e);
+			return new CollectionInfo(collectionCode, mainDataLanguage, new ArrayList<String>());
+		}
+
+		return cachedInfo;
+
 	}
 }

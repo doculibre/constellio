@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.services.schemas.MetadataList;
@@ -29,8 +30,6 @@ public class MetadataSchemaTypes implements Serializable {
 
 	private final int version;
 
-	private final String collection;
-
 	private final List<MetadataSchemaType> schemaTypes;
 	private final Map<String, MetadataSchemaType> schemaTypesMap;
 
@@ -43,12 +42,13 @@ public class MetadataSchemaTypes implements Serializable {
 
 	private final MetadataNetwork metadataNetwork;
 
-	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
+	private final CollectionInfo collectionInfo;
+
+	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
 			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages,
 			MetadataNetwork metadataNetwork) {
 		super();
 		this.version = version;
-		this.collection = collection;
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
 		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
 		this.referenceDefaultValues = referenceDefaultValues;
@@ -57,6 +57,11 @@ public class MetadataSchemaTypes implements Serializable {
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.metadataNetwork = metadataNetwork;
+		this.collectionInfo = collectionInfo;
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	private MetadataList getSearchableMetadatas(List<MetadataSchemaType> schemaTypes) {
@@ -110,7 +115,7 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
 	}
 
 	public int getVersion() {
