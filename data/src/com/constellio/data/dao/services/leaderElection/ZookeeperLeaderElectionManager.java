@@ -3,9 +3,11 @@ package com.constellio.data.dao.services.leaderElection;
 import static org.apache.curator.framework.recipes.leader.LeaderLatch.CloseMode.SILENT;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
+import org.apache.curator.utils.CloseableUtils;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.spi.discovery.DiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
@@ -18,12 +20,11 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 public class ZookeeperLeaderElectionManager implements LeaderElectionManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperLeaderElectionManager.class);
+	private static final String PATH = "/constellio/leader";
+	private static final String ID = UUID.randomUUID().toString();
 
 	DataLayerFactory dataLayerFactory;
 	private LeaderLatch leaderLatch;
-
-	public static final int DEFAULT_SLEEP_MS = 10000;
-	public static final int DEFAULT_RETRY = 3;
 
 	public ZookeeperLeaderElectionManager(DataLayerFactory dataLayerFactory) {
 		this.dataLayerFactory = dataLayerFactory;
@@ -37,11 +38,8 @@ public class ZookeeperLeaderElectionManager implements LeaderElectionManager {
 	@Override
 	public void initialize() {
 		CuratorFramework curatorFramework = dataLayerFactory.getCuratorFramework();
-		Ignite ignite = dataLayerFactory.getIgniteClient();
-		DiscoverySpi discoverySpi = ignite.configuration().getDiscoverySpi();
-		TcpDiscoveryZookeeperIpFinder ipFinder = (TcpDiscoveryZookeeperIpFinder) ((TcpDiscoverySpi) discoverySpi).getIpFinder();
 
-		this.leaderLatch = new LeaderLatch(curatorFramework, ipFinder.getBasePath(), ipFinder.getServiceName());
+		this.leaderLatch = new LeaderLatch(curatorFramework, PATH, ID);
 		try {
 			leaderLatch.start();
 		} catch (Exception e) {
@@ -51,10 +49,6 @@ public class ZookeeperLeaderElectionManager implements LeaderElectionManager {
 
 	@Override
 	public void close() {
-		try {
-			leaderLatch.close(SILENT);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		CloseableUtils.closeQuietly(leaderLatch);
 	}
 }
