@@ -1,5 +1,18 @@
 package com.constellio.app.ui.pages.statistic;
 
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.TABLE;
+import static com.constellio.model.entities.records.wrappers.SearchEvent.DEFAULT_SCHEMA;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.Date;
+import java.util.Scanner;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -10,16 +23,6 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.joda.time.LocalDate;
-
-import java.util.*;
-
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.TABLE;
-import static com.constellio.model.entities.records.wrappers.SearchEvent.DEFAULT_SCHEMA;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsView> {
 
@@ -91,13 +94,13 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
 
     private LogicalSearchQuery composeQuery() {
         LogicalSearchQuery query = new LogicalSearchQuery(from(rm.searchEvent.schemaType()).returnAll());
-        if(startDate != null && endDate != null) {
+        if (startDate != null && endDate != null) {
             query.setCondition(query.getCondition().andWhere(CREATED_ON)
                     .isValueInRange(startDate, endDate));
-        } else if(startDate != null) {
+        } else if (startDate != null) {
             query.setCondition(query.getCondition().andWhere(CREATED_ON)
                     .isGreaterOrEqualThan(startDate));
-        } else if(endDate != null) {
+        } else if (endDate != null) {
             query.setCondition(query.getCondition().andWhere(CREATED_ON)
                     .isLessOrEqualThan(endDate));
         }
@@ -123,9 +126,10 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
         }
 
         if (endDate != null) {
-            this.endDate = LocalDate.fromDateFields(endDate);
+        	// End date is inclusive, so let's add one day
+        	this.endDate = new LocalDate(endDate).plus(Days.days(1));
         } else {
-            this.endDate =null;
+            this.endDate = null;
         }
 
         try {
@@ -136,4 +140,9 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
 
         this.filter = filter;
     }
+
+	public void backButtonClicked() {
+		view.navigate().to().searchConfiguration();
+	}
+	
 }

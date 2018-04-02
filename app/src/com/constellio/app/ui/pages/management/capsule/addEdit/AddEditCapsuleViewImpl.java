@@ -1,7 +1,12 @@
 package com.constellio.app.ui.pages.management.capsule.addEdit;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -11,11 +16,6 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsuleView {
 
@@ -24,7 +24,7 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 
     @Override
     protected String getTitle() {
-        return $("AddEditCapsuleViewImpl.title");
+        return $("AddEditCapsuleView.viewTitle");
     }
 
     @Override
