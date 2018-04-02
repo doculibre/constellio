@@ -8,16 +8,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.es.ConstellioESModule;
-import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
-import com.constellio.model.services.thesaurus.ThesaurusService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotDownloadDocument;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotParseDocument;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent;
@@ -30,6 +26,8 @@ import com.constellio.app.modules.es.connectors.http.utils.HtmlPageParser.HtmlPa
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
+import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -114,7 +112,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	}
 
 	private void handleFetchException(ConnectorHttpDocument httpDocument, URLFetchingServiceRuntimeException e) {
-
+		e.printStackTrace();
 		httpDocument.setFetched(true);
 		httpDocument.setStatus(ConnectorDocumentStatus.ERROR);
 		if (!e.getErrorCode().equals(httpDocument.getErrorCode())) {
@@ -171,7 +169,8 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
 
-					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions().forCollection(connectorHttp.getEs().collection.code().getCollection());
+					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+							.forCollection(connectorHttp.getEs().collection.code().getCollection());
 					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
 
 					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
@@ -243,10 +242,10 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
 				.addStringProperty("charset", page.getWebResponse().getContentCharset());
 
-
 		savedDocuments.add(httpDocument);
 
-		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions().forCollection(connectorHttp.getEs().collection.code().getCollection());
+		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+				.forCollection(connectorHttp.getEs().collection.code().getCollection());
 		ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
 		esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
 				.setConnectorHttpDocument(httpDocument)
