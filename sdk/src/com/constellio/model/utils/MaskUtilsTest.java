@@ -74,6 +74,7 @@ public class MaskUtilsTest {
 		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "AB")).isEqualTo("(ABZ) 000-0000");
 		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "ABC10")).isEqualTo("(ABC) 100-0000");
 		assertThat(MaskUtils.strictFormatWithMissingValues("999-999-9999", "5")).isEqualTo("500-000-0000");
+		assertThat(MaskUtils.strictFormatWithMissingValues("999-999-9999", "4185454545")).isEqualTo("418-545-4545");
 	}
 
 	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)

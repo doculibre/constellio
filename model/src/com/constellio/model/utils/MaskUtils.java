@@ -44,7 +44,8 @@ public class MaskUtils {
 
 	public static final String REGEX_STRICT_MASK_ITEMS = "[^A9]";
 
-	private static Map<String, Pattern> maskRegexPatterns = new HashMap<>();
+    private static Pattern REGEX_STRICT_MASK_PATTERN;
+    private static Map<String, Pattern> maskRegexPatterns = new HashMap<>();
 	private static Map<String, Pattern> maskStrictRegexPatterns = new HashMap<>();
 
 	public static boolean isValid(String mask, String value) {
@@ -55,6 +56,13 @@ public class MaskUtils {
 			return false;
 		}
 	}
+
+	private static Pattern buildStrictMaskItemsRegex(){
+	    if (REGEX_STRICT_MASK_PATTERN == null){
+            REGEX_STRICT_MASK_PATTERN = Pattern.compile(REGEX_STRICT_MASK_ITEMS);
+        }
+        return REGEX_STRICT_MASK_PATTERN;
+    }
 
 	private static Pattern buildRegex(String mask) {
 		Pattern maskRegexPattern = maskRegexPatterns.get(mask);
@@ -154,7 +162,8 @@ public class MaskUtils {
 	}
 
 	public static boolean strictValidate(String inputMask, String rawValue) {
-		Pattern pattern = strictBuildRegex(inputMask.replaceAll(REGEX_STRICT_MASK_ITEMS, ""));
+        Pattern strictMaskItemsPattern = buildStrictMaskItemsRegex();
+		Pattern pattern = strictBuildRegex(strictMaskItemsPattern.matcher(inputMask).replaceAll(""));
 		Matcher matcher = pattern.matcher(rawValue);
 
 		return matcher.matches();
@@ -178,7 +187,9 @@ public class MaskUtils {
     }
 
     private static String adjustRawValue (String inputMask, String rawValue){
-        String inputMaskWithoutStrictMaskItems = inputMask.replaceAll(REGEX_STRICT_MASK_ITEMS, "");
+	    Pattern pattern = buildStrictMaskItemsRegex();
+        String inputMaskWithoutStrictMaskItems = pattern.matcher(inputMask).replaceAll("");
+
         char[] maskAsChar = inputMaskWithoutStrictMaskItems.toCharArray();
         StringBuilder finalAdjustedItem = new StringBuilder(rawValue);
         int offSetInFinalAdjusted = finalAdjustedItem.length();
