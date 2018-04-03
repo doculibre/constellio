@@ -392,18 +392,20 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		ContentVersionVO contentVO = documentVO.getContent();
-		Boolean majorVersion = contentVO.isMajorVersion();
-		String fileName = contentVO.getFileName();
-		String hash = contentVO.getHash();
-		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash)
-				.getContentVersionDataSummary();
-		Content copiedContent;
-		if (majorVersion != null && majorVersion) {
-			copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
-		} else {
-			copiedContent = contentManager.createMinor(getCurrentUser(), fileName, contentVersionDataSummary);
+		if(contentVO != null) {
+			Boolean majorVersion = contentVO.isMajorVersion();
+			String fileName = contentVO.getFileName();
+			String hash = contentVO.getHash();
+			ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash)
+					.getContentVersionDataSummary();
+			Content copiedContent;
+			if (majorVersion != null && majorVersion) {
+				copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
+			} else {
+				copiedContent = contentManager.createMinor(getCurrentUser(), fileName, contentVersionDataSummary);
+			}
+			record.set(contentMetadata, copiedContent);
 		}
-		record.set(contentMetadata, copiedContent);
 	}
 
 	private RMSchemasRecordsServices rmSchemas() {
