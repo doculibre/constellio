@@ -95,7 +95,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		MetadataSchema schema1 = setup.getTypes().getSchema("zeSchemaType_schema1");
 		MetadataSchema schema2 = setup.getTypes().getSchema("zeSchemaType_schema2");
 
-		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+		Record record = new RecordImpl(schema1, "zeId");
 
 		record.set(schema1.get("meta2"), "23");
 		record.set(schema1.get("meta7"), asList("78", "89"));
@@ -162,7 +162,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		Metadata inexistentMetadata1InSchema2 = mockManualMetadata("zeSchemaType_schema1_meta1", STRING);
 		Metadata inexistentMetadata3InSchema1 = mockManualMetadata("type_schema1_meta3", STRING);
 
-		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+		Record record = new RecordImpl(schema1, "zeId");
 
 		record.set(schema1.get("meta1"), "12");
 		record.set(schema1.get("meta2"), "23");
@@ -262,7 +262,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		MetadataSchema schema1 = setup.getTypes().getSchema("zeSchemaType_schema1");
 		MetadataSchema schema2 = setup.getTypes().getSchema("zeSchemaType_schema2");
 
-		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+		Record record = new RecordImpl(schema1, "zeId");
 
 		record.set(schema1.get("meta1"), "A");
 		record.set(schema1.get("meta2"), "custom");

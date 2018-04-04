@@ -1,22 +1,15 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
 
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.services.schemas.testimpl.TestMetadataValueCalculator;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -24,20 +17,17 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataList;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator2;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DefaultClassProvider;
-import com.constellio.model.utils.DependencyUtils;
-import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -66,8 +56,9 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
+		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
 		metadataSchemaTypeBuilder = MetadataSchemaTypeBuilder
-				.createNewSchemaType("zeUltimateCollection", "aSchemaType", typesBuilder);
+				.createNewSchemaType(zeCollectionInfo, "aSchemaType", typesBuilder);
 		defaultSchemaBuilder = spy(metadataSchemaTypeBuilder.getDefaultSchema());
 		customSchemaBuilder = metadataSchemaTypeBuilder.createCustomSchema("custom");
 	}

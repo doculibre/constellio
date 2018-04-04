@@ -1,11 +1,27 @@
 package com.constellio.model.services.schemas.xml;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -13,16 +29,15 @@ import com.constellio.model.services.records.extractions.DefaultMetadataPopulato
 import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import com.constellio.model.services.schemas.builders.*;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
-import java.util.*;
-import java.util.regex.Pattern;
 
 public class MetadataSchemaXMLReader2 {
 
@@ -37,7 +52,7 @@ public class MetadataSchemaXMLReader2 {
 		this.classProvider = classProvider;
 	}
 
-	public MetadataSchemaTypesBuilder read(String collection, Document document, DataStoreTypesFactory typesFactory,
+	public MetadataSchemaTypesBuilder read(CollectionInfo collection, Document document, DataStoreTypesFactory typesFactory,
 			ModelLayerFactory modelLayerFactory) {
 
 		Element rootElement = document.getRootElement();

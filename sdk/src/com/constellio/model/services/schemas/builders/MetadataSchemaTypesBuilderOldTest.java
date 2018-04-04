@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -40,7 +41,8 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollection, VERSION, new DefaultClassProvider(),
+		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, VERSION, new DefaultClassProvider(),
 				Arrays.asList(Language.French));
 		folderTypeBuilder = typesBuilder.createNewSchemaType(FOLDER);
 		schemaTypes = typesBuilder.build(typesFactory, modelLayerFactory);

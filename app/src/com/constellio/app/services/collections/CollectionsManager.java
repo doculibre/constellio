@@ -3,10 +3,8 @@ package com.constellio.app.services.collections;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -69,8 +67,6 @@ public class CollectionsManager implements StatefulService {
 	private final DataLayerFactory dataLayerFactory;
 
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
-
-	private Map<String, CollectionInfo> collectionInfoCache = new HashMap<>();
 
 	private List<String> newDisabledCollections = new ArrayList<>();
 
@@ -191,7 +187,8 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public void createCollectionConfigs(String code) {
-		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(code);
+		CollectionInfo collectionInfo = getCollectionInfo(code);
+		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(collectionInfo);
 		modelLayerFactory.getTaxonomiesManager().createCollectionTaxonomies(code);
 		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
@@ -330,7 +327,7 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 
-		collectionInfoCache.put(code, new CollectionInfo(code, mainDataLanguage, languages));
+		collectionsListManager.registerPendingCollectionInfo(code, mainDataLanguage, languages);
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages);
 		Set<String> returnList = new HashSet<>();
@@ -398,31 +395,14 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public CollectionInfo getCollectionInfo(String collectionCode) {
-		CollectionInfo cachedInfo = collectionInfoCache.get(collectionCode);
-
 		try {
-			if (cachedInfo == null) {
-				String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			return collectionsListManager.getCollectionInfo(collectionCode);
 
-				if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
-					cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, asList(mainDataLanguage));
-
-				} else {
-					List<String> collectionLanguages = getCollection(collectionCode).getLanguages();
-					cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, collectionLanguages);
-				}
-
-				synchronized (collectionInfoCache) {
-					collectionInfoCache.put(collectionCode, cachedInfo);
-				}
-			}
 		} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
 			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 			LOGGER.debug("Collection '" + collectionCode + "' not found.", e);
 			return new CollectionInfo(collectionCode, mainDataLanguage, new ArrayList<String>());
 		}
-
-		return cachedInfo;
 
 	}
 }

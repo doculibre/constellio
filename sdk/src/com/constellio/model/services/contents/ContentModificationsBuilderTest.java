@@ -318,7 +318,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		params.put("collection_s", zeCollection);
 		RecordDTO recordDTO = new RecordDTO("zeId", 3L, null, params);
 
-		return new TestRecord(recordDTO);
+		return new TestRecord(recordDTO, "fr");
 	}
 
 	private ContentImpl createMajor(String id, User user, String filename, ContentVersionDataSummary newVersion) {

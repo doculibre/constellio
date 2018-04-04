@@ -72,7 +72,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 		ConstellioCache cache = new SerializationCheckCache("zeCache");
 		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices, cache, dataLayerExtensions);
 
-		collectionsListManager = new CollectionsListManager(configManager);
+		collectionsListManager = new CollectionsListManager(getModelLayerFactory());
 		collectionsListManager.initialize();
 
 		manager = newManager(managerListener);
