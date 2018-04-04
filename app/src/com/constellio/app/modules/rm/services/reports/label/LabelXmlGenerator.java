@@ -3,12 +3,9 @@ package com.constellio.app.modules.rm.services.reports.label;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -67,6 +64,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 	private int startingPosition, numberOfCopies = 1;
 
 	private String type;
+	private Locale locale;
 
 	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory) {
 		super(appLayerFactory, collection);
@@ -74,6 +72,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+		this.locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 	}
 
 	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Record... recordElements) {
@@ -285,7 +284,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			if (titleBuilder.length() > 0) {
 				titleBuilder.append(", ");
 			}
-			titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
+			titleBuilder.append((String) recordReferenced.get(Schemas.TITLE, locale));
 
 			if (codeBuilder.length() > 0) {
 				codeBuilder.append(", ");
@@ -304,7 +303,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 					if (titleParentBuilder.length() > 0) {
 						titleParentBuilder.append(", ");
 					}
-					titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
+					titleParentBuilder.append(parentRecord.get(Schemas.TITLE, locale));
 
 					if (codeParentBuilder.length() > 0) {
 						codeParentBuilder.append(", ");

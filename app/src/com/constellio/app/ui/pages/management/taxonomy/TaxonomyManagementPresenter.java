@@ -38,6 +38,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
@@ -54,10 +55,12 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	TaxonomyVO taxonomy;
 	String conceptId;
 	String taxonomyCode;
+	SchemasRecordsServices schemasRecordsServices;
 
 	private transient SequenceServices sequenceServices;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
+
 		super(view);
 		initTransientObjects();
 	}
@@ -72,6 +75,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		ConstellioFactories constellioFactories = view.getConstellioFactories();
 		SessionContext sessionContext = view.getSessionContext();
 		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
+		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	public TaxonomyManagementPresenter forParams(String parameters) {
@@ -173,6 +177,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	Taxonomy fetchTaxonomy(String taxonomyCode) {
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		return taxonomiesManager.getEnabledTaxonomyWithCode(view.getCollection(), taxonomyCode);
+	}
+
+	public String getMultiLangualTitle(){
+		if(conceptId == null) {
+			return null;
+		}
+		MetadataSchema metadataSchema = schemasRecordsServices.schema(getCurrentConcept().getRecord().getSchemaCode());
+		Metadata metadata = metadataSchema.getMetadata(Schemas.TITLE_CODE);
+
+		return getCurrentConcept().getRecord().get(metadata, view.getSessionContext().getCurrentLocale());
 	}
 
 	public TaxonomyVO getTaxonomy() {

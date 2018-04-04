@@ -35,6 +35,8 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 	private transient SchemaPresenterUtils taxonomyPresenterUtils;
 
+
+
 	public TaxonomyBreadcrumbTrailPresenter(String taxonomyCode, String conceptId, BreadcrumbTrail breadcrumbTrail) {
 		this.taxonomyCode = taxonomyCode;
 		this.conceptId = conceptId;
@@ -110,7 +112,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public String getLabel() {
-			return SchemaCaptionUtils.getCaptionForRecordId(conceptId);
+			return SchemaCaptionUtils.getCaptionForRecordId(conceptId, breadcrumbTrail.getSessionContext().getCurrentLocale());
 		}
 
 		@Override
