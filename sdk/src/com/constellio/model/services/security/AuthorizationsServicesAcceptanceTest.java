@@ -2345,9 +2345,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
-		//	userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
-		reindex();
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(sasquatch).contains(edouard);
@@ -2370,6 +2369,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).giving(ROLE1));
 		auth2 = add(authorizationForGroup(legends).on(FOLDER4).giving(ROLE1));
 		auth3 = add(authorizationForGroup(legends).on(FOLDER3).giving(ROLE2));
+
+		assertThat(schemas.getAllUsersInGroup(users.legendsIn(zeCollection), true, true))
+				.extracting("username").contains("edouard", "sasquatch");
+
+		assertThat(schemas.getAllUsersInGroup(users.rumorsIn(zeCollection), true, true))
+				.extracting("username").contains("sasquatch").doesNotContain("edouard");
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
 			verifyRecord.usersWithRole(ROLE1).contains(edouard, sasquatch);
@@ -2406,6 +2411,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
 
+		assertThat(schemas.getAllUsersInGroup(users.legendsIn(zeCollection), true, true))
+				.extracting("username").doesNotContain("edouard", "sasquatch");
+
+		assertThat(schemas.getAllUsersInGroup(users.rumorsIn(zeCollection), true, true))
+				.extracting("username").doesNotContain("sasquatch", "edouard");
+
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(legends),
@@ -2431,11 +2442,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.extracting("username").doesNotContain(edouard, sasquatch);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
-			verifyRecord.usersWithRole(ROLE1).contains(edouard).doesNotContain(sasquatch);
+			verifyRecord.usersWithRole(ROLE1).describedAs(verifyRecord.recordId).contains(edouard).doesNotContain(sasquatch);
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(edouard).doesNotContain(sasquatch);
 			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
 					.extracting("username").contains(edouard).doesNotContain(sasquatch);
@@ -2452,6 +2463,14 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.extracting("username").contains(edouard).doesNotContain(sasquatch);
 		}
 
+	}
+
+	private void reenableLegends() {
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		userServices.addUpdateUserCredential(users.edouardLechat().withNewGlobalGroup("legends"));
+		userServices.addUpdateUserCredential(users.alice().withNewGlobalGroup("legends"));
+		userServices.addUpdateUserCredential(users.gandalfLeblanc().withNewGlobalGroup("legends"));
 	}
 
 	@Test
@@ -2501,7 +2520,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
@@ -2585,7 +2604,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.extracting("username").doesNotContain(sasquatch, edouard);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
@@ -2663,7 +2682,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
@@ -2750,7 +2769,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.extracting("username").doesNotContain(edouard, sasquatch);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
@@ -2822,7 +2841,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
@@ -2908,7 +2927,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.extracting("username").doesNotContain(sasquatch, edouard);
 		}
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
