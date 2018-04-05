@@ -288,6 +288,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 	public void start() {
 		super.start();
 		sendAndReceiveThread.start();
+		cleanerThread.start();
 	}
 
 	@Override
@@ -296,6 +297,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		running = false;
 		try {
 			sendAndReceiveThread.join();
+			cleanerThread.join();
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
