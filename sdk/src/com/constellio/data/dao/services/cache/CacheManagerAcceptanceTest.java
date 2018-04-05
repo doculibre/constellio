@@ -27,8 +27,8 @@ public class CacheManagerAcceptanceTest extends ConstellioTest {
 		ConstellioCache cache1 = cacheManager.getCache("cache1");
 		ConstellioCache cache2 = cacheManager.getCache("cache2");
 
-		cache1.put("key", "value1");
-		cache2.put("key", "value2");
+		cache1.put("key", "value1", InsertionReason.WAS_OBTAINED);
+		cache2.put("key", "value2", InsertionReason.WAS_OBTAINED);
 
 		String valueCache1 = (String) cacheManager.getCache("cache1").get("key");
 		String valueCache2 = (String) cacheManager.getCache("cache2").get("key");
@@ -36,8 +36,8 @@ public class CacheManagerAcceptanceTest extends ConstellioTest {
 		assertThat(valueCache1).isEqualTo("value1");
 		assertThat(valueCache2).isEqualTo("value2");
 
-		cache1.put("key", "value1b");
-		cache2.put("key", "value2b");
+		cache1.put("key", "value1b", InsertionReason.WAS_MODIFIED);
+		cache2.put("key", "value2b", InsertionReason.WAS_MODIFIED);
 
 		valueCache1 = (String) cacheManager.getCache("cache1").get("key");
 		valueCache2 = (String) cacheManager.getCache("cache2").get("key");

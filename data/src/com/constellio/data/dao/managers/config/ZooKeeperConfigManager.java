@@ -42,15 +42,20 @@ import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.events.Event;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusListener;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 
-public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
+public class ZooKeeperConfigManager implements StatefulService, ConfigManager, EventBusListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZooKeeperConfigManager.class);
 	private static final String ROOT_FOLDER = "/constellio";
 	private static final String CONFIG_FOLDER = "/conf";
 	private static final String GET_BINARY_CONTENT = "ZooKeeperConfigManager-getBinaryContent";
+	private static final String CONFIG_UPDATED_EVENT_TYPE = "configUpdated";
 
 	private static volatile CuratorFramework CLIENT;
 
@@ -60,16 +65,19 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	private String rootFolder;
 	private IOServices ioServices;
 	private ConfigManagerHelper configManagerHelper;
+	private EventBus eventBus;
 
-	public ZooKeeperConfigManager(String address, String rootFolder, IOServices ioServices) {
+	public ZooKeeperConfigManager(String address, String rootFolder, IOServices ioServices, EventBus eventBus) {
 		this.address = address;
 		this.rootFolder = StringUtils.removeEnd(rootFolder, "/");
 		this.ioServices = ioServices;
 		this.configManagerHelper = new ConfigManagerHelper(this);
-		init(address);
+		this.eventBus = eventBus;
+		this.eventBus.register(this);
+		getInstance(address);
 	}
 
-	private static synchronized void init(String address) {
+	public static synchronized CuratorFramework getInstance(String address) {
 		if (CLIENT == null) {
 			try {
 				RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
@@ -79,6 +87,8 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 				throw new RuntimeException(e);
 			}
 		}
+
+		return CLIENT;
 	}
 
 	@Override
@@ -265,6 +275,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			byte[] bytes = IOUtils.toByteArray(newBinaryStream);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -272,6 +283,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -282,10 +294,20 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			byte[] bytes = getByteFromDocument(newDocument);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
+		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
+	}
+
+	private void cacheRemoveAndCallListeners(String path) {
+		//removeFromCache(path);
+
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
@@ -301,6 +323,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 			prop.store(output, null);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, output.toByteArray());
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -308,6 +331,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -334,6 +358,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 		try {
 			CLIENT.delete().deletingChildrenIfNeeded().withVersion(Integer.parseInt(hash)).forPath(clientPath);
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -519,5 +544,20 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public void keepInCache(String path) {
 		//This config manager has no cache
+	}
+
+	@Override
+	public void onEventReceived(Event event) {
+		switch (event.getType()) {
+		case CONFIG_UPDATED_EVENT_TYPE:
+			String path = event.getData();
+			for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+				listener.onConfigUpdated(path);
+			}
+			break;
+
+		default:
+			throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
+		}
 	}
 }

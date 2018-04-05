@@ -77,7 +77,22 @@ public class FileService {
 		File tempFile = getAtomicWriteTempFileFor(file);
 		FileUtils.writeStringToFile(tempFile, data, "UTF-8", false);
 		//moveFile(tempFile, file);
-		java.nio.file.Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+		try {
+			java.nio.file.Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+
+		} catch (java.nio.file.NoSuchFileException e) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				throw new RuntimeException(e1);
+			}
+			System.out.println(tempFile.getAbsolutePath() + "=>" + tempFile.exists());
+			System.out.println(file.getAbsolutePath() + "=>" + file.exists());
+			FileUtils.writeStringToFile(tempFile, data, "UTF-8", false);
+			System.out.println(tempFile.getAbsolutePath() + "=>" + tempFile.exists());
+			System.out.println(file.getAbsolutePath() + "=>" + file.exists());
+			java.nio.file.Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+		}
 	}
 
 	public synchronized void appendFileContent(File file, String data)

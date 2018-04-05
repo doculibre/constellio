@@ -1,17 +1,23 @@
 package com.constellio.model.services.security.roles;
 
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -25,16 +31,19 @@ import com.constellio.sdk.tests.setups.Users;
 public class RolesManagerAcceptanceTest extends ConstellioTest {
 
 	CollectionsManager collectionsManager;
+	CollectionsManager collectionsManagerOfOtherInstance;
 	private Role validRole;
 	private Role validRole2;
 	private Role validRole3;
 	private Role invalidRoleWithoutCode;
 	private Role invalidRoleWithCode;
 	private RolesManager manager;
+	private RolesManager managerOfOtherInstance;
 	private ConstellioPluginManager pluginManager;
 	private SchemasRecordsServices schemas;
 	private UserServices userServices;
 	private String anotherCollection = "anotherCollection";
+	private SDKEventBusSendingService zeInstanceEventBus;
 
 	Users users = new Users();
 
@@ -48,6 +57,11 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		pluginManager = getAppLayerFactory().getPluginManager();
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 
+		AppLayerFactory otherInstanceAppLayerFactory = getAppLayerFactory("otherInstance");
+		collectionsManagerOfOtherInstance = otherInstanceAppLayerFactory.getCollectionsManager();
+		zeInstanceEventBus = linkEventBus(getDataLayerFactory(),
+				otherInstanceAppLayerFactory.getModelLayerFactory().getDataLayerFactory());
+
 		validRole = new Role(zeCollection, "uniqueCode", "zeValidRole", asList("operation1", "operation2"));
 		validRole2 = new Role(zeCollection, "uniqueCode2", "zeValidRole2", asList("operation3", "operation4"));
 		validRole3 = new Role(zeCollection, "uniqueCode3", "zeValidRole3", asList("operation5", "operation6"));
@@ -58,6 +72,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 		users = new Users().setUp(userServices);
 		manager = getModelLayerFactory().getRolesManager();
+		managerOfOtherInstance = otherInstanceAppLayerFactory.getModelLayerFactory().getRolesManager();
 		schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 	}
 
@@ -67,16 +82,41 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 
 		givenCollection("collection1");
 		givenCollection("collection2");
+
+		assertThatEventsReceivedOnZeInstance().isEmpty();
+		assertThatEventsSentFromZeInstance().isNotEmpty();
+
+		assertThat(manager.getAllRoles("collection1")).hasSize(1);
+		assertThat(manager.getAllRoles("collection2")).hasSize(1);
+		assertThat(managerOfOtherInstance.getAllRoles("collection1")).hasSize(1);
+		assertThat(managerOfOtherInstance.getAllRoles("collection2")).hasSize(1);
+
 		Role role1 = new Role("collection1", "uniqueCode", "zeValidRole", asList("operation"));
 		Role role2 = new Role("collection2", "uniqueCode", "zeValidRole", asList("operation"));
+		Role role3 = new Role("collection2", "otherRole", "zeValidRole", asList("operation"));
 
 		manager.addRole(role1);
-		manager.addRole(role2);
+		managerOfOtherInstance.addRole(role2);
+		manager.addRole(role3);
+
+		assertThatEventsReceivedOnZeInstance().containsExactly(
+				tuple("configUpdated", "/collection2/roles.xml")
+		);
+		assertThatEventsSentFromZeInstance().containsExactly(
+				tuple("configUpdated", "/collection1/roles.xml"),
+				tuple("configUpdated", "/collection2/roles.xml")
+		);
 
 		assertThat(manager.getAllRoles("collection1")).hasSize(2);
-		assertThat(manager.getAllRoles("collection2")).hasSize(2);
+		assertThat(manager.getAllRoles("collection2")).hasSize(3);
+		assertThat(managerOfOtherInstance.getAllRoles("collection1")).hasSize(2);
+		assertThat(managerOfOtherInstance.getAllRoles("collection2")).hasSize(3);
 		assertThat(manager.getRole("collection1", role1.getCode()).getCollection()).isEqualTo("collection1");
-		assertThat(manager.getRole("collection2", role1.getCode()).getCollection()).isEqualTo("collection2");
+		assertThat(manager.getRole("collection2", role2.getCode()).getCollection()).isEqualTo("collection2");
+		assertThat(manager.getRole("collection2", role3.getCode()).getCollection()).isEqualTo("collection2");
+
+		assertThat(manager.getAllRoles("collection1")).hasSize(2);
+		assertThat(manager.getAllRoles("collection2")).hasSize(3);
 	}
 
 	@Test
@@ -303,6 +343,18 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 	public void givenEmptyCodeAndDeleteThenExceptionThrown()
 			throws RolesManagerRuntimeException {
 		manager.deleteRole(invalidRoleWithoutCode);
+	}
+
+	private ListAssert<Tuple> assertThatEventsReceivedOnZeInstance() {
+		return assertThat(
+				zeInstanceEventBus.newReceivedEventsOnBus("configManager"))
+				.extracting("type", "data");
+	}
+
+	private ListAssert<Tuple> assertThatEventsSentFromZeInstance() {
+		return assertThat(
+				zeInstanceEventBus.newSentEventsOnBus("configManager"))
+				.extracting("type", "data");
 	}
 
 }

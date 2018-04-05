@@ -37,15 +37,19 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.events.Event;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusListener;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 
-public class FileSystemConfigManager implements StatefulService, ConfigManager {
+public class FileSystemConfigManager implements StatefulService, EventBusListener, ConfigManager {
 
 	static final String ADD_BINARY_FILE = "FileSystemConfigManager-AddBinaryFile";
 	static final String UPDATE_BINARY_FILE = "FileSystemConfigManager-UpdateBinaryFile";
@@ -66,12 +70,15 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private DataLayerExtensions extensions;
 	ConfigManagerHelper configManagerHelper;
 
+	private static final String CONFIG_UPDATED_EVENT_TYPE = "configUpdated";
+	EventBus eventBus;
+
 	//	private final Map<String, Object> cache = new HashMap<>();
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
 
 	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService, ConstellioCache cache,
-			DataLayerExtensions extensions) {
+			DataLayerExtensions extensions, EventBus eventBus) {
 		super();
 		this.configFolder = configFolder;
 		this.ioServices = ioServices;
@@ -79,6 +86,8 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		this.cache = cache;
 		this.extensions = extensions;
 		this.configManagerHelper = new ConfigManagerHelper(this);
+		this.eventBus = eventBus;
+		this.eventBus.register(this);
 	}
 
 	@Override
@@ -433,10 +442,11 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
-	private void cacheRemoveAndCallListeners(String path ) {
-		removeFromCache(path);
+	private void cacheRemoveAndCallListeners(String path) {
+		cache.remove(path);
 
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
@@ -464,6 +474,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -498,6 +509,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);
 		}
+		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
 	@Override
@@ -655,5 +667,20 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 		return cachedConfiguration;
 
+	}
+
+	@Override
+	public void onEventReceived(Event event) {
+		switch (event.getType()) {
+		case CONFIG_UPDATED_EVENT_TYPE:
+			String path = event.getData();
+			for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+				listener.onConfigUpdated(path);
+			}
+			break;
+
+		default:
+			throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
+		}
 	}
 }

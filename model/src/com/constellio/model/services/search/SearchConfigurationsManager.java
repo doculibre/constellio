@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.data.TextView;
@@ -45,19 +46,20 @@ public class SearchConfigurationsManager {
 		synonyms = getSynonymsOnServer();
 		Elevations elevations = getAllElevationsFromDisk();
 
-		for(Elevations.QueryElevation queryElevation : elevations.getQueryElevations()) {
-			constellioCache.put(queryElevation.getQuery(), (ArrayList) queryElevation.getDocElevations());
+		for (Elevations.QueryElevation queryElevation : elevations.getQueryElevations()) {
+			constellioCache
+					.put(queryElevation.getQuery(), (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_OBTAINED);
 		}
 	}
 
-	public List<Elevations.QueryElevation.DocElevation> getDocElevation(String query){
+	public List<Elevations.QueryElevation.DocElevation> getDocElevation(String query) {
 		return constellioCache.get(query);
 	}
 
 	public Elevations getAllElevationsFromDisk() {
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		if(solrFileSystem != null) {
+		if (solrFileSystem != null) {
 			DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
 			ElevationsView anElevationsView = readData.getView(new ElevationsView());
 			Elevations elevations = anElevationsView.getData();
@@ -70,7 +72,7 @@ public class SearchConfigurationsManager {
 
 	public List<String> getAllQuery() {
 		List<String> allQuery = new ArrayList<>();
-		for(Iterator<String> iterator = constellioCache.keySet(); iterator.hasNext();) {
+		for (Iterator<String> iterator = constellioCache.keySet(); iterator.hasNext(); ) {
 			allQuery.add(iterator.next());
 		}
 		return allQuery;
@@ -85,9 +87,9 @@ public class SearchConfigurationsManager {
 
 		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
 
-		if(docElevations != null) {
+		if (docElevations != null) {
 			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
-				if (recordId.equals(docElevation.getId())&& !docElevation.isExclude()) {
+				if (recordId.equals(docElevation.getId()) && !docElevation.isExclude()) {
 					found = true;
 					break;
 				}
@@ -103,9 +105,9 @@ public class SearchConfigurationsManager {
 
 		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
 
-		if(docElevations != null) {
+		if (docElevations != null) {
 			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
-				if (record.getId().equals(docElevation.getId())&& docElevation.isExclude()) {
+				if (record.getId().equals(docElevation.getId()) && docElevation.isExclude()) {
 					found = true;
 					break;
 				}
@@ -131,7 +133,6 @@ public class SearchConfigurationsManager {
 		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
 		solrFileSystem.close();
 
-
 		constellioCache.remove(query);
 
 		server.reload();
@@ -155,8 +156,8 @@ public class SearchConfigurationsManager {
 		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
 		solrFileSystem.close();
 
-		if(queryElevation != null && queryElevation.getDocElevations().size() > 0) {
-			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations());
+		if (queryElevation != null && queryElevation.getDocElevations().size() > 0) {
+			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_MODIFIED);
 		} else {
 			constellioCache.remove(query);
 		}
@@ -181,13 +182,12 @@ public class SearchConfigurationsManager {
 		solrFileSystem.close();
 
 		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(query);
-		if(queryElevation != null && queryElevation.getDocElevations().size() > 0) {
-			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations());
+		if (queryElevation != null && queryElevation.getDocElevations().size() > 0) {
+			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_MODIFIED);
 		} else {
 			constellioCache.remove(query);
 		}
 	}
-
 
 	public void removeElevated(String freeTextQuery, String recordId) {
 		if (StringUtils.isBlank(freeTextQuery)) {
@@ -211,19 +211,18 @@ public class SearchConfigurationsManager {
 		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
 		for (Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext(); ) {
 			Elevations.QueryElevation.DocElevation docElevation = iterator.next();
-			if(docElevation.getId().equals(recordId)) {
+			if (docElevation.getId().equals(recordId)) {
 				iterator.remove();
 				break;
 			}
 		}
 
-		if(docElevations.size() < 1) {
+		if (docElevations.size() < 1) {
 			constellioCache.remove(freeTextQuery);
 		}
 
 		server.reload();
 	}
-
 
 	public void setElevated(String freeTextQuery, Record record, boolean isExcluded) {
 
@@ -249,7 +248,7 @@ public class SearchConfigurationsManager {
 
 		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(freeTextQuery);
 
-		constellioCache.put(freeTextQuery,(ArrayList) queryElevation.getDocElevations());
+		constellioCache.put(freeTextQuery, (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_MODIFIED);
 
 		server.reload();
 	}
@@ -267,7 +266,7 @@ public class SearchConfigurationsManager {
 		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		if(solrFileSystem != null) {
+		if (solrFileSystem != null) {
 			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
 			TextView aStringView = readData.getView(new TextView());
 			aStringView.setData(getSynonymeAsOneString());
@@ -281,7 +280,7 @@ public class SearchConfigurationsManager {
 		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
 		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
 
-		if(solrFileSystem != null) {
+		if (solrFileSystem != null) {
 			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
 
 			TextView aStringView = readData.getView(new TextView());
@@ -289,16 +288,15 @@ public class SearchConfigurationsManager {
 			String synonymsAsOneString = aStringView.getData();
 
 			return Arrays.asList(synonymsAsOneString.split("\\r\\n|\\n|\\r"));
-		} else  {
+		} else {
 			return new ArrayList<>();
 		}
 	}
 
-
 	private String getSynonymeAsOneString() {
 		StringBuilder allSynonyms = new StringBuilder();
 
-		for(String synonym : synonyms) {
+		for (String synonym : synonyms) {
 			allSynonyms.append(synonym + "\n");
 		}
 
