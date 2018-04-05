@@ -26,9 +26,11 @@ public class FailureDetectionTestWatcher extends TestWatcher {
 	protected void finished(Description description) {
 		if (!failed) {
 			listener.finished(description);
-			String failMessage = ConstellioTest.getInstance().getFailMessage();
-			if (failMessage != null) {
-				fail(failMessage);
+			if (ConstellioTest.getInstance() != null) {
+				String failMessage = ConstellioTest.getInstance().getFailMessage();
+				if (failMessage != null) {
+					fail(failMessage);
+				}
 			}
 		}
 	}
