@@ -91,7 +91,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 
 	boolean isDeletePossible(String schemaCode) {
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-		return appSchemasServices.isSchemaDeletable(collection, schemaCode);
+		return appSchemasServices.isSchemaDeletable(collection, schemaCode) == null;
 	}
 
 	public void deleteButtonClicked(String schemaCode) {

@@ -2,6 +2,7 @@ import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EX
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LINKED_SCHEMA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -202,7 +203,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		setUpWithoutRecords();
 
 		//This is a behavior supported by the backend, but not by the UI. So, it is a very rare case!
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isTrue();
+		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isNull();
 
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -213,7 +214,8 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		});
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
 				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isFalse();
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par la métadonnée zeProblematicReference du schéma aThirdSchemaType du type aThirdSchemaType.");
 
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
@@ -308,9 +310,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		setUpWithRecords();
 
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isFalse();
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")).isFalse();
-
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
+				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par 2 enregistrements.");
 		try {
 			appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom");
 			fail("schema should not be deletable");
@@ -337,8 +340,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		setUpWithoutRecords();
 
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isTrue();
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")).isFalse();
+		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isNull();
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
+				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
+
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
 				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
