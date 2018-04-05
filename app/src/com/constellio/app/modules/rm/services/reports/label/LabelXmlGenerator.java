@@ -248,7 +248,8 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		}
 
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+
+		String data = formatData(getToStringOrNull(recordElement.get(metadata, locale)), metadata);
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);
