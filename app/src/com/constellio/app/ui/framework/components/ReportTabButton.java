@@ -106,15 +106,15 @@ public class ReportTabButton extends WindowButton {
 
     @Override
     public void afterOpenModal() {
-        if(buttonPresenter.isNeedToRemovePDFTab() || reportComboBox.getContainerDataSource().size() == 0) {
+        if(pdfTab != null && (buttonPresenter.isNeedToRemovePDFTab() || (reportComboBox == null || reportComboBox.getContainerDataSource().size() == 0))) {
             pdfTab.setVisible(false);
         }
 
-        if(buttonPresenter.isNeedToRemoveExcelTab()) {
+        if(excelTab != null && buttonPresenter.isNeedToRemoveExcelTab()) {
             excelTab.setVisible(false);
         }
 
-        if(!pdfTab.isVisible() && !excelTab.isVisible()){
+        if(errorTab != null && (pdfTab == null || !pdfTab.isVisible()) && (excelTab == null || !excelTab.isVisible())){
             errorTab.setVisible(true);
         } else {
             errorTab.setVisible(false);
