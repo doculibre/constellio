@@ -1,5 +1,7 @@
 package com.constellio.model.services.users;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -23,9 +25,12 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import com.constellio.sdk.tests.QueryCounter;
+import com.constellio.sdk.tests.setups.Users;
 
 public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
@@ -144,6 +149,38 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getUserCredentialsInGlobalGroup("group2").get(0))
 				.isEqualToComparingFieldByField(edouardUserCredential);
 		assertThat(manager.getUserCredentialsInGlobalGroup("group3")).isEmpty();
+	}
+
+	@Test
+	public void givenMultipleUserAndGroupsAndMultipleWhenInitializedThenCacheLoadedAndUsingIt()
+			throws Exception {
+
+		Users users = new Users().setUp(getModelLayerFactory().newUserServices());
+
+		ModelLayerFactory otherInstanceModelLayer = getModelLayerFactory("other");
+		UserCredentialsManager otherInstanceUserCredentialsManager = otherInstanceModelLayer.getUserCredentialsManager();
+
+		QueryCounter queryCounter = new QueryCounter(otherInstanceModelLayer.getDataLayerFactory(),
+				ON_COLLECTION(SYSTEM_COLLECTION));
+
+		assertThat(otherInstanceUserCredentialsManager.getUserCredential("alice").getLastName()).isEqualTo("Wonderland");
+		assertThat(otherInstanceUserCredentialsManager.getUserCredential("bob").getLastName()).isEqualTo("Gratton");
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		assertThat(otherInstanceUserCredentialsManager.getUserCredentialsInGlobalGroup("legends"))
+				.extracting("username").containsOnly("edouard", "alice", "gandalf");
+
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		//
+
+		//		manager.addUpdate(chuckUserCredential);
+		//		manager.addUpdate(edouardUserCredential);
+		//
+		//		assertThat(manager.getUserCredentialsInGlobalGroup("group1")).hasSize(1);
+		//		assertThat(manager.getUserCredentialsInGlobalGroup("group1").get(0)).isEqualToComparingFieldByField(chuckUserCredential);
+		//		assertThat(manager.getUserCredentialsInGlobalGroup("group2")).hasSize(1);
+		//		assertThat(manager.getUserCredentialsInGlobalGroup("group2").get(0))
+		//				.isEqualToComparingFieldByField(edouardUserCredential);
+		//		assertThat(manager.getUserCredentialsInGlobalGroup("group3")).isEmpty();
 	}
 
 	@Test

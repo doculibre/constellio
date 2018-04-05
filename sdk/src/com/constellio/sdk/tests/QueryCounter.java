@@ -78,4 +78,24 @@ public class QueryCounter extends BigVaultServerExtension {
 		};
 	}
 
+	public static QueryCounterFilter ON_COLLECTION(final String collection) {
+		return new QueryCounterFilter() {
+
+			@Override
+			public boolean isCounted(AfterQueryParams params) {
+				for (String fq : params.getSolrParams().getParams("fq")) {
+					if (fq.contains("collection_s:" + collection)) {
+						return true;
+					}
+
+					if (fq.contains("collection_s:" + collection)) {
+						return true;
+					}
+
+				}
+				return false;
+			}
+		};
+	}
+
 }
