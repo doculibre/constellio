@@ -21,7 +21,6 @@ public class SDKEventBusSendingService extends EventBusSendingService {
 
 	@Override
 	public void sendRemotely(Event event) {
-		System.out.println("Event sent : " + event.getType() + " " + event.getData());
 		sentEvents.add(event);
 
 		Object deserializedData = testDataSerialization(event.getData());

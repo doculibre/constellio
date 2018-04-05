@@ -445,8 +445,8 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
 	}
 
-	private void cacheRemoveAndCallListeners(String path ) {
-		removeFromCache(path);
+	private void cacheRemoveAndCallListeners(String path) {
+		cache.remove(path);
 
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);

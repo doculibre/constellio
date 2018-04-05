@@ -275,6 +275,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 			byte[] bytes = IOUtils.toByteArray(newBinaryStream);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -293,6 +294,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 			byte[] bytes = getByteFromDocument(newDocument);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, bytes);
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -301,6 +303,14 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 			listener.onConfigUpdated(path);
 		}
 		eventBus.send(CONFIG_UPDATED_EVENT_TYPE, path);
+	}
+
+	private void cacheRemoveAndCallListeners(String path) {
+		//removeFromCache(path);
+
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
+		}
 	}
 
 	@Override
@@ -313,6 +323,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 			prop.store(output, null);
 			CLIENT.setData().withVersion(Integer.parseInt(hash)).forPath(clientPath, output.toByteArray());
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -347,6 +358,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 		try {
 			CLIENT.delete().deletingChildrenIfNeeded().withVersion(Integer.parseInt(hash)).forPath(clientPath);
 		} catch (BadVersionException e) {
+			cacheRemoveAndCallListeners(path);
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);

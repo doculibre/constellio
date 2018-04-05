@@ -19,7 +19,6 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Delayed;
@@ -133,11 +132,19 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(manager.getValue(text)).isNull();
 		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("bob");
+		assertThat(managerOfOtherInstance.getValue(text)).isNull();
+		assertThat(managerOfOtherInstance.getValue(textWithDefaultValue)).isEqualTo("bob");
 
 		manager.setValue(text, "dakota");
-		managerOfOtherInstance.setValue(textWithDefaultValue, "lindien");
+
+		assertThat(manager.getValue(text)).isEqualTo("dakota");
+		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("dakota");
+
+		manager.setValue(textWithDefaultValue, "lindien");
 
 		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("dakota");
+		assertThat(managerOfOtherInstance.getValue(textWithDefaultValue)).isEqualTo("lindien");
+		assertThat(manager.getValue(text)).isEqualTo("dakota");
 		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("lindien");
 
 		manager.setValue(text, "alice");
@@ -184,9 +191,6 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBinaryMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
-
-		getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes("myCollection").getSchemaType(Folder.SCHEMA_TYPE)
-				.getDefaultSchema().getMetadata(Folder.RETENTION_RULE);
 
 		assertThat(manager.getValue(binary)).isNull();
 

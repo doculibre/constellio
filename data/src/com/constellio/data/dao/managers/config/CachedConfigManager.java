@@ -141,7 +141,11 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void update(String path, String hash, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
-		configManager.update(path, hash, newBinaryStream);
+		try {
+			configManager.update(path, hash, newBinaryStream);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override

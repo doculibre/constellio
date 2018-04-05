@@ -4,9 +4,11 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -74,9 +76,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	Delayed<ConstellioModulesManager> constellioModulesManagerDelayed;
 
-	ConstellioCache cache;
+	ConstellioCache cache2;
 
-	boolean readPropertiesFileRequired = true;
+	//boolean readPropertiesFileRequired = true;
 
 	public SystemConfigurationsManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager,
 			Delayed<ConstellioModulesManager> constellioModulesManagerDelayed, ConstellioCacheManager cacheManager) {
@@ -85,7 +87,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		this.constellioModulesManagerDelayed = constellioModulesManagerDelayed;
 		this.configManager.registerListener(CONFIG_FILE_PATH, this);
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
-		this.cache = cacheManager.getCache(getClass().getName());
+		this.cache2 = cacheManager.getCache(getClass().getName());
 	}
 
 	@Override
@@ -98,9 +100,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		});
 	}
 
-	private void clearCache() {
-		cache.clear();
-		readPropertiesFileRequired = true;
+	private synchronized void clearCache() {
+		cache2.clear();
+//		readPropertiesFileRequired = true;
 	}
 
 	@Override
@@ -388,26 +390,28 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
 
-	private synchronized void loadPropertiesFileInCacheIfNecessary() {
-		if (readPropertiesFileRequired) {
-			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
-			if (propertiesConfig != null) {
-				Map<String, String> properties = propertiesConfig.getProperties();
-				for (String key : properties.keySet()) {
-					String value = properties.get(key);
-					cache.put(key, value, InsertionReason.WAS_OBTAINED);
-				}
-				readPropertiesFileRequired = false;
-			}
-		}
-	}
+	//	private synchronized void loadPropertiesFileInCacheIfNecessary() {
+	//		if (readPropertiesFileRequired) {
+	//			System.out.println("Load");
+	//			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
+	//			if (propertiesConfig != null) {
+	//				Map<String, String> properties = propertiesConfig.getProperties();
+	//				cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
+	//				//				for (String key : properties.keySet()) {
+	//				//					String value = properties.get(key);
+	//				//					properties.put(key, value, InsertionReason.WAS_OBTAINED);
+	//				//				}
+	//				//				readPropertiesFileRequired = false;
+	//			}
+	//		}
+	//	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T getValue(SystemConfiguration config) {
 		T value;
 		if (config.getType() == SystemConfigurationType.BINARY) {
 			String configKey = "/systemConfigs/" + config.getCode();
-			byte[] binaryContentFromCache = cache.get(configKey);
+			byte[] binaryContentFromCache = cache2.get(configKey);
 			StreamFactory<InputStream> inputStreamFactory;
 			if (binaryContentFromCache == null) {
 				BinaryConfiguration binaryConfiguration = configManager.getBinary(configKey);
@@ -415,12 +419,12 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 					inputStreamFactory = binaryConfiguration.getInputStreamFactory();
 					try (InputStream in = inputStreamFactory.create(configKey + ".loadingInCache")) {
 						byte[] binaryContent = IOUtils.toByteArray(in);
-						cache.put(configKey, binaryContent, InsertionReason.WAS_OBTAINED);
+						cache2.put(configKey, binaryContent, InsertionReason.WAS_OBTAINED);
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}
 				} else {
-					cache.put(configKey, new byte[0], InsertionReason.WAS_OBTAINED);
+					cache2.put(configKey, new byte[0], InsertionReason.WAS_OBTAINED);
 					inputStreamFactory = null;
 				}
 
@@ -435,9 +439,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			value = (T) inputStreamFactory;
 
 		} else {
-			loadPropertiesFileInCacheIfNecessary();
 			String propertyKey = config.getPropertyKey();
-			String valueFromCache = cache.get(propertyKey);
+			String valueFromCache = getPropertiesUsingCache().get(propertyKey);
 			if (valueFromCache != null) {
 				value = (T) toObject(config, valueFromCache);
 			} else {
@@ -445,6 +448,22 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			}
 		}
 		return value;
+	}
+
+	Map<String, String> getPropertiesUsingCache() {
+		Map<String, String> properties = cache2.get("properties");
+
+		if (properties == null) {
+			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
+			if (propertiesConfig != null) {
+				properties = propertiesConfig.getProperties();
+				cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
+			} else {
+				cache2.put("properties", new HashMap<>(), InsertionReason.WAS_OBTAINED);
+			}
+		}
+
+		return properties;
 	}
 
 	@Override
