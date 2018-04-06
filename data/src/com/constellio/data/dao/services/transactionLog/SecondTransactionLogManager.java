@@ -30,4 +30,5 @@ public interface SecondTransactionLogManager extends StatefulService {
 	void deleteUnregroupedLog()
 			throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 
+	void moveLastBackupAsCurrentLog();
 }

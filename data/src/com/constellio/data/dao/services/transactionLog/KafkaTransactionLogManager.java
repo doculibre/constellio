@@ -244,6 +244,11 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	}
 
 	@Override
+	public void moveLastBackupAsCurrentLog() {
+		// TODO : Kafka backup?
+	}
+
+	@Override
 	public void setAutomaticRegroupAndMoveInVaultEnabled(boolean enabled) {
 		automaticRegroupAndMoveInVaultEnabled = enabled;
 	}
