@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.reports.parameters;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class XmlReportGeneratorParameters extends AbstractXmlGeneratorParameters {
     private int numberOfCopies;

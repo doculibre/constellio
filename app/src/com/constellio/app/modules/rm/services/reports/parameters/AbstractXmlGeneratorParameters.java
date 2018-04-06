@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.reports.parameters;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.base.Strings;
 
 import java.util.List;
@@ -11,6 +12,7 @@ public abstract class AbstractXmlGeneratorParameters {
 
     private List<String> ids;
     private String schemaCode;
+    private LogicalSearchQuery query;
 
     private boolean isForTest = false;
 
@@ -20,6 +22,10 @@ public abstract class AbstractXmlGeneratorParameters {
      */
     public AbstractXmlGeneratorParameters(Record... recordsElements) {
         this.setRecordsElements(recordsElements);
+    }
+
+    public AbstractXmlGeneratorParameters(LogicalSearchQuery query) {
+        this.setQuery(query);
     }
 
     /**
@@ -105,4 +111,13 @@ public abstract class AbstractXmlGeneratorParameters {
      * Widely unused.
      */
     public abstract void validateInputs();
+
+    public LogicalSearchQuery getQuery() {
+        return query;
+    }
+
+    public AbstractXmlGeneratorParameters setQuery(LogicalSearchQuery query) {
+        this.query = query;
+        return this;
+    }
 }
