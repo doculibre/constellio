@@ -72,6 +72,21 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		return result;
 	}
 
+	public List<MetadataSchemaTypeVO> getDomainValues(boolean isUserCreated) {
+		labels = new ArrayList<>();
+		MetadataSchemaTypeToVOBuilder builder = newMetadataSchemaTypeToVOBuilder();
+		List<MetadataSchemaTypeVO> result = new ArrayList<>();
+		for (MetadataSchemaType schemaType : valueListServices().getValueDomainTypes()) {
+			if((isUserCreated && schemaType.getCode().matches(".*\\d")) ||
+					(!isUserCreated && !schemaType.getCode().matches(".*\\d"))) {
+				result.add(builder.build(schemaType));
+			}
+
+			labels.add(schemaType.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage())).trim());
+		}
+		return result;
+	}
+
 	MetadataSchemaTypeToVOBuilder newMetadataSchemaTypeToVOBuilder() {
 		return new MetadataSchemaTypeToVOBuilder();
 	}

@@ -334,6 +334,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public void flushRecords() {
+		recordServices.flushRecords();
+	}
+
+	@Override
 	public void removeOldLocks() {
 		recordServices.removeOldLocks();
 	}

@@ -246,6 +246,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
+	public MetadataSchemaType temporaryRecordSchemaType() {
+		return getTypes().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema temporaryRecord() {
 		return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA);
 	}

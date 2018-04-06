@@ -3,14 +3,17 @@ package com.constellio.app.modules.rm.extensions;
 import static com.constellio.app.modules.rm.constants.RMTypes.CONTAINER_RECORD;
 import static com.constellio.app.modules.rm.constants.RMTypes.RETENTION_RULE;
 import static com.constellio.app.modules.rm.constants.RMTypes.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension.RM_TAB;
 import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.FORCE_TRUE;
 import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.NOT_APPLICABLE;
 import static java.util.Arrays.asList;
 
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMTypes;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Capsule;
@@ -43,5 +46,15 @@ public class RMGenericRecordPageExtension extends GenericRecordPageExtension {
 
 		return asList(RETENTION_RULE, UNIFORM_SUBDIVISION, CONTAINER_RECORD).contains(schemaType.getCode()) ?
 				FORCE_TRUE : NOT_APPLICABLE;
+	}
+
+	@Override
+	public String getSchemaTypeDisplayGroup(MetadataSchemaType schemaType) {
+		if(RMTypes.STORAGE_SPACE.equals(schemaType.getCode())) {
+			return TAXONOMY_TAB;
+		} else if(RMTypes.getAllTypes().contains(schemaType.getCode()) || Task.SCHEMA_TYPE.equals(schemaType.getCode())) {
+			return RM_TAB;
+		}
+		return super.getSchemaTypeDisplayGroup(schemaType);
 	}
 }

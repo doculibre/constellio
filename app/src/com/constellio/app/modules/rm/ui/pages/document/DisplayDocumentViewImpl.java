@@ -199,6 +199,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			protected void deleteButtonClick(ContentVersionVO contentVersionVO) {
 				presenter.deleteContentVersionButtonClicked(contentVersionVO);
 			}
+
+			@Override
+			protected void selectionUpdated() {
+				if(deleteSelectedVersions != null) {
+					deleteSelectedVersions.setVisible(deleteSelectedVersions.isVisible());
+					deleteSelectedVersions.setEnabled(deleteSelectedVersions.isEnabled());
+				}
+			}
 		};
 		tasksComponent = new CustomComponent();
 		versionTable.setSizeFull();

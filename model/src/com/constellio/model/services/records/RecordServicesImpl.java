@@ -301,6 +301,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 					break;
 				}
 			}
+
+			for (Record recordWithinTransaction : transaction.getRecords()) {
+				if (recordWithinTransaction.getId().equals(id)) {
+					newRecordVersion = recordWithinTransaction;
+					break;
+				}
+			}
+
 			if (newRecordVersion == null) {
 				throw new RecordServicesException.UnresolvableOptimisticLockingConflict(id);
 			}
@@ -1324,6 +1332,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			recordDao.flush();
 			eventsDao.flush();
 			notificationsDao.flush();
+		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
+			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
+		}
+	}
+
+	public void flushRecords() {
+		try {
+			recordDao.flush();
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}

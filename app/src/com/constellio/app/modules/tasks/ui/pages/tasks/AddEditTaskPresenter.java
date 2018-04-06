@@ -54,6 +54,8 @@ import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 
+import javax.ws.rs.core.Response;
+
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	TaskVO taskVO;
 	transient TasksSearchServices tasksSearchServices;
@@ -72,6 +74,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
+
+	String originalAssigner;
+	String originalAssignedTo;
 
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 
@@ -171,18 +176,45 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (completeMode && tasksSchemas.isRequestTask(task)) {
 				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
-			if (task.getAssignee() == null) {
-				task.setAssignationDate(null);
-				task.setAssigner(null);
-			} else {
-				if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+
+			if(task.getAssigner() == null) {
+
+				if ((task.getAssigneeUsersCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
+						|| task.getAssigneeGroupsCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
+						|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
+
 					Field<?> field = getAssignerField();
-					if(field != null && field.getValue() != null) {
+					if(originalAssigner == null && field != null && field.getValue() != null ||
+							field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
 						task.setAssigner((String) field.getValue());
 					}
 				}
+			} else {
+				if (task.getAssignee() == null
+						&& (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().size() == 0)
+						&&  (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().size() == 0)) {
+					task.setAssignationDate(null);
+					task.setAssigner(null);
+				} else {
+					if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+						task.setAssignationDate(TimeProvider.getLocalDate());
+						task.setAssigner(getCurrentUser().getId());
+						Field<?> field = getAssignerField();
+						 if (originalAssigner == null && field != null && field.getValue() != null
+								 || field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+							task.setAssigner((String) field.getValue());
+						}
+					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
+						Field<?> field = getAssignerField();
+						task.setAssigner((String) field.getValue());
+					}
+				}
+			}
+
+			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
+				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
 			}
 
 			if(task.isModel()) {
@@ -247,6 +279,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
+
+		originalAssignedTo = taskVO.getAssignee();
+		originalAssigner = taskVO.get(Task.ASSIGNER);
 	}
 
 	public String getViewTitle() {
@@ -292,6 +327,20 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
+	public boolean isCompletedOrClosedStatus(RecordVO recordVO) {
+		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		TaskStatus statusType = tasksSchemasRecordsServices.getTaskStatus(task.getStatus());
+		if(statusType == null || statusType.getStatusType() == null) {
+			return false;
+		}
+
+		return statusType.getStatusType().isFinishedOrClosed();
+	}
+
+	public boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO) {
+		return taskPresenterServices.isSubTaskPresentAndHaveCertainStatus(recordVO.getId());
+	}
+
 	private void adjustQuestionField() {
 		TaskQuestionFieldImpl questionField = (TaskQuestionFieldImpl) view.getForm().getCustomField(Task.QUESTION);
 		if(questionField != null) {
@@ -304,7 +353,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if(assignerField != null) {
+		if(assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}

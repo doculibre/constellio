@@ -138,6 +138,11 @@ public class HadoopContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
+	public File getFileOf(String contentId){
+		throw new UnsupportedOperationException("getFileOf(contentId) is not yet supported for HadoopContentDao");
+	}
+
+	@Override
 	public void close() {
 
 	}
