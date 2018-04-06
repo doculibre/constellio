@@ -16,6 +16,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.InsertionReason;
 
 public class CachedConfigManager implements ConfigManager {
 
@@ -41,7 +42,7 @@ public class CachedConfigManager implements ConfigManager {
 
 		if (xmlConfiguration == null) {
 			xmlConfiguration = configManager.getXML(path);
-			constellioCache.put(path, xmlConfiguration);
+			constellioCache.put(path, xmlConfiguration, InsertionReason.WAS_OBTAINED);
 		}
 
 		return xmlConfiguration;
@@ -53,7 +54,7 @@ public class CachedConfigManager implements ConfigManager {
 
 		if (textConfiguration == null) {
 			textConfiguration = configManager.getText(path);
-			constellioCache.put(path, textConfiguration);
+			constellioCache.put(path, textConfiguration, InsertionReason.WAS_OBTAINED);
 		}
 
 		return textConfiguration;
@@ -65,7 +66,7 @@ public class CachedConfigManager implements ConfigManager {
 
 		if (propertiesConfiguration == null) {
 			propertiesConfiguration = configManager.getProperties(path);
-			constellioCache.put(path, propertiesConfiguration);
+			constellioCache.put(path, propertiesConfiguration, InsertionReason.WAS_OBTAINED);
 		}
 
 		return propertiesConfiguration;
@@ -140,7 +141,11 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void update(String path, String hash, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
-		configManager.update(path, hash, newBinaryStream);
+		try {
+			configManager.update(path, hash, newBinaryStream);
+		} finally {
+			removeFromCache(path);
+		}
 	}
 
 	@Override

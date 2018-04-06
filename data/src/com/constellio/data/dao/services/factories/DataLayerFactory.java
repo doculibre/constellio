@@ -1,11 +1,17 @@
 package com.constellio.data.dao.services.factories;
 
+import static com.constellio.data.conf.ElectionServiceType.IGNITE;
+import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -13,6 +19,7 @@ import com.constellio.data.conf.CacheType;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.EventBusSendingServiceType;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -32,6 +39,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.event.ConstellioEventMapCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCacheManager;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCacheManager;
@@ -41,8 +49,10 @@ import com.constellio.data.dao.services.contents.HadoopContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
-import com.constellio.data.dao.services.ignite.DefaultLeaderElectionServiceImpl;
-import com.constellio.data.dao.services.ignite.LeaderElectionService;
+import com.constellio.data.dao.services.leaderElection.IgniteLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -55,6 +65,11 @@ import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFacto
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.EventBusSendingService;
+import com.constellio.data.events.SolrEventBusSendingService;
+import com.constellio.data.events.StandaloneEventBusSendingService;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
@@ -91,11 +106,16 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 	private String constellioVersion;
 	private final ConversionManager conversionManager;
+	private final EventBusManager eventBusManager;
 	private static DataLayerFactory lastCreatedInstance;
+	private final LeaderElectionManager leaderElectionManager;
 
 	public static int countConstructor;
 
 	public static int countInit;
+
+	private Ignite igniteClient;
+	private CuratorFramework curatorFramework;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
@@ -117,14 +137,48 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
+		if (dataLayerConfiguration.getElectionServiceType() == ZOOKEEPER) {
+			this.leaderElectionManager = add(new ZookeeperLeaderElectionManager(this));
+
+		} else if (dataLayerConfiguration.getElectionServiceType() == IGNITE) {
+			this.leaderElectionManager = add(new IgniteLeaderElectionManager(this));
+
+		} else {
+			this.leaderElectionManager = add(new StandaloneLeaderElectionManager());
+		}
+
+		EventBusSendingService eventBusSendingService = new StandaloneEventBusSendingService();
+		if (EventBusSendingServiceType.SOLR.equals(dataLayerConfiguration.getEventBusSendingServiceType())) {
+			SolrEventBusSendingService solrEventBusSendingService = new SolrEventBusSendingService(
+					getNotificationsVaultServer().getNestedSolrServer());
+			solrEventBusSendingService.setEventLifespan(dataLayerConfiguration.getSolrEventBusSendingServiceTypeEventLifespan());
+			solrEventBusSendingService.setPollAndRetrieveFrequency(
+					dataLayerConfiguration.getSolrEventBusSendingServiceTypePollAndRetrieveFrequency());
+			eventBusSendingService = solrEventBusSendingService;
+		}
+
+		this.eventBusManager = add(new EventBusManager(eventBusSendingService, dataLayerExtensions.getSystemWideExtensions()));
+
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+
 			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+			igniteClient = ((ConstellioIgniteCacheManager) settingsCacheManager).getClient();
 			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
+
+			if (dataLayerConfiguration.getCacheUrl() != null) {
+				ConstellioIgniteCacheManager cacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(),
+						warVersion);
+				cacheManager.initialize();
+				igniteClient = cacheManager.getClient();
+			}
+
 			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			recordsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
+
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
 			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
@@ -134,21 +188,28 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		add(settingsCacheManager);
 		add(recordsCacheManager);
 
+		EventBus configManagerEventBus = eventBusManager.createEventBus("configManager", ONLY_SENT_REMOTELY);
 		ConfigManager configManagerWithoutCache;
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			configManagerWithoutCache = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(), "/",
-					ioServicesFactory.newIOServices()));
+					ioServicesFactory.newIOServices(), configManagerEventBus));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			configManagerWithoutCache = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
 					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
-					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions));
+					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions,
+					configManagerEventBus));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
 		}
-		configManager = new CachedConfigManager(configManagerWithoutCache, settingsCacheManager.getCache("configManager"));
+
+		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
+			configManager = new CachedConfigManager(configManagerWithoutCache, settingsCacheManager.getCache("configManager"));
+		} else {
+			configManager = new CachedConfigManager(configManagerWithoutCache, recordsCacheManager.getCache("configManager"));
+		}
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
 			this.idGenerator = new UUIDV1Generator();
@@ -202,8 +263,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.constellioVersion = constellioVersion;
 	}
 
-	public LeaderElectionService getLeaderElectionService() {
-		return new DefaultLeaderElectionServiceImpl(this);
+	public LeaderElectionManager getLeaderElectionService() {
+		return leaderElectionManager;
 	}
 
 	public DataLayerExtensions getExtensions() {
@@ -395,4 +456,15 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return conversionManager;
 	}
 
+	public EventBusManager getEventBusManager() {
+		return eventBusManager;
+	}
+
+	public Ignite getIgniteClient() {
+		return igniteClient;
+	}
+
+	public CuratorFramework getCuratorFramework() {
+		return ZooKeeperConfigManager.getInstance(dataLayerConfiguration.getSettingsZookeeperAddress());
+	}
 }

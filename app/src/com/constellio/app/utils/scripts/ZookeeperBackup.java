@@ -1,13 +1,12 @@
 package com.constellio.app.utils.scripts;
 
-import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
-import com.constellio.data.io.services.facades.IOServices;
-import org.apache.commons.io.FileUtils;
-
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusListener;
+import com.constellio.data.io.services.facades.IOServices;
 
 public class ZookeeperBackup {
 
@@ -21,7 +20,7 @@ public class ZookeeperBackup {
 		if (!importDir.exists()) {
 			System.err.println("importDir: " + importDir + " does not exists");
 		}
-		
+
 		ZookeeperBackup zb = new ZookeeperBackup();
 		if ("--import".equals(argv[0])) {
 			zb.importOption(importDir, argv[2]);
@@ -30,9 +29,24 @@ public class ZookeeperBackup {
 		}
 	}
 
-	public void importOption(File localDir, String zkAddress) throws Exception {
+	private EventBus fakeEventBus() {
+		return new EventBus(null, null, null) {
+			@Override
+			public void send(String type, Object data) {
+				//Do nothing
+			}
+
+			@Override
+			public void register(EventBusListener listener) {
+				//Do nothing
+			}
+		};
+	}
+
+	public void importOption(File localDir, String zkAddress)
+			throws Exception {
 		System.out.println("Connecting to : " + zkAddress);
-		ZooKeeperConfigManager configManager = new ZooKeeperConfigManager(zkAddress, "/", new IOServices(null));
+		ZooKeeperConfigManager configManager = new ZooKeeperConfigManager(zkAddress, "/", new IOServices(null), fakeEventBus());
 		if (localDir.listFiles().length == 0) {
 			throw new IOException("localDir: " + localDir + " is empty");
 		}
@@ -40,20 +54,22 @@ public class ZookeeperBackup {
 		System.out.println("Import to Zookeeper completed");
 	}
 
-	public void exportOption(File localDir, String zkAddress) throws Exception {
+	public void exportOption(File localDir, String zkAddress)
+			throws Exception {
 		File tempFolder = File.createTempFile("temp_", Long.toString(System.nanoTime()));
 		System.out.println("Connecting to : " + zkAddress);
-		ZooKeeperConfigManager configManager = new ZooKeeperConfigManager(zkAddress, "/", new IOServices(null));
+		ZooKeeperConfigManager configManager = new ZooKeeperConfigManager(zkAddress, "/", new IOServices(null), fakeEventBus());
 		if (localDir.listFiles().length != 0) {
 			throw new IOException("localDir: " + localDir + " is NOT empty");
 		}
 		configManager.exportTo(localDir);
 		System.out.println("Export to " + localDir + " + completed");
 	}
-	
-//	public void purge
 
-	private static boolean validateArgs(String argv[]) throws Exception {
+	//	public void purge
+
+	private static boolean validateArgs(String argv[])
+			throws Exception {
 		if (argv.length != 3) {
 			return false;
 		}

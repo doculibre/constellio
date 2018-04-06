@@ -4,6 +4,7 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -23,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.records.cache.RecordsCaches;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +45,8 @@ import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -108,6 +109,8 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 	@Mock RecordsCaches recordsCache;
 
+	@Mock RecordsCache recordCache;
+
 	@Mock RolesManager rolesManager;
 
 	@Before
@@ -133,7 +136,8 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.getSystemConfigurationsManager()).thenReturn(systemConfigurationsManager);
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
-		when(modelLayerFactory.getRecordsCaches()).thenReturn( recordsCache);
+		when(modelLayerFactory.getRecordsCaches()).thenReturn(recordsCache);
+		when(recordsCache.getCache(anyString())).thenReturn(recordCache);
 
 		services = spy(new RecordAutomaticMetadataServices(modelLayerFactory));
 

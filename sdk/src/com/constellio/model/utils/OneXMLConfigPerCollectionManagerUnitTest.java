@@ -15,6 +15,7 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -33,14 +34,14 @@ public class OneXMLConfigPerCollectionManagerUnitTest extends ConstellioTest {
 	OneXMLConfigPerCollectionManager manager;
 
 	@Mock OneXMLConfigPerCollectionManagerListener listener;
-	
+
 	SerializationCheckCache cache;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		cache = new SerializationCheckCache("zeCache");
+		cache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 		when(collectionsListManager.getCollections()).thenReturn(new ArrayList<String>());
 		manager = newManager();
 

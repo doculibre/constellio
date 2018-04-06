@@ -2,18 +2,27 @@ package com.constellio.data.extensions;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
 
-import com.constellio.data.extensions.extensions.configManager.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.events.Event;
+import com.constellio.data.events.EventBusManagerExtension;
+import com.constellio.data.events.ReceivedEventParams;
+import com.constellio.data.events.SentEventParams;
+import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
+import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
+import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
+import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
+import com.constellio.data.extensions.extensions.configManager.ReadConfigParams;
+import com.constellio.data.extensions.extensions.configManager.SupportedExtensionExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DataLayerSystemExtensions {
 
@@ -24,6 +33,7 @@ public class DataLayerSystemExtensions {
 	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<ConfigManagerExtension> configManagerExtensions = new VaultBehaviorsList<>();
 	public VaultBehaviorsList<SupportedExtensionExtension> supportedExtensionExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<EventBusManagerExtension> eventBusManagerExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
@@ -102,15 +112,15 @@ public class DataLayerSystemExtensions {
 
 	public String[] getSupportedExtensionExtensions() {
 		List<String> allExtension = new ArrayList<>();
-		for(SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
 			allExtension.addAll(extensionExtension.getAdditionalSupportedExtension());
 		}
 		return allExtension.toArray(new String[0]);
 	}
 
 	public ExtensionConverter getConverterForSupportedExtension(String extension) {
-		for(SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
-			if(extensionExtension.getAdditionalSupportedExtension().contains(extension)) {
+		for (SupportedExtensionExtension extensionExtension : supportedExtensionExtensions.getExtensions()) {
+			if (extensionExtension.getAdditionalSupportedExtension().contains(extension)) {
 				return extensionExtension.getConverter();
 			}
 		}
@@ -138,4 +148,17 @@ public class DataLayerSystemExtensions {
 			});
 		}
 	}
+
+	public void onEventSent(final Event event) {
+		for (EventBusManagerExtension extension : eventBusManagerExtensions) {
+			extension.onEventSent(new SentEventParams(event));
+		}
+	}
+
+	public void onEventReceived(final Event event, boolean remoteEvent) {
+		for (EventBusManagerExtension extension : eventBusManagerExtensions) {
+			extension.onEventReceived(new ReceivedEventParams(event, remoteEvent));
+		}
+	}
+
 }

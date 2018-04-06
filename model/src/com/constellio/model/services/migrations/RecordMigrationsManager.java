@@ -51,6 +51,7 @@ public class RecordMigrationsManager implements StatefulService,
 	CollectionsListManager collectionsListManager;
 	ConstellioCacheManager cacheManager;
 	BackgroundThreadsManager backgroundThreadsManager;
+	ModelLayerFactory modelLayerFactory;
 
 	public RecordMigrationsManager(ModelLayerFactory modelLayerFactory) {
 		batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -59,14 +60,15 @@ public class RecordMigrationsManager implements StatefulService,
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 		searchServices = modelLayerFactory.newSearchServices();
+		this.modelLayerFactory = modelLayerFactory;
 
+	}
+
+	public void initialize() {
 		ConstellioCache cache = cacheManager.getCache(getClass().getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(
 				modelLayerFactory.getDataLayerFactory().getConfigManager(), modelLayerFactory.getCollectionsListManager(),
 				SCHEMAS_CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration(), cache);
-	}
-
-	public void initialize() {
 
 		Runnable finishedRecordMigrationsAction = new Runnable() {
 			@Override
