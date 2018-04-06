@@ -120,7 +120,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 						dataType.setSeparator(splitDatas[splitDatas.length - 1]);
 					}
 				} else {
-					throw new MetadataException("The file contains invalid metadatas on column type");
+					throw new MetadataException("The file contains invalid metadatas on column type: " + StringUtils.defaultIfBlank(line, ""));
 				}
 			}
 
