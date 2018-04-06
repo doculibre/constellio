@@ -198,7 +198,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                 if(querySelectionWindow == null || !(ConstellioUI.getCurrent().getWindows() != null && ConstellioUI.getCurrent().getWindows().contains(querySelectionWindow))) {
                     querySelectionWindow = new BaseWindow($("com.constellio.app.extensions.WorkflowPageExtension_confirmationTitle"));
                     querySelectionWindow.setWidth("50%");
-                    querySelectionWindow.setHeight("300px");
+                    querySelectionWindow.setHeight("220px");
                     querySelectionWindow.center();
                     querySelectionWindow.setModal(true);
                     querySelectionWindow.setContent(buildQuerySelectionWindow());
@@ -255,6 +255,26 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
             private void proceedToReportSelection(ClickEvent event) {
                 super.buttonClick(event);
+            }
+
+            @Override
+            public boolean isVisible() {
+                return super.isVisible();
+            }
+
+            @Override
+            public void setVisible(boolean visible) {
+                super.setVisible(visible);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return super.isEnabled();
+            }
+
+            @Override
+            public void setEnabled(boolean enabled) {
+                super.setEnabled(enabled);
             }
         };
         reportButton.addStyleName(ValoTheme.BUTTON_LINK);
