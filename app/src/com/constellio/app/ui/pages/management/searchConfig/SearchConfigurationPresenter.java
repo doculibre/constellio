@@ -119,4 +119,13 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 		view.navigate().to().adminModule();
 	}
 
+	public boolean isStatisticsButtonVisible() {
+		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled();
+	}
+
+	public void statisticsButtonClicked() {
+		view.navigate().to().statistics();
+		
+	}
+
 }

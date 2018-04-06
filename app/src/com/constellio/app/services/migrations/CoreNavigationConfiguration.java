@@ -19,7 +19,6 @@ import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
@@ -84,9 +83,6 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
 	public static final String PRINTABLE_MANAGEMENT = "printableManagement";
 	public static final String PRINTABLE_MANAGEMENT_ICON = "images/icons/config/printer.png";
-
-	public static final String STATISTICS = "statistics";
-	public static final String STATISTICS_ICON = "images/icons/config/chart_column.png";
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
@@ -160,18 +156,6 @@ public class CoreNavigationConfiguration implements Serializable {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
 						.has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP));
-			}
-		});
-
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(STATISTICS, STATISTICS_ICON) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().statistics();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled());
 			}
 		});
 
