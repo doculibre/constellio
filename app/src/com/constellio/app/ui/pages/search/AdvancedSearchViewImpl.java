@@ -222,7 +222,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                 vLayout.setSizeFull();
                 vLayout.setSpacing(true);
 
-                Label questionLabel = new Label($("AdvancedSearch.batchProcessingRecordSelection"));
+                Label questionLabel = new Label($("AdvancedSearch.reportRecordSelection"));
 
                 BaseButton allSearchResultsButton = new BaseButton($("AdvancedSearchView.allSearchResults")) {
                     @Override
