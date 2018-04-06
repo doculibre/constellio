@@ -101,9 +101,9 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 
 	@Override
 	public GlobalGroup getGlobalGroupWithCode(String code) {
-		Record group = searchServices.searchSingleResult(
-				from(schemas.globalGroupSchemaType()).where(schemas.globalGroupCode()).isEqualTo(code));
-		return group != null ? schemas.wrapGlobalGroup(group) : null;
+		Record record = modelLayerFactory.newRecordServices()
+				.getRecordByMetadata(schemas.globalGroupCode(), code);
+		return record != null ? schemas.wrapGlobalGroup(record) : null;
 	}
 
 	@Override

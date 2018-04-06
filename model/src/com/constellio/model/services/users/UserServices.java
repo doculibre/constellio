@@ -1,5 +1,6 @@
 package com.constellio.model.services.users;
 
+import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -46,6 +47,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -288,7 +290,7 @@ public class UserServices {
 
 	public Group getGroupInCollection(String groupCode, String collection) {
 		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
-		return Group.wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection));
+		return wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection));
 	}
 
 	public void addGlobalGroupsInCollection(String collection) {
@@ -844,7 +846,7 @@ public class UserServices {
 				.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
 		for (Record record : searchServices.search(query)) {
-			groups.add(Group.wrapNullable(record, schemaTypes(collection)));
+			groups.add(wrapNullable(record, schemaTypes(collection)));
 		}
 		return groups;
 	}
@@ -1039,5 +1041,95 @@ public class UserServices {
 
 	public boolean isAdminInAnyCollection(String username) {
 		return has(username).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
+	}
+
+	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
+		List<User> userRecords = new ArrayList<>();
+		Set<String> usernames = new HashSet<>();
+
+		getUsersRecordsInGroup(group, userRecords, usernames, includeGroupInheritance, onlyActiveUsersAndGroups);
+
+		return userRecords;
+	}
+
+	private void getUsersRecordsInGroup(Group group, List<User> returnedUserRecords, Set<String> usernamesOfReturnedUsers,
+			boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
+
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		boolean includedGroup;
+		if (onlyActiveUsersAndGroups) {
+			GlobalGroup globalGroup = userServices.getGroup(group.getCode());
+			includedGroup = globalGroup.getStatus() == GlobalGroupStatus.ACTIVE;
+		} else {
+			includedGroup = true;
+		}
+
+		if (includedGroup) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(group.getCollection(), modelLayerFactory);
+			if (includeGroupInheritance) {
+				for (Group aGroup : schemas.getAllGroups()) {
+					if (group.getId().equals(aGroup.getParent())) {
+						getUsersRecordsInGroup(aGroup, returnedUserRecords, usernamesOfReturnedUsers, true,
+								onlyActiveUsersAndGroups);
+					}
+				}
+			}
+			for (User aUser : schemas.getAllUsers()) {
+				if (!usernamesOfReturnedUsers.contains(aUser.getId()) && aUser.getUserGroups().contains(group.getId())) {
+
+					boolean includedUser;
+					if (onlyActiveUsersAndGroups) {
+						UserCredential userCredential = userServices.getUserCredential(aUser.getUsername());
+						includedUser = userCredential.getStatus() == UserCredentialStatus.ACTIVE;
+
+					} else {
+						includedUser = true;
+					}
+
+					if (includedUser) {
+						usernamesOfReturnedUsers.add(aUser.getUsername());
+						returnedUserRecords.add(aUser);
+					}
+
+				}
+			}
+		}
+	}
+
+	public boolean isGroupActive(Group group) {
+		GlobalGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
+		return isGroupActive(globalGroup);
+	}
+
+	public boolean isGroupActive(String aGroup) {
+
+		GlobalGroup globalGroup;
+		Record record = recordServices.getDocumentById(aGroup);
+
+		if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Group group = wrapNullable(record,
+					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection()));
+			globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
+		} else {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(
+					com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
+			globalGroup = schemas.wrapGlobalGroup(record);
+		}
+
+		return isGroupActive(globalGroup);
+	}
+
+	private boolean isGroupActive(GlobalGroup globalGroup) {
+
+		if (globalGroup.getStatus() == GlobalGroupStatus.INACTIVE) {
+			return false;
+
+		} else if (globalGroup.getParent() != null) {
+			return isGroupActive(globalGroupsManager.getGlobalGroupWithCode(globalGroup.getParent()));
+
+		} else {
+			return true;
+		}
 	}
 }

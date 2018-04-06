@@ -17,7 +17,9 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.converters.GroupIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
+import com.constellio.app.ui.framework.components.converters.UserIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -377,12 +379,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 		private void buildUsersAndGroupsField() {
 			users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
+			users.setItemConverter(new UserIdToCaptionConverter());
 			users.setValue(authorization.getUsers());
 			users.setVisible(!authorization.getUsers().isEmpty());
 			users.setCaption($("AuthorizationsView.users"));
 			users.setId("users");
 
 			groups = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
+			groups.setItemConverter(new GroupIdToCaptionConverter());
 			groups.setValue(authorization.getGroups());
 			groups.setVisible(!authorization.getGroups().isEmpty());
 			groups.setCaption($("AuthorizationsView.groups"));
@@ -514,12 +518,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 
 		private Object buildPrincipalColumn(List<String> groups, List<String> users) {
-			List<ReferenceDisplay> results = new ArrayList<>();
+			final List<ReferenceDisplay> results = new ArrayList<>();
 			for (String groupId : groups) {
-				results.add(new ReferenceDisplay(groupId));
+				results.add(new ReferenceDisplay(groupId, true, new GroupIdToCaptionConverter()));
 			}
 			for (String userId : users) {
-				results.add(new ReferenceDisplay(userId));
+				results.add(new ReferenceDisplay(userId, true, new UserIdToCaptionConverter()));
 			}
 			return new VerticalLayout(results.toArray(new Component[results.size()]));
 		}
