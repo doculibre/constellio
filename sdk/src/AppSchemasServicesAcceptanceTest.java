@@ -313,7 +313,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
 				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
-				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par 2 enregistrements.");
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par 2 enregistrement(s).");
 		try {
 			appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom");
 			fail("schema should not be deletable");

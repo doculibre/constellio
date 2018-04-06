@@ -94,17 +94,13 @@ public class AppSchemasServices {
 	}
 
 	public List<Record> getTwentyFiveFisrtVisibleRecords(String collection, String schemaCode, User user){
-////		user.hasReadAccess().on(record);
-//		LogicalSearchCondition condition = LogicalSearchQueryOperators
-//				.from(metadataSchema)
-//				.whereAllConditions(
-//						LogicalSearchQueryOperators.anyConditions(
-//								LogicalSearchQueryOperators.allConditions()));
+//		user.hasReadAccess().on(record);
 		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-//		LogicalSearchCondition logicalSearchCondition = from(metadataSchema).where(c)
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(metadataSchema).returnAll());
-		searchServices.search(logicalSearchQuery);
-		return searchServices.search(logicalSearchQuery);
+
+		LogicalSearchCondition condition = from(metadataSchema).returnAll();
+//Juste visibles
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(condition);
+		return searchServices.search(logicalSearchQuery).subList(0,24);
 	}
 
 	private Metadata getMetadata(String collection, String schemaCode){
