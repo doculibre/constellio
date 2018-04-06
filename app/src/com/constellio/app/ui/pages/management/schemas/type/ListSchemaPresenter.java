@@ -4,14 +4,20 @@ import java.util.Map;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.metadata.AppSchemasServices;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -89,13 +95,13 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		view.navigate().to().listSchemaTypes();
 	}
 
-	boolean isDeletePossible(String schemaCode) {
+	ValidationErrors isDeletePossible(String schemaCode) {
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-		return appSchemasServices.isSchemaDeletable(collection, schemaCode) == null;
+		return appSchemasServices.isSchemaDeletable(collection, schemaCode);
 	}
 
 	public void deleteButtonClicked(String schemaCode) {
-		if (isDeletePossible(schemaCode)) {
+		if (isDeletePossible(schemaCode) == null) {
 			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
 			if (collectionExtensions.lockedRecords.contains($("ListSchemaTypeView.schemaCode"), schemaCode.split("_")[1])) {
 				view.showMessage($("ListSchemaTypeView.message"));
@@ -103,11 +109,31 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 				appSchemasServices.deleteSchemaCode(collection, schemaCode);
 				view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 			}
+		}else{
+			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+			User user = getCurrentUser(ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory());
+			String cannotDeleteMessage = $(isDeletePossible(schemaCode).getValidationErrors().get(0));
+			if (isDeletePossible(schemaCode).getValidationErrors().get(0).getValidatorErrorCode() == "existingRecordsWithSchema"){
+				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage, appSchemasServices.getTwentyFiveFisrtVisibleRecords(collection,schemaCode,user),true);
+				cannotDeleteWindow.openWindow();
+			}else{
+				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage, appSchemasServices.getTwentyFiveFisrtVisibleRecords(collection,schemaCode,user),false);
+				cannotDeleteWindow.openWindow();
+			}
 		}
 	}
 
-	public boolean isDeleteButtonVisible(String schemaCode) {
-		return isDeletePossible(schemaCode);
+	private User getCurrentUser(ModelLayerFactory modelLayerFactory) {
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		String currentCollection = sessionContext.getCurrentCollection();
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		return userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
+	}
+
+	public void closeAllWindows(){
+		view.closeAllWindows();
 	}
 
 }

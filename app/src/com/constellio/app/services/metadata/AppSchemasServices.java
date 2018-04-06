@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -20,6 +22,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
@@ -33,6 +36,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AppSchemasServices {
@@ -40,8 +44,6 @@ public class AppSchemasServices {
 	private static final String CANNOT_DELETE_DEFAULT_SCHEMA = "cannotDeleteDefaultSchema";
 	private static final String METADATA_REFERENCING_SCHEMA = "metadatasReferencingTheSchema";
 	private static final String EXISTING_RECORDS_WITH_SCHEMA = "existingRecordsWithSchema";
-	private static final String PLURAL_RECORD = "pluralRecord";
-	private static final String SINGULAR_RECORD = "singularRecord";
 
 	private final SchemasDisplayManager schemasDisplayManager;
 	private final AppLayerFactory appLayerFactory;
@@ -89,11 +91,20 @@ public class AppSchemasServices {
 	private void setParametersForExistingRecordsWithSchemaError(Map<String, Object> parameters, MetadataSchema schema){
 		Long numberOfRecords =searchServices.getResultsCount(from(schema).returnAll());
 		parameters.put("recordsCount",numberOfRecords);
-		if(numberOfRecords > 1)
-			parameters.put("record",$(PLURAL_RECORD));
-		else{
-			parameters.put("record",$(SINGULAR_RECORD));
-		}
+	}
+
+	public List<Record> getTwentyFiveFisrtVisibleRecords(String collection, String schemaCode, User user){
+////		user.hasReadAccess().on(record);
+//		LogicalSearchCondition condition = LogicalSearchQueryOperators
+//				.from(metadataSchema)
+//				.whereAllConditions(
+//						LogicalSearchQueryOperators.anyConditions(
+//								LogicalSearchQueryOperators.allConditions()));
+		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+//		LogicalSearchCondition logicalSearchCondition = from(metadataSchema).where(c)
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(metadataSchema).returnAll());
+		searchServices.search(logicalSearchQuery);
+		return searchServices.search(logicalSearchQuery);
 	}
 
 	private Metadata getMetadata(String collection, String schemaCode){
