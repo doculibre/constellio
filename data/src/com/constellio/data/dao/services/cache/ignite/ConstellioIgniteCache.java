@@ -4,12 +4,18 @@ import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINE
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.cache.Cache.Entry;
+
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteDataStreamer;
@@ -34,9 +40,13 @@ public class ConstellioIgniteCache implements ConstellioCache {
 
 	private Map<String, Object> localCache = new ConcurrentHashMap<>();
 
-	private ConstellioCacheOptions options;
+	private volatile Date lastSynchronizationDate = new Date();
 
-	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient,
+	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+    private final Lock r = rwl.readLock();
+    private final Lock w = rwl.writeLock();
+
+private ConstellioCacheOptions options;	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient,
 			ConstellioCacheOptions options) {
 		this.name = name;
 		this.options = options;
@@ -59,95 +69,199 @@ public class ConstellioIgniteCache implements ConstellioCache {
 		return igniteStreamer;
 	}
 
+	private void readLock() {
+		r.lock();
+	}
+
+	private void readUnlock() {
+		r.unlock();
+	}
+
+	private void writeLock() {
+		w.lock();
+	}
+
+	private void writeUnlock() {
+		w.unlock();
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends Serializable> void synchronizeIfNecessary() {
+		Date expiryDate = DateUtils.addMinutes(lastSynchronizationDate, 5);
+		Date now = new Date();
+		if (now.after(expiryDate)) {
+	        writeLock();
+	        try {
+				localCache.clear();
+				Iterator<Entry<String, Object>> remoteIterator = igniteCache.iterator();
+				while (remoteIterator.hasNext()) {
+					Entry<String, Object> remoteEntry = remoteIterator.next();
+					put(remoteEntry.getKey(), (T) remoteEntry.getValue(), true);
+				}
+				lastSynchronizationDate = new Date();
+	        } finally {
+	            writeUnlock();
+	        }
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T get(String key) {
-		T result = (T) localCache.get(key);
-		if (result == null) {
-			result = (T) igniteCache.get(key);
-			if (result != null) {
-				localCache.put(key, result);
-			} else {
-				localCache.put(key, NULL);
+		synchronizeIfNecessary();
+		readLock();
+		try {
+			T result = (T) localCache.get(key);
+			if (result == null) {
+				result = (T) igniteCache.get(key);
+				if (result != null) {
+					localCache.put(key, result);
+				} else {
+					localCache.put(key, NULL);
+				}
 			}
+			result = NULL.equals(result) ? null : result;
+			return result;
+		} finally {
+			readUnlock();
 		}
-		result = NULL.equals(result) ? null : result;
-		return result;
 	}
 
 	@Override
 	public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
-		put(key, value, insertionReason == WAS_OBTAINED);
+		synchronizeIfNecessary();
+		writeLock();
+		try {
+			put(key, value, insertionReason == WAS_OBTAINED);
+		} finally {
+			writeUnlock();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	<T extends Serializable> void put(String key, T value, boolean locallyOnly) {
-		value = value == null ? (T) NULL : value;
-		localCache.put(key, value);
-		if (!locallyOnly) {
-			igniteCache.put(key, value);
+		if (locallyOnly) {
+			localCache.put(key, value);
+		} else {
+			synchronizeIfNecessary();
+			writeLock();
+			try {
+				value = value == null ? (T) NULL : value;
+				localCache.put(key, value);
+				igniteCache.put(key, value);
+			} finally {
+				writeUnlock();
+			}
 		}
 	}
 
 	@Override
 	public void remove(String key) {
-		localCache.remove(key);
-		igniteCache.remove(key);
+		synchronizeIfNecessary();
+		writeLock();
+		try {
+			localCache.remove(key);
+			igniteCache.remove(key);
+		} finally {
+			writeUnlock();
+		}
 	}
 
 	@Override
 	public void removeAll(Set<String> keys) {
-		for (String key : keys) {
-			removeLocal(key);
+		synchronizeIfNecessary();
+		writeLock();
+		try {
+			for (String key : keys) {
+				localCache.remove(key);
+			}
+			igniteCache.removeAll(keys);
+		} finally {
+			writeUnlock();
 		}
-		igniteCache.removeAll(keys);
 	}
 
 	@Override
 	public void clear() {
-		clearLocal();
-		igniteClient.message(igniteClient.cluster().forRemotes()).send(CLEAR_MESSAGE_TOPIC, igniteCache.getName());
+		synchronizeIfNecessary();
+		writeLock();
+		try {
+			clearLocal();
+			igniteClient.message(igniteClient.cluster().forRemotes()).send(CLEAR_MESSAGE_TOPIC, igniteCache.getName());
+		} finally {
+			writeUnlock();
+		}
 	}
 
 	public void removeLocal(String key) {
-		localCache.remove(key);
+		synchronizeIfNecessary();
+		writeLock();
+		try {
+			localCache.remove(key);
+		} finally {
+			writeUnlock();
+		}
 	}
 
 	public void clearLocal() {
-		localCache.clear();
-		igniteCache.clear();
+		synchronizeIfNecessary();
+		writeLock();
+		try {
+			localCache.clear();
+			igniteCache.clear();
+		} finally {
+			writeUnlock();
+		}
 	}
 
 	@Override
 	public Iterator<String> keySet() {
-		final Iterator<String> adaptee = localCache.keySet().iterator();
+		synchronizeIfNecessary();
+		readLock();
+		try {
+			final Iterator<String> adaptee = localCache.keySet().iterator();
 
-		return new Iterator<String>() {
-			@Override
-			public boolean hasNext() {
-				return adaptee.hasNext();
-			}
+			return new Iterator<String>() {
+				@Override
+				public boolean hasNext() {
+					return adaptee.hasNext();
+				}
 
-			@Override
-			public String next() {
-				return adaptee.next();
-			}
+				@Override
+				public String next() {
+					return adaptee.next();
+				}
 
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+				}
+			};
+		} finally {
+			readUnlock();
+		}
 	}
 
 	@Override
 	public int size() {
-		return localCache.size();
+		synchronizeIfNecessary();
+		readLock();
+		try {
+			return localCache.size();
+		} finally {
+			readUnlock();
+		}
 	}
 
 	@Override
 	public List<Object> getAllValues() {
-		return new ArrayList<>(localCache.values());
+		synchronizeIfNecessary();
+		readLock();
+		try {
+			return new ArrayList<>(localCache.values());
+		} finally {
+			readUnlock();
+		}
 	}
 
 	@Override

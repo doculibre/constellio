@@ -22,7 +22,7 @@ import com.constellio.model.utils.XMLConfigReader;
 
 public class RolesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<List<Role>> {
 
-	private static String ROLES_CONFIG = "/roles.xml";
+	public static String ROLES_CONFIG = "/roles.xml";
 	private OneXMLConfigPerCollectionManager<List<Role>> oneXMLConfigPerCollectionManager;
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;

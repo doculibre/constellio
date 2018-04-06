@@ -228,6 +228,11 @@ public class CachedConfigManager implements ConfigManager {
 		cachedPaths.add(path);
 	}
 
+	@Override
+	public void notifyChanged(String path) {
+		this.configManager.notifyChanged(path);
+	}
+
 	private <T> T getFromCache(String path) {
 		if (cachedPaths.contains(path)) {
 			return constellioCache.get(path);
@@ -260,5 +265,9 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
 		configManagerHelper.createPropertiesDocumentIfInexistent(path, propertiesAlteration);
+	}
+
+	public void clearCache() {
+		constellioCache.clear();
 	}
 }

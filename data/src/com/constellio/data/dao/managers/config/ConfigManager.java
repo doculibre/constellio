@@ -78,4 +78,7 @@ public interface ConfigManager {
 	void exportTo(File settingsFolder);
 
 	void keepInCache(String path);
+
+	void notifyChanged(String path);
+	
 }

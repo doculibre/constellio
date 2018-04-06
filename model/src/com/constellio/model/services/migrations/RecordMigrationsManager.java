@@ -40,7 +40,7 @@ import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 public class RecordMigrationsManager implements StatefulService,
 												OneXMLConfigPerCollectionManagerListener<SchemaTypesRecordMigration> {
 
-	private static final String SCHEMAS_CONFIG_PATH = "/recordMigrations.xml";
+	public static final String CONFIG_PATH = "/recordMigrations.xml";
 
 	Map<String, Map<String, RecordMigrationScript>> scripts = new HashMap<>();
 
@@ -68,7 +68,7 @@ public class RecordMigrationsManager implements StatefulService,
 		ConstellioCache cache = cacheManager.getCache(getClass().getName());
 		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(
 				modelLayerFactory.getDataLayerFactory().getConfigManager(), modelLayerFactory.getCollectionsListManager(),
-				SCHEMAS_CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration(), cache);
+				CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration(), cache);
 
 		Runnable finishedRecordMigrationsAction = new Runnable() {
 			@Override

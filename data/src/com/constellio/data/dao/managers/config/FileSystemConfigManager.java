@@ -683,4 +683,11 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 			throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
 		}
 	}
+
+	@Override
+	public void notifyChanged(String path) {
+		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+			listener.onConfigUpdated(path);
+		}
+	}
 }
