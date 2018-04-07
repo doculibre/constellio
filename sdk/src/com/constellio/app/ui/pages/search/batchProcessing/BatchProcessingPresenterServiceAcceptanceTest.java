@@ -133,7 +133,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 
@@ -146,7 +149,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 		waitForBatchProcess();
@@ -168,7 +174,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 
@@ -181,7 +190,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 		waitForBatchProcess();
@@ -204,7 +216,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 
@@ -217,7 +232,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 		waitForBatchProcess();
@@ -238,7 +256,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 
@@ -251,7 +272,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		} catch (RecordServicesException.ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
-					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05,
+							"folder_default_mainCopyRule"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_mainCopyRule")
 			);
 		}
 		waitForBatchProcess();
