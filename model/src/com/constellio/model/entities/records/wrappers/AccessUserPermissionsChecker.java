@@ -56,7 +56,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	public boolean on(Record record) {
 
-		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+		if (user.getStatus() != UserCredentialStatus.ACTIVE && user.getStatus() != null) {
 			return false;
 		}
 

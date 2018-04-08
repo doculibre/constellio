@@ -286,7 +286,7 @@ public class User extends RecordWrapper {
 		allAuths.addAll(getUserAuthorizations());
 		for (String groupId : getUserGroups()) {
 			Group group = roles.getSchemasRecordsServices().getGroup(groupId);
-			if (roles.getSchemasRecordsServices().isGroupActive(group)) {
+			if (group != null && roles.getSchemasRecordsServices().isGroupActive(group)) {
 				allAuths.addAll(group.getAllAuthorizations());
 			}
 		}

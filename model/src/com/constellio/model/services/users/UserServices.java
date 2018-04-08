@@ -1057,12 +1057,14 @@ public class UserServices {
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 
-		boolean includedGroup;
+		boolean includedGroup = true;
 		if (onlyActiveUsersAndGroups) {
-			GlobalGroup globalGroup = userServices.getGroup(group.getCode());
-			includedGroup = globalGroup.getStatus() == GlobalGroupStatus.ACTIVE;
-		} else {
-			includedGroup = true;
+			try {
+				GlobalGroup globalGroup = userServices.getGroup(group.getCode());
+				includedGroup = globalGroup.getStatus() == GlobalGroupStatus.ACTIVE;
+			} catch (UserServicesRuntimeException_NoSuchGroup e) {
+				LOGGER.info("No such global group with code '" + group.getCode() + "', group is considered active");
+			}
 		}
 
 		if (includedGroup) {
@@ -1099,7 +1101,7 @@ public class UserServices {
 
 	public boolean isGroupActive(Group group) {
 		GlobalGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
-		return isGroupActive(globalGroup);
+		return globalGroup == null || isGroupActive(globalGroup);
 	}
 
 	public boolean isGroupActive(String aGroup) {
