@@ -1,14 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -24,18 +17,19 @@ public class CannotDeleteWindow extends VerticalLayout{
 
     private Label cannotDeleteLabel;
     private Label recordAccessLabel;
-//    private Button desactivateButton;
     private Button okButton;
     private Table recordsTable;
     private String recordAccessMessage;
 
-    public CannotDeleteWindow(String cannotDeleteMessage, List<Record> records, boolean buildRecordsTable) {
+    public CannotDeleteWindow(String cannotDeleteMessage){
+        this.cannotDeleteLabel = new Label(cannotDeleteMessage);
+        cannotDeleteLabel.addStyleName(ValoTheme.LABEL_H2);
+    }
+
+    private void buildWindowConponents(){
         setSpacing(true);
         setWidth("90%");
         addStyleName("CannotDeleteWindow");
-        cannotDeleteLabel = new Label(cannotDeleteMessage);
-        cannotDeleteLabel.addStyleName(ValoTheme.LABEL_H2);
-        cannotDeleteLabel.setVisible(cannotDeleteMessage != null);
 
         okButton = new Button("Ok");
         okButton.addStyleName("OkButton");
@@ -47,31 +41,30 @@ public class CannotDeleteWindow extends VerticalLayout{
                 closeWindow();
             }
         });
+    }
 
-//        desactivateButton= new Button("Désactiver");
-//        desactivateButton.addStyleName("desactivateButton");
-//        desactivateButton.setEnabled(true);
-//        desactivateButton.addClickListener(new Button.ClickListener() {
-//            @Override
-//            public void buttonClick(Button.ClickEvent event) {
-//                closeWindow();
-//            }
-//        });
+    public void buildWindowConponentsWithoutTable(){
+        buildWindowConponents();
+        addComponents(cannotDeleteLabel,okButton);
+    }
 
-        if(buildRecordsTable){
-            if (recordAccessMessage != null){
-                recordAccessLabel = new Label(recordAccessMessage);
-                addComponents(cannotDeleteLabel,recordsTable,recordAccessLabel,okButton);
-            }else{
-                recordsTable = buildRecodsTable(records);
-                addComponents(cannotDeleteLabel,recordsTable,okButton);
-            }
+    public void buildWindowConponentsWithTable(List<Record> records, Boolean areAllRecordsVisible){
+        buildWindowConponents();
+        if (areAllRecordsVisible){
+            recordsTable = buildRecodsTable(records);
+            addComponents(cannotDeleteLabel,recordsTable,okButton);
         }else{
-            addComponents(cannotDeleteLabel,okButton);
+            if (records.size() == 0){
+                recordAccessMessage = $("recordAcessMessageWithNoRecords");
+                recordAccessLabel = new Label(recordAccessMessage);
+                addComponents(cannotDeleteLabel,recordAccessLabel,okButton);
+            }else{
+                recordAccessMessage = $("recordAcessMessage");
+                recordAccessLabel = new Label(recordAccessMessage);
+                recordsTable = buildRecodsTable(records);
+                addComponents(cannotDeleteLabel,recordsTable,recordAccessLabel,okButton);
+            }
         }
-
-//        HorizontalLayout buttons = new HorizontalLayout(okButton, desactivateButton);
-//        buttons.setSpacing(true);
     }
 
     private Table buildRecodsTable(List<Record> records){
@@ -85,7 +78,6 @@ public class CannotDeleteWindow extends VerticalLayout{
         for(Record record : records){
                     table.addItem(new String[]{record.getId(),record.getTitle(), record.isActive() ? $("isActive") : $("isInactive")}, numberOfRecords);
                     numberOfRecords++;
-//                    recordAccessMessage = $("recordAcessMessage");
             }
 
         table.setPageLength(table.size());
