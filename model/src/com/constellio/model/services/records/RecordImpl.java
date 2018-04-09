@@ -293,7 +293,7 @@ public class RecordImpl implements Record {
 	public <T> T get(Metadata metadata, Locale locale) {
 		List<String> TEMPORAIRE = asList("administrativeUnit_default_title", "category_default_title", "category_default_description",
 				"category_default_keywords", "administrativeUnit_default_description",
-				"retentionRule_default_title", "folder_default_title");
+				"retentionRule_default_title");
 
 		if (TEMPORAIRE.contains(schemaCode + "_" + metadata.getLocalCode()) && locale != null) {
 			if (metadata.isMultivalue()) {

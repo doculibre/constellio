@@ -15,6 +15,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 
+import java.util.Locale;
+
 public class ValidationsGenerator implements ColumnGenerator {
 	public static final String VALIDATOR = "validator";
 	public static final String VALIDATION_REQUEST_DATE = "validationRequestDate";

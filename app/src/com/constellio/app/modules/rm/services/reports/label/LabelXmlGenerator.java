@@ -64,25 +64,23 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 	private int startingPosition, numberOfCopies = 1;
 
 	private String type;
-	private Locale locale;
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory) {
-		super(appLayerFactory, collection);
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		super(appLayerFactory, collection, locale);
 		this.collection = collection;
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-		this.locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Record... recordElements) {
-		this(collection, appLayerFactory);
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory,Locale locale, Record... recordElements) {
+		this(collection, appLayerFactory, locale);
 		this.setElements(recordElements);
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, int startingPosition, int numberOfCopies,
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory,Locale locale, int startingPosition, int numberOfCopies,
 			Record... recordElements) {
-		this(collection, appLayerFactory, recordElements);
+		this(collection, appLayerFactory,locale, recordElements);
 		this.startingPosition = startingPosition;
 		this.numberOfCopies = numberOfCopies;
 	}
@@ -249,7 +247,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
 
-		String data = formatData(getToStringOrNull(recordElement.get(metadata, locale)), metadata);
+		String data = formatData(getToStringOrNull(recordElement.get(metadata, getLocale())), metadata);
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);
@@ -285,7 +283,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			if (titleBuilder.length() > 0) {
 				titleBuilder.append(", ");
 			}
-			titleBuilder.append((String) recordReferenced.get(Schemas.TITLE, locale));
+			titleBuilder.append((String) recordReferenced.get(Schemas.TITLE, getLocale()));
 
 			if (codeBuilder.length() > 0) {
 				codeBuilder.append(", ");
@@ -304,7 +302,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 					if (titleParentBuilder.length() > 0) {
 						titleParentBuilder.append(", ");
 					}
-					titleParentBuilder.append(parentRecord.get(Schemas.TITLE, locale));
+					titleParentBuilder.append(parentRecord.get(Schemas.TITLE, getLocale()));
 
 					if (codeParentBuilder.length() > 0) {
 						codeParentBuilder.append(", ");

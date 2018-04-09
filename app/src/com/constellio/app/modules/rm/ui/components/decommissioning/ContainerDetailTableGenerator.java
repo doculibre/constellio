@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components.decommissioning;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BooleanLabel;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.table.BaseTable;

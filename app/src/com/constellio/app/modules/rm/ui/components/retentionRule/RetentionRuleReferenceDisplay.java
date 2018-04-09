@@ -12,6 +12,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.users.UserServices;
 
+import java.util.Locale;
+
 public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 
 	public RetentionRuleReferenceDisplay(RecordVO recordVO) {

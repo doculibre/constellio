@@ -20,7 +20,7 @@ public class RecordIdToCaptionConverter implements Converter<String, String> {
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
 		String caption;
 		if (StringUtils.isNotBlank(value)) {
-			caption = SchemaCaptionUtils.getCaptionForRecordId(value);
+			caption = SchemaCaptionUtils.getCaptionForRecordId(value, locale);
 		} else {
 			caption = "";
 		}

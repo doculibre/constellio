@@ -296,7 +296,7 @@ public class LabelButtonV2 extends WindowButton {
         private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
             VerticalLayout layout = null;
             if (validateInputs(selectedTemplate)) {
-                LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
+                LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale()).setStartingPosition((Integer) startPositionField.getValue())
                         .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
                 PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
                 JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);

@@ -116,7 +116,7 @@ public class GetXmlButtonV2 extends WindowButton{
                     if(parent.isXmlForTest) {
                         xmlGeneratorParameters.markAsTestXml();
                     }
-                    AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator(parent.factory, parent.collection, xmlGeneratorParameters);
+                    AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator(parent.factory, parent.collection, xmlGeneratorParameters, view.getSessionContext().getCurrentLocale());
                     String xml = xmlGenerator.generateXML();
                     String filename = "Constellio-Test.xml";
                     StreamResource source = createResource(xml, filename);

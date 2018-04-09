@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.display;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
@@ -39,13 +40,15 @@ public class ReferenceDisplay extends Button {
 	private String recordId;
 	private RecordContextMenu contextMenu;
 
+
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
+
 	}
 
 	public ReferenceDisplay(RecordVO recordVO, boolean link) {
 		this.recordVO = recordVO;
-		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, getLocale());
+		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 		Resource icon = FileIconUtils.getIcon(recordVO);
 		if (icon != null) {
 			setIcon(icon);
@@ -56,11 +59,12 @@ public class ReferenceDisplay extends Button {
 
 	public ReferenceDisplay(String recordId) {
 		this(recordId, true);
+
 	}
 
 	public ReferenceDisplay(String recordId, boolean link) {
 		this.recordId = recordId;
-		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, getLocale());
+		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 		if (recordId != null) {
 			Resource icon = FileIconUtils.getIconForRecordId(recordId);
 			if (icon != null) {

@@ -212,10 +212,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		final MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		final String code;
 		boolean isSaveButtonClicked = false;
-
+		MetadataBuilder builderDefaultSchema;
 		final MetadataBuilder builder;
-		if (!editMode) {
+		if (!editMode){
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
+
 			builder.setMultivalue(formMetadataVO.isMultivalue());
 			builder.setType(formMetadataVO.getValueType());
 			builder.setSortable(formMetadataVO.isSortable());
@@ -223,6 +224,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setSearchable(formMetadataVO.isSearchable());
 			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
+			builder.setMultiLingual(formMetadataVO.isMultiLingual());
+
 			if (formMetadataVO.getValueType().equals(REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
@@ -237,12 +240,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
+
 			code = formMetadataVO.getCode();
 			if (!isInherited(code)) {
 				builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
 						builder.isSearchable() != formMetadataVO.isSearchable();
 				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+
 				if (reindexRequired) {
 					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE?
 							$("AddEditMetadataPresenter.saveButton.sortableReference"):$("AddEditMetadataPresenter.saveButton.sortable");
@@ -287,11 +292,25 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
+
 		for (Entry<String, String> entry : formMetadataVO.getLabels().entrySet()) {
 			builder.addLabel(Language.withCode(entry.getKey()), entry.getValue());
 		}
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 		builder.setDuplicable(formMetadataVO.isDuplicable());
+
+		MetadataBuilder builderDefaultSchema;
+
+		if(schemaCode.endsWith("_default")) {
+			builderDefaultSchema = builder;
+		} else {
+			builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
+			if(builderDefaultSchema == null) {
+				builderDefaultSchema = builder;
+			}
+		}
+
+		builderDefaultSchema.setMultiLingual(formMetadataVO.isMultiLingual());
 
 		if (isInherited(code)) {
 			MetadataSchemaBuilder defaultSchemaBuilder = types

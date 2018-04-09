@@ -2,13 +2,11 @@ package com.constellio.app.ui.util;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-import static com.constellio.app.ui.i18n.i18n.setLocale;
 
 import java.io.Serializable;
 import java.util.Locale;
 
-import com.constellio.app.ui.pages.base.SessionContext;
-import net.sf.cglib.core.Local;
+import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,7 @@ public class SchemaCaptionUtils implements Serializable {
 	private static final String EXPRESSION_END = "}";
 
 	public static String getCaptionForRecordId(String recordId) {
-		return getCaptionForRecordId(recordId, null);
+		return getCaptionForRecordId(recordId, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 	}
 
 	public static String getCaptionForRecordId(String recordId, Locale local) {
@@ -193,7 +191,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	private static String applyPattern(String pattern, Record record, Locale local) {
+	private static String applyPattern(String pattern, Record record, Locale locale) {
 		String collection = record.getCollection();
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -218,7 +216,7 @@ public class SchemaCaptionUtils implements Serializable {
 					}
 				} else {
 					Metadata metadata = metadataSchemaTypes.getMetadata(schemaCode + "_" + metadataCode);
-					value = record.get(metadata, local);
+					value = record.get(metadata, locale);
 				}
 			} catch (Exception e) {
 				value = null;

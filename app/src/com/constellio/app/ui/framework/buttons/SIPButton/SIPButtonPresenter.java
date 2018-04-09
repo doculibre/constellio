@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -34,10 +35,12 @@ public class SIPButtonPresenter {
 	
     private SIPButtonImpl button;
     private List<RecordVO> objectList;
+    private Locale locale;
 
-    public SIPButtonPresenter(SIPButtonImpl button, List<RecordVO> objectList) {
+    public SIPButtonPresenter(SIPButtonImpl button, List<RecordVO> objectList, Locale locale) {
         this.button = button;
         this.objectList = objectList;
+        this.locale = locale;
 
         if (button.getView() != null) {
         	SessionContext sessionContext = this.button.getView().getSessionContext();
@@ -129,7 +132,7 @@ public class SIPButtonPresenter {
             String username = sessionContext.getCurrentUser().getUsername();
             String collection = button.getView().getCollection();
             
-            SIPBuildAsyncTask task = new SIPBuildAsyncTask(sipFolderName, packageInfoLines, documentList, folderList, limitSize, username, deleteFiles, warVersion);
+            SIPBuildAsyncTask task = new SIPBuildAsyncTask(sipFolderName, packageInfoLines, documentList, folderList, limitSize, username, deleteFiles, warVersion, locale);
             AsyncTaskBatchProcess asyncTaskBatchProcess = batchProcessesManager.addAsyncTask(new AsyncTaskCreationRequest(task, collection, "SIPArchives").setUsername(username));
             this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
             this.button.closeAllWindows();

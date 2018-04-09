@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -43,17 +44,20 @@ public class EAD {
 	private String collection;
 
 	private static XMLDocumentValidator validator = new XMLDocumentValidator();
+
+	private Locale locale;
 	
 	static {
 		builder = new SAXBuilder();
 	}
 	
-	public EAD(SIPObject sipObject, EADArchdesc archdesc, AppLayerFactory factory, String collection) {
+	public EAD(SIPObject sipObject, EADArchdesc archdesc, AppLayerFactory factory, String collection, Locale locale) {
 		this.sipObject = sipObject;
 		this.archdesc = archdesc;
 		this.factory = factory;
 		this.collection = collection;
-		
+		this.locale = locale;
+
 		this.eadElement = new Element("ead", eadNamespace);
 		this.eadElement.addNamespaceDeclaration(xsiNamespace);
 		eadElement.setAttribute("schemaLocation", "urn:isbn:1-931666-22-9 http://www.loc.gov/ead/ead.xsd", xsiNamespace);
@@ -213,7 +217,7 @@ public class EAD {
 				if(metadata.getType().equals(MetadataValueType.REFERENCE)) {
 					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
 				} else if(metadata.getType().equals(MetadataValueType.ENUM)) {
-					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace));
+					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace, locale));
 				} else {
 					Object metadataValue = sipObject.getRecord().get(metadata);
 					Element currentMetadataElement = new Element(metadata.getCode(), eadNamespace);
