@@ -558,6 +558,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 
+	public LogicalSearchQuery buildReportLogicalSearchQuery() {
+		return buildBatchProcessLogicalSearchQuery().filteredWithUser(getUser());
+	}
+
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
 		List<String> selectedRecordIds = view.getSelectedRecordIds();

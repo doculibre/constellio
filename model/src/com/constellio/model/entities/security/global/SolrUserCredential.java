@@ -200,6 +200,11 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		return get(DN);
 	}
 
+	@Override
+	public boolean isActiveUser() {
+		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
 	public SolrUserCredential setDn(String dn) {
 		set(DN, dn);
 		return this;

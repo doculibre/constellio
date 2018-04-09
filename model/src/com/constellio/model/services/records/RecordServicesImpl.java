@@ -450,7 +450,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
 		}
-		if (metadata.getCode().startsWith("global")) {
+		if (metadata.getCode().startsWith("global_")) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -1351,6 +1351,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			recordDao.flush();
 			eventsDao.flush();
 			notificationsDao.flush();
+		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
+			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
+		}
+	}
+
+	public void flushRecords() {
+		try {
+			recordDao.flush();
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}

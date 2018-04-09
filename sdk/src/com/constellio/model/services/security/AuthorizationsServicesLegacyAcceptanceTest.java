@@ -1,6 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
 import static com.constellio.model.entities.security.Role.READ;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,7 +13,6 @@ import org.junit.Test;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
@@ -284,6 +282,7 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		Group group = createGroup("HEROES");
 
 		User bob = users.bobIn(zeCollection);
+		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 		// bob.setCollectionReadAccess(true);
 		bob.setUserGroups(asList(group.getId()));
 

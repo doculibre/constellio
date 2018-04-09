@@ -101,7 +101,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
 		}
-		if (metadata.getCode().startsWith("global")) {
+		if (metadata.getCode().startsWith("global_")) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
@@ -332,6 +332,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void flush() {
 		recordServices.flush();
+	}
+
+	@Override
+	public void flushRecords() {
+		recordServices.flushRecords();
 	}
 
 	@Override

@@ -1,5 +1,14 @@
 package com.constellio.app.modules.rm.navigation;
 
+import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
+
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -20,7 +29,13 @@ import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrat
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.*;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
@@ -69,14 +84,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
-
-import java.io.Serializable;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -238,12 +245,12 @@ public class RMNavigationConfiguration implements Serializable {
 		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
 			@Override
 			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-																	 SessionContext sessionContext) {
+					SessionContext sessionContext) {
 				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 				if (getDefaultDataProvider() == -1) {
 					int defaultTab = tabSheet.getDefaultTab();
 					setDefaultDataProvider(defaultTab);
-				}	
+				}
 				return tabSheet.getDataProviders();
 			}
 
@@ -270,13 +277,15 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE).getItems();
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE)
+						.getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE).getItems();
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE)
+						.getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
@@ -328,7 +337,8 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS).globally());
+				return visibleIf(user.has(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS).globally()
+						&& new RMConfigs(appLayerFactory).areUniformSubdivisionEnabled());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(RETENTION_CALENDAR, RETENTION_CALENDAR_ICON) {
@@ -380,38 +390,40 @@ public class RMNavigationConfiguration implements Serializable {
 								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).listUserDocuments();
-			}
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(RMViews.class).listUserDocuments();
+					}
 
-			@Override
-			public int getOrderValue() {
-				return 40;
-			}
+					@Override
+					public int getOrderValue() {
+						return 40;
+					}
 
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return ComponentState.ENABLED;
-			}
-		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LIST_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).listCarts();
-			}
+					@Override
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return ComponentState.ENABLED;
+					}
+				});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(LIST_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(RMViews.class).listCarts();
+					}
 
-			@Override
-			public int getOrderValue() {
-				return 45;
-			}
+					@Override
+					public int getOrderValue() {
+						return 45;
+					}
 
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
-			}
-		});
+					@Override
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
+					}
+				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -444,17 +456,18 @@ public class RMNavigationConfiguration implements Serializable {
 				ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 				UserServices userServices = modelLayerFactory.newUserServices();
 				SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-				
+
 				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-				
+
 				String username = user.getUsername();
 				SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
 				AgentStatus agentStatus = userCredentials.getAgentStatus();
 				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 					agentStatus = AgentStatus.ENABLED;
 				}
-				
-				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && agentStatus == AgentStatus.DISABLED);
+
+				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported()
+						&& agentStatus == AgentStatus.DISABLED);
 			}
 		});
 	}
