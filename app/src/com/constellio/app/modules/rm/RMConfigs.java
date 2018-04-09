@@ -14,9 +14,11 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class RMConfigs {
 
@@ -290,6 +292,14 @@ public class RMConfigs {
 	}
 
 	SystemConfigurationsManager manager;
+
+	public RMConfigs(AppLayerFactory appLayerFactory) {
+		this.manager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+	}
+
+	public RMConfigs(ModelLayerFactory modelLayerFactory) {
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
+	}
 
 	public RMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
