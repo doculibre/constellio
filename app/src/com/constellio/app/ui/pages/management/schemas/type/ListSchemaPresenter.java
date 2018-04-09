@@ -114,10 +114,13 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 			User user = getCurrentUser(ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory());
 			String cannotDeleteMessage = $(isDeletePossible(schemaCode).getValidationErrors().get(0));
 			if (isDeletePossible(schemaCode).getValidationErrors().get(0).getValidatorErrorCode() == "existingRecordsWithSchema"){
-				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage, appSchemasServices.getTwentyFiveFisrtVisibleRecords(collection,schemaCode,user),true);
+				boolean areAllRecordsVisible = appSchemasServices.areAllRecordsVisible(collection,schemaCode,user);
+				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage);
+				cannotDeleteWindow.buildWindowConponentsWithTable(appSchemasServices.getVisibleRecords(collection,schemaCode,user,25), areAllRecordsVisible);
 				cannotDeleteWindow.openWindow();
 			}else{
-				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage, appSchemasServices.getTwentyFiveFisrtVisibleRecords(collection,schemaCode,user),false);
+				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage);
+				cannotDeleteWindow.buildWindowConponentsWithoutTable();
 				cannotDeleteWindow.openWindow();
 			}
 		}
