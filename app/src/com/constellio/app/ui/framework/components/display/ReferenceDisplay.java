@@ -40,15 +40,13 @@ public class ReferenceDisplay extends Button {
 	private String recordId;
 	private RecordContextMenu contextMenu;
 
-
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
-
 	}
 
 	public ReferenceDisplay(RecordVO recordVO, boolean link) {
 		this.recordVO = recordVO;
-		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, getLocale());
 		Resource icon = FileIconUtils.getIcon(recordVO);
 		if (icon != null) {
 			setIcon(icon);
@@ -59,12 +57,11 @@ public class ReferenceDisplay extends Button {
 
 	public ReferenceDisplay(String recordId) {
 		this(recordId, true);
-
 	}
 
 	public ReferenceDisplay(String recordId, boolean link) {
 		this.recordId = recordId;
-		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, getLocale());
 		if (recordId != null) {
 			Resource icon = FileIconUtils.getIconForRecordId(recordId);
 			if (icon != null) {
@@ -73,6 +70,15 @@ public class ReferenceDisplay extends Button {
 		}
 		setCaption(caption);
 		init(recordId, link);
+	}
+
+	@Override
+	public Locale getLocale() {
+		Locale locale = super.getLocale();
+		if (locale == null) {
+			locale = ConstellioUI.getCurrent().getLocale(); 
+		}
+		return locale;
 	}
 
 	private void init(RecordVO recordVO, boolean link) {
