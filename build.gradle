@@ -15,7 +15,7 @@ subprojects {
 
     configurations.all {
         resolutionStrategy {
-            force "javax.validation:validation-api:1.0.0.GA"
+            //force "javax.validation:validation-api:1.0.0.GA"
             force "org.apache.james:apache-mime4j:${version_mime}"
         }
     }
@@ -63,6 +63,8 @@ subprojects {
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
         compile name: 'mets-api'
+
+        compileOnly "org.projectlombok:lombok:1.16.20"
     }
 
     configurations {
