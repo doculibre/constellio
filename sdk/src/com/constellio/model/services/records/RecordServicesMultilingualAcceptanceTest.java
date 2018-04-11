@@ -5,14 +5,19 @@ import static com.constellio.model.entities.Language.English;
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
+import static java.util.Locale.CANADA_FRENCH;
+import static java.util.Locale.ENGLISH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -26,6 +31,10 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 			multilingualCollectionSchemas = new RecordServicesTestSchemaSetup("multilingual");
 	RecordServicesTestSchemaSetup.ZeSchemaMetadatas multilingualCollectionSchema
 			= multilingualCollectionSchemas.new ZeSchemaMetadatas();
+
+	RecordServices recordServices;
+	SearchServices searchServices;
+	Record monoLingualRecord, multiLingualRecord;
 
 	@Test
 	public void givenFrenchSystemWithAMultilingualCollectionsThenSchemasHaveValidLanguages()
@@ -74,15 +83,52 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFrenchSystemWithAMultilingualCollectionsRecordWhenMetadatasHasMultilingualMetadatasThenValuesPersisted()
+	public void givenFrenchSystemWithAMultilingualCollectionsRecordWhenMetadatasHasMultilingualMetadatasAndOnlyMainLanguageValuesThenObtainedNo()
 			throws Exception {
 
-		givenFrenchSystemOneMonolingualAndOneMultilingualCollection(withAMultilingualStringMetadata);
+		givenFrenchSystemOneMonolingualAndOneMultilingualCollection(
+				withAMultilingualStringMetadata, andAnotherUnilingualStringMetadata);
+
+		recordServices.add(monoLingualRecord = new TestRecord(monolingualCollectionSchema, "monoLingualRecord")
+				.set(monolingualCollectionSchema.stringMetadata(), "value1")
+				.set(monolingualCollectionSchema.anotherStringMetadata(), "value2"));
+
+		recordServices.add(multiLingualRecord = new TestRecord(multilingualCollectionSchema, "multiLingualRecord")
+				.set(multilingualCollectionSchema.stringMetadata(), "value3")
+				.set(multilingualCollectionSchema.anotherStringMetadata(), "value4"));
+
+		monoLingualRecord = record("monoLingualRecord");
+		multiLingualRecord = record("multiLingualRecord");
+
+		assertThat(monoLingualRecord.get(monolingualCollectionSchema.stringMetadata())).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualCollectionSchema.stringMetadata(), CANADA_FRENCH)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualCollectionSchema.stringMetadata(), ENGLISH)).isEqualTo("value1");
+
+		assertThat(monoLingualRecord.get(monolingualCollectionSchema.anotherStringMetadata())).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualCollectionSchema.anotherStringMetadata(), CANADA_FRENCH)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualCollectionSchema.anotherStringMetadata(), ENGLISH)).isEqualTo("value2");
 
 		//TODO
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------------
+
+	private SetupAlteration andAnotherUnilingualStringMetadata = new SetupAlteration() {
+		@Override
+		public void setupMonolingualCollection(MetadataSchemaTypesBuilder schemaTypes) {
+			schemaTypes.getSchema("zeSchemaType_default").create("anotherMetadata").setType(STRING).setMultiLingual(false);
+		}
+
+		@Override
+		public void setupMultilingualCollection(MetadataSchemaTypesBuilder schemaTypes) {
+			schemaTypes.getSchema("zeSchemaType_default").create("anotherMetadata").setType(STRING).setMultiLingual(false);
+		}
+
+		@Override
+		public void after() {
+
+		}
+	};
 
 	private SetupAlteration withAMultilingualStringMetadata = new SetupAlteration() {
 		@Override
@@ -141,6 +187,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}));
+
+		setupServices();
 	}
 
 	protected void givenFrenchSystemOneMonolingualAndOneTrilingualCollection(final SetupAlteration... setupAlterations) {
@@ -165,6 +213,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}));
+
+		setupServices();
 	}
 
 	protected void givenEnglishSystemOneMonolingualAndOneTrilingualCollection(final SetupAlteration... setupAlterations) {
@@ -188,6 +238,13 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}));
+
+		setupServices();
+	}
+
+	private void setupServices() {
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
 	}
 
 	private interface SetupAlteration {
