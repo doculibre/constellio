@@ -79,6 +79,12 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		view.navigate().to().searchDisplayForm(params);
 	}
 
+	public void resumeConfigurationButtonClicked(MetadataSchemaVO schemaVO) {
+		parameters.put("schemaCode", schemaVO.getCode());
+		String params = ParamUtils.addParams(NavigatorConfigurationService.SEARCH_DISPLAY_FORM, parameters);
+		view.navigate().to().searchDisplayForm(params);
+	}
+
 	public void tableButtonClicked() {
 		parameters.put("schemaCode", schemaTypeCode + "_default");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);

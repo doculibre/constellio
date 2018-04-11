@@ -7,8 +7,6 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.event.ItemClickEvent;
@@ -77,7 +75,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		MenuBar menuBar = new BaseMenuBar();
 		MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
 
-
 		final MenuBar.Command editListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
@@ -86,16 +83,16 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		};
 
 
-		rootItem.addItem($("edit"), editListener);
+		rootItem.addItem($("ListSchemaViewImpl.edit"), editListener);
 
-		final MenuBar.Command formOrderListener = new MenuBar.Command() {
+		final MenuBar.Command orderListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
 				presenter.orderButtonClicked(metadataSchemaVO);
 			}
 		};
 
-		rootItem.addItem($("ListSchemaView.button.form"), formOrderListener);
+		rootItem.addItem($("ListSchemaView.menu.form"), orderListener);
 
 		final MenuBar.Command formListener = new MenuBar.Command() {
 			@Override
@@ -104,7 +101,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaView.button.display"), formListener);
+		rootItem.addItem($("ListSchemaView.menu.form"), formListener);
 
 		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode().endsWith("default"))) {
 			final MenuBar.Command tableListener = new MenuBar.Command() {
@@ -114,7 +111,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 				}
 			};
 
-			rootItem.addItem($("ListSchemaView.button.table"), tableListener);
+			rootItem.addItem($("ListSchemaViewImpl.menu.table"), tableListener);
 
 		}
 
@@ -126,7 +123,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaView.button.search"), searchListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"), searchListener);
 
 		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
 			final MenuBar.Command deleteListener = new MenuBar.Command() {
@@ -135,9 +132,17 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
 				}
 			};
-			rootItem.addItem($("delete"), deleteListener);
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), deleteListener);
 		}
 
+		final MenuBar.Command resumeConfigurationListener = new MenuBar.Command() {
+			@Override
+			public void menuSelected(MenuBar.MenuItem selectedItem) {
+				presenter.resumeConfigurationButtonClicked(metadataSchemaVO);
+			}
+		};
+
+		rootItem.addItem($("ListSchemaViewImpl.menu.resumeConfiguration"), searchListener);
 
 		HorizontalLayout buttonVerticalLayout = new HorizontalLayout();
 
@@ -145,7 +150,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		metadataButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				presenter.orderButtonClicked(metadataSchemaVO);
+				presenter.editMetadataButtonClicked(metadataSchemaVO);
 			}
 		});
 
