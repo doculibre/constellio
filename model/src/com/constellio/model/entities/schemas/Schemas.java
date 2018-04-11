@@ -133,6 +133,11 @@ Schemas {
 		return new Metadata(dataStoreCode, metadata.getType(), false);
 	}
 
+	public static Metadata dummy(Metadata metadata) {
+		String dataStoreCode = metadata.getDataStoreCode();
+		return new Metadata(dataStoreCode, metadata.getType(), metadata.isMultivalue());
+	}
+
 	public static Metadata getSortMetadata(Metadata metadata) {
 
 		String dataStoreCode = metadata.getDataStoreCode().replace("_s", "_sort_s");
@@ -168,12 +173,12 @@ Schemas {
 				metadata.isMultiLingual());
 	}
 
-	private static String replaceLast(String string, String expressionToReplace, String replacement)	{
+	private static String replaceLast(String string, String expressionToReplace, String replacement) {
 		int index = string.lastIndexOf(expressionToReplace);
 		if (index == -1) {
 			return string;
 		}
-		return string.substring(0, index) + replacement + string.substring(index+expressionToReplace.length());
+		return string.substring(0, index) + replacement + string.substring(index + expressionToReplace.length());
 	}
 
 	public static boolean isGlobalMetadata(String metadata) {

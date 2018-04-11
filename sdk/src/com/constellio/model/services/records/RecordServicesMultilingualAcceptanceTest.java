@@ -3,10 +3,13 @@ package com.constellio.model.services.records;
 import static com.constellio.model.entities.Language.Arabic;
 import static com.constellio.model.entities.Language.English;
 import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERING;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.dummy;
 import static java.util.Arrays.asList;
-import static java.util.Locale.CANADA_FRENCH;
 import static java.util.Locale.ENGLISH;
+import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.FixMethodOrder;
@@ -24,12 +27,12 @@ import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 	RecordServicesTestSchemaSetup monolingualCollectionSchemas = new RecordServicesTestSchemaSetup("monolingual");
-	RecordServicesTestSchemaSetup.ZeSchemaMetadatas monolingualCollectionSchema
+	RecordServicesTestSchemaSetup.ZeSchemaMetadatas monolingualSchema
 			= monolingualCollectionSchemas.new ZeSchemaMetadatas();
 
 	RecordServicesTestSchemaSetup
 			multilingualCollectionSchemas = new RecordServicesTestSchemaSetup("multilingual");
-	RecordServicesTestSchemaSetup.ZeSchemaMetadatas multilingualCollectionSchema
+	RecordServicesTestSchemaSetup.ZeSchemaMetadatas multilingualSchema
 			= multilingualCollectionSchemas.new ZeSchemaMetadatas();
 
 	RecordServices recordServices;
@@ -41,20 +44,20 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenFrenchSystemOneMonolingualAndOneMultilingualCollection();
-		assertThat(monolingualCollectionSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
-		assertThat(monolingualCollectionSchema.instance().getCollectionInfo().getCollectionLanguages())
+		assertThat(monolingualSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
+		assertThat(monolingualSchema.instance().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(French);
 
-		assertThat(monolingualCollectionSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
-		assertThat(monolingualCollectionSchema.type().getCollectionInfo().getCollectionLanguages())
+		assertThat(monolingualSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
+		assertThat(monolingualSchema.type().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(French);
 
-		assertThat(multilingualCollectionSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
-		assertThat(multilingualCollectionSchema.instance().getCollectionInfo().getCollectionLanguages())
+		assertThat(multilingualSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
+		assertThat(multilingualSchema.instance().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(French, English);
 
-		assertThat(multilingualCollectionSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
-		assertThat(multilingualCollectionSchema.type().getCollectionInfo().getCollectionLanguages())
+		assertThat(multilingualSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(French);
+		assertThat(multilingualSchema.type().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(French, English);
 
 	}
@@ -64,20 +67,20 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenEnglishSystemOneMonolingualAndOneTrilingualCollection();
-		assertThat(monolingualCollectionSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
-		assertThat(monolingualCollectionSchema.instance().getCollectionInfo().getCollectionLanguages())
+		assertThat(monolingualSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
+		assertThat(monolingualSchema.instance().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(English);
 
-		assertThat(monolingualCollectionSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
-		assertThat(monolingualCollectionSchema.type().getCollectionInfo().getCollectionLanguages())
+		assertThat(monolingualSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
+		assertThat(monolingualSchema.type().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(English);
 
-		assertThat(multilingualCollectionSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
-		assertThat(multilingualCollectionSchema.instance().getCollectionInfo().getCollectionLanguages())
+		assertThat(multilingualSchema.instance().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
+		assertThat(multilingualSchema.instance().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(French, English, Arabic);
 
-		assertThat(multilingualCollectionSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
-		assertThat(multilingualCollectionSchema.type().getCollectionInfo().getCollectionLanguages())
+		assertThat(multilingualSchema.type().getCollectionInfo().getMainSystemLanguage()).isEqualTo(English);
+		assertThat(multilingualSchema.type().getCollectionInfo().getCollectionLanguages())
 				.containsOnly(French, English, Arabic);
 
 	}
@@ -89,26 +92,58 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		givenFrenchSystemOneMonolingualAndOneMultilingualCollection(
 				withAMultilingualStringMetadata, andAnotherUnilingualStringMetadata);
 
-		recordServices.add(monoLingualRecord = new TestRecord(monolingualCollectionSchema, "monoLingualRecord")
-				.set(monolingualCollectionSchema.stringMetadata(), "value1")
-				.set(monolingualCollectionSchema.anotherStringMetadata(), "value2"));
+		recordServices.add(monoLingualRecord = new TestRecord(monolingualSchema, "monoLingualRecord")
+				.set(monolingualSchema.stringMetadata(), "value1")
+				.set(monolingualSchema.anotherStringMetadata(), "value2"));
 
-		recordServices.add(multiLingualRecord = new TestRecord(multilingualCollectionSchema, "multiLingualRecord")
-				.set(multilingualCollectionSchema.stringMetadata(), "value3")
-				.set(multilingualCollectionSchema.anotherStringMetadata(), "value4"));
+		recordServices.add(multiLingualRecord = new TestRecord(multilingualSchema, "multiLingualRecord")
+				.set(multilingualSchema.stringMetadata(), "value3")
+				.set(multilingualSchema.anotherStringMetadata(), "value4"));
 
 		monoLingualRecord = record("monoLingualRecord");
 		multiLingualRecord = record("multiLingualRecord");
 
-		assertThat(monoLingualRecord.get(monolingualCollectionSchema.stringMetadata())).isEqualTo("value1");
-		assertThat(monoLingualRecord.get(monolingualCollectionSchema.stringMetadata(), CANADA_FRENCH)).isEqualTo("value1");
-		assertThat(monoLingualRecord.get(monolingualCollectionSchema.stringMetadata(), ENGLISH)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualSchema.stringMetadata())).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualSchema.stringMetadata(), FRENCH, PREFERING)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualSchema.stringMetadata(), ENGLISH, PREFERING)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(monolingualSchema.stringMetadata(), ENGLISH, STRICT)).isNull();
 
-		assertThat(monoLingualRecord.get(monolingualCollectionSchema.anotherStringMetadata())).isEqualTo("value2");
-		assertThat(monoLingualRecord.get(monolingualCollectionSchema.anotherStringMetadata(), CANADA_FRENCH)).isEqualTo("value2");
-		assertThat(monoLingualRecord.get(monolingualCollectionSchema.anotherStringMetadata(), ENGLISH)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(dummy(monolingualSchema.stringMetadata()))).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(dummy(monolingualSchema.stringMetadata()), FRENCH, PREFERING)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(dummy(monolingualSchema.stringMetadata()), ENGLISH, PREFERING)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(dummy(monolingualSchema.stringMetadata()), FRENCH, STRICT)).isEqualTo("value1");
+		assertThat(monoLingualRecord.get(dummy(monolingualSchema.stringMetadata()), ENGLISH, STRICT)).isNull();
 
-		//TODO
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata())).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), FRENCH, PREFERING)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), ENGLISH, PREFERING)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), FRENCH, STRICT)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), ENGLISH, STRICT)).isNull();
+
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata())).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), FRENCH, PREFERING)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), ENGLISH, PREFERING)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), FRENCH, STRICT)).isEqualTo("value2");
+		assertThat(monoLingualRecord.get(monolingualSchema.anotherStringMetadata(), ENGLISH, STRICT)).isNull();
+
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata())).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, PREFERING)).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, PREFERING)).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isNull();
+
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.stringMetadata()))).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.stringMetadata()), FRENCH, PREFERING)).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.stringMetadata()), ENGLISH, PREFERING)).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.stringMetadata()), FRENCH, STRICT)).isEqualTo("value3");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.stringMetadata()), ENGLISH, STRICT)).isNull();
+
+		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata())).isEqualTo("value4");
+		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), FRENCH, PREFERING)).isEqualTo("value4");
+		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), ENGLISH, PREFERING)).isEqualTo("value4");
+		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), FRENCH, STRICT)).isEqualTo("value4");
+		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), ENGLISH, STRICT)).isNull();
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------------
@@ -116,12 +151,12 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 	private SetupAlteration andAnotherUnilingualStringMetadata = new SetupAlteration() {
 		@Override
 		public void setupMonolingualCollection(MetadataSchemaTypesBuilder schemaTypes) {
-			schemaTypes.getSchema("zeSchemaType_default").create("anotherMetadata").setType(STRING).setMultiLingual(false);
+			schemaTypes.getSchema("zeSchemaType_default").create("anotherStringMetadata").setType(STRING).setMultiLingual(false);
 		}
 
 		@Override
 		public void setupMultilingualCollection(MetadataSchemaTypesBuilder schemaTypes) {
-			schemaTypes.getSchema("zeSchemaType_default").create("anotherMetadata").setType(STRING).setMultiLingual(false);
+			schemaTypes.getSchema("zeSchemaType_default").create("anotherStringMetadata").setType(STRING).setMultiLingual(false);
 		}
 
 		@Override

@@ -36,6 +36,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	<T> T get(Metadata metadata);
 
+	<T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+
 	<T> T get(Metadata metadata, Locale locale);
 
 	<T> T getNonNullValueIn(List<Metadata> metadatas);

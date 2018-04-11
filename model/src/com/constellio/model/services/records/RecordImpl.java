@@ -24,6 +24,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.InvalidMetadata;
@@ -296,6 +297,12 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale) {
+		return get(metadata);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		return get(metadata);
 	}
 
