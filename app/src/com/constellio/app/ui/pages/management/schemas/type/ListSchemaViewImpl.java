@@ -83,16 +83,26 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		};
 
 
-		rootItem.addItem($("ListSchemaViewImpl.edit"), editListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), editListener);
 
-		final MenuBar.Command orderListener = new MenuBar.Command() {
+		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
+			final MenuBar.Command deleteListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), deleteListener);
+		}
+
+		final MenuBar.Command formOrderListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				presenter.orderButtonClicked(metadataSchemaVO);
+				presenter.formOrderButtonClicked(metadataSchemaVO);
 			}
 		};
 
-		rootItem.addItem($("ListSchemaView.menu.form"), orderListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.formConfiguration"), formOrderListener);
 
 		final MenuBar.Command formListener = new MenuBar.Command() {
 			@Override
@@ -101,7 +111,19 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaView.menu.form"), formListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.display"), formListener);
+
+
+
+		final MenuBar.Command searchListener = new MenuBar.Command() {
+			@Override
+			public void menuSelected(MenuBar.MenuItem selectedItem) {
+				presenter.searchButtonClicked(metadataSchemaVO);
+			}
+		};
+
+		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"), searchListener);
+
 
 		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode().endsWith("default"))) {
 			final MenuBar.Command tableListener = new MenuBar.Command() {
@@ -116,25 +138,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		}
 
 
-		final MenuBar.Command searchListener = new MenuBar.Command() {
-			@Override
-			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				presenter.searchButtonClicked(metadataSchemaVO);
-			}
-		};
-
-		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"), searchListener);
-
-		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
-			final MenuBar.Command deleteListener = new MenuBar.Command() {
-				@Override
-				public void menuSelected(MenuBar.MenuItem selectedItem) {
-					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
-				}
-			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), deleteListener);
-		}
-
 		final MenuBar.Command resumeConfigurationListener = new MenuBar.Command() {
 			@Override
 			public void menuSelected(MenuBar.MenuItem selectedItem) {
@@ -142,7 +145,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.resumeConfiguration"), searchListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.resumeConfiguration"), resumeConfigurationListener);
 
 		HorizontalLayout buttonVerticalLayout = new HorizontalLayout();
 
