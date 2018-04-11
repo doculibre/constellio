@@ -28,7 +28,7 @@ public class CollectionInfo implements Serializable {
 
 		List<Locale> collectionLocales = new ArrayList<>();
 		for (String collectionLanguesCode : collectionLanguesCodes) {
-			collectionLocales.add(Language.withCode(mainSystemLanguageCode).locale);
+			collectionLocales.add(Language.withCode(collectionLanguesCode).locale);
 		}
 		this.collectionLocales = Collections.unmodifiableList(collectionLocales);
 
