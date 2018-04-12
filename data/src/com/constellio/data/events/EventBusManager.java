@@ -26,16 +26,19 @@ public class EventBusManager implements EventReceiver, StatefulService {
 
 	protected DataLayerSystemExtensions extensions;
 
+	protected boolean paused;
+
 	public EventBusManager(EventBusSendingService eventBusSendingService, DataLayerSystemExtensions extensions) {
 		this.extensions = extensions;
 		setEventBusSendingService(eventBusSendingService);
+		this.paused = true;
 	}
 
 	public EventBusManager setEventBusSendingService(EventBusSendingService eventBusSendingService) {
 		this.eventBusSendingService = eventBusSendingService;
 		this.eventBusSendingService.setEventReceiver(this);
 		this.eventBusSendingService.setEventDataSerializer(eventDataSerializer);
-		this.eventBusSendingService.start();
+		this.eventBusSendingService.start(paused);
 		return this;
 	}
 
@@ -108,6 +111,20 @@ public class EventBusManager implements EventReceiver, StatefulService {
 	public void close() {
 		if (eventBusSendingService != null) {
 			this.eventBusSendingService.close();
+		}
+	}
+
+	public void pause() {
+		this.paused = true;
+		if (eventBusSendingService != null) {
+			eventBusSendingService.pause();
+		}
+	}
+
+	public void resume() {
+		this.paused = false;
+		if (eventBusSendingService != null) {
+			eventBusSendingService.resume();
 		}
 	}
 }

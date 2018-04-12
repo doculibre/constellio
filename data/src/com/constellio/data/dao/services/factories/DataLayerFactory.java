@@ -110,10 +110,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static DataLayerFactory lastCreatedInstance;
 	private final LeaderElectionManager leaderElectionManager;
 
-	public static int countConstructor;
-
-	public static int countInit;
-
 	private Ignite igniteClient;
 	private CuratorFramework curatorFramework;
 
@@ -121,11 +117,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
 
 		super(statefullServiceDecorator, instanceName);
-		countConstructor++;
-		if (countConstructor >= 2) {
-			new IllegalStateException("Problemo : DataLayerFactory has been constructed " + countConstructor + " times")
-					.printStackTrace();
-		}
 
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
@@ -337,12 +328,6 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	@Override
 	public void initialize() {
-		countInit++;
-
-		if (countInit >= 2) {
-			new IllegalStateException("Problemo : DataLayerFactory has been initialized " + countInit + " times")
-					.printStackTrace();
-		}
 		super.initialize();
 
 		newRecordDao().removeOldLocks();

@@ -250,8 +250,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public void invalidateStaticCaches() {
 		FoldersLocator.invalidateCaches();
 		ReindexingServices.markReindexingHasFinished();
-		DataLayerFactory.countInit = 0;
-		DataLayerFactory.countConstructor = 0;
 	}
 
 	@org.junit.Before
