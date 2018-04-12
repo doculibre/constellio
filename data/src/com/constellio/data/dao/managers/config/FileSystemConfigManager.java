@@ -30,6 +30,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.NoSuchConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
@@ -76,6 +77,7 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 	//	private final Map<String, Object> cache = new HashMap<>();
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
+	private final KeyListMap<String, ConfigDeletedEventListener> deletedConfigEventListeners = new KeyListMap<>();
 
 	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService, ConstellioCache cache,
 			DataLayerExtensions extensions, EventBus eventBus) {
@@ -190,6 +192,10 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		LOGGER.debug("delete document => " + path);
 		removeFromCache(path);
 		new File(configFolder, path).delete();
+
+		for (ConfigDeletedEventListener listener : deletedConfigEventListeners.get(path)) {
+			listener.onConfigDeleted(path);
+		}
 	}
 
 	@Override
@@ -203,6 +209,10 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		} catch (IOException e) {
 			// TODO Proper exception
 			throw new RuntimeException(e);
+		}
+
+		for (ConfigDeletedEventListener listener : deletedConfigEventListeners.get(path)) {
+			listener.onConfigDeleted(path);
 		}
 	}
 
@@ -229,6 +239,10 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 
 		removeFromCache(path);
 		new File(configFolder, path).delete();
+
+		for (ConfigDeletedEventListener listener : deletedConfigEventListeners.get(path)) {
+			listener.onConfigDeleted(path);
+		}
 	}
 
 	@Override
@@ -516,6 +530,21 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 	public void registerListener(String path, ConfigEventListener listener) {
 		if (listener instanceof ConfigUpdatedEventListener) {
 			this.updatedConfigEventListeners.add(path, (ConfigUpdatedEventListener) listener);
+		}
+
+		if (listener instanceof ConfigDeletedEventListener) {
+			this.deletedConfigEventListeners.add(path, (ConfigDeletedEventListener) listener);
+		}
+	}
+
+	@Override
+	public void registerTopPriorityListener(String path, ConfigEventListener listener) {
+		if (listener instanceof ConfigUpdatedEventListener) {
+			this.updatedConfigEventListeners.addAtStart(path, (ConfigUpdatedEventListener) listener);
+		}
+
+		if (listener instanceof ConfigDeletedEventListener) {
+			this.deletedConfigEventListeners.addAtStart(path, (ConfigDeletedEventListener) listener);
 		}
 	}
 

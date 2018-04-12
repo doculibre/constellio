@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
@@ -60,6 +61,7 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 	private static volatile CuratorFramework CLIENT;
 
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
+	private final KeyListMap<String, ConfigDeletedEventListener> deletedConfigEventListeners = new KeyListMap<>();
 
 	private String address;
 	private String rootFolder;
@@ -344,6 +346,10 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+
+		for (ConfigDeletedEventListener listener : deletedConfigEventListeners.get(path)) {
+			listener.onConfigDeleted(path);
+		}
 	}
 
 	@Override
@@ -362,6 +368,10 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 			throw new OptimisticLockingConfiguration(path, hash, "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+
+		for (ConfigDeletedEventListener listener : deletedConfigEventListeners.get(path)) {
+			listener.onConfigDeleted(path);
 		}
 	}
 
@@ -455,6 +465,19 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 	public void registerListener(String path, ConfigEventListener listener) {
 		if (listener instanceof ConfigUpdatedEventListener) {
 			this.updatedConfigEventListeners.add(path, (ConfigUpdatedEventListener) listener);
+		}
+		if (listener instanceof ConfigDeletedEventListener) {
+			this.deletedConfigEventListeners.add(path, (ConfigDeletedEventListener) listener);
+		}
+	}
+
+	@Override
+	public void registerTopPriorityListener(String path, ConfigEventListener listener) {
+		if (listener instanceof ConfigUpdatedEventListener) {
+			this.updatedConfigEventListeners.addAtStart(path, (ConfigUpdatedEventListener) listener);
+		}
+		if (listener instanceof ConfigDeletedEventListener) {
+			this.deletedConfigEventListeners.add(path, (ConfigDeletedEventListener) listener);
 		}
 	}
 

@@ -26,6 +26,15 @@ public class KeyListMap<K, V> implements Serializable {
 		values.add(value);
 	}
 
+	public void addAtStart(K key, V value) {
+		List<V> values = map.get(key);
+		if (values == null) {
+			values = new ArrayList<>();
+			map.put(key, values);
+		}
+		values.add(0, value);
+	}
+
 	public void remove(V key) {
 		map.remove(key);
 	}
