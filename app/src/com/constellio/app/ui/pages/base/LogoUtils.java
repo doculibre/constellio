@@ -59,6 +59,46 @@ public class LogoUtils {
 		}
 	}
 
+	public static Resource getUserAuthentificationImageResource(ModelLayerFactory modelLayerFactory) {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.AUTHENTIFICATION_IMAGE);
+		InputStream returnStream = null;
+		if (streamFactory != null) {
+			try {
+				returnStream = streamFactory.create("logo_eimUSR");
+			} catch (IOException e) {
+				LOGGER.warn(e);
+				return null;
+			}
+		}
+		if (returnStream == null) {
+			return null;
+		}
+
+		File file = new File("logo_eimUSR");
+		try {
+			FileUtils.copyInputStreamToFile(returnStream, file);
+			//TODO Francis file created by resource is not removed from file system
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
+		} catch (IOException e) {
+			LOGGER.warn(e);
+			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
+		}
+		Resource resource = new FileResource(file);
+		return resource;
+	}
+
+	public static Resource getAuthentificationImageResource(ModelLayerFactory modelLayerFactory) {
+		Resource userResource = getUserAuthentificationImageResource(modelLayerFactory);
+		if (userResource == null) {
+			return getDefaultResource();
+		} else {
+			return userResource;
+		}
+	}
+
 	private static Resource getDefaultResource() {
 		return new ThemeResource("images/logo_eim_203x30.png");
 	}
