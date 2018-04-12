@@ -38,20 +38,20 @@ public class CachedConfigManagerAcceptanceTest extends ConstellioTest {
 
 		cachedConfigManager.keepInCache("file.xml");
 		cachedConfigManager.add("file.xml", newXMLDocumentWithValue("v1"));
-		assertThat(cachedConfigManager.exist("file.xml")).isTrue(); //Was returning false
+		assertThat(cachedConfigManager.exist("file.xml")).isTrue();
 		assertThat(cachedValueAttributeOf("file.xml")).isEqualTo("v1");
 
 		configManager.updateXML("file.xml", modifyingXMLAttributeValueTo("v2"));
-		assertThat(cachedValueAttributeOf("file.xml")).isEqualTo("v2"); //Was returning v1
-		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v2"); //Was returning v1
+		assertThat(cachedValueAttributeOf("file.xml")).isEqualTo("v2");
+		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v2");
 
 		cachedConfigManager.updateXML("file.xml", modifyingXMLAttributeValueTo("v3"));
 		assertThat(cachedValueAttributeOf("file.xml")).isEqualTo("v3");
-		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v3"); //Was returning v2
+		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v3");
 
 		configManager.delete("file.xml");
-		assertThat(cachedConfigManager.exist("file.xml")).isFalse(); //Was returning true
-		assertThat(cachedValueAttributeOf("file.xml")).isNull(); //Was returning v3
+		assertThat(cachedConfigManager.exist("file.xml")).isFalse();
+		assertThat(cachedValueAttributeOf("file.xml")).isNull();
 	}
 
 	@Test
@@ -63,23 +63,23 @@ public class CachedConfigManagerAcceptanceTest extends ConstellioTest {
 
 		cachedConfigManager.keepInCache("file.properties");
 		cachedConfigManager.add("file.properties", newPropertiesWithValue("v1"));
-		assertThat(cachedConfigManager.exist("file.properties")).isTrue();  //Was returning false
+		assertThat(cachedConfigManager.exist("file.properties")).isTrue();
 		assertThat(cachedPropertyAttributeOf("file.properties")).isEqualTo("v1");
 
 		configManager.updateProperties("file.properties", modifyingPropertyValueTo("v2"));
-		assertThat(cachedPropertyAttributeOf("file.properties")).isEqualTo("v2"); //Was returning v1
-		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v2"); //Was returning v1
+		assertThat(cachedPropertyAttributeOf("file.properties")).isEqualTo("v2");
+		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v2");
 
 		cachedConfigManager.updateProperties("file.properties", modifyingPropertyValueTo("v3"));
 		assertThat(cachedPropertyAttributeOf("file.properties")).isEqualTo("v3");
-		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v3"); //Was returning v2
+		assertThat(serviceListeningConfigUpdate.lastRetrievedValue).isEqualTo("v3");
 
 		configManager.delete("file.properties");
-		assertThat(cachedConfigManager.exist("file.properties")).isFalse(); //Was returning true
-		assertThat(cachedPropertyAttributeOf("file.properties")).isNull(); //Was returning v3
+		assertThat(cachedConfigManager.exist("file.properties")).isFalse();
+		assertThat(cachedPropertyAttributeOf("file.properties")).isNull();
 
 		cachedConfigManager.add("file.properties", newPropertiesWithValue("v1"));
-		assertThat(cachedConfigManager.exist("file.properties")).isTrue();  //Was returning false
+		assertThat(cachedConfigManager.exist("file.properties")).isTrue();
 
 	}
 
