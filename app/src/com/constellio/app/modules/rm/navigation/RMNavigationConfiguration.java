@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderV
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.folder.RMFolderSummaryColumnViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
@@ -133,6 +134,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_RETENTION_RULES = "listRetentionRules";
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
+	public static final String SUMMARY_CONFIGURATOR = "summaryConfigurator";
 
 	public static void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
@@ -175,6 +177,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+		service.register(SUMMARY_CONFIGURATOR, RMFolderSummaryColumnViewImpl.class);
 	}
 
 	private static void configureHeaderActionMenu(NavigationConfig config) {
