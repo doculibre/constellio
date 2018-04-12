@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static java.util.Arrays.asList;
@@ -297,18 +299,22 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale) {
-		return get(metadata);
+		return get(metadata, locale.getLanguage(), PREFERRING);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		return get(metadata);
+		return get(metadata, locale.getLanguage(), mode);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata) {
+		return get(metadata, mainDataLanguage, STRICT);
+	}
+
+	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode) {
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
 		}
@@ -316,7 +322,13 @@ public class RecordImpl implements Record {
 			return (T) id;
 		}
 
-		String codeAndType = metadata.getDataStoreCode();
+		String codeAndType;
+
+		if (mainDataLanguage.equals(language) || language == null) {
+			codeAndType = metadata.getDataStoreCode();
+		} else {
+			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
+		}
 
 		T returnedValue;
 		if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY) {
@@ -329,10 +341,16 @@ public class RecordImpl implements Record {
 			returnedValue = (T) modifiedValues.get(codeAndType);
 
 		} else if (recordDTO != null) {
-			returnedValue = (T) getConvertedValue(recordDTO.getFields().get(codeAndType), metadata);
+			Object value = recordDTO.getFields().get(codeAndType);
+
+			returnedValue = (T) getConvertedValue(value, metadata);
 
 		} else {
 			returnedValue = null;
+		}
+
+		if (mode == PREFERRING && LangUtils.isNullOrEmptyCollection(returnedValue) && !language.equals(mainDataLanguage)) {
+			returnedValue = get(metadata, mainDataLanguage, STRICT);
 		}
 
 		if (metadata.getEnumClass() != null && returnedValue != null) {
