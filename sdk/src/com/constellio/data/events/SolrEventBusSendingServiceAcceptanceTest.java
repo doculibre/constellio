@@ -283,6 +283,111 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
 	}
 
+	@Test
+	public void givenEventsAlreadyExistingWhenTheSolrSendingServiceIsStartedThenMarkedAsReceived()
+			throws Exception {
+
+		remoteEventBus1.send("anEvent");
+		remoteEventBus2.send("anEvent2");
+		localEventBus1.send("anEvent3");
+		localEventBus2.send("anEvent4");
+		Thread.sleep(4000);
+
+		final List<Event> thirdInstanceBus1ReceivedEvents = new ArrayList<>();
+		final List<Event> thirdInstanceBus2ReceivedEvents = new ArrayList<>();
+		final AtomicInteger thirdInstanceReceivedEventExtensionCalledCounter = new AtomicInteger();
+		final AtomicInteger thirdInstanceSendEventExtensionCalledCounter = new AtomicInteger();
+
+		EventBusManager thirdInstanceEventBusManager = setupPausedThirdInstance(
+				thirdInstanceBus1ReceivedEvents, thirdInstanceBus2ReceivedEvents,
+				thirdInstanceReceivedEventExtensionCalledCounter, thirdInstanceSendEventExtensionCalledCounter);
+
+		remoteEventBus1.send("anEvent5");
+		remoteEventBus2.send("anEvent6");
+		localEventBus1.send("anEvent7");
+		localEventBus2.send("anEvent8");
+		localEventBus2.send("anEvent9");
+
+		System.out.println("Waiting 4 seconds");
+		Thread.sleep(4000);
+
+		assertThat(thirdInstanceBus1ReceivedEvents).extracting("type").isEmpty();
+		assertThat(thirdInstanceBus2ReceivedEvents).extracting("type").isEmpty();
+
+		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(4);
+		assertThat(countSolrDocumentWithBus("bus2")).isEqualTo(5);
+
+		thirdInstanceEventBusManager.resume();
+
+		localEventBus1.send("anEvent10");
+		remoteEventBus1.send("anEvent11");
+
+		System.out.println("Waiting 4 seconds");
+		Thread.sleep(4000);
+
+		assertThat(thirdInstanceBus1ReceivedEvents).extracting("type")
+				.containsOnly("anEvent5", "anEvent7", "anEvent10", "anEvent11");
+		assertThat(thirdInstanceBus2ReceivedEvents).extracting("type").containsOnly("anEvent6", "anEvent8", "anEvent9");
+
+		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
+		assertThat(countSolrDocumentWithBus("bus2")).isEqualTo(5);
+	}
+
+	protected EventBusManager setupPausedThirdInstance(final List<Event> bus1ReceivedEvents, final List<Event> bus2ReceivedEvents,
+			final AtomicInteger localReceivedEventExtensionCalledCounter,
+			final AtomicInteger localSentEventExtensionCalledCounter) {
+		EventBusManager thirdInstanceEventBusManager = getDataLayerFactory("third-instance").getEventBusManager();
+		thirdInstanceEventBusManager.pause();
+		thirdInstanceEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToSerialize());
+		thirdInstanceEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToDeserialize());
+
+		EventBus thirdInstanceEventBus1 = thirdInstanceEventBusManager
+				.createEventBus("bus1", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+		EventBus thirdInstanceEventBus2 = thirdInstanceEventBusManager
+				.createEventBus("bus2", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+
+		SolrClient solrClient = getDataLayerFactory().getSolrServers().getSolrServer("notifications").getNestedSolrServer();
+
+		EventBusSendingService thirdInstanceSendingService = new SolrEventBusSendingService(solrClient)
+				.setPollAndRetrieveFrequency(Duration.millis(1000));
+		thirdInstanceEventBusManager.setEventBusSendingService(thirdInstanceSendingService);
+
+		thirdInstanceEventBus1.register(new EventBusListener() {
+			@Override
+			public void onEventReceived(Event event) {
+				synchronized (bus1ReceivedEvents) {
+					bus1ReceivedEvents.add(event);
+				}
+			}
+		});
+
+		thirdInstanceEventBus2.register(new EventBusListener() {
+			@Override
+			public void onEventReceived(Event event) {
+				synchronized (bus2ReceivedEvents) {
+					bus2ReceivedEvents.add(event);
+				}
+			}
+		});
+
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().eventBusManagerExtensions
+				.add(new EventBusManagerExtension() {
+					@Override
+					public void onEventReceived(ReceivedEventParams params) {
+						if (params.isRemoteEvent()) {
+							localReceivedEventExtensionCalledCounter.incrementAndGet();
+						}
+					}
+
+					@Override
+					public void onEventSent(SentEventParams params) {
+						localSentEventExtensionCalledCounter.incrementAndGet();
+					}
+				});
+
+		return thirdInstanceEventBusManager;
+	}
+
 	private static class TestClassWhichIsNeverDeserializable {
 
 	}

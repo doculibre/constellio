@@ -10,7 +10,9 @@ import java.util.Set;
 import org.jdom2.Document;
 
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
@@ -18,7 +20,7 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 
-public class CachedConfigManager implements ConfigManager {
+public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventListener, ConfigDeletedEventListener {
 
 	Set<String> cachedPaths = new HashSet<>();
 	ConstellioCache constellioCache;
@@ -91,6 +93,7 @@ public class CachedConfigManager implements ConfigManager {
 	public void delete(String path) {
 		try {
 			configManager.delete(path);
+
 		} finally {
 			removeFromCache(path);
 		}
@@ -141,31 +144,19 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void update(String path, String hash, InputStream newBinaryStream)
 			throws OptimisticLockingConfiguration {
-		try {
-			configManager.update(path, hash, newBinaryStream);
-		} finally {
-			removeFromCache(path);
-		}
+		configManager.update(path, hash, newBinaryStream);
 	}
 
 	@Override
 	public void update(String path, String hash, Document newDocument)
 			throws OptimisticLockingConfiguration {
-		try {
-			configManager.update(path, hash, newDocument);
-		} finally {
-			removeFromCache(path);
-		}
+		configManager.update(path, hash, newDocument);
 	}
 
 	@Override
 	public void update(String path, String hash, Map<String, String> newProperties)
 			throws OptimisticLockingConfiguration {
-		try {
-			configManager.update(path, hash, newProperties);
-		} finally {
-			removeFromCache(path);
-		}
+		configManager.update(path, hash, newProperties);
 	}
 
 	@Override
@@ -175,6 +166,11 @@ public class CachedConfigManager implements ConfigManager {
 		} finally {
 			constellioCache.clear();
 		}
+	}
+
+	@Override
+	public void registerTopPriorityListener(String path, ConfigEventListener listener) {
+		configManager.registerTopPriorityListener(path, listener);
 	}
 
 	@Override
@@ -225,6 +221,7 @@ public class CachedConfigManager implements ConfigManager {
 
 	@Override
 	public void keepInCache(String path) {
+		configManager.registerTopPriorityListener(path, this);
 		cachedPaths.add(path);
 	}
 
@@ -260,5 +257,19 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
 		configManagerHelper.createPropertiesDocumentIfInexistent(path, propertiesAlteration);
+	}
+
+	@Override
+	public void onConfigUpdated(String configPath) {
+		removeFromCache(configPath);
+	}
+
+	public ConfigManager getNestedConfigManager() {
+		return configManager;
+	}
+
+	@Override
+	public void onConfigDeleted(String configPath) {
+		removeFromCache(configPath);
 	}
 }

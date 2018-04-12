@@ -240,6 +240,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 			dataLayerFactory.getConstellioJobManager().onSystemStarted();
 		}
+		dataLayerFactory.getEventBusManager().resume();
 		upgradeAppRecoveryService.close();
 	}
 
