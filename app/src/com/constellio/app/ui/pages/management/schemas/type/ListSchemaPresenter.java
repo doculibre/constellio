@@ -1,17 +1,23 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -110,6 +116,10 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 				view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 			}
 		}
+	}
+
+	public List<ListSchemaExtraCommandReturnParams> getExtensionMenuBar(MetadataSchemaVO metadataSchemaVO) {
+		return appLayerFactory.getExtensions().forCollection(collection).getListSchemaExtraCommandExtensions(new ListSchemaExtraCommandParams(metadataSchemaVO, (BaseViewImpl) view));
 	}
 
 	public boolean isDeleteButtonVisible(String schemaCode) {

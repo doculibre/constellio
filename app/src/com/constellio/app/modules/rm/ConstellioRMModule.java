@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.extensions.app.*;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import com.constellio.app.modules.rm.migrations.*;
@@ -26,11 +27,6 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.extensions.*;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
-import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
-import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
@@ -299,6 +295,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.selectionPanelExtensions.add(new RMSelectionPanelExtension(appLayerFactory, collection));
 		extensions.schemaTypesPageExtensions.add(new RMSchemaTypesPageExtension());
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
+		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
+
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

@@ -44,7 +44,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -111,6 +110,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
+
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -596,6 +599,15 @@ public class AppLayerCollectionExtensions {
 			buttons.addAll(extension.addButton(new DocumentViewButtonExtensionParam(record, user)));
 		}
 		return buttons;
+	}
+
+	public List<ListSchemaExtraCommandReturnParams> getListSchemaExtraCommandExtensions(ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
+		List<ListSchemaExtraCommandReturnParams> listSchemaParams = new ArrayList<>();
+		for(ListSchemaExtention listSchemaCommandExtention : listSchemaCommandExtensions) {
+			listSchemaParams.addAll(listSchemaCommandExtention.getExtraCommands(listSchemaExtraCommandParams));
+		}
+
+		return listSchemaParams;
 	}
 
 	public Component getDefaultDisplayForReference(String id) {

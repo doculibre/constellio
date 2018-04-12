@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
@@ -132,20 +133,12 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					presenter.tableButtonClicked();
 				}
 			};
-
 			rootItem.addItem($("ListSchemaViewImpl.menu.table"), tableListener);
-
 		}
 
-
-		final MenuBar.Command resumeConfigurationListener = new MenuBar.Command() {
-			@Override
-			public void menuSelected(MenuBar.MenuItem selectedItem) {
-				presenter.resumeConfigurationButtonClicked(metadataSchemaVO);
-			}
-		};
-
-		rootItem.addItem($("ListSchemaViewImpl.menu.resumeConfiguration"), resumeConfigurationListener);
+		for(ListSchemaExtraCommandReturnParams schemaExtraCommandReturnParams : presenter.getExtensionMenuBar(metadataSchemaVO)) {
+			rootItem.addItem($(schemaExtraCommandReturnParams.getCaption()), schemaExtraCommandReturnParams.getCommand());
+		}
 
 		HorizontalLayout buttonVerticalLayout = new HorizontalLayout();
 
