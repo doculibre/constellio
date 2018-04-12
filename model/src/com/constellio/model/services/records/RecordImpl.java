@@ -148,15 +148,24 @@ public class RecordImpl implements Record {
 		}
 
 		if (value instanceof List) {
-			return setModifiedValue(metadata, Collections.unmodifiableList((List<?>) convertedRecord));
+			return setModifiedValue(metadata, mainDataLanguage, Collections.unmodifiableList((List<?>) convertedRecord));
 		} else {
-			return setModifiedValue(metadata, convertedRecord);
+			return setModifiedValue(metadata, mainDataLanguage, convertedRecord);
 		}
 
 	}
 
 	@Override
 	public Record set(Metadata metadata, Object value) {
+		return set(metadata, mainDataLanguage, value);
+	}
+
+	@Override
+	public Record set(Metadata metadata, Locale locale, Object value) {
+		return set(metadata, locale.getLanguage(), value);
+	}
+
+	private Record set(Metadata metadata, String language, Object value) {
 		ensureModifiable();
 		if ("".equals(value)) {
 			value = null;
@@ -207,7 +216,7 @@ public class RecordImpl implements Record {
 		//			}
 		//		}
 
-		return setModifiedValue(metadata, convertedRecord);
+		return setModifiedValue(metadata, language, convertedRecord);
 	}
 
 	private void validateMetadata(Metadata metadata) {
@@ -232,7 +241,7 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	private Record setModifiedValue(Metadata metadata, Object value) {
+	private Record setModifiedValue(Metadata metadata, String language, Object value) {
 		validateSetArguments(metadata, value);
 
 		Map<String, Object> map = modifiedValues;
@@ -244,7 +253,13 @@ public class RecordImpl implements Record {
 		}
 
 		Object correctedValue = correctValue(value);
-		String codeAndType = metadata.getDataStoreCode();
+		String codeAndType;
+
+		if (language == null || mainDataLanguage.equals(language)) {
+			codeAndType = metadata.getDataStoreCode();
+		} else {
+			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
+		}
 		if (structuredValues != null && structuredValues.containsKey(codeAndType)) {
 			if (!structuredValues.get(codeAndType).equals(correctedValue)) {
 				map.put(codeAndType, correctedValue);
@@ -752,16 +767,6 @@ public class RecordImpl implements Record {
 	public String toString() {
 		return id;
 	}
-
-	//	@Override
-	//	public int hashCode() {
-	//		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
-	//	}
-	//
-	//	@Override
-	//	public boolean equals(Object obj) {
-	//		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
-	//	}
 
 	@Override
 	public boolean equals(Object o) {

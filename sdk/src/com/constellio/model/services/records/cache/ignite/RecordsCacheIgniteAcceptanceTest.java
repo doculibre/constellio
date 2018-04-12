@@ -1538,6 +1538,12 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
+		@Override
+		public Record set(Metadata metadata, Locale locale, Object value) {
+			metadatas.put(metadata.getCode(), value);
+			return this;
+		}
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T get(Metadata metadata) {
