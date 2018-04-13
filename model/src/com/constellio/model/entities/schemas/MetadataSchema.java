@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
@@ -25,8 +26,6 @@ public class MetadataSchema implements Serializable {
 	private final String localCode;
 
 	private final String code;
-
-	private final String collection;
 
 	private Map<Language, String> labels;
 
@@ -46,14 +45,15 @@ public class MetadataSchema implements Serializable {
 
 	private final String dataStore;
 
-	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
+	private final CollectionInfo collectionInfo;
+
+	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
 			List<Metadata> metadatas,
 			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 			MetadataSchemaCalculatedInfos calculatedInfos, String dataStore) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
-		this.collection = collection;
 		this.labels = new HashMap<>(labels);
 		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
@@ -63,6 +63,8 @@ public class MetadataSchema implements Serializable {
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 		this.dataStore = dataStore;
+		this.collectionInfo = collectionInfo;
+
 	}
 
 	public String getLocalCode() {
@@ -74,7 +76,11 @@ public class MetadataSchema implements Serializable {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	public Map<Language, String> getLabels() {

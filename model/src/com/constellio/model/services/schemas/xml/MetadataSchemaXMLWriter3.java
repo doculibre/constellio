@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -51,8 +52,8 @@ public class MetadataSchemaXMLWriter3 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
-	public void writeEmptyDocument(String collection, Document document) {
-		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
+	public void writeEmptyDocument(CollectionInfo collectionInfo, Document document) {
+		writeSchemaTypes(new MetadataSchemaTypes(collectionInfo, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
 				new ArrayList<String>(), Arrays.asList(Language.French, Language.English), MetadataNetwork.EMPTY()), document);
 	}
 

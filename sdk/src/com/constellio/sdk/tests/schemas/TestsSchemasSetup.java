@@ -236,7 +236,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
-	public static MetadataBuilderConfigurator whicIsMultilingual = new MetadataBuilderConfigurator() {
+
+	public static MetadataBuilderConfigurator whichIsMultilingual = new MetadataBuilderConfigurator() {
 
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {

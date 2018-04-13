@@ -1,9 +1,10 @@
 package com.constellio.sdk.tests;
 
+import static org.mockito.Mockito.when;
+
 import java.util.UUID;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.mockito.Mockito;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.schemas.Metadata;
@@ -16,30 +17,43 @@ public class TestRecord extends RecordImpl {
 
 	SchemaShortcuts schemaShortcuts;
 
+	public TestRecord(MetadataSchema schema) {
+		super(schema, "TestRecord_" + UUID.randomUUID().toString());
+	}
+
+	public TestRecord(MetadataSchema schema, String id) {
+		super(schema, id);
+	}
+
 	public TestRecord(SchemaShortcuts schema) {
-		super(schema.code(), schema.collection(), "TestRecord_" + UUID.randomUUID().toString());
+		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
 		this.schemaShortcuts = schema;
 	}
 
 	public TestRecord(SchemaShortcuts schema, String id) {
-		super(schema.code(), schema.collection(), id);
+		super(schema.instance(), id);
 		this.schemaShortcuts = schema;
 	}
 
+	@Deprecated
 	public TestRecord(String schema, String collection, String id) {
-		super(schema, collection, id);
+		super(mockSchema(schema, collection), id);
 	}
 
-	public TestRecord(String schema, String collection) {
-		super(schema, collection, "TestRecord_" + UUID.randomUUID().toString());
+	@Deprecated
+	public TestRecord(String schemaCode, String collection) {
+		super(mockSchema(schemaCode, collection), "TestRecord_" + UUID.randomUUID().toString());
 	}
 
-	public TestRecord(RecordDTO recordDTO) {
-		super(recordDTO);
+	private static MetadataSchema mockSchema(String schemaCode, String collection) {
+		MetadataSchema schema = Mockito.mock(MetadataSchema.class);
+		when(schema.getCode()).thenReturn(schemaCode);
+		when(schema.getCollection()).thenReturn(collection);
+		return schema;
 	}
 
-	public TestRecord(MetadataSchema schema, String id) {
-		this(schema.getCode(), schema.getCollection(), id);
+	public TestRecord(RecordDTO recordDTO, String mainDataLanguage) {
+		super(recordDTO, mainDataLanguage);
 	}
 
 	public void markAsModified(Metadata metadata) {

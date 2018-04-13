@@ -419,7 +419,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		Record record = new RecordImpl(recordDTO, allFields);
+		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
+		Record record = new RecordImpl(recordDTO, mainDataLanguage, allFields);
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
@@ -465,8 +466,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record getById(String dataStore, String id) {
+		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		try {
-			Record record = new RecordImpl(dao(dataStore).get(id), true);
+			Record record = new RecordImpl(dao(dataStore).get(id), mainDataLanguage, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -483,8 +485,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record realtimeGetById(String dataStore, String id) {
+		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		try {
-			Record record = new RecordImpl(dao(dataStore).realGet(id), true);
+			Record record = new RecordImpl(dao(dataStore).realGet(id), mainDataLanguage, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -513,10 +516,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public List<Record> realtimeGetRecordById(List<String> ids) {
-
+		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		List<Record> records = new ArrayList<>();
 		for (RecordDTO recordDTO : recordDao.realGet(ids)) {
-			Record record = new RecordImpl(recordDTO, true);
+			Record record = new RecordImpl(recordDTO, mainDataLanguage, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -989,7 +992,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages, systemConfigs));
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages,
+							systemConfigs));
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory));
 
 			Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
@@ -1047,7 +1051,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {
-		Record record = new RecordImpl(schema.getCode(), schema.getCollection(), id);
+		Record record = new RecordImpl(schema, id);
 
 		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
 

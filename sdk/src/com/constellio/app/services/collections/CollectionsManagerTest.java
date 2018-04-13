@@ -158,7 +158,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 
 		collectionsManager.createCollectionConfigs(zeCollection);
 
-		verify(metadataSchemasManager).createCollectionSchemas(zeCollection);
+		verify(metadataSchemasManager).createCollectionSchemas(zeCollectionInfo);
 		verify(taxonomiesManager).createCollectionTaxonomies(zeCollection);
 		verify(authorizationDetailsManager).createCollectionAuthorizationDetail(zeCollection);
 		verify(rolesManager).createCollectionRole(zeCollection);

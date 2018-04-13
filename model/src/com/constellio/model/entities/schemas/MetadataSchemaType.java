@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
@@ -27,8 +28,6 @@ public class MetadataSchemaType implements Serializable {
 	private final String code;
 
 	private final String smallCode;
-
-	private final String collection;
 
 	private final Map<Language, String> labels;
 
@@ -50,14 +49,15 @@ public class MetadataSchemaType implements Serializable {
 
 	private final String dataStore;
 
-	public MetadataSchemaType(String code, String smallCode, String collection, Map<Language, String> labels,
+	private final CollectionInfo collectionInfo;
+
+	public MetadataSchemaType(String code, String smallCode, CollectionInfo collectionInfo, Map<Language, String> labels,
 			List<MetadataSchema> customSchemas,
 			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog,
 			boolean readOnlyLocked, String dataStore) {
 		super();
 		this.code = code;
 		this.smallCode = smallCode;
-		this.collection = collection;
 		this.labels = Collections.unmodifiableMap(labels);
 		this.customSchemas = Collections.unmodifiableList(customSchemas);
 		this.defaultSchema = defaultSchema;
@@ -70,6 +70,7 @@ public class MetadataSchemaType implements Serializable {
 		this.dataStore = dataStore;
 		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
 		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
+		this.collectionInfo = collectionInfo;
 
 	}
 
@@ -94,7 +95,11 @@ public class MetadataSchemaType implements Serializable {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	public String getCode() {

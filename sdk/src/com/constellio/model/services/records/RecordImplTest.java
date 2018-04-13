@@ -497,7 +497,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put("schema_s", "zeSchemaType_default");
 		initialStateFields.put("collection_s", "zeCollection");
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put(textMetadataCodeAndType, "differentValue");
@@ -505,7 +505,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put("collection_s", "zeCollection");
 		when(currentState.getFields()).thenReturn(currentStateFields);
 
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.merge(newRecord, zeSchema);
 
@@ -524,14 +524,14 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put(textMetadataCodeAndType, "aValue");
 		initialStateFields.put("schema_s", theSchemaCode);
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put("collection_s", "zeCollection");
 		currentStateFields.put(textMetadataCodeAndType, "differentValue");
 		currentStateFields.put("schema_s", theSchemaCode);
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.set(textMetadata, "changedValue");
 
@@ -545,7 +545,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put("schema_s", "zeSchemaType_default");
 		initialStateFields.put("collection_s", "zeCollection");
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put("schema_s", "zeSchemaType_default");
@@ -553,7 +553,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put(textMetadataCodeAndType, "differentValue");
 		currentStateFields.put(dateMetadataCodeAndType, new LocalDateTime(2014, 8, 15, 11, 2));
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.merge(newRecord, zeSchema);
 
@@ -574,7 +574,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put("schema_s", theSchemaCode);
 		initialStateFields.put("collection_s", "zeCollection");
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put("schema_s", theSchemaCode);
@@ -582,7 +582,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put(textMetadataCodeAndType, "modifiedValue");
 		currentStateFields.put(dateMetadataCodeAndType, new LocalDateTime(2013, 8, 15, 11, 2));
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.set(textMetadata, "modifiedValue");
 		record.set(numberMetadata, 42.0);
@@ -608,7 +608,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put("schema_s", "a_b");
 		initialStateFields.put("collection_s", "zeCollection");
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put(textMetadataCodeAndType, "differentValue");
@@ -616,7 +616,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put("schema_s", "a_b");
 		currentStateFields.put("collection_s", "zeCollection");
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.set(textMetadata, "changedValue");
 
@@ -666,7 +666,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put(textMetadataCodeAndType, "aValue");
 		initialStateFields.put(dateMetadataCodeAndType, new LocalDateTime(2014, 8, 15, 11, 2));
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		assertThat(record.get(textMetadata)).isEqualTo("aValue");
 
@@ -676,7 +676,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put(textMetadataCodeAndType, "aValue");
 		currentStateFields.put(dateMetadataCodeAndType, new LocalDateTime(2014, 8, 15, 11, 2));
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.merge(newRecord, zeSchema);
 
@@ -695,7 +695,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put(numberMetadataCodeAndType, 20);
 		initialStateFields.put(otherNumberMetadataCodeAndType, 10.0);
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put("schema_s", "zeSchemaType_default");
@@ -703,7 +703,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put(numberMetadataCodeAndType, 20);
 		currentStateFields.put(otherNumberMetadataCodeAndType, 10.0);
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.merge(newRecord, zeSchema);
 
@@ -723,7 +723,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put(numberMetadataCodeAndType, 20);
 		initialStateFields.put(otherNumberMetadataCodeAndType, 10.0);
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		Map<String, Object> currentStateFields = new HashMap<>();
 		currentStateFields.put("schema_s", "zeSchemaType_default");
@@ -731,7 +731,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put(numberMetadataCodeAndType, 20.0);
 		currentStateFields.put(otherNumberMetadataCodeAndType, 10.0);
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.merge(newRecord, zeSchema);
 
@@ -750,7 +750,7 @@ public class RecordImplTest extends ConstellioTest {
 		initialStateFields.put("schema_s", "a_b");
 		initialStateFields.put("collection_s", "zeCollection");
 		when(initialState.getFields()).thenReturn(initialStateFields);
-		RecordImpl record = new TestRecord(initialState);
+		RecordImpl record = new TestRecord(initialState, "fr");
 
 		record.set(numberMetadata, 20);
 
@@ -759,7 +759,7 @@ public class RecordImplTest extends ConstellioTest {
 		currentStateFields.put("schema_s", "a_b");
 		currentStateFields.put("collection_s", "zeCollection");
 		when(currentState.getFields()).thenReturn(currentStateFields);
-		RecordImpl newRecord = new TestRecord(currentState);
+		RecordImpl newRecord = new TestRecord(currentState, "fr");
 
 		record.merge(newRecord, zeSchema);
 
@@ -855,7 +855,7 @@ public class RecordImplTest extends ConstellioTest {
 		fieldValues.put("schema_s", theSchemaCode);
 		fieldValues.put("collection_s", "zeCollection");
 		RecordDTO recordDTO = new RecordDTO("id", 4, loadedFields, fieldValues);
-		RecordImpl record = new TestRecord(recordDTO);
+		RecordImpl record = new TestRecord(recordDTO, "fr");
 
 		record.set(multipleTextMetadata, asList("value4", "value5", "value6"));
 		record.set(numberMetadata, 456);
@@ -882,7 +882,7 @@ public class RecordImplTest extends ConstellioTest {
 
 		Map<String, Object> fieldValues = newMap("zeCollection", theSchemaCode);
 		fieldValues.put(factoredMetadataCodeAndType, zeStructureInitialValue);
-		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues));
+		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), "fr");
 
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).isEmpty();
@@ -901,7 +901,7 @@ public class RecordImplTest extends ConstellioTest {
 
 		Map<String, Object> fieldValues = newMap("zeCollection", theSchemaCode);
 		fieldValues.put(factoredMetadataCodeAndType, asList(zeStructureInitialValue, anotherStructureInitialValue));
-		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues));
+		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), "fr");
 
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).isEmpty();
@@ -921,7 +921,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(stringStructureFactory.toString(zeStructure)).thenReturn(zeStructureModifiedValue);
 		Map<String, Object> fieldValues = newMap("zeCollection", theSchemaCode);
 		fieldValues.put(factoredMetadataCodeAndType, zeStructureInitialValue);
-		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues));
+		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), "fr");
 
 		assertThat(record.get(factoredMetadata)).isSameAs(zeStructure);
 		when(zeStructure.isDirty()).thenReturn(true);
@@ -946,7 +946,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(stringStructureFactory.toString(anotherStructure)).thenReturn(anotherStructureInitialValue);
 		Map<String, Object> fieldValues = newMap("zeCollection", theSchemaCode);
 		fieldValues.put(factoredMetadataCodeAndType, zeStructureInitialValue);
-		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues));
+		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), "fr");
 
 		when(anotherStructure.isDirty()).thenReturn(true);
 		record.set(factoredMetadata, anotherStructure);
@@ -996,7 +996,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(stringStructureFactory.toString(aThirdStructure)).thenReturn(aThirdStructureInitialValue);
 		Map<String, Object> fieldValues = newMap("zeCollection", theSchemaCode);
 		fieldValues.put(factoredListMetadataCodeAndType, asList(zeStructureInitialValue, anotherStructureInitialValue));
-		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues));
+		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), "fr");
 
 		List<Object> values = record.get(factoredListMetadata);
 		assertThat(values).isEqualTo(asList(zeStructure, anotherStructure));
@@ -1048,7 +1048,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(stringStructureFactory.toString(aThirdStructure)).thenReturn(aThirdStructureInitialValue);
 		Map<String, Object> fieldValues = newMap("zeCollection", theSchemaCode);
 		fieldValues.put(factoredListMetadataCodeAndType, asList(zeStructureInitialValue, anotherStructureInitialValue));
-		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues));
+		RecordImpl record = new TestRecord(new RecordDTO("id", 4, null, fieldValues), "fr");
 
 		record.set(factoredListMetadata, asList(zeStructure, aThirdStructure));
 
@@ -1077,14 +1077,14 @@ public class RecordImplTest extends ConstellioTest {
 	public void givenNewRecordWithoutParentThenReturnNullParentId()
 			throws Exception {
 
-		RecordImpl record = new RecordImpl("a_b", "zeCollection", "zeId");
+		RecordImpl record = new TestRecord("a_b", "zeCollection", "zeId");
 		assertThat(record.getParentId()).isNull();
 	}
 
 	@Test
 	public void givenNewRecordWithParentThenReturnParentId()
 			throws Exception {
-		RecordImpl record = new RecordImpl("a_b", "zeCollection", "zeId");
+		RecordImpl record = new TestRecord("a_b", "zeCollection", "zeId");
 		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
 		assertThat(record.getParentId()).isEqualTo("modifiedParentId");
 	}
@@ -1094,7 +1094,7 @@ public class RecordImplTest extends ConstellioTest {
 			throws Exception {
 		RecordDTO recordDTO = new RecordDTO("id", 4, new ArrayList<String>(),
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection"));
-		RecordImpl record = new RecordImpl(recordDTO);
+		RecordImpl record = new RecordImpl(recordDTO, "fr");
 		assertThat(record.getParentId()).isNull();
 	}
 
@@ -1103,7 +1103,7 @@ public class RecordImplTest extends ConstellioTest {
 			throws Exception {
 		RecordDTO recordDTO = new RecordDTO("id", 4, new ArrayList<String>(),
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"));
-		RecordImpl record = new RecordImpl(recordDTO);
+		RecordImpl record = new RecordImpl(recordDTO, "fr");
 		assertThat(record.getParentId()).isEqualTo("initialParentId");
 	}
 
@@ -1112,7 +1112,7 @@ public class RecordImplTest extends ConstellioTest {
 			throws Exception {
 		RecordDTO recordDTO = new RecordDTO("id", 4, new ArrayList<String>(),
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"));
-		RecordImpl record = new RecordImpl(recordDTO);
+		RecordImpl record = new RecordImpl(recordDTO, "fr");
 		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
 		assertThat(record.getParentId()).isEqualTo("modifiedParentId");
 	}
@@ -1122,7 +1122,7 @@ public class RecordImplTest extends ConstellioTest {
 			throws Exception {
 		RecordDTO recordDTO = new RecordDTO("id", 4, new ArrayList<String>(),
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"));
-		RecordImpl record = new RecordImpl(recordDTO);
+		RecordImpl record = new RecordImpl(recordDTO, "fr");
 		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
 		assertThat(record.getParentId()).isEqualTo("modifiedParentId");
 		assertThat(record.getCopyOfOriginalRecord().getParentId()).isEqualTo("initialParentId");
@@ -1131,14 +1131,14 @@ public class RecordImplTest extends ConstellioTest {
 	@Test(expected = RecordImplException_UnsupportedOperationOnUnsavedRecord.class)
 	public void givenUnsavedRecordWhenGetCopyOfOriginalRecordThenException()
 			throws Exception {
-		RecordImpl record = new RecordImpl("folder_default", "zeUltimateCollection", "42");
+		RecordImpl record = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		record.getCopyOfOriginalRecord();
 	}
 
 	@Test
 	public void whenSerializingNewRecordThenCorrectlySerializedAndUnserialized() {
 
-		RecordImpl record = new RecordImpl("folder_default", "zeUltimateCollection", "42");
+		RecordImpl record = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		record.set(Schemas.TITLE, "zeTitle");
 		record.set(Schemas.MODIFIED_BY, shishOClock);
 
@@ -1167,7 +1167,7 @@ public class RecordImplTest extends ConstellioTest {
 		Map<String, Object> copyFields = asMap("key3", (Object) "value3", "key4", "value4");
 
 		RecordDTO recordDTO = new RecordDTO("id42", 42, loadedFields, fields, copyFields);
-		RecordImpl record = new RecordImpl(recordDTO);
+		RecordImpl record = new RecordImpl(recordDTO, "fr");
 		record.set(Schemas.TITLE, "zeTitle");
 		record.set(Schemas.MODIFIED_BY, shishOClock);
 
@@ -1198,7 +1198,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(telephoneNumber.getInputMask()).thenReturn("(###) ###-####");
 		when(postalCode.getDataStoreCode()).thenReturn("postalCode_s");
 		when(postalCode.getInputMask()).thenReturn("U#U #U#");
-		RecordImpl record = new RecordImpl("zeType_default", "zeCollection", "zeId");
+		RecordImpl record = new TestRecord("zeType_default", "zeCollection", "zeId");
 
 		record.set(telephoneNumber, "4183533390");
 		record.set(postalCode, "G1N2C9");
@@ -1222,7 +1222,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(telephoneNumber.getInputMask()).thenReturn("(###) ###-####");
 		when(postalCode.getDataStoreCode()).thenReturn("postalCode_s");
 		when(postalCode.getInputMask()).thenReturn("U#U #U#");
-		RecordImpl record = new RecordImpl("zeType_default", "zeCollection", "zeId");
+		RecordImpl record = new TestRecord("zeType_default", "zeCollection", "zeId");
 
 		record.set(telephoneNumber, "418-353-3390");
 		record.set(postalCode, "G1Nyyy2C9");
@@ -1246,7 +1246,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(telephoneNumber.getInputMask()).thenReturn("(###) ###-####");
 		when(postalCode.getDataStoreCode()).thenReturn("postalCode_s");
 		when(postalCode.getInputMask()).thenReturn("U#U #U#");
-		RecordImpl record = new RecordImpl("zeType_default", "zeCollection", "zeId");
+		RecordImpl record = new TestRecord("zeType_default", "zeCollection", "zeId");
 
 		record.set(telephoneNumber, "(418) 353-3390");
 		record.set(postalCode, "G1N 2C9");

@@ -19,6 +19,9 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class CollectionsListManagerTest extends ConstellioTest {
@@ -26,13 +29,20 @@ public class CollectionsListManagerTest extends ConstellioTest {
 	@Mock ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
 
+	@Mock ModelLayerConfiguration modelLayerConfiguration;
+	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock DataLayerFactory dataLayerFactory;
+
 	@Test
 	public void whenCreateCollectionListenerThenRegisterFileListenerInConfigManager()
 			throws Exception {
 
 		when(configManager.exist("/collections.xml")).thenReturn(true);
+		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 
-		collectionsListManager = spy(new CollectionsListManager(configManager) {
+		collectionsListManager = spy(new CollectionsListManager(modelLayerFactory) {
 			@Override
 			public List<String> readCollections() {
 				return Arrays.asList("collection1", "collection2");
@@ -50,8 +60,11 @@ public class CollectionsListManagerTest extends ConstellioTest {
 			throws Exception {
 
 		when(configManager.exist("/collections.xml")).thenReturn(true);
+		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 
-		collectionsListManager = spy(new CollectionsListManager(configManager) {
+		collectionsListManager = spy(new CollectionsListManager(modelLayerFactory) {
 			@Override
 			public List<String> readCollections() {
 				return Arrays.asList("collection1", "collection2");

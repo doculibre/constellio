@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -54,7 +55,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesFactory = new FakeDataStoreTypeFactory();
 
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion("zeUltimateCollection", 0, new DefaultClassProvider(),
+		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
+		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
 				Arrays.asList(Language.French));
 
 		zeType = typesBuilder.createNewSchemaType("zeType");

@@ -66,36 +66,32 @@ public class RecordImpl implements Record {
 	private Map<String, Object> structuredValues;
 	private boolean fullyLoaded;
 	private boolean unmodifiable;
+	private String mainDataLanguage;
 
-	public RecordImpl(String schemaCode, String collection, String id) {
-		if (schemaCode == null) {
-			throw new IllegalArgumentException("Require schema code");
+	public RecordImpl(MetadataSchema schema, String id) {
+		if (schema == null) {
+			throw new IllegalArgumentException("Require schema");
 		}
-		if (collection == null) {
-			throw new IllegalArgumentException("Require collection code");
-		}
-		this.collection = collection;
+		this.collection = schema.getCollection();
 
 		this.id = id;
-		this.schemaCode = schemaCode;
+		this.schemaCode = schema.getCode();
 		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		this.version = -1;
 		this.recordDTO = null;
 		this.fullyLoaded = true;
+		this.mainDataLanguage = schema.getCollectionInfo().getMainSystemLanguage().getCode();
 	}
 
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues) {
-		this(recordDTO, true);
+	private RecordImpl(RecordDTO recordDTO, String mainDataLanguage, Map<String, Object> eagerTransientValues,
+			boolean fullyLoaded) {
+		this(recordDTO, mainDataLanguage, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded) {
-		this(recordDTO, fullyLoaded);
-		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
-	}
-
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded, boolean unmodifiable) {
-		this(recordDTO, fullyLoaded);
+	private RecordImpl(RecordDTO recordDTO, String mainDataLanguage, Map<String, Object> eagerTransientValues,
+			boolean fullyLoaded, boolean unmodifiable) {
+		this(recordDTO, mainDataLanguage, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 		this.unmodifiable = unmodifiable;
 		if (unmodifiable) {
@@ -103,11 +99,19 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	public RecordImpl(RecordDTO recordDTO) {
-		this(recordDTO, true);
+	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO) {
+		this(schema, recordDTO, true);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, boolean fullyLoaded) {
+	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded) {
+		this(recordDTO, schema.getCollectionInfo().getMainSystemLanguage().getCode(), fullyLoaded);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, String mainDataLanguage) {
+		this(recordDTO, mainDataLanguage, true);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, String mainDataLanguage, boolean fullyLoaded) {
 		this.fullyLoaded = fullyLoaded;
 		this.id = recordDTO.getId();
 		this.version = recordDTO.getVersion();
@@ -119,6 +123,7 @@ public class RecordImpl implements Record {
 
 		this.recordDTO = recordDTO;
 		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.mainDataLanguage = mainDataLanguage;
 	}
 
 	public boolean isFullyLoaded() {
@@ -291,28 +296,7 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale) {
-		List<String> TEMPORAIRE = asList("administrativeUnit_default_title", "category_default_title", "category_default_description",
-				"category_default_keywords", "administrativeUnit_default_description",
-				"retentionRule_default_title");
-
-		if (TEMPORAIRE.contains(schemaCode + "_" + metadata.getLocalCode()) && locale != null) {
-			if (metadata.isMultivalue()) {
-				List<String> dummyValues = new ArrayList<>();
-
-				for (String item : this.<String>getList(metadata)) {
-					dummyValues.add("{" + locale.getLanguage() + "} " + item);
-				}
-
-				return (T) dummyValues;
-
-			} else {
-				String value = get(metadata);
-				return value == null ? null : (T) ("{" + locale.getLanguage() + "} " + value);
-			}
-
-		} else {
-			return get(metadata);
-		}
+		return get(metadata);
 	}
 
 	@Override
@@ -943,7 +927,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded);
+		return new RecordImpl(recordDTO, mainDataLanguage, eagerTransientValues, fullyLoaded);
 	}
 
 	@Override
@@ -951,7 +935,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded, true);
+		return new RecordImpl(recordDTO, mainDataLanguage, eagerTransientValues, fullyLoaded, true);
 	}
 
 	@Override
@@ -972,7 +956,8 @@ public class RecordImpl implements Record {
 			}
 		}
 
-		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), newEagerTransientValues, false);
+		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), mainDataLanguage, newEagerTransientValues,
+				false);
 	}
 
 	@Override
