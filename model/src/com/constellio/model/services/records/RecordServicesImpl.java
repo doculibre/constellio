@@ -38,6 +38,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -419,8 +420,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
-		Record record = new RecordImpl(recordDTO, mainDataLanguage, allFields);
+		String collection = (String) recordDTO.getFields().get("collection_s");
+		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+		Record record = new RecordImpl(recordDTO, collectionInfo, allFields);
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
@@ -466,9 +468,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record getById(String dataStore, String id) {
-		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		try {
-			Record record = new RecordImpl(dao(dataStore).get(id), mainDataLanguage, true);
+			RecordDTO recordDTO = dao(dataStore).get(id);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+			Record record = new RecordImpl(recordDTO, collectionInfo, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -485,9 +489,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record realtimeGetById(String dataStore, String id) {
-		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		try {
-			Record record = new RecordImpl(dao(dataStore).realGet(id), mainDataLanguage, true);
+			RecordDTO recordDTO = dao(dataStore).realGet(id);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			Record record = new RecordImpl(recordDTO, collectionInfo, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -519,7 +526,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		List<Record> records = new ArrayList<>();
 		for (RecordDTO recordDTO : recordDao.realGet(ids)) {
-			Record record = new RecordImpl(recordDTO, mainDataLanguage, true);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			Record record = new RecordImpl(recordDTO, collectionInfo, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));

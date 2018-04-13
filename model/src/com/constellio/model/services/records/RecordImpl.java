@@ -5,6 +5,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
@@ -69,7 +71,7 @@ public class RecordImpl implements Record {
 	private Map<String, Object> structuredValues;
 	private boolean fullyLoaded;
 	private boolean unmodifiable;
-	private String mainDataLanguage;
+	private CollectionInfo collectionInfo;
 
 	public RecordImpl(MetadataSchema schema, String id) {
 		if (schema == null) {
@@ -83,18 +85,18 @@ public class RecordImpl implements Record {
 		this.version = -1;
 		this.recordDTO = null;
 		this.fullyLoaded = true;
-		this.mainDataLanguage = schema.getCollectionInfo().getMainSystemLanguage().getCode();
+		this.collectionInfo = schema.getCollectionInfo();
 	}
 
-	private RecordImpl(RecordDTO recordDTO, String mainDataLanguage, Map<String, Object> eagerTransientValues,
+	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
 			boolean fullyLoaded) {
-		this(recordDTO, mainDataLanguage, fullyLoaded);
+		this(recordDTO, collectionInfo, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
-	private RecordImpl(RecordDTO recordDTO, String mainDataLanguage, Map<String, Object> eagerTransientValues,
+	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
 			boolean fullyLoaded, boolean unmodifiable) {
-		this(recordDTO, mainDataLanguage, fullyLoaded);
+		this(recordDTO, collectionInfo, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 		this.unmodifiable = unmodifiable;
 		if (unmodifiable) {
@@ -107,14 +109,14 @@ public class RecordImpl implements Record {
 	}
 
 	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded) {
-		this(recordDTO, schema.getCollectionInfo().getMainSystemLanguage().getCode(), fullyLoaded);
+		this(recordDTO, schema.getCollectionInfo(), fullyLoaded);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, String mainDataLanguage) {
-		this(recordDTO, mainDataLanguage, true);
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo) {
+		this(recordDTO, collectionInfo, true);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, String mainDataLanguage, boolean fullyLoaded) {
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, boolean fullyLoaded) {
 		this.fullyLoaded = fullyLoaded;
 		this.id = recordDTO.getId();
 		this.version = recordDTO.getVersion();
@@ -126,7 +128,7 @@ public class RecordImpl implements Record {
 
 		this.recordDTO = recordDTO;
 		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
-		this.mainDataLanguage = mainDataLanguage;
+		this.collectionInfo = collectionInfo;
 	}
 
 	public boolean isFullyLoaded() {
@@ -148,16 +150,17 @@ public class RecordImpl implements Record {
 		}
 
 		if (value instanceof List) {
-			return setModifiedValue(metadata, mainDataLanguage, Collections.unmodifiableList((List<?>) convertedRecord));
+			return setModifiedValue(metadata, collectionInfo.getMainSystemLanguage().getCode(),
+					unmodifiableList((List<?>) convertedRecord));
 		} else {
-			return setModifiedValue(metadata, mainDataLanguage, convertedRecord);
+			return setModifiedValue(metadata, collectionInfo.getMainSystemLanguage().getCode(), convertedRecord);
 		}
 
 	}
 
 	@Override
 	public Record set(Metadata metadata, Object value) {
-		return set(metadata, mainDataLanguage, value);
+		return set(metadata, collectionInfo.getMainSystemLanguage().getCode(), value);
 	}
 
 	@Override
@@ -255,7 +258,7 @@ public class RecordImpl implements Record {
 		Object correctedValue = correctValue(value);
 		String codeAndType;
 
-		if (language == null || mainDataLanguage.equals(language)) {
+		if (language == null || collectionInfo.getMainSystemLanguage().getCode().equals(language)) {
 			codeAndType = metadata.getDataStoreCode();
 		} else {
 			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
@@ -326,7 +329,7 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata) {
-		return get(metadata, mainDataLanguage, STRICT);
+		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT);
 	}
 
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode) {
@@ -339,7 +342,7 @@ public class RecordImpl implements Record {
 
 		String codeAndType;
 
-		if (mainDataLanguage.equals(language) || language == null) {
+		if (collectionInfo.getMainSystemLanguage().getCode().equals(language) || language == null) {
 			codeAndType = metadata.getDataStoreCode();
 		} else {
 			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
@@ -364,6 +367,7 @@ public class RecordImpl implements Record {
 			returnedValue = null;
 		}
 
+		String mainDataLanguage = collectionInfo.getMainSystemLanguage().getCode();
 		if (mode == PREFERRING && LangUtils.isNullOrEmptyCollection(returnedValue) && !language.equals(mainDataLanguage)) {
 			returnedValue = get(metadata, mainDataLanguage, STRICT);
 		}
@@ -378,9 +382,9 @@ public class RecordImpl implements Record {
 
 		if (metadata.isMultivalue()) {
 			if (returnedValue == null) {
-				returnedValue = (T) Collections.unmodifiableList(Collections.emptyList());
+				returnedValue = (T) unmodifiableList(Collections.emptyList());
 			} else {
-				returnedValue = (T) Collections.unmodifiableList((List<? extends T>) returnedValue);
+				returnedValue = (T) unmodifiableList((List<? extends T>) returnedValue);
 			}
 		}
 
@@ -957,7 +961,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, mainDataLanguage, eagerTransientValues, fullyLoaded);
+		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded);
 	}
 
 	@Override
@@ -965,7 +969,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, mainDataLanguage, eagerTransientValues, fullyLoaded, true);
+		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded, true);
 	}
 
 	@Override
@@ -977,6 +981,9 @@ public class RecordImpl implements Record {
 		Set<String> metadatasDataStoreCodes = new HashSet<>();
 		for (Metadata metadata : metadatas) {
 			metadatasDataStoreCodes.add(metadata.getDataStoreCode());
+			for (String collectionLanguageCode : collectionInfo.getSecondaryCollectionLanguesCodes()) {
+				metadatasDataStoreCodes.add(metadata.getSecondaryLanguageDataStoreCode(collectionLanguageCode));
+			}
 		}
 
 		Map<String, Object> newEagerTransientValues = new HashMap<>();
@@ -986,7 +993,7 @@ public class RecordImpl implements Record {
 			}
 		}
 
-		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), mainDataLanguage, newEagerTransientValues,
+		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), collectionInfo, newEagerTransientValues,
 				false);
 	}
 

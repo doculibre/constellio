@@ -11,6 +11,7 @@ import static java.util.Arrays.asList;
 import static java.util.Locale.ENGLISH;
 import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Locale;
 
@@ -18,7 +19,9 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -187,6 +190,164 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), FRENCH, STRICT)).isEqualTo("value4");
 		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), ENGLISH, STRICT)).isNull();
 		assertThat(multiLingualRecord.get(multilingualSchema.anotherStringMetadata(), ARABIC, STRICT)).isNull();
+
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()))).isEqualTo("value4");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()), FRENCH, PREFERRING))
+				.isEqualTo("value4");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()), ENGLISH, PREFERRING))
+				.isEqualTo("value4");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()), ARABIC, PREFERRING))
+				.isEqualTo("value4");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()), FRENCH, STRICT)).isEqualTo("value4");
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()), ENGLISH, STRICT)).isNull();
+		assertThat(multiLingualRecord.get(dummy(multilingualSchema.anotherStringMetadata()), ARABIC, STRICT)).isNull();
+	}
+
+	@Test
+	public void whenModifyingMultilingualMetadataThenModifiedValuesPersistedAndUnmodifiedValuesKept()
+			throws Exception {
+
+		givenFrenchSystemOneMonolingualAndOneMultilingualCollection(
+				withAMultilingualStringMetadata, andAnotherUnilingualStringMetadata);
+
+		multiLingualRecord = new TestRecord(multilingualSchema, "multiLingualRecord")
+				.set(multilingualSchema.stringMetadata(), "value3fr")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "value3en")
+				.set(multilingualSchema.anotherStringMetadata(), "value4");
+
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("value3fr");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("value3en");
+
+		recordServices.add(multiLingualRecord);
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("value3fr");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("value3en");
+
+		multiLingualRecord = recordServices.getDocumentById(multiLingualRecord.getId());
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("value3fr");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("value3en");
+
+		multiLingualRecord.set(multilingualSchema.stringMetadata(), "newValue");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newValue");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("value3en");
+
+		multiLingualRecord.set(multilingualSchema.stringMetadata(), Locale.UK, "cupOfTea");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newValue");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("cupOfTea");
+
+		assertThat(multiLingualRecord.getCopyOfOriginalRecord().get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo("value3fr");
+		assertThat(multiLingualRecord.getCopyOfOriginalRecord().get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo("value3en");
+
+		Record originalCopy = multiLingualRecord.getCopyOfOriginalRecordKeepingOnly(asList(multilingualSchema.stringMetadata()));
+		assertThat(originalCopy.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("value3fr");
+		assertThat(originalCopy.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("value3en");
+
+		recordServices.update(multiLingualRecord);
+
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newValue");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("cupOfTea");
+		multiLingualRecord = recordServices.getDocumentById(multiLingualRecord.getId());
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newValue");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("cupOfTea");
+	}
+
+	@Test
+	public void whenModifyingMultilingualMultivalueMetadataThenModifiedValuesPersistedAndUnmodifiedValuesKept()
+			throws Exception {
+
+		givenEnglishSystemOneMonolingualAndOneTrilingualCollection(
+				withAMultilingualListStringMetadata, andAnotherUnilingualStringMetadata);
+
+		multiLingualRecord = new TestRecord(multilingualSchema, "multiLingualRecord")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("value1en", "value2en"))
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("value1fr", "value2fr"));
+
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo(asList("value1fr", "value2fr"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo(asList("value1en", "value2en"));
+
+		recordServices.add(multiLingualRecord);
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo(asList("value1fr", "value2fr"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo(asList("value1en", "value2en"));
+
+		multiLingualRecord = recordServices.getDocumentById(multiLingualRecord.getId());
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo(asList("value1fr", "value2fr"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo(asList("value1en", "value2en"));
+
+		multiLingualRecord.set(multilingualSchema.stringMetadata(), asList("value3en", "value4en"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo(asList("value1fr", "value2fr"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo(asList("value3en", "value4en"));
+
+		multiLingualRecord.set(multilingualSchema.stringMetadata(), Locale.CANADA_FRENCH, asList("value3fr", "value4fr"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo(asList("value3fr", "value4fr"));
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo(asList("value3en", "value4en"));
+
+		assertThat(multiLingualRecord.getCopyOfOriginalRecord().get(multilingualSchema.stringMetadata(), FRENCH, STRICT))
+				.isEqualTo(asList("value1fr", "value2fr"));
+		assertThat(multiLingualRecord.getCopyOfOriginalRecord().get(multilingualSchema.stringMetadata(), ENGLISH, STRICT))
+				.isEqualTo(asList("value1en", "value2en"));
+
+	}
+
+	@Test
+	public void givenOptimisticLockingProblemWhenUpdatingSameMetadataThenMergedIfValuesOfDifferentLanguages()
+			throws Exception {
+
+		givenFrenchSystemOneMonolingualAndOneMultilingualCollection(
+				withAMultilingualStringMetadata, andAnotherUnilingualStringMetadata);
+
+		multiLingualRecord = new TestRecord(multilingualSchema, "multiLingualRecord")
+				.set(multilingualSchema.stringMetadata(), "value3fr")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "value3en")
+				.set(multilingualSchema.anotherStringMetadata(), "value4");
+		recordServices.add(multiLingualRecord);
+
+		Record multiLingualRecord2 = multiLingualRecord.getCopyOfOriginalRecord();
+
+		recordServices.update(multiLingualRecord.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "newFRvalue"));
+		recordServices.update(multiLingualRecord2.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "newENvalue"));
+
+		multiLingualRecord = recordServices.getDocumentById(multiLingualRecord.getId());
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newFRvalue");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("newENvalue");
+
+		assertThat(multiLingualRecord2.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newFRvalue");
+		assertThat(multiLingualRecord2.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("newENvalue");
+
+		multiLingualRecord2 = multiLingualRecord.getCopyOfOriginalRecord();
+
+		recordServices.update(multiLingualRecord.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "newFRvalue2"));
+		Transaction tx = new Transaction();
+		tx.add(multiLingualRecord2.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "mouhahahah"));
+		tx.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		try {
+			recordServices.execute(tx);
+			fail("Exception expected");
+		} catch (RecordServicesException.OptimisticLocking e) {
+			//OK
+		}
+
+		multiLingualRecord2 = multiLingualRecord2.getCopyOfOriginalRecord();
+		try {
+			recordServices.update(multiLingualRecord2.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "mouhahahah"));
+			fail("Exception expected");
+		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict e) {
+			//OK
+		}
+
+		multiLingualRecord = recordServices.getDocumentById(multiLingualRecord.getId());
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), FRENCH, STRICT)).isEqualTo("newFRvalue2");
+		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("newENvalue");
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------------
