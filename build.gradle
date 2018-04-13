@@ -69,7 +69,7 @@ subprojects {
 
         compile "io.swagger.core.v3:swagger-jaxrs2:2.0.0"
 
-        compileOnly "org.projectlombok:lombok:1.16.20"
+        compileOnly "org.projectlombok:lombok:1.16.18"
     }
 
     configurations {
