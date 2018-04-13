@@ -19,8 +19,6 @@ public interface SearchQuery {
 
 	SearchQuery setNumberOfRows(int number);
 
-	String getSort();
-
 	SearchQuery filteredWith(UserFilter userFilter);
 
 	SearchQuery filteredWithUser(User user);

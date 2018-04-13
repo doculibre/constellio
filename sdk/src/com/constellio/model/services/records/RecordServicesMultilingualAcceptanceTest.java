@@ -7,6 +7,10 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.dummy;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static java.util.Arrays.asList;
 import static java.util.Locale.ENGLISH;
 import static java.util.Locale.FRENCH;
@@ -25,6 +29,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -427,6 +432,52 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		assertThat(multiLingualRecord.get(multilingualSchema.stringMetadata(), ENGLISH, STRICT)).isEqualTo("newENvalue");
 	}
 
+	@Test
+	public void givenSortedMultilingualMetadataThenSortFieldCreatedForEachLanguageAndSortUsingQueryLanguage()
+			throws Exception {
+
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(multilingualCollectionSchemas.withAStringMetadata(whichIsSortable, whichIsMultilingual));
+
+		setupServices();
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(multilingualSchema, "r1")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "pomme")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Apple"));
+
+		tx.add(new TestRecord(multilingualSchema, "r2")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Pêche")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Peach"));
+
+		tx.add(new TestRecord(multilingualSchema, "r3")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Poire")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "pear"));
+
+		tx.add(new TestRecord(multilingualSchema, "r4")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Fraise")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Strawberry"));
+
+		tx.add(new TestRecord(multilingualSchema, "r5")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "perdrix")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Partridge"));
+
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
+		query.sortAsc(multilingualSchema.stringMetadata());
+		query.setLanguage(Locale.FRENCH);
+
+		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadata("stringMetadata")
+				.isEqualTo(asList("Fraise", "Pêche", "perdrix", "Poire", "pomme"));
+
+		query.setLanguage(Locale.ENGLISH);
+		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadata("stringMetadata")
+				.isEqualTo(asList("Apple", "Partridge", "Peach", "pear", "Strawberry"));
+
+	}
+
 	//-----------------------------------------------------------------------------------------------------------------------
 
 	private SetupAlteration andAnotherUnilingualStringMetadata = new SetupAlteration() {
@@ -481,6 +532,30 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 		}
 	};
+
+	protected void givenFrenchSystemWithMultilingualCollection(final SetupAlteration... setupAlterations) {
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(monolingualCollectionSchemas.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				for (SetupAlteration setupAlteration : setupAlterations) {
+					setupAlteration.setupMonolingualCollection(schemaTypes);
+				}
+			}
+		}));
+
+		defineSchemasManager().using(multilingualCollectionSchemas.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				for (SetupAlteration setupAlteration : setupAlterations) {
+					setupAlteration.setupMultilingualCollection(schemaTypes);
+				}
+			}
+		}));
+
+		setupServices();
+	}
 
 	protected void givenFrenchSystemOneMonolingualAndOneMultilingualCollection(final SetupAlteration... setupAlterations) {
 		givenSystemLanguageIs("fr");

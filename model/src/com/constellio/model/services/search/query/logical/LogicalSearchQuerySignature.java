@@ -30,7 +30,32 @@ public class LogicalSearchQuerySignature implements Serializable {
 		filterQueries.add(query.getCondition().getSolrQuery(params));
 		String conditionSignature = StringUtils.join(filterQueries, ",");
 
-		return new LogicalSearchQuerySignature(conditionSignature, query.getSort());
+		String sortSignature = toSortSignature(query.getSortFields(), query.getLanguage());
+
+		return new LogicalSearchQuerySignature(conditionSignature, sortSignature);
+	}
+
+	private static String toSortSignature(List<LogicalSearchQuerySort> sortFields, String language) {
+		StringBuilder signatureBuilder = new StringBuilder();
+
+		for (LogicalSearchQuerySort sortField : sortFields) {
+			if (sortField instanceof FieldLogicalSearchQuerySort) {
+				signatureBuilder.append(((FieldLogicalSearchQuerySort) sortField).getField().getDataStoreCode());
+
+			} else if (sortField instanceof FunctionLogicalSearchQuerySort) {
+				signatureBuilder.append(((FunctionLogicalSearchQuerySort) sortField).getFunction());
+
+			} else {
+				throw new IllegalArgumentException("Unsupported sort field of type " + sortField.getClass().getSimpleName());
+
+			}
+			signatureBuilder.append(sortField.isAscending() ? "1" : "0");
+		}
+		if (language != null) {
+			signatureBuilder.append(language);
+		}
+
+		return signatureBuilder.toString();
 	}
 
 	public boolean isSameCondition(LogicalSearchQuerySignature signature) {

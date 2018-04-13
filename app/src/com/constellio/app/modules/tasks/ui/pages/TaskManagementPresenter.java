@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -54,7 +52,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
 
@@ -141,9 +142,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 		boolean isSubTaskWithRequiredStatusFound = false;
 
-		for(Record taskAsRecord : tasksSearchServices){
+		for (Record taskAsRecord : tasksSearchServices) {
 			Task currentTask = tasksSchemasRecordsServices.wrapTask(taskAsRecord);
-			if(!currentTask.isLogicallyDeletedStatus() && currentTask.getStatusType() != null
+			if (!currentTask.isLogicallyDeletedStatus() && currentTask.getStatusType() != null
 					&& (currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
 					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS))) {
 				isSubTaskWithRequiredStatusFound = true;
@@ -152,7 +153,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		}
 		return isSubTaskWithRequiredStatusFound;
 	}
-
 
 	@Override
 	public void displayButtonClicked(RecordVO record) {
@@ -205,7 +205,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public boolean isEditButtonEnabled(RecordVO recordVO) {
 		Record record = toRecord(recordVO);
-		Task  task = tasksSchemasRecordsServices.wrapTask(record);
+		Task task = tasksSchemasRecordsServices.wrapTask(record);
 		String closed = task.getStatus();
 		boolean isNotEditable = !getFinishedOrClosedStatuses().contains(closed);
 		return isNotEditable && taskPresenterServices.isEditTaskButtonVisible(record, getCurrentUser());
@@ -246,7 +246,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
-		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, recordVO);
+		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK,
+				recordVO);
 		button.click();
 	}
 
@@ -263,7 +265,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public void workflowStartRequested(RecordVO record) {
-		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getBetaWorkflow(record.getId());
+		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+				.getBetaWorkflow(record.getId());
 		Map<String, List<String>> parameters = new HashMap<>();
 		workflowServices.start(workflow, getCurrentUser(), parameters);
 		refreshCurrentTab();
@@ -346,17 +349,17 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private void addTimeStampToQuery(LogicalSearchQuery query) {
 		TaskManagementViewImpl.Timestamp timestamp = view.getTimestamp();
 		switch (timestamp) {
-			case ALL:
-				break;
-			case TODAY:
-				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now());
-				break;
-			case WEEK:
-				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusWeeks(1));
-				break;
-			case MONTH:
-				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusMonths(1));
-				break;
+		case ALL:
+			break;
+		case TODAY:
+			tasksSearchServices.addDateFilterToQuery(query, LocalDate.now());
+			break;
+		case WEEK:
+			tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusWeeks(1));
+			break;
+		case MONTH:
+			tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusMonths(1));
+			break;
 		}
 	}
 
@@ -396,13 +399,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private boolean isTaskTab(String tabId) {
 		switch (tabId) {
-			case TASKS_ASSIGNED_TO_CURRENT_USER:
-			case TASKS_ASSIGNED_BY_CURRENT_USER:
-			case TASKS_NOT_ASSIGNED:
-			case TASKS_RECENTLY_COMPLETED:
-				return true;
-			default:
-				return false;
+		case TASKS_ASSIGNED_TO_CURRENT_USER:
+		case TASKS_ASSIGNED_BY_CURRENT_USER:
+		case TASKS_NOT_ASSIGNED:
+		case TASKS_RECENTLY_COMPLETED:
+			return true;
+		default:
+			return false;
 		}
 	}
 
@@ -439,7 +442,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty() && task.getDecision() == null)
+		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
+				&& task.getDecision() == null)
 				|| tasksSchemas.isRequestTask(task)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
@@ -468,7 +472,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public void updateTaskStarred(boolean isStarred, String taskId) {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = taskSchemas.getTask(taskId);
-		if(isStarred) {
+		if (isStarred) {
 			task.addStarredBy(getCurrentUser().getId());
 		} else {
 			task.removeStarredBy(getCurrentUser().getId());
@@ -489,8 +493,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {
 		Metadata metadata = types().getSchema(Task.DEFAULT_SCHEMA).getMetadata(Task.STARRED_BY_USERS);
-		LogicalSearchQuerySort sortField
-				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUserId() + "\')", false);
+		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
+				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUserId() + "\')", false);
 		query.sortFirstOn(sortField);
 	}
 }

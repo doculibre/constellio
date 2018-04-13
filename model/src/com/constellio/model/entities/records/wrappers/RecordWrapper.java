@@ -15,6 +15,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.model.entities.CollectionObject;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.MetadataSchemaTypesMustBeNotNull;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.RecordWrapperRuntimeException_CannotUseDisconnectedRecordWrapper;
@@ -109,6 +110,21 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
 		return wrappedRecord.get(metadata, locale);
+	}
+
+	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		return wrappedRecord.get(metadata, locale, mode);
+	}
+
+	public <T> T get(String localCode, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		ensureConnected();
+
+		if (localCode.contains("_")) {
+			localCode = StringUtils.substringAfterLast(localCode, "_");
+		}
+
+		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		return wrappedRecord.get(metadata, locale, mode);
 	}
 
 	public <T> T getOriginal(String localCode) {

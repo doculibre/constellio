@@ -323,7 +323,7 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		return get(metadata, locale.getLanguage(), mode);
+		return get(metadata, locale == null ? collectionInfo.getMainSystemLanguage().getCode() : locale.getLanguage(), mode);
 	}
 
 	@Override

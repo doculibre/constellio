@@ -6,6 +6,8 @@ public interface DataStoreField extends Serializable {
 
 	String getDataStoreCode();
 
+	String getSecondaryLanguageDataStoreCode(String language);
+
 	String getDataStoreType();
 
 	boolean isMultivalue();
