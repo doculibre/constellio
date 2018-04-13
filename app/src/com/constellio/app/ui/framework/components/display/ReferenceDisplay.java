@@ -39,6 +39,7 @@ public class ReferenceDisplay extends Button {
 	private RecordVO recordVO;
 	private String recordId;
 	private RecordContextMenu contextMenu;
+	private boolean openLinkInNewTab = false;
 
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
@@ -191,5 +192,14 @@ public class ReferenceDisplay extends Button {
 
 	public String getRecordId() {
 		return recordId;
+	}
+
+	public ReferenceDisplay withOpenLinkInNewTab(boolean openLinkInNewTab) {
+		this.openLinkInNewTab = openLinkInNewTab;
+		return this;
+	}
+
+	public boolean isOpenLinkInNewTab() {
+		return openLinkInNewTab;
 	}
 }
