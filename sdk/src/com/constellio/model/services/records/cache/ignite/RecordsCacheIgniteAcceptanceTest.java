@@ -1582,7 +1582,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public <T> List<T> getList(Metadata metadata, Locale locale) {
+		public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
 			return null;
 		}
 
@@ -1704,7 +1704,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-		public <T> List<T> getValues(Metadata metadata, Locale locale) {
+		public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
 			Object value = get(metadata, locale);
 			if (value == null) {
 				return Collections.emptyList();

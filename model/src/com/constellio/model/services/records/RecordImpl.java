@@ -497,8 +497,8 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
-	public <T> List<T> getList(Metadata metadata, Locale locale) {
-		Object value = get(metadata, locale);
+	public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		Object value = get(metadata, locale, mode);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {
@@ -524,8 +524,8 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	public <T> List<T> getValues(Metadata metadata, Locale locale) {
-		Object value = get(metadata, locale);
+	public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		Object value = get(metadata, locale, mode);
 		if (value == null) {
 			return Collections.emptyList();
 		} else {

@@ -46,11 +46,11 @@ public interface Record extends Serializable, CollectionObject {
 
 	<T> List<T> getList(Metadata metadata);
 
-	<T> List<T> getList(Metadata metadata, Locale locale);
+	<T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
 
 	<T> List<T> getValues(Metadata metadata);
 
-	<T> List<T> getValues(Metadata metadata, Locale locale);
+	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
 
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
