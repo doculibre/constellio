@@ -438,30 +438,42 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 		givenSystemLanguageIs("fr");
 		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
-		defineSchemasManager().using(multilingualCollectionSchemas.withAStringMetadata(whichIsSortable, whichIsMultilingual));
+		defineSchemasManager().using(multilingualCollectionSchemas
+				.withAStringMetadata(whichIsSortable, whichIsMultilingual)
+				.withAnotherStringMetadata(whichIsSortable));
 
 		setupServices();
 		Transaction tx = new Transaction();
 
 		tx.add(new TestRecord(multilingualSchema, "r1")
 				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "pomme")
-				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Apple"));
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Apple")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
 
 		tx.add(new TestRecord(multilingualSchema, "r2")
 				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Pêche")
-				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Peach"));
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Peach")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
 
 		tx.add(new TestRecord(multilingualSchema, "r3")
 				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Poire")
-				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "pear"));
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "pear")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
 
 		tx.add(new TestRecord(multilingualSchema, "r4")
 				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Fraise")
-				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Strawberry"));
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Strawberry")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
 
 		tx.add(new TestRecord(multilingualSchema, "r5")
 				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "perdrix")
-				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Partridge"));
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Partridge")
+				.set(multilingualSchema.anotherStringMetadata(), "Oiseau"));
+
+		tx.add(new TestRecord(multilingualSchema, "r6")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "peanut")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "peanut")
+				.set(multilingualSchema.anotherStringMetadata(), "Autre"));
 
 		recordServices.execute(tx);
 
@@ -470,11 +482,21 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		query.setLanguage(Locale.FRENCH);
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadata("stringMetadata")
-				.isEqualTo(asList("Fraise", "Pêche", "perdrix", "Poire", "pomme"));
+				.isEqualTo(asList("Fraise", "peanut", "Pêche", "perdrix", "Poire", "pomme"));
 
 		query.setLanguage(Locale.ENGLISH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadata("stringMetadata")
-				.isEqualTo(asList("Apple", "Partridge", "Peach", "pear", "Strawberry"));
+				.isEqualTo(asList("Apple", "Partridge", "Peach", "peanut", "pear", "Strawberry"));
+
+		query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
+		query.sortAsc(multilingualSchema.anotherStringMetadata()).sortAsc(multilingualSchema.stringMetadata());
+		query.setLanguage(Locale.FRENCH);
+		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadata("stringMetadata")
+				.isEqualTo(asList("peanut", "Fraise", "Pêche", "Poire", "pomme", "perdrix"));
+
+		query.setLanguage(Locale.ENGLISH);
+		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadata("stringMetadata")
+				.isEqualTo(asList("peanut", "Apple", "Peach", "pear", "Strawberry", "Partridge"));
 
 	}
 
