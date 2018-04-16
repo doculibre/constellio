@@ -302,7 +302,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 					if (titleParentBuilder.length() > 0) {
 						titleParentBuilder.append(", ");
 					}
-					titleParentBuilder.append(parentRecord.get(Schemas.TITLE, getLocale()));
+					titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE, getLocale()));
 
 					if (codeParentBuilder.length() > 0) {
 						codeParentBuilder.append(", ");
