@@ -32,7 +32,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 
 	//	@Mock Record copyOfRecord1;
 	//	@Mock Record copyOfRecord2;
-	//	@Mock Record record3;
+	//	@Mock Record volatileRecord3;
 
 	Metadata codeMetadata;
 	Metadata titleMetadata;
@@ -211,7 +211,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 
 		cache.invalidateRecordsOfType("otherType");
 		assertThat(cache.getByMetadata(codeMetadata, record1Code)).isEqualTo(record1);
-		//	assertThat(cache.get(record2Id)).isEqualTo(record2);
+		//	assertThat(cache.get(record2Id)).isEqualTo(permanentRecord2);
 
 		InOrder inOrder = inOrder(nestedCache);
 

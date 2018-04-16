@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 
 public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -32,6 +33,10 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	public boolean globally() {
 
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		}
+
 		boolean access = true;
 
 		if (readAccess) {
@@ -50,6 +55,11 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	public boolean on(Record record) {
+
+		if (user.getStatus() != UserCredentialStatus.ACTIVE && user.getStatus() != null) {
+			return false;
+		}
+
 		boolean access = true;
 
 		if (readAccess) {
@@ -73,6 +83,10 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	@Override
 	public boolean specificallyOn(Record record) {
+
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		}
 		boolean access = true;
 
 		if (readAccess) {

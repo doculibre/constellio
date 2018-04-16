@@ -14,12 +14,12 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchConfigurationView {
@@ -39,7 +39,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		VerticalLayout verticalLayout = new VerticalLayout();
 		CssLayout layout = new CustomCssLayout();
-		layout.addComponents(createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
+		layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			layout.addComponent(createCapsulesManagementButton());
@@ -152,6 +152,17 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 					presenter.capsulesManagementButtonClicked();
 				}
 			}, "config/capsules") :
+			null;
+	}
+	
+	private Button createStatisticsButton() {
+		return presenter.isStatisticsButtonVisible() ? 
+			createLink($("StatisticsView.viewTitle"), new Button.ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.statisticsButtonClicked();
+				}
+			}, "config/chart_column") :
 			null;
 	}
 

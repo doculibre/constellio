@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SearchBoostLazyContainer;
@@ -21,6 +22,7 @@ import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -141,8 +143,9 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 
 	@Override
 	public Button buildAddEditForm(final SearchBoostVO currentSearchBoostVO) {
+		WindowConfiguration windowConfiguration = new WindowConfiguration(true, false, "450px", "290px");
 		return new WindowButton("",
-				$("SearchBoostByQueryView.addEdit")) {
+				$("SearchBoostByQueryView.addEdit"), windowConfiguration) {
 			@Override
 			protected Component buildWindowContent() {
 
@@ -198,11 +201,10 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 						getWindow().close();
 					}
 				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				HorizontalLayout horizontalLayoutButtons = new HorizontalLayout();
-				horizontalLayoutButtons.setSpacing(true);
-				horizontalLayoutButtons.addComponents(addButton, cancelButton);
+				HorizontalLayout buttonsLayout = new HorizontalLayout();
+				buttonsLayout.setSpacing(true);
+				buttonsLayout.addComponents(addButton, cancelButton);
 
 				HorizontalLayout horizontalLayout = new HorizontalLayout();
 				horizontalLayout.setSpacing(true);
@@ -214,9 +216,10 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 				//				horizontalLayoutQuery.setExpandRatio(keyField, 1);
 
 				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.setSizeFull();
 				verticalLayout
-						.addComponents(horizontalLayout, keyField, horizontalLayoutButtons);
-				verticalLayout.setExpandRatio(keyField, 1);
+						.addComponents(horizontalLayout, keyField, buttonsLayout);
+				verticalLayout.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
 				verticalLayout.setSpacing(true);
 
 				return verticalLayout;

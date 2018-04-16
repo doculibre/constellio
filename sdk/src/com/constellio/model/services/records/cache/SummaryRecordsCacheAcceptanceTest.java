@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
@@ -141,7 +142,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		resetCacheAndQueries();
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType.type()).returnAll());
-		recordsCaches.insert(zeCollection, searchServices.search(query));
+		recordsCaches.insert(zeCollection, searchServices.search(query), WAS_OBTAINED);
 
 		assertThatTheThreeRecordsAreInCache();
 
@@ -160,7 +161,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		for (Record record : records) {
-			recordsCaches.insert(record);
+			recordsCaches.insert(record, WAS_OBTAINED);
 		}
 
 		assertThat(recordsCache.get("1")).isNull();
@@ -171,7 +172,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordsCache.getSummary("3")).isNull();
 
 		for (Record record : records) {
-			recordsCaches.forceInsert(record);
+			recordsCaches.forceInsert(record, WAS_OBTAINED);
 		}
 
 		assertThatTheThreeRecordsAreInCache();

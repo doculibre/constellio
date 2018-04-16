@@ -19,12 +19,16 @@ public class HttpURLFetchingService implements AutoCloseable {
 
 	private final WebClient webClient;
 
+
+
 	public HttpURLFetchingService(int timeout) {
 		this(timeout, null);
 	}
 
 	public HttpURLFetchingService(int timeout, CredentialsProvider credentialsProvider) {
-		webClient = new WebClient();
+		webClient = new WebClient() {
+
+		};
 		webClient.getOptions().setPrintContentOnFailingStatusCode(false);
 		webClient.getOptions().setJavaScriptEnabled(false);
 		webClient.getOptions().setCssEnabled(false);
@@ -34,8 +38,11 @@ public class HttpURLFetchingService implements AutoCloseable {
 			webClient.setCredentialsProvider(credentialsProvider);
 		}
 		webClient.setRefreshHandler(new RefreshHandler() {
-			@Override
-			public void handleRefresh(Page page, URL url, int seconds) throws IOException {}}
+										@Override
+										public void handleRefresh(Page page, URL url, int seconds)
+												throws IOException {
+										}
+									}
 		);
 	}
 
@@ -49,7 +56,7 @@ public class HttpURLFetchingService implements AutoCloseable {
 		};
 
 		//TODO Francis : Add a test for this (was added during a fetch of wikipedia)
-		//webClient.setRefreshHandler(emptyRefreshHandler);
+		webClient.setRefreshHandler(emptyRefreshHandler);
 		webClient.getOptions().setUseInsecureSSL(true);
 		webClient.getOptions().setRedirectEnabled(true);
 		try {

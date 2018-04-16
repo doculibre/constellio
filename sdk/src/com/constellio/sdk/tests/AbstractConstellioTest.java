@@ -161,9 +161,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	private TemporaryFolder folder;
 
 	public AbstractConstellioTest() {
-		sdkPropertiesLoader.setLocked(isUnitTest());
+
 		sdkProperties = sdkPropertiesLoader.getSDKProperties();
 		skipTestRule = new SkipTestsRule(sdkPropertiesLoader, isUnitTest(getClass().getSimpleName()));
+		sdkPropertiesLoader.setLocked(isUnitTest());
 		ConsoleLogger.GLOBAL_PREFIX = getClass().getSimpleName();
 		failMessage = null;
 	}
@@ -250,8 +251,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public void invalidateStaticCaches() {
 		FoldersLocator.invalidateCaches();
 		ReindexingServices.markReindexingHasFinished();
-		DataLayerFactory.countInit = 0;
-		DataLayerFactory.countConstructor = 0;
 	}
 
 	@org.junit.Before

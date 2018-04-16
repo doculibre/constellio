@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.jdom2.Document;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +23,7 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -31,6 +31,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -65,18 +66,19 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 
 	TaxonomiesManager taxonomiesManager;
 	ArrayList<String> metadataRelations;
-	
+
 	ConstellioCache zeCache;
 
 	@Before
 	public void setup()
 			throws Exception {
 
-		zeCache = new SerializationCheckCache("zeCache");
+		zeCache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList(zeCollection));
 		taxonomiesManager = spy(
-				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches, cacheManager, eimConfigs));
+				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches,
+						cacheManager, eimConfigs));
 		doReturn(oneXMLConfigPerCollectionManager).when(taxonomiesManager).newOneXMLConfigPerCollectionManager();
 		taxonomiesManager.initialize();
 

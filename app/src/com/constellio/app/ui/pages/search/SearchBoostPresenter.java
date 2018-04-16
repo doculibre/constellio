@@ -60,7 +60,7 @@ public abstract class SearchBoostPresenter extends BasePresenter<SearchBoostView
 	abstract String getSearchBoostType();
 
 	public void backButtonClicked() {
-		view.navigate().to().adminModule();
+		view.navigate().to().searchConfiguration();
 	}
 
 	@Override

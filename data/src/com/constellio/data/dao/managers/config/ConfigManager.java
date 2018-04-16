@@ -67,6 +67,8 @@ public interface ConfigManager {
 
 	void registerListener(String path, ConfigEventListener listener);
 
+	void registerTopPriorityListener(String path, ConfigEventListener listener);
+
 	void deleteAllConfigsIn(String collection);
 
 	void copySettingsFrom(File setting);
@@ -78,4 +80,7 @@ public interface ConfigManager {
 	void exportTo(File settingsFolder);
 
 	void keepInCache(String path);
+
+	void notifyChanged(String path);
+	
 }

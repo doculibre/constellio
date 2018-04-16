@@ -47,7 +47,8 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		}
 		if (record.getCollection() != null && types.getCollection() != null
 				&& !record.getCollection().equals(types.getCollection())) {
-			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(), record.getCollection(), types.getCollection());
+			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(),
+					record.getCollection(), types.getCollection());
 		}
 
 		this.types = types;
@@ -304,6 +305,24 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	@Override
 	public String toString() {
 		return "" + wrappedRecord;
+	}
+
+	protected String toStringPrintingCodes(String... metadatas) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (String metadata : metadatas) {
+			Object value = get(metadata);
+			if (value != null) {
+				if (stringBuilder.length() > 0) {
+					stringBuilder.append(", ");
+				}
+				stringBuilder.append(metadata);
+				stringBuilder.append("=");
+				stringBuilder.append(value);
+			}
+		}
+
+		return wrappedRecord.toString() + " " + stringBuilder.toString();
 	}
 
 	public void reconnect(MetadataSchemaTypes metadataSchemaTypes) {

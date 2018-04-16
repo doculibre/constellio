@@ -63,6 +63,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	String getIdTitle();
 
+	String getSchemaIdTitle();
+
 	void removeAllFieldsStartingWith(String field);
 
 	void markAsModified(Metadata metadata);

@@ -27,11 +27,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
-import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -45,19 +42,15 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -198,12 +191,90 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
                 !presenter.getListSearchableMetadataSchemaType().contains(schemaType),
                 !(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType))) {
 
+            BaseWindow querySelectionWindow;
+
             @Override
             public void buttonClick(ClickEvent event) {
-                RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
-                        .toArray(new RecordVO[0]);
-                reportButton.setRecordVoList(recordVOS);
+                if(querySelectionWindow == null || !(ConstellioUI.getCurrent().getWindows() != null && ConstellioUI.getCurrent().getWindows().contains(querySelectionWindow))) {
+                    querySelectionWindow = new BaseWindow($("com.constellio.app.extensions.WorkflowPageExtension_confirmationTitle"));
+                    querySelectionWindow.setWidth("50%");
+                    querySelectionWindow.setHeight("220px");
+                    querySelectionWindow.center();
+                    querySelectionWindow.setModal(true);
+                    querySelectionWindow.setContent(buildQuerySelectionWindow());
+                    ConstellioUI.getCurrent().addWindow(querySelectionWindow);
+                    querySelectionWindow.focus();
+                }
+            }
+
+            @Override
+            protected LogicalSearchQuery getLogicalSearchQuery(String selectedSchemaFilter) {
+                LogicalSearchQuery query = AdvancedSearchViewImpl.this.presenter.buildReportLogicalSearchQuery();
+                if(selectedSchemaFilter != null) {
+                    query.setCondition(query.getCondition().andWhere(Schemas.SCHEMA).isEqualTo(selectedSchemaFilter));
+                }
+                return query;
+            }
+
+            private Component buildQuerySelectionWindow() {
+                Panel panel = new Panel();
+                VerticalLayout vLayout = new VerticalLayout();
+                vLayout.setSizeFull();
+                vLayout.setSpacing(true);
+
+                Label questionLabel = new Label($("AdvancedSearch.reportRecordSelection"));
+
+                BaseButton allSearchResultsButton = new BaseButton($("AdvancedSearchView.allSearchResults")) {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        presenter.allSearchResultsButtonClicked();
+                        querySelectionWindow.close();
+                        proceedToReportSelection(event);
+                    }
+                };
+
+                BaseButton selectedSearchResultsButton = new BaseButton($("AdvancedSearchView.selectedSearchResults")) {
+                    @Override
+                    protected void buttonClick(ClickEvent event) {
+                        presenter.selectedSearchResultsButtonClicked();
+                        querySelectionWindow.close();
+                        proceedToReportSelection(event);
+                    }
+                };
+
+                if(getSelectedRecordIds() == null || getSelectedRecordIds().isEmpty()) {
+                    selectedSearchResultsButton.setEnabled(false);
+                }
+
+                vLayout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
+
+                panel.setContent(vLayout);
+                panel.setSizeFull();
+                return panel;
+            }
+
+            private void proceedToReportSelection(ClickEvent event) {
                 super.buttonClick(event);
+            }
+
+            @Override
+            public boolean isVisible() {
+                return super.isVisible();
+            }
+
+            @Override
+            public void setVisible(boolean visible) {
+                super.setVisible(visible);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return super.isEnabled();
+            }
+
+            @Override
+            public void setEnabled(boolean enabled) {
+                super.setEnabled(enabled);
             }
         };
         reportButton.addStyleName(ValoTheme.BUTTON_LINK);

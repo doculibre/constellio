@@ -191,7 +191,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
-			if (!(component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton)) {
+			if (isComponentDisabledBySelection(component)) {
 				component.setEnabled(selected.size() > 0);
 			}
 			selection.addComponent(component);
@@ -206,12 +206,11 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 			public void selectionChanged(SelectionChangeEvent event) {
 				selectedCount.setValue($("SearchResultTable.selection", event.getSelectionSize()));
 				for (Component component : extra) {
-					if (!(component instanceof BatchProcessingButton
-							|| component instanceof BatchProcessingModifyingOneMetadataButton)) {
+					if (isComponentDisabledBySelection(component)) {
 						component.setEnabled(event.getSelectionSize() > 0);
 					} else if (component instanceof BatchProcessingButton) {
 						((BatchProcessingButton) component).hasResultSelected(event.getSelectionSize() > 0);
-					} else {
+					} else if (component instanceof BatchProcessingModifyingOneMetadataButton) {
 						((BatchProcessingModifyingOneMetadataButton) component).hasResultSelected(event.getSelectionSize() > 0);
 					}
 				}
@@ -219,6 +218,10 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		});
 
 		return summaryBar;
+	}
+
+	private boolean isComponentDisabledBySelection(Component component) {
+		return !(component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton || component instanceof ReportTabButton);
 	}
 
 	private void fireSelectionChangeEvent() {

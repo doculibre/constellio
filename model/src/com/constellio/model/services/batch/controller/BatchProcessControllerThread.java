@@ -204,7 +204,13 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 		BatchProcessReport report = getLinkedBatchProcessReport(batchProcess);
-		ModifiableSolrParams params = SolrUtils.parseQueryString(batchProcess.getQuery());
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		try {
+			params = SolrUtils.parseQueryString(batchProcess.getQuery());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		params.set("sort", "principalPath_s asc, id asc");
 
 		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 1000, true);

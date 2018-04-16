@@ -474,6 +474,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public InstallableModule getInstalledModule(String id) {
+
 		for (InstallableModule module : getAllModules()) {
 			if (module.getId().equals(id)) {
 				return module;
