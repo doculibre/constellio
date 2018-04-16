@@ -68,6 +68,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("flushRecords", flushRecordsBackgroundAction)
 				.executedEvery(standardMinutes(2)).handlingExceptionWith(CONTINUE));
 
+
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);
 		//		backgroundThreadsManager.configure(repeatingAction("eventServiceArchiveEventsAndDeleteFromSolr", eventService

@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.ignite.Ignite;
+import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -110,6 +111,11 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static DataLayerFactory lastCreatedInstance;
 	private final LeaderElectionManager leaderElectionManager;
 
+	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
+
+	public static int countConstructor;
+
+	public static int countInit;
 	private Ignite igniteClient;
 	private CuratorFramework curatorFramework;
 
@@ -179,6 +185,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		add(settingsCacheManager);
 		add(recordsCacheManager);
 
+
+
+
 		EventBus configManagerEventBus = eventBusManager.createEventBus("configManager", ONLY_SENT_REMOTELY);
 		ConfigManager configManagerWithoutCache;
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
@@ -244,6 +253,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
 				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
 		lastCreatedInstance = this;
+
+		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);
+
+		add(dataLayerBackgroundThreadsManager);
 	}
 
 	public static DataLayerFactory getLastCreatedInstance() {
