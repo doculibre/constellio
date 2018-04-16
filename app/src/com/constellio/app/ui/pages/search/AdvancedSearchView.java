@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 
 import java.io.InputStream;
@@ -28,4 +29,6 @@ public interface AdvancedSearchView extends SearchView {
     void fireSomeRecordsSelected();
 
 	void fireNoRecordSelected();
+
+    NewReportPresenter getPresenter();
 }

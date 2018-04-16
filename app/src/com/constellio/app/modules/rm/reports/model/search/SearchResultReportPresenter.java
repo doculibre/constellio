@@ -2,11 +2,7 @@ package com.constellio.app.modules.rm.reports.model.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -62,23 +58,26 @@ public class SearchResultReportPresenter {
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
 			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
-		List<Record> records;
-		if (selectedRecords == null || selectedRecords.isEmpty()) {
-			records = new ArrayList<>();
+		Iterator<Record> recordsIterator;
+		if(searchQuery != null) {
+			recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(searchQuery);
+		} else if (selectedRecords == null || selectedRecords.isEmpty()) {
+			ArrayList<Record> recordsList = new ArrayList<>();
 			int index = 0;
 			boolean allRecordsAdded = false;
-			while (!allRecordsAdded && records.size() < LIMIT) {
+			while (!allRecordsAdded && recordsList.size() < LIMIT) {
 				List<Record> currentRecords = getAllSchemaTypeRecords(index, modelLayerFactory,
 						orderedEnabledReportedMetadataList);
-				records.addAll(currentRecords);
+				recordsList.addAll(currentRecords);
 				index += currentRecords.size();
 				allRecordsAdded = (currentRecords.size() == 0) ? true : false;
 			}
+			recordsIterator = recordsList.iterator();
 		} else {
-			records = getAllSelectedRecordsFromIndex(modelLayerFactory, orderedEnabledReportedMetadataList);
+			recordsIterator = getAllSelectedRecordsFromIndex(modelLayerFactory, orderedEnabledReportedMetadataList).iterator();
 		}
-		for (Record record : records) {
-			resultReportModel.addLine(getRecordLine(record, orderedEnabledReportedMetadataList));
+		while(recordsIterator.hasNext()){
+			resultReportModel.addLine(getRecordLine(recordsIterator.next(), orderedEnabledReportedMetadataList));
 		}
 		return resultReportModel;
 	}
