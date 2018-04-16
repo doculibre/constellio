@@ -7,6 +7,8 @@ package com.constellio.data.events;
  */
 public abstract class EventBusSendingService {
 
+	protected boolean paused;
+
 	EventReceiver eventReceiver;
 	EventDataSerializer eventDataSerializer;
 
@@ -22,9 +24,18 @@ public abstract class EventBusSendingService {
 
 	public abstract void sendRemotely(Event event);
 
-	public void start() {
+	public void start(boolean paused) {
+		this.paused = paused;
 	}
 
 	public void close() {
+	}
+
+	public void pause() {
+		this.paused = true;
+	}
+
+	public void resume() {
+		this.paused = false;
 	}
 }

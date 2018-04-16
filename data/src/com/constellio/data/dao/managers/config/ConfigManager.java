@@ -67,6 +67,8 @@ public interface ConfigManager {
 
 	void registerListener(String path, ConfigEventListener listener);
 
+	void registerTopPriorityListener(String path, ConfigEventListener listener);
+
 	void deleteAllConfigsIn(String collection);
 
 	void copySettingsFrom(File setting);

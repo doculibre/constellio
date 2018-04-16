@@ -126,7 +126,6 @@ public class EventBusManagerTest extends ConstellioTest {
 
 		eventBusManager = spy(eventBusManager);
 		eventBusManager.eventDataSerializer = spy(eventBusManager.eventDataSerializer);
-
 		Event event1 = new Event("Bus magique", "flying", "1", 1l, "zeValue");
 		eventBusManager.send(event1, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 
@@ -136,10 +135,10 @@ public class EventBusManagerTest extends ConstellioTest {
 		InOrder inOrder = Mockito
 				.inOrder(listener1, listener2, eventBusManager.eventDataSerializer, eventBusManager, sendingService);
 		inOrder.verify(eventBusManager.eventDataSerializer).validateData("zeValue");
-		inOrder.verify(eventBusManager).receive(event1);
+		inOrder.verify(eventBusManager).receive(event1, false);
 		inOrder.verify(sendingService).sendRemotely(event1);
 		inOrder.verify(eventBusManager.eventDataSerializer).validateData("anotherValue");
-		inOrder.verify(eventBusManager).receive(event2);
+		inOrder.verify(eventBusManager).receive(event2, false);
 		inOrder.verify(sendingService).sendRemotely(event2);
 
 	}

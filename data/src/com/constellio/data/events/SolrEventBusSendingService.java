@@ -61,15 +61,30 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 				setName("SolrEventBusSendingService-sendAndReceiveThread");
 				while (running) {
 					try {
-						boolean queueEmpty = sendAndReceive();
+						if (!paused) {
+							boolean queueEmpty = sendAndReceive();
 
-						if (queueEmpty) {
-							try {
+							if (queueEmpty) {
 								Thread.sleep(pollAndRetrieveFrequency.getMillis());
-							} catch (InterruptedException e) {
-								throw new RuntimeException(e);
 							}
+						} else {
+							Thread.sleep(50);
+
 						}
+
+					} catch (IllegalStateException e) {
+						if (e.getMessage().equals("Connection pool shut down")) {
+							try {
+								Thread.sleep(50);
+							} catch (InterruptedException e1) {
+								throw new RuntimeException(e1);
+							}
+						} else {
+							throw e;
+						}
+
+					} catch (InterruptedException e) {
+						//OK
 
 					} catch (Throwable t) {
 						LOGGER.warn("Exception while send/receiving events", t);
@@ -85,13 +100,17 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 				setName("SolrEventBusSendingService-deleteThread");
 				while (running) {
 					try {
-						deleteOldEvents();
-
-						try {
+						if (!paused) {
+							deleteOldEvents();
 							Thread.sleep(60000);
-						} catch (InterruptedException e) {
-							throw new RuntimeException(e);
+
+						} else {
+							Thread.sleep(50);
 						}
+
+					} catch (InterruptedException e) {
+						//OK
+
 					} catch (Throwable t) {
 						LOGGER.warn("Exception while deleting old events", t);
 					}
@@ -208,6 +227,41 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		}
 	}
 
+	private void markExistingEventsHasReceived() {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("rows", "100000");
+		params.set("fl", "id");
+		params.set("q", "-readBy_ss:" + serviceId);
+
+		List<SolrDocument> events;
+
+		try {
+			while (!(events = client.query(params).getResults()).isEmpty()) {
+
+				List<SolrInputDocument> updatedEvents = new ArrayList<>();
+
+				for (SolrDocument event : events) {
+
+					SolrInputDocument solrInputDocument = new SolrInputDocument();
+					solrInputDocument.setField("id", event.getFieldValue("id"));
+
+					Map<String, Object> readByAtomicAdd = new HashMap<>();
+					readByAtomicAdd.put("add", serviceId);
+
+					solrInputDocument.setField("readBy_ss", readByAtomicAdd);
+
+					updatedEvents.add(solrInputDocument);
+				}
+
+				client.add(updatedEvents);
+				commit();
+			}
+		} catch (SolrServerException | IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
 	private List<Event> receiveNewEvents() {
 
 		ModifiableSolrParams params = new ModifiableSolrParams();
@@ -216,6 +270,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		params.set("q", "-readBy_ss:" + serviceId);
 
 		List<Event> events = new ArrayList<>();
+
 		try {
 			for (SolrDocument solrDocument : client.query(params).getResults()) {
 				String id = (String) solrDocument.getFieldValue("id");
@@ -242,6 +297,17 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 					LOGGER.warn("Event could not be deserialized, it is deleted ", e);
 				}
 			}
+		} catch (java.lang.IllegalStateException e) {
+			if (e.getMessage().equals("Connection pool shut down")) {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e1) {
+					throw new RuntimeException(e1);
+				}
+			} else {
+				throw e;
+			}
+
 		} catch (SolrServerException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -285,8 +351,9 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 	}
 
 	@Override
-	public void start() {
-		super.start();
+	public void start(boolean paused) {
+		super.start(paused);
+		markExistingEventsHasReceived();
 		sendAndReceiveThread.start();
 		cleanerThread.start();
 	}
@@ -297,11 +364,11 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		running = false;
 		try {
 			sendAndReceiveThread.join();
+			cleanerThread.interrupt();
 			cleanerThread.join();
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		System.out.println("closed");
 	}
 
 	/** Read the object from Base64 string. */
