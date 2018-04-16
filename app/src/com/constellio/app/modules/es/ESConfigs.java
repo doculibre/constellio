@@ -23,7 +23,7 @@ public class ESConfigs {
 
 		add(CONNECTOR_NUMBER_OF_RECORDS_PER_BATCH = others.createInteger("connectorNumberOfRecordsPerBatch").withDefaultValue(50).whichIsHidden());
 
-		add(CONNECTOR_NUMBER_OF_THREADS = others.createInteger("connectorNumberOfThreads").whichIsHidden());
+		add(CONNECTOR_NUMBER_OF_THREADS = others.createInteger("connectorNumberOfThreads").withDefaultValue(-1).whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -49,8 +49,8 @@ public class ESConfigs {
 	}
 
 	public int getConnectorNumberOfThreads() {
-		Integer configValue = manager.getValue(CONNECTOR_NUMBER_OF_THREADS);
-		return configValue != null ? configValue: Runtime.getRuntime().availableProcessors();
+		int configValue = manager.getValue(CONNECTOR_NUMBER_OF_THREADS);
+		return configValue != -1 ? configValue: Runtime.getRuntime().availableProcessors();
 	}
 
 }
