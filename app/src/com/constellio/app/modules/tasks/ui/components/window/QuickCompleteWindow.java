@@ -77,7 +77,7 @@ public class QuickCompleteWindow {
     private Field buildDecisionField(Task task, RecordVO recordVO, TaskFieldFactory fieldFactory, VerticalLayout fieldLayout) {
         Field decisionField = null;
         MapStringStringStructure decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-        if((task.getModelTask() != null && decisions != null)) {
+        if (task.getModelTask() != null && decisions != null) {
             MetadataVO decisionMetadata = recordVO.getMetadata(Task.DECISION);
             decisionField = fieldFactory.build(decisionMetadata);
             decisionField.setRequired(true);
@@ -87,6 +87,10 @@ public class QuickCompleteWindow {
             Collections.sort(decisionCodes);
             for(String decision: decisionCodes) {
                 ((TaskDecisionField) decisionField).addItem(decision);
+                if (Task.isExpressionLanguage(decision)) {
+                    decisionField.setRequired(true);
+                    decisionField.setVisible(false);
+                }
             }
 
             if(task.getDecision() != null) {

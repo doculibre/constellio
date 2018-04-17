@@ -379,8 +379,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					isInclusiveDecision = false;
 				}
 
-
-				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
+				Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
+				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision || DisplayTaskPresenter.containsExpressionLanguage(decisions)) {
 					field.setVisible(false);
 					return;
 				} else {
