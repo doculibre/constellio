@@ -6,6 +6,8 @@ public interface DataStoreField extends Serializable {
 
 	String getDataStoreCode();
 
+	String getLocalCode();
+
 	String getSecondaryLanguageDataStoreCode(String language);
 
 	String getDataStoreType();
@@ -19,6 +21,8 @@ public interface DataStoreField extends Serializable {
 	String getCollection();
 
 	DataStoreField getAnalyzedField(String languageCode);
+
+	DataStoreField getSecondaryLanguageField(String languageCode);
 
 	DataStoreField getSortField();
 

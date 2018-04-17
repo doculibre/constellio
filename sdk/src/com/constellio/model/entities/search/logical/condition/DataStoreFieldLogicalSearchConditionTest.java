@@ -33,7 +33,7 @@ public class DataStoreFieldLogicalSearchConditionTest extends ConstellioTest {
 	@Mock Metadata firstTextMetadata;
 	private LogicalSearchValueCondition startsWith;
 	private List<Metadata> metadatas;
-	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
+	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 
 	@Before
 	public void setUp() {

@@ -25,7 +25,7 @@ public class LogicalSearchQuerySignature implements Serializable {
 		filterQueries.addAll(query.getFilterQueries());
 		Collections.sort(filterQueries);
 
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(query.isPreferAnalyzedFields(), "?");
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(query.isPreferAnalyzedFields(), "?", null);
 		filterQueries.add(query.getFreeTextQuery());
 		filterQueries.add(query.getCondition().getSolrQuery(params));
 		String conditionSignature = StringUtils.join(filterQueries, ",");

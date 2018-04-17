@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -33,6 +34,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -265,26 +267,39 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record, Metadata metadataWithCalculatedDataEntry,
-			RecordProvider recordProvider,
-			MetadataSchemaTypes types, Transaction transaction) {
+			RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction) {
+
+		if (metadataWithCalculatedDataEntry.isMultiLingual()) {
+			for (Locale locale : types.getCollectionInfo().getCollectionLocales()) {
+				calculateValueInRecord(context, record, metadataWithCalculatedDataEntry, recordProvider, types, transaction,
+						locale, LocalisedRecordMetadataRetrieval.PREFERRING);
+			}
+
+		} else {
+			calculateValueInRecord(context, record, metadataWithCalculatedDataEntry, recordProvider, types, transaction,
+					types.getCollectionInfo().getMainSystemLocale(), LocalisedRecordMetadataRetrieval.STRICT);
+		}
+	}
+
+	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record, Metadata metadataWithCalculatedDataEntry,
+			RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction, Locale locale,
+			LocalisedRecordMetadataRetrieval mode) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
 		boolean requiredValuesDefined = addValuesFromDependencies(context, record, metadataWithCalculatedDataEntry,
-				recordProvider,
-				calculator, values, types, transaction);
+				recordProvider, calculator, values, types, transaction, locale, mode);
 
 		Object calculatedValue;
 		if (requiredValuesDefined) {
 			MetadataSchemaType schemaType = types.getSchemaType(record.getTypeCode());
 			boolean typeInPrincipalTaxonomy = taxonomiesManager.isTypeInPrincipalTaxonomy(schemaType);
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
-			calculatedValue = calculator.calculate(
-					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
-							schemaType, record.getCollection(), typeInPrincipalTaxonomy));
+			calculatedValue = calculator.calculate(new CalculatorParameters(values, record.getId(),
+					record.<String>get(Schemas.LEGACY_ID), schemaType, record.getCollection(), typeInPrincipalTaxonomy));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
-		record.updateAutomaticValue(metadataWithCalculatedDataEntry, calculatedValue);
+		record.updateAutomaticValue(metadataWithCalculatedDataEntry, calculatedValue, locale);
 	}
 
 	MetadataValueCalculator<?> getCalculatorFrom(Metadata metadataWithCalculatedDataEntry) {
@@ -295,22 +310,23 @@ public class RecordAutomaticMetadataServices {
 	boolean addValuesFromDependencies(TransactionExecutionContext context, RecordImpl record, Metadata metadata,
 			RecordProvider recordProvider,
 			MetadataValueCalculator<?> calculator,
-			Map<Dependency, Object> values, MetadataSchemaTypes types, Transaction transaction) {
+			Map<Dependency, Object> values, MetadataSchemaTypes types, Transaction transaction, Locale locale,
+			LocalisedRecordMetadataRetrieval mode) {
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency instanceof LocalDependency<?>) {
-				if (!addValueForLocalDependency(record, values, dependency)) {
+				if (!addValueForLocalDependency(record, values, dependency, locale, mode)) {
 					return false;
 				}
 
 			} else if (dependency instanceof ReferenceDependency<?>) {
 				if (!addValueForReferenceDependency(record, recordProvider, values, dependency,
-						transaction.getRecordUpdateOptions())) {
+						transaction.getRecordUpdateOptions(), locale, mode)) {
 					return false;
 				}
 
 			} else if (dependency instanceof DynamicLocalDependency) {
 				addValueForDynamicLocalDependency(record, metadata, values, (DynamicLocalDependency) dependency, types,
-						recordProvider, transaction);
+						recordProvider, transaction, locale, mode);
 
 			} else if (dependency instanceof ConfigDependency<?>) {
 				ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
@@ -326,7 +342,8 @@ public class RecordAutomaticMetadataServices {
 
 	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
 			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types,
-			RecordProvider recordProvider, Transaction transaction) {
+			RecordProvider recordProvider, Transaction transaction,
+			Locale locale, LocalisedRecordMetadataRetrieval mode) {
 
 		Map<String, Object> dynamicDependencyValues = new HashMap<>();
 
@@ -348,7 +365,7 @@ public class RecordAutomaticMetadataServices {
 						availableMetadatasWithValue.add(metadata);
 					}
 				} else {
-					Object metadataValue = record.get(metadata);
+					Object metadataValue = record.get(metadata, locale, mode);
 					dynamicDependencyValues.put(metadata.getLocalCode(), metadataValue);
 					if (metadataValue != null) {
 						availableMetadatasWithValue.add(metadata);
@@ -384,18 +401,18 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			Dependency dependency, RecordUpdateOptions options) {
+			Dependency dependency, RecordUpdateOptions options, Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		ReferenceDependency<?> referenceDependency = (ReferenceDependency<?>) dependency;
 		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency);
 
 		if (!referenceMetadata.isMultivalue()) {
-			return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options);
+			return addSingleValueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options,
+					locale, mode);
 		} else {
-			return addMultivalueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options);
+			return addMultivalueReference(record, recordProvider, values, referenceDependency, referenceMetadata, options, locale,
+					mode);
 		}
 	}
-
-	static int compteur;
 
 	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(TransactionExecutionContext context,
 			RecordImpl calculatedRecord, RecordProvider recordProvider) {
@@ -598,8 +615,9 @@ public class RecordAutomaticMetadataServices {
 
 	@SuppressWarnings("unchecked")
 	private boolean addMultivalueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata, RecordUpdateOptions options) {
-		List<String> referencesValues = record.<String>getList(referenceMetadata);
+			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata, RecordUpdateOptions options,
+			Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		List<String> referencesValues = record.<String>getList(referenceMetadata, locale, mode);
 		List<Record> referencedRecords = new ArrayList<>();
 		for (String referenceValue : referencesValues) {
 			if (referenceValue != null) {
@@ -620,7 +638,7 @@ public class RecordAutomaticMetadataServices {
 		SortedMap<String, Object> referencedValuesMap = new TreeMap<>();
 		for (Record referencedRecord : referencedRecords) {
 			Metadata dependentMetadata = getDependentMetadataFromDependency(referenceDependency, referencedRecord);
-			Object dependencyValue = referencedRecord.get(dependentMetadata);
+			Object dependencyValue = referencedRecord.get(dependentMetadata, locale, mode);
 			if (referenceDependency.isRequired() && dependencyValue == null) {
 				return false;
 
@@ -645,8 +663,9 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private boolean addSingleValueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			ReferenceDependency<?> dependency, Metadata referenceMetadata, RecordUpdateOptions options) {
-		String referenceValue = (String) record.get(referenceMetadata);
+			ReferenceDependency<?> dependency, Metadata referenceMetadata, RecordUpdateOptions options,
+			Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		String referenceValue = (String) record.get(referenceMetadata, locale, mode);
 		Record referencedRecord;
 		if (dependency.isRequired() && referenceValue == null) {
 			return false;
@@ -668,7 +687,7 @@ public class RecordAutomaticMetadataServices {
 		Object dependencyValue;
 		if (referencedRecord != null) {
 			Metadata dependentMetadata = getDependentMetadataFromDependency(dependency, referencedRecord);
-			dependencyValue = referencedRecord.get(dependentMetadata);
+			dependencyValue = referencedRecord.get(dependentMetadata, locale, mode);
 		} else if (dependency.isMultivalue()) {
 			dependencyValue = new ArrayList<>();
 		} else {
@@ -688,9 +707,10 @@ public class RecordAutomaticMetadataServices {
 		return schema.get(referenceDependency.getDependentMetadataCode());
 	}
 
-	boolean addValueForLocalDependency(RecordImpl record, Map<Dependency, Object> values, Dependency dependency) {
+	boolean addValueForLocalDependency(RecordImpl record, Map<Dependency, Object> values, Dependency dependency,
+			Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		Metadata metadata = getMetadataFromDependency(record, dependency);
-		Object dependencyValue = record.get(metadata);
+		Object dependencyValue = record.get(metadata, locale, mode);
 		if (dependency.isRequired() && dependencyValue == null) {
 			return false;
 		} else {

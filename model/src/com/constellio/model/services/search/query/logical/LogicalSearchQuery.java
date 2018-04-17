@@ -16,6 +16,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
@@ -374,8 +375,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	// The following methods are mainly used by the SPE itself
 
 	@Override
-	public String getQuery(String language) {
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(preferAnalyzedFields, language);
+	public String getQuery(String language, final MetadataSchemaTypes types) {
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(preferAnalyzedFields, language, types);
 		return condition.getSolrQuery(params);
 	}
 

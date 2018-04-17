@@ -719,7 +719,7 @@ public class RecordServicesTest extends ConstellioTest {
 		LogicalSearchCondition thirdRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(thirdRecordId)
 				.andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
 
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 		assertThat(condition.getSolrQuery(params)).isEqualTo(
 				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection())
 						.whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
@@ -842,7 +842,7 @@ public class RecordServicesTest extends ConstellioTest {
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
 
 		TransactionDTO transactionDTO = mock(TransactionDTO.class);
-		doReturn(asMap("records",transactionDTO)).when(recordServices)
+		doReturn(asMap("records", transactionDTO)).when(recordServices)
 				.createTransactionDTOs(eq(transaction), anyList());
 
 		recordServices.executeWithImpactHandler(transaction, handler);

@@ -136,6 +136,10 @@ public class RecordImpl implements Record {
 	}
 
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
+		return updateAutomaticValue(metadata, value, collectionInfo.getMainSystemLocale());
+	}
+
+	public Record updateAutomaticValue(Metadata metadata, Object value, Locale locale) {
 
 		get(metadata);
 		Object convertedRecord;
@@ -150,10 +154,9 @@ public class RecordImpl implements Record {
 		}
 
 		if (value instanceof List) {
-			return setModifiedValue(metadata, collectionInfo.getMainSystemLanguage().getCode(),
-					unmodifiableList((List<?>) convertedRecord));
+			return setModifiedValue(metadata, locale.getLanguage(), unmodifiableList((List<?>) convertedRecord));
 		} else {
-			return setModifiedValue(metadata, collectionInfo.getMainSystemLanguage().getCode(), convertedRecord);
+			return setModifiedValue(metadata, locale.getLanguage(), convertedRecord);
 		}
 
 	}

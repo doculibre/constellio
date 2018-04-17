@@ -429,4 +429,14 @@ public class MetadataSchemaType implements Serializable {
 		return false;
 	}
 
+	public boolean isMultilingualMetadata(String metadataLocalCode) {
+		boolean multilingual = false;
+		for (MetadataSchema metadataSchema : getAllSchemas()) {
+			if (metadataSchema.hasMetadataWithCode(metadataLocalCode)) {
+				multilingual |= metadataSchema.getMetadata(metadataLocalCode).isMultiLingual();
+			}
+		}
+
+		return multilingual;
+	}
 }

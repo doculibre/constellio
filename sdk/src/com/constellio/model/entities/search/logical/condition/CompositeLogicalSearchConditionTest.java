@@ -30,7 +30,7 @@ public class CompositeLogicalSearchConditionTest extends ConstellioTest {
 	@Mock Metadata booleanMetadata;
 	@Mock Metadata firstTextMetadata;
 	private List<LogicalSearchCondition> validConditions;
-	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
+	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 
 	@Before
 	public void setUp() {

@@ -490,6 +490,10 @@ public class Metadata implements DataStoreField {
 		return Schemas.getSearchableMetadata(this, languageCode);
 	}
 
+	public Metadata getSecondaryLanguageField(String languageCode) {
+		return Schemas.getSecondaryLanguageMetadata(this, languageCode);
+	}
+
 	public boolean hasNormalizedSortField() {
 		boolean globalMetadataWithNormalizedSortField =
 				CODE.getLocalCode().equals(getLocalCode()) || TITLE.getLocalCode().equals(getLocalCode());

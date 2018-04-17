@@ -155,7 +155,8 @@ public class SearchServices {
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 		SPEQueryResponse response = query(new LogicalSearchQuery(condition).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
-			SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, "?");
+			SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, "?", null) {
+			};
 			throw new SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult(condition.getSolrQuery(params));
 		}
 		return response.getNumFound() == 1 ? response.getRecords().get(0) : null;
@@ -380,11 +381,23 @@ public class SearchServices {
 	}
 
 	public String getLanguage(LogicalSearchQuery query) {
-		if (query.getCondition().isCollectionSearch()) {
+		if (query.getLanguage() != null) {
+			return query.getLanguage();
+
+		} else if (query.getCondition().isCollectionSearch()) {
 			return getLanguageCode(query.getCondition().getCollection());
 
 		} else {
 			return mainDataLanguage;
+		}
+	}
+
+	public String getCollection(LogicalSearchQuery query) {
+		if (query.getCondition().isCollectionSearch()) {
+			return query.getCondition().getCollection();
+
+		} else {
+			return null;
 		}
 	}
 
@@ -405,8 +418,14 @@ public class SearchServices {
 			params.add(CommonParams.FQ, filterQuery);
 		}
 
+		String collection = getCollection(query);
+		MetadataSchemaTypes types = null;
+		if (collection != null) {
+			types = metadataSchemasManager.getSchemaTypes(collection);
+		}
+
 		String language = getLanguage(query);
-		params.add(CommonParams.FQ, "" + query.getQuery(language));
+		params.add(CommonParams.FQ, "" + query.getQuery(language, types));
 
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
@@ -511,9 +530,8 @@ public class SearchServices {
 
 		}
 
-		if (query.isHighlighting()) {
+		if (query.isHighlighting() && types != null) {
 			HashSet<String> highligthedMetadatas = new HashSet<>();
-			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(query.getCondition().getCollection());
 			for (Metadata metadata : types.getSearchableMetadatas()) {
 				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
 			}
