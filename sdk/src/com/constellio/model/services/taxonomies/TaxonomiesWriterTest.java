@@ -3,8 +3,11 @@ package com.constellio.model.services.taxonomies;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -178,7 +181,10 @@ public class TaxonomiesWriterTest extends ConstellioTest {
 		groupIds.add("groupId1");
 		groupIds.add("groupId2");
 
-		taxonomy = taxonomy.withTitle("newTitle").withUserIds(userIds).withGroupIds(groupIds);
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "newTitle");
+
+		taxonomy = taxonomy.withTitle(labelTitle).withUserIds(userIds).withGroupIds(groupIds);
 		writer.editTaxonomy(taxonomy);
 
 		taxonomiesElement = document.getRootElement();
@@ -194,12 +200,16 @@ public class TaxonomiesWriterTest extends ConstellioTest {
 	}
 
 	private Taxonomy newTaxonomy(int id) {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo" + id);
+
 		ArrayList<String> taxonomySchemaTypes = new ArrayList<>();
 		taxonomySchemaTypes.add("schemaType1" + id);
 		taxonomySchemaTypes.add("schemaType2" + id);
 		taxonomySchemaTypes.add("schemaType3" + id);
 		taxonomySchemaTypes.add("schemaType4" + id);
-		Taxonomy taxonomy = Taxonomy.createPublic("code" + id, "taxo" + id, "zeCollection", taxonomySchemaTypes);
+		Taxonomy taxonomy = Taxonomy.createPublic("code" + id, labelTitle, "zeCollection", taxonomySchemaTypes);
+
 		return taxonomy;
 	}
 }

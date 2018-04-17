@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +35,9 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();
@@ -58,7 +62,11 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 				.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenTimeIs(shishOClock);
-		Taxonomy taxonomy = new Taxonomy("ze taxo", "ze taxo", zeCollection, zeSchema.typeCode());
+
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "ze taxo");
+
+		Taxonomy taxonomy = new Taxonomy("ze taxo", labelTitle1, zeCollection, zeSchema.typeCode());
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 
 		recordServices = getModelLayerFactory().newRecordServices();

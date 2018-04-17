@@ -144,6 +144,9 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+			boolean isMultiLingual = language.size() > 1;
+
 			//Folder
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
 			folderSchema.createUndeletable(Folder.LINEAR_SIZE).setType(MetadataValueType.NUMBER).setEssential(true);
@@ -159,8 +162,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 					.setType(MetadataValueType.NUMBER);
 
 			ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
-			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, (String) null,
-					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
+			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, null,
+					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique(), isMultiLingual);
 
 			typesBuilder.getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA)
 					.get(VariableRetentionPeriod.CODE).setUnmodifiable(true).addValidator(IntegerStringValidator.class);

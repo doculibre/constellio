@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -19,6 +10,13 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ValueListItemSchemaTypeBuilder {
 
@@ -32,13 +30,20 @@ public class ValueListItemSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, Map<Language, String> labels,
-			ValueListItemSchemaTypeBuilderOptions options) {
+			ValueListItemSchemaTypeBuilderOptions options, boolean isMultiLingual) {
+
 		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaType(code);
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
+
+		if(labels == null) {
+		    labels = new HashMap<>();
+        }
+
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
 
-		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique).setDefaultRequirement(true);
+		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique)
+				.setDefaultRequirement(true).setMultiLingual(isMultiLingual);
 
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
@@ -58,7 +63,9 @@ public class ValueListItemSchemaTypeBuilder {
 
 		MetadataBuilder descriptionMetadata = defaultSchemaBuilder.create(ValueListItem.DESCRIPTION)
 				.setType(MetadataValueType.TEXT).setSearchable(true)
-				.setUndeletable(true);
+				.setUndeletable(true)
+				.setMultiLingual(isMultiLingual);
+
 		for (Language language : languages) {
 			descriptionMetadata.addLabel(language, $("init.valuelist.default.description"));
 		}
@@ -74,24 +81,10 @@ public class ValueListItemSchemaTypeBuilder {
 		return typeBuilder;
 	}
 
-	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, String label,
-			ValueListItemSchemaTypeBuilderOptions options) {
-
-		Map<Language, String> labels = new HashMap<>();
-		for (Language language : metadataSchemaTypesBuilder.getLanguages()) {
-			if (StringUtils.isBlank(label)) {
-				labels.put(language, $("init." + code));
-			} else {
-				labels.put(language, label);
-			}
-		}
-		return createValueListItemSchema(code, labels, options);
-	}
-
-	public MetadataSchemaTypeBuilder createHierarchicalValueListItemSchema(String code, String label,
-			ValueListItemSchemaTypeBuilderOptions options) {
+	public MetadataSchemaTypeBuilder createHierarchicalValueListItemSchema(String code, Map<Language, String> label,
+			ValueListItemSchemaTypeBuilderOptions options, boolean isMultiLingual) {
 		List<Language> languages = metadataSchemaTypesBuilder.getLanguages();
-		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options);
+		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options, isMultiLingual);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 		MetadataBuilder parentMetadata = defaultSchemaBuilder.create(HierarchicalValueListItem.PARENT)
 				.defineChildOfRelationshipToType(typeBuilder)

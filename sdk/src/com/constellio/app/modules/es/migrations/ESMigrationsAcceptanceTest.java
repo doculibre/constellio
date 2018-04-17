@@ -58,7 +58,7 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(es.connectorSmbFolder.connectorType()).isNotNull();
 		assertThat(es.connectorSmbFolder.url()).isNotNull();
 		assertThat(es.connectorSmbFolder.schemaType().isInTransactionLog()).isFalse();
-
+		
 		assertThat(es.connectorSmbDocument.schemaType()).isNotNull();
 		assertThat(es.connectorSmbDocument.schemaType().getLabel(Language.French)).isEqualTo("Document sur un partage réseau");
 		assertThat(es.connectorSmbDocument.connector()).isNotNull();
@@ -67,7 +67,7 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(es.connectorSmbDocument.url()).isNotNull();
 		assertThat(es.connectorSmbDocument.schemaType().isInTransactionLog()).isFalse();
 
-		assertThat(es.connectorLdapUserDocument.schemaType().getLabel(Language.French)).isEqualTo("Utilisateur");
+		assertThat(es.connectorLdapUserDocument.schemaType().getLabel(Language.French)).isEqualTo("Utilisateur Connecteur LDAP");
 	}
 
 	private void whenMigratingToCurrentVersionThenCreateConnectorTypes() {

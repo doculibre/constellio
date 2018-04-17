@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.app.services.migrations.MigrationUtil.getLabelsByLanguage;
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -26,9 +26,11 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -41,6 +43,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.jetbrains.annotations.NotNull;
 
 public class RMMigrationTo5_0_5 implements MigrationScript {
 	@Override
@@ -61,10 +64,14 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 			MigrationResourcesProvider migrationResourcesProvider) {
 		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy adminUnitsTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.ADMINISTRATIVE_UNITS);
-		adminUnitsTaxo = adminUnitsTaxo.withTitle(migrationResourcesProvider.getDefaultLanguageString("taxo.admUnits"));
+
+		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory, migrationResourcesProvider, "taxo.admUnits");
+
+		adminUnitsTaxo = adminUnitsTaxo.withTitle(mapLangageTitre);
 		manager.editTaxonomy(adminUnitsTaxo);
 
 	}
+
 
 	class SchemaAlterationFor5_0_5 extends MetadataSchemasAlterationHelper {
 

@@ -9,6 +9,7 @@ import java.util.List;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -24,12 +25,14 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 	private TaxonomyToVOBuilder voBuilder;
 	private String collection;
 	private String username;
+	private Language language;
 
 	public TaxonomyVODataProvider(TaxonomyToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
-			String username) {
+			String username, Language language) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		this.username = username;
+		this.language = language;
 		init(modelLayerFactory);
 	}
 
@@ -52,7 +55,7 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 		List<Taxonomy> taxonomies = taxonomiesManager.getAvailableTaxonomiesInHomePage(user);
 
 		for (Taxonomy taxonomy : taxonomies) {
-			TaxonomyVO taxonomyVO = voBuilder.build(taxonomy);
+			TaxonomyVO taxonomyVO = voBuilder.build(taxonomy, this.language);
 			newTaxonomyVOs.add(taxonomyVO);
 		}
 		sort(newTaxonomyVOs);

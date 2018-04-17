@@ -3,8 +3,11 @@ package com.constellio.model.services.taxonomies;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -36,7 +39,8 @@ public class TaxonomiesReaderTest extends ConstellioTest {
 		writer.addTaxonmy(taxonomy1);
 		writer.addTaxonmy(taxonomy2);
 		writer.addTaxonmy(taxonomy3);
-		reader = new TaxonomiesReader(document);
+		reader = new TaxonomiesReader(document, getModelLayerFactory().getCollectionsListManager()
+				.getCollectionLanguages(zeCollection));
 	}
 
 	@Test
@@ -69,7 +73,7 @@ public class TaxonomiesReaderTest extends ConstellioTest {
 		writer.disable("code1");
 		writer.disable("code3");
 
-		reader = new TaxonomiesReader(document);
+		reader = new TaxonomiesReader(document, getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(zeCollection));
 
 		List<Taxonomy> disablesTaxonomies = reader.readDisables();
 
@@ -80,12 +84,15 @@ public class TaxonomiesReaderTest extends ConstellioTest {
 	}
 
 	private Taxonomy newTaxonomy(int id) {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo" + id);
+
 		ArrayList<String> taxonomySchemaTypes = new ArrayList<>();
 		taxonomySchemaTypes.add("schemaType1" + id);
 		taxonomySchemaTypes.add("schemaType2" + id);
 		taxonomySchemaTypes.add("schemaType3" + id);
 		taxonomySchemaTypes.add("schemaType4" + id);
-		Taxonomy taxonomy = Taxonomy.createPublic("code" + id, "taxo" + id, "zeCollection", taxonomySchemaTypes);
+		Taxonomy taxonomy = Taxonomy.createPublic("code" + id, labelTitle, "zeCollection", taxonomySchemaTypes);
 		return taxonomy;
 	}
 }

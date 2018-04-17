@@ -61,8 +61,13 @@ public class MetadataSchemaTest extends ConstellioTest {
 		when(secondTypeParentRelationToThirdType.getAllowedReferences())
 				.thenReturn(new AllowedReferences(null, asSet("third_custom1")));
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("first", "second"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("third"));
+		Map<Language, String> mapLangueTitle1 = new HashMap<>();
+		mapLangueTitle1.put(Language.French, "taxo1");
+		Map<Language, String> mapLangueTitle2 = new HashMap<>();
+		mapLangueTitle2.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle1, "zeCollection", Arrays.asList("first", "second"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle2, "zeCollection", Arrays.asList("third"));
 
 		List<Metadata> metadatas = Arrays.asList(secondTypeParentRelationToFirstType, secondTypeParentRelationToSecondType,
 				secondTypeParentRelationToThirdType, secondTypeRelationToSecondType);
@@ -84,8 +89,13 @@ public class MetadataSchemaTest extends ConstellioTest {
 	public void whenGetTaxonomyReferencesThenReturnCorrectReferences()
 			throws Exception {
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("t1", "t2"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", "zeCollection", Arrays.asList("t3", "t4"));
+		Map<Language, String> mapLangueTitle1 = new HashMap<>();
+		mapLangueTitle1.put(Language.French, "taxo1");
+		Map<Language, String> mapLangueTitle2 = new HashMap<>();
+		mapLangueTitle2.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle1, "zeCollection", Arrays.asList("t1", "t2"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", mapLangueTitle2, "zeCollection", Arrays.asList("t3", "t4"));
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		Metadata taxonomyRelationToT4 = mockTaxonomyRefMetadata("t5_default_taxoRelationToT4", "t4");
@@ -111,8 +121,13 @@ public class MetadataSchemaTest extends ConstellioTest {
 	public void whenGetTaxonomyReferencesOfSchemaPartOfAnotherTaxonomiesThenOnlyReturnTaxonomiesForWhichTheSchemaIsntPartsOf()
 			throws Exception {
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("t1", "t2"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", "zeCollection", Arrays.asList("t3", "t4"));
+		Map<Language, String> mapLangueTitle1 = new HashMap<>();
+		mapLangueTitle1.put(Language.French, "taxo1");
+		Map<Language, String> mapLangueTitle2 = new HashMap<>();
+		mapLangueTitle2.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle1, "zeCollection", Arrays.asList("t1", "t2"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", mapLangueTitle2, "zeCollection", Arrays.asList("t3", "t4"));
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		Metadata relationToT4 = mockRefMetadata("t2_default_relationToT4", "t4");

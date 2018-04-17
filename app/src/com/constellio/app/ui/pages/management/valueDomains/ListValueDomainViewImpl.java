@@ -31,8 +31,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView {
 	private final ListValueDomainPresenter presenter;
@@ -106,17 +104,17 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	}
 
 	private Component buildCreationComponent() {
-		final TextField valueDomain = new BaseTextField();
-		valueDomain.setImmediate(true);
+		final TextField valueDomainFrench = new BaseTextField();
+		valueDomainFrench.setImmediate(true);
 		final Button create = new AddButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.valueDomainCreationRequested(valueDomain.getValue());
+				presenter.valueDomainCreationRequested(valueDomainFrench.getValue(), valueDomainFrench.getValue());
 				this.setEnabled(false);
 			}
 		};
 		create.setEnabled(false);
-		valueDomain.addTextChangeListener(new TextChangeListener() {
+		valueDomainFrench.addTextChangeListener(new TextChangeListener() {
 			@Override
 			public void textChange(TextChangeEvent event) {
 				if (presenter.canCreate(event.getText())) {
@@ -127,7 +125,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 			}
 		});
 
-		HorizontalLayout creation = new HorizontalLayout(valueDomain, create);
+		HorizontalLayout creation = new HorizontalLayout(valueDomainFrench, create);
 		creation.setSpacing(true);
 
 		return creation;

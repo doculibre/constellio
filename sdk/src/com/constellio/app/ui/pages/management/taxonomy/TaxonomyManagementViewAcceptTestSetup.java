@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -42,9 +43,15 @@ public class TaxonomyManagementViewAcceptTestSetup extends SchemasSetup {
 		setupClassificationTaxonomy(categoryType);
 		setupClassificationComplexTaxonomy(categoryType, subCategoryType);
 
-		Taxonomy classificationTaxonomy = Taxonomy.createPublic(CLASSIFICATION, "Classification Plan", collection,
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "Classification Plan");
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "Classification Plan");
+
+		Taxonomy classificationTaxonomy = Taxonomy.createPublic(CLASSIFICATION, labelTitle1, collection,
 				Arrays.asList("category"));
-		Taxonomy classificationComplexTaxonomy = Taxonomy.createPublic(CLASSIFICATION_COMPLEX, "Classification Plan", collection,
+		Taxonomy classificationComplexTaxonomy = Taxonomy.createPublic(CLASSIFICATION_COMPLEX, labelTitle2, collection,
 				Arrays.asList("category", "subCategory"));
 
 		taxonomies = new HashMap<>();

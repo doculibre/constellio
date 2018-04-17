@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
@@ -767,9 +768,13 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode(null)
-						.setTitle(TAXO_1_TITLE_FR)
+						.setTitle(labelTitle1)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -785,9 +790,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode("anotherPrefixTaxonomy")
-						.setTitle(TAXO_1_TITLE_FR)
+						.setTitle(labelTitle1)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -823,8 +831,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, TAXO_2_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList(gandalf, bobGratton))
@@ -832,7 +846,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
 		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE.replace("Type", ""))
-				.setTitle(TAXO_2_TITLE_FR);
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(importedTaxonomy2);
 
 		settings.addCollectionSettings(zeCollectionSettings);
@@ -887,8 +901,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
@@ -940,10 +957,13 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenModifyingCollectionTaxonomyTitleThenConfigsAreUpdated()
 			throws Exception {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR);
+				.setTitle(labelTitle1);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
 
@@ -960,9 +980,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(taxonomy).isNotNull();
 		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, TAXO_1_TITLE_FR_UPDATED);
+
 		// modify title
 		collectionSettings.addTaxonomy(importedTaxonomy
-				.setTitle(TAXO_1_TITLE_FR_UPDATED));
+				.setTitle(labelTitle2));
 
 		importSettings();
 
@@ -1059,8 +1082,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
+
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -3211,16 +3238,22 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList(gandalf, bobGratton))
 				.setGroupIds(asList("group1"));
 		collectionSettings.addTaxonomy(importedTaxonomy1);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, TAXO_2_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
-				.setTitle(TAXO_2_TITLE_FR);
+				.setTitle(labelTitle2);
 		collectionSettings.addTaxonomy(importedTaxonomy2);
 
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");

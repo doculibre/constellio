@@ -4,6 +4,7 @@ import com.constellio.app.services.importExport.settings.SettingsImportServicesT
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 
+import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -184,16 +185,22 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo1Titre1");
+
 		ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-				.setTitle("taxo1Titre1")
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList("user1", "user2"))
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(taxonomy1);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "taxo1Titre2");
+
 		ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-				.setTitle("taxo1Titre2");
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(taxonomy2);
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
@@ -700,16 +707,22 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 				.setTitle("domaine4")
 				.setHierarchical(false));
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo1Titre1");
+
 		ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-				.setTitle("taxo1Titre1")
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList("user1", "user2"))
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(taxonomy1);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "taxo1Titre2");
+
 		ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-				.setTitle("taxo1Titre2");
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(taxonomy2);
 
 		Map<String, String> tabParams = new TreeMap<>();

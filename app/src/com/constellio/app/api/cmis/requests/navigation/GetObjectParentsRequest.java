@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.entities.Language;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
@@ -128,7 +129,8 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 		}
 
 		if (parents.isEmpty() && taxonomyOfRecord != null) {
-			parents.add(newTaxonomyObjectBuilder().build(taxonomyOfRecord, objectInfo));
+			parents.add(newTaxonomyObjectBuilder().build(taxonomyOfRecord,
+					objectInfo, Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage())));
 		}
 
 		return parents;

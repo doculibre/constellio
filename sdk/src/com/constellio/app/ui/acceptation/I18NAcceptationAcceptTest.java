@@ -181,12 +181,9 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	}
 
 	private void findTaxonomiesMissingKeys() {
-		List<String> missingKeys = new ArrayList<>();
-
 		for (Taxonomy taxonomy : getModelLayerFactory().getTaxonomiesManager().getEnabledTaxonomies(zeCollection)) {
-			addIfNoValue(taxonomy.getTitle());
+			addIfNoValue(taxonomy.getTitle().get(i18n.getLanguage()));
 		}
-
 	}
 
 	private void addIfNoValueInMainI18N(String key) {

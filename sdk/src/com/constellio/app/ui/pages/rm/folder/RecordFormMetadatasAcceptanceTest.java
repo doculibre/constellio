@@ -4,9 +4,12 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.model.entities.Language;
 import org.assertj.core.api.StringAssert;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -3569,9 +3572,16 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 	private void createValueListAndTaxonomyWithRecords()
 			throws RecordServicesException {
+
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "Colors");
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "Ze Classification");
+
 		ValueListServices valueListServices = new ValueListServices(getAppLayerFactory(), zeCollection);
-		zeValueListSchemaTypeCode = valueListServices.createValueDomain("Colors").getCode();
-		zeTaxonomySchemaTypeCode = valueListServices.createTaxonomy("Ze Classification").getSchemaTypes().get(0);
+		zeValueListSchemaTypeCode = valueListServices.createValueDomain(labelTitle1, true).getCode();
+		zeTaxonomySchemaTypeCode = valueListServices.createTaxonomy(labelTitle2, true).getSchemaTypes().get(0);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		Transaction transaction = new Transaction();

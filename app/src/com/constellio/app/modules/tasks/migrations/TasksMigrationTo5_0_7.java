@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -246,9 +247,13 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 
 		private MetadataSchemaTypeBuilder createTaskStatusType() {
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+
+			boolean isMultiLingual = language.size() > 1;
+
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 					.createValueListItemSchema(TaskStatus.SCHEMA_TYPE, migrationResourcesProvider.getLanguagesString("Statut"),
-							codeMetadataRequiredAndUnique())
+							codeMetadataRequiredAndUnique(), isMultiLingual)
 					.setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
@@ -271,14 +276,17 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder taskType = createTaskTypeSchemaType(typesBuilder);
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+			boolean isMultiLingual = language.size() > 1;
+
+			MetadataSchemaBuilder taskType = createTaskTypeSchemaType(typesBuilder, isMultiLingual);
 			createTaskSchemaType(typesBuilder, taskType);
 		}
 
-		private MetadataSchemaBuilder createTaskTypeSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
+		private MetadataSchemaBuilder createTaskTypeSchemaType(MetadataSchemaTypesBuilder typesBuilder, boolean isMultiLingual) {
 			Map<Language, String> labels = migrationResourcesProvider.getLanguagesString("init.ddvTaskType");
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(typesBuilder)
-					.createValueListItemSchema(TaskType.SCHEMA_TYPE, labels, codeMetadataRequiredAndUnique())
+					.createValueListItemSchema(TaskType.SCHEMA_TYPE, labels, codeMetadataRequiredAndUnique(), isMultiLingual)
 					.setSecurity(false);
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 			schema.create(TaskType.LINKED_SCHEMA).setType(STRING);

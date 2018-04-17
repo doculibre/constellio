@@ -282,7 +282,10 @@ public class SchemasServicesAPI {
 	public String createTaxonomy(@QueryParam("collection") String collection, @QueryParam("code") String code,
 			List<String> schemaTypes) {
 		logServiceCall("createTaxonomy", collection, code, schemaTypes);
-		Taxonomy taxonomy = Taxonomy.createPublic(code, code, collection, schemaTypes);
+
+		Map<Language, String> mapLang = new HashMap<>();
+		mapLang.put(Language.French, code);
+		Taxonomy taxonomy = Taxonomy.createPublic(code, mapLang, collection, schemaTypes);
 		taxonomyManager().addTaxonomy(taxonomy, metadataSchemasManager());
 
 		Map<String, String> queryParams = new HashMap<>();

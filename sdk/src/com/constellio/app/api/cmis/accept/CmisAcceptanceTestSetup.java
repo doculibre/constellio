@@ -2,10 +2,9 @@ package com.constellio.app.api.cmis.accept;
 
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.extensions.api.cmis.CmisExtension;
@@ -90,8 +89,14 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		setupFolderType(folderType, categoryType, administrativeUnitType);
 		setupDocumentType(documentType, folderType);
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", collection, asList("documentFond", "category"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", collection, asList("administrativeUnit"));
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "zeTaxo");
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "zeTaxo");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", labelTitle1, collection, asList("documentFond", "category"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", labelTitle2, collection, asList("administrativeUnit"));
 
 		taxonomies = asList(firstTaxonomy, secondTaxonomy);
 	}

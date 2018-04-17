@@ -90,7 +90,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 			@Override
 			public TaxonomiesManagerCache read(String collection, Document document) {
-				TaxonomiesReader reader = newTaxonomyReader(document);
+				TaxonomiesReader reader = newTaxonomyReader(document, collectionsListManager.getCollectionLanguages(collection));
 				List<Taxonomy> enableTaxonomies = Collections.unmodifiableList(reader.readEnables());
 				List<Taxonomy> disableTaxonomies = Collections.unmodifiableList(reader.readDisables());
 
@@ -152,11 +152,6 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public void setPrincipalTaxonomy(Taxonomy taxonomy, MetadataSchemasManager schemasManager) {
-
-		List<Metadata> metadatas = asList(Schemas.PRINCIPAL_PATH);
-		List<MetadataSchemaType> types = schemasManager.getSchemaTypes(taxonomy.getCollection())
-				.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
-
 		validateCanBePrincipalTaxonomy(taxonomy, schemasManager);
 		String collection = taxonomy.getCollection();
 		oneXMLConfigPerCollectionManager.updateXML(collection, newSetPrincipalTaxonomy(taxonomy));
@@ -231,8 +226,8 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		return new TaxonomiesWriter(document);
 	}
 
-	TaxonomiesReader newTaxonomyReader(Document document) {
-		return new TaxonomiesReader(document);
+	TaxonomiesReader newTaxonomyReader(Document document, List<String> collectionLanguageList) {
+		return new TaxonomiesReader(document, collectionLanguageList);
 	}
 
 	DocumentAlteration newAddTaxonomyDocumentAlteration(final Taxonomy taxonomy) {

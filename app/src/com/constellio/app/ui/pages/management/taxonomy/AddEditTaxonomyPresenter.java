@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,9 +41,11 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	private transient TaxonomiesManager taxonomiesManager;
 	private transient MetadataSchemasManager schemasManager;
 	private transient SchemasDisplayManager schemasDisplayManager;
+	private Language language;
 
 	public AddEditTaxonomyPresenter(AddEditTaxonomyView view) {
 		super(view);
+		language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		init();
 	}
 
@@ -60,10 +63,13 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	}
 
 	public void saveButtonClicked(TaxonomyVO taxonomyVO) {
+		final Language language1 = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		if (isActionEdit()) {
 			Taxonomy taxonomy = fetchTaxonomy(taxonomyVO.getCode());
-			boolean wasTitleChanged = !taxonomy.getTitle().equals(taxonomyVO.getTitle());
-			taxonomy = taxonomy.withTitle(taxonomyVO.getTitle())
+			boolean wasTitleChanged = !taxonomy.getTitle(language1).equals(taxonomyVO.getTitle());
+			Map<Language, String> languageStringMap = new HashMap<>();
+			languageStringMap.put(language1, taxonomyVO.getTitle());
+			taxonomy = taxonomy.withTitle(languageStringMap)
 					.withUserIds(taxonomyVO.getUserIds())
 					.withGroupIds(taxonomyVO.getGroupIds())
 					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
@@ -76,9 +82,15 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		} else {
 			boolean canCreate = canCreate(taxonomyVO.getTitle());
 			if (canCreate) {
+				List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+				boolean isMultiLingual = language.size() > 1;
+
+				Map<Language, String> titleMultiLagMap = new HashMap<>();
+				titleMultiLagMap.put(language1, taxonomyVO.getTitle());
+
 				Taxonomy taxonomy = valueListServices()
-						.createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
-								taxonomyVO.isVisibleInHomePage());
+						.createTaxonomy(titleMultiLagMap, taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
+								taxonomyVO.isVisibleInHomePage(), isMultiLingual);
 				createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), true);
 				view.navigate().to().listTaxonomies();
 				titles.add(taxonomyVO.getTitle());
@@ -96,8 +108,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			MetadataSchemaBuilder defaultSchema = taxonomyType.getDefaultSchema();
 
 			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
-				taxonomyType.addLabel(language, taxonomy.getTitle());
-				defaultSchema.addLabel(language, taxonomy.getTitle());
+				taxonomyType.addLabel(language, taxonomy.getTitle(language));
+				defaultSchema.addLabel(language, taxonomy.getTitle(language));
 			}
 
 			try {
@@ -134,7 +146,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			MetadataBuilder metadataBuilder = types.getSchemaType(schemaType).getDefaultSchema().get(localCode);
 
 			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
-				metadataBuilder.addLabel(language, taxonomy.getTitle());
+				metadataBuilder.addLabel(language, taxonomy.getTitle(language));
 			}
 
 			try {
@@ -152,7 +164,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 
 	public TaxonomyVO newTaxonomyVO(Taxonomy taxonomy) {
 		TaxonomyToVOBuilder voBuilder = new TaxonomyToVOBuilder();
-		TaxonomyVO taxonomyVO = voBuilder.build(taxonomy);
+		TaxonomyVO taxonomyVO = voBuilder.build(taxonomy, Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
 		taxonomyVO.setClassifiedObjects(getClassifiedObjects(taxonomy));
 		return taxonomyVO;
 
@@ -211,9 +223,10 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		TaxonomyToVOBuilder builder = new TaxonomyToVOBuilder();
 		List<TaxonomyVO> result = new ArrayList<>();
 		for (Taxonomy taxonomy : valueListServices().getTaxonomies()) {
-			result.add(builder.build(taxonomy));
-			titles.add(taxonomy.getTitle());
+			result.add(builder.build(taxonomy, language));
+			titles.add(taxonomy.getTitle(language));
 		}
+
 		return result;
 	}
 

@@ -185,9 +185,12 @@ public class SettingsImportServices {
 
 		final MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collectionCode);
 
-		importCollectionsValueLists(collectionSettings, collectionCode, schemaTypes);
+		List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collectionCode);
+		boolean isMultiLingual = language.size() > 1;
 
-		importCollectionTaxonomies(collectionSettings, collectionCode, schemaTypes);
+		importCollectionsValueLists(collectionSettings, collectionCode, schemaTypes, isMultiLingual);
+
+		importCollectionTaxonomies(collectionSettings, collectionCode, schemaTypes, isMultiLingual);
 
 		importCollectionTypes(collectionSettings, collectionCode, schemaTypes);
 
@@ -713,7 +716,7 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionTaxonomies(final ImportedCollectionSettings settings,
-			final String collectionCode, final MetadataSchemaTypes schemaTypes) {
+											final String collectionCode, final MetadataSchemaTypes schemaTypes, final boolean isMultiLingual) {
 
 		final Map<Taxonomy, ImportedTaxonomy> taxonomies = new HashMap<>();
 		valueListServices = new ValueListServices(appLayerFactory, collectionCode);
@@ -726,13 +729,13 @@ public class SettingsImportServices {
 					String typeCode = importedTaxonomy.getCode();
 					//					String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
 					String taxoCode = StringUtils.substringAfter(typeCode, TAXO);
-					String title = null;
-					if (StringUtils.isNotBlank(importedTaxonomy.getTitle())) {
+					Map<Language, String> title = null;
+					if (importedTaxonomy.getTitle().size() > 0) {
 						title = importedTaxonomy.getTitle();
 					}
 
 					if (!schemaTypes.hasType(importedTaxonomy.getCode() + "Type")) {
-						Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
+						Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, isMultiLingual);
 
 						if (importedTaxonomy.getVisibleOnHomePage() != null) {
 							taxonomy = taxonomy.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
@@ -747,7 +750,7 @@ public class SettingsImportServices {
 					} else {
 						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy);
 
-						if (StringUtils.isNotBlank(importedTaxonomy.getTitle())) {
+						if (importedTaxonomy.getTitle().size() > 0) {
 							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle());
 						}
 
@@ -816,7 +819,7 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionsValueLists(final ImportedCollectionSettings collectionSettings,
-			final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes) {
+											 final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes, final boolean isMultiLingual) {
 		schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder schemaTypesBuilder) {
@@ -838,17 +841,22 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-						;
+
+
+						Map<Language, String> mapLanguage = new HashMap<>();
+						mapLanguage.put(Language.French, importedValueList.getTitle());
+
+						// TODO Francis ajustement
 
 						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
-									importedValueList.getTitle(),
-									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
+									mapLanguage,
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode), isMultiLingual);
 						} else {
 							builder.createHierarchicalValueListItemSchema(code,
-									importedValueList.getTitle(),
-									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
+									mapLanguage,
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode), isMultiLingual);
 						}
 
 					} else {
