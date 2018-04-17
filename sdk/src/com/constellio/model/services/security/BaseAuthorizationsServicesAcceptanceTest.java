@@ -631,6 +631,16 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
+		public VerifiedAuthorization givingWrite() {
+			this.roles = asList(WRITE);
+			return this;
+		}
+
+		public VerifiedAuthorization givingDelete() {
+			this.roles = asList(DELETE);
+			return this;
+		}
+
 		public VerifiedAuthorization givingReadWriteDelete() {
 			this.roles = asList(READ, WRITE, DELETE);
 			return this;
