@@ -70,6 +70,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 					tokens.add("w" + typeSmallCode + "_" + entry.getKey());
 
 				} else if (Role.DELETE.equals(access)) {
+					tokens.add("r_" + entry.getKey());
 					tokens.add("r" + typeSmallCode + "_" + entry.getKey());
 
 				} else {
