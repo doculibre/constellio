@@ -219,7 +219,8 @@ public class ConstellioEIMConfigs {
 
 		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
 
-		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange"));
+		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
+				.whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
