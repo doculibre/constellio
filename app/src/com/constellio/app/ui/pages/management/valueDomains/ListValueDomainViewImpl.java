@@ -112,8 +112,6 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
         public DomainCreationWindowButton(String caption) {
             super(caption, caption);
-            setHeight("250px");
-            setWidth("350px");
         }
 
         @Override
@@ -139,9 +137,8 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
             titleEn.setId(TITLE_EN);
             titleFr.setId(TITLE_FR);
 
-
-            return new BaseForm<ListValueDomainParam>(
-                    new ListValueDomainParam(), this, baseTextFieldArray) {
+			BaseForm<ListValueDomainParam> baseForm = new BaseForm<ListValueDomainParam>(
+					new ListValueDomainParam(), this, baseTextFieldArray) {
 				@Override
 				protected void saveButtonClick(ListValueDomainParam viewObject) throws ValidationException {
 					getWindow().close();
@@ -152,7 +149,11 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 				protected void cancelButtonClick(ListValueDomainParam viewObject) {
 					getWindow().close();
 				}
-            };
+			};
+			baseForm.setHeight("250px");
+			baseForm.setWidth("350px");
+
+            return baseForm;
         }
     }
 
