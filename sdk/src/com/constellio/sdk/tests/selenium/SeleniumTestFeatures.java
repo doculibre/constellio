@@ -9,12 +9,18 @@ import java.util.Map;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
+import org.eclipse.jetty.util.MultiPartWriter;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
@@ -147,8 +153,10 @@ public class SeleniumTestFeatures {
 			startApplication();
 		}
 		String url = "http://localhost:" + port + "/constellio/rest" + path;
+		JacksonJsonProvider jsonProvider = new JacksonJaxbJsonProvider();
+		jsonProvider.locateMapper(Object.class, MediaType.APPLICATION_JSON_TYPE).registerModule(new JodaModule());
 		javax.ws.rs.client.Client client = ClientBuilder.newClient();
-		return client.register(JacksonFeature.class).target(url);
+		return client.register(JacksonFeature.class).register(jsonProvider).register(MultiPartFeature.class).target(url);
 	}
 
 	public SolrClient newSearchClient() {
