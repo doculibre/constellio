@@ -172,10 +172,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addDuplicateButton(final AvailableActionsParam param) {
         WindowButton duplicateButton = new WindowButton($("ConstellioHeader.selection.actions.duplicate"), $("ConstellioHeader.selection.actions.duplicate")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+                , WindowButton.WindowConfiguration.modalDialog("550px", "200px")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.setSizeFull();
                 verticalLayout.setSpacing(true);
                 final LookupFolderField field = new LookupFolderField(true);
                 field.focus();
@@ -203,7 +204,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 HorizontalLayout hLayout = new HorizontalLayout();
                 hLayout.setSizeFull();
                 hLayout.addComponent(saveButton);
-                hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_CENTER);
+                hLayout.setComponentAlignment(saveButton, Alignment.MIDDLE_CENTER);
                 verticalLayout.addComponent(hLayout);
                 return verticalLayout;
             }
