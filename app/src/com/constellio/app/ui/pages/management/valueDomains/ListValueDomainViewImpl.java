@@ -150,8 +150,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 					getWindow().close();
 				}
 			};
-			baseForm.setHeight("250px");
-			baseForm.setWidth("350px");
+
 
             return baseForm;
         }
