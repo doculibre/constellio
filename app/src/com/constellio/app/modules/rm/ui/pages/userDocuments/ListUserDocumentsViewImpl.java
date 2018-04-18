@@ -205,6 +205,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 							}
 
 							dataProvider.fireDataRefreshEvent();
+
 						}
 					}
 				}
