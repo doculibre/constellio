@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.model.entities.records.*;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import org.slf4j.Logger;
@@ -51,9 +52,12 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 	protected String schemaCode;
 
+	RMConfigs rmConfigs;
+
 	public SchemaPresenterUtils(String schemaCode, ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		super(constellioFactories, sessionContext);
 		this.schemaCode = schemaCode;
+		this.rmConfigs = new RMConfigs(modelLayerFactory().getSystemConfigurationsManager()) ;
 	}
 
 	@Deprecated
@@ -366,6 +370,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				}
 			} else if (majorVersion) {
 				content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+			} else if (newMinorEmpty && rmConfigs.isMajorVersionForNewFile()) {
+				content = contentManager.createEmptyMajor(currentUser, fileName, contentVersionDataSummary);
 			} else if (newMinorEmpty) {
 				content = contentManager.createEmptyMinor(currentUser, fileName, contentVersionDataSummary);
 			} else {

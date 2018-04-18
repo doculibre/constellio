@@ -48,7 +48,7 @@ public class Group extends RecordWrapper {
 		return this;
 	}
 
-	public List<String> getParent() {
+	public String getParent() {
 		return get(PARENT);
 	}
 

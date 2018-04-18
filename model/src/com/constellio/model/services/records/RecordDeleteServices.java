@@ -144,9 +144,11 @@ public class RecordDeleteServices {
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
-			transaction.add(hierarchyRecord);
+			if (!transaction.isContainingUpdatedRecord(hierarchyRecord)) {
+				transaction.add(hierarchyRecord);
+			}
 		}
-		if (!transaction.getRecords().contains(record)) {
+		if (!transaction.isContainingUpdatedRecord(record)) {
 			record.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			record.set(Schemas.LOGICALLY_DELETED_ON, null);
 			transaction.add(record);

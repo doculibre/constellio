@@ -541,6 +541,11 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.MLT, "true");
 			params.add(MoreLikeThisParams.MIN_DOC_FREQ, "0");
 			params.add(MoreLikeThisParams.MIN_TERM_FREQ, "0");
+
+			if (params.get("rows") == null || Integer.parseInt(params.get("rows")) > 5) {
+				params.set("rows", 5);
+			}
+
 			List<String> moreLikeThisFields = query.getMoreLikeThisFields();
 			if (moreLikeThisFields.isEmpty()) {
 				moreLikeThisFields.addAll(Arrays.asList("content_txt_fr", "content_txt_en", "content_txt_ar"));

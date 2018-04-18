@@ -6,6 +6,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class GenericRecordPageExtension {
+	public static final String TAXONOMY_TAB = "taxonomy";
+	public static final String DDV_TAB = "ddv";
+	public static final String OTHERS_TAB = "others";
 
 	public ExtensionBooleanResult canManageSchema(User user, MetadataSchemaType schemaType) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
@@ -27,4 +30,13 @@ public class GenericRecordPageExtension {
 	public ExtensionBooleanResult isSchemaTypeConfigurable(MetadataSchemaType schemaType) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
+
+    public String getSchemaTypeDisplayGroup(MetadataSchemaType schemaType) {
+		if(schemaType.getCode().startsWith("ddv")) {
+			return DDV_TAB;
+		} else if(schemaType.getCode().startsWith("taxo")) {
+			return TAXONOMY_TAB;
+		}
+		return null;
+    }
 }

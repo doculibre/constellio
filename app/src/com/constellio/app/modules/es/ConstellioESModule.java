@@ -153,7 +153,6 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 
 		registerManagers(collection, appLayerFactory);
-		registerScript(new RestoreConnectorTypes(appLayerFactory, collection));
 
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
@@ -238,7 +237,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	public void start(AppLayerFactory appLayerFactory) {
 		appLayerFactory.getModelLayerFactory().newRecordServices().flush();
 		ESNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
-
+		registerScript(new RestoreConnectorTypes(appLayerFactory));
 	}
 
 	@Override

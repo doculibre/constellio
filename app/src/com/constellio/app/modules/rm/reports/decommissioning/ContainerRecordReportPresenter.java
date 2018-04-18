@@ -25,6 +25,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -132,7 +133,8 @@ public class ContainerRecordReportPresenter {
 				.getMetadata(Folder.CONTAINER);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)
-				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode());
+				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode())
+				.sortAsc(Schemas.IDENTIFIER);
 
 		List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 
@@ -197,14 +199,16 @@ public class ContainerRecordReportPresenter {
 	}
 
 	private void updateBeginingYearIfDateFromFolderEarlier(Folder folder) {
-		if (folder.getOpenDate().getYear() < beginingYear) {
-			beginingYear = folder.getOpenDate().getYear();
+		LocalDate openDate = folder.getOpenDate();
+		if (openDate != null && openDate.getYear() < beginingYear) {
+			beginingYear = openDate.getYear();
 		}
 	}
 
 	private void updateEndingYearIfDateFromFolderLater(Folder folder) {
-		if (folder.getCloseDate().getYear() > endingYear) {
-			endingYear = folder.getCloseDate().getYear();
+		LocalDate closeDate = folder.getCloseDate();
+		if (closeDate != null && closeDate.getYear() > endingYear) {
+			endingYear = closeDate.getYear();
 		}
 	}
 
@@ -301,7 +305,21 @@ public class ContainerRecordReportPresenter {
 	}
 
 	private String buildExtremeDatesWithUnverifiedAssumptionThatGetDocumentsWasCalledBefore() {
-		return beginingYear + "-" + endingYear;
+		StringBuilder stringBuilder = new StringBuilder();
+		if(beginingYear != Integer.MAX_VALUE) {
+			stringBuilder.append(beginingYear);
+		} else {
+			stringBuilder.append("N/A");
+		}
+
+		stringBuilder.append("-");
+
+		if(endingYear != Integer.MIN_VALUE) {
+			stringBuilder.append(endingYear);
+		} else {
+			stringBuilder.append("N/A");
+		}
+		return stringBuilder.toString();
 	}
 
 	private List<ReportBooleanField> getConservationDispositionFields(CopyRetentionRule firstCopyRetentionRule) {

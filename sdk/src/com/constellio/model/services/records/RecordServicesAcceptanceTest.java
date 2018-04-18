@@ -336,6 +336,69 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 	}
 
+	@Test
+	public void givenAnOptimisticLockingOccursDuringATransactionThenRecordsMergedAndMarkedForReindexingAreSentAgainWithoutBeingMerged()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata());
+
+		Transaction tx = new Transaction();
+		Record record1 = tx.add(new TestRecord(zeSchema, "record1").set(zeSchema.stringMetadata(), "value1"));
+		Record record2 = tx.add(new TestRecord(zeSchema, "record2").set(zeSchema.stringMetadata(), "value1"));
+		Record record3 = tx.add(new TestRecord(zeSchema, "record3").set(zeSchema.stringMetadata(), "value1"));
+		recordServices.execute(tx);
+
+		recordServices.update(record("record1").set(zeSchema.anotherStringMetadata(), "mouahahaha"));
+
+		tx = new Transaction();
+		tx.add(record1.set(zeSchema.stringMetadata(), "value2"));
+		tx.add(record2.set(zeSchema.stringMetadata(), "value2"));
+		tx.addRecordToReindex("record3");
+		recordServices.execute(tx);
+
+		assertThatRecord(record1).extracting(zeSchema.stringMetadata(), zeSchema.anotherStringMetadata())
+				.isEqualTo(asList("value2", "mouahahaha"));
+
+		assertThatRecord(record2).extracting(zeSchema.stringMetadata())
+				.isEqualTo(asList("value2"));
+
+		assertThatRecord(record("record3")).extracting(zeSchema.stringMetadata(), Schemas.MARKED_FOR_REINDEXING)
+				.isEqualTo(asList("value1", true));
+
+	}
+
+	@Test
+	public void givenAnOptimisticLockingOccursDuringATransactionThenRecordsMergedAndANewRecordIsMarkedForReindexingThenOK()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata());
+
+		Transaction tx = new Transaction();
+		Record record1 = tx.add(new TestRecord(zeSchema, "record1").set(zeSchema.stringMetadata(), "value1"));
+		Record record2 = tx.add(new TestRecord(zeSchema, "record2").set(zeSchema.stringMetadata(), "value1"));
+
+		recordServices.execute(tx);
+
+		recordServices.update(record("record1").set(zeSchema.anotherStringMetadata(), "mouahahaha"));
+
+		tx = new Transaction();
+		tx.add(record1.set(zeSchema.stringMetadata(), "value2"));
+		tx.add(record2.set(zeSchema.stringMetadata(), "value2"));
+		tx.add(new TestRecord(zeSchema, "record3").set(zeSchema.stringMetadata(), "value1"));
+		tx.addRecordToReindex("record3");
+		recordServices.execute(tx);
+
+		assertThatRecord(record1).extracting(zeSchema.stringMetadata(), zeSchema.anotherStringMetadata())
+				.isEqualTo(asList("value2", "mouahahaha"));
+
+		assertThatRecord(record2).extracting(zeSchema.stringMetadata())
+				.isEqualTo(asList("value2"));
+
+		assertThatRecord(record("record3")).extracting(zeSchema.stringMetadata(), Schemas.MARKED_FOR_REINDEXING)
+				.isEqualTo(asList("value1", true));
+
+	}
+
 	@Test()
 	public void givenSchemaWithFixedSequenceMetadataWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {

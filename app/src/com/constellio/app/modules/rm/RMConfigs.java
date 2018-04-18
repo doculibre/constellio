@@ -14,9 +14,11 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class RMConfigs {
 
@@ -70,7 +72,7 @@ public class RMConfigs {
 			IS_CONTAINER_MULTIVALUE,
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
-	 		LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
+			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM;
 
 	// Category configs
@@ -85,7 +87,7 @@ public class RMConfigs {
 			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT;
 
 	// other
-	public static final SystemConfiguration OPEN_HOLDER;
+	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
@@ -94,7 +96,7 @@ public class RMConfigs {
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
-				.withReIndexionRequired());
+				.withReIndexionRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
@@ -228,7 +230,7 @@ public class RMConfigs {
 		add(AGENT_DISABLED_UNTIL_FIRST_CONNECTION = agent.createBooleanFalseByDefault("agentDisabledUntilFirstConnection"));
 
 		add(AGENT_MOVE_IMPORTED_FILES_TO_TRASH = agent.createBooleanTrueByDefault("agentMoveImportedFilesToTrash"));
-		
+
 		add(AGENT_CREATE_DROP_DIR_SHORTCUT = agent.createBooleanTrueByDefault("agentCreateDropDirShortcut"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
@@ -236,6 +238,8 @@ public class RMConfigs {
 		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
 
 		add(OPEN_HOLDER = others.createBooleanFalseByDefault("openHolder"));
+
+		add(MAJOR_VERSION_FOR_NEW_FILE = others.createBooleanFalseByDefault("majorVersionForNewFile"));
 
 		add(DOCUMENTS_TYPES_CHOICE = others.createEnum("documentsTypeChoice", DocumentsTypeChoice.class)
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
@@ -288,6 +292,14 @@ public class RMConfigs {
 	}
 
 	SystemConfigurationsManager manager;
+
+	public RMConfigs(AppLayerFactory appLayerFactory) {
+		this.manager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+	}
+
+	public RMConfigs(ModelLayerFactory modelLayerFactory) {
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
+	}
 
 	public RMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
@@ -448,7 +460,7 @@ public class RMConfigs {
 	public boolean isAgentMoveImportedFilesToTrash() {
 		return manager.getValue(AGENT_MOVE_IMPORTED_FILES_TO_TRASH);
 	}
-	
+
 	public boolean isAgentCreateDropDirShortcut() {
 		return manager.getValue(AGENT_CREATE_DROP_DIR_SHORTCUT);
 	}
@@ -459,6 +471,10 @@ public class RMConfigs {
 
 	public boolean isOpenHolder() {
 		return manager.getValue(OPEN_HOLDER);
+	}
+
+	public boolean isMajorVersionForNewFile() {
+		return manager.getValue(MAJOR_VERSION_FOR_NEW_FILE);
 	}
 
 	public boolean areWorkflowsEnabled() {

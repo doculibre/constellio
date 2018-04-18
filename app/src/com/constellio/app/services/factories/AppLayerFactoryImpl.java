@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -324,8 +325,40 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public void postInitialization() {
+//		pluginManager.configure();
+//
+//		if (modelLayerFactory.newReindexingServices().isLockFileExisting()) {
+//			//Last reindexing was interrupted...
+//			systemGlobalConfigsManager.setLastReindexingFailed(true);
+//			dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+//			modelLayerFactory.newReindexingServices().removeLockFile();
+//		}
+//
+//		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
+//			systemGlobalConfigsManager.setMarkedForReindexing(false);
+//
+//			try {
+//				modelLayerFactory.newReindexingServices().createLockFile();
+//				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+//				modelLayerFactory.newReindexingServices().removeLockFile();
+//
+//				systemGlobalConfigsManager.setMarkedForReindexing(false);
+//				systemGlobalConfigsManager.setReindexingRequired(false);
+//				systemGlobalConfigsManager.setLastReindexingFailed(false);
+//			} catch (Exception e) {
+//				LOGGER.error("Reindexing failed", e);
+//				systemGlobalConfigsManager.setReindexingRequired(true);
+//				systemGlobalConfigsManager.setLastReindexingFailed(true);
+//				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+//			}
+//		}
+//		systemGlobalConfigsManager.setRestartRequired(false);
+
+
 		pluginManager.configure();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
+			systemGlobalConfigsManager.setMarkedForReindexing(false);
+			systemGlobalConfigsManager.setLastReindexingFailed(true);
 			try {
 				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 				systemGlobalConfigsManager.setMarkedForReindexing(false);
@@ -333,9 +366,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				systemGlobalConfigsManager.setLastReindexingFailed(false);
 			} catch (Exception e) {
 				LOGGER.error("Reindexing failed", e);
-				systemGlobalConfigsManager.setMarkedForReindexing(false);
 				systemGlobalConfigsManager.setReindexingRequired(true);
-				systemGlobalConfigsManager.setLastReindexingFailed(true);
 			}
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);

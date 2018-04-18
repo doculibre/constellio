@@ -231,6 +231,11 @@ public class ContentManager implements StatefulService {
 		return ContentImpl.create(uniqueId, user, filename, newVersion, false, true);
 	}
 
+	public Content createEmptyMajor(User user, String filename, ContentVersionDataSummary newVersion) {
+		String uniqueId = uniqueIdGenerator.next();
+		return ContentImpl.create(uniqueId, user, filename, newVersion, true, true);
+	}
+
 	public Content createSystemContent(String filename, ContentVersionDataSummary version) {
 		return ContentImpl.createSystemContent(filename, version);
 	}
@@ -703,14 +708,18 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
+	public String getParsedContentFileName(String hash) {
+		return hash + "__parsed";
+	}
+
 	public ParsedContent getParsedContent(String hash)
 			throws ContentManagerException_ContentNotParsed {
-		String parsedContent = null;
+		String parsedContent;
 
 		InputStream inputStream = null;
 
 		try {
-			inputStream = getContentDao().getContentInputStream(hash + "__parsed", READ_PARSED_CONTENT);
+			inputStream = getContentDao().getContentInputStream(getParsedContentFileName(hash), READ_PARSED_CONTENT);
 			parsedContent = ioServices.readStreamToString(inputStream);
 		} catch (ContentDaoException.ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerException_ContentNotParsed(hash);

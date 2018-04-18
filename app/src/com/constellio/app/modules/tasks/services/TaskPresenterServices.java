@@ -1,18 +1,7 @@
 package com.constellio.app.modules.tasks.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -25,12 +14,26 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -38,6 +41,7 @@ public class TaskPresenterServices {
 	private final RecordServices recordServices;
 	private final TasksSearchServices tasksSearchServices;
 	private LoggingServices loggingServices;
+	private SearchServices searchServices;
 
 	public TaskPresenterServices(TasksSchemasRecordsServices tasksSchemas, RecordServices recordServices,
 			TasksSearchServices tasksSearchServices, LoggingServices loggingServices) {
@@ -45,6 +49,7 @@ public class TaskPresenterServices {
 		this.recordServices = recordServices;
 		this.tasksSearchServices = tasksSearchServices;
 		this.loggingServices = loggingServices;
+		this.searchServices = tasksSchemas.appLayerFactory.getModelLayerFactory().newSearchServices();
 	}
 
 	public Task toTask(TaskVO taskVO, Record record) {
@@ -187,7 +192,28 @@ public class TaskPresenterServices {
 		return user.hasWriteAccess().on(record);
 	}
 
+
+	public boolean isSubTaskPresentAndHaveCertainStatus(String id) {
+
+		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
+				LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
+						.where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
+
+		boolean isSubTaskWithRequiredStatusFound = false;
+
+		for(Record taskAsRecord : tasksSearchServices){
+			Task currentTask = tasksSchemas.wrapTask(taskAsRecord);
+			if(TaskStatusType.STANDBY.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())
+					|| TaskStatusType.IN_PROGRESS.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())) {
+				isSubTaskWithRequiredStatusFound = true;
+				break;
+			}
+		}
+		return isSubTaskWithRequiredStatusFound;
+	}
+
 	public void deleteTask(Record record, User currentUser) {
+
 		recordServices.logicallyDelete(record, currentUser);
 		loggingServices.logDeleteRecordWithJustification(record, currentUser, "");
 		//recordServices.physicallyDelete(record, currentUser);

@@ -286,7 +286,9 @@ public class User extends RecordWrapper {
 		allAuths.addAll(getUserAuthorizations());
 		for (String groupId : getUserGroups()) {
 			Group group = roles.getSchemasRecordsServices().getGroup(groupId);
-			allAuths.addAll(group.getAllAuthorizations());
+			if (group != null && roles.getSchemasRecordsServices().isGroupActive(group)) {
+				allAuths.addAll(group.getAllAuthorizations());
+			}
 		}
 
 		return Collections.unmodifiableList(new ArrayList<>(allAuths));
@@ -553,5 +555,9 @@ public class User extends RecordWrapper {
 
 	public User getUnmodifiableCopyOfOriginalRecord() {
 		return User.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types, roles);
+	}
+
+	public boolean isActiveUser() {
+		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
 	}
 }

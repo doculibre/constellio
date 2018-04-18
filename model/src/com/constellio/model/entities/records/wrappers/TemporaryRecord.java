@@ -57,12 +57,12 @@ public class TemporaryRecord extends RecordWrapper {
         return this;
     }
 
-    public int getNumberOfDaysBeforeDestruction(){
-        return Integer.parseInt((String) get(DAY_BEFORE_DESTRUCTION));
+    public double getNumberOfDaysBeforeDestruction(){
+        return Double.parseDouble((String) get(DAY_BEFORE_DESTRUCTION));
     }
 
     public TemporaryRecord setNumberOfDaysBeforeDestruction(int numberOfDaysBeforeDestruction) {
-        set(DAY_BEFORE_DESTRUCTION, numberOfDaysBeforeDestruction);
+        set(DAY_BEFORE_DESTRUCTION, new Double(numberOfDaysBeforeDestruction));
         return this;
     }
 

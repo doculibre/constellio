@@ -69,6 +69,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		editMode = StringUtils.isNotBlank(parameters) && StringUtils.countMatches(parameters, "/") == 0;
 		multipleMode = StringUtils.countMatches(parameters, "/") > 0;
 		Record container = editMode ? getRecord(parameters) : newContainerRecord();
+		setSchemaCode(container.getSchemaCode());
 		this.container = new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
 		return this;
 	}

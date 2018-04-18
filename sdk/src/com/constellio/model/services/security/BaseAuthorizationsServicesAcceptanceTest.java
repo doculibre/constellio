@@ -448,11 +448,13 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
-			fail("User has read access using wrapper method, but not using search");
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+					+ "' using wrapper method, but not using search");
 		}
 
 		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
-			fail("User has read access using search, but not using wrapper method");
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+					+ "' using search, but not using wrapper method");
 		}
 		return hasAccessUsingWrapperMethod;
 	}
@@ -464,11 +466,13 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
-			fail("User has read access using wrapper method, but not using search");
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+					+ "' using wrapper method, but not using search");
 		}
 
 		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
-			fail("User has read access using search, but not using wrapper method");
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+					+ "' using search, but not using wrapper method");
 		}
 		return hasAccessUsingWrapperMethod;
 	}
@@ -480,11 +484,13 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
-			fail("User has read access using wrapper method, but not using search");
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+					+ "' using wrapper method, but not using search");
 		}
 
 		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
-			fail("User has read access using search, but not using wrapper method");
+			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
+					+ "' using search, but not using wrapper method");
 		}
 		return hasAccessUsingWrapperMethod;
 	}

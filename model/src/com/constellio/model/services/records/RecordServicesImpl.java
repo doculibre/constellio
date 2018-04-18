@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +86,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
@@ -301,6 +301,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 					break;
 				}
 			}
+
+			for (Record recordWithinTransaction : transaction.getRecords()) {
+				if (recordWithinTransaction.getId().equals(id)) {
+					newRecordVersion = recordWithinTransaction;
+					break;
+				}
+			}
+
 			if (newRecordVersion == null) {
 				throw new RecordServicesException.UnresolvableOptimisticLockingConflict(id);
 			}
@@ -436,7 +444,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
 		}
-		if (metadata.getCode().startsWith("global")) {
+		if (metadata.getCode().startsWith("global_")) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -1324,6 +1332,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			recordDao.flush();
 			eventsDao.flush();
 			notificationsDao.flush();
+		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
+			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
+		}
+	}
+
+	public void flushRecords() {
+		try {
+			recordDao.flush();
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}
