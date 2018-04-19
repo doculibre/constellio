@@ -572,7 +572,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.publishButtonClicked();
 				}
 			};
-			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
+			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument() && !presenter.isLogicallyDeleted()) {
 				actionMenuButtons.add(publishButton);
 			}
 
@@ -582,7 +582,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.unpublishButtonClicked();
 				}
 			};
-			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
+			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument() && !presenter.isLogicallyDeleted()) {
 				actionMenuButtons.add(unpublishButton);
 			}
 
