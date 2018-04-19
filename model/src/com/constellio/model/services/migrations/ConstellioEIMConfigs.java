@@ -38,6 +38,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
 	public static final SystemConfiguration LOGO_LINK;
+	public static final SystemConfiguration AUTHENTIFICATION_IMAGE;
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
@@ -127,6 +128,7 @@ public class ConstellioEIMConfigs {
 
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
+		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
