@@ -5,16 +5,25 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -65,6 +74,66 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		findMissingKeys();
 
 		assertThat(missingKeys).isEmpty();
+	}
+
+	@Test
+	public void whenScanningJavaSourcesThenAllI18n() {
+
+		Set<String> keys = new HashSet<>();
+		scanRetrievingKeys(keys, new FoldersLocator().getAppProject());
+		scanRetrievingKeys(keys, new FoldersLocator().getPluginsRepository());
+		System.out.println(keys);
+	}
+
+	private void scanRetrievingKeys(Set<String> keys, File fileOrFolder) {
+		if (fileOrFolder.isFile() && fileOrFolder.getName().endsWith(".java")) {
+			scanJavaFileRetrievingKeys(keys, fileOrFolder);
+
+		} else if (fileOrFolder.isDirectory()) {
+			File[] files = fileOrFolder.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					scanRetrievingKeys(keys, file);
+				}
+			}
+		}
+
+	}
+
+	private void scanJavaFileRetrievingKeys(Set<String> keys, File javaFile) {
+
+		BufferedReader reader = null;
+
+		try {
+			reader = new BufferedReader(new FileReader(javaFile));
+
+			String line;
+			while ((line = reader.readLine()) != null) {
+				scanJavaLineRetrievingKeys(keys, line);
+			}
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			IOUtils.closeQuietly(reader);
+		}
+	}
+
+	Pattern pattern = Pattern.compile("\\$\\(\\\"[\\w\\S]*\\\"\\)");
+
+	private void scanJavaLineRetrievingKeys(Set<String> keys, String line) {
+
+		if (line.contains("$")) {
+			Matcher matcher = pattern.matcher(line);
+			while (matcher.find()) {
+				String i18n = matcher.group();
+				if (i18n.startsWith("$(\"") && i18n.endsWith("\")")) {
+					keys.add(i18n.substring(3, i18n.length() - 2));
+				}
+			}
+
+		}
+
 	}
 
 	@Test
