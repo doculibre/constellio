@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.Language;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -58,10 +59,10 @@ public class TaxonomyVODataProviderTest extends ConstellioTest {
 		when(taxonomyVO1.getCode()).thenReturn("taxo1");
 		when(taxonomyVO2.getCode()).thenReturn("taxo2");
 
-		when(voBuilder.build(taxonomy1)).thenReturn(taxonomyVO1);
-		when(voBuilder.build(taxonomy2)).thenReturn(taxonomyVO2);
+		when(voBuilder.build(taxonomy1, Language.French)).thenReturn(taxonomyVO1);
+		when(voBuilder.build(taxonomy2, Language.French)).thenReturn(taxonomyVO2);
 
-		dataProvider = spy(new TaxonomyVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), zeCollection, "admin"));
+		dataProvider = spy(new TaxonomyVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), zeCollection, "admin", Language.French));
 	}
 
 	@Test

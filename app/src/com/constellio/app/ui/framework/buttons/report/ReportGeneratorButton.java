@@ -149,7 +149,7 @@ public class ReportGeneratorButton extends WindowButton {
 		@Override
 		protected void saveButtonClick(LabelParametersVO viewObject)
 				throws ValidationException {
-			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO()));
+			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(), (PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), view.getSessionContext().getCurrentLocale()));
 		}
 
 		@Override

@@ -20,10 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
@@ -630,9 +629,12 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTheNewParentOfARecordIsOneOfItsDescendantThenException()
 			throws Exception {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo");
+
 		defineSchemasManager()
 				.using(schemas.withAParentReferenceFromZeSchemaToZeSchema().withAReferenceMetadataToZeSchema());
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, Arrays.asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle, zeCollection, Arrays.asList("zeSchemaType"));
 		getModelLayerFactory().getTaxonomiesManager()
 				.addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 		getModelLayerFactory().getTaxonomiesManager()

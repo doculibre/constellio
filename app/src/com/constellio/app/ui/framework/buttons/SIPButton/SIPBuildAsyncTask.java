@@ -27,6 +27,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class SIPBuildAsyncTask implements AsyncTask {
@@ -41,8 +42,9 @@ public class SIPBuildAsyncTask implements AsyncTask {
     private String currentVersion;
     private ProgressInfo progressInfo;
     private UUID uuid;
+    private Locale locale;
 
-    public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds, List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles, String currentVersion) {
+    public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds, List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles, String currentVersion, Locale locale) {
         this.bagInfoLines = bagInfoLines;
         this.includeDocumentIds = includeDocumentIds;
         this.includeFolderIds = includeFolderIds;
@@ -53,6 +55,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
         this.currentVersion = currentVersion;
         this.uuid = UUID.randomUUID();
         this.progressInfo = new ProgressInfo();
+        this.locale = locale;
         validateParams();
     }
 
@@ -76,7 +79,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
             ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory, filter, progressInfo);
 
             if (!metsObjectsProvider.list().isEmpty()) {
-                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize, currentVersion, progressInfo);
+                ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize, currentVersion, progressInfo, locale);
                 constellioSIP.build(outFile);
 
                 //Create SIParchive record

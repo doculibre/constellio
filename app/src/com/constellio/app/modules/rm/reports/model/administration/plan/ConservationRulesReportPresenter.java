@@ -1,10 +1,6 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
@@ -40,26 +36,28 @@ public class ConservationRulesReportPresenter {
 	private boolean byAdministrativeUnit;
 	private DecommissioningService decommissioningService;
 	private String administrativeUnitId;
+	private Locale locale;
 
-	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory) {
-		this(collection, appLayerFactory, false, null);
+	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		this(collection, appLayerFactory, false, null, locale);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-			boolean byAdministrativeUnit) {
-		this(collection, appLayerFactory, byAdministrativeUnit, null);
+			boolean byAdministrativeUnit, Locale locale) {
+		this(collection, appLayerFactory, byAdministrativeUnit, null, locale);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-			boolean byAdministrativeUnit, String administrativeUnitId) {
+			boolean byAdministrativeUnit, String administrativeUnitId, Locale locale) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		searchServices = modelLayerFactory.newSearchServices();
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		this.byAdministrativeUnit = byAdministrativeUnit;
 		this.administrativeUnitId = administrativeUnitId;
+		this.locale = locale;
 	}
 
 	public ConservationRulesReportModel build() {

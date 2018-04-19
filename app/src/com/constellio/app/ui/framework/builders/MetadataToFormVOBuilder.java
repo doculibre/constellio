@@ -50,6 +50,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		MetadataDisplayType displayType = config.getDisplayType();
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
+		boolean isMultiLingual = metadata.isMultiLingual();
 
 		boolean advancedSearch;
 		if (metadata.getInheritance() == null) {
@@ -100,7 +101,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
-				sessionContext);
+				sessionContext, isMultiLingual);
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(
 					this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode, sessionContext));

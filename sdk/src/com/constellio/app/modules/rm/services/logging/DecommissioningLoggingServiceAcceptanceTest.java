@@ -3,9 +3,12 @@ package com.constellio.app.modules.rm.services.logging;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,8 +65,11 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = new DecommissioningLoggingService(getModelLayerFactory());
 
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo");
+
 		defineSchemasManager().using(zeCollectionSetup);
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle, zeCollection, asList("zeSchemaType"));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 

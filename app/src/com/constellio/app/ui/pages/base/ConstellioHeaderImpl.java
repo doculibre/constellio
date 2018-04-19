@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -116,10 +117,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private BaseView currentView;
 
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
+	private Locale locale;
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
-
 		Resource resource = presenter.getUserLogoResource();
 		Image logo = new Image("", resource != null ? resource : new ThemeResource("images/logo_eim_406x60.png"));
 		logo.setHeight("30px");

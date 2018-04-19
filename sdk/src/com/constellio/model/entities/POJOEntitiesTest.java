@@ -215,8 +215,12 @@ public class POJOEntitiesTest extends ConstellioTest {
 
 	@Test
 	public void testThatTaxonomiesHasValidEqualsHashcodeAndToStringBehaviors() {
-		Taxonomy o = Taxonomy.createPublic("a", "b", "zeCollection", Arrays.asList("c"));
-		Taxonomy o2 = Taxonomy.createPublic("a", "b", "zeCollection", Arrays.asList("c"));
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "b");
+
+
+		Taxonomy o = Taxonomy.createPublic("a", labelTitle1, "zeCollection", Arrays.asList("c"));
+		Taxonomy o2 = Taxonomy.createPublic("a", labelTitle1, "zeCollection", Arrays.asList("c"));
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 	}
 

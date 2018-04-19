@@ -9,10 +9,9 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -132,7 +131,10 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 		});
 
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", "justeadmin", zeCollection,
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "justeadmin");
+
+		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", labelTitle1, zeCollection,
 				"justeadmin").withUserIds(asList(rmRecords.getAdmin().getId()));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 

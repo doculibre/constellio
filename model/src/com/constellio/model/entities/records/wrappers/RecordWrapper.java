@@ -268,7 +268,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	}
 
 	public String getTitle() {
-		return wrappedRecord.get(Schemas.TITLE);
+		return wrappedRecord.get(Schemas.TITLE, locale);
 	}
 
 	public RecordWrapper setTitle(String title) {

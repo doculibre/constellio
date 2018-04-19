@@ -160,6 +160,8 @@ public class SchemaTypeImportServices implements ImportServices {
 			final String schemaLocalCode = StringUtils.substringAfter(schemaTypeCode_schemaCode, "_");
 			Map<String, Object> fields = new HashMap<>(toImport.getFields());
 			final String title = (String) fields.get(DESCRIPTION);
+			Map<Language, String> mapLabel = new HashMap<>();
+			mapLabel.put(Language.French, title);
 
 			Object metadataListFields = fields.get(METADATA_LIST);
 			List<Map<String, String>> metadataListFieldsMap = new ArrayList<>();
@@ -173,7 +175,7 @@ public class SchemaTypeImportServices implements ImportServices {
 			} else {
 				metadataList = new ArrayList<>();
 			}
-			createTaxonomyOrValueDomain(taxonomies, typesBuilder, schemaTypeCode, title);
+			createTaxonomyOrValueDomain(taxonomies, typesBuilder, schemaTypeCode, mapLabel);
 
 			addMetadataList(typesBuilder, schemaTypeCode, schemaLocalCode, title, metadataList);
 			return 0;
@@ -265,21 +267,25 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void createTaxonomyOrValueDomain(List<Taxonomy> taxonomies, MetadataSchemaTypesBuilder typesBuilder, String typeCode,
-			String title) {
+			Map<Language,String> title) {
+
+		List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+		boolean isMultiLingual = language.size() > 1;
+
 		try {
 			metadataSchemasManager.getSchemaTypes(collection).getSchemaType(typeCode);
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
 			if (typeCode.startsWith("ddv")) {
 				ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
 				builder.createValueListItemSchema(typeCode, title,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false));
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false), isMultiLingual);
 
 			} else if (typeCode.startsWith("taxo") && typeCode.endsWith("Type")) {
 				String taxoCode = StringUtils.substringBetween(typeCode, "taxo", "Type");
 				if (StringUtils.isBlank(taxoCode)) {
 					throw new TaxonomiesManagerRuntimeException.InvalidTaxonomyCode(typeCode);
 				}
-				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title));
+				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, isMultiLingual));
 			}
 		}
 	}

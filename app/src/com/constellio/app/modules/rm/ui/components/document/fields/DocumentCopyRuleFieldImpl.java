@@ -4,9 +4,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.vaadin.data.Property;
 import com.vaadin.ui.CheckBox;
@@ -18,9 +20,11 @@ import com.vaadin.ui.Table.ColumnGenerator;
 public class DocumentCopyRuleFieldImpl extends CustomField<String> implements DocumentCopyRuleField {
 	private Table table;
 	private List<CopyRetentionRule> rules;
+	private Locale locale;
 
 	public DocumentCopyRuleFieldImpl(List<CopyRetentionRuleInRule> rules) {
 		this.rules = toCopyRetentionRules(rules);
+		this.locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 	}
 
 	@Override

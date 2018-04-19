@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.fields.list;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;

@@ -1,38 +1,30 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView {
 	private final ListValueDomainPresenter presenter;
@@ -106,32 +98,63 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	}
 
 	private Component buildCreationComponent() {
-		final TextField valueDomain = new BaseTextField();
-		valueDomain.setImmediate(true);
-		final Button create = new AddButton() {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.valueDomainCreationRequested(valueDomain.getValue());
-				this.setEnabled(false);
-			}
-		};
-		create.setEnabled(false);
-		valueDomain.addTextChangeListener(new TextChangeListener() {
-			@Override
-			public void textChange(TextChangeEvent event) {
-				if (presenter.canCreate(event.getText())) {
-					create.setEnabled(true);
-				} else {
-					create.setEnabled(false);
-				}
-			}
-		});
-
-		HorizontalLayout creation = new HorizontalLayout(valueDomain, create);
-		creation.setSpacing(true);
-
-		return creation;
+        DomainCreationWindowButton domainCreationWindowButton = new DomainCreationWindowButton($("add"));
+		domainCreationWindowButton.addStyleName(WindowButton.STYLE_NAME);
+        return domainCreationWindowButton;
 	}
+
+    public class DomainCreationWindowButton extends WindowButton {
+        public static final String TITLE_FR = "title-fr";
+        public static final String TITLE_EN = "title-en";
+
+        @PropertyId("titleFr") private BaseTextField titleFr;
+        @PropertyId("titleEn") private BaseTextField titleEn;
+
+        public DomainCreationWindowButton(String caption) {
+            super(caption, caption);
+        }
+
+        @Override
+        protected Component buildWindowContent() {
+            titleFr = new BaseTextField($("DomainCreationWindowButton.titleFr"));
+            titleFr.setImmediate(true);
+            titleEn = new BaseTextField($("DomainCreationWindowButton.titleEn"));
+
+            BaseTextField[] baseTextFieldArray;
+            baseTextFieldArray = new BaseTextField[2];
+            titleEn.setImmediate(true);
+            String lang = getSessionContext().getCurrentLocale().getLanguage();
+            if(lang.equalsIgnoreCase(Language.English.getCode())){
+                titleEn.setRequired(true);
+                baseTextFieldArray[0] = titleEn;
+                baseTextFieldArray[1] = titleFr;
+            } else if(lang.equalsIgnoreCase(Language.French.getCode())) {
+                baseTextFieldArray[0] = titleFr;
+                baseTextFieldArray[1] = titleEn;
+                titleFr.setRequired(true);
+            }
+
+            titleEn.setId(TITLE_EN);
+            titleFr.setId(TITLE_FR);
+
+			BaseForm<ListValueDomainParam> baseForm = new BaseForm<ListValueDomainParam>(
+					new ListValueDomainParam(), this, baseTextFieldArray) {
+				@Override
+				protected void saveButtonClick(ListValueDomainParam viewObject) throws ValidationException {
+					getWindow().close();
+					presenter.valueDomainCreationRequested(viewObject.getTitleFr(), viewObject.getTitleEn());
+				}
+
+				@Override
+				protected void cancelButtonClick(ListValueDomainParam viewObject) {
+					getWindow().close();
+				}
+			};
+
+
+            return baseForm;
+        }
+    }
 
 	private Table buildTable(String id) {
 		BeanItemContainer elements = new BeanItemContainer<>(

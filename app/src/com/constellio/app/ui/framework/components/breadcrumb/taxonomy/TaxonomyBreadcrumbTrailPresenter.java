@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -34,6 +35,8 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 	private transient TaxonomiesManager taxonomiesManager;
 
 	private transient SchemaPresenterUtils taxonomyPresenterUtils;
+
+
 
 	public TaxonomyBreadcrumbTrailPresenter(String taxonomyCode, String conceptId, BreadcrumbTrail breadcrumbTrail) {
 		this.taxonomyCode = taxonomyCode;
@@ -110,7 +113,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public String getLabel() {
-			return SchemaCaptionUtils.getCaptionForRecordId(conceptId);
+			return SchemaCaptionUtils.getCaptionForRecordId(conceptId, breadcrumbTrail.getSessionContext().getCurrentLocale());
 		}
 
 		@Override
@@ -133,7 +136,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public String getLabel() {
-			return taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode).getTitle();
+			return taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode).getTitle(Language.withCode(breadcrumbTrail.getSessionContext().getCurrentLocale().getLanguage()));
 		}
 
 		@Override

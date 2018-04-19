@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -282,6 +283,9 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenAdvanceSearchWithTaxonomiesThenIsLimitedByPermission()
 			throws RecordServicesException {
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "justeadmin");
+
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -292,7 +296,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		});
 
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", "justeadmin", zeCollection,
+		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", labelTitle1, zeCollection,
 				"justeadmin").withUserIds(asList(records.getAdmin().getId()));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 

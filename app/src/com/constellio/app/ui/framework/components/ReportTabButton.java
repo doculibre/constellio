@@ -271,7 +271,7 @@ public class ReportTabButton extends WindowButton {
                 RecordVO recordVO = (RecordVO) reportComboBox.getValue();
 
                 PrintableReportTemplate template = new PrintableReportTemplate(recordVO.getId(), recordVO.getTitle(), buttonPresenter.getReportContent(recordVO));
-                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchema)));
+                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchema), view.getSessionContext().getCurrentLocale()));
             }
         });
         return button;

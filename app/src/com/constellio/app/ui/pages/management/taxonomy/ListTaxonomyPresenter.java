@@ -8,15 +8,18 @@ import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
 	private List<String> titles;
+	private Language language;
 
 	public ListTaxonomyPresenter(ListTaxonomyView view) {
 		super(view);
+		language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 	}
 
 	public List<TaxonomyVO> getTaxonomies() {
@@ -28,8 +31,8 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		for (Taxonomy taxonomy : valueListServices().getTaxonomies()) {
 			if (presentersService.canManage(taxonomy.getCode(), user) && presentersService.displayTaxonomy(taxonomy.getCode(),
 					user)) {
-				result.add(builder.build(taxonomy));
-				titles.add(taxonomy.getTitle());
+				result.add(builder.build(taxonomy, language));
+				titles.add(taxonomy.getTitle(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage())));
 			}
 		}
 		return result;

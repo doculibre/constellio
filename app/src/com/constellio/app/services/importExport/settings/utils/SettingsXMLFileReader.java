@@ -1,49 +1,23 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
-import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -56,14 +30,16 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private String currentCollection = null;
 	private Document document;
+	private CollectionsManager collectionsManager;
 
 	public SettingsXMLFileReader(Document document) {
 		this.document = document;
 	}
 
-	public SettingsXMLFileReader(Document document, String currentCollection) {
+	public SettingsXMLFileReader(Document document, String currentCollection, CollectionsManager collectionManager) {
 		this.document = document;
 		this.currentCollection = currentCollection;
+		this.collectionsManager = collectionManager;
 	}
 
 	public ImportedSettings read() {
@@ -358,8 +334,28 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	private ImportedTaxonomy readTaxonomy(Element child) {
 		ImportedTaxonomy taxonomy = new ImportedTaxonomy();
 		taxonomy.setCode(child.getAttributeValue(CODE));
-		if (child.getAttribute(TITLE) != null) {
-			taxonomy.setTitle(child.getAttributeValue(TITLE));
+		String title = child.getAttributeValue(TITLE);
+
+		Map<Language, String> languageTitleMap = new HashMap<>();
+		int numberOfLang = 0;
+
+		List<Attribute> attributeList = child.getAttributes();
+
+		for(Attribute currentAttribute : attributeList) {
+			if(currentAttribute.getName().startsWith(currentAttribute.getName())) {
+				String languageCode = currentAttribute.getName().replace(title, "");
+				Language language = Language.withCode(languageCode);
+				languageTitleMap.put(language, currentAttribute.getValue());
+				numberOfLang++;
+			}
+		}
+
+		if(numberOfLang == 0 && title != null) {
+			List<String> languageAsString = collectionsManager.getCollectionLanguages(currentCollection);
+			for(String languageCollection : languageAsString) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, title);
+			}
 		}
 
 		if (child.getAttribute(CLASSIFIED_TYPES) != null) {

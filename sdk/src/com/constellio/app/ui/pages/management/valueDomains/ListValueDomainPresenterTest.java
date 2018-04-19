@@ -8,7 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +35,10 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 	@Mock MetadataSchemaTypeToVOBuilder metadataSchemaTypeToVOBuilder;
 	@Mock MetadataSchemaTypeVO metadataSchemaTypeVO;
 	ListValueDomainPresenter presenter;
-	String newValueDomainTitle;
+	String newValueFrenchDomainTitle;
+	String newValueEnglishDomainTitle;
 	MockedFactories mockedFactories = new MockedFactories();
+	Map<Language, String> mapLangueTitle;
 
 	@Before
 	public void setUp()
@@ -44,8 +48,15 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
 		when(view.navigateTo()).thenReturn(navigator);
 
-		newValueDomainTitle = "new value domain";
-		when(valueDomainType1.getLabel(Language.French)).thenReturn(newValueDomainTitle);
+		newValueFrenchDomainTitle = "domaine de valeur";
+		newValueEnglishDomainTitle = "new value domain";
+
+		mapLangueTitle = new HashMap<>();
+
+		mapLangueTitle.put(Language.French, newValueFrenchDomainTitle);
+		mapLangueTitle.put(Language.English, newValueEnglishDomainTitle);
+
+		when(valueDomainType1.getLabel(Language.French)).thenReturn(newValueEnglishDomainTitle);
 
 		presenter = spy(new ListValueDomainPresenter(view));
 
@@ -57,9 +68,9 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 
 		doReturn(valueListServices).when(presenter).valueListServices();
 
-		presenter.valueDomainCreationRequested(newValueDomainTitle);
+		presenter.valueDomainCreationRequested(newValueFrenchDomainTitle, newValueEnglishDomainTitle);
 
-		verify(valueListServices).createValueDomain(newValueDomainTitle);
+		verify(valueListServices).createValueDomain(mapLangueTitle, true);
 		verify(view).refreshTable();
 	}
 
@@ -74,9 +85,9 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(presenter.newMetadataSchemaTypeToVOBuilder()).thenReturn(metadataSchemaTypeToVOBuilder);
 		when(metadataSchemaTypeToVOBuilder.build(valueDomainType1)).thenReturn(metadataSchemaTypeVO);
 
-		presenter.valueDomainCreationRequested(newValueDomainTitle);
+		presenter.valueDomainCreationRequested(newValueFrenchDomainTitle, newValueEnglishDomainTitle);;
 
-		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
+		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
 	}
 
@@ -84,9 +95,9 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 	public void givenEmptyTitleWhenTaxonomyCreationRequestedThenDoNotCreateIt()
 			throws Exception {
 
-		presenter.valueDomainCreationRequested(" ");
+		presenter.valueDomainCreationRequested(newValueFrenchDomainTitle, newValueEnglishDomainTitle);
 
-		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
+		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
 	}
 
@@ -101,9 +112,12 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(presenter.newMetadataSchemaTypeToVOBuilder()).thenReturn(metadataSchemaTypeToVOBuilder);
 		when(metadataSchemaTypeToVOBuilder.build(valueDomainType1)).thenReturn(metadataSchemaTypeVO);
 
-		presenter.valueDomainCreationRequested(" " + newValueDomainTitle + " ");
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo");
 
-		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
+		presenter.valueDomainCreationRequested(newValueFrenchDomainTitle, newValueEnglishDomainTitle);;
+
+		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
 	}
 

@@ -6,10 +6,9 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -160,8 +159,12 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			}
 		});
 
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "justeadmin");
+
+
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", "justeadmin", zeCollection,
+		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", labelTitle, zeCollection,
 				"justeadmin").withUserIds(asList(rmRecords.getAdmin().getId()));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 

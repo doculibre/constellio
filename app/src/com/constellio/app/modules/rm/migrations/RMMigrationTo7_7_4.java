@@ -1,30 +1,29 @@
-package com.constellio.app.services.migrations.scripts;
+package com.constellio.app.modules.rm.migrations;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class CoreMigrationTo_7_7_3 implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "7.7.3";
-    }
+public class RMMigrationTo7_7_4 extends MigrationHelper implements MigrationScript {    @Override
+public String getVersion() {
+    return "7.7.4";
+}
 
     @Override
     public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
-        new CoreMigrationTo_7_7_3.CoreSchemaAlterationFor_7_7_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+        new RMMigrationTo7_7_4.RMSchemaAlterationFor_7_7_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
     }
 
-    class CoreSchemaAlterationFor_7_7_3 extends MetadataSchemasAlterationHelper {
+    class RMSchemaAlterationFor_7_7_4 extends MetadataSchemasAlterationHelper {
 
-        protected CoreSchemaAlterationFor_7_7_3(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+        protected RMSchemaAlterationFor_7_7_4(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
             super(collection, migrationResourcesProvider, appLayerFactory);
         }
 
@@ -35,11 +34,11 @@ public class CoreMigrationTo_7_7_3 implements MigrationScript {
             categoryDefaultSchema.getMetadata(Category.DESCRIPTION).setMultiLingual(true);
             categoryDefaultSchema.getMetadata(Category.KEYWORDS).setMultiLingual(true);
 
-            MetadataSchemaBuilder administrativeUnitDefaultSchema = typesBuilder.getDefaultSchema(AdministrativeUnit.DEFAULT_SCHEMA);
+            MetadataSchemaBuilder administrativeUnitDefaultSchema = typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE);
             administrativeUnitDefaultSchema.getMetadata(AdministrativeUnit.TITLE).setMultiLingual(true);
             administrativeUnitDefaultSchema.getMetadata(AdministrativeUnit.DESCRIPTION).setMultiLingual(true);
 
-            MetadataSchemaBuilder retentionRuleDefaultSchema = typesBuilder.getDefaultSchema(RetentionRule.DEFAULT_SCHEMA);
+            MetadataSchemaBuilder retentionRuleDefaultSchema = typesBuilder.getDefaultSchema(RetentionRule.SCHEMA_TYPE);
 
             retentionRuleDefaultSchema.getMetadata(RetentionRule.TITLE).setMultiLingual(true);
         }

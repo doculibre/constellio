@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -45,7 +46,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
     @Test
     public void testIfEmptyFileNameThrowError(){
         try{
-            new SIPBuildAsyncTask("", asList("test1", "test2"), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion());
+            new SIPBuildAsyncTask("", asList("test1", "test2"), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
             fail();
         } catch(Exception e) {
             //OK!
@@ -55,7 +56,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
     @Test
     public void testIfEmptyUsernameThrowError(){
         try{
-            new SIPBuildAsyncTask("testFileName", Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, "", false, getAppLayerFactory().newApplicationService().getWarVersion());
+            new SIPBuildAsyncTask("testFileName", Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, "", false, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
             fail();
         } catch (Exception e){
             //Ok !
@@ -65,7 +66,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
     @Test
     public void checkIfWarVersionIsNullThrowException(){
         try{
-            new SIPBuildAsyncTask("testFileName", Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), false, "");
+            new SIPBuildAsyncTask("testFileName", Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), false, "", Locale.FRENCH);
             fail();
         } catch (Exception e){
             // Ok !
@@ -75,7 +76,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
     @Test
     public void checkIfSIPArchiveIsCorrectlyCreated() throws Exception{
         String testfileName = "testFileName";
-        SIPBuildAsyncTask task = new SIPBuildAsyncTask(testfileName, Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion());
+        SIPBuildAsyncTask task = new SIPBuildAsyncTask(testfileName, Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
         getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, zeCollection, "SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPBuildAsyncTaskAcceptanceTest"));
         waitForBatchProcess();
 
@@ -92,7 +93,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
     public void checkIfFilesAreDeletedAfterSIPCreation() {
         try{
             String testfileName = "testFileName";
-            SIPBuildAsyncTask task = new SIPBuildAsyncTask(testfileName, Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), true, getAppLayerFactory().newApplicationService().getWarVersion());
+            SIPBuildAsyncTask task = new SIPBuildAsyncTask(testfileName, Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.singletonList(records.getFolder_A01().getId()), false, records.getAdmin().getUsername(), true, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
             getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(new AsyncTaskCreationRequest(task, zeCollection, "SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPBuildAsyncTaskAcceptanceTest"));
             waitForBatchProcess();
 

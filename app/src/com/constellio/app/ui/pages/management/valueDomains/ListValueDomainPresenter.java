@@ -3,7 +3,7 @@ package com.constellio.app.ui.pages.management.valueDomains;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
@@ -28,13 +28,22 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		super(view);
 	}
 
-	public void valueDomainCreationRequested(String valueDomain) {
-		valueDomain = valueDomain.trim();
-		boolean canCreate = canCreate(valueDomain);
+	public void valueDomainCreationRequested(String frenchValueDomain, String englishValueDomain) {
+		frenchValueDomain = frenchValueDomain.trim();
+		englishValueDomain = englishValueDomain.trim();
+		boolean canCreate = canCreate(frenchValueDomain);
 		if (canCreate) {
-			valueListServices().createValueDomain(valueDomain);
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+			boolean isMultiLingual = language.size() > 1;
+
+			Map<Language, String> mapLabel = new HashMap<>();
+
+			mapLabel.put(Language.French, frenchValueDomain);
+			mapLabel.put(Language.English, englishValueDomain);
+
+			valueListServices().createValueDomain(mapLabel, isMultiLingual);
 			view.refreshTable();
-			labels.add(valueDomain);
+			labels.add(frenchValueDomain);
 		}
 	}
 

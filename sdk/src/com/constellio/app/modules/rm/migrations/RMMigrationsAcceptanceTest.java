@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.noDuplicates;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,6 +31,7 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -70,6 +72,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
 				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
 				whenMigratingToCurrentVersionThenValidateUserFolderWasAdded();
+				whenMigrationToCurrentVersionThenTaxonomyValidateTitle();
 
 				getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 				getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
@@ -77,6 +80,13 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				validateSystemAfterRecordsMigrations();
 			}
 		}
+	}
+
+	private void whenMigrationToCurrentVersionThenTaxonomyValidateTitle() {
+		Taxonomy taxonomy = getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(zeCollection, AdministrativeUnit.SCHEMA_TYPE);
+
+		String frenchLanguage = taxonomy.getTitle(Language.French);
+		assertThat(frenchLanguage).isEqualTo("Unités administratives");
 	}
 
 	private void validateSystemAfterRecordsMigrations() {

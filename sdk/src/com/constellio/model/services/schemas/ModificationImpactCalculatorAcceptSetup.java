@@ -7,10 +7,9 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.sdk.tests.TestUtils.asList;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -105,7 +104,12 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		List<String> relations = Arrays.asList(zeSchemaParent.getCode(),
 				anotherSchemaAnotherSchemaParent.getCode(), anotherSchemaZeSchemaParent.getCode());
 		List<String> taxonomySchemaTypes = Arrays.asList("zeSchemaType", "anotherSchemaType");
-		Taxonomy taxonomy = Taxonomy.createPublic("myTaxonomy", "myTaxonomy", "zeCollection", taxonomySchemaTypes);
+
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "myTaxonomy");
+
+
+		Taxonomy taxonomy = Taxonomy.createPublic("myTaxonomy", labelTitle, "zeCollection", taxonomySchemaTypes);
 		taxonomies = Arrays.asList(taxonomy);
 		return this;
 

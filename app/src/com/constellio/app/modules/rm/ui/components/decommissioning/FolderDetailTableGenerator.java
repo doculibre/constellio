@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;

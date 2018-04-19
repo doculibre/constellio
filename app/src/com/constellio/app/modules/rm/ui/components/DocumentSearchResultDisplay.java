@@ -18,6 +18,8 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.MenuBar;
 
+import java.util.Locale;
+
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
 	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {

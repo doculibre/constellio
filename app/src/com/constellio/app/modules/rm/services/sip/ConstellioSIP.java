@@ -7,13 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -232,14 +227,17 @@ public class ConstellioSIP {
 
 	private ProgressInfo progressInfo;
 
+	private Locale locale;
+
 	public ConstellioSIP(SIPObjectsProvider sipObjectsProvider, List<String> bagInfoLines, boolean limitSize,
-						 String currentVersion, ProgressInfo progressInfo) {
+						 String currentVersion, ProgressInfo progressInfo, Locale locale) {
 		this.sipObjectsProvider = sipObjectsProvider;
 		this.providedBagInfoLines = bagInfoLines;
 		this.currentDocumentIndex = sipObjectsProvider.getStartIndex();
 		this.limitSize = limitSize;
 		this.currentVersion = currentVersion;
 		this.progressInfo = progressInfo;
+		this.locale = locale;
 	}
 
 	public void build(File zipFile)
@@ -323,7 +321,7 @@ public class ConstellioSIP {
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
+			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection(), locale);
 			ead.build(tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
@@ -353,7 +351,7 @@ public class ConstellioSIP {
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection());
+			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection(), locale);
 			ead.build(tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);

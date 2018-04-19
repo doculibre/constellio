@@ -3,10 +3,9 @@ package com.constellio.model.services.logging;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -75,7 +74,11 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		loggingServices = getModelLayerFactory().newLoggingServices();
 
 		defineSchemasManager().using(zeCollectionSetup);
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
+
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo");
+
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle1, zeCollection, asList("zeSchemaType"));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 

@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.events;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;

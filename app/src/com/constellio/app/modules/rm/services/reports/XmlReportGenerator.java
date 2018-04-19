@@ -21,6 +21,7 @@ import org.jdom2.output.XMLOutputter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -28,8 +29,8 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
 
     private XmlReportGeneratorParameters xmlGeneratorParameters;
 
-    public XmlReportGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters) {
-        super(appLayerFactory, collection);
+    public XmlReportGenerator(AppLayerFactory appLayerFactory, String collection, XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale) {
+        super(appLayerFactory, collection, locale);
         this.xmlGeneratorParameters = xmlGeneratorParameters;
     }
 
@@ -90,7 +91,7 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
         }
 
         if (metadata.getType().equals(MetadataValueType.ENUM)) {
-            return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement);
+            return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, getLocale());
         }
 
         if(metadata.getType().equals(MetadataValueType.STRUCTURE)) {
@@ -100,7 +101,7 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
         Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
         metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
         metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-        String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+        String data = formatData(getToStringOrNull(recordElement.get(metadata, getLocale())), metadata);
         if(metadata.getLocalCode().toLowerCase().contains("path")) {
             data = this.getPath(recordElement);
         }

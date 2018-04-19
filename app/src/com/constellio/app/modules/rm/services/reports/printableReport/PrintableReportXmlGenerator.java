@@ -3,10 +3,7 @@ package com.constellio.app.modules.rm.services.reports.printableReport;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -32,10 +29,13 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
 
+
+
 	public PrintableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection,
-			XmlReportGeneratorParameters xmlGeneratorParameters) {
-		super(appLayerFactory, collection);
+			XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale) {
+		super(appLayerFactory, collection, locale);
 		this.xmlGeneratorParameters = xmlGeneratorParameters;
+
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		}
 
 		if (metadata.getType().equals(MetadataValueType.ENUM)) {
-			return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement);
+			return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, getLocale());
 		}
 
 		if (metadata.getType().equals(MetadataValueType.STRUCTURE)) {
@@ -113,7 +113,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
 		metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
 		metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		String data = formatData(getToStringOrNull(recordElement.get(metadata, getLocale())), metadata);
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);

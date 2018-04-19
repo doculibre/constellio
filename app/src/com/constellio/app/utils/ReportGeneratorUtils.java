@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import net.sf.jasperreports.engine.JRException;
 
@@ -37,7 +38,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
-			PrintableReportTemplate selectedTemplate, int numberOfCopies, List<String> ids) {
+											PrintableReportTemplate selectedTemplate, int numberOfCopies, List<String> ids, Locale locale) {
 		InputStream selectedJasperFileContentInputStream = null;
 		File temporaryJasperFile = null;
 		try {
@@ -47,7 +48,7 @@ public class ReportGeneratorUtils {
 					numberOfCopies);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
 			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
-					xmlGeneratorParameters);
+					xmlGeneratorParameters, locale);
 			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
 			selectedJasperFileContentInputStream = contentManager
 					.getContentInputStream(selectedTemplate.getJasperFile().getCurrentVersion().getHash(),

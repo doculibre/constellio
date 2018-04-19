@@ -17,6 +17,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.MaskUtils;
 
+import java.util.List;
+
 /**
  * Created by constellios on 2017-07-13.
  */
@@ -51,10 +53,13 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+
+			boolean isMultiLingual = language.size() > 1;
 
 			MetadataSchemaTypeBuilder dateTypeSchemaType = new ValueListItemSchemaTypeBuilder(types())
-					.createValueListItemSchema(YearType.SCHEMA_TYPE, (String) null,
-							ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
+					.createValueListItemSchema(YearType.SCHEMA_TYPE, null,
+							ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
 					.setSecurity(false);
 
 			MetadataBuilder yearEnd = dateTypeSchemaType.getDefaultSchema().create(YearType.YEAR_END)
@@ -68,6 +73,5 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 					.defineDataEntry().asCopied(dateTypes, yearEnd);
 
 		}
-
 	}
 }

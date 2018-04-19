@@ -66,7 +66,7 @@ public class GetXMLButton extends WindowButton {
         this.ss = model.newSearchServices();
         this.rm = new RMSchemasRecordsServices(this.collection, factory);
         this.contentManager = model.getContentManager();
-        this.reportXmlGenerator = new LabelXmlGenerator(collection, factory);
+        this.reportXmlGenerator = new LabelXmlGenerator(collection, factory, view.getSessionContext().getCurrentLocale());
         if(isForTest) {
             reportXmlGenerator.setXmlGeneratorParameters(new XmlReportGeneratorParameters().markAsTestXml());
         }

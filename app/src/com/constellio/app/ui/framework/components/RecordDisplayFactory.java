@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.services.factories.AppLayerFactory;

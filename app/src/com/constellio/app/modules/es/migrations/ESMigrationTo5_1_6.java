@@ -1,31 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.AUTHENTICATION_SCHEME;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DAYS_BEFORE_REFETCHING;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DOMAIN;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.EXCLUDE_PATTERNS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.INCLUDE_PATTERNS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.MAX_LEVEL;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_DOCUMENTS_PER_JOBS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_JOBS_IN_PARALLEL;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.ON_DEMANDS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.PASSWORD;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.SEEDS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.USERNAME;
-import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -56,6 +30,7 @@ import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldFactory;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -83,6 +58,16 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyAlreadyExists;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.*;
+import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScript {
 
@@ -625,8 +610,13 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
-		String title = migrationResourcesProvider.getDefaultLanguageString("init.taxoSmbFolders");
-		Taxonomy taxonomy = Taxonomy.createPublic(ESTaxonomies.SMB_FOLDERS, title, collection, ConnectorSmbFolder.SCHEMA_TYPE);
+
+        Map<Language,String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+                migrationResourcesProvider,"init.taxoSmbFolders");
+
+		Taxonomy taxonomy = Taxonomy.createPublic(ESTaxonomies.SMB_FOLDERS, mapLangageTitre, collection, ConnectorSmbFolder.SCHEMA_TYPE);
+
+
 		try {
 			modelLayerFactory.getTaxonomiesManager().addTaxonomy(taxonomy, modelLayerFactory.getMetadataSchemasManager());
 		} catch (TaxonomyAlreadyExists e) {
@@ -637,7 +627,6 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	private void configureConnectorsInstancesAndDocumentsDisplay(String collection, AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
-
 		configureConnectorInstanceDisplayAndSearchDisplay(transaction, manager, collection);
 
 		configureHttpConnectorDisplay(transaction, manager, collection);

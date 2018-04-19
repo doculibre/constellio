@@ -71,7 +71,7 @@ public class AdministrativeUnit extends RecordWrapper {
 	}
 
 	public String getDescription() {
-		return get(DESCRIPTION);
+		return get(DESCRIPTION, locale);
 	}
 
 	public AdministrativeUnit setDescription(String description) {

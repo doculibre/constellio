@@ -26,7 +26,7 @@ public class SIPButtonImpl extends WindowButton {
     public SIPButtonImpl(String caption, String windowCaption, ConstellioHeader view, boolean showDeleteButton) {
         super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "75%"));
         this.view = view;
-        this.presenter = new SIPButtonPresenter(this, objectList);
+        this.presenter = new SIPButtonPresenter(this, objectList, view.getSessionContext().getCurrentLocale());
         this.showDeleteButton = showDeleteButton;
     }
 

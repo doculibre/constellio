@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -219,7 +220,10 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 	// ---------------------------------------------------
 
 	private void givenPrincipalTaxonomyWithZeSchema() {
-		Taxonomy taxonomy = new Taxonomy("taxo", "ze taxo", zeCollection, zeSchema.typeCode());
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "ze taxo");
+
+		Taxonomy taxonomy = new Taxonomy("taxo", labelTitle1, zeCollection, zeSchema.typeCode());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, metadataSchemasManager);
 		getModelLayerFactory().getTaxonomiesManager().setPrincipalTaxonomy(taxonomy, metadataSchemasManager);

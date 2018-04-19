@@ -6,10 +6,7 @@ import static java.util.Arrays.asList;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
@@ -91,17 +88,21 @@ public abstract class AbstractXmlGenerator {
 
 	private RecordServices recordServices;
 
+
+	private Locale locale;
+
 	private MetadataSchemasManager metadataSchemasManager;
 	private RMSchemasRecordsServices rm;
 
 	protected AbstractXmlGeneratorParameters xmlGeneratorParameters;
 
-	public AbstractXmlGenerator(AppLayerFactory appLayerFactory, String collection) {
+	public AbstractXmlGenerator(AppLayerFactory appLayerFactory, String collection, Locale locale) {
 		this.factory = appLayerFactory;
 		this.collection = collection;
 		this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.locale = locale;
 	}
 
 	public RecordServices getRecordServices() {
@@ -216,8 +217,16 @@ public abstract class AbstractXmlGenerator {
 		return listOfMetadataTags;
 	}
 
-	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement) {
-		return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null);
+	public Locale getLocale() {
+		return locale;
+	}
+
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
+
+	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Locale locale) {
+		return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null, locale);
 	}
 
 	/**
@@ -229,12 +238,14 @@ public abstract class AbstractXmlGenerator {
 	 * @return
 	 */
 	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement,
-			Namespace namespace) {
+			Namespace namespace, Locale locale) {
 		if (!hasMetadata(recordElement, metadata)) {
 			return Collections.emptyList();
 		}
 		List<Element> listOfMetadataTags = new ArrayList<>();
-		EnumWithSmallCode metadataValue = recordElement.get(metadata);
+
+		Object valueAsObject = recordElement.get(metadata, locale);
+
 		String code, title;
 
 		//TODO test;
@@ -254,10 +265,11 @@ public abstract class AbstractXmlGenerator {
 			}
 			code = codeBuilder.toString();
 			title = titleBuilder.toString();
-		} else if (metadataValue == null) {
+		} else if (valueAsObject == null) {
 			code = null;
 			title = null;
 		} else {
+			EnumWithSmallCode metadataValue = (EnumWithSmallCode) valueAsObject;
 			code = metadataValue.getCode();
 			title = $(metadataValue);
 		}

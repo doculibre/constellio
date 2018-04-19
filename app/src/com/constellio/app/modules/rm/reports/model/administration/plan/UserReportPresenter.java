@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -31,11 +32,13 @@ public class UserReportPresenter {
 	private RecordServices recordServices;
 	private AuthorizationsServices authorizationsServices;
 	private List<AdministrativeUnit> administrativeUnits;
+	private Locale locale;
 
-	public UserReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
+	public UserReportPresenter(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
+		this.locale = locale;
 	}
 
 	public UserReportModel build() {
@@ -52,7 +55,7 @@ public class UserReportPresenter {
 
 	private void init() {
 		searchServices = modelLayerFactory.newSearchServices();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		recordServices = modelLayerFactory.newRecordServices();
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		administrativeUnits = getAdministrativeUnits();

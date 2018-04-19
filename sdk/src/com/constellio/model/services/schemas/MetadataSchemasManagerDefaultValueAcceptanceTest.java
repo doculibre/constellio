@@ -5,6 +5,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultival
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -25,6 +26,9 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetadataSchemasManagerDefaultValueAcceptanceTest extends ConstellioTest {
 
@@ -433,7 +437,10 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	}
 
 	private void givenTaxonomyOfZeSchema() {
-		Taxonomy taxonomy = new Taxonomy("zeTaxo", "zeTaxo", zeCollection, zeSchema.typeCode());
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "zeTaxo");
+
+		Taxonomy taxonomy = new Taxonomy("zeTaxo", labelTitle, zeCollection, zeSchema.typeCode());
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 	}
 
