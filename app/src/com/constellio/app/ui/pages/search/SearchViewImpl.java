@@ -241,12 +241,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void onPreviousPageButtonClicked() {
 				super.onPreviousPageButtonClicked();
+				scrollBackUp();
 				presenter.searchNavigationButtonClicked();
 			}
 
 			@Override
 			protected void onNextPageButtonClicked() {
 				super.onNextPageButtonClicked();
+				scrollBackUp();
 				presenter.searchNavigationButtonClicked();
 			}
 
@@ -304,6 +306,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		srTable.setWidth("100%");
 		return srTable;
+	}
+
+	private void scrollBackUp() {
+		getUI().scrollIntoView(summary);
 	}
 
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
