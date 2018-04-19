@@ -46,7 +46,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	RMTestRecords records;
 	RMSchemasRecordsServices schemas;
 
-	List<String> missingKeys = new ArrayList<>();
+	protected List<String> missingKeys = new ArrayList<>();
 	Locale locale;
 	Locale defaultLocale;
 
@@ -76,16 +76,21 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		assertThat(missingKeys).isEmpty();
 	}
 
-	@Test
-	public void whenScanningJavaSourcesThenAllI18n() {
+	//@Test
+	public void whenScanningAppModuleJavaSourcesThenAllI18n() {
+		givenFrenchSystem();
 
 		Set<String> keys = new HashSet<>();
 		scanRetrievingKeys(keys, new FoldersLocator().getAppProject());
-		scanRetrievingKeys(keys, new FoldersLocator().getPluginsRepository());
-		System.out.println(keys);
+
+		for (String key : keys) {
+			addIfNoValueInMainI18N(key);
+		}
+
+		assertThat(missingKeys).isEmpty();
 	}
 
-	private void scanRetrievingKeys(Set<String> keys, File fileOrFolder) {
+	protected void scanRetrievingKeys(Set<String> keys, File fileOrFolder) {
 		if (fileOrFolder.isFile() && fileOrFolder.getName().endsWith(".java")) {
 			scanJavaFileRetrievingKeys(keys, fileOrFolder);
 
@@ -98,6 +103,24 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 			}
 		}
 
+		keys.removeAll(
+				asList("documentsCount", "recentFolders", "RMRequestTaskButtonExtension.invalidBorrowDuration", "facetType",
+						"Code", "AddEditCollectionPresenter.codeNonAvailable", "connectorType", "BatchProcessingEntryTable.value",
+						"AddEditCollectionPresenter.codeChangeForbidden", "DisplayDocumentViewImpl.sign.sign",
+						"DisplayFolderView.cannotReturnFolder", "DisplayDocumentWindow.sign.certificate",
+						"AddEditContainerView.invalidNumberOfContainer", "DocumentEventSchemaToVOBuilder.modifiedOn",
+						"ImportUsersFileViewImpl.errorWith", "SearchView.errorSavingSearch", "Reports.DecommissioningList",
+						"DecomAskForValidationWindowButton.error.users", "FirstName",
+						"TraversalSchedule.mustHaveValuesInAllFields", "TraversalSchedule.startTimeAfterEndTime",
+						"BatchProcessingEntryTable.label", "BatchProcessingEntryTable.default", "TaskFollowerField.dirty",
+						"AdvancedSearchView.tooManyClosedParentheses",
+						"com.constellio.app.modules.rm.RMConfigs.EndYearValueCalculator", "username",
+						"RedémarrageListEventsView.restarting", "OK", "DisplayFolderView.chooseDateToExtends", "Ok",
+						"AddEditCollectionPresenter.invalidCode", "elementPerPage", "lastTraversalOn", "addAuthorization",
+						"AdvancedSearchView.unclosedParentheses", "BatchProcessingEntryTable.index",
+						"DisplayDocumentWindow.sign.password", "ContainersByAdministrativeUnitsView.tableTitle",
+						"DocumentContextMenu.sign", "traversalCode", "Name", "ImportConfigsView.OnlyXmlAccepted",
+						"BatchProcessingEntryTable.type", "facerOrder", "BatchProcessingEntryTable.mapping"));
 	}
 
 	private void scanJavaFileRetrievingKeys(Set<String> keys, File javaFile) {
@@ -128,7 +151,10 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 			while (matcher.find()) {
 				String i18n = matcher.group();
 				if (i18n.startsWith("$(\"") && i18n.endsWith("\")")) {
-					keys.add(i18n.substring(3, i18n.length() - 2));
+					i18n = i18n.substring(3, i18n.length() - 2);
+					if (!i18n.contains("$") && !i18n.contains("\"") && !i18n.trim().isEmpty()) {
+						keys.add(i18n);
+					}
 				}
 			}
 
@@ -258,7 +284,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	}
 
-	private void addIfNoValueInMainI18N(String key) {
+	protected void addIfNoValueInMainI18N(String key) {
 		i18n.setLocale(locale);
 		String label = $(key, locale);
 		if (key.equals(label) && !missingKeys.contains(key)) {
