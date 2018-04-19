@@ -191,7 +191,7 @@ public class AuthorizationsServices {
 		List<String> returnedUsers = new ArrayList<>();
 
 		for (User user : schemas(concept.getCollection()).getAllUsers()) {
-			if (user.has(permission).on(concept)) {
+			if (user.has(permission).on(concept) && !user.isLogicallyDeletedStatus()) {
 				returnedUsers.add(user.getId());
 			}
 		}
