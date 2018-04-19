@@ -495,4 +495,9 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             }
         }
     }
+
+    @Override
+    public NewReportPresenter getPresenter() {
+        return presenter;
+    }
 }

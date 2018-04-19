@@ -62,6 +62,8 @@ subprojects {
         compile "org.apache.pdfbox:pdfbox-tools:2.0.8"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
+        compile group: 'org.apache.tomcat', name: 'tomcat-el-api', version: '9.0.7'
+        compile group: 'org.apache.tomcat', name: 'tomcat-jasper-el', version: '9.0.7'
         compile name: 'mets-api'
     }
 
