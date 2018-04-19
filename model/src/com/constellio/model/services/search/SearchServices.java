@@ -420,7 +420,7 @@ public class SearchServices {
 
 		String collection = getCollection(query);
 		MetadataSchemaTypes types = null;
-		if (collection != null) {
+		if (collection != null && metadataSchemasManager != null) {
 			types = metadataSchemasManager.getSchemaTypes(collection);
 		}
 
