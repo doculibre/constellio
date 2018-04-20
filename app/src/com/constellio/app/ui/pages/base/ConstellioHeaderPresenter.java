@@ -524,7 +524,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private Locale getLocale(String languageCode) {
-		i18n.getSupportedLanguages();
 		for (Language language : Language.values()) {
 			if (language.getCode().equals(languageCode)) {
 				return new Locale(languageCode);

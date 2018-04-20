@@ -365,18 +365,6 @@ public class i18n {
 		}
 	}
 
-	public static List<String> getSupportedLanguages() {
-		List<String> localeCodes = new ArrayList<>();
-		Language[] languages = Language.values();
-		for (Language language : languages) {
-			if (language != Language.UNKNOWN) {
-				String localeCode = language.getCode();
-				localeCodes.add(localeCode);
-			}
-		}
-		return localeCodes;
-	}
-
 	public static void clearBundles() {
 		registeredBundles.clear();
 	}
