@@ -1521,6 +1521,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
 	}
 
+	protected void assumeFileSystemConfigs() {
+		Assume.assumeTrue(sdkProperties.get("dao.settings.type").equals("filesystem"));
+	}
+
+	protected void assumeZookeeperConfigs() {
+		Assume.assumeTrue(sdkProperties.get("dao.settings.type").equals("zookeeper"));
+	}
+
 	protected void assumePluginsSDK() {
 		File file = new FoldersLocator().getPluginsSDKProject();
 		Assume.assumeTrue(file.exists());
