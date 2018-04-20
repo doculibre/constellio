@@ -494,6 +494,30 @@ public class ContentImpl implements Content {
 		return updateVersion(false);
 	}
 
+	public void changeHashCodesOfAllVersions(){
+		List<ContentVersion> listOfContentVersion = new ArrayList<>();
+		if(history != null){
+			for (ContentVersion version : history){
+				listOfContentVersion.add(changeHashOf(version));
+			}
+			history = listOfContentVersion;
+		}
+		currentVersion = changeHashOf(currentVersion);
+	}
+
+	private ContentVersion changeHashOf(ContentVersion version){
+		if(!isDirty()){
+			if(version.getHash().contains("+") || version.getHash().contains("/")){
+				dirty = true;
+			}
+		}
+		String newHash = version.getHash().replace("+","-").replace("/","_");
+		ContentVersionDataSummary contentVersionDataSummary =
+				new ContentVersionDataSummary(newHash,version.getMimetype(),version.getLength());
+		return new ContentVersion(contentVersionDataSummary,version.getFilename(),
+				version.getVersion(),version.getModifiedBy(),version.getLastModificationDateTime(),version.getComment());
+	}
+
 	private ContentImpl updateVersion(boolean toMajorVersion) {
 		this.dirty = true;
 		if (currentCheckedOutVersion != null) {
