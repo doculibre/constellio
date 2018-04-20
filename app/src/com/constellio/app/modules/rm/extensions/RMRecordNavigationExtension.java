@@ -62,7 +62,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayFolder(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			constellioNavigator.displayDocument(recordId);
+			constellioNavigator.displayDocument(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
