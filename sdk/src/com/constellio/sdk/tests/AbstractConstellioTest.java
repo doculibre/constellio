@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
+import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -198,6 +199,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenSystemLanguageIs(String languageCode) {
 		getCurrentTestSession().getFactoriesTestFeatures().setSystemLanguage(languageCode);
+		if (languageCode.equals("ar")) {
+			configure(new AppLayerConfigurationAlteration() {
+				@Override
+				public void alter(InMemoryAppLayerConfiguration configuration) {
+					configuration.setEnabledPrototypeLanguages("ar");
+				}
+			});
+		}
 	}
 
 	@AfterClass
