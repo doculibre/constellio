@@ -1521,6 +1521,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
 	}
 
+	protected void assumePluginsSDK() {
+		File file = new FoldersLocator().getPluginsSDKProject();
+		Assume.assumeTrue(file.exists());
+	}
+
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
 		ensureNotUnitTest();
 		return newCMISSessionAsUserInCollection(username, zeCollection);

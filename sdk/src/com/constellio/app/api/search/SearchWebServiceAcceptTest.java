@@ -1,6 +1,5 @@
 package com.constellio.app.api.search;
 
-import com.constellio.app.modules.rm.RMTestRecords;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static java.util.Arrays.asList;
@@ -16,6 +15,7 @@ import java.util.List;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -23,6 +23,7 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -44,25 +45,6 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class SearchWebServiceAcceptTest extends ConstellioTest {
@@ -96,7 +78,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 	User aliceInZeCollection;
 
-	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS destination 21 juillet 2017.xml";
+	public static final String SKOS_XML_FILE_PATH = "SKOS destination 21 juillet 2017.xml";
 
 	@Before
 	public void setUp()
@@ -197,7 +179,10 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenThesaurusValueIsResponseOk() throws Exception {
+	public void givenThesaurusValueIsResponseOk()
+			throws Exception {
+		assumePluginsSDK();
+
 		Users users = new Users();
 		RMTestRecords records = new RMTestRecords(zeCollection);
 
@@ -213,7 +198,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(systemAdmin.getUsername(), "youshallnotpass");
 
-		getModelLayerFactory().getThesaurusManager().set(new FileInputStream(SKOS_XML_FILE_PATH), zeCollection);
+		getModelLayerFactory().getThesaurusManager().set(getTestResourceInputStream(SKOS_XML_FILE_PATH), zeCollection);
 
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.add("q", "*:*");
