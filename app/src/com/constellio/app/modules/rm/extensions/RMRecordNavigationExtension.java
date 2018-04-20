@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -54,13 +55,14 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 	public void navigateToView(NavigationParams navigationParams) {
 		RMViews constellioNavigator = navigationParams.navigate().to(RMViews.class);
 		constellioNavigator.closeAllWindows();
-		
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		String recordId = navigationParams.getRecordId();
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			constellioNavigator.displayFolder(recordId);
+			constellioNavigator.displayFolder(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			constellioNavigator.displayDocument(recordId);
+			constellioNavigator.displayDocument(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
@@ -104,7 +106,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 						if(isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
 						} else {
-							navigateToView(navigationParams);
+							navigateToView(navigationParams.setOpenInNewTab(referenceDisplay.isOpenLinkInNewTab()));
 						}
 					}
 				};

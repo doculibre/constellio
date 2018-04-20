@@ -95,7 +95,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		String linkTarget = presenter.getLogoTarget();
 		Link logo = new Link(null, new ExternalResource(linkTarget));
 		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
-		logo.setIcon(LogoUtils.getLogoResource(modelLayerFactory));
+		logo.setIcon(LogoUtils.getAuthentificationImageResource(modelLayerFactory));
 		logo.addStyleName("login-logo");
 		logo.setSizeUndefined();
 		hLayout.addComponent(logo);

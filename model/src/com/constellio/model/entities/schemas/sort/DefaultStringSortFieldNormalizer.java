@@ -17,7 +17,17 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 	}
 
 	@Override
-	public String normalize(String rawValue) {
+	public String normalize(String rawValue) { //rawValue = 1.1.1
+		int numberOfTriesRemaining = 2;
+		String previousValue = rawValue;
+		String normalizedValue = "";
+		while (numberOfTriesRemaining-- > 0 && !previousValue.equals(normalizedValue = getNormalizedValue(previousValue))) {
+			previousValue = normalizedValue;
+		}
+		return previousValue;
+	}
+
+	private String getNormalizedValue(String rawValue) {
 		String normalizedText = AccentApostropheCleaner.removeAccents(rawValue.toLowerCase()).trim();
 		for (int i = 8; i > 0; i--) {
 			//String regex = "([^0-9]+|^)([0-9]{" + i + "})([^0-9]+|$)";

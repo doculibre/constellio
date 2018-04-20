@@ -4,7 +4,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -115,7 +117,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private Boolean delayedSelectionButtonEnabled;
 	private BaseView currentView;
 
+	private MenuItem collectionSubMenu;
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
+	private HashMap<String, MenuItem> collectionButtons = new HashMap<>();
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
@@ -740,7 +744,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			String collectionLabel = collectionCodeToLabelConverter.getCollectionCaption(currentCollection);
 			Page.getCurrent().setTitle(collectionLabel);
 
-			MenuItem collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
+			collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
 			for (final String collection : collections) {
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
@@ -757,6 +761,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 					});
 					collectionMenuItem.setCheckable(true);
 					collectionMenuItem.setChecked(currentCollection.equals(collection));
+					collectionButtons.put(collection, collectionMenuItem);
 				}
 			}
 		} else {
@@ -867,5 +872,19 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	public void updateRecords() {
 		selectionTableAdapter.refreshUI();
+	}
+
+	@Override
+	public void setCurrentCollectionQuietly() {
+		String currentCollection = getSessionContext().getCurrentCollection();
+		for(Map.Entry<String, MenuItem> entry: collectionButtons.entrySet()) {
+			if(currentCollection.equals(entry.getKey())) {
+				entry.getValue().setChecked(true);
+				String collectionLabel = collectionCodeToLabelConverter.getCollectionCaption(currentCollection);
+				Page.getCurrent().setTitle(collectionLabel);
+			} else {
+				entry.getValue().setChecked(false);
+			}
+		}
 	}
 }
