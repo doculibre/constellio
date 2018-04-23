@@ -65,7 +65,7 @@ public abstract class SearchBoostPresenter extends BasePresenter<SearchBoostView
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
+		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SEARCH_BOOST);
 	}
 
 	public void deleteButtonClicked(SearchBoostVO searchBoostVO) {
