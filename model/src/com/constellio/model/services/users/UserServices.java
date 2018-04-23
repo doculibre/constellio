@@ -289,8 +289,8 @@ public class UserServices {
 	}
 
 	public Group getGroupInCollection(String groupCode, String collection) {
-		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
-		return wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection));
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		return schemas.getGroupWithCode(groupCode);
 	}
 
 	public void addGlobalGroupsInCollection(String collection) {

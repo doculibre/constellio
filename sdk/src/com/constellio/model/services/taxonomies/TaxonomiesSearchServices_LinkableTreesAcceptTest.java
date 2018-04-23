@@ -48,6 +48,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -111,7 +112,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
+		invalidateCachesOfRMSchemas();
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
@@ -1380,6 +1381,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				});
 
 		recordServices.refresh(alice);
+
+		facetsCount.set(0);
+		queriesCount.set(0);
+		returnedDocumentsCount.set(0);
+
+		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, withWriteAccess)
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
 				.has(linkable(folderNearEnd.getId()))
@@ -3631,5 +3640,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		facetsCount.set(0);
 		returnedDocumentsCount.set(0);
 
+	}
+
+	private void invalidateCachesOfRMSchemas() {
+		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
+			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
+				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
+			}
+		}
 	}
 }

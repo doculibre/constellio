@@ -269,7 +269,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public Group wrapGroup(Record record) {
-		return new Group(record, getTypes());
+		return record == null ? null : new Group(record, getTypes());
 	}
 
 	public List<Group> wrapGroups(List<Record> records) {
