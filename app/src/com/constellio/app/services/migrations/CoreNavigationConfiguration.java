@@ -329,7 +329,6 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.hasAny(
 						CorePermissions.MANAGE_SEARCH_BOOST,
-						CorePermissions.MANAGE_VALUELIST,
 						CorePermissions.ACCESS_SEARCH_CAPSULE,
 						CorePermissions.MANAGE_FACETS,
 						CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT,
