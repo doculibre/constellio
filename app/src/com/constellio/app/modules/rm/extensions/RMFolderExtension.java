@@ -139,7 +139,10 @@ public class RMFolderExtension extends RecordExtension {
 		if (folder.getParentFolder() != null) {
 			folder.setAdministrativeUnitEntered((String) null);
 			folder.setCategoryEntered((String) null);
-			folder.setRetentionRuleEntered((String) null);
+			if(folder.getUniformSubdivisionEntered() == null) {
+				folder.setRetentionRuleEntered((String) null);
+			}
+
 			folder.setCopyStatusEntered(null);
 		}
 	}
