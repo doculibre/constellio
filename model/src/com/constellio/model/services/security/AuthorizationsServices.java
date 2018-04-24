@@ -718,7 +718,6 @@ public class AuthorizationsServices {
 
 		List<String> authIds;
 		if (User.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
-
 			authIds = schemas(record.getCollection()).wrapUser(record).getAllUserAuthorizations();
 
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {

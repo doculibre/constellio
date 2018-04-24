@@ -2885,15 +2885,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).givingReadDeleteAccess());
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithReadAccess().contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithReadAccess().contains(sasquatch, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
-			verifyRecord.usersWithWriteAccess().contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithWriteAccess().contains(sasquatch, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithDeleteAccess().contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithDeleteAccess().contains(sasquatch, edouard);
 		}
 
 		assertThatAllAuthorizations().containsOnly(
@@ -2925,6 +2925,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//TODO Should not be required
+		reindex();
+
+		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);

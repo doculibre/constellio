@@ -424,14 +424,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			Record record = get(recordId);
 			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
 
-			List<String> usersWithDeleteAccess = new ArrayList<>();
+			List<String> usersWithPermission = new ArrayList<>();
 			for (User user : allUsers) {
 				if (hasPermissionOn(user, record, permission)) {
-					usersWithDeleteAccess.add(user.getUsername());
+					usersWithPermission.add(user.getUsername());
 				}
 			}
 
-			return assertThat(usersWithDeleteAccess).describedAs("delete access on record '" + recordId + "'");
+			return assertThat(usersWithPermission).describedAs("delete access on record '" + recordId + "'");
 		}
 
 		public BooleanAssert detachedAuthorizationFlag() {

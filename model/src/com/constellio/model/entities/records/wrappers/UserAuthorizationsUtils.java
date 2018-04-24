@@ -203,9 +203,10 @@ public class UserAuthorizationsUtils {
 		auths.addAll(group.<String>getList(Schemas.AUTHORIZATIONS));
 
 		for (Group childGroup : schemas.searchGroups(where(schemas.group.parent()).isEqualTo(group))) {
-			auths.addAll(getAuthsOfGroupAndChildGroups(childGroup, schemas));
+			if (schemas.isGroupActive(childGroup)) {
+				auths.addAll(getAuthsOfGroupAndChildGroups(childGroup, schemas));
+			}
 		}
-
 		return auths;
 	}
 
