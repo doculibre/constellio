@@ -199,7 +199,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	}
 
-	private void findMissingKeys() {
+	protected void findMissingKeys() {
 
 		findTypesMissingKeys();
 		findTaxonomiesMissingKeys();
