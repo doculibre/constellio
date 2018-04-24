@@ -32,6 +32,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -463,6 +464,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 	public void givenSearchableDateThenFindRecordsWithDate()
 			throws Exception {
 
+		frenchSearchField = "dateMetadata.search_ss";
 		givenFrenchCollectionWithSearchableMetadatas();
 
 		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
@@ -478,16 +480,15 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 		recordServices
 				.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1).set(zeCollectionSchema.dateMetadata(), date));
 
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + date))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/01"))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01/01/2001"))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01-01-2001"))).isNotEmpty();
+		//assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/01"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001-01-01"))).isNotEmpty();
 	}
 
 	@Test
 	public void givenSearchableMultivalueDateThenFindRecordsWithDate()
 			throws Exception {
 
+		frenchSearchField = "dateMetadata.search_ss";
 		givenFrenchCollectionWithMultivalueSearchableMetadatas();
 
 		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
@@ -497,6 +498,8 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 			}
 		});
 
+		givenConfig(ConstellioEIMConfigs.DATE_FORMAT, "MM-dd-yyyy");
+
 		LocalDate date = new LocalDate(2001, 01, 01);
 		LocalDate date2 = new LocalDate(2001, 01, 01).plusWeeks(1);
 
@@ -504,14 +507,17 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1)
 				.set(zeCollectionSchema.dateMetadata(), asList(date, date2)));
 
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + date))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/01"))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01/01/2001"))).isNotEmpty();
+		reindex();
+
 		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01-01-2001"))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + date2))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/08"))).isNotEmpty();
-		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "08/01/2001"))).isNotEmpty();
 		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01-08-2001"))).isNotEmpty();
+
+		givenConfig(ConstellioEIMConfigs.DATE_FORMAT, "dd/MM/yyyy");
+		reindex();
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01/01/2001"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "08/01/2001"))).isNotEmpty();
+
 	}
 
 	@Test
