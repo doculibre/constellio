@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.util.*;
 
@@ -11,6 +12,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -23,6 +25,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SearchResultReportPresenter {
@@ -61,7 +64,9 @@ public class SearchResultReportPresenter {
 		Iterator<Record> recordsIterator;
 		if(searchQuery != null) {
 			recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(searchQuery);
-		} else if (selectedRecords == null || selectedRecords.isEmpty()) {
+		}
+		//TODO DO Not use searchQuery
+		else if (selectedRecords == null || selectedRecords.isEmpty()) {
 			ArrayList<Record> recordsList = new ArrayList<>();
 			int index = 0;
 			boolean allRecordsAdded = false;
@@ -85,9 +90,14 @@ public class SearchResultReportPresenter {
 	private List<Record> getAllSelectedRecordsFromIndex(ModelLayerFactory modelLayerFactory,
 			List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
-		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)
+		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
+		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
+				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).where(Schemas.IDENTIFIER)
+				.isIn(selectedRecords)).filteredWithUser(userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
+//		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
+//		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)
+//				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
 		return searchServices.query(newSearchQuery).getRecords();
 	}
 
@@ -95,10 +105,16 @@ public class SearchResultReportPresenter {
 			List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ReturnedMetadatasFilter returnMetadata = ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList);
-		LogicalSearchQuery newSearchQuery = searchQuery
+		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
+		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
+				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).returnAll()).filteredWithUser(userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
 				.setStartRow(index)
 				.setNumberOfRows(BATCH_SIZE);
+//		LogicalSearchQuery newSearchQuery = searchQuery
+//				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
+//				.setStartRow(index)
+//				.setNumberOfRows(BATCH_SIZE);
 		return searchServices.query(new LogicalSearchQuery(newSearchQuery).setReturnedMetadatas(returnMetadata)).getRecords();
 	}
 
