@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -36,7 +37,9 @@ public abstract class ActionExecutorInBatch {
 
 	public void execute(LogicalSearchQuery query)
 			throws Exception {
-		SearchResponseIterator<Record> recordsIterator = searchServices.recordsIterator(query, batchSize);
+
+		query.sortAsc(Schemas.IDENTIFIER);
+		SearchResponseIterator<Record> recordsIterator = searchServices.recordsIteratorKeepingOrder(query, batchSize);
 		Iterator<List<Record>> recordsBatchIterator = new BatchBuilderIterator<>(recordsIterator, batchSize);
 		int done = 0;
 		long total = recordsIterator.getNumFound();
