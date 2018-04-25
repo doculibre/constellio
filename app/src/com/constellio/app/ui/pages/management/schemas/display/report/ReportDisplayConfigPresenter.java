@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayUtils;
+import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.ReportVO;
@@ -9,6 +11,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -59,13 +62,13 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 				List<MetadataVO> schemaVOs = new ArrayList<>();
 				MetadataSchemaType type = schemaType(getSchemaTypeCode());
 				if (type != null) {
-					for(MetadataSchema schema:type.getAllSchemas()){
-						for (Metadata meta : schema.getMetadatas()) {
-							if ((!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) && metadataLocalCodeSet.add(meta.getLocalCode())) {
-								MetadataVO metadataVO = voBuilder.build(meta, view.getSessionContext());
-								if(AllowedMetadataUtil.isAllowedMetadata(metadataVO)){
-									schemaVOs.add(metadataVO);
-								}
+					List<Metadata> metadataList = type.getAllMetadatas();
+					Collections.sort(metadataList, SchemaDisplayUtils.getMetadataLabelComparator(view.getSessionContext()));
+					for (Metadata meta : metadataList) {
+						if ((!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) && metadataLocalCodeSet.add(meta.getLocalCode())) {
+							MetadataVO metadataVO = voBuilder.build(meta, view.getSessionContext());
+							if(AllowedMetadataUtil.isAllowedMetadata(metadataVO)){
+								schemaVOs.add(metadataVO);
 							}
 						}
 					}
@@ -76,7 +79,10 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 	}
 
 	public boolean isSystemReservedAllowedInReport(Metadata meta) {
-		List<String> allowedMetadatas = new ArrayList<>(asList(Schemas.IDENTIFIER.getLocalCode()));
+		List<String> allowedMetadatas = new ArrayList<>(asList(Schemas.IDENTIFIER.getLocalCode(),
+				Schemas.CREATED_ON.getLocalCode(), Schemas.CREATED_BY.getLocalCode(),
+				Schemas.MODIFIED_ON.getLocalCode(), Schemas.MODIFIED_BY.getLocalCode()
+		));
 		allowedMetadatas.addAll(modelLayerFactory.getExtensions().forCollection(collection).getAllowedSystemReservedMetadatasForExcelReport(getSchemaTypeCode()));
 		return allowedMetadatas.contains(meta.getLocalCode());
 	}
