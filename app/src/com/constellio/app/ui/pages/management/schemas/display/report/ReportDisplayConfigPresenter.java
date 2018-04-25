@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurationView>{
 
@@ -75,7 +76,8 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 	}
 
 	public boolean isSystemReservedAllowedInReport(Metadata meta) {
-		List<String> allowedMetadatas = Arrays.asList(Schemas.IDENTIFIER.getLocalCode());
+		List<String> allowedMetadatas = new ArrayList<>(asList(Schemas.IDENTIFIER.getLocalCode()));
+		allowedMetadatas.addAll(modelLayerFactory.getExtensions().forCollection(collection).getAllowedSystemReservedMetadatasForExcelReport(getSchemaTypeCode()));
 		return allowedMetadatas.contains(meta.getLocalCode());
 	}
 
