@@ -17,18 +17,19 @@ public class FolderAppliedRetentionRuleCalculator implements MetadataValueCalcul
 	ReferenceDependency<String> parentRetentionRuleParam = ReferenceDependency
 			.toAReference(Folder.PARENT_FOLDER, Folder.RETENTION_RULE);
 	LocalDependency<String> enteredRetentionRuleParam = LocalDependency.toAReference(Folder.RETENTION_RULE_ENTERED);
+	LocalDependency<String> uniformSubdivisionParam = LocalDependency.toAReference(Folder.UNIFORM_SUBDIVISION);
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
 		String parentRetentionRule = parameters.get(parentRetentionRuleParam);
 		String enteredRetentionRule = parameters.get(enteredRetentionRuleParam);
+		String uniformSubdivision = parameters.get(uniformSubdivisionParam);
 
-		if (parentRetentionRule != null) {
-			return parentRetentionRule;
-		} else {
+		if((uniformSubdivision != null && enteredRetentionRule != null) || parentRetentionRule == null) {
 			return enteredRetentionRule;
+		} else {
+			return parentRetentionRule;
 		}
-
 	}
 
 	@Override
@@ -48,6 +49,6 @@ public class FolderAppliedRetentionRuleCalculator implements MetadataValueCalcul
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(parentRetentionRuleParam, enteredRetentionRuleParam);
+		return asList(parentRetentionRuleParam, enteredRetentionRuleParam, uniformSubdivisionParam);
 	}
 }
