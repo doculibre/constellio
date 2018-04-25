@@ -549,12 +549,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		case "Reports.FolderLinearMeasureStats":
 			return super.getReportParameters(report);
 		}
+
 		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
-				collection, report, getCurrentUser(), getSearchQuery());
+				collection, report, getCurrentUser(), buildReportLogicalSearchQuery());
 	}
 
 	public boolean hasCurrentUserPermissionToUseCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	}
+
+	public LogicalSearchQuery buildReportLogicalSearchQuery() {
+		return buildBatchProcessLogicalSearchQuery().filteredWithUser(getUser());
 	}
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {

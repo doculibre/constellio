@@ -359,6 +359,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 
 		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
 		givenAuthorizationsToChuck(recordToDelete);
+
 		recordServices.logicallyDelete(recordToDelete, chuck);
 		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
@@ -444,7 +445,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 
 	private void givenAuthorizationsToChuck(Record record)
 			throws RolesManagerRuntimeException, InterruptedException {
-		List<String> roles = asList(Role.WRITE, Role.DELETE);
+		List<String> roles = asList(Role.READ, Role.WRITE, Role.DELETE);
 		addAuthorizationWithoutDetaching(roles, asList(chuck.getId()), asList(record.getId()));
 		waitForBatchProcess();
 	}
@@ -461,6 +462,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 			List<String> grantedOnRecords) {
 		String id = authorizationsServices.add(authorizationInCollection(zeCollection).giving(roles)
 				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecords.get(0)));
+		recordServices.refresh(chuck);
 		return authorizationsServices.getAuthorization(zeCollection, id);
 	}
 

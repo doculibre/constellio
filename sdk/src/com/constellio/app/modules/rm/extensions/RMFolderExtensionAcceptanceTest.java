@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.extensions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -9,12 +15,12 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
 import org.junit.Before;
@@ -115,12 +121,16 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 			saveAndReloadFolder(
 					folderWithRuleResponsible_WithCreatorInNoAdminUnit);
 		} catch (ValidationException e) {
-			assertErrorIsOnCopyStatus(e);
+			assertThat(TestUtils.frenchMessages(e)).containsOnly(
+					"Métadonnée «Statut d'exemplaire» requise",
+					"Métadonnée «Exemplaire» requise");
 		}
 		try {
 			saveAndReloadFolder(folderWithRuleBoth_WithCreatorInNoAdminUnit);
 		} catch (ValidationException e) {
-			assertErrorIsOnCopyStatus(e);
+			assertThat(TestUtils.frenchMessages(e)).containsOnly(
+					"Métadonnée «Statut d'exemplaire» requise",
+					"Métadonnée «Exemplaire» requise");
 		}
 
 		folderWithRuleBoth_WithCreatorInAdminUnit10AndOthers = saveAndReloadFolder(
@@ -144,7 +154,9 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		try {
 			saveAndReloadFolder(folderWithRuleResponsible_WithCreatorInNoAdminUnit);
 		} catch (ValidationException e) {
-			assertErrorIsOnCopyStatus(e);
+			assertThat(TestUtils.frenchMessages(e)).containsOnly(
+					"Métadonnée «Statut d'exemplaire» requise",
+					"Métadonnée «Exemplaire» requise");
 		}
 	}
 
@@ -171,13 +183,6 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getRetentionRuleEntered()).isNull();
 		assertThat(folder.getCopyStatusEntered()).isNull();
 
-	}
-
-	private void assertErrorIsOnCopyStatus(ValidationException e) {
-		List<ValidationError> errors = e.getErrors()
-				.getValidationErrors();
-		assertThat(errors.size()).isEqualTo(1);
-		assertThat((String) errors.get(0).getParameters().get(METADATA_CODE)).endsWith("_" + Folder.COPY_STATUS);
 	}
 
 	private void assertThatFolderIsPrincipalCopy(Folder folder) {

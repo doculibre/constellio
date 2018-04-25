@@ -346,6 +346,24 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return "" + wrappedRecord;
 	}
 
+	protected String toStringPrintingCodes(String... metadatas) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (String metadata : metadatas) {
+			Object value = get(metadata);
+			if (value != null) {
+				if (stringBuilder.length() > 0) {
+					stringBuilder.append(", ");
+				}
+				stringBuilder.append(metadata);
+				stringBuilder.append("=");
+				stringBuilder.append(value);
+			}
+		}
+
+		return wrappedRecord.toString() + " " + stringBuilder.toString();
+	}
+
 	public void reconnect(MetadataSchemaTypes metadataSchemaTypes) {
 		this.types = metadataSchemaTypes;
 	}

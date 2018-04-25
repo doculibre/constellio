@@ -16,6 +16,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.roles.Roles;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {
@@ -37,7 +38,9 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	public boolean globally() {
-		if (user.isSystemAdmin()) {
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		} else if (user.isSystemAdmin()) {
 			return true;
 		} else if (anyRoles) {
 			return roles.hasAny(user, permissions);
@@ -75,7 +78,9 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	public boolean on(Record record) {
-		if (user.isSystemAdmin()) {
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		} else if (user.isSystemAdmin()) {
 			return true;
 		}
 		Set<String> userPermissionsOnRecord = getUserPermissionsOnRecord(record);
@@ -105,6 +110,9 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	public boolean specificallyOn(Record record) {
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		}
 		Set<String> userPermissionsOnRecord = getUserPermissionsSpecificallyOnRecord(record);
 
 		if (anyRoles) {
@@ -121,7 +129,9 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	@Override
 	public boolean onSomething() {
-
+		if (user.getStatus() != UserCredentialStatus.ACTIVE) {
+			return false;
+		}
 		Set<String> allUserPermissions = new HashSet<>();
 		for (String authId : user.getAllUserAuthorizations()) {
 			try {

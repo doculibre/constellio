@@ -185,6 +185,30 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	}
 
+	@Override
+	public void moveLastBackupAsCurrentLog() {
+		String lastTLOGBackup = getLastTLOGBackup();
+		if(lastTLOGBackup != null) {
+			contentDao.moveFolder(lastTLOGBackup, "tlogs");
+		}
+	}
+
+	public String getLastTLOGBackup() {
+		List<String> backups = contentDao.getFolderContents("tlogs_bck");
+		String deletedFolderId = null;
+		LocalDateTime deletedFolderDateTime = null;
+		for (String backup : backups) {
+			String backupName = backup.split("/")[1];
+			DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");
+			LocalDateTime backupDateTime = LocalDateTime.parse(backupName, dateTimeFormatter);
+			if (deletedFolderId == null || deletedFolderDateTime.isAfter(backupDateTime)) {
+				deletedFolderId = backup;
+				deletedFolderDateTime = backupDateTime;
+			}
+		}
+		return deletedFolderId;
+	}
+
 	private void clearSolrCollection() {
 
 		ModifiableSolrParams deleteAllSolrDocumentsOfEveryConstellioCollectionsQuery = new ModifiableSolrParams();

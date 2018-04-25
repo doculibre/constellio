@@ -333,7 +333,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			operator.setItemCaption(SearchOperator.IS_TRUE, $("AdvancedSearchView.isTrue"));
 			operator.addItem(SearchOperator.IS_FALSE);
 			operator.setItemCaption(SearchOperator.IS_FALSE, $("AdvancedSearchView.isFalse"));
-			addIsEmptyIsNotEmpty(criterion, operator);
+//			addIsEmptyIsNotEmpty(criterion, operator);
 			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			operator.setNullSelectionAllowed(false);
 			operator.setValue(criterion.getSearchOperator());

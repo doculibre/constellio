@@ -56,4 +56,6 @@ public interface ConstellioHeader extends Serializable {
 	void removeRecordsFromPanel(List<String> idList);
 
 	BaseView getCurrentView();
+
+    void setCurrentCollectionQuietly();
 }

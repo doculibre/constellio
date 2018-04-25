@@ -199,14 +199,16 @@ public class ContainerRecordReportPresenter {
 	}
 
 	private void updateBeginingYearIfDateFromFolderEarlier(Folder folder) {
-		if (folder.getOpenDate().getYear() < beginingYear) {
-			beginingYear = folder.getOpenDate().getYear();
+		LocalDate openDate = folder.getOpenDate();
+		if (openDate != null && openDate.getYear() < beginingYear) {
+			beginingYear = openDate.getYear();
 		}
 	}
 
 	private void updateEndingYearIfDateFromFolderLater(Folder folder) {
-		if (folder.getCloseDate().getYear() > endingYear) {
-			endingYear = folder.getCloseDate().getYear();
+		LocalDate closeDate = folder.getCloseDate();
+		if (closeDate != null && closeDate.getYear() > endingYear) {
+			endingYear = closeDate.getYear();
 		}
 	}
 
@@ -303,7 +305,21 @@ public class ContainerRecordReportPresenter {
 	}
 
 	private String buildExtremeDatesWithUnverifiedAssumptionThatGetDocumentsWasCalledBefore() {
-		return beginingYear + "-" + endingYear;
+		StringBuilder stringBuilder = new StringBuilder();
+		if(beginingYear != Integer.MAX_VALUE) {
+			stringBuilder.append(beginingYear);
+		} else {
+			stringBuilder.append("N/A");
+		}
+
+		stringBuilder.append("-");
+
+		if(endingYear != Integer.MIN_VALUE) {
+			stringBuilder.append(endingYear);
+		} else {
+			stringBuilder.append("N/A");
+		}
+		return stringBuilder.toString();
 	}
 
 	private List<ReportBooleanField> getConservationDispositionFields(CopyRetentionRule firstCopyRetentionRule) {

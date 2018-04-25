@@ -39,6 +39,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
 											PrintableReportTemplate selectedTemplate, int numberOfCopies, List<String> ids, Locale locale) {
+			PrintableReportTemplate selectedTemplate, int numberOfCopies, List<String> ids, LogicalSearchQuery query) {
 		InputStream selectedJasperFileContentInputStream = null;
 		File temporaryJasperFile = null;
 		try {
@@ -46,6 +47,7 @@ public class ReportGeneratorUtils {
 			ContentManager contentManager = factory.getModelLayerFactory().getContentManager();
 			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
 					numberOfCopies);
+			xmlGeneratorParameters.setQuery(query);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
 			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
 					xmlGeneratorParameters, locale);

@@ -8,6 +8,7 @@ import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.services.records.RecordUtils.unwrap;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -54,6 +55,8 @@ import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordProvider;
@@ -188,7 +191,7 @@ public class AuthorizationsServices {
 		List<String> returnedUsers = new ArrayList<>();
 
 		for (User user : schemas(concept.getCollection()).getAllUsers()) {
-			if (user.has(permission).on(concept)) {
+			if (user.has(permission).on(concept) && !user.isLogicallyDeletedStatus()) {
 				returnedUsers.add(user.getId());
 			}
 		}
@@ -304,7 +307,12 @@ public class AuthorizationsServices {
 							users.add(new User(userRecord, types, roles));
 						}
 					} else if (principalRecord.getSchemaCode().equals(User.SCHEMA_TYPE + "_default")) {
-						users.add(new User(principalRecord, types, roles));
+						User user = new User(principalRecord, types, roles);
+						UserCredential userCredential = modelLayerFactory.newUserServices().getUserCredential(user.getUsername());
+
+						if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+							users.add(user);
+						}
 					}
 				}
 			}
@@ -313,12 +321,10 @@ public class AuthorizationsServices {
 	}
 
 	public List<Record> getUserRecordsInGroup(Record groupRecord) {
-		MetadataSchema userSchema = schemasManager.getSchemaTypes(groupRecord.getCollection())
-				.getSchema(User.SCHEMA_TYPE + "_default");
-		Metadata userGroupsMetadata = userSchema.getMetadata(User.GROUPS);
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(userSchema)
-				.where(userGroupsMetadata).isContaining(asList(groupRecord.getId()));
-		return searchServices.search(new LogicalSearchQuery(condition));
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(groupRecord.getCollection(), modelLayerFactory);
+		Group group = schemas.wrapGroup(groupRecord);
+		return unwrap(schemas.getAllUsersInGroup(group, true, true));
 	}
 
 	/**
