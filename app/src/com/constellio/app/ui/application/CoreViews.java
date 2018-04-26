@@ -160,8 +160,12 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_GROUP_ROLES + "/" + entityId);
 	}
 
-	public void deleteExclusionsImpl() {
+	public void deleteExclusions() {
 		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
+	}
+
+	public void thesaurusConfiguration(){
+		navigator.navigateTo(NavigatorConfigurationService.THESAURUS_CONFIGURATION);
 	}
 
 	public void permissionManagement() {

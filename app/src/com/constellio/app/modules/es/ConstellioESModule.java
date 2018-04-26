@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.es.migrations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +33,25 @@ import com.constellio.app.modules.es.extensions.ESSMBConnectorUrlCriterionExtens
 import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.migrations.ESMigrationCombo;
+import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_5;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_7;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_7_0_42;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -48,6 +66,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -202,6 +221,10 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 			recordsCache.configureCache(CacheConfig.permanentCache(es.report.schemaType()));
 		}
 
+		if (!recordsCache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
+			recordsCache.configureCache(CacheConfig.permanentCache(es.thesaurusConfig.schemaType()));
+		}
+
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		if (!recordsCache.isConfigured(SavedSearch.SCHEMA_TYPE)) {
 			recordsCache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
@@ -212,6 +235,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 	@Override
 	public void start(AppLayerFactory appLayerFactory) {
+		appLayerFactory.getModelLayerFactory().newRecordServices().flush();
 		ESNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
 		registerScript(new RestoreConnectorTypes(appLayerFactory));
 	}

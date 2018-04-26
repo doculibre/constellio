@@ -76,6 +76,12 @@ public class TestRecord extends RecordImpl {
 	}
 
 	@Override
+	public TestRecord set(Metadata metadata, Object value) {
+		super.set(metadata, value);
+		return this;
+	}
+
+	@Override
 	public int hashCode() {
 		return super.hashCode();
 	}

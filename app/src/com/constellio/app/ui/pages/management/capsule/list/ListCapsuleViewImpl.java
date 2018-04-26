@@ -1,13 +1,19 @@
 package com.constellio.app.ui.pages.management.capsule.list;
 
-import com.constellio.app.ui.application.Navigation;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
+import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
-import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -15,25 +21,21 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
+import com.vaadin.ui.VerticalLayout;
 
 public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView {
     private ListCapsulePresenter presenter;
 
     @Override
     protected String getTitle() {
-        return $("ListCapsuleViewImpl.title");
+        return $("ListCapsuleView.title");
     }
 
     @Override
@@ -47,33 +49,24 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
     }
 
     @Override
-    protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-        List<Button> buttons = new ArrayList<>();
-        buttons.add(new BaseButton($("ListCapsuleViewImpl.addCapsule")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                navigateTo().addEditCapsule(null);
-            }
-        });
-        return buttons;
-    }
-
-    @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+    	VerticalLayout mainLayout = new VerticalLayout();
+    	mainLayout.setSizeFull();
+    	mainLayout.setSpacing(true);
+    	
+    	Button addButton = new AddButton($("ListCapsuleView.addCapsule")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+    	};
+    	
+    	Label infoLabel = new Label($("ListCapsuleView.info"));
+    	infoLabel.setWidth("100%");
+    	
         Container tableContainer = new RecordVOLazyContainer(presenter.getCapsuleDataProvider());
         ButtonsContainer buttonTableContainer = new ButtonsContainer(tableContainer, "buttons");
-        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
-
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new DisplayButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        presenter.displayButtonClicked(presenter.getRecordsWithIndex(itemId));
-                    }
-                };
-            }
-        });
+        
         buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -100,10 +93,29 @@ public class ListCapsuleViewImpl extends BaseViewImpl implements ListCapsuleView
         });
 
         tableContainer = buttonTableContainer;
-        Table table = new RecordVOTable("", tableContainer);
+        Table table = new RecordVOTable($("ListCapsuleView.table.title", tableContainer.size()), tableContainer);
         setTableProperty(table, tableContainer.size());
-        return table;
+        
+        mainLayout.addComponents(infoLabel, addButton, table);
+        mainLayout.setComponentAlignment(addButton, Alignment.BOTTOM_RIGHT);
+        mainLayout.setExpandRatio(table, 1);
+        
+        return mainLayout;
     }
 
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
+	}
 
 }

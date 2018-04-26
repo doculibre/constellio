@@ -621,6 +621,88 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	public void givenWriteOnlyAccessAuthorizationsThenReadAndWriteAccessReceived()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingWriteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingWriteAccess());
+		auth3 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingWriteAccess());
+		auth4 = add(authorizationForUser(sasquatch).on(FOLDER1).givingWriteAccess());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingWrite().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingWrite().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingWrite().forPrincipals(alice),
+				authOnRecord(FOLDER1).givingWrite().forPrincipals(sasquatch)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1,
+				TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1, FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+	}
+
+	@Test
+	public void givenDeleteOnlyAccessAuthorizationsThenReadAndDeleteAccessReceived()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingDeleteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingDeleteAccess());
+		auth3 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingDeleteAccess());
+		auth4 = add(authorizationForUser(sasquatch).on(FOLDER1).givingDeleteAccess());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingDelete().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingDelete().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingDelete().forPrincipals(alice),
+				authOnRecord(FOLDER1).givingDelete().forPrincipals(sasquatch)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1,
+				TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1, FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
+		}
+
+	}
+
+	@Test
 	public void givenAccessTypesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 
@@ -2803,15 +2885,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).givingReadDeleteAccess());
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithReadAccess().contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithReadAccess().contains(sasquatch, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
-			verifyRecord.usersWithWriteAccess().contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithWriteAccess().contains(sasquatch, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithDeleteAccess().contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithDeleteAccess().contains(sasquatch, edouard);
 		}
 
 		assertThatAllAuthorizations().containsOnly(
@@ -2843,6 +2925,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		reenableLegends();
 		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//TODO Should not be required
+		reindex();
+
+		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);

@@ -29,6 +29,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -37,6 +38,7 @@ import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.validation.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -223,7 +225,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
-				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
+				.where(rmRecordServices().folder.container()).isEqualTo(containerId)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
 	}
 

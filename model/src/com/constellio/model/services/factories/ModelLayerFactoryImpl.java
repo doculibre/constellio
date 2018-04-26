@@ -9,6 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.thesaurus.ThesaurusManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -23,10 +24,12 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.entities.records.RecordEventDataSerializerExtension;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -52,6 +55,7 @@ import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
+import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
 import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImpl;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -68,8 +72,8 @@ import com.constellio.model.services.security.authentification.CombinedAuthentic
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.taxonomies.EventBusTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCache;
-import com.constellio.model.services.taxonomies.NoTaxonomiesSearchServicesCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
@@ -125,7 +129,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
 
+	private ThesaurusManager thesaurusManager;
+
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
+
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -134,25 +141,34 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
+		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
+
 		systemCollectionListeners = new ArrayList<>();
 
+		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
 			this.recordsCaches = new RecordsCachesIgniteImpl(this);
 		} else {
-			this.recordsCaches = new RecordsCachesMemoryImpl(this);
+
+			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
+				this.recordsCaches = new EventsBusRecordsCachesImpl(this);
+			} else {
+				this.recordsCaches = new RecordsCachesMemoryImpl(this);
+			}
 		}
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
-		this.dataLayerFactory = dataLayerFactory;
+
 		this.foldersLocator = foldersLocator;
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
 		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
-				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed, cacheManager));
+				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
+						dataLayerFactory.getRecordsCacheManager()));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
@@ -202,15 +218,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
-		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.MEMORY) {
-			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
-
-		} else if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
-			taxonomiesSearchServicesCache = new MemoryTaxonomiesSearchServicesCache();
-
-		} else {
-			taxonomiesSearchServicesCache = new NoTaxonomiesSearchServicesCache();
-		}
+		taxonomiesSearchServicesCache = new EventBusTaxonomiesSearchServicesCache(new MemoryTaxonomiesSearchServicesCache(),
+				dataLayerFactory.getEventBusManager());
 		this.searchConfigurationsManager = new SearchConfigurationsManager(dataLayerFactory, this);
 
 	}
@@ -233,6 +242,13 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public RecordServices newRecordServices() {
 		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
+	}
+
+	public synchronized ThesaurusManager getThesaurusManager() {
+		if(thesaurusManager == null) {
+			thesaurusManager = add(new ThesaurusManager(this));
+		}
+		return thesaurusManager;
 	}
 
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
@@ -462,6 +478,5 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
-
 	}
 }

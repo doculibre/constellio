@@ -24,6 +24,7 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
@@ -45,7 +46,7 @@ public class SchemasDisplayManager
 
 	public static final String REQUIRED_METADATA_IN_FORM_LIST = "requiredMetadataInFormList";
 
-	private static final String SCHEMAS_DISPLAY_CONFIG = "/schemasDisplay.xml";
+	public static final String SCHEMAS_DISPLAY_CONFIG = "/schemasDisplay.xml";
 
 	private ConfigManager configManager;
 
@@ -271,7 +272,7 @@ public class SchemasDisplayManager
 		metadataSchemasManager.registerListener(new MetadataSchemasManagerListener() {
 			@Override
 			public void onCollectionSchemasModified(String collection) {
-				oneXMLConfigPerCollectionManager.reload(collection);
+				oneXMLConfigPerCollectionManager.reload(collection, InsertionReason.WAS_MODIFIED);
 			}
 		});
 	}

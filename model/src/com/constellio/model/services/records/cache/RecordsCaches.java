@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import java.util.List;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 
 public interface RecordsCaches {
@@ -10,11 +11,11 @@ public interface RecordsCaches {
 
 	boolean isCached(String id);
 
-	void insert(String collection, List<Record> records);
+	List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason insertionReason);
 
-	CacheInsertionStatus insert(Record record);
+	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	CacheInsertionStatus forceInsert(Record record);
+	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
 
 	Record getRecord(String id);
 

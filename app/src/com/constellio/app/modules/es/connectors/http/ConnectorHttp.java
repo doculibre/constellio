@@ -148,8 +148,6 @@ public class ConnectorHttp extends Connector {
 
 	public void resume() {
 		context = contextServices.loadContext(connectorId);
-
-		es.getRecordServices().flush();
 	}
 
 	@Override

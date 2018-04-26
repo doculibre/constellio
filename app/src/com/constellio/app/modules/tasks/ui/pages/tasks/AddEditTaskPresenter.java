@@ -179,8 +179,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			if(task.getAssigner() == null) {
 
-				if ((task.getAssigneeUsersCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
-						|| task.getAssigneeGroupsCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
+				if ((task.getAssigneeUsersCandidates() != null && task.getAssigneeUsersCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
+						|| task.getAssigneeGroupsCandidates() != null && task.getAssigneeGroupsCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
 						|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());

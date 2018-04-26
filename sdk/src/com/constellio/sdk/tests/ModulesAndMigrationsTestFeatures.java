@@ -14,6 +14,7 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeExc
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.FailedToStart;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -42,9 +43,9 @@ public class ModulesAndMigrationsTestFeatures {
 	}
 
 	public ModulesAndMigrationsTestFeatures withModule(Class<? extends InstallableModule> moduleClass) {
-		AppLayerFactory appFactory = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory();
-		ModelLayerFactory modelFactory = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory();
-		ConstellioPluginManager pluginManager = appFactory.getPluginManager();
+
+		AppLayerFactory mainAppLayerFactory = factoriesTestFeatures.getConstellioFactories().getAppLayerFactory();
+		SDKConstellioFactoriesInstanceProvider instanceProvider = (SDKConstellioFactoriesInstanceProvider) ConstellioFactories.instanceProvider;
 
 		if (mockedAvailableModules) {
 			try {
@@ -52,15 +53,28 @@ public class ModulesAndMigrationsTestFeatures {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			doReturn(modules).when(pluginManager).getRegistredModulesAndActivePlugins();
 		}
-		ConstellioModulesManager modulesManager = appFactory.getModulesManager();
+
+		for (ConstellioFactories factories : instanceProvider.instances.values()) {
+
+			AppLayerFactory appFactory = factories.getAppLayerFactory();
+			ModelLayerFactory modelFactory = factories.getModelLayerFactory();
+			ConstellioPluginManager pluginManager = appFactory.getPluginManager();
+
+			if (mockedAvailableModules) {
+				doReturn(modules).when(pluginManager).getRegistredModulesAndActivePlugins();
+			}
+		}
+		ConstellioModulesManager modulesManager = mainAppLayerFactory.getModulesManager();
 		try {
 			InstallableModule module = moduleClass.newInstance();
 			if (!modulesManager.isInstalled(module)) {
-				modulesManager.installValidModuleAndGetInvalidOnes(module, modelFactory.getCollectionsListManager());
+				modulesManager.installValidModuleAndGetInvalidOnes(module, mainAppLayerFactory.getModelLayerFactory()
+						.getCollectionsListManager());
 			}
-			modulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
+			if (!modulesManager.isModuleEnabled(collection, module)) {
+				modulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
+			}
 
 		} catch (FailedToInstall failedToStart) {
 			throw new RuntimeException(failedToStart);

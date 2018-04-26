@@ -27,6 +27,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
+import com.constellio.model.entities.records.wrappers.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -333,6 +334,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	//
 
 	//Document type
+
+
 
 	public MetadataSchema documentTypeSchema() {
 		return getTypes().getSchema(DocumentType.DEFAULT_SCHEMA);

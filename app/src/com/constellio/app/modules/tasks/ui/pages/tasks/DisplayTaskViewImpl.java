@@ -1,5 +1,12 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
@@ -19,15 +26,13 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";
@@ -65,10 +70,9 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayTaskView.tabs.logs"));
-		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+		if (presenter.hasCurrentUserPermissionToViewEvents()) {
 			tabSheet.getTab(eventsComponent).setEnabled(true);
-		}
-		else {
+		} else {
 			tabSheet.getTab(eventsComponent).setEnabled(false);
 		}
 
@@ -95,9 +99,9 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();
 
-		if(!presenter.isLogicallyDeleted()) {
+		if (!presenter.isLogicallyDeleted()) {
 
-			if(!presenter.isClosedOrTerminated()) {
+			if (!presenter.isClosedOrTerminated()) {
 
 				EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
 					@Override
@@ -133,7 +137,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			ConfirmDialogButton completeTask = new ConfirmDialogButton($("DisplayTaskView.completeTask")) {
 				@Override
 				protected String getConfirmDialogMessage() {
-					if(presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTask())) {
+					if (presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTask())) {
 						return $("DisplayTaskView.subTaskPresentComplete");
 					}
 
@@ -157,14 +161,14 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					if(dialog.isConfirmed()) {
+					if (dialog.isConfirmed()) {
 						presenter.completeQuicklyButtonClicked(presenter.getTask());
 					}
 				}
 
 				@Override
 				protected void dialogClosedWitoutConfirm(ConfirmDialog dialog) {
-					if(!dialog.isCanceled()) {
+					if (!dialog.isCanceled()) {
 						presenter.completeButtonClicked(presenter.getTask());
 					}
 				}
@@ -198,7 +202,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 				}
 			};
 			actionMenuButtons.add(closeTask);
-			if(!presenter.isClosedOrTerminated()) {
+			if (!presenter.isClosedOrTerminated()) {
 				AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -215,10 +219,9 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
 				@Override
 				protected String getConfirmDialogMessage() {
-					if(presenter.isSubTaskPresentAndHaveCertainStatus(recordDisplay.getRecordVO())) {
-						return $("TaskPresenterServices.subTaskPresentWarning");
-					}
-					else {
+					if (presenter.isSubTaskPresentAndHaveCertainStatus(recordDisplay.getRecordVO())) {
+						return $("DisplayTaskView.subTaskPresentWarning");
+					} else {
 						return super.getConfirmDialogMessage();
 					}
 				}
@@ -235,7 +238,9 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			};
 			actionMenuButtons.add(deleteTask);
 
-			ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.TASK,  presenter.getTask());
+			ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
+					$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
+					PrintableReportListPossibleType.TASK, presenter.getTask());
 			actionMenuButtons.add(reportGeneratorButton);
 		}
 
@@ -268,7 +273,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	}
 
 	public void addFieldToRecordDisplay(Component newComponent, boolean readOnly) {
-		if(newComponent != null) {
+		if (newComponent != null) {
 			recordDisplayLayout.addComponent(newComponent);
 			newComponent.setReadOnly(readOnly);
 		}
@@ -280,7 +285,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	}
 
 	protected String getTitle() {
-//		return $("DisplayTaskView.viewTitle", presenter.getTaskTitle());
+		//		return $("DisplayTaskView.viewTitle", presenter.getTaskTitle());
 		return null;
 	}
 

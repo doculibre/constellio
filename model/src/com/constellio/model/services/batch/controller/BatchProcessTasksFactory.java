@@ -1,6 +1,7 @@
 package com.constellio.model.services.batch.controller;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -46,6 +47,16 @@ public class BatchProcessTasksFactory {
 			tasks.add(reindexationTask);
 		}
 		return tasks;
+	}
+
+	private boolean validateCollection(List<Record> records) {
+		HashSet<String> collection = new HashSet<>();
+		if(records != null) {
+			for(Record record: records) {
+				collection.add(record.getCollection());
+			}
+		}
+		return collection.size() <= 1;
 	}
 
 }

@@ -57,7 +57,7 @@ import com.constellio.model.utils.XMLConfigReader;
 
 public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes> {
 
-	private static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
+	public static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
 	private final DataStoreTypesFactory typesFactory;
 	private final TaxonomiesManager taxonomiesManager;
 	private final ConfigManager configManager;

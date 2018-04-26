@@ -9,9 +9,11 @@ import java.util.Map;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheManagerRuntimeException.ConstellioCacheManagerRuntimeException_CacheAlreadyExist;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 
 public class SerializationCheckCacheManager implements ConstellioCacheManager {
-	
+
 	private Map<String, ConstellioCache> caches = new HashMap<>();
 
 	public SerializationCheckCacheManager(DataLayerConfiguration dataLayerConfiguration) {
@@ -26,8 +28,20 @@ public class SerializationCheckCacheManager implements ConstellioCacheManager {
 	public synchronized ConstellioCache getCache(String name) {
 		ConstellioCache cache = caches.get(name);
 		if (cache == null) {
-			cache = new SerializationCheckCache(name);
+			cache = new SerializationCheckCache(name, new ConstellioCacheOptions());
 			caches.put(name, cache);
+		}
+		return cache;
+	}
+
+	@Override
+	public ConstellioCache createCache(String name, ConstellioCacheOptions options) {
+		ConstellioCache cache = caches.get(name);
+		if (cache == null) {
+			cache = new SerializationCheckCache(name, options);
+			caches.put(name, cache);
+		} else {
+			throw new ConstellioCacheManagerRuntimeException_CacheAlreadyExist(name);
 		}
 		return cache;
 	}

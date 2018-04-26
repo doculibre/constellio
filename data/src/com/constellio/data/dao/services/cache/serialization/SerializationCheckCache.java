@@ -8,17 +8,19 @@ import java.util.Map;
 import org.apache.commons.lang3.SerializationException;
 import org.apache.commons.lang3.SerializationUtils;
 
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCache;
 import com.constellio.data.utils.serialization.ConstellioSerializationUtils;
 
 public class SerializationCheckCache extends ConstellioMapCache {
-	
+
 	private Map<String, Object> deserializedCache = new LinkedHashMap<>();
 
-	public SerializationCheckCache(String name) {
-		super(name);
+	public SerializationCheckCache(String name, ConstellioCacheOptions options) {
+		super(name, options);
 	}
-	
+
 	private String deserializedKey(String key) {
 		return key + ".deserialized";
 	}
@@ -42,20 +44,20 @@ public class SerializationCheckCache extends ConstellioMapCache {
 	}
 
 	@Override
-	public <T extends Serializable> void put(String key, T value) {
+	public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
 		String deserializedKey = deserializedKey(key);
 		deserializedCache.remove(deserializedKey);
 		if (value != null) {
 			try {
 				byte[] valueBytes = SerializationUtils.serialize(value);
 				System.out.println("Serialized size for " + key + ": " + readableFileSize(valueBytes.length));
-				super.put(key, valueBytes);
+				super.put(key, valueBytes, insertionReason);
 			} catch (SerializationException e) {
 				ConstellioSerializationUtils.validateSerializable(value);
 				throw e;
-			} 
+			}
 		} else {
-			super.put(key, null);
+			super.put(key, null, insertionReason);
 		}
 	}
 
@@ -65,7 +67,7 @@ public class SerializationCheckCache extends ConstellioMapCache {
 		deserializedCache.remove(deserializedKey);
 		super.remove(key);
 	}
-	
+
 	@Override
 	public void clear() {
 		deserializedCache.clear();
@@ -76,10 +78,11 @@ public class SerializationCheckCache extends ConstellioMapCache {
 	 * Source: https://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc
 	 */
 	public static String readableFileSize(long size) {
-	    if(size <= 0) return "0";
-	    final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
-	    int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
-	    return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+		if (size <= 0)
+			return "0";
+		final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
+		int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+		return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
 	}
 
 }

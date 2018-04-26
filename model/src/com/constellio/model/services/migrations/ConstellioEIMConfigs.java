@@ -29,6 +29,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration INCLUDE_CONTENTS_IN_SAVESTATE;
 
+	public static final SystemConfiguration ENABLE_ADMIN_USER_PASSWORD_CHANGE;
 	public static final SystemConfiguration USER_TITLE_PATTERN;
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
@@ -227,6 +228,9 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
 
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
+
+		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
+				.whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -441,5 +445,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isStatisticReportEnabled() {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
+	}
+
+	public boolean isAdminPasswordChangeEnabled() {
+		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
 	}
 }

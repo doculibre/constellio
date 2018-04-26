@@ -1,12 +1,14 @@
 package com.constellio.app.ui.pages.statistic;
 
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.*;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -48,7 +50,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     private TextField filterField;
 
     private Table resultTable;
-    private VerticalLayout tableLayout = new VerticalLayout();
+    private VerticalLayout tableLayout;
 
     public StatisticsViewImpl() {
         presenter = new StatisticsPresenter(this);
@@ -58,6 +60,10 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSpacing(true);
+        verticalLayout.setSizeFull();
+        
+        tableLayout = new VerticalLayout();
+        tableLayout.setSizeFull();
 
         verticalLayout.addComponent(buildSearchForm());
         //verticalLayout.addComponent(buildApplyFilterButton());
@@ -66,7 +72,32 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         return verticalLayout;
     }
 
-    @NotNull
+    @Override
+	protected String getTitle() {
+		return $("StatisticsView.viewTitle");
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+    @Override
+    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
+    }
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
+	}
+
+	@NotNull
     private Layout buildApplyFilterButton() {
         Button button = new Button($("StatisticsView.applyFilter"));
         button.addClickListener(new ClickListener() {
@@ -204,12 +235,13 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
         resultTable = new BaseTable(getClass().getName(), "", container);
         resultTable.setWidth("100%");
+        resultTable.setPageLength(Math.min(container.size(), DEFAULT_LINE_NUMBER));
 
         for (String property: properties) {
             resultTable.setColumnHeader(property, getColumnHeader(property));
         }
 
-        if(properties.contains(SearchEventVOLazyContainer.PARAMS)) {
+        if (properties.contains(SearchEventVOLazyContainer.PARAMS)) {
             resultTable.addGeneratedColumn(SearchEventVOLazyContainer.PARAMS, new Table.ColumnGenerator() {
                 @Override
                 public Object generateCell(Table source, Object itemId, Object columnId) {

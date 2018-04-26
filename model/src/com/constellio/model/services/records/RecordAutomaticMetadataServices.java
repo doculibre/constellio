@@ -39,6 +39,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
@@ -58,6 +59,9 @@ import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesPar
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
@@ -425,6 +429,7 @@ public class RecordAutomaticMetadataServices {
 			AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue = context.getAllPrincipalsAuthsDependencyValue();
 			if (allPrincipalsAuthsDependencyValue == null) {
 
+				List<String> disabledGroups = new ArrayList<>();
 				List<Group> groups = new ArrayList<>();
 				List<User> users = new ArrayList<>();
 				Set<String> usersInTransaction = new HashSet<>();
@@ -453,6 +458,7 @@ public class RecordAutomaticMetadataServices {
 					}
 
 				}
+
 				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
 					for (Record record : searchServices
 							.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
@@ -475,13 +481,28 @@ public class RecordAutomaticMetadataServices {
 						}
 					}
 				}
-				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users);
+
+				RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+				SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
+						Collection.SYSTEM_COLLECTION, modelLayerFactory);
+				if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+					for (Record record : searchServices
+							.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+									.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+						GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+						if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+							disabledGroups.add(globalGroup.getCode());
+						}
+					}
+				}
+
+				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users, disabledGroups);
 				context.setAllPrincipalsAuthsDependencyValue(allPrincipalsAuthsDependencyValue);
 			}
 			return allPrincipalsAuthsDependencyValue;
 
 		} else {
-			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>());
+			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>(), new ArrayList<String>());
 		}
 
 	}

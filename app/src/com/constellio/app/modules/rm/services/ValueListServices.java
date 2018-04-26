@@ -88,8 +88,7 @@ public class ValueListServices {
 			return codeMode;
 		}
 
-		public CreateValueListOptions setCodeMode(
-				ValueListItemSchemaTypeBuilderOptions codeMode) {
+		public CreateValueListOptions setCodeMode(ValueListItemSchemaTypeBuilderOptions codeMode) {
 			this.codeMode = codeMode;
 			return this;
 		}
@@ -115,11 +114,23 @@ public class ValueListServices {
 
 	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options, boolean isMultiLingual) {
 
+		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+
+		createValueDomain(code, title, options, types);
+
+		try {
+			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
+		} catch (OptimisticLocking optimistickLocking) {
+			throw new RuntimeException(optimistickLocking);
+		}
+	}
+
+	public MetadataSchemaTypeBuilder createValueDomain(String code, String title, CreateValueListOptions options, MetadataSchemaTypesBuilder types) {
+
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
 		}
 
-		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
 		MetadataSchemaTypeBuilder valueListSchemaType = builder.createValueListItemSchema(code, title, options.codeMode, isMultiLingual);
@@ -134,11 +145,7 @@ public class ValueListServices {
 			}
 		}
 
-		try {
-			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
-		} catch (OptimisticLocking optimistickLocking) {
-			throw new RuntimeException(optimistickLocking);
-		}
+		return valueListSchemaType; // for optional use - returns value domain in construction
 	}
 
 	public List<Taxonomy> getTaxonomies() {

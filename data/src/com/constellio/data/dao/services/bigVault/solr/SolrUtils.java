@@ -205,10 +205,20 @@ public class SolrUtils {
 		return convertLocalDateTimeToSolrDate(localDate.toLocalDateTime(LocalTime.MIDNIGHT));
 	}
 
-	public static String toSingleQueryString(ModifiableSolrParams params) {
+	public static String toSingleQueryStringForPreviousFramework(ModifiableSolrParams params) {
 		params = new ModifiableSolrParams(params);
 		params.remove("bq");
 		return params.toString();
+	}
+
+	public static String toSingleQueryString(ModifiableSolrParams params) {
+		params = new ModifiableSolrParams(params);
+		params.remove("bq");
+		String queryString = params.toQueryString();
+		if(queryString.startsWith("?")) {
+			queryString = queryString.replaceFirst("\\?", "&");
+		}
+		return queryString;
 	}
 
 	public static ModifiableSolrParams parseQueryString(String queryString) {

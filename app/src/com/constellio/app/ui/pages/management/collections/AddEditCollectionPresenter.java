@@ -290,12 +290,10 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	public List<String> getAllLanguages() {
 
 		List<String> languages = new ArrayList<>();
-		languages.add(getMainDataLanguage());
-		if (!languages.contains("en")) {
-			languages.add("en");
-		}
-		if (!languages.contains("fr")) {
-			languages.add("fr");
+		languages.addAll(appLayerFactory.getAppLayerConfiguration().getSupportedLanguageCodes());
+
+		if (!languages.contains(getMainDataLanguage())) {
+			languages.add(getMainDataLanguage());
 		}
 
 		return languages;

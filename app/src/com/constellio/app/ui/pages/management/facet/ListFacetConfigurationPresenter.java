@@ -124,7 +124,7 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 	}
 
 	public void backButtonClicked() {
-		view.navigate().to().adminModule();
+		view.navigate().to().searchConfiguration();
 	}
 
 }

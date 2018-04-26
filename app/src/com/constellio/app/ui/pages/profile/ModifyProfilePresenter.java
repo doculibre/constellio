@@ -20,6 +20,7 @@ import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.authentification.AuthenticationService;
@@ -335,5 +336,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
     public boolean isRMModuleActivated() {
         return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
+    }
+
+    public boolean isPasswordChangeEnabled() {
+        return !ADMIN.equals(username) || new ConstellioEIMConfigs(modelLayerFactory).isAdminPasswordChangeEnabled();
     }
 }
