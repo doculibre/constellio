@@ -9,10 +9,12 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.jdom2.Document;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -69,7 +72,6 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 	ArrayList<String> metadataRelations;
 	Map<Language, String> labelTitle;
 
-
 	ConstellioCache zeCache;
 
 	@Before
@@ -78,7 +80,6 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 
 		List<String> listString = new ArrayList<>();
 		listString.add(Language.French.getCode());
-		zeCache = new SerializationCheckCache("zeCache");z
 		zeCache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList(zeCollection));
@@ -94,7 +95,8 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(xmlConfiguration.getDocument()).thenReturn(document);
 		when(taxonomiesManager.newTaxonomyWriter(any(Document.class))).thenReturn(writer);
 		when(collectionsListManager.getCollectionLanguages(zeCollection)).thenReturn(listString);
-		when(taxonomiesManager.newTaxonomyReader(document,collectionsListManager.getCollectionLanguages(zeCollection))).thenReturn(reader);
+		when(taxonomiesManager.newTaxonomyReader(document, collectionsListManager.getCollectionLanguages(zeCollection)))
+				.thenReturn(reader);
 		when(taxonomiesManager.newAddTaxonomyDocumentAlteration(any(Taxonomy.class))).thenReturn(addDocumentAlteration);
 		when(taxonomiesManager.newEnableTaxonomyDocumentAlteration(anyString())).thenReturn(enableDocumentAlteration);
 		when(taxonomiesManager.newDisableTaxonomyDocumentAlteration(anyString())).thenReturn(disableDocumentAlteration);
@@ -105,7 +107,6 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		inOrder = inOrder(configManager, taxonomiesManager, reader, writer, oneXMLConfigPerCollectionManager);
 		doNothing().when(taxonomiesManager)
 				.createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
-
 
 		labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "1");
@@ -125,7 +126,6 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 	@Test
 	public void whenDisableAndGetDisableTaxonomiesThenItIsReturned()
 			throws Exception {
-
 
 		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle, zeCollection, Arrays.asList("type1"));
 		addTaxonomy(taxonomy);
