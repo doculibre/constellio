@@ -1,12 +1,5 @@
 package com.constellio.model.services.search.cache;
 
-import static java.util.Collections.unmodifiableMap;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -14,6 +7,13 @@ import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Collections.unmodifiableMap;
 
 public class SerializedCacheSearchService {
 	private static List<MoreLikeThisRecord> emptyRecordsWithMoreLikeThis = Collections.emptyList();
@@ -44,7 +44,7 @@ public class SerializedCacheSearchService {
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query, final int batch) {
-		long qtime = 0L;
+		long qtime = System.currentTimeMillis();
 		LogicalSearchQuery duplicateQuery = new LogicalSearchQuery(query);
 		List<Record> records = search(duplicateQuery, batch);
 		Map<String, Map<String, List<String>>> highlights = unmodifiableMap(cache.getHighlightingMap());
@@ -67,7 +67,7 @@ public class SerializedCacheSearchService {
 		Map<String, List<FacetValue>> fieldFacetValues = cache.getFieldFacetValues();
 		Map<String, Integer> queryFacetsValues = cache.getQueryFacetsValues();
 
-		return new SPEQueryResponse(fieldFacetValues, emptyStatisticsValues, queryFacetsValues, qtime,
+		return new SPEQueryResponse(fieldFacetValues, emptyStatisticsValues, queryFacetsValues, System.currentTimeMillis() - qtime,
 				numFound, records, highlights, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
 	}
 

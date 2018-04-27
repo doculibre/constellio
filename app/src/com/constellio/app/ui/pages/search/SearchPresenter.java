@@ -377,7 +377,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			@Override
 			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
-
+				logSearchEvent(this, response);
 				if (!hasExtensionsBeenNotified) {
 					hasExtensionsBeenNotified = true;
 					SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)),
@@ -417,11 +417,20 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	private void logSearchEvent(SearchResultVODataProvider dataProvider, SPEQueryResponse response) {
+		LogicalSearchQuery query = dataProvider.getQuery();
+
+		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+		int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+
+		query.setStartRow(start);
+		query.setNumberOfRows(rows);
+
 		ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-				.addSolrModifiableParams(dataProvider.getQuery());
+				.addSolrModifiableParams(query);
 
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 		SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+		searchEvent.setClickCount(0);
 
 		ArrayList<String> paramList = new ArrayList<>();
 
@@ -895,9 +904,42 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void searchNavigationButtonClicked() {
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		Record searchEventRecord = view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
+				appLayerFactory.getModelLayerFactory());
 
-		searchEventServices.incrementPageNavigationCounter(searchEvent.getId());
+		SearchEvent searchEvent = schemasRecordsServices.wrapSearchEvent(searchEventRecord);
+
+		List<String> params = new ArrayList<>(searchEvent.getParams());
+
+		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+		int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+
+		ListIterator<String> listIterator = params.listIterator();
+		while(listIterator.hasNext()) {
+			String param = listIterator.next();
+
+			if(StringUtils.startsWith(param, "start=")) {
+				listIterator.set("start="+start);
+			}
+
+			if(StringUtils.startsWith(param, "rows=")) {
+				listIterator.set("rows="+rows);
+			}
+		}
+
+		SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
+		newSearchEvent.setParams(params);
+		newSearchEvent.setClickCount(searchEvent.getClickCount());
+		newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
+		newSearchEvent.setQuery(searchEvent.getQuery());
+		newSearchEvent.setNumFound(searchEvent.getNumFound());
+		newSearchEvent.setQTime(searchEvent.getQTime());
+
+		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
+			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", newSearchEvent.getWrappedRecord());
+			searchEventServices.save(newSearchEvent);
+		}
 	}
 
 	public void searchResultElevationClicked(RecordVO recordVO) {

@@ -121,7 +121,7 @@ public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
 
 		SearchEvent excluded = searchEvents.remove(RandomUtils.nextInt(0, searchEvents.size()));
 
-		presenter.applyFilter(excluded.getQuery(), null, null, null, null, null);
+		presenter.applyFilter(excluded.getQuery(), null, null, null, null);
 		List<RecordVO> recordVOS = presenter.getStatisticsDataProvider().listRecordVOs(0, nb);
 
 		Assertions.assertThat(recordVOS).isNotNull().hasSize(searchEvents.size());
@@ -130,9 +130,9 @@ public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void givenUnknownStatisticTypeThenException() {
-		presenter.applyFilter(null, null, null, null, null, null);
+		presenter.applyFilter(null, null, null, null, null);
 
-		presenter.getStatisticsFacetsDataProvider().getQueryResponse();
+		presenter.getStatisticsFacetsDataProvider().getQueryResponse(0, 15);
 	}
 
 	@Test
@@ -140,9 +140,9 @@ public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
 		int nb = 10;
 		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb);
 
-		presenter.applyFilter(null, FAMOUS_REQUEST, null, null, null, null);
+		presenter.applyFilter(null, FAMOUS_REQUEST, null, null, null);
 
-		QueryResponse queryResponse = presenter.getStatisticsFacetsDataProvider().getQueryResponse();
+		QueryResponse queryResponse = presenter.getStatisticsFacetsDataProvider().getQueryResponse(0, nb);
 
 		NamedList<Object> namedList = queryResponse.getResponse();
 
