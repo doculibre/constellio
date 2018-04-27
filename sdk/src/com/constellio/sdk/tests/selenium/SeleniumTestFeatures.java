@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
@@ -161,6 +162,7 @@ public class SeleniumTestFeatures {
 
 		ClientConfig config = new ClientConfig();
 		config.property(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE_CLIENT, true);
+		config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
 		config.register(jsonProvider);
 		config.register(MultiPartFeature.class);
 
