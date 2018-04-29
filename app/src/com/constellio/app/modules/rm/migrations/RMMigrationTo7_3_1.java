@@ -50,18 +50,12 @@ public class RMMigrationTo7_3_1 implements MigrationScript {
 			MigrationResourcesProvider migrationResourcesProvider) {
 		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy admUnitTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.ADMINISTRATIVE_UNITS);
-		List<String> languageList = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 
-		Map<Language,String> mapLangageTitre = new HashMap<>();
-
-		for(String language : languageList) {
-			Locale locale = new Locale(language);
-			mapLangageTitre.put(Language.withLocale(locale), migrationResourcesProvider.getString("taxo.admUnits", locale));
-		}
+		Map<Language,String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(
+				collection, modelLayerFactory, migrationResourcesProvider, "taxo.admUnits");
 
 		admUnitTaxo = admUnitTaxo.withTitle(mapLangageTitre);
 		manager.editTaxonomy(admUnitTaxo);
-
 	}
 
 	class SchemaAlterationFor7_3_1 extends MetadataSchemasAlterationHelper {

@@ -59,10 +59,10 @@ public class TaxonomyVODataProviderTest extends ConstellioTest {
 		when(taxonomyVO1.getCode()).thenReturn("taxo1");
 		when(taxonomyVO2.getCode()).thenReturn("taxo2");
 
-		when(voBuilder.build(taxonomy1, Language.French)).thenReturn(taxonomyVO1);
-		when(voBuilder.build(taxonomy2, Language.French)).thenReturn(taxonomyVO2);
+		when(voBuilder.build(taxonomy1)).thenReturn(taxonomyVO1);
+		when(voBuilder.build(taxonomy2)).thenReturn(taxonomyVO2);
 
-		dataProvider = spy(new TaxonomyVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), zeCollection, "admin", Language.French));
+		dataProvider = spy(new TaxonomyVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), zeCollection, "admin"));
 	}
 
 	@Test

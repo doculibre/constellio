@@ -61,7 +61,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		if (conceptId != null) {
 			return null;
 		} else {
-			return presenter.getTaxonomy().getTitle();
+			return presenter.getTaxonomy().getTitle().get(getSessionContext().getCurrentLocale().getLanguage());
 		}
 	}
 

@@ -118,6 +118,10 @@ public class MetadataSchemaType implements Serializable {
 		return labels.get(Language.French);
 	}
 
+	public Map<Language, String> getLabel() {
+		return labels;
+	}
+
 	public String getLabel(Language language) {
 		return labels.get(language);
 	}

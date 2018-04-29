@@ -90,8 +90,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Map<Language, String> title2 = new HashMap<>();
 		title2.put(Language.French, "Zé domaine de valeur 2!");
 
-		services.createValueDomain(title1, true);
-		services.createValueDomain(title2, true);
+		services.createValueDomain(title1, false);
+		services.createValueDomain(title2, false);
 
 		List<MetadataSchemaType> newDomainTypes = new ArrayList<>();
 		for (MetadataSchemaType type : services.getValueDomainTypes()) {
@@ -141,7 +141,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		taxonomy1 = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, taxonomy1.getCode());
 		taxonomy2 = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, taxonomy2.getCode());
 
-		assertThat(taxonomy1.getTitle()).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxonomy1.getTitle().get(Language.English)).isEqualTo("My ultimate taxonomy!");
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");
 		assertThat(taxonomy2.getTitle()).isEqualTo("Another taxonomy!");
 		assertThat(taxonomy2.getSchemaTypes()).containsOnlyOnce(taxonomy2.getCode() + "Type");
@@ -189,7 +189,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle, userIds, groupIds, true, true);
 
-		assertThat(taxonomy1.getTitle()).isEqualTo(title);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(title);
 		assertThat(taxonomy1.getUserIds()).isEqualTo(userIds);
 		assertThat(taxonomy1.getGroupIds()).isEqualTo(groupIds);
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");

@@ -197,6 +197,7 @@ public class TaxonomiesWriterTest extends ConstellioTest {
 				taxonomiesElement.getChild(ENABLES).getChild(TAXONOMY).getChild("groupIds").getValue())
 				.isEqualTo(groupIds.get(0) + "," + groupIds.get(1));
 		assertThat(taxonomiesElement.getChild(DISABLES).getChildren()).isEmpty();
+		assertThat(taxonomiesElement.getChild(ENABLES).getChild(TAXONOMY).getChild("title").getAttributeValue("titlefr")).isEqualTo("newTitle");
 	}
 
 	private Taxonomy newTaxonomy(int id) {

@@ -1,10 +1,7 @@
 package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -25,14 +22,12 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 	private TaxonomyToVOBuilder voBuilder;
 	private String collection;
 	private String username;
-	private Language language;
 
 	public TaxonomyVODataProvider(TaxonomyToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
-			String username, Language language) {
+			String username) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		this.username = username;
-		this.language = language;
 		init(modelLayerFactory);
 	}
 
@@ -55,7 +50,7 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 		List<Taxonomy> taxonomies = taxonomiesManager.getAvailableTaxonomiesInHomePage(user);
 
 		for (Taxonomy taxonomy : taxonomies) {
-			TaxonomyVO taxonomyVO = voBuilder.build(taxonomy, this.language);
+			TaxonomyVO taxonomyVO = voBuilder.build(taxonomy);
 			newTaxonomyVOs.add(taxonomyVO);
 		}
 		sort(newTaxonomyVOs);
@@ -91,8 +86,8 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 		return codes;
 	}
 
-	public List<String> getTaxonomyVOsTitles() {
-		List<String> titles = new ArrayList<>();
+	public ArrayList<Map<Language, String>> getTaxonomyVOsTitles() {
+		ArrayList<Map<Language, String>> titles = new ArrayList<Map<Language, String>>();
 		for (TaxonomyVO taxonomyVO : taxonomyVOs) {
 			titles.add(taxonomyVO.getTitle());
 		}

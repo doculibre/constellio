@@ -160,7 +160,7 @@ public class MetadataSchemaBuilder {
 	private static Map<Language, String> configureLabels(String code, MetadataSchemaBuilder typesBuilder,
 			Map<Language, String> labels) {
 		for (Language language : typesBuilder.getLabels().keySet()) {
-			if (StringUtils.isBlank(labels.get(language)))
+			if (labels.get(language) == null || StringUtils.isBlank(labels.get(language)))
 				labels.put(language, code);
 		}
 		return labels;
