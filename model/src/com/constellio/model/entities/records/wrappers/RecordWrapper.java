@@ -276,6 +276,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return this;
 	}
 
+	public RecordWrapper setTitle(Locale locale, String title) {
+		wrappedRecord.set(Schemas.TITLE, locale, title);
+		return this;
+	}
+
 	public String getLegacyId() {
 		return wrappedRecord.get(Schemas.LEGACY_ID);
 	}

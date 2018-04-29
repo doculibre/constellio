@@ -33,6 +33,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -595,6 +596,93 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		assertThatAutoCompleteFruitSearch(Locale.FRENCH, "pe").containsOnly("r2");
 		assertThatAutoCompleteFruitSearch(Locale.ENGLISH, "pe").containsOnly("r2", "r3");
 
+	}
+
+	@Test
+	public void whenFilteringReturnedMetadatasThenReturnedMetadatasOfAllLocales()
+			throws Exception {
+
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(multilingualCollectionSchemas
+				.withAStringMetadata(whichIsSchemaAutocomplete, whichIsMultilingual)
+				.withAnotherStringMetadata(whichIsSchemaAutocomplete));
+
+		setupServices();
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(multilingualSchema, "r1")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "pomme")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Apple")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r2")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Pêche molle")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Peach")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r3")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Poire")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "pear")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r4")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Quick aux fraises")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Strawberry quick")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r5")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "perdrix")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Partridge")
+				.set(multilingualSchema.anotherStringMetadata(), "Oiseau"));
+
+		tx.add(new TestRecord(multilingualSchema, "r6")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Arachide")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "peanut")
+				.set(multilingualSchema.anotherStringMetadata(), "Autre"));
+
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
+		query.setLanguage(Locale.FRENCH);
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(multilingualSchema.stringMetadata()));
+
+		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadatas("id", "stringMetadata")
+				.containsOnly(
+						tuple("r1", "pomme"),
+						tuple("r2", "Pêche molle"),
+						tuple("r3", "Poire"),
+						tuple("r4", "Quick aux fraises"),
+						tuple("r5", "perdrix"),
+						tuple("r6", "Arachide"));
+
+		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadatas("id", "stringMetadata")
+				.containsOnly(
+						tuple("r1", "Apple"),
+						tuple("r2", "Peach"),
+						tuple("r3", "pear"),
+						tuple("r4", "Strawberry quick"),
+						tuple("r5", "Partridge"),
+						tuple("r6", "peanut"));
+
+		query.setLanguage(Locale.ENGLISH);
+		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadatas("id", "stringMetadata")
+				.containsOnly(
+						tuple("r1", "pomme"),
+						tuple("r2", "Pêche molle"),
+						tuple("r3", "Poire"),
+						tuple("r4", "Quick aux fraises"),
+						tuple("r5", "perdrix"),
+						tuple("r6", "Arachide"));
+
+		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadatas("id", "stringMetadata")
+				.containsOnly(
+						tuple("r1", "Apple"),
+						tuple("r2", "Peach"),
+						tuple("r3", "pear"),
+						tuple("r4", "Strawberry quick"),
+						tuple("r5", "Partridge"),
+						tuple("r6", "peanut"));
 	}
 
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(Locale locale, String text) {

@@ -175,16 +175,19 @@ Schemas {
 
 	public static Metadata getSecondaryLanguageMetadata(Metadata metadata, String language) {
 
-		String dataStoreCode = metadata.getDataStoreCode();
-
-		String beforeUnderscore = StringUtils.substringBefore(metadata.getDataStoreCode(), "_");
-		String afterUnderscore = StringUtils.substringAfter(metadata.getDataStoreCode(), "_");
-
-		dataStoreCode = beforeUnderscore + "." + language + "_" + afterUnderscore;
+		String dataStoreCode = getSecondaryLanguageDataStoreCode(metadata.getDataStoreCode(), language);
 
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
 		return new Metadata(schemaCode, dataStoreCode, TEXT, metadata.isMultivalue(),
 				metadata.isMultiLingual());
+	}
+
+	public static String getSecondaryLanguageDataStoreCode(String dataStoreCode, String language) {
+
+		String beforeUnderscore = StringUtils.substringBefore(dataStoreCode, "_");
+		String afterUnderscore = StringUtils.substringAfter(dataStoreCode, "_");
+
+		return beforeUnderscore + "." + language + "_" + afterUnderscore;
 	}
 
 	private static String replaceLast(String string, String expressionToReplace, String replacement) {

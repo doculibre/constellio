@@ -168,7 +168,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public Record set(Metadata metadata, Locale locale, Object value) {
-		return set(metadata, locale.getLanguage(), value);
+		return set(metadata, locale == null ? collectionInfo.getMainSystemLanguage().getCode() : locale.getLanguage(), value);
 	}
 
 	private Record set(Metadata metadata, String language, Object value) {
@@ -320,7 +320,8 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata, Locale locale) {
-		return get(metadata, locale.getLanguage(), PREFERRING);
+		return get(metadata, locale == null ? collectionInfo.getMainSystemLocale().getLanguage() : locale.getLanguage(),
+				PREFERRING);
 	}
 
 	@Override

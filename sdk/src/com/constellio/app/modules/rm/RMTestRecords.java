@@ -20,6 +20,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -731,34 +732,47 @@ public class RMTestRecords {
 	}
 
 	private void setupAdministrativeUnits(Transaction transaction) {
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_10)).setCode("10").setTitle("Unité 10").setAdress("Unit 10 Adress")
-				.setDescription("Ze ultimate unit 10");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_10a)).setCode("10A").setTitle("Unité 10-A").setParent(unitId_10)
-				.setDescription("Ze ultimate unit 10A");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_10)).setCode("10")
+				.setTitle("Unité 10").setTitle(ENGLISH, "Unit 10")
+				.setAdress("Unit 10 Adress").setDescription("Ze ultimate unit 10");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_10a)).setCode("10A")
+				.setTitle("Unité 10-A").setTitle(ENGLISH, "Unit 10-A")
+				.setParent(unitId_10).setDescription("Ze ultimate unit 10A");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_11)).setCode("11").setTitle("Unité 11").setParent(unitId_10)
-				.setDescription("Ze ultimate unit 11");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_11b)).setCode("11B").setTitle("Unité 11-B").setParent(unitId_11)
-				.setDescription("Ze ultimate unit 11B");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_11)).setCode("11")
+				.setTitle("Unité 11").setTitle(ENGLISH, "Unit 11")
+				.setParent(unitId_10).setDescription("Ze ultimate unit 11");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_11b)).setCode("11B")
+				.setTitle("Unité 11-B").setTitle(ENGLISH, "Unit 11-B")
+				.setParent(unitId_11).setDescription("Ze ultimate unit 11B");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12)).setCode("12").setTitle("Unité 12").setParent(unitId_10)
-				.setDescription("Ze ultimate unit 12");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12b)).setCode("12B").setTitle("Unité 12-B").setParent(unitId_12)
-				.setDescription("Ze ultimate unit 12B");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12c)).setCode("12C").setTitle("Unité 12-C").setParent(unitId_12)
-				.setDescription("Ze ultimate unit 12C");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12)).setCode("12")
+				.setTitle("Unité 12").setTitle(ENGLISH, "Unit 12")
+				.setParent(unitId_10).setDescription("Ze ultimate unit 12");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20)).setCode("20").setTitle("Unité 20")
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12b)).setCode("12B")
+				.setTitle("Unité 12-B").setTitle(ENGLISH, "Unit 12-B")
+				.setParent(unitId_12).setDescription("Ze ultimate unit 12B");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12c)).setCode("12C")
+				.setTitle("Unité 12-C").setTitle(ENGLISH, "Unit 12-C")
+				.setParent(unitId_12).setDescription("Ze ultimate unit 12C");
+
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20)).setCode("20")
+				.setTitle("Unité 20").setTitle(ENGLISH, "Unit 20")
 				.setDescription("Ze ultimate unit 20");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20d)).setCode("20D").setTitle("Unité 20-D").setParent(unitId_20)
-				.setDescription("Ze ultimate unit 20D");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20e)).setCode("20E").setTitle("Unité 20-E").setParent(unitId_20)
-				.setDescription("Ze ultimate unit 20E");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20d)).setCode("20D")
+				.setTitle("Unité 20-D").setTitle(ENGLISH, "Unit 20-D")
+				.setParent(unitId_20).setDescription("Ze ultimate unit 20D");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20e)).setCode("20E")
+				.setTitle("Unité 20-E").setTitle(ENGLISH, "Unit 20-E")
+				.setParent(unitId_20).setDescription("Ze ultimate unit 20E");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_30)).setCode("30").setTitle("Unité 30")
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_30)).setCode("30")
+				.setTitle("Unité 30").setTitle(ENGLISH, "Unit 30")
 				.setDescription("Ze ultimate unit 30");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_30c)).setCode("30C").setTitle("Unité 30-C").setParent(unitId_30)
-				.setDescription("Ze ultimate unit 30C");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_30c)).setCode("30C")
+				.setTitle("Unité 30-C").setTitle(ENGLISH, "Unit 30-C")
+				.setParent(unitId_30).setDescription("Ze ultimate unit 30C");
 	}
 
 	private void setupUniformSubdivisions(Transaction transaction) {

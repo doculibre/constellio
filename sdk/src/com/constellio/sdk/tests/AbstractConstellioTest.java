@@ -1336,8 +1336,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
 
+		List<String> languages;
+
 		public CollectionPreparator(String collection) {
 			this.collection = collection;
+		}
+
+		public CollectionPreparator withLanguages(List<String> languages) {
+			this.languages = languages;
+			return this;
 		}
 
 		public CollectionPreparator withConstellioRMModule() {
@@ -1427,6 +1434,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			CollectionPreparator that = (CollectionPreparator) o;
 
+			if (languages != that.languages) {
+				return false;
+			}
 			if (allTestUsers != that.allTestUsers) {
 				return false;
 			}
@@ -1474,6 +1484,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			result = 31 * result + collection.hashCode();
 			result = 31 * result + modules.hashCode();
 			result = 31 * result + plugins.hashCode();
+			result = 31 * result + (languages == null ? 0 : languages.hashCode());
 			return result;
 		}
 	}
