@@ -257,7 +257,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if(presenter.hasMetadataReport()) {
-		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT, null);
+		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"), FontAwesome.LIST_ALT, null);
 			metadataReportGenerator.setCommand(new Command() {
 
 				@Override
