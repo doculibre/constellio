@@ -526,7 +526,20 @@ public class SearchServices {
 			fields.add("schema_s");
 			fields.add("_version_");
 			fields.add("collection_s");
-			fields.addAll(query.getReturnedMetadatas().getAcceptedFields());
+
+			List<String> secondaryCollectionLanguages = new ArrayList<>();
+			if (collection != null) {
+				secondaryCollectionLanguages.addAll(
+						collectionsListManager.getCollectionInfo(collection).getSecondaryCollectionLanguesCodes());
+			}
+
+			for (String field : query.getReturnedMetadatas().getAcceptedFields()) {
+				fields.add(field);
+				for (String secondaryCollectionLanguage : secondaryCollectionLanguages) {
+					fields.add(Schemas.getSecondaryLanguageDataStoreCode(field, secondaryCollectionLanguage));
+				}
+			}
+
 			params.set(CommonParams.FL, StringUtils.join(fields.toArray(), ","));
 
 		}

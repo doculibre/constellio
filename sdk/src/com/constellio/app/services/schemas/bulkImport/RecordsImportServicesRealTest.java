@@ -24,6 +24,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasFixedSe
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasSequenceDefinedByMetadata;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -76,8 +78,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -1054,6 +1054,72 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					"Ze type de schéma 3 : La valeur «SECOND_VALUE» définie à la métadonnée «withAnEnumMetadata» n’est pas acceptée, seules les valeurs «F, S» sont acceptées"
 			);
 		}
+	}
+
+	@Test
+	public void whenImportingValuesInAMultilingualMetadataThenWrittenForGivenLocalOrMainDataLanguage()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsMultilingual));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value1"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value2", Locale.FRENCH)
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value3", Locale.ENGLISH));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value5", Locale.ENGLISH));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.FRENCH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", "value1"),
+				tuple("4", "value2"),
+				tuple("5", "value4")
+		);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.ENGLISH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", null),
+				tuple("4", "value3"),
+				tuple("5", "value5")
+		);
+
+		zeSchemaTypeRecords.clear();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value6"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value7", Locale.FRENCH));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value8", Locale.ENGLISH));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.FRENCH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", "value6"),
+				tuple("4", "value7"),
+				tuple("5", "value4")
+		);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.ENGLISH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", null),
+				tuple("4", "value3"),
+				tuple("5", "value8")
+		);
+
 	}
 
 	@Test

@@ -52,6 +52,11 @@ public class AdministrativeUnit extends RecordWrapper {
 		return this;
 	}
 
+	public AdministrativeUnit setTitle(Locale locale, String title) {
+		super.setTitle(locale, title);
+		return this;
+	}
+
 	public String getCode() {
 		return get(CODE);
 	}
