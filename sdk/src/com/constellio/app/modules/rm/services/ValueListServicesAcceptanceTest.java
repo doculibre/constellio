@@ -90,8 +90,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Map<Language, String> title2 = new HashMap<>();
 		title2.put(Language.French, "Zé domaine de valeur 2!");
 
-		services.createValueDomain(title1, true);
-		services.createValueDomain(title2, true);
+		services.createValueDomain(title1, false);
+		services.createValueDomain(title2, false);
 
 		List<MetadataSchemaType> newDomainTypes = new ArrayList<>();
 		for (MetadataSchemaType type : services.getValueDomainTypes()) {
@@ -141,17 +141,17 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		taxonomy1 = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, taxonomy1.getCode());
 		taxonomy2 = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, taxonomy2.getCode());
 
-		assertThat(taxonomy1.getTitle()).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxonomy1.getTitle().get(Language.English)).isEqualTo("My ultimate taxonomy!");
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");
-		assertThat(taxonomy2.getTitle()).isEqualTo("Another taxonomy!");
+		assertThat(taxonomy2.getTitle().get(Language.English)).isEqualTo("Another taxonomy!");
 		assertThat(taxonomy2.getSchemaTypes()).containsOnlyOnce(taxonomy2.getCode() + "Type");
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		MetadataSchemaType taxo1Type = types.getSchemaType(taxonomy1.getSchemaTypes().get(0));
 		MetadataSchemaType taxo2Type = types.getSchemaType(taxonomy2.getSchemaTypes().get(0));
 
-		assertThat(taxo1Type.getLabel(Language.French)).isEqualTo("My ultimate taxonomy!");
-		assertThat(taxo2Type.getLabel(Language.French)).isEqualTo("Another taxonomy!");
+		assertThat(taxo1Type.getLabel(Language.English)).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxo2Type.getLabel(Language.English)).isEqualTo("Another taxonomy!");
 
 		Metadata code = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.CODE);
 		Metadata description = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.DESCRIPTION);
@@ -189,7 +189,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle, userIds, groupIds, true, true);
 
-		assertThat(taxonomy1.getTitle()).isEqualTo(title);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(title);
 		assertThat(taxonomy1.getUserIds()).isEqualTo(userIds);
 		assertThat(taxonomy1.getGroupIds()).isEqualTo(groupIds);
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");

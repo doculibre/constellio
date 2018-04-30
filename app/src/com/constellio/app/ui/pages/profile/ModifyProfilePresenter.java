@@ -237,7 +237,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
     TaxonomyVODataProvider newDataProvider() {
         return new TaxonomyVODataProvider(newVoBuilder(), modelLayerFactory,
-                view.getCollection(), view.getSessionContext().getCurrentUser().getUsername(), language);
+                view.getCollection(), view.getSessionContext().getCurrentUser().getUsername());
     }
 
     private TaxonomyToVOBuilder newVoBuilder() {

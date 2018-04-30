@@ -53,7 +53,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		String taxonomyCode = params.get(TAXONOMY_CODE);
 		queryExpression = params.get(QUERY);
-		taxonomy = new TaxonomyToVOBuilder().build(fetchTaxonomy(taxonomyCode), language);
+		taxonomy = new TaxonomyToVOBuilder().build(fetchTaxonomy(taxonomyCode));
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		retrievedTaxonomy = fetchTaxonomy(taxonomy.getCode());
 		return this;

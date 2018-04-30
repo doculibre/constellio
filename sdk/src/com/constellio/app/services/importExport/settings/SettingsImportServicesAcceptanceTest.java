@@ -545,9 +545,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		i18n.setLocale(Locale.FRENCH);
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode("")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -563,9 +566,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingConfigSettingsIfCollectionCodeDoesNotExistThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode("unknonCollection")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -578,9 +584,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListIfCodeIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(null)
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -593,9 +602,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListIfCodeDoesNotStartWithDDVPrefixThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode("USRcodeDuDomaineDeValeur1")
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -609,26 +621,42 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListsThenSet()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+		titleMap.put(Language.English ,TITLE_EN);
+
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 		collectionSettings.addValueList(v1);
 
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, "Le titre du domaine de valeurs 2");
+		titleMap2.put(Language.English ,"Second value list's updated title");
+
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 2")
+				.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString(DOCUMENT))
 				.setCodeMode("FACULTATIVE");
 		collectionSettings.addValueList(v2);
 
+		Map<Language, String> titleMap3 = new HashMap<>();
+		titleMap3.put(Language.French, "Le titre du domaine de valeurs 3");
+		titleMap3.put(Language.English ,"Third value list's updated title");
+
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 3")
+				.setTitle(titleMap3)
 				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
 		collectionSettings.addValueList(v3);
 
+		Map<Language, String> titleMap4 = new HashMap<>();
+		titleMap4.put(Language.French, "Le titre du domaine de valeurs 4");
+		titleMap4.put(Language.English , "Forth value list's updated title");
+
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 4")
+				.setTitle(titleMap4)
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
@@ -641,6 +669,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(CODE_1_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo(TITLE_FR);
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo(TITLE_EN);
 		Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isFalse();
@@ -651,6 +680,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(CODE_2_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo("Le titre du domaine de valeurs 2");
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo("Second value list's updated title");
 		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isFalse();
@@ -661,6 +691,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(CODE_3_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo("Le titre du domaine de valeurs 3");
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo("Third value list's updated title");
 		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
@@ -674,6 +705,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(CODE_4_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo("Le titre du domaine de valeurs 4");
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo("Forth value list's updated title");
 		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
@@ -689,9 +721,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenModifyingValueListTitleThenValueIsUpdated()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+
 		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		ImportedValueList valueList = new ImportedValueList().setCode(codeA)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 
@@ -708,7 +743,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo(TITLE_FR);
 
-		valueList.setTitle(TITLE_FR_UPDATED)
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, TITLE_FR_UPDATED);
+
+		valueList.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 
@@ -725,9 +763,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenModifyingValueListCodeModeThenValueIsUpdated()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+
 		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		ImportedValueList valueList = new ImportedValueList().setCode(codeA)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setCodeMode("DISABLED");
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -862,7 +903,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy1).isNotNull();
-		assertThat(taxonomy1.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 		assertThat(taxonomy1.isVisibleInHomePage()).isFalse();
 		assertThat(taxonomy1.getGroupIds()).hasSize(1).containsExactly("group1");
 		assertThat(taxonomy1.getUserIds()).hasSize(2).containsExactly(gandalf, bobGratton);
@@ -881,7 +922,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
 
 		assertThat(taxonomy2).isNotNull();
-		assertThat(taxonomy2.getTitle()).isEqualTo(TAXO_2_TITLE_FR);
+		assertThat(taxonomy2.getTitle().get(Language.French)).isEqualTo(TAXO_2_TITLE_FR);
 		assertThat(taxonomy2.isVisibleInHomePage()).isTrue();
 		assertThat(taxonomy2.getGroupIds()).isEmpty();
 		assertThat(taxonomy2.getUserIds()).isEmpty();
@@ -922,7 +963,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy1).isNotNull();
-		assertThat(taxonomy1.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
@@ -978,7 +1019,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		Map<Language, String> labelTitle2 = new HashMap<>();
 		labelTitle2.put(Language.French, TAXO_1_TITLE_FR_UPDATED);
@@ -993,7 +1034,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR_UPDATED);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR_UPDATED);
 	}
 
 	@Test
@@ -1103,7 +1144,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
@@ -3216,25 +3257,37 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 		collectionSettings.addValueList(v1);
 
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, "Le titre du domaine de valeurs 2");
+
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 2")
+				.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString(DOCUMENT))
 				.setCodeMode("FACULTATIVE");
 		collectionSettings.addValueList(v2);
 
+		Map<Language, String> titleMap3 = new HashMap<>();
+		titleMap3.put(Language.French, "Le titre du domaine de valeurs 3");
+
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 3")
+				.setTitle(titleMap3)
 				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
 		collectionSettings.addValueList(v3);
 
+		Map<Language, String> titleMap4 = new HashMap<>();
+		titleMap4.put(Language.French, "Le titre du domaine de valeurs 4");
+
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 4")
+				.setTitle(titleMap4)
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
@@ -3301,7 +3354,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument = new SettingsXMLFileWriter().writeSettings(settings);
 
 		// read file1 to setting1
-		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument).read();
+		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument, getModelLayerFactory()).read();
 		//		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
 		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
 
@@ -3309,7 +3362,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument1 = new SettingsXMLFileWriter().writeSettings(settingsRead1);
 
 		// read file2 to setting2
-		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1).read();
+		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1, getModelLayerFactory()).read();
 		assertThat(settingsRead2).isEqualToComparingFieldByField(settingsRead1);
 
 	}
@@ -3361,7 +3414,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		try {
 			// write settings1 to file ==> file2
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
-			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings).read();
+			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings, getModelLayerFactory()).read();
 			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);
 

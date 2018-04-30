@@ -38,7 +38,11 @@ public class Taxonomy implements CollectionObject, Serializable {
 	public Taxonomy(String code, Map<Language, String> title, String collection, boolean visibleInHomePage,
 			List<String> userIds, List<String> groupIds, List<String> taxonomySchemaTypes, boolean showParentsInSearchResults) {
 		this.code = code;
-		this.title = new HashMap(title);
+		if(title != null) {
+			this.title = new HashMap(title);
+		} else {
+			this.title = new HashMap<>();
+		}
 		this.collection = collection;
 		this.visibleInHomePage = visibleInHomePage;
 		this.userIds = Collections.unmodifiableList(userIds);

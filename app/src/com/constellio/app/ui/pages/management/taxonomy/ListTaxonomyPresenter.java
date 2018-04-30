@@ -14,16 +14,11 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
-	private List<String> titles;
-	private Language language;
-
 	public ListTaxonomyPresenter(ListTaxonomyView view) {
 		super(view);
-		language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 	}
 
 	public List<TaxonomyVO> getTaxonomies() {
-		titles = new ArrayList<>();
 		TaxonomyToVOBuilder builder = new TaxonomyToVOBuilder();
 		User user = getCurrentUser();
 		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
@@ -31,8 +26,7 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		for (Taxonomy taxonomy : valueListServices().getTaxonomies()) {
 			if (presentersService.canManage(taxonomy.getCode(), user) && presentersService.displayTaxonomy(taxonomy.getCode(),
 					user)) {
-				result.add(builder.build(taxonomy, language));
-				titles.add(taxonomy.getTitle(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage())));
+				result.add(builder.build(taxonomy));
 			}
 		}
 		return result;

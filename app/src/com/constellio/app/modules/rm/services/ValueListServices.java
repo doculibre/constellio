@@ -233,6 +233,9 @@ public class ValueListServices {
 				.setMultivalue(true);
 
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
+			if(taxonomy.getTitle(language) == null) {
+				continue;
+			}
 			metadataBuilder.addLabel(language, taxonomy.getTitle(language));
 		}
 

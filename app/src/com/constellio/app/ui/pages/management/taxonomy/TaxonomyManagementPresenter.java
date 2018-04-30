@@ -85,7 +85,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		taxonomyCode = params.get(TAXONOMY_CODE);
 		conceptId = params.get(CONCEPT_ID);
-		taxonomy = new TaxonomyToVOBuilder().build(fetchTaxonomy(taxonomyCode), language);
+		taxonomy = new TaxonomyToVOBuilder().build(fetchTaxonomy(taxonomyCode));
 		return this;
 	}
 

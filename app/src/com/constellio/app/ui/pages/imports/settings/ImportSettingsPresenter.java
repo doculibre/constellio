@@ -32,7 +32,6 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 	private static final Logger LOGGER = LogManager.getLogger(ImportSettingsPresenter.class); 
 	
 	private transient SettingsImportServices settingsImportServices;
-	private Language language ;
 
 	public ImportSettingsPresenter(ImportFileView view) {
 		super(view);
@@ -65,7 +64,7 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 			try {
 				if (upload.getFileName().endsWith(".xml")) {
 					Document settingsDocument = getDocumentFromFile(file); //jdom document
-					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, view.getCollection(), appLayerFactory.getCollectionsManager()).read();
+					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, modelLayerFactory).read();
 					try {
 						settingsImportServices.importSettings(settings);
 						view.showImportCompleteMessage();

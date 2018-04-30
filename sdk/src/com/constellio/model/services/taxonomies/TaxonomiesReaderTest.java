@@ -39,8 +39,10 @@ public class TaxonomiesReaderTest extends ConstellioTest {
 		writer.addTaxonmy(taxonomy1);
 		writer.addTaxonmy(taxonomy2);
 		writer.addTaxonmy(taxonomy3);
-		reader = new TaxonomiesReader(document, getModelLayerFactory().getCollectionsListManager()
-				.getCollectionLanguages(zeCollection));
+		List<String> languageSupported = new ArrayList<>();
+		languageSupported.add(Language.French.getCode());
+		languageSupported.add(Language.English.getCode());
+		reader = new TaxonomiesReader(document, languageSupported);
 	}
 
 	@Test
@@ -73,19 +75,22 @@ public class TaxonomiesReaderTest extends ConstellioTest {
 		writer.disable("code1");
 		writer.disable("code3");
 
-		reader = new TaxonomiesReader(document, getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(zeCollection));
-
 		List<Taxonomy> disablesTaxonomies = reader.readDisables();
 
 		taxonomiesElement = document.getRootElement();
 		assertThat(disablesTaxonomies).hasSize(2);
 		assertThat(disablesTaxonomies.get(0).getCode()).isEqualTo(taxonomy1.getCode());
+		assertThat(disablesTaxonomies.get(0).getTitle().get(Language.French)).isEqualTo("taxofr1");
+		assertThat(disablesTaxonomies.get(0).getTitle().get(Language.English)).isEqualTo("taxoen1");
 		assertThat(disablesTaxonomies.get(1).getCode()).isEqualTo(taxonomy3.getCode());
+		assertThat(disablesTaxonomies.get(1).getTitle().get(Language.French)).isEqualTo("taxofr3");
+		assertThat(disablesTaxonomies.get(1).getTitle().get(Language.English)).isEqualTo("taxoen3");
 	}
 
 	private Taxonomy newTaxonomy(int id) {
 		Map<Language, String> labelTitle = new HashMap<>();
-		labelTitle.put(Language.French, "taxo" + id);
+		labelTitle.put(Language.French, "taxofr" + id);
+		labelTitle.put(Language.English, "taxoen" + id);
 
 		ArrayList<String> taxonomySchemaTypes = new ArrayList<>();
 		taxonomySchemaTypes.add("schemaType1" + id);

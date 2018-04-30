@@ -1,15 +1,16 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,16 +31,11 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private String currentCollection = null;
 	private Document document;
-	private CollectionsManager collectionsManager;
+	private ModelLayerFactory modelLayerFactory;
 
-	public SettingsXMLFileReader(Document document) {
+	public SettingsXMLFileReader(Document document, ModelLayerFactory modelLayerFactory) {
 		this.document = document;
-	}
-
-	public SettingsXMLFileReader(Document document, String currentCollection, CollectionsManager collectionManager) {
-		this.document = document;
-		this.currentCollection = currentCollection;
-		this.collectionsManager = collectionManager;
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public ImportedSettings read() {
@@ -95,9 +91,16 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 						"ERROR: tried to import settings as currentCollection but currentCollection was not set");
 			}
 		}
+
+		List<String> language = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collectionCode);
+		if(language == null || language.size() == 0) {
+			language = new ArrayList<>();
+			language.add(modelLayerFactory.getCollectionsListManager().getMainDataLanguage());
+		}
+
 		return new ImportedCollectionSettings().setCode(collectionCode)
-				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS)))
-				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES)))
+				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
+				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
 				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES)));
 	}
 
@@ -323,39 +326,23 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setValue(element.getAttributeValue("value"));
 	}
 
-	private List<ImportedTaxonomy> getCollectionTaxonomies(Element element) {
+	private List<ImportedTaxonomy> getCollectionTaxonomies(Element element, List<String> languageList) {
 		List<ImportedTaxonomy> taxonomies = new ArrayList<>();
 		for (Element child : element.getChildren()) {
-			taxonomies.add(readTaxonomy(child));
+			taxonomies.add(readTaxonomy(child, languageList));
 		}
 		return taxonomies;
 	}
 
-	private ImportedTaxonomy readTaxonomy(Element child) {
+	private ImportedTaxonomy readTaxonomy(Element child, List<String> languageList) {
 		ImportedTaxonomy taxonomy = new ImportedTaxonomy();
 		taxonomy.setCode(child.getAttributeValue(CODE));
 		String title = child.getAttributeValue(TITLE);
 
-		Map<Language, String> languageTitleMap = new HashMap<>();
-		int numberOfLang = 0;
+		Map<Language, String> languageTitleMap = getLanguageStringMap(child, languageList, title);
 
-		List<Attribute> attributeList = child.getAttributes();
-
-		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(currentAttribute.getName())) {
-				String languageCode = currentAttribute.getName().replace(title, "");
-				Language language = Language.withCode(languageCode);
-				languageTitleMap.put(language, currentAttribute.getValue());
-				numberOfLang++;
-			}
-		}
-
-		if(numberOfLang == 0 && title != null) {
-			List<String> languageAsString = collectionsManager.getCollectionLanguages(currentCollection);
-			for(String languageCollection : languageAsString) {
-				Language language = Language.withCode(languageCollection);
-				languageTitleMap.put(language, title);
-			}
+		if(languageTitleMap.size() > 0) {
+			taxonomy.setTitle(languageTitleMap);
 		}
 
 		if (child.getAttribute(CLASSIFIED_TYPES) != null) {
@@ -377,6 +364,31 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return taxonomy;
 	}
 
+	@NotNull
+	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String title) {
+		Map<Language, String> languageTitleMap = new HashMap<>();
+		int numberOfLang = 0;
+
+		List<Attribute> attributeList = child.getAttributes();
+
+		for(Attribute currentAttribute : attributeList) {
+			if(currentAttribute.getName().startsWith(SettingsXMLFileReader.TITLE) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
+				String languageCode = currentAttribute.getName().replace(SettingsXMLFileReader.TITLE, "");
+				Language language = Language.withCode(languageCode);
+				languageTitleMap.put(language, currentAttribute.getValue());
+				numberOfLang++;
+			}
+		}
+
+		if(numberOfLang == 0 && title != null) {
+			for(String languageCollection : languageList) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, title);
+			}
+		}
+		return languageTitleMap;
+	}
+
 	private List<String> toListOfString(String stringValue) {
 		if (isNotBlank(stringValue)) {
 			return asList(StringUtils.split(stringValue, ","));
@@ -384,10 +396,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return new ArrayList<>();
 	}
 
-	private List<ImportedValueList> getCollectionValueLists(Element valueListsElement) {
+	private List<ImportedValueList> getCollectionValueLists(Element valueListsElement, List<String> languages) {
 		List<ImportedValueList> importedValueLists = new ArrayList<>();
 		for (Element element : valueListsElement.getChildren()) {
-			importedValueLists.add(readValueList(element));
+			importedValueLists.add(readValueList(element, languages));
 		}
 		return importedValueLists;
 	}
@@ -431,11 +443,16 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return dataEntry;
 	}
 
-	private ImportedValueList readValueList(Element element) {
+	private ImportedValueList readValueList(Element element, List<String> languageList) {
 		ImportedValueList valueList = new ImportedValueList()
 				.setCode(element.getAttributeValue(CODE));
-		if (element.getAttribute(TITLE) != null) {
-			valueList.setTitle(element.getAttributeValue(TITLE));
+
+		String title = element.getAttributeValue(TITLE);
+
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title);
+
+		if (languageTitleMap.size() > 0) {
+			valueList.setTitle(languageTitleMap);
 		}
 
 		if (element.getAttribute(CLASSIFIED_TYPES) != null) {
