@@ -5,16 +5,25 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -37,7 +46,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	RMTestRecords records;
 	RMSchemasRecordsServices schemas;
 
-	List<String> missingKeys = new ArrayList<>();
+	protected List<String> missingKeys = new ArrayList<>();
 	Locale locale;
 	Locale defaultLocale;
 
@@ -65,6 +74,92 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		findMissingKeys();
 
 		assertThat(missingKeys).isEmpty();
+	}
+
+	//@Test
+	public void whenScanningAppModuleJavaSourcesThenAllI18n() {
+		givenFrenchSystem();
+
+		Set<String> keys = new HashSet<>();
+		scanRetrievingKeys(keys, new FoldersLocator().getAppProject());
+
+		for (String key : keys) {
+			addIfNoValueInMainI18N(key);
+		}
+
+		assertThat(missingKeys).isEmpty();
+	}
+
+	protected void scanRetrievingKeys(Set<String> keys, File fileOrFolder) {
+		if (fileOrFolder.isFile() && fileOrFolder.getName().endsWith(".java")) {
+			scanJavaFileRetrievingKeys(keys, fileOrFolder);
+
+		} else if (fileOrFolder.isDirectory()) {
+			File[] files = fileOrFolder.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					scanRetrievingKeys(keys, file);
+				}
+			}
+		}
+
+		keys.removeAll(
+				asList("documentsCount", "recentFolders", "RMRequestTaskButtonExtension.invalidBorrowDuration", "facetType",
+						"Code", "AddEditCollectionPresenter.codeNonAvailable", "connectorType", "BatchProcessingEntryTable.value",
+						"AddEditCollectionPresenter.codeChangeForbidden", "DisplayDocumentViewImpl.sign.sign",
+						"DisplayFolderView.cannotReturnFolder", "DisplayDocumentWindow.sign.certificate",
+						"AddEditContainerView.invalidNumberOfContainer", "DocumentEventSchemaToVOBuilder.modifiedOn",
+						"ImportUsersFileViewImpl.errorWith", "SearchView.errorSavingSearch", "Reports.DecommissioningList",
+						"DecomAskForValidationWindowButton.error.users", "FirstName",
+						"TraversalSchedule.mustHaveValuesInAllFields", "TraversalSchedule.startTimeAfterEndTime",
+						"BatchProcessingEntryTable.label", "BatchProcessingEntryTable.default", "TaskFollowerField.dirty",
+						"AdvancedSearchView.tooManyClosedParentheses",
+						"com.constellio.app.modules.rm.RMConfigs.EndYearValueCalculator", "username",
+						"RedémarrageListEventsView.restarting", "OK", "DisplayFolderView.chooseDateToExtends", "Ok",
+						"AddEditCollectionPresenter.invalidCode", "elementPerPage", "lastTraversalOn", "addAuthorization",
+						"AdvancedSearchView.unclosedParentheses", "BatchProcessingEntryTable.index",
+						"DisplayDocumentWindow.sign.password", "ContainersByAdministrativeUnitsView.tableTitle",
+						"DocumentContextMenu.sign", "traversalCode", "Name", "ImportConfigsView.OnlyXmlAccepted",
+						"BatchProcessingEntryTable.type", "facerOrder", "BatchProcessingEntryTable.mapping"));
+	}
+
+	private void scanJavaFileRetrievingKeys(Set<String> keys, File javaFile) {
+
+		BufferedReader reader = null;
+
+		try {
+			reader = new BufferedReader(new FileReader(javaFile));
+
+			String line;
+			while ((line = reader.readLine()) != null) {
+				scanJavaLineRetrievingKeys(keys, line);
+			}
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			IOUtils.closeQuietly(reader);
+		}
+	}
+
+	Pattern pattern = Pattern.compile("\\$\\(\\\"[\\w\\S]*\\\"\\)");
+
+	private void scanJavaLineRetrievingKeys(Set<String> keys, String line) {
+
+		if (line.contains("$")) {
+			Matcher matcher = pattern.matcher(line);
+			while (matcher.find()) {
+				String i18n = matcher.group();
+				if (i18n.startsWith("$(\"") && i18n.endsWith("\")")) {
+					i18n = i18n.substring(3, i18n.length() - 2);
+					if (!i18n.contains("$") && !i18n.contains("\"") && !i18n.trim().isEmpty()) {
+						keys.add(i18n);
+					}
+				}
+			}
+
+		}
+
 	}
 
 	@Test
@@ -104,7 +199,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	}
 
-	private void findMissingKeys() {
+	protected void findMissingKeys() {
 
 		findTypesMissingKeys();
 		findTaxonomiesMissingKeys();
@@ -186,7 +281,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		}
 	}
 
-	private void addIfNoValueInMainI18N(String key) {
+	protected void addIfNoValueInMainI18N(String key) {
 		i18n.setLocale(locale);
 		String label = $(key, locale);
 		if (key.equals(label) && !missingKeys.contains(key)) {

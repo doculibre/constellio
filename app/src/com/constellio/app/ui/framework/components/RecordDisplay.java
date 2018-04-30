@@ -4,6 +4,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
@@ -71,7 +72,7 @@ public class RecordDisplay extends BaseDisplay {
 
 	@Override
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
-		if (displayComponent instanceof RecordCommentsEditorImpl) {
+		if ((displayComponent instanceof RecordCommentsEditorImpl) || (displayComponent instanceof RecordCommentsDisplayImpl)) {
 			VerticalLayout verticalLayout = new VerticalLayout(displayComponent);
 			verticalLayout.addStyleName("record-comments-layout");
 			verticalLayout.setWidth("100%");

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -130,6 +131,8 @@ public class MetadataSchema implements Serializable {
 		if (metadataCode.endsWith("Id")) {
 			metadataCode = metadataCode.substring(0, metadataCode.length() - 2);
 		}
+
+		metadataCode = StringUtils.substringBefore(metadataCode, ".");
 
 		Metadata metadata = indexByLocalCode.get(metadataCode);
 

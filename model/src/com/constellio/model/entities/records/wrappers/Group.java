@@ -48,7 +48,7 @@ public class Group extends RecordWrapper {
 		return this;
 	}
 
-	public List<String> getParent() {
+	public String getParent() {
 		return get(PARENT);
 	}
 
@@ -71,5 +71,10 @@ public class Group extends RecordWrapper {
 
 	public Collection<? extends String> getAllAuthorizations() {
 		return get(ALL_AUTHORIZATIONS);
+	}
+
+	@Override
+	public String toString() {
+		return toStringPrintingCodes(CODE, TITLE);
 	}
 }

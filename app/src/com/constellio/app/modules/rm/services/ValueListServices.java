@@ -113,16 +113,34 @@ public class ValueListServices {
 		}
 	}
 
-	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options, boolean isMultiLingual) {
-
+	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options,
+			boolean isMultiLingual) {
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
 		}
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+
+		createValueDomain(code, title, options, types, isMultiLingual);
+
+		try {
+			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
+		} catch (OptimisticLocking optimistickLocking) {
+			throw new RuntimeException(optimistickLocking);
+		}
+	}
+
+	public MetadataSchemaTypeBuilder createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options,
+			MetadataSchemaTypesBuilder types, boolean isMultiLingual) {
+
+		if (!code.startsWith("ddv")) {
+			throw new RuntimeException("Code must start with ddv");
+		}
+
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
-		MetadataSchemaTypeBuilder valueListSchemaType = builder.createValueListItemSchema(code, title, options.codeMode, isMultiLingual);
+		MetadataSchemaTypeBuilder valueListSchemaType = builder
+				.createValueListItemSchema(code, title, options.codeMode, isMultiLingual);
 
 		if (options.getTypesWithReferenceMetadata() != null) {
 			for (String schemaType : options.getTypesWithReferenceMetadata()) {
@@ -134,18 +152,14 @@ public class ValueListServices {
 			}
 		}
 
-		try {
-			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
-		} catch (OptimisticLocking optimistickLocking) {
-			throw new RuntimeException(optimistickLocking);
-		}
+		return valueListSchemaType;
 	}
 
 	public List<Taxonomy> getTaxonomies() {
 		return taxonomiesManager.getEnabledTaxonomies(collection);
 	}
 
-	public Taxonomy createTaxonomy(String code, Map<Language,String> title, boolean isMultiLingual) {
+	public Taxonomy createTaxonomy(String code, Map<Language, String> title, boolean isMultiLingual) {
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title, isMultiLingual);
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(type.getCode()));
 
@@ -154,7 +168,8 @@ public class ValueListServices {
 		return taxonomy;
 	}
 
-	public Taxonomy lazyCreateTaxonomy(MetadataSchemaTypesBuilder typeBuilder, String code, Map<Language,String> title, boolean isMultiLingual) {
+	public Taxonomy lazyCreateTaxonomy(MetadataSchemaTypesBuilder typeBuilder, String code, Map<Language, String> title,
+			boolean isMultiLingual) {
 		String typeCode = "taxo" + code + "Type";
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typeBuilder);
 
@@ -164,17 +179,18 @@ public class ValueListServices {
 		return Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(typeCode));
 	}
 
-	public Taxonomy createTaxonomy(Map<Language,String> title, boolean isMultiLingual) {
+	public Taxonomy createTaxonomy(Map<Language, String> title, boolean isMultiLingual) {
 		String code = generateCode("");
 		return createTaxonomy(code, title, isMultiLingual);
 	}
 
-	public Taxonomy createTaxonomy(Map<Language,String> title, List<String> userIds, List<String> groupIds, boolean isVisibleInHomePage, boolean isMultiLingual) {
+	public Taxonomy createTaxonomy(Map<Language, String> title, List<String> userIds, List<String> groupIds,
+			boolean isVisibleInHomePage, boolean isMultiLingual) {
 		String code = generateCode("");
 		return createTaxonomy(code, title, userIds, groupIds, isVisibleInHomePage, isMultiLingual);
 	}
 
-	public Taxonomy createTaxonomy(String code, Map<Language,String> title, List<String> userIds, List<String> groupIds,
+	public Taxonomy createTaxonomy(String code, Map<Language, String> title, List<String> userIds, List<String> groupIds,
 			boolean isVisibleInHomePage, boolean isMultiLingual) {
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title, isMultiLingual);
 		Taxonomy taxonomy = Taxonomy
@@ -217,6 +233,9 @@ public class ValueListServices {
 				.setMultivalue(true);
 
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
+			if(taxonomy.getTitle(language) == null) {
+				continue;
+			}
 			metadataBuilder.addLabel(language, taxonomy.getTitle(language));
 		}
 
@@ -262,7 +281,7 @@ public class ValueListServices {
 		return schemaType.getDefaultSchema().get(localCode);
 	}
 
-	private MetadataSchemaType createTaxonomyType(String code, Map<Language,String> title, boolean isMultiLingual) {
+	private MetadataSchemaType createTaxonomyType(String code, Map<Language, String> title, boolean isMultiLingual) {
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);

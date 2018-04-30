@@ -172,7 +172,6 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	}
 
 	private Locale getLocale(String languageCode) {
-		i18n.getSupportedLanguages();
 		for (Language language : Language.values()) {
 			if (language.getCode().equals(languageCode)) {
 				return new Locale(languageCode);

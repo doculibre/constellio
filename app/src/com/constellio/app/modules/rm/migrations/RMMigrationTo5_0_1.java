@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetailFa
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTypeFactory;
 import com.constellio.app.modules.rm.wrappers.type.*;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
@@ -580,13 +581,12 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		MetadataSchemaTypeBuilder userSchemaType = type(User.SCHEMA_TYPE);
 
 		List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-		boolean isMultiLingual = language.size() > 1;
 
-		MetadataSchemaTypeBuilder storageSpaceTypeSchemaType = setupStorageSpaceTypeSchema(isMultiLingual);
-		MetadataSchemaTypeBuilder containerTypeSchemaType = setupContainerTypeSchema(isMultiLingual);
-		MetadataSchemaTypeBuilder folderTypeSchemaType = setupFolderTypeSchema(isMultiLingual);
-		MetadataSchemaTypeBuilder documentTypeSchemaType = setupDocumentTypeSchema(isMultiLingual);
-		MetadataSchemaTypeBuilder mediumTypeSchemaType = setupMediumTypeSchema(isMultiLingual);
+		MetadataSchemaTypeBuilder storageSpaceTypeSchemaType = setupStorageSpaceTypeSchema(language);
+		MetadataSchemaTypeBuilder containerTypeSchemaType = setupContainerTypeSchema(language);
+		MetadataSchemaTypeBuilder folderTypeSchemaType = setupFolderTypeSchema(language);
+		MetadataSchemaTypeBuilder documentTypeSchemaType = setupDocumentTypeSchema(language);
+		MetadataSchemaTypeBuilder mediumTypeSchemaType = setupMediumTypeSchema(language);
 
 		MetadataSchemaTypeBuilder filingSpaceSchemaType = setupFilingSpaceSchemaType(userSchemaType);
 		MetadataSchemaTypeBuilder administrativeUnitSchemaType = setupAdministrativeUnitSchemaType(filingSpaceSchemaType);
@@ -620,15 +620,15 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	}
 
-	private MetadataSchemaTypeBuilder setupMediumTypeSchema(boolean isMultiLingual) {
-		Map<Language, String> mapLanguage = new HashMap<>();
-		mapLanguage.put(Language.French,"Type de support");
-		mapLanguage.put(Language.English, "Support type");
+	private MetadataSchemaTypeBuilder setupMediumTypeSchema(List<String> language) {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider,"init.ddvMediumType");
 
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(MediumType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size() > 1)
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(MediumType.ANALOGICAL).setType(BOOLEAN).setDefaultRequirement(true);
@@ -636,14 +636,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupDocumentTypeSchema(boolean isMultiLingual) {
-		Map<Language, String> mapLanguage = new HashMap<>();
-		mapLanguage.put(Language.French,"Type de document");
-		mapLanguage.put(Language.English, "Document type");
+	private MetadataSchemaTypeBuilder setupDocumentTypeSchema(List<String> language) {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider,"init.ddvDocumentType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(DocumentType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size() > 1)
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(DocumentType.LINKED_SCHEMA).setType(STRING);
@@ -651,14 +651,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupFolderTypeSchema(boolean isMultiLingual) {
+	private MetadataSchemaTypeBuilder setupFolderTypeSchema(List<String> language) {
 
-		Map<Language, String> mapLanguage = new HashMap<>();
-		mapLanguage.put(Language.French,"Type de dossier");
-		mapLanguage.put(Language.English, "Folder type");
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider,"init.ddvFolderType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(FolderType.SCHEMA_TYPE, mapLanguage, ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
+				.createValueListItemSchema(FolderType.SCHEMA_TYPE, mapLanguage, ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size() > 1)
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(FolderType.LINKED_SCHEMA).setType(STRING);
@@ -666,13 +665,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupContainerTypeSchema(boolean isMultiLingual) {
-		Map<Language, String> mapLanguage = new HashMap<>();
-		mapLanguage.put(Language.French,"Type de contenant");
-		mapLanguage.put(Language.English, "Box type");
+	private MetadataSchemaTypeBuilder setupContainerTypeSchema(List<String> language) {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider,"init.ddvContainerRecordType");
+
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(ContainerRecordType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size()  > 1)
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(ContainerRecordType.LINKED_SCHEMA).setType(STRING);
@@ -680,10 +680,11 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema(boolean isMultiLingual) {
-		Map<Language, String> mapLanguage = new HashMap<>();
-		mapLanguage.put(Language.French,"Type d'emplacement");
-		mapLanguage.put(Language.English, "Location type");
+	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema(List<String> language) {
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider,"init.ddvStorageSpaceType");
+
+		boolean isMultiLingual = language.size() > 1;
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(StorageSpaceType.SCHEMA_TYPE, mapLanguage,

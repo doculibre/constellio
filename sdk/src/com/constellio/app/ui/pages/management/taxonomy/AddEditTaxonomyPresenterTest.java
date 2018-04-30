@@ -33,7 +33,7 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	List<String> userIds;
 	List<String> groupIds;
 	AddEditTaxonomyPresenter presenter;
-	String newTaxonomyTitle;
+	Map<Language, String> newTaxonomyTitle;
 	MockedFactories mockedFactories = new MockedFactories();
 	@Mock CollectionsManager collectionsManager;
 
@@ -56,8 +56,9 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		when(mockedFactories.getAppLayerFactory().getCollectionsManager()).thenReturn(collectionsManager);
 		when(mockedFactories.getAppLayerFactory().getCollectionsManager().getCollectionLanguages(anyString())).thenReturn(languages);
 
+		newTaxonomyTitle = new HashMap<>();
+		newTaxonomyTitle.put(Language.French, "taxonomy 1");
 
-		newTaxonomyTitle = "taxonomy 1";
 		userIds = new ArrayList<>();
 		userIds.add("chuck");
 		userIds.add("bob");
@@ -67,10 +68,8 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		groupIds.add("legends");
 		taxonomyVO = new TaxonomyVO("taxo1", newTaxonomyTitle, new ArrayList<String>(), zeCollection, userIds, groupIds, true);
 
-		Map<Language, String> mapLangueTitle = new HashMap<>();
-		mapLangueTitle.put(Language.French, taxonomyVO.getTitle());
 
-		when(taxonomy1.getTitle()).thenReturn(mapLangueTitle);
+		when(taxonomy1.getTitle()).thenReturn(taxonomyVO.getTitle());
 
 		presenter = spy(new AddEditTaxonomyPresenter(view));
 
@@ -84,22 +83,15 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(taxonomyVO);
 
-		Map<Language, String> mapLangueTitle = new HashMap<>();
-		mapLangueTitle.put(Language.French, taxonomyVO.getTitle());
-
-		verify(valueListServices).createTaxonomy(mapLangueTitle, taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true, true);
+		verify(valueListServices).createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true, true);
 		verify(view.navigate().to()).listTaxonomies();
 	}
 
 	@Test
 	public void givenActionEditWhenSaveButtonClickedThenEditIt()
 			throws Exception {
-
-		Map<Language, String> mapLangueTitle = new HashMap<>();
-		mapLangueTitle.put(Language.French, taxonomyVO.getTitle());
-
 		doReturn(taxonomy1).when(presenter).fetchTaxonomy(taxonomyVO.getCode());
-		doReturn(taxonomy2).when(taxonomy1).withTitle(mapLangueTitle);
+		doReturn(taxonomy2).when(taxonomy1).withTitle(taxonomyVO.getTitle());
 		doReturn(taxonomy3).when(taxonomy2).withUserIds(taxonomyVO.getUserIds());
 		doReturn(taxonomy4).when(taxonomy3).withGroupIds(taxonomyVO.getGroupIds());
 		doReturn(taxonomy5).when(taxonomy4).withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
@@ -124,10 +116,7 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(taxonomyVO);
 
-		Map<Language, String> mapLangueTitle = new HashMap<>();
-		mapLangueTitle.put(Language.French, taxonomyVO.getTitle());
-
-		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, taxonomyVO.getUserIds(),
+		verify(valueListServices, never()).createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(),
 				taxonomyVO.getGroupIds(), true, true);
 	}
 

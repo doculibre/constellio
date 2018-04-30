@@ -17,9 +17,10 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
-import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
@@ -64,8 +65,8 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	SchemasRecordsServices schemasRecordsService;
 
-	IconButton excludeButton;
-	IconButton elevateButton;
+	BaseButton excludeButton;
+	BaseButton elevateButton;
 
 	String query;
 
@@ -96,12 +97,11 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
-		title.addStyleName(TITLE_STYLE);
-		title.setWidthUndefined();
-
-		I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
-		horizontalLayout.addComponent(title);
+		I18NHorizontalLayout titleLayout = new I18NHorizontalLayout();
+		Component titleLink = newTitleLink(searchResultVO);
+		titleLink.addStyleName(TITLE_STYLE);
+		titleLink.setWidthUndefined();
+		titleLayout.addComponent(titleLink);
 
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
@@ -110,34 +110,47 @@ public class SearchResultDisplay extends VerticalLayout {
 				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
 			boolean isElevated = searchConfigurationsManager.isElevated(query, record.getId());
 
-			excludeButton = new IconButton(FontAwesome.TIMES_CIRCLE_O, $(EXCLUSION)) {
+			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
+			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
+			String elevateNiceTitleText = isElevated ? $(CANCEL_ELEVATION + "NiceTitle") : $(ELEVATION + "NiceTitle");
+
+			excludeButton = new BaseButton($(EXCLUSION), FontAwesome.TIMES_CIRCLE_O, false) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
+					// Real click listener in addExclusionClickListener()
 				}
 			};
 			excludeButton.addStyleName(EXCLUSION_BUTTON_STYLE);
 			excludeButton.addStyleName(ValoTheme.BUTTON_LINK);
+			excludeButton.addExtension(new NiceTitle(excludeButton, $(EXCLUSION + "NiceTitle")));
 
-			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
-			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
-
-			elevateButton = new IconButton(elevateIcon, elevateText) {
+			elevateButton = new BaseButton(elevateText, elevateIcon, false) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
+					// Real click listener in addElevationClickListener()
 				}
 			};
 			elevateButton.addStyleName(ELEVATION_BUTTON_STYLE);
 			elevateButton.addStyleName(ValoTheme.BUTTON_LINK);
+			elevateButton.addExtension(new NiceTitle(elevateButton, elevateNiceTitleText));
 
-			horizontalLayout.addComponent(excludeButton, 1);
-			horizontalLayout.addComponent(elevateButton, 2);
-			horizontalLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
-			horizontalLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
-			horizontalLayout.setExpandRatio(excludeButton, 1);
-			horizontalLayout.setExpandRatio(elevateButton, 1);
-			horizontalLayout.setSpacing(true);
+			I18NHorizontalLayout elevationLayout = new I18NHorizontalLayout();
+			elevationLayout.addStyleName("search-result-elevation-buttons");
+			elevationLayout.setSpacing(true);
+			elevationLayout.addComponent(excludeButton);
+			elevationLayout.addComponent(elevateButton);
+			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
+			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
+			
+			titleLayout.addComponent(elevationLayout);
+			titleLayout.setExpandRatio(elevationLayout, 1);
+			titleLayout.setSpacing(true);
 		}
-		return horizontalLayout;
+		return titleLayout;
+	}
+	
+	protected Component newTitleLink(SearchResultVO searchResultVO) {
+		return new ReferenceDisplay(searchResultVO.getRecordVO());
 	}
 
 	protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {

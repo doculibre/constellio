@@ -89,4 +89,7 @@ public interface UserCredential {
 	UserCredential withJobTitle(String jobTitle);
 
 	String getDn();
+
+	boolean isActiveUser();
+
 }

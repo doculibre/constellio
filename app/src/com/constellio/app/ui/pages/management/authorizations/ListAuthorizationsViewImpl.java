@@ -4,7 +4,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -17,7 +19,9 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.converters.GroupIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
+import com.constellio.app.ui.framework.components.converters.UserIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -238,7 +242,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField()).attachTo(table);
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table);
 		return table;
 	}
 
@@ -377,12 +381,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 		private void buildUsersAndGroupsField() {
 			users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
+			users.setItemConverter(new UserIdToCaptionConverter());
 			users.setValue(authorization.getUsers());
 			users.setVisible(!authorization.getUsers().isEmpty());
 			users.setCaption($("AuthorizationsView.users"));
 			users.setId("users");
 
 			groups = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
+			groups.setItemConverter(new GroupIdToCaptionConverter());
 			groups.setValue(authorization.getGroups());
 			groups.setVisible(!authorization.getGroups().isEmpty());
 			groups.setCaption($("AuthorizationsView.groups"));
@@ -406,14 +412,16 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private boolean seeRolesField;
 		private boolean seeAccessField;
 		private boolean seeMetadataField;
+		private Locale currentLocale;
 		private final JodaDateToStringConverter converter;
 
-		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeAccessField) {
+		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeAccessField, Locale currentLocale) {
 			this.source = source;
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
 			this.seeAccessField = seeAccessField;
 			this.seeMetadataField = source == AuthorizationSource.INHERITED_FROM_METADATA;
+			this.currentLocale = currentLocale;
 			converter = new JodaDateToStringConverter();
 		}
 
@@ -493,9 +501,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		@Override
 		public Object generateCell(Table source, Object itemId, Object columnId) {
 			AuthorizationVO authorization = (AuthorizationVO) itemId;
+			TaxonomyRecordIdToContextCaptionConverter taxonomyCaptionConverter = new TaxonomyRecordIdToContextCaptionConverter();
 			switch ((String) columnId) {
 			case CONTENT:
-				return new ReferenceDisplay(authorization.getRecord());
+				ReferenceDisplay referenceDisplay = new ReferenceDisplay(authorization.getRecord());
+				referenceDisplay.setCaption(taxonomyCaptionConverter.convertToPresentation(authorization.getRecord(), String.class,
+						currentLocale));
+				return referenceDisplay;
 			case PRINCIPALS:
 				return buildPrincipalColumn(authorization.getGroups(), authorization.getUsers());
 			case ACCESS:
@@ -514,12 +526,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 
 		private Object buildPrincipalColumn(List<String> groups, List<String> users) {
-			List<ReferenceDisplay> results = new ArrayList<>();
+			final List<ReferenceDisplay> results = new ArrayList<>();
 			for (String groupId : groups) {
-				results.add(new ReferenceDisplay(groupId));
+				results.add(new ReferenceDisplay(groupId, true, new GroupIdToCaptionConverter()));
 			}
 			for (String userId : users) {
-				results.add(new ReferenceDisplay(userId));
+				results.add(new ReferenceDisplay(userId, true, new UserIdToCaptionConverter()));
 			}
 			return new VerticalLayout(results.toArray(new Component[results.size()]));
 		}

@@ -1,24 +1,30 @@
 package com.constellio.model.entities.calculators.dependencies;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 
 public class AllPrincipalsAuthsDependencyValue {
 
 	private List<User> users;
 	private List<Group> groups;
+	private List<String> disabledGroupCodes;
 
-	public AllPrincipalsAuthsDependencyValue(List<Group> groups, List<User> users) {
+	public AllPrincipalsAuthsDependencyValue(List<Group> groups, List<User> users, List<String> disabledGroupCodes) {
 		this.groups = groups;
 		this.users = users;
+		this.disabledGroupCodes = disabledGroupCodes;
 	}
 
-	public KeyListMap<String, String> getPrincipalIdsWithAnyAuthorization(Map<String, List<String>> authorizations) {
+	public KeyListMap<String, String> getPrincipalIdsWithAnyAuthorization(Map<String, List<String>> authorizations,
+			GroupAuthorizationsInheritance inheritanceMode) {
 
 		KeyListMap<String, String> principalsAccesses = new KeyListMap<>();
 		for (User user : users) {
@@ -33,10 +39,22 @@ public class AllPrincipalsAuthsDependencyValue {
 
 		for (Group group : groups) {
 			for (Entry<String, List<String>> authorization : authorizations.entrySet()) {
-				if (group.getAllAuthorizations().contains(authorization.getKey())) {
+				if (inheritanceMode == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
+					if (group.getList(Schemas.AUTHORIZATIONS).contains(authorization.getKey())) {
+
+						for (String groupHierarchyId : getGroupHierarchyIds(group)) {
+							for (String access : authorization.getValue()) {
+								principalsAccesses.add(groupHierarchyId, access);
+							}
+						}
+					}
+
+				} else {
 					if (group.getAllAuthorizations().contains(authorization.getKey())) {
-						for (String access : authorization.getValue()) {
-							principalsAccesses.add(group.getId(), access);
+						if (group.getAllAuthorizations().contains(authorization.getKey())) {
+							for (String access : authorization.getValue()) {
+								principalsAccesses.add(group.getId(), access);
+							}
 						}
 					}
 				}
@@ -46,8 +64,25 @@ public class AllPrincipalsAuthsDependencyValue {
 		return principalsAccesses;
 	}
 
+	private List<String> getGroupHierarchyIds(Group group) {
+		List<String> ids = new ArrayList<>();
+		if (!disabledGroupCodes.contains(group.getCode())) {
+			ids.add(group.getId());
+			if (group.getParent() != null) {
+				for (Group aGroup : groups) {
+					if (aGroup.getId().equals(group.getParent())) {
+						ids.addAll(getGroupHierarchyIds(aGroup));
+						break;
+					}
+				}
+			}
+		}
 
-//	public KeyListMap<String, String> getPrincipalIdsWithAnyAuthorization(List<AuthorizationDetails> authorizations) {
+		return ids;
+
+	}
+
+	//	public KeyListMap<String, String> getPrincipalIdsWithAnyAuthorization(List<AuthorizationDetails> authorizations) {
 	//
 	//		KeyListMap<String, String> principalsAccesses = new KeyListMap<>();
 	//		for (User user : users) {

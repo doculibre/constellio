@@ -22,6 +22,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -142,7 +143,11 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 				@Override
 				protected void saveButtonClick(ListValueDomainParam viewObject) throws ValidationException {
 					getWindow().close();
-					presenter.valueDomainCreationRequested(viewObject.getTitleFr(), viewObject.getTitleEn());
+					java.util.Map<Language, String> titleMap = new HashMap<>();
+					titleMap.put(Language.French, viewObject.getTitleFr());
+					titleMap.put(Language.English, viewObject.getTitleEn());
+
+					presenter.valueDomainCreationRequested(titleMap);
 				}
 
 				@Override
@@ -192,10 +197,14 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 						BaseButton save = new BaseButton("Save") {
 							@Override
 							protected void buttonClick(ClickEvent event) {
-								presenter.editButtonClicked(typeVO, title.getValue());
+								java.util.Map<Language, String> languageMap = new HashMap<>();
+								languageMap.put(Language.French,title.getValue());
+								presenter.editButtonClicked(typeVO, languageMap);
 								getWindow().close();
 							}
 						};
+
+
 
 						save.addStyleName(ValoTheme.BUTTON_PRIMARY);
 

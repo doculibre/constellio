@@ -620,6 +620,111 @@ $popup-view-z-index: 3;
 		    opacity: 0.5;
 		}
 	}
+	
+	.information-capsule {
+		.information-capsule-content {
+			padding-left: 10px;	
+			padding-right: 10px;	
+		}
+	}
+	
+	.thesaurus-disambiguation, .spell-checker {
+		min-height: 38px;
+	    position: relative;
+	    border-radius: 10px;
+	    padding: 10px 10px 10px 10px;
+	    margin: 0 0 0 0px;
+	    box-shadow: inset 0px 5px 15px -12px rgba(0, 0, 0, 1);
+	    
+	    background-color: #ebebeb;
+		background-image: url('images/icons/suggestion.png');
+		background-repeat: no-repeat;
+	    background-position: left center; 
+	
+		.disambiguation-title {
+			padding-left: 50px;
+		}
+		
+		.spell-checker-message {
+			font-weight: bold;
+		}
+		
+		.spell-checker-suggestions {
+			padding-top: 15px;
+			padding-bottom: 15px;
+		}
+		
+		.disambiguation-suggestions, .spell-checker-suggestions {
+			padding-left: 60px;
+		
+			.disambiguation-suggestion, .spell-checker-suggestion, .deleteLogically-button {
+				height: inherit;
+			}
+			
+			.spell-checker-suggestion-and-exclude {
+				
+				.spell-checker-suggestion-remove {
+					width: 20px;
+				}
+			
+			}
+			
+			.spell-checker-suggestion-remove-visible {
+			    border: 1px solid #3a434d;
+			    border-radius: 4px;
+			    margin-left: 5px;
+			}
+		
+		}
+		
+	}
+	
+	.thesaurus-semantic-network {
+		min-height: 38px;
+	    position: relative;
+	    border-radius: 10px;
+	    padding: 10px 10px 10px 10px;
+	    margin: 0 0 0 0px;
+	    box-shadow: inset 0px 5px 15px -12px rgba(0, 0, 0, 1);
+	    
+	    background-color: #ebebeb;
+	
+		.thesaurus-semantic-network-title {
+			font-weight: bold;
+			font-size: 0.923em;
+		    line-height: 24px;
+		    margin: 0;
+		    font-weight: bold;
+		    background: url('images/icons/thesaurus-semantic-network.gif') left center no-repeat;
+		    padding: 8px 0 8px 40px;
+		    max-width: 900px;
+		}
+		
+		.thesaurus-semantic-network-columns {
+			width: 100%;
+			padding-left: 20px;
+			font-size: 0.85em;
+			color: rgb(156, 165, 175);
+		
+			.thesaurus-semantic-network-column {
+				min-width: 33%;
+				padding-right: 15px;
+				
+				.thesaurus-semantic-network-suggestion:before {
+				    font-family: FontAwesome;
+					font-size: 0.5em;
+					content: "\f111;"; 
+					padding-right: 15px;
+				}
+				
+				.thesaurus-semantic-network-suggestion {
+					height: 14px;
+				}
+			}
+		
+		}
+	
+	}
 
 	.v-window {
 	
@@ -1384,6 +1489,10 @@ $popup-view-z-index: 3;
 									font-size: 18px;
 									text-align: left;
 								}
+								
+								.document-search-result-title {
+									padding-top: 10px;
+								}
 
 								.search-result-highlights {
 									em {
@@ -1403,6 +1512,13 @@ $popup-view-z-index: 3;
 									.metadata-caption {
 										font-weight: bold;
 									}
+								}
+								
+								.v-slot-search-result-elevation-buttons {
+								    border: 1px solid rgb(25, 125, 225);
+								    border-radius: 4px;
+								    padding-left: 5px;
+								    padding-right: 5px;
 								}
 								
 								.search-result-elevation, .search-result-exclusion {

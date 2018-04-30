@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.Val
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -56,9 +58,10 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
 
 			boolean isMultiLingual = language.size() > 1;
+			java.util.Map<Language, String> labels = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory, migrationResourcesProvider, "init.retentionRule.default.yearTypes");
 
 			MetadataSchemaTypeBuilder dateTypeSchemaType = new ValueListItemSchemaTypeBuilder(types())
-					.createValueListItemSchema(YearType.SCHEMA_TYPE, null,
+					.createValueListItemSchema(YearType.SCHEMA_TYPE, labels,
 							ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
 					.setSecurity(false);
 

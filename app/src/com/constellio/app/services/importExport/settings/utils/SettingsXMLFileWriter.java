@@ -442,7 +442,13 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addValueListItem(Element valueListsElem, ImportedValueList valueList) {
 		Element listElem = new Element(VALUE_LIST);
 		listElem.setAttribute(CODE, valueList.getCode());
-		listElem.setAttribute(TITLE, valueList.getTitle());
+
+
+		if (valueList.getTitle() != null && valueList.getTitle().keySet() != null) {
+			for(Language language : valueList.getTitle().keySet()) {
+				listElem.setAttribute(TITLE + language.getCode(), valueList.getTitle().get(language));
+			}
+		}
 
 		if (!valueList.getClassifiedTypes().isEmpty()) {
 			listElem.setAttribute(CLASSIFIED_TYPES, join(valueList.getClassifiedTypes(), ','));

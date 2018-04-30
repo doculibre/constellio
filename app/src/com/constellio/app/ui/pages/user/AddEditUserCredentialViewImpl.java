@@ -272,6 +272,8 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		confirmPasswordField.setEnabled(isEnabled);
 		collectionsField.setEnabled(true);
 		statusField.setEnabled(isEnabled);
+		confirmPasswordField.setReadOnly(!confirmPasswordField.isEnabled() || !presenter.isPasswordChangeEnabled());
+		passwordField.setReadOnly(!passwordField.isEnabled() || !presenter.isPasswordChangeEnabled());
 
 		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField,
 				lastNameField, emailField, jobTitle, phone, fax, address, personalEmailsField, passwordField,

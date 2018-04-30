@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -213,7 +214,13 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 		collectionsManager.deleteCollection("constellio");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(0);
+
+		try {
+			searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll());
+		} catch (MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
+			// collection deleted so no such collection.
+		}
+
 		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(36);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isFalse();

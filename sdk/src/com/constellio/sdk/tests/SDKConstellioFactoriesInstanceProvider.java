@@ -3,12 +3,17 @@ package com.constellio.sdk.tests;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.factories.ConstellioFactoriesInstanceProvider;
 import com.constellio.app.services.factories.SingletonConstellioFactoriesInstanceProvider;
 import com.constellio.data.utils.Factory;
 
 public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactoriesInstanceProvider {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SDKConstellioFactoriesInstanceProvider.class);
 
 	public static final String DEFAULT_NAME = "default";
 
@@ -63,7 +68,13 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 
 	@Override
 	public void clear() {
-		for (ConstellioFactories instance : instances.values()) {
+		for (String instanceName : instances.keySet()) {
+			ConstellioFactories instance = instances.get(instanceName);
+
+			if (instances.size() > 1) {
+				LOGGER.info("Closing instance '" + instanceName + "'");
+			}
+
 			instance.getAppLayerFactory().close();
 		}
 		instances.clear();

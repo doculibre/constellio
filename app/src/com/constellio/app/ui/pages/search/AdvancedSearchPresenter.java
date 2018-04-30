@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.InputStream;
@@ -446,7 +447,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageLength(selectedPageLength);
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
+			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
 
 			//recordServices().update(search);
 			updateUIContext(search);
@@ -549,12 +550,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		case "Reports.FolderLinearMeasureStats":
 			return super.getReportParameters(report);
 		}
+
 		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
-				collection, report, getCurrentUser(), getSearchQuery());
+				collection, report, getCurrentUser(), buildReportLogicalSearchQuery());
 	}
 
 	public boolean hasCurrentUserPermissionToUseCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	}
+
+	public LogicalSearchQuery buildReportLogicalSearchQuery() {
+		return buildBatchProcessLogicalSearchQuery().filteredWithUser(getUser());
 	}
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {

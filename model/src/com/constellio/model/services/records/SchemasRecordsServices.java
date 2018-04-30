@@ -10,23 +10,12 @@ import java.util.Locale;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.BatchProcessReport;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.ExportAudit;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.ImportAudit;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -143,11 +132,13 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	// Global Groups
 
 	public MetadataSchemaType globalGroupSchemaType() {
-		return getTypes().getSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		return types.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
 	}
 
 	public MetadataSchema globalGroupSchema() {
-		return getTypes().getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		return types.getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
 	}
 
 	public Metadata globalGroupCode() {
@@ -167,11 +158,13 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public GlobalGroup newGlobalGroup() {
-		return new SolrGlobalGroup(create(globalGroupSchema()), getTypes());
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		return new SolrGlobalGroup(create(globalGroupSchema()), types);
 	}
 
 	public GlobalGroup wrapGlobalGroup(Record record) {
-		return new SolrGlobalGroup(record, getTypes());
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
+		return new SolrGlobalGroup(record, types);
 	}
 
 	public List<GlobalGroup> wrapGlobalGroups(List<Record> records) {
@@ -247,6 +240,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
+	public MetadataSchemaType temporaryRecordSchemaType() {
+		return getTypes().getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema temporaryRecord() {
 		return getTypes().getSchema(TemporaryRecord.DEFAULT_SCHEMA);
 	}
@@ -278,7 +275,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public Group wrapGroup(Record record) {
-		return new Group(record, getTypes());
+		return record == null ? null : new Group(record, getTypes());
 	}
 
 	public List<Group> wrapGroups(List<Record> records) {
@@ -437,7 +434,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public List<SolrAuthorizationDetails> getAllAuthorizations() {
 		return wrapSolrAuthorizationDetailss(
-				getModelLayerFactory().newSearchServices().getAllRecords(authorizationDetails.schemaType()));
+				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
 	public List<SolrAuthorizationDetails> getAllAuthorizationsInUnmodifiableState() {
@@ -446,7 +443,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public List<User> getAllUsers() {
-		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecords(user.schemaType()));
+		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(user.schemaType()));
 	}
 
 	public List<User> getAllUsersInUnmodifiableState() {
@@ -454,7 +451,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public List<Group> getAllGroups() {
-		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecords(group.schemaType()));
+		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(group.schemaType()));
 	}
 
 	public List<Report> getAllReports() {
@@ -473,6 +470,14 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapGroup(get(id));
 	}
 
+	public GlobalGroup getGlobalGroup(String id) {
+		return wrapGlobalGroup(get(id));
+	}
+
+	public GlobalGroup getGlobalGroupWithCode(String code) {
+		return modelLayerFactory.newUserServices().getGroup(code);
+	}
+
 	public List<Capsule> getAllCapsules() {
 		return wrapCapsules(getModelLayerFactory().newSearchServices().getAllRecords(capsule.schemaType()));
 	}
@@ -488,5 +493,17 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		}
 
 		return wrapped;
+	}
+
+	public boolean isGroupActive(String aGroup) {
+		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
+	}
+
+	public boolean isGroupActive(Group aGroup) {
+		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
+	}
+
+	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
+		return modelLayerFactory.newUserServices().getAllUsersInGroup(group, includeGroupInheritance, onlyActiveUsersAndGroups);
 	}
 }

@@ -25,7 +25,6 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	@Mock Taxonomy taxonomy1;
 	@Mock TaxonomyVO taxonomyVO;
 	ListTaxonomyPresenter presenter;
-	String newTaxonomyTitle;
 	MockedFactories mockedFactories = new MockedFactories();
 
 	@Before

@@ -431,4 +431,9 @@ public class XmlUserCredential implements UserCredential {
     public String getDn() {
         return dn;
     }
+
+    @Override
+    public boolean isActiveUser() {
+        return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+    }
 }

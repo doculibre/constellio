@@ -153,6 +153,8 @@ public interface RecordServices {
 
 	void flush();
 
+	void flushRecords();
+
 	void removeOldLocks();
 
 	void recalculate(RecordWrapper recordWrapper);

@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 import java.util.*;
 
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -230,10 +232,15 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		when(advancedSearchView.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		when(advancedSearchView.getSearchExpression()).thenReturn("Abèille");
 		presenter = new AdvancedSearchPresenter(advancedSearchView);
+		presenter.allSearchResultsButtonClicked();
 		presenter.forRequestParameters(null);
 		presenter.buildSearchCondition();
-		presenter.batchEditRequested("folder_default_description", "asdf", Folder.SCHEMA_TYPE);
+		presenter.batchEditRequested("folder_default_description", "new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException", Folder.SCHEMA_TYPE);
 		waitForBatchProcess();
+		assertThat(rmRecords.getFolder_A01().getDescription()).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException");
+		assertThat(searchServices.getResultsCount(
+				LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.DESCRIPTION_TEXT).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException"))
+		).isEqualTo(1);
 	}
 
 	private void connectWithAlice() {

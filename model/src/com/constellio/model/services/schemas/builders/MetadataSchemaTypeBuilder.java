@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -218,7 +219,7 @@ public class MetadataSchemaTypeBuilder {
 			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
-				if (StringUtils.isBlank(entry.getValue())) {
+				if (Strings.isNullOrEmpty(entry.getValue())) {
 					throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
 				}
 			}

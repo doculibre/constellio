@@ -2,16 +2,8 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.Collections;
 import java.util.List;
 
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
-import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.SearchBoostVO;
@@ -19,13 +11,19 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SearchBoostLazyContainer;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -38,8 +36,10 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements SearchBoostView {
-	private SearchBoostByMetadataPresenter presenter;
+	
 	private static final String PROPERTY_BUTTONS = "buttons";
+	
+	private SearchBoostByMetadataPresenter presenter;
 	private VerticalLayout viewLayout;
 
 	private Table table;
@@ -88,7 +88,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 		dataProvider.setSearchBoostVOs(searchBoostVOs);
 
 		Filterable tableContainer = new SearchBoostLazyContainer(dataProvider);
-		ButtonsContainer buttonsContainer = new ButtonsContainer(tableContainer, PROPERTY_BUTTONS);
+		ButtonsContainer<?> buttonsContainer = new ButtonsContainer(tableContainer, PROPERTY_BUTTONS);
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
@@ -147,11 +147,11 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 
 	@Override
 	public Button buildAddEditForm(final SearchBoostVO currentSearchBoostVO) {
+		WindowConfiguration windowConfiguration = new WindowConfiguration(true, false, "450px", "220px");
 		return new WindowButton("",
-				$("SearchBoostByMetadataView.addEdit")) {
+				$("SearchBoostByMetadataView.addEdit"), windowConfiguration) {
 			@Override
 			protected Component buildWindowContent() {
-
 				final ComboBox metadataField = new BaseComboBox();
 				metadataField.setCaption($("SearchBoostByMetadataView.metadataField"));
 				for (SearchBoostVO searchBoostVO : presenter.getMetadatasSearchBoostVO()) {
@@ -196,11 +196,10 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 						getWindow().close();
 					}
 				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				HorizontalLayout horizontalLayoutButtons = new HorizontalLayout();
-				horizontalLayoutButtons.setSpacing(true);
-				horizontalLayoutButtons.addComponents(addButton, cancelButton);
+				HorizontalLayout buttonsLayout = new HorizontalLayout();
+				buttonsLayout.setSpacing(true);
+				buttonsLayout.addComponents(addButton, cancelButton);
 
 				HorizontalLayout horizontalLayout = new HorizontalLayout();
 				horizontalLayout.setSpacing(true);
@@ -208,13 +207,14 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 
 				VerticalLayout verticalLayout = new VerticalLayout();
 				verticalLayout
-						.addComponents(horizontalLayout, horizontalLayoutButtons);
+						.addComponents(horizontalLayout, buttonsLayout);
+				verticalLayout.setSizeFull();
 				verticalLayout.setSpacing(true);
+				verticalLayout.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
 
 				return verticalLayout;
 			}
-		}
+		};
 
-				;
 	}
 }

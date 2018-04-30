@@ -33,12 +33,18 @@ public class StartConstellioDevMain {
 
 	public static void main(String argv[]) {
 
+		int port = 7070;
+
+		if (argv.length == 1) {
+			port = Integer.valueOf(argv[0]);
+		}
+
 		RecordPopulateServices.LOG_CONTENT_MISSING = false;
 		Toggle.SIMULATE_CONNECTOR_DOWNLOAD_CONTENT.enable();
 
 		AppLayerFactory factory = SDKScriptUtils.startApplicationWithBatchProcessesAndBackgroundThreads();
 
-		ApplicationStarter.startApplication(false, getWebContentDir(), 7070);
+		ApplicationStarter.startApplication(false, getWebContentDir(), port);
 
 		//ReindexingServices reindexingServices = factory.getModelLayerFactory().newReindexingServices();
 		//reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);

@@ -1,5 +1,7 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.model.entities.Language;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,7 @@ public class TaxonomyVO implements Serializable {
 
 	private String code;
 
-	private String title;
+	private java.util.Map<Language, String> title;
 
 	private List<String> schemaTypes;
 
@@ -26,7 +28,7 @@ public class TaxonomyVO implements Serializable {
 	public TaxonomyVO() {
 	}
 
-	public TaxonomyVO(String code, String title, List<String> schemaTypes, String collection, List<String> userIds,
+	public TaxonomyVO(String code, java.util.Map<Language, String> title, List<String> schemaTypes, String collection, List<String> userIds,
 			List<String> groupIds, boolean visibleInHomePage) {
 		this.code = code;
 		this.title = title;
@@ -46,11 +48,11 @@ public class TaxonomyVO implements Serializable {
 		this.code = code;
 	}
 
-	public String getTitle() {
+	public java.util.Map<Language, String> getTitle() {
 		return title;
 	}
 
-	public void setTitle(String title) {
+	public void setTitle(java.util.Map<Language, String> title) {
 		this.title = title;
 	}
 

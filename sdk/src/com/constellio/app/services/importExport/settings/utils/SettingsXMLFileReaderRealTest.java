@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
@@ -28,12 +29,59 @@ import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUtils {
 
 	private Document document;
+	private Document document2;
 	private SettingsXMLFileReader reader;
+	private SettingsXMLFileReader reader2;
 
 	@Before
 	public void setup() {
-		document = getDocument();
-		reader = new SettingsXMLFileReader(document);
+		document = getDocument("settings-input.xml");
+		document2 = getDocument("settings-input2.xml");
+		reader = new SettingsXMLFileReader(document, getModelLayerFactory());
+		reader2 = new SettingsXMLFileReader(document2, getModelLayerFactory());
+	}
+
+	@Test
+	public void givenAValiddocumentWithMultiLingualTaxonomieTitle() {
+		ImportedSettings importedSettings = reader2.read();
+
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
+
+
+		java.util.Map<Language, String> titleLanguage1 = collectionSettings.get(0).getTaxonomies().get(0).getTitle();
+		java.util.Map<Language, String> titleLanguage2 = collectionSettings.get(0).getTaxonomies().get(1).getTitle();
+
+
+		assertThat(titleLanguage1.get(Language.French)).isEqualTo("taxo1Titre1Fr");
+		assertThat(titleLanguage1.get(Language.English)).isEqualTo("taxo1Title1En");
+
+		assertThat(titleLanguage2.get(Language.French)).isEqualTo("taxo2Titre2Fr");
+		assertThat(titleLanguage2.get(Language.English)).isEqualTo("taxo2Title2En");
+	}
+
+	@Test
+	public void givenAValiddocumentWithDDvMultiLingualTitle() {
+		ImportedSettings importedSettings = reader2.read();
+
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
+
+
+		java.util.Map<Language, String> titleLanguage1 = collectionSettings.get(0).getValueLists().get(0).getTitle();
+		java.util.Map<Language, String> titleLanguage2 = collectionSettings.get(0).getValueLists().get(1).getTitle();
+		java.util.Map<Language, String> titleLanguage3 = collectionSettings.get(0).getValueLists().get(2).getTitle();
+		java.util.Map<Language, String> titleLanguage4 = collectionSettings.get(0).getValueLists().get(3).getTitle();
+
+		assertThat(titleLanguage1.get(Language.French)).isEqualTo("domaine1fr");
+		assertThat(titleLanguage1.get(Language.English)).isEqualTo("domaine1en");
+
+		assertThat(titleLanguage2.get(Language.French)).isEqualTo("domaine2fr");
+		assertThat(titleLanguage2.get(Language.English)).isEqualTo("domaine2en");
+
+		assertThat(titleLanguage3.get(Language.French)).isEqualTo("domaine3fr");
+		assertThat(titleLanguage3.get(Language.English)).isEqualTo("domaine3en");
+
+		assertThat(titleLanguage4.get(Language.French)).isEqualTo("domaine4fr");
+		assertThat(titleLanguage4.get(Language.English)).isEqualTo("domaine4en");
 	}
 
 	@Test
@@ -116,28 +164,28 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 		ImportedValueList vl1 = list1.get(0);
 		assertThat(vl1.getCode()).isEqualTo("ddvUSRvl1");
-		assertThat(vl1.getTitle()).isEqualTo("domaine1");
+		assertThat(vl1.getTitle().get(Language.French)).isEqualTo("domaine1");
 		assertThat(vl1.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(vl1.getCodeMode()).isEqualTo("DISABLED");
 		assertThat(vl1.getHierarchical()).isFalse();
 
 		ImportedValueList vl2 = list1.get(1);
 		assertThat(vl2.getCode()).isEqualTo("ddvUSRvl2");
-		assertThat(vl2.getTitle()).isEqualTo("domaine2");
+		assertThat(vl2.getTitle().get(Language.French)).isEqualTo("domaine2");
 		assertThat(vl2.getClassifiedTypes()).containsExactly("document");
 		assertThat(vl2.getCodeMode()).isEqualTo("FACULTATIVE");
 		assertThat(vl2.getHierarchical()).isFalse();
 
 		ImportedValueList vl3 = list1.get(2);
 		assertThat(vl3.getCode()).isEqualTo("ddvUSRvl3");
-		assertThat(vl3.getTitle()).isEqualTo("domaine3");
+		assertThat(vl3.getTitle().get(Language.French)).isEqualTo("domaine3");
 		assertThat(vl3.getClassifiedTypes()).isEmpty();
 		assertThat(vl3.getCodeMode()).isEqualTo("REQUIRED_AND_UNIQUE");
 		assertThat(vl3.getHierarchical()).isTrue();
 
 		ImportedValueList vl4 = list1.get(3);
 		assertThat(vl4.getCode()).isEqualTo("ddvUSRvl4");
-		assertThat(vl4.getTitle()).isEqualTo("domaine4");
+		assertThat(vl4.getTitle().get(Language.French)).isEqualTo("domaine4");
 		assertThat(vl4.getClassifiedTypes()).isEmpty();
 		assertThat(vl4.getCodeMode()).isNull();
 		assertThat(vl4.getHierarchical()).isFalse();
@@ -162,7 +210,7 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 		ImportedValueList vl5 = list2.get(0);
 		assertThat(vl5.getCode()).isEqualTo("ddvUSRvl4");
-		assertThat(vl5.getTitle()).isEqualTo("domaine4");
+		assertThat(vl5.getTitle().get(Language.French)).isEqualTo("domaine4");
 		assertThat(vl5.getClassifiedTypes()).isEmpty();
 		assertThat(vl5.getCodeMode()).isEqualTo("DISABLED");
 		assertThat(vl5.getHierarchical()).isTrue();
@@ -186,7 +234,7 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 		ImportedTaxonomy taxo1 = list1.get(0);
 		assertThat(taxo1.getCode()).isEqualTo("taxoT1Type");
-		assertThat(taxo1.getTitle()).isEqualTo("taxo1Titre1");
+		assertThat(taxo1.getTitle().get(Language.French)).isEqualTo("taxo1Titre1");
 		assertThat(taxo1.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(taxo1.getGroupIds()).containsExactly("group1");
 		assertThat(taxo1.getUserIds()).containsExactly("user1", "user2");
@@ -194,7 +242,7 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 		ImportedTaxonomy taxo2 = list1.get(1);
 		assertThat(taxo2.getCode()).isEqualTo("taxoT2Type");
-		assertThat(taxo2.getTitle()).isEqualTo("taxo1Titre2");
+		assertThat(taxo2.getTitle().get(Language.French)).isEqualTo("taxo1Titre2");
 		assertThat(taxo2.getClassifiedTypes()).isEmpty();
 		assertThat(taxo2.getGroupIds()).isEmpty();
 		assertThat(taxo2.getUserIds()).isEmpty();
@@ -219,7 +267,7 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 		ImportedTaxonomy taxo3 = list2.get(0);
 		assertThat(taxo3.getCode()).isEqualTo("taxoT3Type");
-		assertThat(taxo3.getTitle()).isEqualTo("taxo1Titre3");
+		assertThat(taxo3.getTitle().get(Language.French)).isEqualTo("taxo1Titre3");
 		assertThat(taxo3.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(taxo3.getGroupIds()).containsExactly("group1");
 		assertThat(taxo3.getUserIds()).containsExactly("user1", "user2");
@@ -387,8 +435,8 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 		assertThat(m3.getMultiValue()).isTrue();
 	}
 
-	public Document getDocument() {
-		String inputFilePath = getTestResourceFile("settings-input.xml").getPath();
+	public Document getDocument(String fileSetting) {
+		String inputFilePath = getTestResourceFile(fileSetting).getPath();
 		File inputFile = new File(inputFilePath);
 		SAXBuilder builder = new SAXBuilder();
 		try {

@@ -71,7 +71,7 @@ public class Metadata implements DataStoreField {
 
 	final boolean duplicable;
 
-	final String dataStoreCode;
+	final String mainLanguageDataStoreCode;
 	final String inheritanceCode;
 
 	final boolean global;
@@ -124,7 +124,7 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
 		this.duplicable = false;
-		this.dataStoreCode = computeDataStoreCode();
+		this.mainLanguageDataStoreCode = computeMainLanguageDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 
@@ -139,7 +139,7 @@ public class Metadata implements DataStoreField {
 		}
 	}
 
-	private String computeDataStoreCode() {
+	private String computeMainLanguageDataStoreCode() {
 		if (type == MetadataValueType.REFERENCE) {
 			if (isChildOfRelationship()) {
 				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
@@ -148,6 +148,14 @@ public class Metadata implements DataStoreField {
 			}
 		} else {
 			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
+		}
+	}
+
+	private String computeSecondaryLanguageDataStoreCode(String language) {
+		if (type == MetadataValueType.REFERENCE) {
+			return computeMainLanguageDataStoreCode();
+		} else {
+			return dataStoreType == null ? localCode : (localCode + "." + language + "_" + dataStoreType);
 		}
 	}
 
@@ -185,7 +193,7 @@ public class Metadata implements DataStoreField {
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
 		this.duplicable = duplicatbale;
-		this.dataStoreCode = computeDataStoreCode();
+		this.mainLanguageDataStoreCode = computeMainLanguageDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 	}
@@ -216,7 +224,7 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 		this.duplicable = duplicable;
-		this.dataStoreCode = computeDataStoreCode();
+		this.mainLanguageDataStoreCode = computeMainLanguageDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 	}
@@ -230,7 +238,11 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getDataStoreCode() {
-		return dataStoreCode;
+		return mainLanguageDataStoreCode;
+	}
+
+	public String getSecondaryLanguageDataStoreCode(String language) {
+		return computeSecondaryLanguageDataStoreCode(language);
 	}
 
 	public String getFrenchLabel() {
@@ -476,6 +488,10 @@ public class Metadata implements DataStoreField {
 
 	public Metadata getAnalyzedField(String languageCode) {
 		return Schemas.getSearchableMetadata(this, languageCode);
+	}
+
+	public Metadata getSecondaryLanguageField(String languageCode) {
+		return Schemas.getSecondaryLanguageMetadata(this, languageCode);
 	}
 
 	public boolean hasNormalizedSortField() {

@@ -3,15 +3,12 @@ package com.constellio.model.entities;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatToEqualsAndToStringThrowNoException;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.junit.Before;
@@ -69,6 +66,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 		when(record.getSchemaCode()).thenReturn("folder_default");
 		MetadataSchemaTypes types1 = mock(MetadataSchemaTypes.class);
 		MetadataSchemaTypes types2 = mock(MetadataSchemaTypes.class);
+		List languageList = new ArrayList();
+		languageList.add(Language.French);
+		doReturn(languageList).when(types1).getLanguages();
 		RecordWrapper o = new RecordWrapper(record, types1, "folder");
 		RecordWrapper o2 = new RecordWrapper(record, types1, "folder");
 		assertThatToEqualsAndToStringThrowNoException(o, o2);

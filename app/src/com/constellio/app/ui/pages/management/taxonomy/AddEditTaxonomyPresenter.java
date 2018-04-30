@@ -1,21 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -25,27 +9,38 @@ import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import com.jgoodies.common.base.Strings;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView> {
 
 	transient UserServices userServices;
 	private boolean actionEdit = false;
-	private List<String> titles;
+	private List<Map<Language, String>> titles;
 	private transient TaxonomiesManager taxonomiesManager;
 	private transient MetadataSchemasManager schemasManager;
-	private transient SchemasDisplayManager schemasDisplayManager;
-	private Language language;
 
 	public AddEditTaxonomyPresenter(AddEditTaxonomyView view) {
 		super(view);
-		language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		init();
 	}
 
@@ -59,17 +54,23 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		userServices = modelLayerFactory.newUserServices();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+	}
+
+	private boolean isTitleChanged(Map<Language, String> mapLang, Map<Language, String> mapLang2) {
+		for(Language language : mapLang.keySet()) {
+			if(!mapLang.get(language).equals(mapLang2.get(language))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void saveButtonClicked(TaxonomyVO taxonomyVO) {
-		final Language language1 = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		if (isActionEdit()) {
 			Taxonomy taxonomy = fetchTaxonomy(taxonomyVO.getCode());
-			boolean wasTitleChanged = !taxonomy.getTitle(language1).equals(taxonomyVO.getTitle());
-			Map<Language, String> languageStringMap = new HashMap<>();
-			languageStringMap.put(language1, taxonomyVO.getTitle());
-			taxonomy = taxonomy.withTitle(languageStringMap)
+			boolean wasTitleChanged = isTitleChanged(taxonomy.getTitle(), taxonomyVO.getTitle());
+
+			taxonomy = taxonomy.withTitle(taxonomyVO.getTitle())
 					.withUserIds(taxonomyVO.getUserIds())
 					.withGroupIds(taxonomyVO.getGroupIds())
 					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
@@ -85,11 +86,9 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 				List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
 				boolean isMultiLingual = language.size() > 1;
 
-				Map<Language, String> titleMultiLagMap = new HashMap<>();
-				titleMultiLagMap.put(language1, taxonomyVO.getTitle());
 
 				Taxonomy taxonomy = valueListServices()
-						.createTaxonomy(titleMultiLagMap, taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
+						.createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
 								taxonomyVO.isVisibleInHomePage(), isMultiLingual);
 				createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), true);
 				view.navigate().to().listTaxonomies();
@@ -164,7 +163,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 
 	public TaxonomyVO newTaxonomyVO(Taxonomy taxonomy) {
 		TaxonomyToVOBuilder voBuilder = new TaxonomyToVOBuilder();
-		TaxonomyVO taxonomyVO = voBuilder.build(taxonomy, Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
+		TaxonomyVO taxonomyVO = voBuilder.build(taxonomy);
 		taxonomyVO.setClassifiedObjects(getClassifiedObjects(taxonomy));
 		return taxonomyVO;
 
@@ -195,24 +194,28 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		view.navigate().to().listTaxonomies();
 	}
 
-	boolean canCreate(String taxonomy) {
-		taxonomy = taxonomy.trim();
+	boolean canCreate(Map<Language, String> taxonomyMapTitle) {
 		boolean canCreate = false;
-		if (StringUtils.isNotBlank(taxonomy)) {
-			boolean exist = verifyIfExists(taxonomy);
+		if (taxonomyMapTitle != null && taxonomyMapTitle.size() > 0) {
+			boolean exist = verifyIfExists(taxonomyMapTitle);
 			canCreate = !exist;
 		}
 		return canCreate;
 	}
 
-	private boolean verifyIfExists(String taxonomy) {
-		if (titles == null) {
+	private boolean verifyIfExists(Map<Language, String> taxonomy) {
+		if (titles == null || titles.size() == 0) {
 			getTaxonomies();
 		}
 		boolean exits = false;
-		for (String title : titles) {
-			if (title.equals(taxonomy)) {
-				exits = true;
+		for(Language lang : taxonomy.keySet()) {
+			if(Strings.isBlank(taxonomy.get(lang))){
+				return true;
+			}
+			for(Map<Language, String> existingTitleMap : titles) {
+				if(existingTitleMap.get(lang).equals(taxonomy.get(lang))) {
+				    return true;
+                }
 			}
 		}
 		return exits;
@@ -223,8 +226,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		TaxonomyToVOBuilder builder = new TaxonomyToVOBuilder();
 		List<TaxonomyVO> result = new ArrayList<>();
 		for (Taxonomy taxonomy : valueListServices().getTaxonomies()) {
-			result.add(builder.build(taxonomy, language));
-			titles.add(taxonomy.getTitle(language));
+			result.add(builder.build(taxonomy));
+			titles.add(taxonomy.getTitle());
 		}
 
 		return result;

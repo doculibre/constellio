@@ -118,6 +118,10 @@ public class MetadataSchemaType implements Serializable {
 		return labels.get(Language.French);
 	}
 
+	public Map<Language, String> getLabel() {
+		return labels;
+	}
+
 	public String getLabel(Language language) {
 		return labels.get(language);
 	}
@@ -429,4 +433,14 @@ public class MetadataSchemaType implements Serializable {
 		return false;
 	}
 
+	public boolean isMultilingualMetadata(String metadataLocalCode) {
+		boolean multilingual = false;
+		for (MetadataSchema metadataSchema : getAllSchemas()) {
+			if (metadataSchema.hasMetadataWithCode(metadataLocalCode)) {
+				multilingual |= metadataSchema.getMetadata(metadataLocalCode).isMultiLingual();
+			}
+		}
+
+		return multilingual;
+	}
 }

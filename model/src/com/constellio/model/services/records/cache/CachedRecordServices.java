@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 
 import java.util.List;
@@ -100,7 +101,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
 		}
-		if (metadata.getCode().startsWith("global")) {
+		if (metadata.getCode().startsWith("global_")) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
@@ -109,7 +110,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordByMetadata(metadata, value);
 			if (foundRecord != null) {
-				getConnectedRecordsCache().insert(foundRecord);
+				getConnectedRecordsCache().insert(foundRecord, WAS_OBTAINED);
 			}
 		}
 
@@ -331,6 +332,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void flush() {
 		recordServices.flush();
+	}
+
+	@Override
+	public void flushRecords() {
+		recordServices.flushRecords();
 	}
 
 	@Override

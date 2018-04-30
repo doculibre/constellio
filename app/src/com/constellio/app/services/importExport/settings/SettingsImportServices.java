@@ -730,7 +730,7 @@ public class SettingsImportServices {
 					//					String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
 					String taxoCode = StringUtils.substringAfter(typeCode, TAXO);
 					Map<Language, String> title = null;
-					if (importedTaxonomy.getTitle().size() > 0) {
+					if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitle().size() > 0) {
 						title = importedTaxonomy.getTitle();
 					}
 
@@ -750,7 +750,7 @@ public class SettingsImportServices {
 					} else {
 						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy);
 
-						if (importedTaxonomy.getTitle().size() > 0) {
+						if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitle().size() > 0) {
 							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle());
 						}
 
@@ -841,31 +841,24 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-
-
-						Map<Language, String> mapLanguage = new HashMap<>();
-						mapLanguage.put(Language.French, importedValueList.getTitle());
-
 						// TODO Francis ajustement
 
 						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
-									mapLanguage,
+									importedValueList.getTitle(),
 									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode), isMultiLingual);
 						} else {
 							builder.createHierarchicalValueListItemSchema(code,
-									mapLanguage,
+									importedValueList.getTitle(),
 									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode), isMultiLingual);
 						}
 
 					} else {
 						MetadataSchemaTypeBuilder builder = schemaTypesBuilder.getSchemaType(importedValueList.getCode());
 
-						if (StringUtils.isNotBlank(importedValueList.getTitle())) {
-							Map<Language, String> labels = new HashMap<>();
-							labels.put(Language.French, importedValueList.getTitle());
-							builder.setLabels(labels);
+						if (importedValueList != null && importedValueList.getTitle().size() > 0) {
+							builder.setLabels(importedValueList.getTitle());
 						}
 
 						if (StringUtils.isNotBlank(codeModeText)) {

@@ -115,4 +115,8 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 		return (GlobalGroup) recordWrapper;
 	}
 
+	@Override
+	public String toString() {
+		return toStringPrintingCodes(CODE, NAME, PARENT, STATUS);
+	}
 }

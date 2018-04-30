@@ -12,6 +12,7 @@ public class NavigationParams {
 	private String schemaTypeCode;
 	private Page page;
 	private AbstractComponent component;
+	private boolean openInNewTab = false;
 
 	public NavigationParams(Navigation navigate, RecordVO recordVO, String schemaTypeCode, Page page,
 			AbstractComponent component) {
@@ -74,5 +75,14 @@ public class NavigationParams {
 
 	public void setComponent(AbstractComponent component) {
 		this.component = component;
+	}
+
+	public boolean isOpenInNewTab() {
+		return openInNewTab;
+	}
+
+	public NavigationParams setOpenInNewTab(boolean openInNewTab) {
+		this.openInNewTab = openInNewTab;
+		return this;
 	}
 }

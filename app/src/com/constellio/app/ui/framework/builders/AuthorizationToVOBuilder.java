@@ -13,6 +13,8 @@ import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
@@ -72,14 +74,20 @@ public class AuthorizationToVOBuilder implements Serializable {
 		List<Record> allGroups = searchServices.getAllRecords(schemas.groupSchemaType());
 
 		if (principals != null) {
-			for (Record user : allUsers) {
-				if (user != null && principals.contains(user.getId())) {
-					users.add(user.getId());
+			for (Record userRecord : allUsers) {
+				if (userRecord != null && principals.contains(userRecord.getId())) {
+					User user = schemas.wrapUser(userRecord);
+					//if (user.getStatus() == UserCredentialStatus.ACTIVE) {
+						users.add(userRecord.getId());
+					//}
 				}
 			}
-			for (Record group : allGroups) {
-				if (group != null && principals.contains(group.getId())) {
-					groups.add(group.getId());
+			for (Record groupRecord : allGroups) {
+				if (groupRecord != null && principals.contains(groupRecord.getId())) {
+					Group group = schemas.wrapGroup(groupRecord);
+					//if (schemas.isGroupActive(group)) {
+						groups.add(groupRecord.getId());
+					//}
 				}
 			}
 		}

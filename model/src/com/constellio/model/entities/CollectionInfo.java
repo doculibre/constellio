@@ -20,6 +20,8 @@ public class CollectionInfo implements Serializable {
 
 	List<String> collectionLanguesCodes;
 
+	List<String> secondaryCollectionLanguageCodes = new ArrayList<>();
+
 	public CollectionInfo(String code, String mainSystemLanguageCode, List<String> collectionLanguesCodes) {
 		this.code = code;
 		this.mainSystemLocale = Language.withCode(mainSystemLanguageCode).locale;
@@ -28,7 +30,7 @@ public class CollectionInfo implements Serializable {
 
 		List<Locale> collectionLocales = new ArrayList<>();
 		for (String collectionLanguesCode : collectionLanguesCodes) {
-			collectionLocales.add(Language.withCode(mainSystemLanguageCode).locale);
+			collectionLocales.add(Language.withCode(collectionLanguesCode).locale);
 		}
 		this.collectionLocales = Collections.unmodifiableList(collectionLocales);
 
@@ -37,6 +39,14 @@ public class CollectionInfo implements Serializable {
 			languages.add(Language.withLocale(locale));
 		}
 		this.collectionLanguages = Collections.unmodifiableList(languages);
+
+		List<String> secondaryCollectionLanguageCodes = new ArrayList<>();
+		for (Locale locale : collectionLocales) {
+			if (!locale.getLanguage().equals(mainSystemLanguageCode)) {
+				secondaryCollectionLanguageCodes.add(locale.getLanguage());
+			}
+		}
+		this.secondaryCollectionLanguageCodes = Collections.unmodifiableList(secondaryCollectionLanguageCodes);
 	}
 
 	public CollectionInfo(String code, Locale mainSystemLocale, List<Locale> collectionLocales) {
@@ -76,5 +86,9 @@ public class CollectionInfo implements Serializable {
 
 	public List<String> getCollectionLanguesCodes() {
 		return collectionLanguesCodes;
+	}
+
+	public List<String> getSecondaryCollectionLanguesCodes() {
+		return secondaryCollectionLanguageCodes;
 	}
 }

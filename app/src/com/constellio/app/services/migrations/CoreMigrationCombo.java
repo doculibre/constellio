@@ -53,6 +53,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_5;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_8_8;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
@@ -111,6 +112,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_7_6());
 		scripts.add(new CoreMigrationTo_7_6_2());
 		scripts.add(new CoreMigrationTo_7_6_2_1());
+		scripts.add(new CoreMigrationTo_8_8_8());
 
 		return scripts;
 	}

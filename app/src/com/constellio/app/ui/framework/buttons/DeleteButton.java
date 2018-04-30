@@ -31,6 +31,11 @@ public abstract class DeleteButton extends ConfirmDialogButton {
 		init();
 	}
 
+	public DeleteButton(String caption, boolean iconOnly) {
+		super(iconOnly ? ICON_RESOURCE : null, computeCaption(caption, iconOnly), iconOnly);
+		init();
+	}
+
 	public static String computeCaption(String caption, boolean iconOnly) {
 		return iconOnly ? caption : $("delete.icon") + " " + caption;
 	}

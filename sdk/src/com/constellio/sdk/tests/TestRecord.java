@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.mockito.Mockito;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -52,8 +53,8 @@ public class TestRecord extends RecordImpl {
 		return schema;
 	}
 
-	public TestRecord(RecordDTO recordDTO, String mainDataLanguage) {
-		super(recordDTO, mainDataLanguage);
+	public TestRecord(RecordDTO recordDTO, CollectionInfo collectionInfo) {
+		super(recordDTO, collectionInfo);
 	}
 
 	public void markAsModified(Metadata metadata) {
@@ -71,6 +72,12 @@ public class TestRecord extends RecordImpl {
 		}
 
 		set(schemaShortcuts.instance().get(localCode), value);
+		return this;
+	}
+
+	@Override
+	public TestRecord set(Metadata metadata, Object value) {
+		super.set(metadata, value);
 		return this;
 	}
 

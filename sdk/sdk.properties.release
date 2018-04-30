@@ -21,6 +21,7 @@ skip.loadtests=true
 skip.internettests=true
 skip.indevelopment=true
 skip.importtests=true
+skip.testsWithGradle=false
 
 tests.whitelist=
 tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\

@@ -590,6 +590,14 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
+	public TestsSchemasSetup withAStringMetadataInAnotherSchema(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("stringMetadata").setType(STRING)
+				.addLabel(Language.French, "A toAString metadata");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
 	public TestsSchemasSetup withAContentMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("contentMetadata").setType(CONTENT);

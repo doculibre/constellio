@@ -33,7 +33,9 @@ public class ConfigManagerHelper {
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
 		if (!configManager.exist(path)) {
 			Document document = new Document();
-			documentAlteration.alter(document);
+			if (documentAlteration != null) {
+				documentAlteration.alter(document);
+			}
 			try {
 				configManager.add(path, document);
 			} catch (ConfigurationAlreadyExists e) {
