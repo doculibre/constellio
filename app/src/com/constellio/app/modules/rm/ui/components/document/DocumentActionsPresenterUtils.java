@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -136,10 +137,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
 
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), getModelLayerFactory());
+			boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
 			if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), getModelLayerFactory());
-				if (rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (isManualEntry) {
 					document.setTitle(newName);
+				}
+			} else if(FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename()).equals(document.getTitle())) {
+				if (isManualEntry) {
+					document.setTitle(FilenameUtils.removeExtension(newName));
 				}
 			}
 
