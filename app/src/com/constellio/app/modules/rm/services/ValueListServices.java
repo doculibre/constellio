@@ -268,7 +268,7 @@ public class ValueListServices {
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
 		builder.createHierarchicalValueListItemSchema(code, title,
-				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
+				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false));
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
