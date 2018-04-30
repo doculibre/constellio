@@ -750,7 +750,7 @@ public class SettingsImportServices {
 					} else {
 						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy);
 
-						if (importedTaxonomy.getTitle().size() > 0) {
+						if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitle().size() > 0) {
 							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle());
 						}
 

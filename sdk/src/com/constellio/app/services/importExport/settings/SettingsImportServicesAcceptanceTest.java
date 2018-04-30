@@ -922,7 +922,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
 
 		assertThat(taxonomy2).isNotNull();
-		assertThat(taxonomy2.getTitle()).isEqualTo(TAXO_2_TITLE_FR);
+		assertThat(taxonomy2.getTitle().get(Language.French)).isEqualTo(TAXO_2_TITLE_FR);
 		assertThat(taxonomy2.isVisibleInHomePage()).isTrue();
 		assertThat(taxonomy2.getGroupIds()).isEmpty();
 		assertThat(taxonomy2.getUserIds()).isEmpty();
@@ -963,7 +963,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy1).isNotNull();
-		assertThat(taxonomy1.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
@@ -1144,7 +1144,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));

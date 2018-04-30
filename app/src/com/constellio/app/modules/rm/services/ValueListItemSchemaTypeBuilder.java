@@ -32,13 +32,21 @@ public class ValueListItemSchemaTypeBuilder {
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, Map<Language, String> labels,
 			ValueListItemSchemaTypeBuilderOptions options, boolean isMultiLingual) {
 
+		if(labels == null) {
+			labels = new HashMap<>();
+		}
+
+		if(labels == null || labels.size() == 0) {
+			for (Language language : metadataSchemaTypesBuilder.getLanguages()) {
+				labels.put(language, $("init." + code));
+			}
+		}
+
 		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaType(code);
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
 
-		if(labels == null) {
-		    labels = new HashMap<>();
-        }
+
 
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
 

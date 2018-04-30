@@ -143,15 +143,15 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(taxonomy1.getTitle().get(Language.English)).isEqualTo("My ultimate taxonomy!");
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");
-		assertThat(taxonomy2.getTitle()).isEqualTo("Another taxonomy!");
+		assertThat(taxonomy2.getTitle().get(Language.English)).isEqualTo("Another taxonomy!");
 		assertThat(taxonomy2.getSchemaTypes()).containsOnlyOnce(taxonomy2.getCode() + "Type");
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		MetadataSchemaType taxo1Type = types.getSchemaType(taxonomy1.getSchemaTypes().get(0));
 		MetadataSchemaType taxo2Type = types.getSchemaType(taxonomy2.getSchemaTypes().get(0));
 
-		assertThat(taxo1Type.getLabel(Language.French)).isEqualTo("My ultimate taxonomy!");
-		assertThat(taxo2Type.getLabel(Language.French)).isEqualTo("Another taxonomy!");
+		assertThat(taxo1Type.getLabel(Language.English)).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxo2Type.getLabel(Language.English)).isEqualTo("Another taxonomy!");
 
 		Metadata code = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.CODE);
 		Metadata description = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.DESCRIPTION);
