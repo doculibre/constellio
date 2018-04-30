@@ -2,7 +2,6 @@ package com.constellio.app.api.search;
 
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -11,7 +10,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.thesaurus.ResponseSkosConcept;
-import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +63,9 @@ public class SearchWebService extends HttpServlet {
 		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
 		solrParams.add("fq", "-type_s:index");
 
+		solrParams.set("rows", StringUtils.defaultString(solrParams.get("rows"), "" + 10));
+		solrParams.set("rows", StringUtils.defaultString(solrParams.get("start"), "" + 0));
+
 		String[] strings = solrParams.getParams("fq");
 
 		String collection = "";
@@ -97,6 +98,8 @@ public class SearchWebService extends HttpServlet {
 			if(!Strings.isNullOrEmpty(collection)) {
 				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
 				searchEvent = schemasRecordsServices.newSearchEvent();
+				searchEvent.setClickCount(0);
+
 
 				for (String paramName : solrParams.getParameterNames()) {
 					if (!paramName.equals("qf") && !paramName.equals("pf")
@@ -124,6 +127,15 @@ public class SearchWebService extends HttpServlet {
 			queryResponse = getQueryResponse(solrParams, user);
 
 			if(schemasRecordsServices != null) {
+
+				if (solrParams.get("rows") == null) {
+					paramList.add("rows=10");
+				}
+
+				if (solrParams.get("start") == null) {
+					paramList.add("start=0");
+				}
+
 				searchEvent.setParams(paramList);
 				searchEvent.setQTime(queryResponse.getQTime());
 				searchEvent.setNumFound(queryResponse.getResults().getNumFound());

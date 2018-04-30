@@ -1,19 +1,22 @@
 package com.constellio.app.ui.pages.statistic;
 
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.containers.*;
+import com.constellio.app.ui.framework.containers.FacetsLazyContainer;
+import com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
-import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -21,14 +24,20 @@ import com.vaadin.ui.Button.ClickListener;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, Serializable {
+    private static Logger LOGGER = LoggerFactory.getLogger(StatisticsViewImpl.class);
 
     public static final Integer DEFAULT_LINE_NUMBER = 15;
 
@@ -44,8 +53,6 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     private DateField startDateField;
     @PropertyId("endDate")
     private DateField endDateField;
-    @PropertyId("lines")
-    private TextField linesField;
     @PropertyId("filter")
     private TextField filterField;
 
@@ -111,7 +118,6 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         newStatisticType,
                         startDateField.getValue(),
                         endDateField.getValue(),
-                        linesField.getValue(),
                         filterField.getValue());
 
                 if(Objects.equals(statisticType, newStatisticType)) {
@@ -165,18 +171,11 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             }
         });
 
-        linesField = new BaseTextField($("StatisticsView.lines"));
-        linesField.setId("lines");
-        linesField.setValue(DEFAULT_LINE_NUMBER.toString());
-        linesField.setConverter(Integer.class);
-        linesField.setConversionError($("StatisticsView.lines.conversionError"));
-        linesField.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 15000));
-
         filterField = new BaseTextField($("StatisticsView.filter"));
         filterField.setId("filter");
 
         BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this,
-                excludedRequestField, statisticTypeField, startDateField, endDateField, linesField, filterField) {
+                excludedRequestField, statisticTypeField, startDateField, endDateField, filterField) {
             private String statisticType;
 
             @Override
@@ -196,7 +195,6 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         newStatisticType,
                         startDateField.getValue(),
                         endDateField.getValue(),
-                        linesField.getValue(),
                         filterField.getValue());
 
                 if(Objects.equals(statisticType, newStatisticType)) {
@@ -218,12 +216,6 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             }
         };
 
-        statisticTypeField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                linesField.setVisible(isStatisticTypeChoice());
-            }
-        });
         statisticTypeField.select(item);
 
         return baseForm;
@@ -257,16 +249,64 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
         tableLayout.removeAllComponents();
 
+        tableLayout.addComponent(createOtherComponents(container));
         tableLayout.addComponent(resultTable);
         tableLayout.setExpandRatio(resultTable, 1);
 
         return tableLayout;
     }
 
+    protected Layout createOtherComponents(LazyQueryContainer container) {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setSizeFull();
+//        layout.setSpacing(true);
+
+        Label label = new Label($("StatisticsView.numberOfResults")+": "+container.size());
+        label.setContentMode(ContentMode.HTML);
+
+        layout.addComponent(label);
+        layout.setExpandRatio(label, 1);
+
+        DownloadLink downloadLink = new DownloadLink(getCsvDocumentResource(), $("StatisticsView.downloadCsv"));
+
+        layout.addComponent(downloadLink);
+        layout.setExpandRatio(downloadLink, 1);
+
+        downloadLink.setVisible(container.size() > 0);
+
+        return layout;
+    }
+
+    private Resource getCsvDocumentResource() {
+        return new StreamResource(new StreamResource.StreamSource() {
+            @Override
+            public InputStream getStream() {
+                try {
+                    return new FileInputStream(getCSVProducer().produceCSVFile());
+                } catch (IOException e) {
+                    LOGGER.error("Error during CSV generation", e);
+                    return null;
+                }
+            }
+        }, $("StatisticsView.viewTitle") + ".csv");
+    }
+
+    @NotNull
+    private AbstractCSVProducer getCSVProducer() {
+        AbstractCSVProducer csvProducer;
+        if(isStatisticTypeChoice()) {
+            csvProducer = new FacetsCSVProducer(resultTable, presenter.getStatisticsFacetsDataProvider(), initColumnVisibility());
+        } else {
+            csvProducer = new SearchEventCSVProducer(resultTable, presenter.getStatisticsDataProvider());
+        }
+
+        return csvProducer;
+    }
+
     @NotNull
     private LazyQueryContainer getContainer(List<String> properties) {
         if (isStatisticTypeChoice()) {
-            return StatisticsLazyContainer.defaultInstance(presenter.getStatisticsFacetsDataProvider(), properties);
+            return FacetsLazyContainer.defaultInstance(presenter.getStatisticsFacetsDataProvider(), properties);
         } else {
             return SearchEventVOLazyContainer.defaultInstance(presenter.getStatisticsDataProvider(), properties);
         }
@@ -287,7 +327,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
     private String getColumnHeader(String property) {
         switch (property) {
-            case StatisticsLazyContainer.CLICK_COUNT:
+            case FacetsLazyContainer.CLICK_COUNT:
             case SearchEventVOLazyContainer.CLICK_COUNT:
                 return $("StatisticsView.clickCount");
 
@@ -306,7 +346,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.NUM_FOUND:
                 return $("StatisticsView.numFound");
 
-            case StatisticsLazyContainer.QUERY:
+            case FacetsLazyContainer.QUERY:
             case SearchEventVOLazyContainer.QUERY:
                 return $("StatisticsView.query");
 
@@ -316,8 +356,11 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.CREATION_DATE:
                 return $("StatisticsView.creationDate");
 
-            case StatisticsLazyContainer.FREQUENCY:
+            case FacetsLazyContainer.FREQUENCY:
                 return $("StatisticsView.frequency");
+
+            case SearchEventVOLazyContainer.NUM_PAGE:
+                return $("StatisticsView.numPage");
 
             default:
                 return property;
@@ -329,19 +372,19 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
         switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
             case StatisticsPresenter.FAMOUS_REQUEST:
-                properties = Arrays.asList(StatisticsLazyContainer.QUERY, StatisticsLazyContainer.FREQUENCY, StatisticsLazyContainer.CLICK_COUNT);
+                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
-                properties = Arrays.asList(StatisticsLazyContainer.QUERY, StatisticsLazyContainer.FREQUENCY, StatisticsLazyContainer.CLICK_COUNT);
+                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-                properties = Arrays.asList(StatisticsLazyContainer.QUERY, StatisticsLazyContainer.FREQUENCY);
+                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
-                properties = Arrays.asList(StatisticsLazyContainer.QUERY, StatisticsLazyContainer.FREQUENCY, StatisticsLazyContainer.CLICK_COUNT);
+                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-                properties = Arrays.asList(StatisticsLazyContainer.QUERY, StatisticsLazyContainer.FREQUENCY);
+                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY);
                 break;
             default:
                 properties = new ArrayList<>(SearchEventVOLazyContainer.PROPERTIES);
