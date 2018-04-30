@@ -6,12 +6,12 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import java.io.Serializable;
 import java.util.Locale;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
@@ -89,11 +89,11 @@ public class SchemaCaptionUtils implements Serializable {
 
 				caption = applyPattern(captionFormat, record, null);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-//					if (isRightToLeft()) {
-//						caption = caption + " " + captionForSchemaTypeCode;
-//					} else {
-//						caption = captionForSchemaTypeCode + " " + caption;
-//					}
+					//					if (isRightToLeft()) {
+					//						caption = caption + " " + captionForSchemaTypeCode;
+					//					} else {
+					//						caption = captionForSchemaTypeCode + " " + caption;
+					//					}
 					caption = captionForSchemaTypeCode + " " + caption;
 				}
 			} catch (NoSuchRecordWithId e) {
@@ -219,6 +219,7 @@ public class SchemaCaptionUtils implements Serializable {
 					value = record.get(metadata, locale);
 				}
 			} catch (Exception e) {
+				LOGGER.warn("Could not compute caption", e);
 				value = null;
 			}
 			if (value == null) {
