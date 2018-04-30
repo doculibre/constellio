@@ -1,5 +1,7 @@
 package com.constellio.model.extensions.behaviors;
 
+import java.util.Locale;
+
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -98,7 +100,7 @@ public class RecordExtension {
 		return false;
 	}
 
-	public String getCaptionForRecord(Record record) {
+	public String getCaptionForRecord(Record record, Locale locale) {
 		return null;
 	}
 }

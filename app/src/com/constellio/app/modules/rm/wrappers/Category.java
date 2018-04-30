@@ -48,6 +48,11 @@ public class Category extends RecordWrapper {
 		return this;
 	}
 
+	public Category setTitle(Locale locale, String title) {
+		super.setTitle(locale, title);
+		return this;
+	}
+
 	@Override
 	public String getTitle() {
 		return get(Schemas.TITLE.getLocalCode(), locale);

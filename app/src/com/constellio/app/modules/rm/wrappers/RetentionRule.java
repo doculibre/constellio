@@ -59,6 +59,11 @@ public class RetentionRule extends RecordWrapper {
 		return this;
 	}
 
+	public RetentionRule setTitle(Locale locale, String title) {
+		super.setTitle(locale, title);
+		return this;
+	}
+
 	public String getCode() {
 		return get(CODE);
 	}

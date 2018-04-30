@@ -72,7 +72,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getCaptionForRecord(Record record) {
+	public static String getCaptionForRecord(Record record, Locale locale) {
 		String caption;
 		if (record != null) {
 			try {
@@ -87,7 +87,7 @@ public class SchemaCaptionUtils implements Serializable {
 					captionFormat = $(captionFormatKey);
 				}
 
-				caption = applyPattern(captionFormat, record, null);
+				caption = applyPattern(captionFormat, record, locale);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
 					//					if (isRightToLeft()) {
 					//						caption = caption + " " + captionForSchemaTypeCode;

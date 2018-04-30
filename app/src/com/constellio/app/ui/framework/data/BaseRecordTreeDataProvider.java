@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
@@ -155,7 +156,7 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 	}
 
 	protected String getCaptionOf(Record record) {
-		return SchemaCaptionUtils.getCaptionForRecord(record);
+		return SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale());
 	}
 
 	protected Resource getExpandedIconOf(Record record) {

@@ -1,5 +1,7 @@
 package com.constellio.model.extensions;
 
+import java.util.Locale;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,16 +273,16 @@ public class ModelLayerCollectionExtensions {
 		});
 	}
 
-	public String getCaptionForRecord(Record record) {
+	public String getCaptionForRecord(Record record, Locale locale) {
 		String caption = null;
 		for (RecordExtension extension : recordExtensions) {
-			caption = extension.getCaptionForRecord(record);
-			if(caption != null) {
+			caption = extension.getCaptionForRecord(record, locale);
+			if (caption != null) {
 				break;
 			}
 		}
 
-		if(caption == null) {
+		if (caption == null) {
 			return record.getTitle();
 		} else {
 			return caption;
