@@ -10,6 +10,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -338,26 +339,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		taxonomy.setCode(child.getAttributeValue(CODE));
 		String title = child.getAttributeValue(TITLE);
 
-		Map<Language, String> languageTitleMap = new HashMap<>();
-		int numberOfLang = 0;
-
-		List<Attribute> attributeList = child.getAttributes();
-
-		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(SettingsXMLFileReader.TITLE) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
-				String languageCode = currentAttribute.getName().replace(SettingsXMLFileReader.TITLE, "");
-				Language language = Language.withCode(languageCode);
-				languageTitleMap.put(language, currentAttribute.getValue());
-				numberOfLang++;
-			}
-		}
-
-		if(numberOfLang == 0 && title != null) {
-			for(String languageCollection : languageList) {
-				Language language = Language.withCode(languageCollection);
-				languageTitleMap.put(language, title);
-			}
-		}
+		Map<Language, String> languageTitleMap = getLanguageStringMap(child, languageList, title);
 
 		if(languageTitleMap.size() > 0) {
 			taxonomy.setTitle(languageTitleMap);
@@ -380,6 +362,31 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		return taxonomy;
+	}
+
+	@NotNull
+	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String title) {
+		Map<Language, String> languageTitleMap = new HashMap<>();
+		int numberOfLang = 0;
+
+		List<Attribute> attributeList = child.getAttributes();
+
+		for(Attribute currentAttribute : attributeList) {
+			if(currentAttribute.getName().startsWith(SettingsXMLFileReader.TITLE) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
+				String languageCode = currentAttribute.getName().replace(SettingsXMLFileReader.TITLE, "");
+				Language language = Language.withCode(languageCode);
+				languageTitleMap.put(language, currentAttribute.getValue());
+				numberOfLang++;
+			}
+		}
+
+		if(numberOfLang == 0 && title != null) {
+			for(String languageCollection : languageList) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, title);
+			}
+		}
+		return languageTitleMap;
 	}
 
 	private List<String> toListOfString(String stringValue) {
@@ -442,27 +449,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		String title = element.getAttributeValue(TITLE);
 
-		Map<Language, String> languageTitleMap = new HashMap<>();
-		int numberOfLang = 0;
-
-		List<Attribute> attributeList = element.getAttributes();
-
-		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(
-					SettingsXMLFileReader.TITLE) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
-				String languageCode = currentAttribute.getName().replace(SettingsXMLFileReader.TITLE, "");
-				Language language = Language.withCode(languageCode);
-				languageTitleMap.put(language, currentAttribute.getValue());
-				numberOfLang++;
-			}
-		}
-
-		if(numberOfLang == 0 && title != null) {
-			for(String languageCollection : languageList) {
-				Language language = Language.withCode(languageCollection);
-				languageTitleMap.put(language, title);
-			}
-		}
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title);
 
 		if (languageTitleMap.size() > 0) {
 			valueList.setTitle(languageTitleMap);
