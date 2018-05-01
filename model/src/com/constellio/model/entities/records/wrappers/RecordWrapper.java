@@ -164,6 +164,14 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return (W) this;
 	}
 
+	public <T, W extends  RecordWrapper> W set(String localeCode,  Locale locale, T value) {
+		ensureConnected();
+		String code = wrappedRecord.getSchemaCode() + "_" + localeCode;
+		Metadata metadata = types.getMetadata(code);
+		wrappedRecord.set(metadata, locale,value);
+		return (W) this;
+	}
+
 	public <T, W extends RecordWrapper> W add(String localCode, T... newValues) {
 		ensureConnected();
 		String code = wrappedRecord.getSchemaCode() + "_" + localCode;

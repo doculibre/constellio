@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -73,6 +74,8 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(presenter.conceptId).isNull();
 		assertThat(presenter.taxonomy.getCode()).isEqualTo(RMTaxonomies.CLASSIFICATION_PLAN);
+		presenter.getTaxonomy().getTitle().get(Language.French).equals("Plan de classification");
+		presenter.getTaxonomy().getTitle().get(Language.English).equals("File plan");
 	}
 
 	@Test
@@ -86,6 +89,9 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(presenter.conceptId).isEqualTo(records.categoryId_X);
 		assertThat(presenter.taxonomy.getCode()).isEqualTo(RMTaxonomies.CLASSIFICATION_PLAN);
+
+		presenter.getTaxonomy().getTitle().get(Language.French).equals("Plan de classification");
+		presenter.getTaxonomy().getTitle().get(Language.English).equals("File plan");
 	}
 
 	@Test

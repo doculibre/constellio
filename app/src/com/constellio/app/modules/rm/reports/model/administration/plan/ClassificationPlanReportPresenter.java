@@ -52,13 +52,13 @@ public class ClassificationPlanReportPresenter {
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-			String administrativeUnitId, Locale locale) {
+		String administrativeUnitId, Locale locale) {
 
-		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
-		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
-		this.administrativeUnitId = administrativeUnitId;
-		this.locale = locale;
+			this.collection = collection;
+			this.modelLayerFactory = modelLayerFactory;
+			this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
+			this.administrativeUnitId = administrativeUnitId;
+			this.locale = locale;
 	}
 
 	public ClassificationPlanReportModel build() {
