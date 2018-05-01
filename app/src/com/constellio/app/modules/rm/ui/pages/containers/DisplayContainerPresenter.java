@@ -25,11 +25,13 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -156,8 +158,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		return asList($("Reports.ContainerRecordReport"));
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		return asList(new ReportWithCaptionVO("Reports.ContainerRecordReport", $("Reports.ContainerRecordReport")));
 	}
 
 	@Override
@@ -224,7 +226,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
-		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
+		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES);
 	}
 
 	private boolean isContainerRecyclingAllowed() {

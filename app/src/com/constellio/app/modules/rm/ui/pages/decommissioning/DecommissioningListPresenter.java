@@ -26,6 +26,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.utils.TimeProvider;
@@ -719,8 +720,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		return asList($("Reports.DecommissioningList"));
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		return asList(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")));
 	}
 
 	@Override

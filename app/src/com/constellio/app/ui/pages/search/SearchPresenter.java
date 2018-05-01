@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -509,10 +510,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		List<String> supportedReports = new ArrayList<>();
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
 		if (view.computeStatistics()) {
-			supportedReports.add("Reports.FolderLinearMeasureStats");
+			supportedReports.add(new ReportWithCaptionVO("Reports.FolderLinearMeasureStats", $("Reports.FolderLinearMeasureStats")));
 		}
 		return supportedReports;
 	}

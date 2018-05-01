@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
@@ -436,7 +437,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildPrintButton() {
-		ReportButton button = new ReportButton("Reports.DecommissioningList", presenter);
+		ReportButton button = new ReportButton(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")), presenter);
 		button.setCaption($("DecommissioningListView.print"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;
