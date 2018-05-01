@@ -121,10 +121,9 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				tableMetadataCodes, searchMetadataCodes, labels);
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.isMultiLingual()) {
-				List<String> supportedLanguages = i18n.getSupportedLanguages();
-				for (String supportedLanguage : supportedLanguages) {
-					Locale locale = new Locale(supportedLanguage);
-					metadataToVOBuilder.build(metadata, locale, schemaVO, sessionContext);
+				List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
+				for (Locale supportedLocale : supportedLocales) {
+					metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
 				}
 			} else {
 				metadataToVOBuilder.build(metadata, schemaVO, sessionContext);

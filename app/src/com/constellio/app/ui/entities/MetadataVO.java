@@ -309,6 +309,7 @@ public class MetadataVO implements Serializable {
 		int result = 1;
 		result = prime * result + ((code == null) ? 0 : code.hashCode());
 		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
+		result = prime * result + ((locale == null) ? 0 : locale.hashCode());
 		return result;
 	}
 
@@ -334,6 +335,12 @@ public class MetadataVO implements Serializable {
 				}
 				//			} else if (!schema.equals(other.schema)) {
 				//				return false;
+			} else if (locale == null) {
+				if (other.locale != null) {
+					return false;
+				}
+			} else if (!locale.equals(other.locale)) {
+				return false;
 			}
 		}
 		return true;
