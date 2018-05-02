@@ -946,6 +946,11 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
+	}
+
+	@Override
 	public String getParentId() {
 
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {

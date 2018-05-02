@@ -1,7 +1,5 @@
 package com.constellio.model.extensions;
 
-import java.util.Locale;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +30,7 @@ import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
+import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -273,17 +272,17 @@ public class ModelLayerCollectionExtensions {
 		});
 	}
 
-	public String getCaptionForRecord(Record record, Locale locale) {
+	public String getCaptionForRecord(GetCaptionForRecordParams params) {
 		String caption = null;
 		for (RecordExtension extension : recordExtensions) {
-			caption = extension.getCaptionForRecord(record, locale);
+			caption = extension.getCaptionForRecord(params);
 			if (caption != null) {
 				break;
 			}
 		}
 
 		if (caption == null) {
-			return record.getTitle();
+			return params.getRecord().getTitle();
 		} else {
 			return caption;
 		}

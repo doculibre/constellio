@@ -114,6 +114,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		queryBoosts = new ArrayList<>(query.queryBoosts);
 
 		moreLikeThisFields = query.moreLikeThisFields;
+		language = query.language;
 	}
 
 	// The following methods are attribute accessors

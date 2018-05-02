@@ -7,6 +7,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.dummy;
+import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
@@ -30,7 +31,11 @@ import org.junit.runners.MethodSorters;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -52,6 +57,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 			multilingualCollectionSchemas = new RecordServicesTestSchemaSetup("multilingual");
 	RecordServicesTestSchemaSetup.ZeSchemaMetadatas multilingualSchema
 			= multilingualCollectionSchemas.new ZeSchemaMetadatas();
+	RecordServicesTestSchemaSetup.AnotherSchemaMetadatas referencingMultilingualSchema
+			= multilingualCollectionSchemas.new AnotherSchemaMetadatas();
 
 	RecordServices recordServices;
 	SearchServices searchServices;
@@ -445,7 +452,15 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
 		defineSchemasManager().using(multilingualCollectionSchemas
 				.withAStringMetadata(whichIsSortable, whichIsMultilingual)
-				.withAnotherStringMetadata(whichIsSortable));
+				.withAnotherStringMetadata(whichIsSortable)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsSortable));
+
+		getModelLayerFactory().getExtensions().forCollection("multilingual").recordExtensions.add(new RecordExtension() {
+			@Override
+			public String getCaptionForRecord(GetCaptionForRecordParams params) {
+				return params.getRecord().get(multilingualSchema.stringMetadata(), params.getLocale());
+			}
+		});
 
 		setupServices();
 		Transaction tx = new Transaction();
@@ -480,7 +495,38 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "peanut")
 				.set(multilingualSchema.anotherStringMetadata(), "Autre"));
 
+		tx.add(new TestRecord(referencingMultilingualSchema, "rr1")
+				.set(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema(), "r1"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "rr2")
+				.set(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema(), "r2"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "rr3")
+				.set(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema(), "r3"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "rr4")
+				.set(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema(), "r4"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "rr5")
+				.set(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema(), "r5"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "rr6")
+				.set(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema(), "r6"));
+
 		recordServices.execute(tx);
+
+		Metadata metadata = referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema();
+		assertThat(metadata.getSortField().getDataStoreCode()).isEqualTo("referenceFromAnotherSchemaToZeSchema_sort_s");
+		assertThat(getSortMetadata(metadata).getDataStoreCode()).isEqualTo("referenceFromAnotherSchemaToZeSchema_sort_s");
+
+		assertThat(Schemas.getSecondaryLanguageMetadata(metadata.getSortField(), "en").getDataStoreCode())
+				.isEqualTo("referenceFromAnotherSchemaToZeSchema.en_sort_s");
+		assertThat(Schemas.getSecondaryLanguageMetadata(getSortMetadata(metadata), "en").getDataStoreCode())
+				.isEqualTo("referenceFromAnotherSchemaToZeSchema.en_sort_s");
+
+		/*****
+		 * Validating multilingual text sort
+		 */
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
 		query.sortAsc(multilingualSchema.stringMetadata());
@@ -502,6 +548,23 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		query.setLanguage(Locale.ENGLISH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadata("stringMetadata")
 				.isEqualTo(asList("peanut", "Apple", "Peach", "pear", "Strawberry", "Partridge"));
+
+		/*****
+		 * Validating multilingual reference sort
+		 */
+
+		query = new LogicalSearchQuery(from(referencingMultilingualSchema.type()).returnAll());
+		query.sortAsc(referencingMultilingualSchema.referenceFromAnotherSchemaToZeSchema());
+		query.setLanguage(Locale.FRENCH);
+
+		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH)
+				.extractingMetadata("referenceFromAnotherSchemaToZeSchema.stringMetadata")
+				.isEqualTo(asList("Fraise", "peanut", "Pêche", "perdrix", "Poire", "pomme"));
+
+		query.setLanguage(Locale.ENGLISH);
+		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH)
+				.extractingMetadata("referenceFromAnotherSchemaToZeSchema.stringMetadata")
+				.isEqualTo(asList("Apple", "Partridge", "Peach", "peanut", "pear", "Strawberry"));
 
 	}
 

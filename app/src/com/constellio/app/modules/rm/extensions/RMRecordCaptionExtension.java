@@ -1,11 +1,9 @@
 package com.constellio.app.modules.rm.extensions;
 
-import java.util.Locale;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 
 public class RMRecordCaptionExtension extends RecordExtension {
 
@@ -18,7 +16,7 @@ public class RMRecordCaptionExtension extends RecordExtension {
 	}
 
 	@Override
-	public String getCaptionForRecord(Record record, Locale locale) {
-		return SchemaCaptionUtils.getCaptionForRecord(record, locale);
+	public String getCaptionForRecord(GetCaptionForRecordParams params) {
+		return SchemaCaptionUtils.getCaptionForRecord(params.getRecord(), params.getLocale());
 	}
 }

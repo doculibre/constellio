@@ -82,7 +82,7 @@ public class ReferenceDisplay extends Button {
 	public Locale getLocale() {
 		Locale locale = super.getLocale();
 		if (locale == null) {
-			locale = ConstellioUI.getCurrent().getLocale(); 
+			locale = ConstellioUI.getCurrent().getLocale();
 		}
 		return locale;
 	}
@@ -134,7 +134,7 @@ public class ReferenceDisplay extends Button {
 		String description = null;
 		if (schema.hasMetadataWithCode("description")) {
 			Metadata descriptionMetadata = schema.getMetadata("description");
-			description = record.get(descriptionMetadata);
+			description = record.get(descriptionMetadata, getLocale());
 		}
 		return description;
 	}
