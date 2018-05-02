@@ -429,7 +429,7 @@ public class DecommissioningList extends RecordWrapper {
 		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
 		for(Folder folder: folders) {
 			String containerId = folder.getContainer();
-			if(!(previousContainers != null && previousContainers.contains(containerId))) {
+			if(!(previousContainers != null && previousContainers.contains(containerId)) && containerId != null) {
 				DecomListContainerDetail detail = new DecomListContainerDetail(containerId);
 				details.add(detail);
 			}
