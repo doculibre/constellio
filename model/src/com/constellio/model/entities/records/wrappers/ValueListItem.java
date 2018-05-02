@@ -1,8 +1,10 @@
 package com.constellio.model.entities.records.wrappers;
 
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
@@ -21,6 +23,11 @@ public class ValueListItem extends RecordWrapper {
 
 	public ValueListItem setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	public ValueListItem setTitles(Map<Language, String> titles) {
+		super.setTitles(titles);
 		return this;
 	}
 

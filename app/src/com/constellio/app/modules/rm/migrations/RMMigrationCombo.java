@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.Language.French;
 import static java.util.Arrays.asList;
 
@@ -219,38 +218,39 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
 				.setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
 				.setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
 				.setAnalogical(false));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-				.setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
+				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
+				.setLinkedSchema(Email.SCHEMA));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("888")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888")));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("999")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999")));
 
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.administrativeUnit")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.category")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.archivisticStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
 		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.copyStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
 
-		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.folderType"))
+		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.folderType"))
 				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
-		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.documentType"))
+		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.documentType"))
 				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
 		try {
@@ -260,7 +260,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		}
 
 		try {
-			RMMigrationTo7_2.createNewTaskTypes(appLayerFactory, collection, transaction);
+			RMMigrationTo7_2.createNewTaskTypes(appLayerFactory, collection, transaction, migrationResourcesProvider);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

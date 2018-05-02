@@ -198,11 +198,11 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		manager.saveMetadata(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.STORAGE_SPACE)
 				.withInputType(MetadataInputType.LOOKUP));
 
-		String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
+		//String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		manager.saveMetadata(manager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_FOLDERS)
-				.withMetadataGroup(detailsTab));
+				.withMetadataGroup("init.userTask.details"));
 		manager.saveMetadata(manager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_DOCUMENTS)
-				.withMetadataGroup(detailsTab));
+				.withMetadataGroup("init.userTask.details"));
 
 		transactionBuilder.in(RetentionRule.SCHEMA_TYPE)
 				.addToSearchResult(RetentionRule.CODE)

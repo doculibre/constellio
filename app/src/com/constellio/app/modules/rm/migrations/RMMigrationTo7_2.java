@@ -124,7 +124,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		try {
 			Transaction transaction = new Transaction();
-			createNewTaskTypes(appLayerFactory, collection, transaction);
+			createNewTaskTypes(appLayerFactory, collection, transaction, migrationResourcesProvider);
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException("Failed to create new task types in RMMigration7_2");
@@ -164,18 +164,22 @@ public class RMMigrationTo7_2 implements MigrationScript {
 						.withVisibleInAdvancedSearchStatus(true));
 	}
 
-	public static void createNewTaskTypes(AppLayerFactory appLayerFactory, String collection, Transaction transaction)
+	public static void createNewTaskTypes(AppLayerFactory appLayerFactory, String collection, Transaction transaction,
+			MigrationResourcesProvider migrationResourcesProvider)
 			throws RecordServicesException {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST).setTitle("Demande d'emprunt")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST)
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.borrowRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME));
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.RETURN_REQUEST).setTitle("Demande de retour")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.RETURN_REQUEST)
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.returnRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME));
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.REACTIVATION_REQUEST).setTitle("Demande de réactivation")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.REACTIVATION_REQUEST)
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.reactivationRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME));
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_EXTENSION_REQUEST)
-				.setTitle("Demande de prolongation d'emprunt")
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.borrowExtensionRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME));
 
 	}
@@ -201,9 +205,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		displayManager.saveMetadata(displayManager.getMetadata(collection, Task.DEFAULT_SCHEMA + "_" + Task.REASON)
 				.withInputType(MetadataInputType.TEXTAREA));
 
-		String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
+		//String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		displayManager.saveMetadata(displayManager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_CONTAINERS)
-				.withMetadataGroup(detailsTab));
+				.withMetadataGroup("init.userTask.details"));
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Event.DEFAULT_SCHEMA)
 				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,

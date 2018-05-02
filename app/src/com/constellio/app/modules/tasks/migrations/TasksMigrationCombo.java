@@ -99,16 +99,16 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 		String standbyId =
 				transaction.add(schemas.newTaskStatus().setCode(standByCode)
-						.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+						.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.STitle"))
 						.setStatusType(STANDBY)).getId();
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.ITitle"))
 				.setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.FTitle"))
 				.setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.CTitle"))
 				.setStatusType(CLOSED));
 
 		return standbyId;

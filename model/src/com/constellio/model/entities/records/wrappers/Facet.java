@@ -1,5 +1,8 @@
 package com.constellio.model.entities.records.wrappers;
 
+import java.util.Map;
+
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
@@ -81,6 +84,11 @@ public class Facet extends RecordWrapper {
 	public Facet setTitle(String title) {
 		set(TITLE, title);
 		return this;
+	}
+
+	@Override
+	public Facet setTitles(Map<Language, String> titles) {
+		return (Facet) super.setTitles(titles);
 	}
 
 	public Facet setFacetType(FacetType type) {

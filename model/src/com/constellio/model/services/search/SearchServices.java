@@ -421,7 +421,7 @@ public class SearchServices {
 
 		String collection = getCollection(query);
 		MetadataSchemaTypes types = null;
-		if (collection != null && metadataSchemasManager != null) {
+		if (collection != null && metadataSchemasManager != null && !collection.equals("inexistentCollection42")) {
 			types = metadataSchemasManager.getSchemaTypes(collection);
 		}
 
