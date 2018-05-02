@@ -54,7 +54,7 @@ public class ConservationRulesReportPresenter {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		searchServices = modelLayerFactory.newSearchServices();
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory, locale);
 		this.byAdministrativeUnit = byAdministrativeUnit;
 		this.administrativeUnitId = administrativeUnitId;
 		this.locale = locale;
