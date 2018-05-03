@@ -44,12 +44,12 @@ public class Category extends RecordWrapper {
 	}
 
 	public Category setTitle(Locale locale, String title) {
-		super.set(title, locale, title);
+		super.set(TITLE, locale, title);
 		return this;
 	}
 
 	public Category setTitle(String title) {
-		super.set(Schemas.TITLE.getLocalCode(), title);
+		super.set(TITLE, title);
 		return this;
 	}
 

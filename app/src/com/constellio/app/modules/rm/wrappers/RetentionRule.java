@@ -149,11 +149,16 @@ public class RetentionRule extends RecordWrapper {
 	}
 
 	public String getDescription() {
-		return get(DESCRIPTION);
+		return get(DESCRIPTION, locale);
 	}
 
 	public RetentionRule setDescription(String description) {
 		set(DESCRIPTION, description);
+		return this;
+	}
+
+	public RetentionRule setDescription(Locale locale, String description) {
+		set(DESCRIPTION,locale, description);
 		return this;
 	}
 
