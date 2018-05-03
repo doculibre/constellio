@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,10 @@ public class MetadataFieldFactory implements Serializable {
 	}
 
 	public Field<?> build(MetadataVO metadata) {
+		return build(metadata, null);
+	}
+
+	public Field<?> build(MetadataVO metadata, Locale locale) {
 		Field<?> field;
 
 		boolean multivalue = metadata.isMultivalue();
