@@ -75,12 +75,14 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
+		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
 	}
 
 	@Override
 	public void fireDataRefreshEvent() {
 		query = getQuery();
+		query.setLanguage(sessionContext.getCurrentLocale());
 		size = null;
 		cache.clear();
 		queryCache.clear();

@@ -58,6 +58,8 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -198,13 +200,14 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
-		transaction.add(rm.newFacetField().setOrder(0).setTitle(migrationResourcesProvider.get("init.facet.type"))
+		transaction.add(rm.newFacetField().setOrder(0)
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
 				.setActive(true)
 				.setOpenByDefault(true)
 				.setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
 
 		transaction.add(rm.newFacetQuery().setOrder(1)
-				.setTitle(migrationResourcesProvider.get("init.facet.createModification"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
 				.setActive(false)
 				.setOpenByDefault(true)
 				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
@@ -231,6 +234,10 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
 
 			}
+
+			typesBuilder.getDefaultSchema(Facet.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
+			typesBuilder.getDefaultSchema(Report.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
+
 			//
 			//
 			//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.ADDRESS).addLabel(Language.French, "Adresse");

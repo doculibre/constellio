@@ -1,12 +1,14 @@
 package com.constellio.model.services.records.populators;
 
+import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +26,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ParsedContentProvider;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
-
-import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -42,7 +43,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	ConstellioEIMConfigs systemConf;
 
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
+			ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
@@ -73,22 +74,27 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		return fields;
 	}
 
+	private String getSearchFieldFor(Metadata metadata, Locale locale) {
+		String copiedMetadataCodePrefix;
+		String dataStoreCode = metadata.getDataStoreCode();
+
+		if (dataStoreCode.endsWith("_txt")) {
+			copiedMetadataCodePrefix = dataStoreCode.replace("_txt", "_txt_");
+		} else {
+			copiedMetadataCodePrefix = dataStoreCode.replace("_t", "_t_").replace("_ss", "_txt_").replace("_s", "_t_");
+		}
+
+		return copiedMetadataCodePrefix;
+	}
+
 	@Override
-	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
+	public Map<String, Object> populateCopyfields(Metadata metadata, Object value, Locale locale) {
 
 		if (metadata.isSearchable() && !"id".equals(metadata.getLocalCode())) {
 
-			String dataStoreCode = metadata.getDataStoreCode();
-			String copiedMetadataCodePrefix;
-			if (dataStoreCode.endsWith("_txt")) {
-				copiedMetadataCodePrefix = dataStoreCode.replace("_txt", "_txt_");
-			} else {
-				copiedMetadataCodePrefix = dataStoreCode.replace("_t", "_t_").replace("_ss", "_txt_").replace("_s", "_t_");
-			}
-
 			if (metadata.isMultivalue() && metadata.getType().isStringOrText()) {
 				List<String> values = asNotNullList(value);
-				return populateCopyFieldsOfMultivalueSearchableTextMetadata(values, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfMultivalueSearchableTextMetadata(values, getSearchFieldFor(metadata, locale));
 
 			} else if (metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.CONTENT)) {
 				List<Content> values = asNotNullList(value);
@@ -103,13 +109,13 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				return populateCopyFieldsOfMultivalueSearchableNumberMetadata(values, metadata.getLocalCode());
 
 			} else if (!metadata.isMultivalue() && metadata.getType().isStringOrText()) {
-				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, metadata, locale);
 
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.DATE)) {
-				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, getSearchFieldFor(metadata, locale));
 
 			} else if (!metadata.isMultivalue() && metadata.getType().isIntegerOrFloatingPoint()) {
-				return populateCopyFieldsOfSinglevalueSearchableNumberMetadata("" + value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableNumberMetadata("" + value, getSearchFieldFor(metadata, locale));
 
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.CONTENT)) {
 				return populateCopyFieldsOfSinglevalueSearchableContentMetadata((Content) value, metadata.getLocalCode());
@@ -181,19 +187,13 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value,
-			String copiedMetadataCodePrefix) {
+			Metadata metadata, Locale locale) {
 
-		String valueLanguage = collectionLanguages.get(0);
+		String copiedMetadataCodePrefix = getSearchFieldFor(metadata, locale);
 
 		Map<String, Object> copyfields = new HashMap<>();
-		for (String collectionLanguage : collectionLanguages) {
-			String fieldCode = copiedMetadataCodePrefix + collectionLanguage;
-			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				copyfields.put(fieldCode, value);
-			} else {
-				copyfields.put(fieldCode, "");
-			}
-		}
+		String fieldCode = copiedMetadataCodePrefix + locale.getLanguage();
+		copyfields.put(fieldCode, value);
 
 		return copyfields;
 	}

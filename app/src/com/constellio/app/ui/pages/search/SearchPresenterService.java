@@ -85,7 +85,7 @@ public class SearchPresenterService {
 				}
 				boolean open = Boolean.TRUE.equals(facetStatus.containsKey(facet.getId())
 						? facetStatus.get(facet.getId()) : facet.isOpenByDefault());
-				result.add(new FacetVO(facet.getId(), facet.getTitle(), values, open, facet.getElementPerPage()));
+				result.add(new FacetVO(facet.getId(), facet.getTitle(getLocale()), values, open, facet.getElementPerPage()));
 			}
 		}
 

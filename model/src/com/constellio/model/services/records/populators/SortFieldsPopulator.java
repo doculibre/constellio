@@ -11,8 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -33,7 +35,18 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 	}
 
 	@Override
-	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
+	protected boolean isPopulatedForAllLocales(Metadata metadata) {
+		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()) {
+			MetadataSchemaType targettedSchemaType = types.getSchemaType(metadata.getReferencedSchemaType());
+			return targettedSchemaType.getDefaultSchema().hasMultilingualMetadatas();
+		} else {
+			return metadata.isMultiLingual() || metadata.isSameLocalCode(Schemas.CAPTION);
+		}
+
+	}
+
+	@Override
+	public Map<String, Object> populateCopyfields(Metadata metadata, Object value, Locale locale) {
 
 		Map<String, Object> fields = new HashMap<>();
 
@@ -43,21 +56,19 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 				Record referencedRecord = recordProvider.getRecord((String) value);
 
 				if (referencedRecord != null) {
-					for (Locale locale : referencedRecord.getCollectionInfo().getCollectionLocales()) {
-						String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection())
-								.getCaptionForRecord(new GetCaptionForRecordParams(referencedRecord, types, locale));
+					String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection())
+							.getCaptionForRecord(new GetCaptionForRecordParams(referencedRecord, types, locale));
 
-						if (captionForRecord == null) {
-							LOGGER.warn("Record '" + referencedRecord.getSchemaIdTitle() + "' has no caption");
-						} else {
-							Metadata sortMetadata = getSortMetadata(metadata);
-							if (!locale.equals(referencedRecord.getCollectionInfo().getMainSystemLocale())) {
-								sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
-							}
+					if (captionForRecord == null) {
+						LOGGER.warn("Record '" + referencedRecord.getSchemaIdTitle() + "' has no caption");
+					} else {
+						Metadata sortMetadata = getSortMetadata(metadata);
+						if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
+							sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
+						}
 
-							if (!metadata.getDataStoreCode().equals(sortMetadata.getDataStoreCode())) {
-								fields.put(sortMetadata.getDataStoreCode(), (Object) captionForRecord);
-							}
+						if (!metadata.getDataStoreCode().equals(sortMetadata.getDataStoreCode())) {
+							fields.put(sortMetadata.getDataStoreCode(), (Object) captionForRecord);
 						}
 					}
 				}
@@ -67,7 +78,11 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 		} else {
 
 			StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
-			Metadata sortField = metadata.getSortField();
+
+			Metadata sortMetadata = getSortMetadata(metadata);
+			if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
+				sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
+			}
 
 			if (normalizer != null) {
 				Object normalizedValue;
@@ -79,7 +94,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 				if (normalizedValue == null) {
 					normalizedValue = "";
 				}
-				fields.put(sortField.getDataStoreCode(), normalizedValue);
+				fields.put(sortMetadata.getDataStoreCode(), normalizedValue);
 
 			}
 

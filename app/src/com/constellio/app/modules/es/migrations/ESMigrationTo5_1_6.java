@@ -1,5 +1,31 @@
 package com.constellio.app.modules.es.migrations;
 
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.AUTHENTICATION_SCHEME;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DAYS_BEFORE_REFETCHING;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DOMAIN;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.EXCLUDE_PATTERNS;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.INCLUDE_PATTERNS;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.MAX_LEVEL;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_DOCUMENTS_PER_JOBS;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_JOBS_IN_PARALLEL;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.ON_DEMANDS;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.PASSWORD;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.SEEDS;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.USERNAME;
+import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static java.util.Arrays.asList;
+
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -58,16 +84,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyAlreadyExists;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.*;
-import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
-import static java.util.Arrays.asList;
 
 public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScript {
 
@@ -386,6 +402,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			MetadataSchemaTypeBuilder connectorTypeSchemaType = types.createNewSchemaType(ConnectorType.SCHEMA_TYPE);
 			connectorTypeSchema = connectorTypeSchemaType.getDefaultSchema();
 			connectorTypeSchema.createUniqueCodeMetadata();
+			connectorTypeSchema.get(Schemas.TITLE_CODE).setMultiLingual(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.LINKED_SCHEMA).setType(STRING)
 					.setDefaultRequirement(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.CONNECTOR_CLASS_NAME).setType(STRING)
@@ -396,7 +413,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			//-
 			//Create Connector schema type
 			connectorSchema = types.createNewSchemaType(ConnectorInstance.SCHEMA_TYPE).getDefaultSchema();
-			connectorSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true);
+			connectorSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true).setMultiLingual(true);
 			connectorSchema.createUniqueCodeMetadata();
 			connectorSchema.createUndeletable(ConnectorInstance.CONNECTOR_TYPE)
 					.setType(MetadataValueType.REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorTypeSchemaType);
@@ -511,7 +528,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		Facet mimetypeFacet = es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.mimetype"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
 		addAllMimetypeLabels(mimetypeFacet);
 		recordServices.add(mimetypeFacet);
 
@@ -519,7 +536,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.language"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
 				.withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
 				.withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
 				.withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
@@ -527,17 +544,17 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.extension")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
 
-//		recordServices.add(es.newFacetField()
-//				.setUsedByModule(ConstellioESModule.ID)
-//				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
-//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
+		//		recordServices.add(es.newFacetField()
+		//				.setUsedByModule(ConstellioESModule.ID)
+		//				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
+		//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
 
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.ldapUserEnabled"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
 				//FIXME
 				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
 				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
@@ -611,11 +628,11 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
-        Map<Language,String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
-                migrationResourcesProvider,"init.taxoSmbFolders");
+		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.taxoSmbFolders");
 
-		Taxonomy taxonomy = Taxonomy.createPublic(ESTaxonomies.SMB_FOLDERS, mapLangageTitre, collection, ConnectorSmbFolder.SCHEMA_TYPE);
-
+		Taxonomy taxonomy = Taxonomy
+				.createPublic(ESTaxonomies.SMB_FOLDERS, mapLangageTitre, collection, ConnectorSmbFolder.SCHEMA_TYPE);
 
 		try {
 			modelLayerFactory.getTaxonomiesManager().addTaxonomy(taxonomy, modelLayerFactory.getMetadataSchemasManager());

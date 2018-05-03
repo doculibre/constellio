@@ -117,7 +117,7 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 			MetadataSchemaTypeBuilder robots = types.createNewSchemaType(Robot.SCHEMA_TYPE);
 			MetadataSchemaBuilder schema = robots.getDefaultSchema();
 
-			schema.get(Schemas.TITLE_CODE).setDefaultRequirement(true);
+			schema.get(Schemas.TITLE_CODE).setDefaultRequirement(true).setMultiLingual(true);
 			schema.createUniqueCodeMetadata();
 			schema.create(Robot.DESCRIPTION).setType(MetadataValueType.TEXT);
 			schema.createUndeletable(Robot.PARENT).defineChildOfRelationshipToType(robots).setEssential(true);

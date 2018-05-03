@@ -13,6 +13,7 @@ import static com.constellio.model.services.search.query.logical.valueCondition.
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static java.util.Arrays.asList;
 import static java.util.Locale.ENGLISH;
@@ -528,6 +529,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		 * Validating multilingual text sort
 		 */
 
+		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
+
 		LogicalSearchQuery query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
 		query.sortAsc(multilingualSchema.stringMetadata());
 		query.setLanguage(Locale.FRENCH);
@@ -748,10 +751,78 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 						tuple("r6", "peanut"));
 	}
 
+	@Test
+	public void givenSearchableMetadataThenSearchBasedOnLanguage()
+			throws Exception {
+
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(multilingualCollectionSchemas
+				.withAStringMetadata(whichIsSearchable, whichIsMultilingual)
+				.withAnotherStringMetadata(whichIsSearchable));
+
+		setupServices();
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(multilingualSchema, "r1")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "pomme")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Apple")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r2")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Pêche molle")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Peach")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r3")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Poire")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "pear")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r4")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Quick aux fraises")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Strawberry quick")
+				.set(multilingualSchema.anotherStringMetadata(), "Fruit"));
+
+		tx.add(new TestRecord(multilingualSchema, "r5")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "perdrix")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "Partridge")
+				.set(multilingualSchema.anotherStringMetadata(), "Oiseau"));
+
+		tx.add(new TestRecord(multilingualSchema, "r6")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Arachide")
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "peanut")
+				.set(multilingualSchema.anotherStringMetadata(), "Autre"));
+
+		recordServices.execute(tx);
+
+		assertThatSearch(Locale.FRENCH, "fruit").containsOnly("r1", "r2", "r3", "r4");
+		assertThatSearch(Locale.ENGLISH, "fruit").containsOnly("r1", "r2", "r3", "r4");
+
+		assertThatSearch(Locale.FRENCH, "fraise").containsOnly("r4");
+		assertThatSearch(Locale.FRENCH, "fraisé").containsOnly("r4");
+		assertThatSearch(Locale.ENGLISH, "fraise").isEmpty();
+
+		assertThatSearch(Locale.FRENCH, "strawberry").isEmpty();
+		assertThatSearch(Locale.ENGLISH, "strawberry").containsOnly("r4");
+		assertThatSearch(Locale.ENGLISH, "strawbèrry").isEmpty();
+		assertThatSearch(Locale.ENGLISH, "strawberries").containsOnly("r4");
+
+	}
+
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(Locale locale, String text) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).where(autocompleteFieldMatching(text)));
+		query.setLanguage(locale);
+		return assertThat(searchServices.searchRecordIds(query));
+	}
+
+	private org.assertj.core.api.ListAssert<String> assertThatSearch(Locale locale, String text) {
+		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).returnAll());
+		query.setFreeTextQuery(text);
 		query.setLanguage(locale);
 		return assertThat(searchServices.searchRecordIds(query));
 	}
