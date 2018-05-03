@@ -142,6 +142,10 @@ public class SeleniumTestFeatures {
 	}
 
 	public WebTarget newWebTarget(String path) {
+		return newWebTarget(path, null);
+	}
+
+	public WebTarget newWebTarget(String path, ObjectMapper objectMapper) {
 
 		if (!path.isEmpty() && !path.startsWith("/")) {
 			path = "/" + path;
@@ -154,7 +158,7 @@ public class SeleniumTestFeatures {
 		}
 		String url = "http://localhost:" + port + "/constellio/rest" + path;
 
-		ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = objectMapper != null ? objectMapper : new ObjectMapper();
 		mapper.registerModule(new JodaModule());
 
 		JacksonJsonProvider jsonProvider = new JacksonJsonProvider();

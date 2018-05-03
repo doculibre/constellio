@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
@@ -79,6 +80,15 @@ public class TestUtils {
 		@Override
 		public int compare(DecommissioningList o1, DecommissioningList o2) {
 			return o1.getId().endsWith(o2.getId()) ? 0 : 1;
+		}
+	};
+	public static Comparator<Object> comparingListAnyOrder = new Comparator<Object>() {
+		@Override
+		public int compare(Object o1, Object o2) {
+			List list1 = (List<String>) o1;
+			List list2 = (List<String>) o2;
+			boolean equal = CollectionUtils.isEqualCollection(list1, list2);
+			return equal ? 0 : 1;
 		}
 	};
 

@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.client.WebTarget;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -659,6 +660,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ensureNotUnitTest();
 		getCurrentTestSession().getFactoriesTestFeatures().load();
 		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path);
+	}
+
+	protected WebTarget newWebTarget(String path, ObjectMapper mapper) {
+		ensureNotUnitTest();
+		getCurrentTestSession().getFactoriesTestFeatures().load();
+		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path, mapper);
 	}
 
 	protected SolrClient newSearchClient() {
