@@ -84,6 +84,11 @@ public class AdministrativeUnit extends RecordWrapper {
 		return this;
 	}
 
+	public AdministrativeUnit setDescription(Locale locale, String description){
+		set(DESCRIPTION, locale, description);
+		return this;
+	}
+
 	public String getParent() {
 		return get(PARENT);
 	}

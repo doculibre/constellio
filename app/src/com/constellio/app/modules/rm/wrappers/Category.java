@@ -43,8 +43,13 @@ public class Category extends RecordWrapper {
 		super(record, types, SCHEMA_TYPE, locale);
 	}
 
+	public Category setTitle(Locale locale, String title) {
+		super.set(TITLE, locale, title);
+		return this;
+	}
+
 	public Category setTitle(String title) {
-		super.setTitle(title);
+		super.set(TITLE, title);
 		return this;
 	}
 
@@ -109,7 +114,12 @@ public class Category extends RecordWrapper {
 	}
 
 	public String getDescription() {
-		return get(DESCRIPTION);
+		return get(DESCRIPTION, locale);
+	}
+
+	public Category setDescription(Locale locale, String description) {
+		set(DESCRIPTION, locale, description);
+		return this;
 	}
 
 	public Category setDescription(String description) {
@@ -123,6 +133,11 @@ public class Category extends RecordWrapper {
 
 	public Category setKeywords(List<String> keywords) {
 		set(KEYWORDS, keywords);
+		return this;
+	}
+
+	public Category setKeywords(Locale locale,List<String> keywords) {
+		set(KEYWORDS, locale, keywords);
 		return this;
 	}
 
