@@ -1,8 +1,10 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -12,7 +14,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
@@ -21,13 +23,12 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView {
+	public static final String REQUIRED_FIELD = "requiredField";
 	private final ListValueDomainPresenter presenter;
 	private VerticalLayout mainLayout;
 	private TabSheet sheet;
@@ -105,11 +106,8 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	}
 
     public class DomainCreationWindowButton extends WindowButton {
-        public static final String TITLE_FR = "title-fr";
-        public static final String TITLE_EN = "title-en";
-
-        @PropertyId("titleFr") private BaseTextField titleFr;
-        @PropertyId("titleEn") private BaseTextField titleEn;
+		private java.util.Map<Language, BaseTextField> baseTextFieldMap;
+		private String originalStyleName;
 
         public DomainCreationWindowButton(String caption) {
             super(caption, caption);
@@ -117,49 +115,119 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
         @Override
         protected Component buildWindowContent() {
-            titleFr = new BaseTextField($("DomainCreationWindowButton.titleFr"));
-            titleFr.setImmediate(true);
-            titleEn = new BaseTextField($("DomainCreationWindowButton.titleEn"));
+			baseTextFieldMap = new HashMap<>();
 
-            BaseTextField[] baseTextFieldArray;
-            baseTextFieldArray = new BaseTextField[2];
-            titleEn.setImmediate(true);
-            String lang = getSessionContext().getCurrentLocale().getLanguage();
-            if(lang.equalsIgnoreCase(Language.English.getCode())){
-                titleEn.setRequired(true);
-                baseTextFieldArray[0] = titleEn;
-                baseTextFieldArray[1] = titleFr;
-            } else if(lang.equalsIgnoreCase(Language.French.getCode())) {
-                baseTextFieldArray[0] = titleFr;
-                baseTextFieldArray[1] = titleEn;
-                titleFr.setRequired(true);
-            }
 
-            titleEn.setId(TITLE_EN);
-            titleFr.setId(TITLE_FR);
+        	for(String language : presenter.getCollectionLanguage()) {
+				BaseTextField baseTextField = new BaseTextField($("title") + " (" + language.toUpperCase() + ")");
+				baseTextField.setRequired(true);
+				baseTextFieldMap.put(Language.withCode(language),baseTextField);
+			}
 
-			BaseForm<ListValueDomainParam> baseForm = new BaseForm<ListValueDomainParam>(
-					new ListValueDomainParam(), this, baseTextFieldArray) {
+
+            final BaseTextField[] baseTextFieldArray = new BaseTextField[baseTextFieldMap.size()];
+
+            Language currentLanguage = Language.withCode(getSessionContext().getCurrentLocale().getLanguage());
+
+            baseTextFieldArray[0] = baseTextFieldMap.get(currentLanguage);
+
+			int i = 1;
+            for(Language language : baseTextFieldMap.keySet()) {
+            	if(currentLanguage.getCode().equals(language.getCode())) {
+            		continue;
+				} else {
+            		baseTextFieldArray[i] = baseTextFieldMap.get(language);
+            		i++;
+				}
+
+			}
+
+
+			final BaseForm<Object> baseForm = new BaseForm(
+					new Object(), this, baseTextFieldArray) {
 				@Override
-				protected void saveButtonClick(ListValueDomainParam viewObject) throws ValidationException {
-					getWindow().close();
-					java.util.Map<Language, String> titleMap = new HashMap<>();
-					titleMap.put(Language.French, viewObject.getTitleFr());
-					titleMap.put(Language.English, viewObject.getTitleEn());
+				protected void saveButtonClick(Object viewObject) throws ValidationException {
+					if(!validateFields(baseTextFieldMap, ListValueDomainViewImpl.this)) {
+						return;
+					}
 
-					presenter.valueDomainCreationRequested(titleMap);
+					java.util.Map<Language, String> titleMap = new HashMap<>();
+
+					for(Language language : baseTextFieldMap.keySet()) {
+						BaseTextField baseTextField = baseTextFieldMap.get(language);
+						String value = baseTextField.getValue();
+						titleMap.put(language, value);
+					}
+
+
+					List<Language> languagesInErrors = presenter.valueDomainCreationRequested(titleMap);
+
+					setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
+
+					if(languagesInErrors.size() == 0) {
+						getWindow().close();
+					}
 				}
 
 				@Override
-				protected void cancelButtonClick(ListValueDomainParam viewObject) {
+				protected void cancelButtonClick(Object viewObject) {
 					getWindow().close();
 				}
 			};
 
+			originalStyleName = baseTextFieldArray[0].getStyleName();
 
             return baseForm;
         }
+
+
     }
+
+	private static  boolean validateFields(Map<Language, BaseTextField> baseTextFieldMap, ListValueDomainViewImpl listValueDomainView) {
+		StringBuilder missingRequiredFields = new StringBuilder();
+		BaseTextField firstFieldWithError = null;
+		for(Language language : baseTextFieldMap.keySet()) {
+			BaseTextField baseTextField = baseTextFieldMap.get(language);
+			try{
+				baseTextField.validate();
+			} catch(Validator.EmptyValueException emptyValueException) {
+				baseTextField.setRequiredError($(REQUIRED_FIELD));
+				if (missingRequiredFields.length() != 0) {
+					missingRequiredFields.append("<br/>");
+				}
+				missingRequiredFields.append($("requiredFieldWithName", "\"" + baseTextField.getCaption() + "\""));
+				if (firstFieldWithError == null) {
+					firstFieldWithError = baseTextField;
+				}
+
+			}
+		}
+
+		if (firstFieldWithError != null) {
+			firstFieldWithError.focus();
+			listValueDomainView.showErrorMessage(missingRequiredFields.toString());
+			return false;
+		}
+
+		return true;
+	}
+
+	protected static void setFieldErrors(List<Language> languagesInErrors, Map<Language, BaseTextField> baseTextFieldMap, String originalStyleName) {
+		int i = 0;
+
+		for(Language language : baseTextFieldMap.keySet()) {
+			BaseTextField baseTextField = baseTextFieldMap.get(language);
+			if(languagesInErrors.contains(language)) {
+				if(i == 0) {
+					baseTextField.focus();
+					i++;
+				}
+				baseTextField.setStyleName(baseTextField.getStyleName() + " error");
+			} else {
+				baseTextField.setStyleName(originalStyleName);
+			}
+		}
+	}
 
 	private Table buildTable(String id) {
 		BeanItemContainer elements = new BeanItemContainer<>(
@@ -182,42 +250,77 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
 				WindowButton editButton = new WindowButton(
-						$("edit"), $("ListValueDomainView.labelColumn"), WindowConfiguration.modalDialog("400px", "150px")) {
+						$("edit"), $("ListValueDomainView.labelColumn")) {
+					private java.util.Map<Language, BaseTextField> baseTextFieldMap;
+					private String originalStyleName;
+
 					@Override
 					protected Component buildWindowContent() {
 						final MetadataSchemaTypeVO typeVO = (MetadataSchemaTypeVO) itemId;
 
-						Label caption = new Label($("ListValueDomainView.labelColumn"));
-						caption.addStyleName(ValoTheme.LABEL_BOLD);
+						baseTextFieldMap = new HashMap<>();
 
-						final BaseTextField title = new BaseTextField();
-						title.setValue(typeVO.getLabel());
-						title.setWidth("250px");
+						for(String currentLanguage : presenter.getCollectionLanguage()) {
+							BaseTextField baseTextField = new BaseTextField($("title") + " (" + currentLanguage.toUpperCase() + ")");
+							baseTextField.setRequired(true);
+							Language language = Language.withCode(currentLanguage);
+							baseTextFieldMap.put(language, baseTextField);
+							String previousValue = typeVO.getLabels().get(language);
+							baseTextField.setValue(previousValue);
 
-						BaseButton save = new BaseButton("Save") {
+						}
+
+
+						final BaseTextField[] baseTextFieldArray = new BaseTextField[baseTextFieldMap.size()];
+
+						Language currentLanguage = Language.withCode(getSessionContext().getCurrentLocale().getLanguage());
+
+						baseTextFieldArray[0] = baseTextFieldMap.get(currentLanguage);
+						int i = 1;
+						for(Language language : baseTextFieldMap.keySet()) {
+							if(currentLanguage.getCode().equals(language.getCode())) {
+								continue;
+							} else {
+								baseTextFieldArray[i] = baseTextFieldMap.get(language);
+								i++;
+							}
+
+						}
+
+						final BaseForm<Object> baseForm = new BaseForm(
+								new Object(), this, baseTextFieldArray) {
 							@Override
-							protected void buttonClick(ClickEvent event) {
-								java.util.Map<Language, String> languageMap = new HashMap<>();
-								languageMap.put(Language.French,title.getValue());
-								presenter.editButtonClicked(typeVO, languageMap);
+							protected void saveButtonClick(Object viewObject) throws ValidationException {
+								if(!validateFields(baseTextFieldMap, ListValueDomainViewImpl.this)) {
+									return;
+								}
+
+								java.util.Map<Language, String> titleMap = new HashMap<>();
+
+								for(Language language : baseTextFieldMap.keySet()) {
+									BaseTextField baseTextField = baseTextFieldMap.get(language);
+									String value = baseTextField.getValue();
+									titleMap.put(language, value);
+								}
+
+								List<Language> languagesInErrors = presenter.editButtonClicked(typeVO, titleMap, typeVO.getLabels());
+
+								setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
+
+								if(languagesInErrors.size() == 0) {
+									getWindow().close();
+								}
+							}
+
+							@Override
+							protected void cancelButtonClick(Object viewObject) {
 								getWindow().close();
 							}
 						};
 
+						originalStyleName = baseTextFieldArray[0].getStyleName();
 
-
-						save.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-						HorizontalLayout line = new HorizontalLayout(caption, title);
-						line.setComponentAlignment(caption, Alignment.MIDDLE_LEFT);
-						line.setSizeUndefined();
-						line.setSpacing(true);
-
-						VerticalLayout window = new VerticalLayout(line, save);
-						window.setComponentAlignment(save, Alignment.MIDDLE_CENTER);
-						window.setSpacing(true);
-
-						return window;
+						return baseForm;
 					}
 				};
 				editButton.setIcon(EditButton.ICON_RESOURCE);

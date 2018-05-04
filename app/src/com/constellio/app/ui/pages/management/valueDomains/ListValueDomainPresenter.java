@@ -28,23 +28,44 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		super(view);
 	}
 
-	public void valueDomainCreationRequested(Map<Language, String> mapLanguage) {
-
-		boolean canCreate = canCreate(mapLanguage);
-		if (canCreate) {
+	public List<Language> valueDomainCreationRequested(Map<Language, String> mapLanguage) {
+		List<Language> valueLanguageError = canAlterOrCreateLabels(mapLanguage, null);
+		if (valueLanguageError != null && valueLanguageError.size() == 0) {
 			valueListServices().createValueDomain(mapLanguage, mapLanguage.size() > 1);
 			view.refreshTable();
-			labels.add(mapLanguage);
 		}
+		else {
+			showExistingError(valueLanguageError);
+		}
+
+		return valueLanguageError;
+	}
+
+	private void showExistingError(List<Language> valueLanguageError) {
+		StringBuilder errorMessage = new StringBuilder();
+		int i = 0;
+		for(Language language : valueLanguageError) {
+            if(i != 0) {
+                errorMessage.append("<br/>");
+            }
+            errorMessage.append($("ListValueDomainView.existingValueDomain", " (" + language.getCode().toUpperCase() + ")"));
+            i++;
+        }
+
+		view.showErrorMessage(errorMessage.toString());
+	}
+
+	public List<String> getCollectionLanguage() {
+		return modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 	}
 
 	public void displayButtonClicked(MetadataSchemaTypeVO schemaType) {
 		view.navigate().to().listSchemaRecords(schemaType.getCode() + "_default");
 	}
 
-	public void editButtonClicked(MetadataSchemaTypeVO schemaTypeVO, Map<Language, String> newLabel) {
-
-		if (verifyIfExists(newLabel)) {
+	public List<Language> editButtonClicked(MetadataSchemaTypeVO schemaTypeVO, Map<Language, String> newLabel, Map<Language, String> oldValue) {
+		List<Language> valueLanguageError = canAlterOrCreateLabels(newLabel, oldValue);
+		if (valueLanguageError != null && valueLanguageError.size() == 0) {
 			MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = modelLayerFactory.getMetadataSchemasManager()
 					.modify(view.getCollection());
 
@@ -57,9 +78,11 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 				throw new RuntimeException(optimistickLocking);
 			}
 			view.refreshTable();
-		} else if (newLabel != null && !newLabel.equals(schemaTypeVO.getLabel(view.getSessionContext().getCurrentLocale()))) {
-			view.showErrorMessage($("ListValueDomainView.existingValueDomain", newLabel));
+		} else {
+			showExistingError(valueLanguageError);
 		}
+
+		return valueLanguageError;
 	}
 
 	public List<MetadataSchemaTypeVO> getDomainValues() {
@@ -88,6 +111,8 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		return result;
 	}
 
+
+
 	MetadataSchemaTypeToVOBuilder newMetadataSchemaTypeToVOBuilder() {
 		return new MetadataSchemaTypeToVOBuilder();
 	}
@@ -96,40 +121,28 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		return new ValueListServices(appLayerFactory, view.getCollection());
 	}
 
-	boolean canCreate(Map<Language, String> taxonomyMapTitle) {
-		boolean canCreate = false;
-		if (taxonomyMapTitle != null && taxonomyMapTitle.size() > 0) {
-			boolean exist = verifyIfExists(taxonomyMapTitle);
-			canCreate = !exist;
-		}
-		return canCreate;
-	}
 
-	private boolean verifyIfExists(Map<Language, String> taxonomy) {
+	public List<Language> canAlterOrCreateLabels(Map<Language, String> newMapTitle, Map<Language,String> oldValues) {
+		List<Language> listUnvalidValueForLanguage = new ArrayList<>();
+
 		if (labels == null || labels.size() == 0) {
 			getDomainValues();
 		}
-		boolean exits = false;
-		for(Language lang : taxonomy.keySet()) {
-			if(Strings.isBlank(taxonomy.get(lang))){
-				return true;
+
+		for(Language language : newMapTitle.keySet()) {
+			String newCurrentTitle = newMapTitle.get(language);
+			if(Strings.isBlank(newCurrentTitle)){
+				listUnvalidValueForLanguage.add(language);
 			}
 			for(Map<Language, String> existingTitleMap : labels) {
-				if(existingTitleMap.get(lang).equals(taxonomy.get(lang))) {
-					return true;
+				String existingTitleInCurrentLanguage = existingTitleMap.get(language);
+				if(Strings.isNotBlank(existingTitleInCurrentLanguage) && existingTitleInCurrentLanguage.equals(newCurrentTitle)
+						&& (oldValues == null ||  oldValues != null && !existingTitleInCurrentLanguage.equals(oldValues.get(language)))) {
+					listUnvalidValueForLanguage.add(language);
 				}
 			}
 		}
-		return exits;
-	}
-
-	private boolean isTitleChanged(Map<Language, String> mapLang, Map<Language, String> mapLang2) {
-		for(Language language : mapLang.keySet()) {
-			if(!mapLang.get(language).equals(mapLang2.get(language))) {
-				return true;
-			}
-		}
-		return false;
+		return listUnvalidValueForLanguage;
 	}
 
 	public void backButtonClicked() {
