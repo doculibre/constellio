@@ -15,6 +15,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
@@ -119,20 +120,14 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, formMetadataCodes, displayMetadataCodes,
 				tableMetadataCodes, searchMetadataCodes, labels);
 		for (Metadata metadata : schema.getMetadatas()) {
-			//			String metadataCode = metadata.getCode();
-			//			boolean systemReserved = metadata.isSystemReserved();
-			//			boolean ignored;
-			//			if (viewMode == VIEW_MODE.FORM) {
-			//				ignored = systemReserved;
-			//			} else if (!systemReserved) {
-			//				ignored = false;
-			//			} else {
-			//				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-			//				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
-			//			}
-			//			if (!ignored && metadata.getEnabled()) {
-			metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
-			//			}
+			if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
+				List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
+				for (Locale supportedLocale : supportedLocales) {
+					metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
+				}
+			} else {
+				metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
+			}
 		}
 
 		return schemaVO;
