@@ -782,13 +782,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(RetentionRule.ADMINISTRATIVE_UNITS).setMultivalue(true)
 				.defineReferencesTo(administrativeUnitSchemaType);
 
-		defaultSchema.createUndeletable(RetentionRule.DESCRIPTION).setType(TEXT);
+		defaultSchema.createUndeletable(RetentionRule.DESCRIPTION).setType(TEXT).setMultiLingual(true);
 
-		defaultSchema.createUndeletable(RetentionRule.JURIDIC_REFERENCE).setType(TEXT);
+		defaultSchema.createUndeletable(RetentionRule.JURIDIC_REFERENCE).setType(TEXT).setMultiLingual(true);
 
-		defaultSchema.createUndeletable(RetentionRule.GENERAL_COMMENT).setType(TEXT);
+		defaultSchema.createUndeletable(RetentionRule.GENERAL_COMMENT).setType(TEXT).setMultiLingual(true);
 
-		defaultSchema.createUndeletable(RetentionRule.KEYWORDS).setType(STRING).setMultivalue(true);
+		defaultSchema.createUndeletable(RetentionRule.KEYWORDS).setType(STRING).setMultivalue(true).setMultiLingual(true);
 
 		defaultSchema.createUndeletable(RetentionRule.HISTORY).setType(TEXT);
 
@@ -805,7 +805,8 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 				.defineReferencesTo(documentType)
 				.defineDataEntry().asCalculated(RuleDocumentTypesCalculator.class);
 
-		defaultSchema.createUndeletable(RetentionRule.COPY_RULES_COMMENT).setType(TEXT).setMultivalue(true);
+		defaultSchema.createUndeletable(RetentionRule.COPY_RULES_COMMENT).setType(TEXT).setMultivalue(true).setMultiLingual(true);
+		defaultSchema.get(RetentionRule.TITLE).setMultiLingual(true);
 
 		return schemaType;
 	}
@@ -815,11 +816,12 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
 		defaultSchema.createUndeletable(UniformSubdivision.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(true);
-		defaultSchema.createUndeletable(UniformSubdivision.DESCRIPTION).setType(STRING).setSearchable(true);
+		defaultSchema.createUndeletable(UniformSubdivision.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(UniformSubdivision.COMMENTS).setMultivalue(true)
 				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 		defaultSchema.createUndeletable(UniformSubdivision.RETENTION_RULE).setMultivalue(true)
 				.defineReferencesTo(retentionRuleSchemaType);
+		defaultSchema.get(UniformSubdivision.TITLE).setMultiLingual(true);
 
 		return schemaType;
 	}
@@ -830,8 +832,8 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 		defaultSchema.createUndeletable(AdministrativeUnit.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(
 				true).setSchemaAutocomplete(true);
-		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
-		defaultSchema.createUndeletable(AdministrativeUnit.DESCRIPTION).setType(STRING).setSearchable(true);
+		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true).setMultiLingual(true);
+		defaultSchema.createUndeletable(AdministrativeUnit.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(AdministrativeUnit.PARENT).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(AdministrativeUnit.FILING_SPACES).setMultivalue(true)
 				.defineReferencesTo(filingSpaceSchemaType);
@@ -921,16 +923,17 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
 		defaultSchema.createUndeletable(Category.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(
 				true).setSchemaAutocomplete(true);
-		defaultSchema.createUndeletable(Category.DESCRIPTION).setType(STRING).setSearchable(true);
+		defaultSchema.createUndeletable(Category.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(Category.PARENT).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(Category.KEYWORDS).setType(STRING).setMultivalue(true).setSearchable(true)
-				.setSchemaAutocomplete(true);
+				.setSchemaAutocomplete(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(Category.COMMENTS).setMultivalue(true)
 				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 		defaultSchema.createUndeletable(Category.RETENTION_RULES).setDefaultRequirement(false).setMultivalue(true)
 				.defineReferencesTo(retentionRuleSchemaType);
 		defaultSchema.createUndeletable(Schemas.LINKABLE.getLocalCode()).setType(BOOLEAN).defineDataEntry().asCalculated(
 				CategoryIsLinkableCalculator.class);
+		defaultSchema.get(Category.TITLE).setMultiLingual(true);
 
 		return schemaType;
 	}

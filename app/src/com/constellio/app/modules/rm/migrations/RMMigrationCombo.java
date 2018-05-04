@@ -389,7 +389,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 					"retentionRule_default_title", "retentionRule_default_juridicReference",
 					"retentionRule_default_generalComment",
 					"retentionRule_default_keywords", "retentionRule_default_copyRulesComment",
-					"retentionRule_default_description")) {
+					"retentionRule_default_description",
+					"uniformSubdivision_default_title")) {
+
 				typesBuilder.getMetadata(metadata).setMultiLingual(true);
 			}
 		}
