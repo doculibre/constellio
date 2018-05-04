@@ -75,7 +75,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 	}
 
 	public boolean isSystemReservedAllowedInReport(Metadata meta) {
-		List<String> allowedMetadatas = Arrays.asList(Schemas.IDENTIFIER.getLocalCode());
+		List<String> allowedMetadatas = Arrays.asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.LEGACY_ID.getLocalCode());
 		return allowedMetadatas.contains(meta.getLocalCode());
 	}
 
