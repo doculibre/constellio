@@ -16,7 +16,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
@@ -267,10 +266,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void createTaxonomyOrValueDomain(List<Taxonomy> taxonomies, MetadataSchemaTypesBuilder typesBuilder, String typeCode,
-			Map<Language,String> title) {
-
-		List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-		boolean isMultiLingual = language.size() > 1;
+			Map<Language, String> title) {
 
 		try {
 			metadataSchemasManager.getSchemaTypes(collection).getSchemaType(typeCode);
@@ -278,14 +274,14 @@ public class SchemaTypeImportServices implements ImportServices {
 			if (typeCode.startsWith("ddv")) {
 				ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
 				builder.createValueListItemSchema(typeCode, title,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false), isMultiLingual);
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false));
 
 			} else if (typeCode.startsWith("taxo") && typeCode.endsWith("Type")) {
 				String taxoCode = StringUtils.substringBetween(typeCode, "taxo", "Type");
 				if (StringUtils.isBlank(taxoCode)) {
 					throw new TaxonomiesManagerRuntimeException.InvalidTaxonomyCode(typeCode);
 				}
-				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, isMultiLingual));
+				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, true));
 			}
 		}
 	}

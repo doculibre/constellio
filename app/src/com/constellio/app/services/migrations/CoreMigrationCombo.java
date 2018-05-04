@@ -235,6 +235,10 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 			}
 
+			for (String metadata : asList("facet_default_title", "report_default_title")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
+
 			typesBuilder.getDefaultSchema(Facet.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
 			typesBuilder.getDefaultSchema(Report.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
 

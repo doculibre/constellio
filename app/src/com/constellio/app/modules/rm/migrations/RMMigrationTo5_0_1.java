@@ -1,5 +1,27 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.schemas.Schemas.TITLE_CODE;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -9,20 +31,71 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
-import com.constellio.app.modules.rm.model.calculators.*;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.*;
-import com.constellio.app.modules.rm.model.calculators.folder.*;
+import com.constellio.app.modules.rm.model.calculators.CategoryIsLinkableCalculator;
+import com.constellio.app.modules.rm.model.calculators.ContainerTitleCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderActiveRetentionTypeCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderApplicableCopyRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTypeCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderMainCopyRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderStatusCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListContainersCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListFoldersCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListHasAnalogicalMediumTypesCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListHasElectronicMediumTypesCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListIsUniform;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListStatusCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCategoryCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCopyRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCopyTypeCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderApplicableCategoryCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedAdministrativeUnitCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedFilingSpaceCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedRetentionRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedUniformSubdivisionCalculator;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderMediaTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.rule.RuleDocumentTypesCalculator;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.model.validators.RetentionRuleValidator;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetailFactory;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetailFactory;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTypeFactory;
-import com.constellio.app.modules.rm.wrappers.type.*;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
@@ -43,14 +116,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.*;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
-import static com.constellio.model.entities.schemas.Schemas.TITLE_CODE;
-import static java.util.Arrays.asList;
 
 public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -67,7 +132,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
 	}
 
-
 	private static void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
@@ -82,7 +146,8 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
-		Map<Language, String> mapMultiLanguageString = getMultiLanguageString(collection, modelLayerFactory, migrationResourcesProvider,"init.rm.containers");
+		Map<Language, String> mapMultiLanguageString = getMultiLanguageString(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.rm.containers");
 
 		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, mapMultiLanguageString, collection,
 				StorageSpace.SCHEMA_TYPE);
@@ -96,7 +161,8 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
-		Map<Language, String> mapMultiLanguageString = getMultiLanguageString(collection, modelLayerFactory, migrationResourcesProvider,"init.rm.admUnits");
+		Map<Language, String> mapMultiLanguageString = getMultiLanguageString(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.rm.admUnits");
 
 		Taxonomy unitTaxonomy = Taxonomy.createPublic(
 				ADMINISTRATIVE_UNITS, mapMultiLanguageString, collection,
@@ -112,8 +178,8 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
-		Map<Language, String> mapLangageTitre = getMultiLanguageString(collection, modelLayerFactory, migrationResourcesProvider, "init.rm.plan");
-
+		Map<Language, String> mapLangageTitre = getMultiLanguageString(collection, modelLayerFactory, migrationResourcesProvider,
+				"init.rm.plan");
 
 		taxonomiesManager
 				.addTaxonomy(Taxonomy.createPublic(CLASSIFICATION_PLAN, mapLangageTitre, collection,
@@ -122,12 +188,13 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 	}
 
 	@NotNull
-	private static Map<Language, String> getMultiLanguageString(String collection, ModelLayerFactory modelLayerFactory, MigrationResourcesProvider migrationResourcesProvider, String key) {
+	private static Map<Language, String> getMultiLanguageString(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider, String key) {
 		List<String> languageList = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 
-		Map<Language,String> mapLangageTitre = new HashMap<>();
+		Map<Language, String> mapLangageTitre = new HashMap<>();
 
-		for(String language : languageList) {
+		for (String language : languageList) {
 			Locale locale = new Locale(language);
 			mapLangageTitre.put(Language.withLocale(locale), migrationResourcesProvider.getString(key, locale));
 		}
@@ -580,13 +647,11 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		MetadataSchemaTypeBuilder collectionSchemaType = typesBuilder.getSchemaType(Collection.SCHEMA_TYPE);
 		MetadataSchemaTypeBuilder userSchemaType = type(User.SCHEMA_TYPE);
 
-		List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-
-		MetadataSchemaTypeBuilder storageSpaceTypeSchemaType = setupStorageSpaceTypeSchema(language);
-		MetadataSchemaTypeBuilder containerTypeSchemaType = setupContainerTypeSchema(language);
-		MetadataSchemaTypeBuilder folderTypeSchemaType = setupFolderTypeSchema(language);
-		MetadataSchemaTypeBuilder documentTypeSchemaType = setupDocumentTypeSchema(language);
-		MetadataSchemaTypeBuilder mediumTypeSchemaType = setupMediumTypeSchema(language);
+		MetadataSchemaTypeBuilder storageSpaceTypeSchemaType = setupStorageSpaceTypeSchema();
+		MetadataSchemaTypeBuilder containerTypeSchemaType = setupContainerTypeSchema();
+		MetadataSchemaTypeBuilder folderTypeSchemaType = setupFolderTypeSchema();
+		MetadataSchemaTypeBuilder documentTypeSchemaType = setupDocumentTypeSchema();
+		MetadataSchemaTypeBuilder mediumTypeSchemaType = setupMediumTypeSchema();
 
 		MetadataSchemaTypeBuilder filingSpaceSchemaType = setupFilingSpaceSchemaType(userSchemaType);
 		MetadataSchemaTypeBuilder administrativeUnitSchemaType = setupAdministrativeUnitSchemaType(filingSpaceSchemaType);
@@ -620,15 +685,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	}
 
-	private MetadataSchemaTypeBuilder setupMediumTypeSchema(List<String> language) {
+	private MetadataSchemaTypeBuilder setupMediumTypeSchema() {
 
 		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
-				migrationResourcesProvider,"init.ddvMediumType");
-
+				migrationResourcesProvider, "init.ddvMediumType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(MediumType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size() > 1)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(MediumType.ANALOGICAL).setType(BOOLEAN).setDefaultRequirement(true);
@@ -636,14 +700,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupDocumentTypeSchema(List<String> language) {
+	private MetadataSchemaTypeBuilder setupDocumentTypeSchema() {
 
 		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
-				migrationResourcesProvider,"init.ddvDocumentType");
+				migrationResourcesProvider, "init.ddvDocumentType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(DocumentType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size() > 1)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(DocumentType.LINKED_SCHEMA).setType(STRING);
@@ -651,13 +715,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupFolderTypeSchema(List<String> language) {
+	private MetadataSchemaTypeBuilder setupFolderTypeSchema() {
 
 		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
-				migrationResourcesProvider,"init.ddvFolderType");
+				migrationResourcesProvider, "init.ddvFolderType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(FolderType.SCHEMA_TYPE, mapLanguage, ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size() > 1)
+				.createValueListItemSchema(FolderType.SCHEMA_TYPE, mapLanguage,
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(FolderType.LINKED_SCHEMA).setType(STRING);
@@ -665,14 +730,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupContainerTypeSchema(List<String> language) {
+	private MetadataSchemaTypeBuilder setupContainerTypeSchema() {
 
 		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
-				migrationResourcesProvider,"init.ddvContainerRecordType");
+				migrationResourcesProvider, "init.ddvContainerRecordType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(ContainerRecordType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), language.size()  > 1)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(ContainerRecordType.LINKED_SCHEMA).setType(STRING);
@@ -680,15 +745,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema(List<String> language) {
+	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema() {
 		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
-				migrationResourcesProvider,"init.ddvStorageSpaceType");
-
-		boolean isMultiLingual = language.size() > 1;
+				migrationResourcesProvider, "init.ddvStorageSpaceType");
 
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(StorageSpaceType.SCHEMA_TYPE, mapLanguage,
-						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled(), isMultiLingual)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(StorageSpaceType.LINKED_SCHEMA).setType(STRING);

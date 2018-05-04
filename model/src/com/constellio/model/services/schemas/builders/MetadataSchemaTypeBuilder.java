@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.google.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -92,7 +91,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = schemaType.getDataStore();
-		for (MetadataSchema schema : schemaType.getSchemas()) {
+		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
 		return builder;

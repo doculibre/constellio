@@ -59,10 +59,10 @@ public class SchemasServicesAPI {
 	}
 
 	@GET
-	@Path("getSchemas")
+	@Path("getCustomSchemas")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getSchemas(@QueryParam("collection") String collection, @QueryParam("schemaType") String schemaType) {
-		logServiceCall("getSchemas", collection, schemaType);
+		logServiceCall("getCustomSchemas", collection, schemaType);
 		List<String> schemas = new ArrayList<>();
 		for (MetadataSchema schema : types(collection).getSchemaType(schemaType).getAllSchemas()) {
 			schemas.add(schema.getCode());

@@ -39,7 +39,7 @@ public class AllowedReferences implements Serializable {
 			if (isAllowed(type.getDefaultSchema())) {
 				return true;
 			}
-			for (MetadataSchema customSchema : type.getSchemas()) {
+			for (MetadataSchema customSchema : type.getCustomSchemas()) {
 				if (allowedSchemas.contains(customSchema.getCode())) {
 					return true;
 				}
@@ -53,7 +53,7 @@ public class AllowedReferences implements Serializable {
 			return allowedSchemaType.equals(type.getCode());
 		} else {
 			boolean allAllowed = isAllowed(type.getDefaultSchema());
-			for (MetadataSchema customSchema : type.getSchemas()) {
+			for (MetadataSchema customSchema : type.getCustomSchemas()) {
 				allAllowed &= allowedSchemas.contains(customSchema.getCode());
 			}
 			return allAllowed;

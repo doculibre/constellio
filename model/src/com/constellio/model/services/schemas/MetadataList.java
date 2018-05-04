@@ -466,6 +466,16 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyMultilingual() {
+		List<Metadata> multilingualMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isMultiLingual()) {
+				multilingualMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(multilingualMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyCalculated() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -545,7 +555,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	public List<Metadata> onlyWithoutInheritance() {
+	public MetadataList onlyWithoutInheritance() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getInheritance() == null) {

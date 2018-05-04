@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.SIP;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -15,52 +18,48 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class BagInfoSIPPresenter extends BasePresenter<BagInfoSIPForm> {
 
-    SearchServices searchServices;
-    SchemaPresenterUtils presenterUtils;
-    BagInfoToVOBuilder builder;
-    private MetadataToVOBuilder metadataBuilder;
+	SearchServices searchServices;
+	SchemaPresenterUtils presenterUtils;
+	BagInfoToVOBuilder builder;
+	private MetadataToVOBuilder metadataBuilder;
 
-    public BagInfoSIPPresenter(BagInfoSIPForm view) {
-        super(view);
-        searchServices = searchServices();
-        builder = new BagInfoToVOBuilder();
-        presenterUtils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-        metadataBuilder = new MetadataToVOBuilder();
-    }
+	public BagInfoSIPPresenter(BagInfoSIPForm view) {
+		super(view);
+		searchServices = searchServices();
+		builder = new BagInfoToVOBuilder();
+		presenterUtils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(),
+				view.getSessionContext());
+		metadataBuilder = new MetadataToVOBuilder();
+	}
 
-    protected List<BagInfoVO> getAllBagInfo() {
-        List<BagInfoVO> bagInfoVOS = new ArrayList<>();
-        BagInfoToVOBuilder builder = new BagInfoToVOBuilder();
-        List<MetadataSchema> bagInfoSchemas = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(BagInfo.SCHEMA_TYPE).getSchemas();
-        for (MetadataSchema bagInfoSchema : bagInfoSchemas) {
+	protected List<BagInfoVO> getAllBagInfo() {
+		List<BagInfoVO> bagInfoVOS = new ArrayList<>();
+		BagInfoToVOBuilder builder = new BagInfoToVOBuilder();
+		List<MetadataSchema> bagInfoSchemas = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(BagInfo.SCHEMA_TYPE).getCustomSchemas();
+		for (MetadataSchema bagInfoSchema : bagInfoSchemas) {
 			Record bagInfoRecord = recordServices().newRecordWithSchema(bagInfoSchema);
 			bagInfoRecord.set(Schemas.TITLE, bagInfoSchema.getLabel(Language.withLocale(i18n.getLocale())));
 			bagInfoVOS.add(builder.build(bagInfoRecord, RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext()));
 		}
-        return bagInfoVOS;
-    }
-    protected BagInfoVO newRecord() {
-        return builder.build(presenterUtils.newRecord(), RecordVO.VIEW_MODE.FORM, view.getSessionContext());
-    }
+		return bagInfoVOS;
+	}
 
-    private MetadataVO getMetadataVoFromCode(String code) {
-        return presenterService().getMetadataVO(code, view.getSessionContext());
-    }
+	protected BagInfoVO newRecord() {
+		return builder.build(presenterUtils.newRecord(), RecordVO.VIEW_MODE.FORM, view.getSessionContext());
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return true;
-    }
+	private MetadataVO getMetadataVoFromCode(String code) {
+		return presenterService().getMetadataVO(code, view.getSessionContext());
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
 
 	public void cancelButtonClicked() {
 		view.closeAllWindows();

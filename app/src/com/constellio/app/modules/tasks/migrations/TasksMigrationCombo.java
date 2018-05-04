@@ -6,6 +6,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -150,6 +151,11 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 			//			}
 
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
+
+			for (String metadata : asList("ddvTaskStatus_default_description", "ddvTaskStatus_default_title",
+					"ddvTaskType_default_description", "ddvTaskType_default_title")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
 		}
 
 	}

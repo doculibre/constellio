@@ -66,7 +66,7 @@ public class MetadataSchemaXMLWriter3 {
 
 	private void writeCustomSchemas(MetadataSchemaType schemaType, Element schemaTypeElement, MetadataSchema collectionSchema) {
 		Element customSchemasElement = new Element("customSchemas");
-		for (MetadataSchema schema : schemaType.getSchemas()) {
+		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			Element schemaElement = toXMLElement(schema, collectionSchema);
 			customSchemasElement.addContent(schemaElement);
 		}

@@ -1234,7 +1234,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			stateFolder.mkdirs();
 			for (CollectionPreparator preparator : preparators) {
-				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection);
+				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection,
+						preparator.languages);
 				modulesAndMigrationsTestFeatures.withMockedAvailableModules(false);
 				if (preparator.modules.contains(ConstellioRMModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRMModule();
@@ -1336,10 +1337,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
 
-		List<String> languages;
+		List<String> languages = new ArrayList<>();
 
 		public CollectionPreparator(String collection) {
 			this.collection = collection;
+			languages.add("fr");
+			languages.add("en");
 		}
 
 		public CollectionPreparator withLanguages(List<String> languages) {

@@ -376,6 +376,22 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 			typesBuilder.getSchema(Email.SCHEMA).getMetadata(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
 					.addProperty("subject");
+
+			for (String metadata : asList("administrativeUnit_default_description", "administrativeUnit_default_title",
+					"category_default_description", "category_default_keywords", "category_default_title",
+					"ddvContainerRecordType_default_description", "ddvContainerRecordType_default_title",
+					"ddvDocumentType_default_description", "ddvDocumentType_default_title",
+					"ddvFolderType_default_description", "ddvFolderType_default_title",
+					"ddvMediumType_default_description", "ddvMediumType_default_title",
+					"ddvStorageSpaceType_default_description", "ddvStorageSpaceType_default_title",
+					"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_title",
+					"ddvYearType_default_description", "ddvYearType_default_title",
+					"retentionRule_default_title", "retentionRule_default_juridicReference",
+					"retentionRule_default_generalComment",
+					"retentionRule_default_keywords", "retentionRule_default_copyRulesComment",
+					"retentionRule_default_description")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
 		}
 
 	}

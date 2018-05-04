@@ -82,7 +82,18 @@ public class ValueListServices {
 
 		boolean createMetadatasAsMultivalued = true;
 
+		boolean multilingual = true;
+
 		List<String> typesWithReferenceMetadata = new ArrayList<>();
+
+		public boolean isMultilingual() {
+			return multilingual;
+		}
+
+		public CreateValueListOptions setMultilingual(boolean multilingual) {
+			this.multilingual = multilingual;
+			return this;
+		}
 
 		public ValueListItemSchemaTypeBuilderOptions getCodeMode() {
 			return codeMode;
@@ -140,7 +151,7 @@ public class ValueListServices {
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
 		MetadataSchemaTypeBuilder valueListSchemaType = builder
-				.createValueListItemSchema(code, title, options.codeMode, isMultiLingual);
+				.createValueListItemSchema(code, title, options.codeMode.setMultilingual(options.isMultilingual()));
 
 		if (options.getTypesWithReferenceMetadata() != null) {
 			for (String schemaType : options.getTypesWithReferenceMetadata()) {
@@ -174,7 +185,8 @@ public class ValueListServices {
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typeBuilder);
 
 		builder.createHierarchicalValueListItemSchema(typeCode, title,
-				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false), isMultiLingual);
+				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false)
+						.setMultilingual(isMultiLingual));
 
 		return Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(typeCode));
 	}
@@ -233,7 +245,7 @@ public class ValueListServices {
 				.setMultivalue(true);
 
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
-			if(taxonomy.getTitle(language) == null) {
+			if (taxonomy.getTitle(language) == null) {
 				continue;
 			}
 			metadataBuilder.addLabel(language, taxonomy.getTitle(language));
@@ -287,7 +299,7 @@ public class ValueListServices {
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
 		builder.createHierarchicalValueListItemSchema(code, title,
-				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique(), isMultiLingual);
+				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().setMultilingual(isMultiLingual));
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
