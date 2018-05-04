@@ -36,7 +36,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return getCaptionForRecordId(recordId, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 	}
 
-	public static String getCaptionForRecordId(String recordId, Locale local) {
+	public static String getCaptionForRecordId(String recordId, Locale locale) {
 		String caption;
 		if (StringUtils.isNotBlank(recordId)) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
@@ -55,7 +55,7 @@ public class SchemaCaptionUtils implements Serializable {
 					captionFormat = $(captionFormatKey);
 				}
 
-				caption = applyPattern(captionFormat, record, local);
+				caption = applyPattern(captionFormat, record, locale);
 
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
 					if (isRightToLeft()) {

@@ -243,6 +243,7 @@ public class RecordVO implements Serializable {
 	}
 
 	public <T extends Object> T get(MetadataVO metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		T value = null;
 		return get(metadata);
 	}
 

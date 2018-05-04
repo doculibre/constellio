@@ -12,6 +12,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
@@ -752,7 +753,7 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenSearchableMetadataThenSearchBasedOnLanguage()
+	public void givenSearchableMultilingualStringMetadataThenSearchBasedOnLanguage()
 			throws Exception {
 
 		givenSystemLanguageIs("fr");
@@ -793,6 +794,65 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, "Arachide")
 				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, "peanut")
 				.set(multilingualSchema.anotherStringMetadata(), "Autre"));
+
+		recordServices.execute(tx);
+
+		assertThatSearch(Locale.FRENCH, "fruit").containsOnly("r1", "r2", "r3", "r4");
+		assertThatSearch(Locale.ENGLISH, "fruit").containsOnly("r1", "r2", "r3", "r4");
+
+		assertThatSearch(Locale.FRENCH, "fraise").containsOnly("r4");
+		assertThatSearch(Locale.FRENCH, "fraisé").containsOnly("r4");
+		assertThatSearch(Locale.ENGLISH, "fraise").isEmpty();
+
+		assertThatSearch(Locale.FRENCH, "strawberry").isEmpty();
+		assertThatSearch(Locale.ENGLISH, "strawberry").containsOnly("r4");
+		assertThatSearch(Locale.ENGLISH, "strawbèrry").isEmpty();
+		assertThatSearch(Locale.ENGLISH, "strawberries").containsOnly("r4");
+
+	}
+
+	@Test
+	public void givenSearchableMultilingualMultivalueStringMetadataThenSearchBasedOnLanguage()
+			throws Exception {
+
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(multilingualCollectionSchemas
+				.withAStringMetadata(whichIsSearchable, whichIsMultilingual, whichIsMultivalue)
+				.withAnotherStringMetadata(whichIsSearchable, whichIsMultivalue));
+
+		setupServices();
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(multilingualSchema, "r1")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("Cortland", "pomme"))
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("Cortland", "Apple"))
+				.set(multilingualSchema.anotherStringMetadata(), asList("Fruit")));
+
+		tx.add(new TestRecord(multilingualSchema, "r2")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("Pêche", "molle"))
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("Peach"))
+				.set(multilingualSchema.anotherStringMetadata(), asList("Fruit")));
+
+		tx.add(new TestRecord(multilingualSchema, "r3")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("Poire"))
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("pear"))
+				.set(multilingualSchema.anotherStringMetadata(), asList("Fruit")));
+
+		tx.add(new TestRecord(multilingualSchema, "r4")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("Quick aux fraises"))
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("Strawberry quick"))
+				.set(multilingualSchema.anotherStringMetadata(), asList("Fruit")));
+
+		tx.add(new TestRecord(multilingualSchema, "r5")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("perdrix"))
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("Partridge"))
+				.set(multilingualSchema.anotherStringMetadata(), asList("Oiseau")));
+
+		tx.add(new TestRecord(multilingualSchema, "r6")
+				.set(multilingualSchema.stringMetadata(), Locale.FRENCH, asList("Arachide"))
+				.set(multilingualSchema.stringMetadata(), Locale.ENGLISH, asList("peanut"))
+				.set(multilingualSchema.anotherStringMetadata(), asList("Autre")));
 
 		recordServices.execute(tx);
 
