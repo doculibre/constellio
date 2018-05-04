@@ -57,8 +57,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	public static final String CANCEL_EXCLUSION = "SearchResultDisplay.unexclusion";
 	public static final String CANCEL_ELEVATION = "SearchResultDisplay.unelevation";
 
-	private AppLayerFactory appLayerFactory;
-	private SessionContext sessionContext;
+	protected AppLayerFactory appLayerFactory;
+	protected SessionContext sessionContext;
 
 	SearchConfigurationsManager searchConfigurationsManager;
 

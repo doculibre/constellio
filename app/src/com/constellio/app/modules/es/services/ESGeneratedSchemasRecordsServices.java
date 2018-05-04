@@ -181,6 +181,10 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("parsedContent");
 		}
 
+		public Metadata description() {
+			return metadata("description");
+		}
+
 		public Metadata priority() {
 			return metadata("priority");
 		}
