@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -15,7 +16,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 public class ImportedMetadata {
 
 	private String code;
-	private Map<String, String> labels;
+	private Map<String, String> labels = new HashMap<>();
 	private String type;
 	private String referencedType;
 	private Boolean enabled;// = true;
