@@ -45,7 +45,7 @@ dependencies {
     compile "javax.servlet.jsp:jsp-api:2.2"
     compile "org.apache.zookeeper:zookeeper:3.4.6"
     compile "javax.validation:validation-api:1.1.0.Final"
-    compile "org.joda:joda-convert:1.8.1"
+    compile "org.jodconverter:jodconverter-core:4.2.0"
     compile "com.google.code.findbugs:jsr305:3.0.0"
 }
 
