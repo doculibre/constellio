@@ -120,7 +120,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, formMetadataCodes, displayMetadataCodes,
 				tableMetadataCodes, searchMetadataCodes, labels);
 		for (Metadata metadata : schema.getMetadatas()) {
-			if (metadata.isMultiLingual()) {
+			if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
 				List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
 				for (Locale supportedLocale : supportedLocales) {
 					metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
