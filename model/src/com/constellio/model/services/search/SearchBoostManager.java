@@ -1,57 +1,48 @@
 package com.constellio.model.services.search;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jdom2.Document;
-
-import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.search.entities.SearchBoost;
-import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
-import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
+import com.constellio.model.utils.AbstractOneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
 
-public class SearchBoostManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<List<SearchBoost>> {
+import java.util.ArrayList;
+import java.util.List;
+
+public class SearchBoostManager extends AbstractOneXMLConfigPerCollectionManager<List<SearchBoost>> {
 	private String SEARCH_BOOST_CONFIG = "/searchBoost.xml";
-	private OneXMLConfigPerCollectionManager<List<SearchBoost>> oneXMLConfigPerCollectionManager;
-	private ConfigManager configManager;
-	private CollectionsListManager collectionsListManager;
-	private ConstellioCacheManager cacheManager; 
 
 	public SearchBoostManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
-		this.configManager = configManager;
-		this.collectionsListManager = collectionsListManager;
-		this.cacheManager = cacheManager;
+		super(configManager, collectionsListManager, cacheManager);
 	}
 
 	@Override
-	public void initialize() {
-		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
+	protected String getCollectionFolderRelativeConfigPath() {
+		return SEARCH_BOOST_CONFIG;
+	}
+
+	@Override
+	protected ConstellioCache getConstellioCache() {
+		return cacheManager.getCache(SearchBoostManager.class.getName());
+	}
+
+	@Override
+	protected DocumentAlteration createConfigAlteration() {
+		return new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
 				SearchBoostWriter writer = newSearchBoostWriter(document);
 				writer.createEmptySearchBoost();
 			}
 		};
-		ConstellioCache cache = cacheManager.getCache(SearchBoostManager.class.getName());
-		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
-				SEARCH_BOOST_CONFIG, xmlConfigReader(), this, createConfigAlteration, cache);
 	}
 
 	public void createCollectionSearchBoost(String collection) {
-		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				SearchBoostWriter writer = newSearchBoostWriter(document);
-				writer.createEmptySearchBoost();
-			}
-		};
-		oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
+		createCollection(collection);
 	}
 
 	public void add(String collection, final SearchBoost searchBoost) {
@@ -62,7 +53,7 @@ public class SearchBoostManager implements StatefulService, OneXMLConfigPerColle
 				writer.add(searchBoost);
 			}
 		};
-		oneXMLConfigPerCollectionManager.updateXML(collection, alteration);
+		updateCollection(collection, alteration);
 	}
 
 	public void delete(String collection, final SearchBoost searchBoost) {
@@ -73,11 +64,11 @@ public class SearchBoostManager implements StatefulService, OneXMLConfigPerColle
 				writer.delete(searchBoost.getType(), searchBoost.getKey());
 			}
 		};
-		oneXMLConfigPerCollectionManager.updateXML(collection, alteration);
+		updateCollection(collection, alteration);
 	}
 
 	public List<SearchBoost> getAllSearchBoosts(String collection) {
-		return oneXMLConfigPerCollectionManager.get(collection);
+		return getCollection(collection);
 	}
 
 	public List<SearchBoost> getAllSearchBoostsByMetadataType(String collection) {
@@ -107,7 +98,7 @@ public class SearchBoostManager implements StatefulService, OneXMLConfigPerColle
 		return new SearchBoostReader(document);
 	}
 
-	private XMLConfigReader<List<SearchBoost>> xmlConfigReader() {
+	protected XMLConfigReader<List<SearchBoost>> xmlConfigReader() {
 		return new XMLConfigReader<List<SearchBoost>>() {
 			@Override
 			public List<SearchBoost> read(String collection, Document document) {

@@ -102,12 +102,13 @@ public class SearchResultDisplay extends VerticalLayout {
 		titleLink.setWidthUndefined();
 		titleLayout.addComponent(titleLink);
 
+		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
-				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
+				.has(currentSessionContext.getCurrentUser().getUsername());
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-			boolean isElevated = searchConfigurationsManager.isElevated(query, record.getId());
+			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
 
 			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
 			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);

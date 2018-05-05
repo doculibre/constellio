@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -21,7 +22,7 @@ public class Elevations implements Serializable {
 	public void addOrUpdate(QueryElevation queryElevation) {
 		boolean updated = false;
 		for (QueryElevation currentQueryElevation : this.queryElevations) {
-			if (currentQueryElevation.getQuery().equals(queryElevation.getQuery())) {
+			if (Objects.equals(currentQueryElevation.getQuery(), queryElevation.getQuery())) {
 				currentQueryElevation.addUpdate(queryElevation.getDocElevations());
 				updated = true;
 				break;
@@ -32,36 +33,42 @@ public class Elevations implements Serializable {
 		}
 	}
 
-	public void removeQueryElevation(String query) {
+	public boolean removeQueryElevation(String query) {
 		for(Iterator iterator = this.queryElevations.iterator(); iterator.hasNext();) {
 			QueryElevation queryElevation = (QueryElevation) iterator.next();
-			if(queryElevation.getQuery().equals(query)) {
+			if(Objects.equals(queryElevation.getQuery(), query)) {
 				iterator.remove();
-				break;
+				return true;
 			}
 		}
+		return false;
 	}
 
-	public void removeAllElevation(String query) {
+	public boolean removeAllElevation(String query) {
+		boolean res = false;
 		for(Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext();) {
 			QueryElevation queryElevation = iterator.next();
-			if(queryElevation.getQuery().equals(query)) {
+			if(Objects.equals(queryElevation.getQuery(), query)) {
 				for(Iterator<DocElevation> docElevationIterator = queryElevation.getDocElevations().iterator(); docElevationIterator.hasNext();) {
 					DocElevation docElevation = docElevationIterator.next();
 					if(!docElevation.isExclude()) {
 						docElevationIterator.remove();
+						res = true;
 					}
 				}
 				if(queryElevation.getDocElevations().size() <= 0) {
 					iterator.remove();
+					res = true;
 				}
 
 				break;
 			}
 		}
+		return res;
 	}
 
-	public void removeAllExclusion(String query) {
+	public boolean removeAllExclusion(String query) {
+		boolean res = false;
 		for(Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext();) {
 			QueryElevation queryElevation = iterator.next();
 			if(queryElevation.getQuery().equals(query)) {
@@ -69,18 +76,21 @@ public class Elevations implements Serializable {
 					DocElevation docElevation = docElevationIterator.next();
 					if(docElevation.isExclude()) {
 						docElevationIterator.remove();
+						res = true;
 					}
 				}
 				if(queryElevation.getDocElevations().size() <= 0) {
 					iterator.remove();
+					res = true;
 				}
 
 				break;
 			}
 		}
+		return res;
 	}
 
-	public void removeElevation(String query, String recordId) {
+	public boolean removeElevation(String query, String recordId) {
 		boolean removeQuery = false;
 		boolean found = false;
 		for (Iterator<QueryElevation> iterator = this.queryElevations.iterator(); iterator.hasNext(); ) {
@@ -105,6 +115,7 @@ public class Elevations implements Serializable {
 				break;
 			}
 		}
+		return found;
 	}
 
 
@@ -113,6 +124,8 @@ public class Elevations implements Serializable {
 
 		public void addUpdate(List<DocElevation> newDocElevations) {
 			for (DocElevation newDocElevation : newDocElevations) {
+				newDocElevation.setQuery(query);
+
 				for (Iterator<DocElevation> iterator = this.docElevations.iterator(); iterator.hasNext(); ) {
 					DocElevation oldDocElevation = iterator.next();
 					if (oldDocElevation.getId().equals(newDocElevation.getId())) {
@@ -124,6 +137,7 @@ public class Elevations implements Serializable {
 		}
 
 		public QueryElevation addDocElevation(DocElevation docElevation) {
+			docElevation.setQuery(query);
 			this.docElevations.add(docElevation);
 			return this;
 		}
@@ -138,6 +152,9 @@ public class Elevations implements Serializable {
 		}
 
 		public QueryElevation setDocElevations(List<DocElevation> docElevations) {
+			for (DocElevation newDocElevation : docElevations) {
+				newDocElevation.setQuery(query);
+			}
 			this.docElevations = docElevations;
 			return this;
 		}

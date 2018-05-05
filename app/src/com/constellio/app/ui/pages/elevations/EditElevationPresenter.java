@@ -30,11 +30,11 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
     }
 
     public List<String> getAllQuery() {
-        return searchConfigurationsManager.getAllQuery();
+        return searchConfigurationsManager.getAllQuery(collection);
     }
 
     public List<Elevations.QueryElevation.DocElevation> getElevations(String query) {
-        List<Elevations.QueryElevation.DocElevation> docElevations = searchConfigurationsManager.getDocElevation(query);
+        List<Elevations.QueryElevation.DocElevation> docElevations = searchConfigurationsManager.getDocElevation(collection, query);
         List<Elevations.QueryElevation.DocElevation> docElevationExcluded = new ArrayList<>();
 
         for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext();) {
@@ -49,7 +49,7 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
 
 
     public List<Elevations.QueryElevation.DocElevation> getExclusions(String query) {
-        List<Elevations.QueryElevation.DocElevation> docElevations = searchConfigurationsManager.getDocElevation(query);
+        List<Elevations.QueryElevation.DocElevation> docElevations = searchConfigurationsManager.getDocElevation(collection, query);
         List<Elevations.QueryElevation.DocElevation> docElevationExcluded = new ArrayList<>();
 
         for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext();) {
@@ -63,22 +63,22 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
     }
 
     public void cancelQueryElevationAndExclusionButtonClicked(String query) {
-        searchConfigurationsManager.removeQuery(query);
+        searchConfigurationsManager.removeQuery(collection, query);
         view.navigate().to().editElevation();
     }
 
     public void cancelQueryExclusionButtonClicked(String query) {
-        searchConfigurationsManager.removeAllExclusion(query);
+        searchConfigurationsManager.removeAllExclusion(collection, query);
         view.navigate().to().editElevation();
     }
 
     public void cancelQueryElevationButtonClicked(String query) {
-        searchConfigurationsManager.removeAllElevation(query);
+        searchConfigurationsManager.removeAllElevation(collection, query);
         view.navigate().to().editElevation();
     }
 
     public void cancelDocElevationButtonClicked(Elevations.QueryElevation.DocElevation docElevation) {
-        searchConfigurationsManager.removeElevated(docElevation.getQuery(), docElevation.getId());
+        searchConfigurationsManager.removeElevated(collection, docElevation.getQuery(), docElevation.getId());
         view.navigate().to().editElevation();
     }
 
