@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -299,11 +300,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		List<String> supportedReports = super.getSupportedReports();
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		List<ReportWithCaptionVO> supportedReports = super.getSupportedReports();
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getSchemaType());
-		supportedReports.addAll(userReports);
+		if(userReports != null) {
+			for(String reportTitle: userReports) {
+				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
+			}
+		}
 		return supportedReports;
 	}
 

@@ -45,6 +45,7 @@ import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -702,11 +703,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		List<String> supportedReports = new ArrayList<>();
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getCurrentSchemaType());
-		supportedReports.addAll(userReports);
+		if(userReports != null) {
+			for(String reportTitle: userReports) {
+				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
+			}
+		}
 		return supportedReports;
 	}
 

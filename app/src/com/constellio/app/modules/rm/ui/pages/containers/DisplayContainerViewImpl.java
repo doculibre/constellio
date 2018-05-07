@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -157,7 +158,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		edit.setVisible(presenter.isEditButtonVisible());
 		buttons.add(edit);
 
-		Button slip = new ReportButton("Reports.ContainerRecordReport", presenter) {
+		Button slip = new ReportButton(new ReportWithCaptionVO("Reports.ContainerRecordReport", $("Reports.ContainerRecordReport")), presenter) {
 			@Override
 			protected Component buildWindowContent() {
 				presenter.saveIfFirstTimeReportCreated();

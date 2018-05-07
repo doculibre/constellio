@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
@@ -50,13 +51,13 @@ public class ReportSelector extends HorizontalLayout {
 
 	private AbstractSelect buildSelector() {
 		ComboBox comboBox = new BaseComboBox();
-		List<String> supportedReports = presenter.getSupportedReports();
+		List<ReportWithCaptionVO> supportedReports = presenter.getSupportedReports();
 		if (supportedReports.isEmpty()) {
 			setVisible(false);
 		} else {
-			for (String report : supportedReports) {
-				comboBox.addItem(report);
-				comboBox.setItemCaption(report, $(report));
+			for (ReportWithCaptionVO report : supportedReports) {
+				comboBox.addItem(report.getTitle());
+				comboBox.setItemCaption(report.getTitle(), report.getCaption());
 			}
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
