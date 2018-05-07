@@ -223,8 +223,8 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         indexedContainer.getContainerProperty(addedItemNumber, INFORMATION).setValue(label);
     }
 
-    private void addItemsToTable(String query, List<Elevations.QueryElevation.DocElevation> docExcluded) {
-        for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docExcluded.iterator(); iterator.hasNext();) {
+    private void addItemsToTable(String query, List<Elevations.QueryElevation.DocElevation> docElevated) {
+        for (Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevated.iterator(); iterator.hasNext();) {
             Elevations.QueryElevation.DocElevation docElevation = iterator.next();
             docElevation.setQuery(query);
             addOneItemToTableAndSetValue(docElevation, SPACES_8 + presenter.getRecordTitle(docElevation.getId()));

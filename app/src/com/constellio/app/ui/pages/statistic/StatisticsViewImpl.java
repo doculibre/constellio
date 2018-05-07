@@ -261,7 +261,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         layout.setSizeFull();
 //        layout.setSpacing(true);
 
-        Label label = new Label($("StatisticsView.numberOfResults")+": "+container.size());
+        Label label = new Label($("StatisticsView.numberOfResults") + " : " + container.size());
         label.setContentMode(ContentMode.HTML);
 
         layout.addComponent(label);
@@ -270,7 +270,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         DownloadLink downloadLink = new DownloadLink(getCsvDocumentResource(), $("StatisticsView.downloadCsv"));
 
         layout.addComponent(downloadLink);
-        layout.setExpandRatio(downloadLink, 1);
+        layout.setComponentAlignment(downloadLink, Alignment.TOP_RIGHT);
 
         downloadLink.setVisible(container.size() > 0);
 

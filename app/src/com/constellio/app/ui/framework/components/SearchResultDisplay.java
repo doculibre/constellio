@@ -37,6 +37,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -96,7 +97,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		I18NHorizontalLayout titleLayout = new I18NHorizontalLayout();
+		CssLayout titleLayout = new CssLayout();
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 		titleLink.setWidthUndefined();
@@ -142,8 +143,8 @@ public class SearchResultDisplay extends VerticalLayout {
 			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
 			
 			titleLayout.addComponent(elevationLayout);
-			titleLayout.setExpandRatio(elevationLayout, 1);
-			titleLayout.setSpacing(true);
+//			titleLayout.setExpandRatio(elevationLayout, 1);
+//			titleLayout.setSpacing(true);
 		}
 		return titleLayout;
 	}

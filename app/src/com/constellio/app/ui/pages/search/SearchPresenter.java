@@ -306,29 +306,26 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return null;
 	}
 
-	public List<Capsule> getCapsuleForCurrentSearch() {
-		List<Capsule> correspondingCapsules = new ArrayList<>();
+	public Capsule getCapsuleForCurrentSearch() {
+		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 					appLayerFactory.getModelLayerFactory());
-			if (StringUtils.isNotEmpty(getUserSearchExpression())) {
-				String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
-				String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
-				String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
-				MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-						.getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
-				//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
-				//TODO Check for a more efficient way to fix this.
-				LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
-
-				for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
-					if (CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
-						correspondingCapsules.add(capsule);
+			String searchedTerms = getUserSearchExpression();
+			if (StringUtils.isNotEmpty(searchedTerms)) {
+				String cleanedSearchTerms = AccentApostropheCleaner.cleanAll(searchedTerms);
+				loop1: for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
+					for (String keyword : capsule.getKeywords()) {
+						String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
+						if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
+							match = capsule;
+							break loop1;
+						}
 					}
 				}
 			}
 		}
-		return correspondingCapsules;
+		return match;
 	}
 
 	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {

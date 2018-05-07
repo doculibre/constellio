@@ -302,9 +302,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setSpacing(true);
 		Component capsuleComponent = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
-			if (!capsules.isEmpty()) {
-				capsuleComponent = buildCapsuleIU(capsules);
+			Capsule capsule = presenter.getCapsuleForCurrentSearch();
+			if (capsule != null) {
+				capsuleComponent = buildCapsuleUI(capsule);
 			}
 		}
 
@@ -750,15 +750,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return button;
 	}
 
-	private Component buildCapsuleIU(List<Capsule> capsules) {
+	private Component buildCapsuleUI(Capsule capsule) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		layout.addStyleName("search-result-capsule");
-		for (Capsule capsule : capsules) {
-			Panel capsuleComponent = new CapsuleComponent(capsule.getTitle(), capsule.getHTML());
-			capsuleComponent.setSizeFull();
-			layout.addComponent(capsuleComponent);
-		}
+		Component capsuleComponent = new CapsuleComponent(capsule.getTitle(), capsule.getHTML());
+		capsuleComponent.setSizeFull();
+		layout.addComponent(capsuleComponent);
 		return layout;
 	}
 

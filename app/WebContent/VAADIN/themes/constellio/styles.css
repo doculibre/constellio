@@ -12928,9 +12928,27 @@ div.v-layout.v-horizontal.v-widget {
 	opacity: 0.5;
 }
 
+.constellio .information-capsule {
+	min-height: 38px;
+	position: relative;
+	border-radius: 10px;
+	padding: 10px 10px 10px 10px;
+	margin: 0 0 0 0px;
+	box-shadow: inset 0px 5px 15px -12px black;
+	background-color: #ebebeb;
+	background-image: url('images/icons/suggestion.png');
+	background-repeat: no-repeat;
+	background-position: left center;
+}
+
+.constellio .information-capsule .information-capsule-title {
+	font-weight: bold;
+	padding-left: 50px;
+}
+
 .constellio .information-capsule .information-capsule-content {
-	padding-left: 10px;
-	padding-right: 10px;
+	padding-bottom: 15px;
+	padding-left: 60px;
 }
 
 .constellio .thesaurus-disambiguation, .constellio .spell-checker {
@@ -13668,6 +13686,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
+	padding-top: 8px;
 	font-size: 18px;
 	text-align: left;
 }
@@ -13696,9 +13715,10 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: bold;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-slot-search-result-elevation-buttons {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-elevation-buttons {
 	border: 1px solid #197de1;
 	border-radius: 4px;
+	margin-left: 10px;
 	padding-left: 5px;
 	padding-right: 5px;
 }
