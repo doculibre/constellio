@@ -51,7 +51,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
+		return user.has(CorePermissions.MANAGE_EXCEL_REPORT).globally();
 	}
 
 	public MetadataVODataProvider getDataProvider() {
