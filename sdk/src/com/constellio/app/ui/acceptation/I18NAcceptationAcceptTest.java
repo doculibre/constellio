@@ -163,12 +163,33 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void ensureAllLanguageFilesHaveSameKeys()
+	public void givenArabicSystemEnsureAllObjectsHasATitle()
+			throws Exception {
+		givenArabicSystem();
+
+		findMissingKeys();
+
+		assertThat(missingKeys).isEmpty();
+	}
+
+	@Test
+	public void ensureEnglishAndFrenchLanguageFilesHaveSameKeys()
 			throws Exception {
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.English);
 
 		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
 			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.English, results);
+			fail("Missing i18n keys\n" + comparisonMessage);
+		}
+	}
+
+	@Test
+	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
+			throws Exception {
+		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
+
+		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
+			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.Arabic, results);
 			fail("Missing i18n keys\n" + comparisonMessage);
 		}
 	}
@@ -195,6 +216,17 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		locale = Locale.FRENCH;
 	}
 
+	protected void givenArabicSystem() {
+		givenSystemLanguageIs("ar");
+		givenTransactionLogIsEnabled();
+		givenCollectionWithTitle(zeCollection, asList("ar"), "Collection de test").withMockedAvailableModules(false)
+				.withConstellioRMModule().withAllTestUsers()
+				.withConstellioESModule().withRobotsModule();
+		setupPlugins();
+		i18n.setLocale(new Locale("ar"));
+		locale = new Locale("ar");
+	}
+
 	protected void setupPlugins() {
 
 	}
@@ -204,6 +236,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		findTypesMissingKeys();
 		findTaxonomiesMissingKeys();
 		findMissingConfigKeys();
+		//findMissingKeysInMainI18nFile();
 		if (!missingKeys.isEmpty()) {
 
 			System.out.println("###############################################################################");
@@ -217,6 +250,30 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		}
 
 	}
+
+	//	private void findMissingKeysInMainI18nFile() {
+	//		if (!locale.equals(new Locale("fr"))) {
+	//
+	//			FoldersLocator foldersLocator = new FoldersLocator();
+	//
+	//			File frenchI18n = new File(foldersLocator.getI18nFolder(), "i18n.properties");
+	//
+	//			File testedLanguageI18n = new File(foldersLocator.getI18nFolder(), "i18n_" + locale.getLanguage() + ".properties");
+	//
+	//			Map<String, String> frenchValues = PropertyFileUtils.loadKeyValues(frenchI18n);
+	//			Set<String> frenchKeys = frenchValues.keySet();
+	//			Set<String> testedLanguageKeys = PropertyFileUtils.loadKeyValues(testedLanguageI18n).keySet();
+	//
+	//			ListComparisonResults<String> results = LangUtils.compare(frenchKeys, testedLanguageKeys);
+	//
+	//			for (String missingKey : results.getRemovedItems()) {
+	//
+	//				if (!missingKey.endsWith(".icon") && StringUtils.isNotBlank(frenchValues.get(missingKey)))
+	//					missingKeys.add(missingKey);
+	//			}
+	//
+	//		}
+	//	}
 
 	private void findMissingConfigKeys() {
 		List<String> missingKeys = new ArrayList<>();
