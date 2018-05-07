@@ -185,7 +185,13 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 					return;
 				}
 
-				List<Language> languageList = presenter.saveButtonClicked(taxonomyVO, isMultiLingualCheckBox.getValue());
+				boolean isMultiValue =  false;
+
+				if(isMultiLingualCheckBox.isVisible()) {
+					isMultiValue = isMultiLingualCheckBox.getValue();
+				}
+
+				List<Language> languageList = presenter.saveButtonClicked(taxonomyVO, isMultiValue);
 				if(languageList.size() > 0) {
 					showExistingError(languageList);
 					ViewErrorDisplay.setFieldErrors(languageList, baseTextFieldMap, originalStyleName);
