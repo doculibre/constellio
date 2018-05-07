@@ -12,9 +12,9 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ViewErrorDisplay;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
@@ -23,12 +23,13 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView {
-	public static final String REQUIRED_FIELD = "requiredField";
 	private final ListValueDomainPresenter presenter;
 	private VerticalLayout mainLayout;
 	private TabSheet sheet;
@@ -121,22 +122,29 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
         	for(String language : presenter.getCollectionLanguage()) {
 				BaseTextField baseTextField = new BaseTextField($("title") + " (" + language.toUpperCase() + ")");
 				baseTextField.setRequired(true);
-				baseTextFieldMap.put(Language.withCode(language),baseTextField);
+				baseTextFieldMap.put(Language.withCode(language), baseTextField);
 			}
 
 
-            final BaseTextField[] baseTextFieldArray = new BaseTextField[baseTextFieldMap.size()];
+            final AbstractField[] fieldArray = new AbstractField[baseTextFieldMap.size() + 1];
 
             Language currentLanguage = Language.withCode(getSessionContext().getCurrentLocale().getLanguage());
 
-            baseTextFieldArray[0] = baseTextFieldMap.get(currentLanguage);
+			final CheckBox isMultiLingualCheckBox = new CheckBox($("ListValueDomainViewImpl.multilingual"));
+			isMultiLingualCheckBox.setValue(true);
+			isMultiLingualCheckBox.setVisible(presenter.getCollectionLanguage().size() > 1);
 
-			int i = 1;
+            fieldArray[0] = isMultiLingualCheckBox;
+            fieldArray[1] = baseTextFieldMap.get(currentLanguage);
+
+
+
+			int i = 2;
             for(Language language : baseTextFieldMap.keySet()) {
             	if(currentLanguage.getCode().equals(language.getCode())) {
             		continue;
 				} else {
-            		baseTextFieldArray[i] = baseTextFieldMap.get(language);
+            		fieldArray[i] = baseTextFieldMap.get(language);
             		i++;
 				}
 
@@ -144,10 +152,10 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 
 			final BaseForm<Object> baseForm = new BaseForm(
-					new Object(), this, baseTextFieldArray) {
+					new Object(), this, fieldArray) {
 				@Override
 				protected void saveButtonClick(Object viewObject) throws ValidationException {
-					if(!validateFields(baseTextFieldMap, ListValueDomainViewImpl.this)) {
+					if(!ViewErrorDisplay.validateFieldsContent(baseTextFieldMap, ListValueDomainViewImpl.this)) {
 						return;
 					}
 
@@ -159,10 +167,14 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 						titleMap.put(language, value);
 					}
 
+					boolean isMultiValue =  false;
 
-					List<Language> languagesInErrors = presenter.valueDomainCreationRequested(titleMap);
+					if(isMultiLingualCheckBox.isVisible()) {
+						isMultiValue = isMultiLingualCheckBox.getValue();
+					}
 
-					setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
+					List<Language> languagesInErrors = presenter.valueDomainCreationRequested(titleMap, isMultiValue);
+					ViewErrorDisplay.setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
 
 					if(languagesInErrors.size() == 0) {
 						getWindow().close();
@@ -175,7 +187,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 				}
 			};
 
-			originalStyleName = baseTextFieldArray[0].getStyleName();
+			originalStyleName = fieldArray[0].getStyleName();
 
             return baseForm;
         }
@@ -183,51 +195,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
     }
 
-	private static  boolean validateFields(Map<Language, BaseTextField> baseTextFieldMap, ListValueDomainViewImpl listValueDomainView) {
-		StringBuilder missingRequiredFields = new StringBuilder();
-		BaseTextField firstFieldWithError = null;
-		for(Language language : baseTextFieldMap.keySet()) {
-			BaseTextField baseTextField = baseTextFieldMap.get(language);
-			try{
-				baseTextField.validate();
-			} catch(Validator.EmptyValueException emptyValueException) {
-				baseTextField.setRequiredError($(REQUIRED_FIELD));
-				if (missingRequiredFields.length() != 0) {
-					missingRequiredFields.append("<br/>");
-				}
-				missingRequiredFields.append($("requiredFieldWithName", "\"" + baseTextField.getCaption() + "\""));
-				if (firstFieldWithError == null) {
-					firstFieldWithError = baseTextField;
-				}
 
-			}
-		}
-
-		if (firstFieldWithError != null) {
-			firstFieldWithError.focus();
-			listValueDomainView.showErrorMessage(missingRequiredFields.toString());
-			return false;
-		}
-
-		return true;
-	}
-
-	protected static void setFieldErrors(List<Language> languagesInErrors, Map<Language, BaseTextField> baseTextFieldMap, String originalStyleName) {
-		int i = 0;
-
-		for(Language language : baseTextFieldMap.keySet()) {
-			BaseTextField baseTextField = baseTextFieldMap.get(language);
-			if(languagesInErrors.contains(language)) {
-				if(i == 0) {
-					baseTextField.focus();
-					i++;
-				}
-				baseTextField.setStyleName(baseTextField.getStyleName() + " error");
-			} else {
-				baseTextField.setStyleName(originalStyleName);
-			}
-		}
-	}
 
 	private Table buildTable(String id) {
 		BeanItemContainer elements = new BeanItemContainer<>(
@@ -291,7 +259,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 								new Object(), this, baseTextFieldArray) {
 							@Override
 							protected void saveButtonClick(Object viewObject) throws ValidationException {
-								if(!validateFields(baseTextFieldMap, ListValueDomainViewImpl.this)) {
+								if(!ViewErrorDisplay.validateFieldsContent(baseTextFieldMap, ListValueDomainViewImpl.this)) {
 									return;
 								}
 
@@ -305,7 +273,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 								List<Language> languagesInErrors = presenter.editButtonClicked(typeVO, titleMap, typeVO.getLabels());
 
-								setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
+								ViewErrorDisplay.setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
 
 								if(languagesInErrors.size() == 0) {
 									getWindow().close();

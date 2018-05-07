@@ -2,23 +2,28 @@ package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.ViewErrorDisplay;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.TextField;
 
 public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxonomyView {
 	public static final String FOLDER = "folderObject";
@@ -28,8 +33,9 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 
 	private TaxonomyVO taxonomyVO;
 
-	@PropertyId("title")
-	private TextField titleField;
+	private HashMap<Language, BaseTextField> baseTextFieldMap = null;
+
+	private String originalStyleName;
 
 	@PropertyId("userIds")
 	private ListAddRemoveRecordLookupField userIdsField;
@@ -71,14 +77,57 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		return $("AddEditTaxonomyView.viewTitle");
 	}
 
+	private void showExistingError(List<Language> valueLanguageError) {
+		StringBuilder errorMessage = new StringBuilder();
+		int i = 0;
+		for(Language language : valueLanguageError) {
+			if(i != 0) {
+				errorMessage.append("<br/>");
+			}
+			errorMessage.append($("AddEditTaxonomyView.taxonomyTitleAlreadyExist", " (" + language.getCode().toUpperCase() + ")"));
+			i++;
+		}
+
+		this.showErrorMessage(errorMessage.toString());
+	}
+
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		titleField = new TextField();
-		titleField.setCaption($("AddEditTaxonomyView.title"));
-		titleField.setRequired(true);
-		titleField.setNullRepresentation("");
-		titleField.setId("title");
-		titleField.addStyleName("title");
+		baseTextFieldMap = new HashMap<>();
+
+		for(String languageCode : presenter.getCollectionLanguage()) {
+			BaseTextField baseTextField = new BaseTextField($("title") + " (" + languageCode.toUpperCase() + ")");
+			baseTextField.setRequired(true);
+			if(presenter.isActionEdit() ) {
+				baseTextField.setValue(taxonomyVO.getTitle(Language.withCode(languageCode)));
+			}
+			baseTextField.addStyleName("title");
+			baseTextFieldMap.put(Language.withCode(languageCode),baseTextField);
+		}
+
+
+
+		final AbstractField[] fieldArray = new AbstractField[1 + baseTextFieldMap.size() + 4];
+
+		final CheckBox isMultiLingualCheckBox = new CheckBox($("ListValueDomainViewImpl.multilingual"));
+		isMultiLingualCheckBox.setValue(true);
+		isMultiLingualCheckBox.setVisible(presenter.getCollectionLanguage().size() > 1);
+		isMultiLingualCheckBox.setId("multilingual");
+		isMultiLingualCheckBox.setVisible(!presenter.isActionEdit() && presenter.getCollectionLanguage().size() > 1);
+		Language currentLanguage = Language.withCode(getSessionContext().getCurrentLocale().getLanguage());
+
+		fieldArray[0] = isMultiLingualCheckBox;
+		fieldArray[1] = baseTextFieldMap.get(currentLanguage);
+
+		int i = 2;
+		for(Language language : baseTextFieldMap.keySet()) {
+			if(currentLanguage.getCode().equals(language.getCode())) {
+				continue;
+			} else {
+				fieldArray[i] = baseTextFieldMap.get(language);
+				i++;
+			}
+		}
 
 		userIdsField = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
 		userIdsField.setCaption($("AddEditTaxonomyView.users"));
@@ -86,17 +135,23 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		userIdsField.setId("userIds");
 		userIdsField.addStyleName("userIds");
 
+		fieldArray[1 + baseTextFieldMap.size()] = userIdsField;
+
 		groupIdsField = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
 		groupIdsField.setCaption($("AddEditTaxonomyView.groups"));
 		groupIdsField.setRequired(false);
 		groupIdsField.setId("groupIds");
 		groupIdsField.addStyleName("groupIds");
 
+		fieldArray[1 + baseTextFieldMap.size() + 1] = groupIdsField;
+
 		visibleInHomePageField = new CheckBox($("AddEditTaxonomyView.visibleInHomePageField"));
 		visibleInHomePageField.setCaption($("AddEditTaxonomyView.visibleInHomePageField"));
 		visibleInHomePageField.setRequired(false);
 		visibleInHomePageField.setId("visibleInHomePageField");
 		visibleInHomePageField.addStyleName("visibleInHomePageField");
+
+		fieldArray[1 + baseTextFieldMap.size() + 2] = visibleInHomePageField;
 
 		classifiedObjectsField = new ListOptionGroup($("AddEditTaxonomyView.classifiedObjectsField"));
 		classifiedObjectsField.setEnabled(presenter.canEditClassifiedObjects(taxonomyVO));
@@ -110,12 +165,31 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		classifiedObjectsField.addItem(DOCUMENT);
 		classifiedObjectsField.setItemCaption(DOCUMENT, $("AddEditTaxonomyView.classifiedObject.document"));
 
-		return new BaseForm<TaxonomyVO>(taxonomyVO, this, titleField, userIdsField, groupIdsField, visibleInHomePageField,
-				classifiedObjectsField) {
+		fieldArray[1 + baseTextFieldMap.size() + 3] = classifiedObjectsField;
+
+		BaseForm<TaxonomyVO> baseForm = new BaseForm<TaxonomyVO>(taxonomyVO, this, fieldArray) {
 			@Override
 			protected void saveButtonClick(TaxonomyVO taxonomyVO)
 					throws ValidationException {
-				presenter.saveButtonClicked(taxonomyVO);
+
+				java.util.Map<Language, String> titleMap = new HashMap<>();
+
+				for(Language language : baseTextFieldMap.keySet()) {
+					BaseTextField baseTextField = baseTextFieldMap.get(language);
+					String value = baseTextField.getValue();
+					titleMap.put(language, value);
+				}
+
+				taxonomyVO.setTitle(titleMap);
+				if(!ViewErrorDisplay.validateFieldsContent(baseTextFieldMap, AddEditTaxonomyViewImpl.this)) {
+					return;
+				}
+
+				List<Language> languageList = presenter.saveButtonClicked(taxonomyVO, isMultiLingualCheckBox.getValue());
+				if(languageList.size() > 0) {
+					showExistingError(languageList);
+					ViewErrorDisplay.setFieldErrors(languageList, baseTextFieldMap, originalStyleName);
+				}
 			}
 
 			@Override
@@ -123,5 +197,8 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 				presenter.cancelButtonClicked();
 			}
 		};
+
+		originalStyleName = fieldArray[0].getStyleName();
+		return baseForm;
 	}
 }

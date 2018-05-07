@@ -23,15 +23,17 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView> {
 
 	private List<Map<Language, String>> labels;
+	private List<String> collectionLanguage;
 
 	public ListValueDomainPresenter(ListValueDomainView view) {
 		super(view);
+		collectionLanguage = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 	}
 
-	public List<Language> valueDomainCreationRequested(Map<Language, String> mapLanguage) {
+	public List<Language> valueDomainCreationRequested(Map<Language, String> mapLanguage, boolean isMultiLingual) {
 		List<Language> valueLanguageError = canAlterOrCreateLabels(mapLanguage, null);
 		if (valueLanguageError != null && valueLanguageError.size() == 0) {
-			valueListServices().createValueDomain(mapLanguage, mapLanguage.size() > 1);
+			valueListServices().createValueDomain(mapLanguage, isMultiLingual);
 			view.refreshTable();
 		}
 		else {
@@ -56,7 +58,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	}
 
 	public List<String> getCollectionLanguage() {
-		return modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
+		return collectionLanguage;
 	}
 
 	public void displayButtonClicked(MetadataSchemaTypeVO schemaType) {
