@@ -145,10 +145,11 @@ public class ConversionManager implements StatefulService {
 	 * Draw can only save in the OpenDocument Drawing formats (.odg and .otg), the OpenOffice.org 1.x formats (.sxd and .std) and StarDraw format (.sda, .sdd, and .vor).
 	 * However, Draw can also export to BMP, EMF, EPS, GIF, JPEG, MET, PBM, PCT, PGM, PNG, PPM, RAS, SVG, SVM, TIFF, WMF, and XPM.
 	 */
+	//REMOVED tif and tiff
 	public static final String[] DRAWING_EXTENSIONS = {
 			"odg", "otg", "sxd", "std", "bmp", "jpeg", "jpg", "pcx", "psd", "sgv",
 			"wmf", "dxf", "met", "pgm", "ras", "svm", "xbm", "emf", "pbm", "plt",
-			"sda", "tga", "xpm", "eps", "pcd", "png", "sdd", "tif", "tiff", "gif",
+			"sda", "tga", "xpm", "eps", "pcd", "png", "sdd", "gif",
 			"pct", "ppm", "sgf"
 	};
 
@@ -160,6 +161,7 @@ public class ConversionManager implements StatefulService {
 
 	static {
 		try {
+//			OfficeManager officeManager = LocalOfficeManager.builder().maxTasksPerProcess(10).install().build();
 			OfficeManager officeManager = LocalOfficeManager.install();
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 
@@ -381,19 +383,21 @@ public class ConversionManager implements StatefulService {
 					}
 				}
 			} else {
-			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
-			DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
-			DocumentFormat outputFormat = toPDFa(input);
-			if (outputFormat == null) {
-				outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
-			}
 
-			delegate
-					.convert(input)
-					.as(inputFormat)
-					.to(output)
-					.as(outputFormat)
-					.execute();}
+				OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
+				DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
+				DocumentFormat outputFormat = toPDFa(input);
+				if (outputFormat == null) {
+					outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
+				}
+
+				delegate
+						.convert(input)
+						.as(inputFormat)
+						.to(output)
+						.as(outputFormat)
+						.execute();
+			}
 		}
 	}
 
