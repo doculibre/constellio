@@ -102,7 +102,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		usersCaption.addStyleName(ValoTheme.LABEL_H2);
 		usersTable = buildUserTable();
 
-		layout = new VerticalLayout(groupsCaption, buildGroupRolesAndAdder(), groupTabs, usersCaption, buildUserRolesAndAdder(),
+		layout = new VerticalLayout(groupsCaption, buildGroupRolesAndAdder(), groupTabs, new Label(""), usersCaption, buildUserRolesAndAdder(),
 				usersTable);
 		layout.setSpacing(true);
 
