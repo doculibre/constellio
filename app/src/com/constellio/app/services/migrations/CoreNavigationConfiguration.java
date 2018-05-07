@@ -305,7 +305,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.hasAny(CorePermissions.MANAGE_TAXONOMIES, CorePermissions.MANAGE_SECURITY).globally());
+				return visibleIf(user.has(CorePermissions.MANAGE_TAXONOMIES).globally());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(VALUE_DOMAINS, VALUE_DOMAINS_ICON) {
