@@ -61,7 +61,7 @@ public class ReportSelector extends HorizontalLayout {
 			}
 			comboBox.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			comboBox.setNullSelectionAllowed(false);
-			comboBox.setValue(supportedReports.get(0));
+			comboBox.setValue(supportedReports.get(0).getTitle());
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
