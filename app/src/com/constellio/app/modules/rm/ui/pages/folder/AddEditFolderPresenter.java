@@ -606,7 +606,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 
 		if (retentionRuleField != null) {
-			if (folderVO.getParentFolder() != null && (uniformSubdivisionField == null || uniformSubdivisionField.getFieldValue() == null)) {
+			if (folderVO.getParentFolder() != null) {
 				setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
 			} else {
 				String currentValue = retentionRuleField.getFieldValue();
