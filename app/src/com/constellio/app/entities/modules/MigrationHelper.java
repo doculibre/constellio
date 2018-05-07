@@ -3,15 +3,22 @@ package com.constellio.app.entities.modules;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.RolesManager;
 
 public class MigrationHelper {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MigrationHelper.class);
+
 	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
 			SchemaDisplayConfig schema, String... localCodes) {
 
@@ -35,8 +42,15 @@ public class MigrationHelper {
 			int index = visibleMetadataCodes.indexOf(retrievedMetadataCode);
 			if (index != -1) {
 				metadataCodes.set(index, retrievedMetadataCode);
-			} else if (!schemaTypes.getMetadata(retrievedMetadataCode).isSystemReserved()) {
-				otherMetadatas.add(retrievedMetadataCode);
+			} else {
+				try {
+					if (!schemaTypes.getMetadata(retrievedMetadataCode)
+							.isSystemReserved()) {
+						otherMetadatas.add(retrievedMetadataCode);
+					}
+				} catch (InvalidCodeFormat e) {
+					LOGGER.warn("Invalid code in Schema display list of fields '" + retrievedMetadataCode + "', it is excluded");
+				}
 			}
 		}
 		SchemaDisplayConfig newSchema;
