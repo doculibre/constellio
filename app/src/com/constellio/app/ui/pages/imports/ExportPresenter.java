@@ -143,19 +143,23 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		}
 	}
 
-	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
+	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, List<String> unitIds) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
 		options.setExportedSchemaTypes(
 				asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
 						DecommissioningList.SCHEMA_TYPE));
-		String path = (String) ((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
+		List<String> paths = new ArrayList<>();
+		for(String unit: unitIds) {
+			paths.add((String) ((List) recordServices().getDocumentById(unit).get(Schemas.PATH)).get(0));
+		}
+
 		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
 		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(
-				LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path)
+				LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithTextFromAny(paths)
 						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT))
-						.isEqualTo(unitId));
+						.isIn(unitIds));
 
 		exportToXML(options, recordsIterator);
 	}
