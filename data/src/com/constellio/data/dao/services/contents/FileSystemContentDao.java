@@ -58,10 +58,10 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		if(!vaultRecoveryFile.exists()) {
 			try {
 				if(!vaultRecoveryFile.createNewFile()) {
-					throw new RuntimeException("Vault recovery file could not be created");
+					throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateVaultRecoveryFile(vaultRecoveryFile);
 				}
 			} catch (IOException e) {
-				throw new RuntimeException("Vault recovery file could not be created");
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateVaultRecoveryFile(vaultRecoveryFile);
 			}
 		}
 
@@ -71,9 +71,11 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			replicatedRootRecoveryFile = new File(replicatedRootFolder, RECOVERY_FILE);
 			if(!replicatedRootRecoveryFile.exists()) {
 				try {
-					replicatedRootRecoveryFile.createNewFile();
+					if(!replicatedRootRecoveryFile.createNewFile()) {
+						throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateReplicationRecoveryFile(replicatedRootRecoveryFile);
+					}
 				} catch (IOException e) {
-					throw new RuntimeException("Replication recovery file could not be created");
+					throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateReplicationRecoveryFile(replicatedRootRecoveryFile);
 				}
 			}
         }
@@ -185,9 +187,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
             }
 
             if(!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
-            	throw new FileSystemContentDaoRuntimeException("La sauvegarde dans la voute et de la réplication n'a pas fonctionné");
+            	throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
 			} else if(!isFileMovedInTheVault && !isExecutedReplication) {
-				throw new FileSystemContentDaoRuntimeException("La sauvegarde dans la voute n'a pas fonctionné. La réplication n'est pas activé.");
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
 			} else if(!isFileMovedInTheVault) {
 				addFileNotMovedInTheVault(newContentId);
 			} else if(!isFileReplicated && isExecutedReplication) {
@@ -200,7 +202,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		try {
 			Files.write(Paths.get(replicatedRootRecoveryFile.getPath()), (id + "\n").getBytes(), StandardOpenOption.APPEND);
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException("La sauvegarde dans le fichier de rétablissement de la réplication à échoué.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInReplicationRecoveryFile(id);
 		}
 	}
 
@@ -208,7 +210,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		try {
 			Files.write(Paths.get(vaultRecoveryFile.getPath()), (id + "\n").getBytes(), StandardOpenOption.APPEND);
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException("La sauvegarde dans le fichier de rétablissement de la voute à échoué.", e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile(id);
 		}
 	}
 
@@ -317,9 +319,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 
 		if(!vaultCopySucessful && !replicaCopySucessfull && isReplicationExecuted) {
-			throw new FileSystemContentDaoRuntimeException("La sauvegarde dans la voute et de la réplication n'a pas fonctionné");
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(newContentId);
 		} else if(!vaultCopySucessful && !isReplicationExecuted) {
-			throw new FileSystemContentDaoRuntimeException("La sauvegarde dans la voute n'a pas fonctionné. La réplication n'est pas activé.");
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(newContentId);
 		} else if(!vaultCopySucessful) {
 			addFileNotMovedInTheVault(newContentId);
 		} else if(!replicaCopySucessfull && isReplicationExecuted) {

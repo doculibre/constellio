@@ -22,7 +22,7 @@ public class DataLayerBackgroundThreadsManager implements StatefulService {
 
     @Override
     public void initialize() {
-        backgroundThreadsManager.configure(repeatingAction("flushEvents",
+        backgroundThreadsManager.configure(repeatingAction("vaultAndReplicationRecoverySystem",
                 new ReadFileSystemContentDaoRecoveryLogsAndRepairs(dataLayerFactory))
                 .executedEvery(Duration.standardMinutes(5)).handlingExceptionWith(CONTINUE));
     }
