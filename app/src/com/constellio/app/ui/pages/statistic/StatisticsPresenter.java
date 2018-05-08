@@ -66,15 +66,15 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
                 SearchEventServices ses = new SearchEventServices(collection, modelLayerFactory);
                 switch (StringUtils.trimToEmpty(statisticType)) {
                     case FAMOUS_REQUEST:
-                        return ses.getFamousRequests(collection, startDate, endDate, excludedRequest, offset, limit);
+                        return ses.getFamousRequests(collection, startDate, endDate, excludedRequest, offset, limit, filter);
                     case FAMOUS_REQUEST_WITH_RESULT:
-                        return ses.getFamousRequestsWithResults(collection, startDate, endDate, excludedRequest, offset, limit);
+                        return ses.getFamousRequestsWithResults(collection, startDate, endDate, excludedRequest, offset, limit, filter);
                     case FAMOUS_REQUEST_WITHOUT_RESULT:
-                        return ses.getFamousRequestsWithoutResults(collection, startDate, endDate, excludedRequest, offset, limit);
+                        return ses.getFamousRequestsWithoutResults(collection, startDate, endDate, excludedRequest, offset, limit, filter);
                     case FAMOUS_REQUEST_WITH_CLICK:
-                        return ses.getFamousRequestsWithClicks(collection, startDate, endDate, excludedRequest, offset, limit);
+                        return ses.getFamousRequestsWithClicks(collection, startDate, endDate, excludedRequest, offset, limit, filter);
                     case FAMOUS_REQUEST_WITHOUT_CLICK:
-                        return ses.getFamousRequestsWithoutClicks(collection, startDate, endDate, excludedRequest, offset, limit);
+                        return ses.getFamousRequestsWithoutClicks(collection, startDate, endDate, excludedRequest, offset, limit, filter);
                     default:
                         throw new IllegalArgumentException("Unknown statistic type: "+statisticType);
                 }
@@ -102,6 +102,9 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
             }
         }
 
+        if (StringUtils.isNotBlank(filter)) {
+            query.setCondition(query.getCondition().andWhere(rm.searchEvent.params()).isContainingText(filter));
+        }
         query.sortDesc(Schemas.CREATED_ON);
 
         return query;
