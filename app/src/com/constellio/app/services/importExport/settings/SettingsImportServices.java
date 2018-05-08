@@ -196,12 +196,6 @@ public class SettingsImportServices {
 
 	}
 
-	private Map<Language, String> asLabelsMapOnlyContainingSystemLanguageLabel(String label) {
-		Map<Language, String> labels = new HashMap<Language, String>();
-		labels.put(Language.French, label);
-		return labels;
-	}
-
 	private void importCollectionTypes(final ImportedCollectionSettings settings,
 			final String collection, final MetadataSchemaTypes schemaTypes) {
 
@@ -219,20 +213,18 @@ public class SettingsImportServices {
 					} else {
 						typeBuilder = types.getSchemaType(importedType.getCode());
 					}
-					if (importedType.getLabel() != null) {
-						typeBuilder.setLabels(asLabelsMapOnlyContainingSystemLanguageLabel(importedType.getLabel()));
+					if (importedType != null && importedType.getLabels().size() > 0) {
+						typeBuilder.setLabels(importedType.getLabels());
 					}
-
 					MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 					ImportedMetadataSchema importedDefaultSchema = importedType.getDefaultSchema();
-					if (importedType.getDefaultSchema() != null && importedType.getDefaultSchema().getLabel() != null) {
-						typeBuilder.getDefaultSchema().setLabels(asLabelsMapOnlyContainingSystemLanguageLabel(
-								importedType.getDefaultSchema().getLabel()));
+					if (importedDefaultSchema != null && importedDefaultSchema.getLabels().size() > 0) {
+						defaultSchemaBuilder.setLabels(importedDefaultSchema.getLabels());
 					}
 
 					importCustomSchemata(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 
-					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types,
+					importSchemaMetadatas(typeBuilder,importedDefaultSchema, defaultSchemaBuilder, types,
 							newMetadatas);
 
 					importCustomSchemataMetadatas(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
@@ -537,16 +529,15 @@ public class SettingsImportServices {
 	private void importSchema(MetadataSchemaTypesBuilder types,
 			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
 			KeyListMap<String, String> newMetadatas) {
-
 		MetadataSchemaBuilder schemaBuilder;
-		if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
-			schemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
-		} else {
-			schemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
-		}
-		if (importedMetadataSchema.getLabel() != null) {
-			schemaBuilder.setLabels(asLabelsMapOnlyContainingSystemLanguageLabel(importedMetadataSchema.getLabel()));
-		}
+        if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
+            schemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
+        } else {
+            schemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+        }
+        if (importedMetadataSchema != null && importedMetadataSchema.getLabels().size() > 0) {
+            schemaBuilder.setLabels(importedMetadataSchema.getLabels());
+        }
 	}
 
 	private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder,
@@ -577,10 +568,8 @@ public class SettingsImportServices {
 			}
 		}
 
-		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
-			Map<Language, String> labels = new HashMap<>();
-			labels.put(Language.French, importedMetadata.getLabel());
-			metadataBuilder.setLabels(labels);
+		if (importedMetadata != null && importedMetadata.getLabels().size() > 0) {
+			metadataBuilder.setLabels(importedMetadata.getLabels());
 		}
 
 		setMetadataDataEntry(typesBuilder, schemaBuilder, importedMetadata, metadataBuilder);

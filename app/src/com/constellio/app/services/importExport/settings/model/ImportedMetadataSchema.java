@@ -1,9 +1,8 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -14,6 +13,7 @@ public class ImportedMetadataSchema {
 	private String code;
 	private List<ImportedMetadata> metadatas = new ArrayList<>();
 	private String label;
+	private Map<Language, String> labels = new HashMap<>();
 	private List<String> formMetadatas = new ArrayList<>();
 	private List<String> displayMetadatas = new ArrayList<>();
 	private List<String> searchMetadatas = new ArrayList<>();
@@ -21,6 +21,15 @@ public class ImportedMetadataSchema {
 
 	public ImportedMetadataSchema setCode(String code) {
 		this.code = code;
+		return this;
+	}
+
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public ImportedMetadataSchema setLabels(Map<Language, String> labels) {
+		this.labels = labels;
 		return this;
 	}
 
@@ -58,12 +67,12 @@ public class ImportedMetadataSchema {
 	}
 
 	public ImportedMetadataSchema setLabel(String label) {
-		this.label = label;
+		this.labels.put(Language.French, label);
 		return this;
 	}
 
 	public String getLabel() {
-		return label;
+		return labels.get(Language.French);
 	}
 
 	public List<String> getFormMetadatas() {
