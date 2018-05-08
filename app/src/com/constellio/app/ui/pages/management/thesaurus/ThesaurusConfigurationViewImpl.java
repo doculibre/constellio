@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.thesaurus;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
+import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -125,10 +127,46 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
 
         tabSheet.addTab(rejectedTermsLayout, $("ThesaurusConfigurationView.rejectedTerms"));
         mainLayout.addComponent(tabSheet);
+        
+        Component statsSheetContent = buildStatsSheetContent();
+        tabSheet.addTab(statsSheetContent, $("ThesaurusConfigurationView.stats"));
 
         setSKOSSaveButtonEnabled(false);
 
         return mainLayout;
+    }
+    
+    private Component buildStatsSheetContent() {
+    	int nbDocumentsWithAtLeastOneConcept = 475833;
+    	int nbConceptsUsedAtLeastOnce = 1681069;
+    	int nbDocumentsWithoutAConcept = 23;
+    	int conceptsNotUsed = 9841;
+    	
+    	Label nbDocumentsWithAtLeastOneConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithAtLeastOneConcept"));
+    	Label nbDocumentsWithAtLeastOneConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithAtLeastOneConcept));
+
+    	Label nbConceptsUsedAtLeastOnceLabel = new Label($("ThesaurusConfigurationView.stats.nbConceptsUsedAtLeastOnce"));
+    	Label nbConceptsUsedAtLeastOnceComponent = new Label(MessageFormat.format("{0}", nbConceptsUsedAtLeastOnce));
+    	
+    	Label nbDocumentsWithoutAConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithoutAConcept"));
+    	Label nbDocumentsWithoutAConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithoutAConcept));
+    	
+    	Label mostFrequentlyUsedConceptsLabel = new Label($("ThesaurusConfigurationView.stats.mostFrequentlyUsedConcepts"));
+    	Label mostFrequentlyUsedConceptsComponent = new Label("Télécharger");
+    	
+    	Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", conceptsNotUsed));
+    	Label conceptsNotUsedComponent = new Label("Télécharger");
+
+    	List<CaptionAndComponent> captionsAndDisplayComponents = new ArrayList<>();
+    	captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithAtLeastOneConceptLabel, nbDocumentsWithAtLeastOneConceptComponent));
+    	captionsAndDisplayComponents.add(new CaptionAndComponent(nbConceptsUsedAtLeastOnceLabel, nbConceptsUsedAtLeastOnceComponent));
+    	captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithoutAConceptLabel, nbDocumentsWithoutAConceptComponent));
+    	captionsAndDisplayComponents.add(new CaptionAndComponent(mostFrequentlyUsedConceptsLabel, mostFrequentlyUsedConceptsComponent));
+    	captionsAndDisplayComponents.add(new CaptionAndComponent(conceptsNotUsedLabel, conceptsNotUsedComponent));
+    	
+    	BaseDisplay statsSheetContent = new BaseDisplay(captionsAndDisplayComponents);
+    	statsSheetContent.setSizeFull();
+    	return statsSheetContent;
     }
 
     private void noThesaurusAvailableState(VerticalLayout verticalLayoutSkosFile) {
