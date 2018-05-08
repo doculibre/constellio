@@ -94,12 +94,15 @@ public class SearchEventServices {
 		}
 	}
 
-	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit) {
+	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
@@ -120,13 +123,16 @@ public class SearchEventServices {
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit) {
+	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 			ModifiableSolrParams params = new ModifiableSolrParams();
 			params.set("q", "*:*");
 			params.set("rows", "0");
 			params.add("fq", "numFound_d:[1 TO *]");
 			params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 			params.add("fq", "collection_s:" + collection);
+			if (StringUtils.isNotBlank(paramsfilter)) {
+				params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+			}
 
 			computeDateParams(from, to, params);
 
@@ -173,13 +179,16 @@ public class SearchEventServices {
 		return queries;
 	}
 
-	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit) {
+	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "numFound_d:0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
@@ -200,13 +209,16 @@ public class SearchEventServices {
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit) {
+	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "clickCount_d:[1 TO *]");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
@@ -227,13 +239,16 @@ public class SearchEventServices {
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit) {
+	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "clickCount_d:0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 

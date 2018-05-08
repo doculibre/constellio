@@ -29,9 +29,11 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String Q_TIME = "searchEvent_default_qTime";
     public static final String NUM_FOUND = "searchEvent_default_numFound";
     public static final String NUM_PAGE = "searchEvent_default_numPage";
+    public static final String SOUS_COLLECTION = "searchEvent_default_sousCollection";
+    public static final String LANGUE = "searchEvent_default_langue";
 
-
-    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE, PARAMS));
+    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE));
+    public static final List<String> PROPERTIES_WITH_PARAMS = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE, PARAMS));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);
@@ -44,7 +46,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
             super(true, 100, null);
 
             if(properties == null || properties.isEmpty()) {
-                properties = PROPERTIES;
+                properties = PROPERTIES_WITH_PARAMS;
             }
 
             MetadataSchemaVO schema = dataProvider.getSchema();
@@ -140,7 +142,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                 if(NUM_PAGE.equals(id)) {
                     final Property<?> paramsProp = super.getItemProperty(this.definedMetadatas.get(PARAMS));
 
-                    return new AbstractProperty<Object>() {
+                    return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
                             String params = paramsProp.getValue().toString();
@@ -155,16 +157,25 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                                 return (int) ((start / rows) + 1);
                             }
                         }
+                    };
+                } else if(SOUS_COLLECTION.equals(id)) {
+                    final Property<?> paramsProp = super.getItemProperty(this.definedMetadatas.get(PARAMS));
 
+                    return new ObjectValueProperty() {
                         @Override
-                        public void setValue(Object newValue)
-                                throws ReadOnlyException {
-                            throw new ReadOnlyException("This column is read-only");
+                        public Object getValue() {
+                            String params = paramsProp.getValue().toString();
+                            return getSousCollection(params);
                         }
+                    };
+                } else if(LANGUE.equals(id)) {
+                    final Property<?> paramsProp = super.getItemProperty(this.definedMetadatas.get(PARAMS));
 
+                    return new ObjectValueProperty() {
                         @Override
-                        public Class<? extends Object> getType() {
-                            return String.class;
+                        public Object getValue() {
+                            String params = paramsProp.getValue().toString();
+                            return getLangue(params);
                         }
                     };
                 }
@@ -172,19 +183,31 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                 return super.getItemProperty(this.definedMetadatas.get(id));
             }
 
+            private String getLangue(String params) {
+                return getRegexpValue("language_s:\\(\\\"(.*)\\\"\\)", params);
+            }
+
+            private String getSousCollection(String params) {
+                return getRegexpValue("USRsousCollection_s:\\(\\\"(.*)\\\"\\)", params);
+            }
+
             private double getString(String token, String params) {
-                Pattern p = Pattern.compile(token+"=(\\S+),");   // the pattern to search for
-                Matcher m = p.matcher(params);
+                try {
+                    return Double.parseDouble(getRegexpValue(token+"=(\\S+),", params));
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                    return 0;
+                }
+            }
+
+            private String getRegexpValue(String regExpGroup, String from) {
+                Pattern p = Pattern.compile(regExpGroup);   // the pattern to search for
+                Matcher m = p.matcher(from);
 
                 if (m.find()) {
-                    try {
-                        return Double.parseDouble(m.group(1));
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                        return 0;
-                    }
+                    return m.group(1);
                 } else {
-                    return 0;
+                    return "";
                 }
             }
 
@@ -192,6 +215,19 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
             public Collection<?> getItemPropertyIds() {
                 return definedMetadatas.keySet();
             }
+        }
+    }
+
+    private abstract static class ObjectValueProperty extends AbstractProperty<Object> {
+        @Override
+        public void setValue(Object newValue)
+                throws ReadOnlyException {
+            throw new ReadOnlyException("This column is read-only");
+        }
+
+        @Override
+        public Class<? extends Object> getType() {
+            return String.class;
         }
     }
 

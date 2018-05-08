@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -562,6 +563,29 @@ public class SearchServices {
 			}
 
 			params.add(MoreLikeThisParams.SIMILARITY_FIELDS, similarityFields.toString());
+		}
+
+		//if (query.isElevate()) {...}
+		String collection = query.getCondition().getCollection();
+		if(collection != null) {
+			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
+			List<String> excludeIds = manager.getDocExlusions(collection);
+
+			List<String> elevateIds = new ArrayList<>();
+			List<DocElevation> docElevation = manager.getDocElevations(collection, query.getFreeTextQuery());
+			for (DocElevation doc:docElevation) {
+				if (doc.getId() != null && !excludeIds.contains(doc.getId())) {
+					elevateIds.add(doc.getId());
+				}
+			}
+
+			if(!excludeIds.isEmpty()) {
+				params.add("excludeIds", StringUtils.join(excludeIds, ","));
+			}
+
+			if(!elevateIds.isEmpty()) {
+				params.add("elevateIds", StringUtils.join(elevateIds, ","));
+			}
 		}
 
 		return params;

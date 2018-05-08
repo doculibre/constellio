@@ -217,7 +217,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		} else {
 			taxonomiesSearchServicesCache = new NoTaxonomiesSearchServicesCache();
 		}
-		this.searchConfigurationsManager = new SearchConfigurationsManager(dataLayerFactory, this);
+		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager, dataLayerFactory));
 
 	}
 

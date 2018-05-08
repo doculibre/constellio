@@ -4,10 +4,12 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Table;
+import org.apache.commons.io.output.FileWriterWithEncoding;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,12 +17,18 @@ import java.util.List;
 public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
     public final static int OFFSET = 1000;
 
+    private Long maxRow;
     private int currentPage;
     private final Table table;
 
     public AbstractCSVProducer(Table table) {
+        this(table, null);
+    }
+
+    public AbstractCSVProducer(Table table, Long maxRow) {
         this.table = table;
         this.currentPage = 0;
+        this.maxRow = maxRow;
     }
 
     public File produceCSVFile() throws IOException {
@@ -39,7 +47,7 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
     }
 
     private void writeToFile(List<String[]> csvDatas, File temp) throws IOException {
-        try (CSVWriter writer = new CSVWriter(new FileWriter(temp, true))) {
+        try (CSVWriter writer = new CSVWriter(new FileWriterWithEncoding(temp, StandardCharsets.ISO_8859_1, true))) {
             writer.writeAll(csvDatas);
             writer.flush();
         }
@@ -61,7 +69,7 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
     }
 
     public int getTotalPage() {
-        double res = ((double) getRowCount())/((double) OFFSET);
+        double res = ((double) getCalculatedRowCount())/((double) OFFSET);
         return (int) Math.ceil(res);
     }
 
@@ -73,8 +81,14 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
     @Override
     public List<String[]> next() {
         List<String[]> rows = new ArrayList<>();
+        int startIndex = (currentPage++) * OFFSET;
+        int nbLigne = OFFSET;
 
-        List<Item> items = loadItems((currentPage++) * OFFSET, OFFSET);
+        if(maxRow != null && maxRow > 0) {
+            nbLigne = (currentPage < getTotalPage())?OFFSET:Math.min(OFFSET, maxRow.intValue());
+        }
+
+        List<Item> items = loadItems(startIndex, nbLigne);
         for (final Item item : items) {
             rows.add(getDataRow(item));
         }
@@ -108,6 +122,16 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
         }
 
         return value.toString();
+    }
+
+    private long getCalculatedRowCount() {
+        long currentRowCount = getRowCount();
+
+        if(maxRow != null && maxRow > 0) {
+            return Math.min(maxRow, currentRowCount);
+        }
+
+        return currentRowCount;
     }
 
     protected abstract long getRowCount();

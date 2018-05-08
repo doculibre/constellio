@@ -943,20 +943,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		String freeTextQuery = getSearchQuery().getFreeTextQuery();
 		Record record = recordVO.getRecord();
 		SearchConfigurationsManager searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
-		if (!searchConfigurationsManager.isElevated(freeTextQuery, record)) {
-			searchConfigurationsManager.setElevated(freeTextQuery, record, false);
+		if (!searchConfigurationsManager.isElevated(collection, freeTextQuery, record)) {
+			searchConfigurationsManager.setElevated(collection, freeTextQuery, record);
 		} else {
-			searchConfigurationsManager.removeElevated(freeTextQuery, record.getId());
+			searchConfigurationsManager.removeElevated(collection, freeTextQuery, record.getId());
 		}
 		view.refreshSearchResultsAndFacets();
 	}
 
 	public void searchResultExclusionClicked(RecordVO recordVO) {
-		String freeTextQuery = getSearchQuery().getFreeTextQuery();
 		Record record = recordVO.getRecord();
 		SearchConfigurationsManager searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
-		if (!searchConfigurationsManager.isExcluded(freeTextQuery, record)) {
-			searchConfigurationsManager.setElevated(freeTextQuery, record, true);
+		if (!searchConfigurationsManager.isExcluded(collection, record)) {
+			searchConfigurationsManager.setExcluded(collection, record);
 		}
 		view.refreshSearchResultsAndFacets();
 	}

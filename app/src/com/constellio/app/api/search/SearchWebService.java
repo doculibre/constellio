@@ -64,7 +64,7 @@ public class SearchWebService extends HttpServlet {
 		solrParams.add("fq", "-type_s:index");
 
 		solrParams.set("rows", StringUtils.defaultString(solrParams.get("rows"), "" + 10));
-		solrParams.set("rows", StringUtils.defaultString(solrParams.get("start"), "" + 0));
+		solrParams.set("start", StringUtils.defaultString(solrParams.get("start"), "" + 0));
 
 		String[] strings = solrParams.getParams("fq");
 
@@ -223,6 +223,8 @@ public class SearchWebService extends HttpServlet {
 				JSONResponseWriter jsonWriter = new JSONResponseWriter();
 				jsonWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
 			} else {
+				response.setCharacterEncoding("UTF-8");
+				response.setContentType("application/xml; charset=UTF-8");
 				xmlWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
 			}
 			out.flush();
