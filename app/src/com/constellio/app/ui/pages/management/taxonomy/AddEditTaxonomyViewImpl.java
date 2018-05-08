@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecor
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.ViewErrorDisplay;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -113,7 +114,7 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		isMultiLingualCheckBox.setValue(true);
 		isMultiLingualCheckBox.setVisible(presenter.getCollectionLanguage().size() > 1);
 		isMultiLingualCheckBox.setId("multilingual");
-		isMultiLingualCheckBox.setVisible(!presenter.isActionEdit() && presenter.getCollectionLanguage().size() > 1);
+		isMultiLingualCheckBox.setVisible(!presenter.isActionEdit() && presenter.getCollectionLanguage().size() > 1 && Toggle.MULTI_LINGUAL.isEnabled());
 		Language currentLanguage = Language.withCode(getSessionContext().getCurrentLocale().getLanguage());
 
 		fieldArray[0] = isMultiLingualCheckBox;

@@ -13,6 +13,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ViewErrorDisplay;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.util.BeanItemContainer;
@@ -132,7 +133,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 			final CheckBox isMultiLingualCheckBox = new CheckBox($("ListValueDomainViewImpl.multilingual"));
 			isMultiLingualCheckBox.setValue(true);
-			isMultiLingualCheckBox.setVisible(presenter.getCollectionLanguage().size() > 1);
+			isMultiLingualCheckBox.setVisible(presenter.getCollectionLanguage().size() > 1 && Toggle.MULTI_LINGUAL.isEnabled());
 
             fieldArray[0] = isMultiLingualCheckBox;
             fieldArray[1] = baseTextFieldMap.get(currentLanguage);
