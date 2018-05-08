@@ -13,8 +13,8 @@ public class FacetsCSVProducer extends AbstractCSVProducer {
     private FacetsDataProvider dataProvider;
     private List<String> properties;
 
-    public FacetsCSVProducer(Table table, FacetsDataProvider dataProvider, List<String> properties) {
-        super(table);
+    public FacetsCSVProducer(Table table, Long maxRow, FacetsDataProvider dataProvider, List<String> properties) {
+        super(table, maxRow);
 
         this.dataProvider = dataProvider;
         this.properties = properties;

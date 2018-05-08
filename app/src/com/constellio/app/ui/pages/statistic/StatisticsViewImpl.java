@@ -13,6 +13,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -21,6 +22,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +36,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.PROPERTIES;
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.PROPERTIES_WITH_PARAMS;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, Serializable {
@@ -53,8 +57,12 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     private DateField startDateField;
     @PropertyId("endDate")
     private DateField endDateField;
+    @PropertyId("lines")
+    private TextField linesField;
     @PropertyId("filter")
     private TextField filterField;
+    @PropertyId("showParams")
+    private CheckBox showParams;
 
     private Table resultTable;
     private VerticalLayout tableLayout;
@@ -121,7 +129,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         filterField.getValue());
 
                 if(Objects.equals(statisticType, newStatisticType)) {
-                    resultTable.setContainerDataSource(getContainer(initColumnVisibility()));
+                    resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
                 } else {
                     buildResultTable();
                 }
@@ -171,11 +179,32 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             }
         });
 
+        linesField = new BaseTextField($("StatisticsView.lines"));
+        linesField.setId("lines");
+        linesField.setConverter(Long.class);
+        linesField.setConversionError($("StatisticsView.lines.conversionError"));
+        linesField.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                buildResultTable();
+            }
+        });
+
         filterField = new BaseTextField($("StatisticsView.filter"));
         filterField.setId("filter");
 
+        showParams = new CheckBox($("StatisticsView.showParams"));
+        showParams.setId("showParams");
+        showParams.setValue(false);
+        showParams.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                buildResultTable();
+            }
+        });
+
         BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this,
-                excludedRequestField, statisticTypeField, startDateField, endDateField, filterField) {
+                excludedRequestField, statisticTypeField, startDateField, endDateField, filterField, showParams, linesField) {
             private String statisticType;
 
             @Override
@@ -198,7 +227,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         filterField.getValue());
 
                 if(Objects.equals(statisticType, newStatisticType)) {
-                    resultTable.setContainerDataSource(getContainer(initColumnVisibility()));
+                    resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
                 } else {
                     buildResultTable();
                 }
@@ -216,24 +245,30 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             }
         };
 
+        statisticTypeField.addValueChangeListener(new Property.ValueChangeListener() {
+            @Override
+            public void valueChange(Property.ValueChangeEvent event) {
+                showParams.setVisible(!isStatisticTypeChoice());
+            }
+        });
         statisticTypeField.select(item);
 
         return baseForm;
     }
 
     private Layout buildResultTable() {
-        List<String> properties = initColumnVisibility();
-        LazyQueryContainer container = getContainer(properties);
+        List<String> columnsHeader = initColumnsHeader();
+        LazyQueryContainer container = getContainer(columnsHeader);
 
         resultTable = new BaseTable(getClass().getName(), "", container);
         resultTable.setWidth("100%");
         resultTable.setPageLength(Math.min(container.size(), DEFAULT_LINE_NUMBER));
 
-        for (String property: properties) {
+        for (String property: columnsHeader) {
             resultTable.setColumnHeader(property, getColumnHeader(property));
         }
 
-        if (properties.contains(SearchEventVOLazyContainer.PARAMS)) {
+        if (columnsHeader.contains(SearchEventVOLazyContainer.PARAMS)) {
             resultTable.addGeneratedColumn(SearchEventVOLazyContainer.PARAMS, new Table.ColumnGenerator() {
                 @Override
                 public Object generateCell(Table source, Object itemId, Object columnId) {
@@ -246,6 +281,9 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                 }
             });
         }
+
+        List<String> visibleColumns = initVisibleColumns();
+        resultTable.setVisibleColumns(visibleColumns.toArray(new String[0]));
 
         tableLayout.removeAllComponents();
 
@@ -295,9 +333,9 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     private AbstractCSVProducer getCSVProducer() {
         AbstractCSVProducer csvProducer;
         if(isStatisticTypeChoice()) {
-            csvProducer = new FacetsCSVProducer(resultTable, presenter.getStatisticsFacetsDataProvider(), initColumnVisibility());
+            csvProducer = new FacetsCSVProducer(resultTable, (Long)linesField.getConvertedValue(), presenter.getStatisticsFacetsDataProvider(), initColumnsHeader());
         } else {
-            csvProducer = new SearchEventCSVProducer(resultTable, presenter.getStatisticsDataProvider());
+            csvProducer = new SearchEventCSVProducer(resultTable, (Long)linesField.getConvertedValue(), presenter.getStatisticsDataProvider());
         }
 
         return csvProducer;
@@ -367,7 +405,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         }
     }
 
-    private List<String> initColumnVisibility() {
+    private List<String> initColumnsHeader() {
         List<String> properties;
 
         switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
@@ -387,10 +425,26 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                 properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY);
                 break;
             default:
-                properties = new ArrayList<>(SearchEventVOLazyContainer.PROPERTIES);
+                properties = new ArrayList<>(PROPERTIES_WITH_PARAMS);
         }
 
         return properties;
+    }
+
+    private List<String> initVisibleColumns() {
+        if(isStatisticTypeChoice()) {
+            return initColumnsHeader();
+        } else {
+            return new ArrayList<>(isParamsShowed() ? PROPERTIES_WITH_PARAMS : PROPERTIES);
+        }
+    }
+
+    private boolean isParamsShowed() {
+        if(showParams == null) {
+            return false;
+        } else {
+            return BooleanUtils.isTrue(showParams.getValue());
+        }
     }
 
     @Nullable

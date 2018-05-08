@@ -30,8 +30,8 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String NUM_FOUND = "searchEvent_default_numFound";
     public static final String NUM_PAGE = "searchEvent_default_numPage";
 
-
-    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE, PARAMS));
+    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE));
+    public static final List<String> PROPERTIES_WITH_PARAMS = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE, PARAMS));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);
@@ -44,7 +44,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
             super(true, 100, null);
 
             if(properties == null || properties.isEmpty()) {
-                properties = PROPERTIES;
+                properties = PROPERTIES_WITH_PARAMS;
             }
 
             MetadataSchemaVO schema = dataProvider.getSchema();

@@ -26,8 +26,8 @@ public class SearchEventCSVProducer extends AbstractCSVProducer {
     private final SearchEventVODataProvider dataProvider;
     private final Map<String, MetadataVO> definedMetadatas;
 
-    public SearchEventCSVProducer(Table table, SearchEventVODataProvider dataProvider) {
-        super(table);
+    public SearchEventCSVProducer(Table table, Long maxRow, SearchEventVODataProvider dataProvider) {
+        super(table, maxRow);
 
         this.dataProvider = dataProvider;
         this.definedMetadatas = new HashMap<>();
