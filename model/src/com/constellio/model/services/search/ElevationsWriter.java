@@ -16,8 +16,9 @@ public class ElevationsWriter extends ElevationsXml {
 
     public void update(Elevations elevations) {
         Element rootElement = initRootElement();
-        rootElement.removeContent();
 
+
+        Element elevation = new Element(ELEVATION);
         List<QueryElevation> queryElevations = elevations.getQueryElevations();
         for (QueryElevation queryElevation:queryElevations) {
             Element queryElement = new Element(QUERY);
@@ -26,14 +27,24 @@ public class ElevationsWriter extends ElevationsXml {
             List<DocElevation> docElevations = queryElevation.getDocElevations();
             for (DocElevation docElevation:docElevations) {
                 Element docElement = new Element(DOC);
-                docElement.setAttribute(DOC_EXCLUDE_ATTR, String.valueOf(docElevation.isExclude()));
                 docElement.setAttribute(DOC_ID_ATTR, StringUtils.defaultString(docElevation.getId(), ""));
 
                 queryElement.addContent(docElement);
             }
 
-            rootElement.addContent(queryElement);
+            elevation.addContent(queryElement);
         }
+        rootElement.addContent(elevation);
+
+        Element exclusion = new Element(EXCLUSION);
+        List<String> docExclusions = elevations.getDocExclusions();
+        for (String docExclusion:docExclusions) {
+            Element docElement = new Element(DOC);
+            docElement.setAttribute(DOC_ID_ATTR, StringUtils.defaultString(docExclusion, ""));
+
+            exclusion.addContent(docElement);
+        }
+        rootElement.addContent(exclusion);
     }
 
     @NotNull
@@ -42,9 +53,9 @@ public class ElevationsWriter extends ElevationsXml {
         if(!document.hasRootElement()) {
             rootElement = new Element(ROOT);
             document.setRootElement(rootElement);
-
         } else {
             rootElement = document.getRootElement();
+            rootElement.removeContent();
         }
         return rootElement;
     }

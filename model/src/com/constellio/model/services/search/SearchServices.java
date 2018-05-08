@@ -563,17 +563,14 @@ public class SearchServices {
 		//if (query.isElevate()) {...}
 		String collection = query.getCondition().getCollection();
 		if(collection != null) {
-			List<String> excludeIds = new ArrayList<>();
-			List<String> elevateIds = new ArrayList<>();
+			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
+			List<String> excludeIds = manager.getDocExlusions(collection);
 
-			List<DocElevation> docElevation = modelLayerFactory.getSearchConfigurationsManager().getDocElevation(collection, query.getFreeTextQuery());
+			List<String> elevateIds = new ArrayList<>();
+			List<DocElevation> docElevation = manager.getDocElevations(collection, query.getFreeTextQuery());
 			for (DocElevation doc:docElevation) {
-				if (doc.getId() != null) {
-					if(doc.isExclude()) {
-                        excludeIds.add(doc.getId());
-                    } else {
-						elevateIds.add(doc.getId());
-					}
+				if (doc.getId() != null && !excludeIds.contains(doc.getId())) {
+					elevateIds.add(doc.getId());
 				}
 			}
 

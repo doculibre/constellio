@@ -80,9 +80,9 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		Record excludedRecord1 = recordList.get(2);
 		Record excludedRecord2 = recordList.get(0);
 
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0, false);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord1, true);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord2, true);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord1);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord2);
 	}
 
 	@Test
@@ -97,18 +97,18 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		Record excludedRecord1 = recordList.get(2);
 		Record excludedRecord2 = recordList.get(0);
 
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0, false);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord1, true);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord2, true);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord1);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludedRecord2);
 
-		searchConfigurationsManager.removeQuery(zeCollection, ELEVATED_KEY_1);
+		searchConfigurationsManager.removeQueryElevation(zeCollection, ELEVATED_KEY_1);
 
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, excludedRecord1)).isFalse();
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, excludedRecord2)).isFalse();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, excludedRecord1)).isFalse();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, excludedRecord2)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, excludedRecord1)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, excludedRecord2)).isFalse();
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, record0)).isFalse();
 	}
 
 	@Test
@@ -123,18 +123,18 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		Record record1 = recordList.get(2);
 		Record excludeRecord = recordList.get(0);
 
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0, false);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record1, false);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludeRecord, true);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record1);
+		searchConfigurationsManager.setExcluded(zeCollection, excludeRecord);
 
-		searchConfigurationsManager.removeAllElevation(zeCollection, ELEVATED_KEY_1);
+		searchConfigurationsManager.removeQueryElevation(zeCollection, ELEVATED_KEY_1);
 
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record1)).isFalse();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, record1)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, record1)).isFalse();
 
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, excludeRecord)).isTrue();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, excludeRecord)).isTrue();
 	}
 
 	@Test
@@ -150,21 +150,21 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		String excludedRecordId = excludeRecord.getId();
 		String elevatedId = record0.getId();
 
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0, false);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludeRecord, true);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0);
+		searchConfigurationsManager.setExcluded(zeCollection, excludeRecord);
 
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record0)).isTrue();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, record0)).isFalse();
 
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, excludeRecord)).isTrue();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, excludeRecord)).isTrue();
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, excludeRecord)).isFalse();
 
-		/*List<Record> recordsListAfterElevation = searchServices.search(logicalSearchQuery);
+		List<Record> recordsListAfterElevation = searchServices.search(logicalSearchQuery);
 		assertThat(recordsListAfterElevation.get(0).getId()).isEqualTo(elevatedId);
 
 		for (Record currentRecord : recordsListAfterElevation) {
 			assertThat(currentRecord.getId()).isNotEqualTo(excludedRecordId);
-		}*/
+		}
 	}
 
 	@Test
@@ -178,22 +178,22 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		Record record0 = recordList.get(3);
 		Record excludeRecord = recordList.get(0);
 
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0, false);
-		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, excludeRecord, true);
+		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0);
+		searchConfigurationsManager.setExcluded(zeCollection, excludeRecord);
 
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record0)).isTrue();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, record0)).isFalse();
 
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, excludeRecord)).isTrue();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, excludeRecord)).isTrue();
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, excludeRecord)).isFalse();
 
 		searchConfigurationsManager.removeElevated(zeCollection, ELEVATED_KEY_1, record0.getId());
-		searchConfigurationsManager.removeElevated(zeCollection, ELEVATED_KEY_1, excludeRecord.getId());
+		searchConfigurationsManager.removeExclusion(zeCollection, excludeRecord.getId());
 
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, record0)).isFalse();
 
-		assertThat(searchConfigurationsManager.isExcluded(zeCollection, ELEVATED_KEY_1, excludeRecord)).isFalse();
+		assertThat(searchConfigurationsManager.isExcluded(zeCollection, excludeRecord)).isFalse();
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, excludeRecord)).isFalse();
 	}
 

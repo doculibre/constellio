@@ -91,7 +91,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 		updateCollection(collection, documentAlteration);
 	}
 
-	public List<DocElevation> getDocElevation(String collection, String query){
+	public List<DocElevation> getDocElevations(String collection, String query){
 		Elevations elevations = getCollection(collection);
 		if(elevations != null) {
 			List<QueryElevation> queryElevations = elevations.getQueryElevations();
@@ -100,6 +100,15 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 					return queryElevation.getDocElevations();
 				}
 			}
+		}
+
+		return new ArrayList<>();
+	}
+
+	public List<String> getDocExlusions(String collection) {
+		Elevations elevations = getCollection(collection);
+		if(elevations != null) {
+			return elevations.getDocExclusions();
 		}
 
 		return new ArrayList<>();
@@ -124,11 +133,11 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 	public boolean isElevated(String collection, String freeTextQuery, String recordId) {
 		boolean found = false;
 
-		List<DocElevation> docElevations = getDocElevation(collection, freeTextQuery);
+		List<DocElevation> docElevations = getDocElevations(collection, freeTextQuery);
 
 		if(docElevations != null) {
 			for (DocElevation docElevation : docElevations) {
-				if (recordId.equals(docElevation.getId())&& !docElevation.isExclude()) {
+				if (recordId.equals(docElevation.getId())) {
 					found = true;
 					break;
 				}
@@ -138,60 +147,71 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 		return found;
 	}
 
-	public boolean isExcluded(String collection, String freeTextQuery, Record record) {
-		boolean found = false;
-		// Facebook.com youtube.com
-
-		List<DocElevation> docElevations = getDocElevation(collection, freeTextQuery);
-
-		if(docElevations != null) {
-			for (DocElevation docElevation : docElevations) {
-				if (record.getId().equals(docElevation.getId())&& docElevation.isExclude()) {
-					found = true;
-					break;
-				}
-			}
-		}
-
-		return found;
+	public boolean isExcluded(String collection, Record record) {
+		Elevations elevations = getCollection(collection);
+		return elevations.getDocExclusions().contains(record.getId());
 	}
 
-	public void removeQuery(String collection, String query) {
+	public void removeAllElevation(String collection) {
+		Elevations elevations = getCollection(collection);
+		if(elevations != null) {
+			elevations.removeAllElevation();
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	public void removeExclusion(String collection, String id) {
+		Elevations elevations = getCollection(collection);
+		if(elevations != null) {
+			elevations.removeDocExclusion(id);
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	public void removeAllExclusion(String collection) {
+		Elevations elevations = getCollection(collection);
+		if(elevations != null) {
+			elevations.removeAllDocExclusion();
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	public void removeQueryElevation(String collection, String query) {
 		Elevations elevations = getCollection(collection);
 		if(elevations != null && elevations.removeQueryElevation(query)) {
 			updateCollectionElevations(collection, elevations);
 		}
 	}
 
-	public void removeAllExclusion(String collection, String query) {
-		Elevations elevations = getCollection(collection);
-		if(elevations != null && elevations.removeAllExclusion(query)) {
-			updateCollectionElevations(collection, elevations);
-		}
-	}
-
-	public void removeAllElevation(String collection, String query) {
-		Elevations elevations = getCollection(collection);
-		if(elevations != null && elevations.removeAllElevation(query)) {
-			updateCollectionElevations(collection, elevations);
-		}
-	}
-
 	public void removeElevated(String collection, String freeTextQuery, String recordId) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null && elevations.removeElevation(freeTextQuery, recordId)) {
+		if(elevations != null && elevations.removeDocElevation(freeTextQuery, recordId)) {
 			updateCollectionElevations(collection, elevations);
 		}
 	}
 
+	public void setElevated(String collection, String freeTextQuery, Record record) {
+		setElevated(collection, freeTextQuery, record.getId());
+	}
 
-	public void setElevated(String collection, String freeTextQuery, Record record, boolean isExcluded) {
+	public void setElevated(String collection, String freeTextQuery, String recordId) {
 		Elevations elevations = getCollection(collection);
 		if(elevations != null) {
 			elevations.addOrUpdate(
-					new QueryElevation().setQuery(freeTextQuery)
-							.addDocElevation(new DocElevation(record.getId(), isExcluded)));
+					new QueryElevation(freeTextQuery)
+							.addDocElevation(new DocElevation(recordId, freeTextQuery)));
 
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	public void setExcluded(String collection, Record record) {
+		setExcluded(collection, record.getId());
+	}
+
+	public void setExcluded(String collection, String recordId) {
+		Elevations elevations = getCollection(collection);
+		if(elevations != null && elevations.addDocExclusion(recordId)) {
 			updateCollectionElevations(collection, elevations);
 		}
 	}

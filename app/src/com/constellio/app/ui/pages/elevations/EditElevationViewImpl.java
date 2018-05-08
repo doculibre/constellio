@@ -75,21 +75,25 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
                 final Integer index = (Integer) itemId;
                 
-                final boolean queryItem = isQuery(index);
+                final boolean allQueryElevationItem = isAllQueryElevation(index);
                 final boolean queryDocsElevation = isQueryDocsElevation(index);
-                final boolean queryDocsExclusion = isQueryDocsExclusion(index);
+                final boolean docsExclusion = isDocsExclusion(index);
                 final boolean singleDocElevation = isSingleDocElevation(index);
+                final boolean singleDocExclusion = isSingleDocExclusion(index);
                 final String buttonLabel;
                 final String confirmDialogMessage;
-                if (queryItem) {
-                	buttonLabel = $("EditElevationView.cancelQueryElevationAndExclusion");
+                if (allQueryElevationItem) {
+                	buttonLabel = $("EditElevationView.cancelQueryElevations");
                 	confirmDialogMessage = $("EditElevationView.confirmCancel");
                 } else if (queryDocsElevation) {
                 	buttonLabel = $("EditElevationView.cancelQueryElevation");
                 	confirmDialogMessage = $("EditElevationView.confirmCancelElevation");
-                } else if (queryDocsExclusion) {
-                	buttonLabel = $("EditElevationView.cancelQueryExclusion");
-                	confirmDialogMessage = $("EditElevationView.confirmCancelExclusion");
+                } else if (docsExclusion) {
+                    buttonLabel = $("EditElevationView.cancelQueryExclusion");
+                    confirmDialogMessage = $("EditElevationView.confirmCancelExclusion");
+                } else if (singleDocExclusion) {
+                    buttonLabel = $("EditElevationView.cancelSingleExclusion");
+                    confirmDialogMessage = $("EditElevationView.confirmCancelExclusion");
                 } else {
                 	buttonLabel = $("EditElevationView.cancelDocElevation");
                 	confirmDialogMessage = $("EditElevationView.confirmCancelElevation");
@@ -102,14 +106,16 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
                             Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
                             presenter.cancelDocElevationButtonClicked(docElevation);
                         } else {
-                            String query = (String) containedObject;
-    		                if (queryItem) {
-                                presenter.cancelQueryElevationAndExclusionButtonClicked(query);
+                            String queryOrId = (String) containedObject;
+    		                if (allQueryElevationItem) {
+                                presenter.cancelAllElevationButtonClicked();
     		                } else if (queryDocsElevation) {
-                                presenter.cancelQueryElevationButtonClicked(query);
-    		                } else if (queryDocsExclusion) {
-                                presenter.cancelQueryExclusionButtonClicked(query);
-    		                }
+                                presenter.cancelQueryElevationButtonClicked(queryOrId);
+    		                } else if (docsExclusion) {
+                                presenter.cancelAllExclusionButtonClicked();
+    		                } else if(singleDocExclusion) {
+                                presenter.cancelDocExclusionButtonClicked(queryOrId);
+                            }
                         }
 					}
 
@@ -122,17 +128,23 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
             }
         });
 
+        addRaisedZoneToTable();
+
         for(String query : presenter.getAllQuery()) {
         	addQueryToTable(query);
 
             baseTable.setColumnExpandRatio(INFORMATION, 1);
             baseTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID,  60);
 
-            List<Elevations.QueryElevation.DocElevation> docExclusions = presenter.getExclusions(query);
-            addDocExclusionToTable(query, docExclusions);
-
             List<Elevations.QueryElevation.DocElevation> docElevations = presenter.getElevations(query);
             addDocElevationsToTable(query, docElevations);
+        }
+
+        addExcludedZoneToTable();
+
+        List<String> exclusions = presenter.getExclusions();
+        for(String id:exclusions) {
+            addDocExclusionToTable(id);
         }
 
         verticalLayout.addComponent(baseTable);
@@ -141,75 +153,81 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         return verticalLayout;
     }
     
-    private boolean isQuery(int index) {
-    	boolean queryItem;
+    private boolean isAllQueryElevation(int index) {
+    	boolean queryItem = false;
     	Object containedObject = containerMapperWithElevationObject.get(index);
         if (containedObject instanceof String) {
             String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
-            if (informationValue.equals(SPACE_4 + $("EditElevationView.excluded"))) {
-            	queryItem = false;
-            } else if (informationValue.equals(SPACE_4 + $("EditElevationView.raised"))) {
-            	queryItem = false;
-            } else {
+            if (informationValue.equals($("EditElevationView.raised"))) {
             	queryItem = true;
             }
-        } else {
-        	queryItem = false;
         }
+
         return queryItem;
     }
-    
+
     private boolean isSingleDocElevation(int index) {
-    	Object containedObject = containerMapperWithElevationObject.get(index);
+        Object containedObject = containerMapperWithElevationObject.get(index);
         return containedObject instanceof Elevations.QueryElevation.DocElevation;
     }
+
+    private boolean isSingleDocExclusion(int index) {
+        Object containedObject = containerMapperWithElevationObject.get(index);
+        return presenter.getExclusions().contains(containedObject);
+    }
     
-    private boolean isQueryDocsExclusion(int index) {
-    	boolean queryDocsExclusion;
+    private boolean isDocsExclusion(int index) {
     	Object containedObject = containerMapperWithElevationObject.get(index);
         if (containedObject instanceof String) {
             String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
-            if (informationValue.equals(SPACE_4 + $("EditElevationView.excluded"))) {
-                queryDocsExclusion = true;
-            } else {
-            	queryDocsExclusion = false;
+            if (informationValue.equals($("EditElevationView.excluded"))) {
+                return true;
             }
-        } else {
-        	queryDocsExclusion = false;
         }
-        return queryDocsExclusion;
+
+    	return false;
     }
     
     private boolean isQueryDocsElevation(int index) {
-    	boolean queryDocsElevation;
-    	Object containedObject = containerMapperWithElevationObject.get(index);
+        boolean queryItem;
+
+        Object containedObject = containerMapperWithElevationObject.get(index);
         if (containedObject instanceof String) {
             String informationValue = ((Label) baseTable.getContainerProperty(index, INFORMATION).getValue()).getValue();
-            if (informationValue.equals(SPACE_4 + $("EditElevationView.raised"))) {
-                queryDocsElevation = true;
+            if (informationValue.equals($("EditElevationView.excluded"))) {
+                queryItem = false;
+            } else if (informationValue.equals($("EditElevationView.raised"))) {
+                queryItem = false;
+            } else if (presenter.getExclusions().contains(containedObject)) {
+                queryItem = false;
             } else {
-            	queryDocsElevation = false;
+                queryItem = true;
             }
         } else {
-        	queryDocsElevation = false;
+            queryItem = false;
         }
-        return queryDocsElevation;
+
+        return queryItem;
     }
-    
+
+    private void addRaisedZoneToTable() {
+        addOneItemToTableAndSetValue($("EditElevationView.raised"), $("EditElevationView.raised"));
+    }
+
+    private void addExcludedZoneToTable() {
+        addOneItemToTableAndSetValue($("EditElevationView.excluded"), $("EditElevationView.excluded"));
+    }
+
     private void addQueryToTable(String query) {
-    	addOneItemToTableAndSetValue(query, query);
+    	addOneItemToTableAndSetValue(query, SPACE_4 + query);
     }
-    
-    private void addDocExclusionToTable(String query, List<Elevations.QueryElevation.DocElevation> docExclusions) {
-        if (docExclusions.size() > 0) {
-	    	addOneItemToTableAndSetValue(query, SPACE_4 + $("EditElevationView.excluded"));
-	        addItemsToTable(query, docExclusions);
-        }    
+
+    private void addDocExclusionToTable(String id) {
+        addOneItemToTableAndSetValue(id, SPACE_4 + presenter.getRecordTitle(id));
     }
-    
+
     private void addDocElevationsToTable(String query, List<Elevations.QueryElevation.DocElevation> docElevations) {
         if (docElevations.size() > 0) {
-            addOneItemToTableAndSetValue(query, SPACE_4 + $("EditElevationView.raised"));
             addItemsToTable(query, docElevations);
         }
     }
@@ -226,7 +244,6 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
     private void addItemsToTable(String query, List<Elevations.QueryElevation.DocElevation> docExcluded) {
         for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docExcluded.iterator(); iterator.hasNext();) {
             Elevations.QueryElevation.DocElevation docElevation = iterator.next();
-            docElevation.setQuery(query);
             addOneItemToTableAndSetValue(docElevation, SPACES_8 + presenter.getRecordTitle(docElevation.getId()));
         }
     }

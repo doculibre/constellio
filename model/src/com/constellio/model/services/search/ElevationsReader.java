@@ -21,27 +21,40 @@ public class ElevationsReader extends ElevationsXml {
 
         Element root = document.getRootElement();
 
-        List<Element> children = root.getChildren(QUERY);
-        if (children != null) {
-            Iterator<Element> iteratorQuery = children.listIterator();
-            while (iteratorQuery.hasNext()) {
-                Element childQuery = iteratorQuery.next();
-                QueryElevation queryElevation = new QueryElevation(StringUtils.defaultIfEmpty(childQuery.getAttributeValue(QUERY_TEXT_ATTR), null));
+        // Elevation
+        Element elevation = root.getChild(ELEVATION);
+        if (elevation != null) {
+            List<Element> queries = elevation.getChildren(QUERY);
+            if (queries != null) {
+                for(Element query:queries) {
+                    QueryElevation queryElevation = new QueryElevation(StringUtils.defaultIfEmpty(query.getAttributeValue(QUERY_TEXT_ATTR), null));
 
-                List<Element> queryChildren = childQuery.getChildren();
-                if (queryChildren != null) {
-                    for (Element child : queryChildren) {
-                        boolean exclude = Boolean.parseBoolean(child.getAttributeValue(DOC_EXCLUDE_ATTR));
-                        String id = StringUtils.defaultIfEmpty(child.getAttributeValue(DOC_ID_ATTR), null);
+                    List<Element> docs = query.getChildren(DOC);
+                    if (docs != null) {
+                        for (Element doc : docs) {
+                            String id = StringUtils.defaultIfEmpty(doc.getAttributeValue(DOC_ID_ATTR), null);
+                            DocElevation docElevation = new DocElevation(id, queryElevation.getQuery());
 
-                        DocElevation docElevation = new DocElevation(id, exclude);
-                        docElevation.setQuery(queryElevation.getQuery());
+                            queryElevation.addDocElevation(docElevation);
+                        }
+                    }
 
-                        queryElevation.addDocElevation(docElevation);
+                    elevations.addOrUpdate(queryElevation);
+                }
+            }
+        }
+
+        // Exclusion
+        Element exclusion = root.getChild(EXCLUSION);
+        if (exclusion != null) {
+            List<Element> docs = exclusion.getChildren(DOC);
+            if (docs != null) {
+                for(Element doc:docs) {
+                    String id = StringUtils.defaultIfEmpty(doc.getAttributeValue(DOC_ID_ATTR), null);
+                    if (id != null) {
+                        elevations.addDocExclusion(id);
                     }
                 }
-
-                elevations.addOrUpdate(queryElevation);
             }
         }
 
