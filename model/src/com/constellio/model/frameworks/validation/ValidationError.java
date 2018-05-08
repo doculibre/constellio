@@ -8,6 +8,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class ValidationError implements Serializable {
 
+	public static final String PREFIX = "prefix";
+	public static final String SUFFIX = "suffix";
+
 	private final Class<?> validatorClass;
 	private final String errorCode;
 	private final String code;
@@ -111,5 +114,9 @@ public class ValidationError implements Serializable {
 
 	public Object getParameter(String key) {
 		return parameters.get(key);
+	}
+
+	public void setParameter(String parameter, Object value) {
+		parameters.put(parameter, value);
 	}
 }

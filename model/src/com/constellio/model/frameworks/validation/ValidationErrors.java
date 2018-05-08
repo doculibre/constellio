@@ -6,7 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ValidationErrors {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ValidationErrors.class);
 
 	private final List<ValidationError> validationErrors = new ArrayList<>();
 	private final List<ValidationError> validationWarnings = new ArrayList<>();
@@ -125,6 +130,16 @@ public class ValidationErrors {
 			throws ValidationException {
 		if (!isEmptyErrorAndWarnings()) {
 			throw new ValidationException(this);
+		}
+	}
+
+	public void addPrefix(String prefix) {
+		for (ValidationError error : validationErrors) {
+			try {
+				error.setParameter(ValidationError.PREFIX, prefix);
+			} catch (Exception e) {
+				LOGGER.warn("Cannot add prefix to validation error", e);
+			}
 		}
 	}
 }
