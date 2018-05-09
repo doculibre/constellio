@@ -450,12 +450,6 @@ public class SearchServices {
 		//			userCondition += ")";
 		//		}
 
-		if (query.isMoreLikeThis()) {
-			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
-		} else {
-			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
-		}
-
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
 				params.add(CommonParams.FQ, userFilter.buildFQ(securityTokenManager));
@@ -565,7 +559,6 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.SIMILARITY_FIELDS, similarityFields.toString());
 		}
 
-		//if (query.isElevate()) {...}
 		String collection = query.getCondition().getCollection();
 		if(collection != null) {
 			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
@@ -586,6 +579,14 @@ public class SearchServices {
 			if(!elevateIds.isEmpty()) {
 				params.add("elevateIds", StringUtils.join(elevateIds, ","));
 			}
+		}
+
+		if (query.isMoreLikeThis()) {
+			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
+		} else if(collection != null && query.getFreeTextQuery() != null) {
+			params.add(CommonParams.Q, modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
+		} else {
+			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
 		return params;
