@@ -168,13 +168,13 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 						titleMap.put(language, value);
 					}
 
-					boolean isMultiValue =  false;
+					boolean isMultiLingual =  false;
 
 					if(isMultiLingualCheckBox.isVisible()) {
-						isMultiValue = isMultiLingualCheckBox.getValue();
+						isMultiLingual = isMultiLingualCheckBox.getValue();
 					}
 
-					List<Language> languagesInErrors = presenter.valueDomainCreationRequested(titleMap, isMultiValue);
+					List<Language> languagesInErrors = presenter.valueDomainCreationRequested(titleMap, isMultiLingual);
 					ViewErrorDisplay.setFieldErrors(languagesInErrors, baseTextFieldMap, originalStyleName);
 
 					if(languagesInErrors.size() == 0) {
