@@ -101,60 +101,63 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return new ImportedCollectionSettings().setCode(collectionCode)
 				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
 				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
-				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES)));
+				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES),language));
 	}
 
-	private List<ImportedType> getCollectionTypes(Element typesElement) {
+	private List<ImportedType> getCollectionTypes(Element typesElement, List<String> language) {
 		List<ImportedType> types = new ArrayList<>();
 		for (Element typeElement : typesElement.getChildren()) {
-			types.add(readType(typeElement));
+			types.add(readType(typeElement, language));
 		}
 		return types;
 	}
 
-	private ImportedType readType(Element typeElement) {
+	private ImportedType readType(Element typeElement, List<String> language) {
 		ImportedType type = new ImportedType()
 				.setCode(typeElement.getAttributeValue(CODE))
 				.setTabs(getTabs(typeElement.getChild(TABS)))
-				.setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA)))
-				.setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas")));
-
-		if (typeElement.getAttribute(LABEL) != null) {
-			type.setLabel(typeElement.getAttributeValue(LABEL));
+				.setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA),language))
+				.setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas"),language));
+		String label = typeElement.getAttributeValue(LABEL);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(typeElement, language, label,LABEL);
+		if (languageTitleMap.size() > 0) {
+			type.setLabels(languageTitleMap);
 		}
 		return type;
 	}
 
-	private List<ImportedMetadataSchema> readCustomSchemata(Element schemataElement) {
+	private List<ImportedMetadataSchema> readCustomSchemata(Element schemataElement, List<String> language) {
 		List<ImportedMetadataSchema> schemata = new ArrayList<>();
 		for (Element schemaElement : schemataElement.getChildren()) {
 			ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema();
 			if (schemaElement.getAttribute("code") != null) {
 				importedMetadataSchema.setCode(schemaElement.getAttributeValue("code"));
 			}
-			readSchema(schemaElement, importedMetadataSchema);
+			readSchema(schemaElement, importedMetadataSchema, language);
 			schemata.add(importedMetadataSchema);
 		}
 		return schemata;
 	}
 
-	private ImportedMetadataSchema readDefaultSchema(Element schemaElement) {
+	private ImportedMetadataSchema readDefaultSchema(Element schemaElement, List<String> language) {
 		ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema().setCode("default");
 
-		readSchema(schemaElement, importedMetadataSchema);
+		readSchema(schemaElement, importedMetadataSchema, language);
 		return importedMetadataSchema;
 	}
 
-	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema) {
-		if (schemaElement.getAttribute("label") != null) {
-			importedMetadataSchema.setLabel(schemaElement.getAttributeValue("label"));
+	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema,List<String> language ) {
+		String label = schemaElement.getAttributeValue(LABEL);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(schemaElement, language, label, LABEL);
+		if (languageTitleMap.size() > 0) {
+			importedMetadataSchema.setLabels(languageTitleMap);
 		}
 		importedMetadataSchema.setFormMetadatas(toList(schemaElement.getAttributeValue("formMetadatas")));
 		importedMetadataSchema.setDisplayMetadatas(toList(schemaElement.getAttributeValue("displayMetadatas")));
 		importedMetadataSchema.setSearchMetadatas(toList(schemaElement.getAttributeValue("searchMetadatas")));
 		importedMetadataSchema.setTableMetadatas(toList(schemaElement.getAttributeValue("tableMetadatas")));
 
-		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
+		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA),language));
 	}
 
 	private List<String> toList(String listOfItems) {
@@ -165,22 +168,28 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 	}
 
-	private List<ImportedMetadata> readMetadata(List<Element> elements) {
+	private List<ImportedMetadata> readMetadata(List<Element> elements, List<String> languageList) {
 		List<ImportedMetadata> metadata = new ArrayList<>();
 		for (Element element : elements) {
-			metadata.add(readMetadata(element));
+			metadata.add(readMetadata(element,languageList));
 		}
 		return metadata;
 	}
 
-	private ImportedMetadata readMetadata(Element element) {
+	private ImportedMetadata readMetadata(Element element, List<String> languageList) {
 
 		ImportedMetadata importedMetadata = new ImportedMetadata();
 		importedMetadata.setCode(element.getAttributeValue(CODE));
-		importedMetadata.setLabel(element.getAttributeValue(TITLE));
-
 		importedMetadata.setType(element.getAttributeValue(TYPE));
 		importedMetadata.setDataEntry(readDataEntry(element));
+		String label = element.getAttributeValue(LABEL);
+
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, label, LABEL);
+
+		if (languageTitleMap.size() > 0) {
+			importedMetadata.setLabels(languageTitleMap);
+		}
+
 		if (element.getAttribute(SEARCHABLE) != null) {
 			importedMetadata.setSearchable(Boolean.parseBoolean(element.getAttributeValue(SEARCHABLE)));
 		}
@@ -339,7 +348,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		taxonomy.setCode(child.getAttributeValue(CODE));
 		String title = child.getAttributeValue(TITLE);
 
-		Map<Language, String> languageTitleMap = getLanguageStringMap(child, languageList, title);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(child, languageList, title, TITLE);
 
 		if(languageTitleMap.size() > 0) {
 			taxonomy.setTitle(languageTitleMap);
@@ -365,25 +374,25 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	}
 
 	@NotNull
-	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String title) {
+	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String label, String labelFinal) {
 		Map<Language, String> languageTitleMap = new HashMap<>();
 		int numberOfLang = 0;
 
 		List<Attribute> attributeList = child.getAttributes();
 
 		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(SettingsXMLFileReader.TITLE) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
-				String languageCode = currentAttribute.getName().replace(SettingsXMLFileReader.TITLE, "");
+			if(currentAttribute.getName().startsWith(labelFinal) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
+				String languageCode = currentAttribute.getName().replace(labelFinal, "");
 				Language language = Language.withCode(languageCode);
 				languageTitleMap.put(language, currentAttribute.getValue());
 				numberOfLang++;
 			}
 		}
 
-		if(numberOfLang == 0 && title != null) {
+		if(numberOfLang == 0 && label != null) {
 			for(String languageCollection : languageList) {
 				Language language = Language.withCode(languageCollection);
-				languageTitleMap.put(language, title);
+				languageTitleMap.put(language, label);
 			}
 		}
 		return languageTitleMap;
@@ -449,7 +458,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		String title = element.getAttributeValue(TITLE);
 
-		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title,TITLE);
 
 		if (languageTitleMap.size() > 0) {
 			valueList.setTitle(languageTitleMap);

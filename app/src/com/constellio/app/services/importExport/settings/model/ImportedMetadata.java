@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -16,7 +17,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 public class ImportedMetadata {
 
 	private String code;
-	private Map<String, String> labels = new HashMap<>();
+	private Map<Language, String> labels = new HashMap<>();
 	private String type;
 	private String referencedType;
 	private Boolean enabled;// = true;
@@ -63,25 +64,25 @@ public class ImportedMetadata {
 	}
 
 	public String getLabel() {
-		return labels.get(Locale.FRENCH.getLanguage());
+		return labels.get(Language.French);
 	}
 
 	public ImportedMetadata setLabel(String label) {
-		labels.put(Locale.FRENCH.getLanguage(), label);
+		labels.put(Language.French, label);
 		return this;
 	}
 
 	public ImportedMetadata setLabel(Locale locale, String label) {
-		labels.put(locale.getLanguage(), label);
+		labels.put(Language.withLocale(locale), label);
 		return this;
 	}
 
-	public ImportedMetadata setLabels(Map<String, String> labels) {
+	public ImportedMetadata setLabels(Map<Language, String> labels) {
 		this.labels = labels;
 		return this;
 	}
 
-	public Map<String, String> getLabels() {
+	public Map<Language, String> getLabels() {
 		return labels;
 	}
 
