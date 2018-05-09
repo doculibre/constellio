@@ -53,7 +53,7 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 		MetadataSchemaType schemaType = new MetadataSchemaType("aCode", null, zeCollectionInfo, labels, schemas,
 				defaultSchema, false, true, true, false, "records");
 
-		schemaType.getSchemas().clear();
+		schemaType.getCustomSchemas().clear();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

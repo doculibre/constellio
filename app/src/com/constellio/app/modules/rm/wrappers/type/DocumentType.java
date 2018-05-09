@@ -1,7 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
@@ -22,6 +24,11 @@ public class DocumentType extends ValueListItem implements SchemaLinkingType {
 	public DocumentType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public DocumentType setTitles(Map<Language, String> titles) {
+		return (DocumentType) super.setTitles(titles);
 	}
 
 	public DocumentType setCode(String code) {

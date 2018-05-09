@@ -247,13 +247,9 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 
 		private MetadataSchemaTypeBuilder createTaskStatusType() {
-			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-
-			boolean isMultiLingual = language.size() > 1;
-
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 					.createValueListItemSchema(TaskStatus.SCHEMA_TYPE, migrationResourcesProvider.getLanguagesString("Statut"),
-							codeMetadataRequiredAndUnique(), isMultiLingual)
+							codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
@@ -277,16 +273,14 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-			boolean isMultiLingual = language.size() > 1;
-
-			MetadataSchemaBuilder taskType = createTaskTypeSchemaType(typesBuilder, isMultiLingual);
+			MetadataSchemaBuilder taskType = createTaskTypeSchemaType(typesBuilder);
 			createTaskSchemaType(typesBuilder, taskType);
 		}
 
-		private MetadataSchemaBuilder createTaskTypeSchemaType(MetadataSchemaTypesBuilder typesBuilder, boolean isMultiLingual) {
+		private MetadataSchemaBuilder createTaskTypeSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
 			Map<Language, String> labels = migrationResourcesProvider.getLanguagesString("init.ddvTaskType");
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(typesBuilder)
-					.createValueListItemSchema(TaskType.SCHEMA_TYPE, labels, codeMetadataRequiredAndUnique(), isMultiLingual)
+					.createValueListItemSchema(TaskType.SCHEMA_TYPE, labels, codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 			schema.create(TaskType.LINKED_SCHEMA).setType(STRING);

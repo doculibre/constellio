@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.Language.French;
 import static java.util.Arrays.asList;
 
@@ -219,38 +218,39 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
 				.setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
 				.setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
 				.setAnalogical(false));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-				.setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
+				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
+				.setLinkedSchema(Email.SCHEMA));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("888")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888")));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("999")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999")));
 
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.administrativeUnit")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.category")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.archivisticStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
 		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.copyStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
 
-		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.folderType"))
+		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.folderType"))
 				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
-		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.documentType"))
+		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.documentType"))
 				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
 		try {
@@ -260,7 +260,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		}
 
 		try {
-			RMMigrationTo7_2.createNewTaskTypes(appLayerFactory, collection, transaction);
+			RMMigrationTo7_2.createNewTaskTypes(appLayerFactory, collection, transaction, migrationResourcesProvider);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -376,6 +376,24 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 			typesBuilder.getSchema(Email.SCHEMA).getMetadata(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
 					.addProperty("subject");
+
+			for (String metadata : asList("administrativeUnit_default_description", "administrativeUnit_default_title",
+					"category_default_description", "category_default_keywords", "category_default_title",
+					"ddvContainerRecordType_default_description", "ddvContainerRecordType_default_title",
+					"ddvDocumentType_default_description", "ddvDocumentType_default_title",
+					"ddvFolderType_default_description", "ddvFolderType_default_title",
+					"ddvMediumType_default_description", "ddvMediumType_default_title",
+					"ddvStorageSpaceType_default_description", "ddvStorageSpaceType_default_title",
+					"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_title",
+					"ddvYearType_default_description", "ddvYearType_default_title",
+					"retentionRule_default_title", "retentionRule_default_juridicReference",
+					"retentionRule_default_generalComment",
+					"retentionRule_default_keywords", "retentionRule_default_copyRulesComment",
+					"retentionRule_default_description",
+					"uniformSubdivision_default_title")) {
+
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
 		}
 
 	}

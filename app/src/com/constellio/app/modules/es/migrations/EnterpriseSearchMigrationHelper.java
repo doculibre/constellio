@@ -7,6 +7,8 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
@@ -17,6 +19,7 @@ import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -43,8 +46,9 @@ public class EnterpriseSearchMigrationHelper {
 
 	public ConnectorType newConnectorType(MetadataSchema schema, Class<?> connectorClass, String connectorTypeCode) {
 
-		String title = resourcesProvider.getDefaultLanguageString("init." + schema.getCode().replace("-", ".").replace("_", "."));
-		return es.newConnectorType().setCode(connectorTypeCode).setTitle(title).setLinkedSchema(schema.getCode())
+		Map<Language, String> titles = resourcesProvider
+				.getLanguagesString("init." + schema.getCode().replace("-", ".").replace("_", "."));
+		return es.newConnectorType().setCode(connectorTypeCode).setTitles(titles).setLinkedSchema(schema.getCode())
 				.setConnectorClassName(connectorClass.getName());
 	}
 

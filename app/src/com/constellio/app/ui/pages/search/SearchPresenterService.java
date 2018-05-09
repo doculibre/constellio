@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.getLocale;
 import static com.constellio.model.entities.Language.withLocale;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -12,12 +13,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.Language;
@@ -84,7 +85,7 @@ public class SearchPresenterService {
 				}
 				boolean open = Boolean.TRUE.equals(facetStatus.containsKey(facet.getId())
 						? facetStatus.get(facet.getId()) : facet.isOpenByDefault());
-				result.add(new FacetVO(facet.getId(), facet.getTitle(), values, open, facet.getElementPerPage()));
+				result.add(new FacetVO(facet.getId(), facet.getTitle(getLocale()), values, open, facet.getElementPerPage()));
 			}
 		}
 
@@ -159,11 +160,11 @@ public class SearchPresenterService {
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
 				String keyShort = "caption." + record.getTypeCode() + ".record.short";
-				String caption = SchemaCaptionUtils.getShortCaptionForRecord(record);
-				if(keyShort.equals(caption)) {
+				String caption = SchemaCaptionUtils.getShortCaptionForRecord(record, getLocale());
+				if (keyShort.equals(caption)) {
 					String key = "caption." + record.getTypeCode() + ".record";
 
-					if(key.equals(caption)) {
+					if (key.equals(caption)) {
 						if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
 							facetValueVO.setLabel(record.<String>get(Schemas.CODE) + " - " + record.<String>get(Schemas.TITLE));
 						} else {
@@ -172,7 +173,7 @@ public class SearchPresenterService {
 					} else {
 						facetValueVO.setLabel(caption);
 					}
-				} else{
+				} else {
 					facetValueVO.setLabel(caption);
 				}
 			} else if (enumMetadatas.containsKey(value)) {

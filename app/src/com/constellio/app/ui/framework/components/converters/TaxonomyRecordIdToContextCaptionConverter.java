@@ -16,13 +16,13 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.vaadin.server.Resource;
 
 public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaptionConverter {
-	
+
 	public static final String DELIM = " | ";
-	
+
 	private transient RecordServices recordServices;
-	
+
 	private transient TaxonomiesManager taxonomiesManager;
-	
+
 	public TaxonomyRecordIdToContextCaptionConverter() {
 		super();
 		initTransientObjects();
@@ -56,9 +56,9 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 						if (sb.length() > 0) {
 							sb.insert(0, DELIM);
 						}
-						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord);
+						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord, locale);
 						sb.insert(0, currentRecordCaption);
-						
+
 						String parentRecordId = currentRecord.getParentId();
 						if (parentRecordId != null) {
 							currentRecord = recordServices.getDocumentById(parentRecordId);

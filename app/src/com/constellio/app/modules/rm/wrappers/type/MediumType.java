@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
+import java.util.Map;
+
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -20,6 +23,11 @@ public class MediumType extends ValueListItem {
 	public MediumType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public MediumType setTitles(Map<Language, String> titles) {
+		return (MediumType) super.setTitles(titles);
 	}
 
 	public MediumType setCode(String code) {

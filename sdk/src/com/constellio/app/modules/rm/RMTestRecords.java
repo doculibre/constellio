@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.joda.time.LocalDate;
@@ -674,7 +675,8 @@ public class RMTestRecords {
 
 	private void setupCategories(Transaction transaction) {
 
-		transaction.add(rm.newCategoryWithId(categoryId_X).setCode("X").setTitle("Xe category"))
+		transaction.add(rm.newCategoryWithId(categoryId_X).setCode("X")
+				.setTitle("Xe category").setTitle(Locale.ENGLISH, "Xe category"))
 				.setDescription("Ze ultimate category X")
 				.setRetentionRules(asList(ruleId_1));
 
@@ -691,11 +693,12 @@ public class RMTestRecords {
 				.setParent(categoryId_X100).setRetentionRules(asList(ruleId_3, ruleId_4)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_X13).setCode("X13").setTitle("Agent Secreet")
+				.setTitle(Locale.ENGLISH, "Secret agent")
 				.setDescription("218. Requiem pour un espion").setParent(categoryId_X)
 				.setRetentionRules(asList(ruleId_1, ruleId_2, ruleId_3, ruleId_4)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z).setCode("Z").setTitle("Ze category")
-				.setDescription("Ze ultimate category Z"));
+				.setTitle(Locale.ENGLISH, "The category").setDescription("Ze ultimate category Z"));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z100).setCode("Z100").setTitle("Z100")
 				.setDescription("Ze category Z100")
@@ -807,7 +810,8 @@ public class RMTestRecords {
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
 
-		transaction.add(rm.newRetentionRuleWithId(ruleId_1)).setCode("1").setTitle("Rule #1")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_1)).setCode("1")
+				.setTitle("Règle de conservation #1").setTitle(ENGLISH, "Retention rule #1")
 				.setAdministrativeUnits(asList(unitId_10, unitId_20)).setApproved(true)
 				.setCopyRetentionRules(asList(principal42_5_C, secondary888_0_D)).setKeywords(asList("Rule #1"))
 				.setCorpus("Corpus Rule 1").setDescription("Description Rule 1")
@@ -820,7 +824,8 @@ public class RMTestRecords {
 
 		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
-		transaction.add(rm.newRetentionRuleWithId(ruleId_2)).setCode("2").setTitle("Rule #2")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_2)).setCode("2")
+				.setTitle("Règle de conservation #2").setTitle(ENGLISH, "Retention rule #2")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
 				.setDocumentTypesDetails(asList(
@@ -832,7 +837,8 @@ public class RMTestRecords {
 		CopyRetentionRule principal999_4_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "999-4-T");
 		principal999_4_T.setContentTypesComment("R1");
 		CopyRetentionRule secondary1_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "1-0-D");
-		transaction.add(rm.newRetentionRuleWithId(ruleId_3)).setCode("3").setTitle("Rule #3")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_3)).setCode("3")
+				.setTitle("Règle de conservation #3").setTitle(ENGLISH, "Retention rule #3")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal999_4_T, secondary1_0_D))
 				.setDocumentTypesDetails(asList(
@@ -847,7 +853,8 @@ public class RMTestRecords {
 		secondary666_0_D.setInactiveDisposalComment("R4");
 		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(rm.PA()), "3-888-D");
 		CopyRetentionRule principal_MD_3_888_C = copyBuilder.newPrincipal(asList(rm.DM()), "3-888-C");
-		transaction.add(rm.newRetentionRuleWithId(ruleId_4)).setCode("4").setTitle("Rule #4")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_4)).setCode("4")
+				.setTitle("Règle de conservation #4").setTitle(ENGLISH, "Retention rule #4")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal_PA_3_888_D, principal_MD_3_888_C, secondary666_0_D))
 				.setCopyRulesComment(Arrays.asList("R3:comment3")).setDocumentTypesDetails(asList(
@@ -856,8 +863,8 @@ public class RMTestRecords {
 				new RetentionRuleDocumentType(documentTypeId_4)));
 
 		RetentionRule rule5 = rm.newRetentionRuleWithId(ruleId_5);
+		rule5.setTitle("Conseil d’administration").setTitle(ENGLISH, "Board of directors");
 		rule5.setCode("0122");
-		rule5.setTitle("Conseil d’administration");
 		rule5.setDocumentTypesDetails(asList(
 				new RetentionRuleDocumentType(documentTypeId_5),
 				new RetentionRuleDocumentType(documentTypeId_6),

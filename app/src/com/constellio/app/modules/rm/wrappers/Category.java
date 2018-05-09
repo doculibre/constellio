@@ -131,7 +131,7 @@ public class Category extends RecordWrapper {
 		return this;
 	}
 
-	public Category setKeywords(Locale locale,List<String> keywords) {
+	public Category setKeywords(Locale locale, List<String> keywords) {
 		set(KEYWORDS, locale, keywords);
 		return this;
 	}

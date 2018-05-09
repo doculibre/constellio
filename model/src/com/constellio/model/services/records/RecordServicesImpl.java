@@ -703,14 +703,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 								if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
 									String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 									metadataProvidingReference = schema.getMetadata(splittedCode[0]);
-									metadataProvidingSequenceCode = types.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType()).getMetadata(splittedCode[1]);
+									metadataProvidingSequenceCode = types
+											.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType())
+											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
-									if(metadataProvidingReferenceValue!=null){
-										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
+									if (metadataProvidingReferenceValue != null) {
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue)
+												.get(metadataProvidingSequenceCode);
 									}
-								}
-								else{
+								} else {
 									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
 									metadataProvidingSequenceCode = metadataProvidingReference;
 									sequenceCode = record.get(metadataProvidingSequenceCode);
@@ -1044,7 +1046,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			fieldsPopulators
 					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages,
 							systemConfigs));
-			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory));
+
+			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory,
+					newRecordProvider(transaction)));
 
 			Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 				@Override

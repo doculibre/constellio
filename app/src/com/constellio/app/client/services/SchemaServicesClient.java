@@ -34,7 +34,7 @@ public class SchemaServicesClient {
 	public List<String> getSchemas(String schemaType) {
 		Map<String, String> queryParams = new HashMap<>();
 		queryParams.put("schemaType", schemaType);
-		return requestJson("getSchemas", queryParams).get(List.class);
+		return requestJson("getCustomSchemas", queryParams).get(List.class);
 	}
 
 	public List<String> getSchemaMetadataCodes(String schemaCode) {

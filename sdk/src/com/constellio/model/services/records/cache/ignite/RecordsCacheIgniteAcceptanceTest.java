@@ -19,12 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.assertj.core.api.ListAssert;
 import org.junit.After;
@@ -39,6 +33,7 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -1612,6 +1607,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public String getCollection() {
+			return null;
+		}
+
+		@Override
+		public CollectionInfo getCollectionInfo() {
 			return null;
 		}
 

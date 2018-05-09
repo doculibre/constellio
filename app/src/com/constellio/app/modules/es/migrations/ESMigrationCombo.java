@@ -15,6 +15,7 @@ import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttp;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
@@ -27,6 +28,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -130,7 +132,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		Facet mimetypeFacet = es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.mimetype"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
 		addAllMimetypeLabels(mimetypeFacet);
 		transaction.add(mimetypeFacet);
 
@@ -138,7 +140,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.language"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
 				.withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
 				.withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
 				.withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
@@ -146,7 +148,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.extension")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
 
 		//		transaction.add(es.newFacetField()
 		//				.setUsedByModule(ConstellioESModule.ID)
@@ -156,7 +158,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.ldapUserEnabled"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
 				//FIXME
 				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
 				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
@@ -243,6 +245,8 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
+			typesBuilder.getDefaultSchema(ConnectorInstance.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
+			typesBuilder.getDefaultSchema(ConnectorType.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
 		}
 
 	}

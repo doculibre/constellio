@@ -1,7 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
-import com.constellio.model.entities.records.wrappers.ValueListItem;
+import java.util.Map;
+
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class VariableRetentionPeriod extends ValueListItem {
@@ -17,6 +20,11 @@ public class VariableRetentionPeriod extends ValueListItem {
 
 	public VariableRetentionPeriod setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	public VariableRetentionPeriod setTitles(Map<Language, String>  titles) {
+		super.setTitles(titles);
 		return this;
 	}
 

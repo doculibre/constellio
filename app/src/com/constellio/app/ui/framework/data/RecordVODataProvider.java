@@ -75,12 +75,14 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
+		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
 	}
 
 	@Override
 	public void fireDataRefreshEvent() {
 		query = getQuery();
+		query.setLanguage(sessionContext.getCurrentLocale());
 		size = null;
 		cache.clear();
 		queryCache.clear();
@@ -118,9 +120,11 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			recordList = new ArrayList<>();
 		} else if (isSearchCache()) {
 			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
+			query.setLanguage(sessionContext.getCurrentLocale());
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 			recordList = searchServices.cachedSearch(query);
 		} else {
+			query.setLanguage(sessionContext.getCurrentLocale());
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 			recordList = searchServices.search(query, batchSize);
 		}

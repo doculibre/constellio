@@ -250,7 +250,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		customMetadatas = new MetadataList(customMetadata1, customMetadata2);
 
 		when(schemaType.getDefaultSchema()).thenReturn(defaultSchema);
-		when(schemaType.getSchemas()).thenReturn(customSchemas);
+		when(schemaType.getCustomSchemas()).thenReturn(customSchemas);
 
 		when(defaultSchema.getMetadatas()).thenReturn(defaultMetadatas);
 		when(customSchema1.getMetadatas()).thenReturn(customMetadatas);

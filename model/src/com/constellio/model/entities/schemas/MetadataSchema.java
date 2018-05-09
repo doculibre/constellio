@@ -229,4 +229,12 @@ public class MetadataSchema implements Serializable {
 	public String getDataStore() {
 		return dataStore;
 	}
+
+	public boolean hasMultilingualMetadatas() {
+		boolean multilingualMetadatas = false;
+		for (Metadata metadata : metadatas) {
+			multilingualMetadatas |= metadata.isMultiLingual();
+		}
+		return multilingualMetadatas;
+	}
 }

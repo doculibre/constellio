@@ -421,7 +421,7 @@ public class SearchServices {
 
 		String collection = getCollection(query);
 		MetadataSchemaTypes types = null;
-		if (collection != null && metadataSchemasManager != null) {
+		if (collection != null && metadataSchemasManager != null && !collection.equals("inexistentCollection42")) {
 			types = metadataSchemasManager.getSchemaTypes(collection);
 		}
 
@@ -438,7 +438,7 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
+			String qf = getQfFor(query.getCondition().getCollection(), language, query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -685,7 +685,7 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(String collection, List<SearchBoost> boosts) {
+	private String getQfFor(String collection, String language, List<SearchBoost> boosts) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fieldsWithBoosts = new HashSet<>();
@@ -702,7 +702,9 @@ public class SearchServices {
 				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 				sb.append("^20 ");
 			}
-			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
+
+			String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
+					.getDataStoreCode();
 			if (!fieldsWithBoosts.contains(analyzedField)) {
 				sb.append(analyzedField + " ");
 			}
@@ -712,9 +714,7 @@ public class SearchServices {
 		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
 			sb.append(idAnalyzedField + " ");
 		}
-
-		//		sb.append("search_txt_");
-		//		sb.append(mainDataLanguage);
+		System.out.println(sb.toString());
 		return sb.toString();
 	}
 

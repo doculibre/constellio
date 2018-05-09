@@ -1,5 +1,12 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -10,13 +17,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ValueListItemSchemaTypeBuilder {
 
@@ -30,13 +30,13 @@ public class ValueListItemSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, Map<Language, String> labels,
-			ValueListItemSchemaTypeBuilderOptions options, boolean isMultiLingual) {
+			ValueListItemSchemaTypeBuilderOptions options) {
 
-		if(labels == null) {
+		if (labels == null) {
 			labels = new HashMap<>();
 		}
 
-		if(labels == null || labels.size() == 0) {
+		if (labels == null || labels.size() == 0) {
 			for (Language language : metadataSchemaTypesBuilder.getLanguages()) {
 				labels.put(language, $("init." + code));
 			}
@@ -46,12 +46,10 @@ public class ValueListItemSchemaTypeBuilder {
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
 
-
-
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
 
 		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique)
-				.setDefaultRequirement(true).setMultiLingual(isMultiLingual);
+				.setDefaultRequirement(true).setMultiLingual(options.isMultilingual());
 
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
@@ -72,7 +70,7 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataBuilder descriptionMetadata = defaultSchemaBuilder.create(ValueListItem.DESCRIPTION)
 				.setType(MetadataValueType.TEXT).setSearchable(true)
 				.setUndeletable(true)
-				.setMultiLingual(isMultiLingual);
+				.setMultiLingual(options.isMultilingual());
 
 		for (Language language : languages) {
 			descriptionMetadata.addLabel(language, $("init.valuelist.default.description"));
@@ -90,9 +88,9 @@ public class ValueListItemSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createHierarchicalValueListItemSchema(String code, Map<Language, String> label,
-			ValueListItemSchemaTypeBuilderOptions options, boolean isMultiLingual) {
+			ValueListItemSchemaTypeBuilderOptions options) {
 		List<Language> languages = metadataSchemaTypesBuilder.getLanguages();
-		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options, isMultiLingual);
+		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 		MetadataBuilder parentMetadata = defaultSchemaBuilder.create(HierarchicalValueListItem.PARENT)
 				.defineChildOfRelationshipToType(typeBuilder)
@@ -108,6 +106,7 @@ public class ValueListItemSchemaTypeBuilder {
 	public static class ValueListItemSchemaTypeBuilderOptions {
 		ValueListItemSchemaTypeCodeMode codeMode;
 		boolean titleUnique = true;
+		boolean multilingual = true;
 
 		private ValueListItemSchemaTypeBuilderOptions(ValueListItemSchemaTypeCodeMode codeMode) {
 			this.codeMode = codeMode;
@@ -127,6 +126,15 @@ public class ValueListItemSchemaTypeBuilder {
 
 		public static ValueListItemSchemaTypeBuilderOptions codeMode(ValueListItemSchemaTypeCodeMode codeMode) {
 			return new ValueListItemSchemaTypeBuilderOptions(codeMode);
+		}
+
+		public boolean isMultilingual() {
+			return multilingual;
+		}
+
+		public ValueListItemSchemaTypeBuilderOptions setMultilingual(boolean multilingual) {
+			this.multilingual = multilingual;
+			return this;
 		}
 
 		public ValueListItemSchemaTypeBuilderOptions titleUnique(boolean titleUnique) {

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -378,9 +379,14 @@ public class RecordImpl implements Record {
 
 		if (metadata.getEnumClass() != null && returnedValue != null) {
 			if (metadata.isMultivalue()) {
-				returnedValue = (T) EnumWithSmallCodeUtils.toEnumList(metadata.getEnumClass(), (List<String>) returnedValue);
+				List<Object> converted = new ArrayList<>();
+
+				for (Object item : (List) returnedValue) {
+					converted.add((T) convertEnumValue(metadata, item));
+				}
+				returnedValue = (T) converted;
 			} else {
-				returnedValue = (T) EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), (String) returnedValue);
+				returnedValue = convertEnumValue(metadata, returnedValue);
 			}
 		}
 
@@ -392,6 +398,18 @@ public class RecordImpl implements Record {
 			}
 		}
 
+		return returnedValue;
+	}
+
+	private <T> T convertEnumValue(Metadata metadata, T returnedValue) {
+		if (returnedValue instanceof String) {
+			returnedValue = (T) EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), (String) returnedValue);
+		} else if (returnedValue instanceof EnumWithSmallCode) {
+			returnedValue = returnedValue;
+		} else {
+			throw new ImpossibleRuntimeException(
+					"Unsupported value of type '" + returnedValue.getClass().getName() + "' in enum metadata");
+		}
 		return returnedValue;
 	}
 
@@ -925,6 +943,11 @@ public class RecordImpl implements Record {
 	@Override
 	public String getCollection() {
 		return collection;
+	}
+
+	@Override
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	@Override

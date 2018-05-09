@@ -1,15 +1,18 @@
 package com.constellio.model.services.records.populators;
 
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.FieldsPopulator;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_PopulatorReturnedNullValue;
 
 public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -32,23 +35,36 @@ public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 		}
 
 		for (Metadata modifiedMetadata : metadatas) {
-			Object value = record.get(modifiedMetadata);
+			Object mainLanguageValue = record.get(modifiedMetadata);
+			populateCopyFields(fields, modifiedMetadata, mainLanguageValue, record.getCollectionInfo().getMainSystemLocale());
 
-			populateCopyFields(fields, modifiedMetadata, value);
+			if (isPopulatedForAllLocales(modifiedMetadata)) {
+				for (String secondarySystemLanguageCode : record.getCollectionInfo().getSecondaryCollectionLanguesCodes()) {
+					Locale secondarySystemLocale = Language.withCode(secondarySystemLanguageCode).getLocale();
+					Object secondaryLanguageValue = record.get(modifiedMetadata, secondarySystemLocale, PREFERRING);
+					populateCopyFields(fields, modifiedMetadata, secondaryLanguageValue, secondarySystemLocale);
+				}
+			}
 		}
 
 		return fields;
 	}
 
-	private void populateCopyFields(Map<String, Object> fields, Metadata modifiedMetadata, Object value) {
-		Map<String, Object> values = populateCopyfields(modifiedMetadata, value);
+	protected boolean isPopulatedForAllLocales(Metadata metadata) {
+		return metadata.isMultiLingual();
+	}
+
+	private void populateCopyFields(Map<String, Object> fields, Metadata modifiedMetadata, Object value, Locale locale) {
+		Map<String, Object> values = populateCopyfields(modifiedMetadata, value, locale);
 		for (Map.Entry<String, Object> entry : values.entrySet()) {
-			if (entry.getValue() == null) {
-				throw new RecordImplException_PopulatorReturnedNullValue(this, entry.getKey());
+			if (entry.getValue() != null) {
+				fields.put(entry.getKey(), entry.getValue());
+			} else {
+				//throw new RecordImplException_PopulatorReturnedNullValue(this, entry.getKey());
 			}
-			fields.put(entry.getKey(), entry.getValue());
+
 		}
 	}
 
-	abstract Map<String, Object> populateCopyfields(Metadata metadata, Object value);
+	abstract Map<String, Object> populateCopyfields(Metadata metadata, Object value, Locale locale);
 }

@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -11,8 +10,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.users.UserServices;
-
-import java.util.Locale;
 
 public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 
@@ -36,8 +33,7 @@ public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 
 	@Override
 	protected String getNiceTitle(Record record, MetadataSchemaTypes types) {
-		RetentionRule retentionRule = new RetentionRule(record, types);
-		return new RetentionRuleInfoBuilder(retentionRule).getInfo();
+		return new RetentionRuleInfoBuilder(record).getInfo();
 	}
 
 }

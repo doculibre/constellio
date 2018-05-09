@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -15,6 +16,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.model.entities.CollectionObject;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.MetadataSchemaTypesMustBeNotNull;
@@ -279,8 +281,19 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return wrappedRecord.get(Schemas.TITLE, locale);
 	}
 
+	public String getTitle(Locale locale) {
+		return wrappedRecord.get(Schemas.TITLE, locale);
+	}
+
 	public RecordWrapper setTitle(String title) {
 		wrappedRecord.set(Schemas.TITLE, title);
+		return this;
+	}
+
+	public RecordWrapper setTitles(Map<Language, String> titles) {
+		for(Map.Entry<Language, String> entry : titles.entrySet()) {
+			wrappedRecord.set(Schemas.TITLE, entry.getKey().getLocale(), entry.getValue());
+		}
 		return this;
 	}
 

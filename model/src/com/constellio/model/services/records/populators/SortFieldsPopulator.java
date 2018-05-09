@@ -1,66 +1,105 @@
 package com.constellio.model.services.records.populators;
 
-import static java.util.Collections.singletonMap;
+import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
+import com.constellio.model.extensions.params.GetCaptionForRecordParams;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.FieldsPopulator;
+import com.constellio.model.services.records.RecordProvider;
 
 public class SortFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SortFieldsPopulator.class);
 	ModelLayerFactory modelLayerFactory;
+	RecordProvider recordProvider;
 
-	public SortFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite, ModelLayerFactory modelFactory) {
+	public SortFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite, ModelLayerFactory modelFactory,
+			RecordProvider recordProvider) {
 		super(types, fullRewrite);
 		this.modelLayerFactory = modelFactory;
+		this.recordProvider = recordProvider;
 	}
 
 	@Override
-	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
+	protected boolean isPopulatedForAllLocales(Metadata metadata) {
+		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()) {
+			MetadataSchemaType targettedSchemaType = types.getSchemaType(metadata.getReferencedSchemaType());
+			return targettedSchemaType.getDefaultSchema().hasMultilingualMetadatas();
+		} else {
+			return metadata.isMultiLingual() || metadata.isSameLocalCode(Schemas.CAPTION);
+		}
 
-		if(metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue() && value != null) {
+	}
+
+	@Override
+	public Map<String, Object> populateCopyfields(Metadata metadata, Object value, Locale locale) {
+
+		Map<String, Object> fields = new HashMap<>();
+
+		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isSortable() && !metadata.isMultivalue()
+				&& value != null) {
 			try {
-				Record referencedRecord = modelLayerFactory.newRecordServices().getDocumentById((String) value);
-				String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection()).getCaptionForRecord(referencedRecord);
+				Record referencedRecord = recordProvider.getRecord((String) value);
 
-				String sortDataStoreCode = Schemas.getSortMetadata(metadata).getDataStoreCode();
-				if(!metadata.getDataStoreCode().equals(sortDataStoreCode)) {
-					return singletonMap(sortDataStoreCode, (Object) captionForRecord);
-				} else {
-					return Collections.emptyMap();
+				if (referencedRecord != null) {
+					String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection())
+							.getCaptionForRecord(new GetCaptionForRecordParams(referencedRecord, types, locale));
+
+					if (captionForRecord == null) {
+						LOGGER.warn("Record '" + referencedRecord.getSchemaIdTitle() + "' has no caption");
+					} else {
+						Metadata sortMetadata = getSortMetadata(metadata);
+						if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
+							sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
+						}
+
+						if (!metadata.getDataStoreCode().equals(sortMetadata.getDataStoreCode())) {
+							fields.put(sortMetadata.getDataStoreCode(), (Object) captionForRecord);
+						}
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
-
-		StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
-		Metadata sortField = metadata.getSortField();
-
-		if (normalizer != null) {
-			Object normalizedValue;
-			if (value == null) {
-				normalizedValue = normalizer.normalizeNull();
-			} else {
-				normalizedValue = normalizer.normalize((String) value);
-			}
-			if (normalizedValue == null) {
-				normalizedValue = "";
-			}
-			return singletonMap(sortField.getDataStoreCode(), normalizedValue);
-
 		} else {
-			return Collections.emptyMap();
+
+			StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
+
+			Metadata sortMetadata = getSortMetadata(metadata);
+			if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
+				sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
+			}
+
+			if (normalizer != null) {
+				Object normalizedValue;
+				if (value == null) {
+					normalizedValue = normalizer.normalizeNull();
+				} else {
+					normalizedValue = normalizer.normalize((String) value);
+				}
+				if (normalizedValue == null) {
+					normalizedValue = "";
+				}
+				fields.put(sortMetadata.getDataStoreCode(), normalizedValue);
+
+			}
+
 		}
+
+		return fields;
 	}
 }

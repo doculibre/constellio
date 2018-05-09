@@ -16,6 +16,7 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionVali
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 
 public class RecordExtension {
 
@@ -98,7 +99,7 @@ public class RecordExtension {
 		return false;
 	}
 
-	public String getCaptionForRecord(Record record) {
+	public String getCaptionForRecord(GetCaptionForRecordParams params) {
 		return null;
 	}
 }

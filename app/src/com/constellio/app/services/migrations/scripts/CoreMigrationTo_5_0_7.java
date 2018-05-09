@@ -54,11 +54,12 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = rm.getModelLayerFactory().newRecordServices();
 
-		recordServices.add(rm.newFacetField().setOrder(0).setTitle(migrationResourcesProvider.get("init.facet.type"))
+		recordServices.add(rm.newFacetField().setOrder(0)
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
 				.setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
 
 		recordServices.add(rm.newFacetQuery().setOrder(1)
-				.setTitle(migrationResourcesProvider.get("init.facet.createModification"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
 				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
 				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
 				.withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
@@ -99,6 +100,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 					.setDefaultValue(FacetOrderType.RELEVANCE)
 					.setDefaultRequirement(true);
 			facetSchema.createUndeletable(Facet.ORDER).setType(MetadataValueType.NUMBER);
+			facetSchema.get(Facet.TITLE).setMultiLingual(true);
 
 			MetadataSchemaBuilder facetFieldSchema = facetTypes.createCustomSchema(Facet.FIELD_LOCAL_CODE);
 			facetFieldSchema.createUndeletable(Facet.FIELD_VALUES_LABEL).setType(MetadataValueType.STRUCTURE)
@@ -136,14 +138,15 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 			defaultSchema.createUndeletable(EmailToSend.PARAMETERS).setType(MetadataValueType.STRING).setMultivalue(true);
 			defaultSchema.createUndeletable(EmailToSend.TEMPLATE).setType(MetadataValueType.STRING);
 			defaultSchema.createUndeletable(EmailToSend.SEND_ON).setType(MetadataValueType.DATE_TIME);
-			defaultSchema.createUndeletable(EmailToSend.TRYING_COUNT).setType(MetadataValueType.NUMBER).setDefaultValue(0d).setDefaultRequirement(true);
+			defaultSchema.createUndeletable(EmailToSend.TRYING_COUNT).setType(MetadataValueType.NUMBER).setDefaultValue(0d)
+					.setDefaultRequirement(true);
 			defaultSchema.createUndeletable(EmailToSend.ERROR).setType(MetadataValueType.STRING);
 		}
 
 		private MetadataSchemaTypeBuilder createReportSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Report.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
-
+			defaultSchema.get(Report.TITLE).setMultiLingual(true);
 			defaultSchema.createUndeletable(Report.USERNAME).setType(STRING);
 			defaultSchema.createUndeletable(Report.SCHEMA_TYPE_CODE).setType(STRING).setDefaultRequirement(true);
 			defaultSchema.createUndeletable(Report.COLUMNS_COUNT).setType(NUMBER);

@@ -6,6 +6,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,16 +100,16 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 		String standbyId =
 				transaction.add(schemas.newTaskStatus().setCode(standByCode)
-						.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+						.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.STitle"))
 						.setStatusType(STANDBY)).getId();
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.ITitle"))
 				.setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.FTitle"))
 				.setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.CTitle"))
 				.setStatusType(CLOSED));
 
 		return standbyId;
@@ -150,6 +151,11 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 			//			}
 
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
+
+			for (String metadata : asList("ddvTaskStatus_default_description", "ddvTaskStatus_default_title",
+					"ddvTaskType_default_description", "ddvTaskType_default_title")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
 		}
 
 	}

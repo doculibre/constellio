@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -59,6 +60,8 @@ public interface Record extends Serializable, CollectionObject {
 	boolean isSaved();
 
 	String getCollection();
+
+	CollectionInfo getCollectionInfo();
 
 	String getParentId();
 

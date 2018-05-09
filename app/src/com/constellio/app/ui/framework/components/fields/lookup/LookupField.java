@@ -6,13 +6,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
@@ -38,6 +35,7 @@ import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -124,16 +122,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			@Override
 			public List<T> suggest(String text) {
 				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
-				if (itemConverter != null) {
-					Collections.sort(values, new Comparator<T>() {
-						@Override
-						public int compare(T o1, T o2) {
-							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
-							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
-							return s1.compareTo(s2);
-						}
-					});
-				}
+//				if (itemConverter != null) {
+				//					Collections.sort(values, new Comparator<T>() {
+				//						@Override
+				//						public int compare(T o1, T o2) {
+				//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+				//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+				//							return s1.compareTo(s2);
+				//						}
+				//					});
+				//				}
 				return values;
 			}
 

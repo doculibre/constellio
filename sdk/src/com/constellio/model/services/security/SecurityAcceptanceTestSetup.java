@@ -105,7 +105,7 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
 		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
 		MetadataSchemaTypeBuilder folderTypeType = new ValueListItemSchemaTypeBuilder(typesBuilder)
-				.createValueListItemSchema("folderType", labelTitle1, codeMetadataFacultative(), true);
+				.createValueListItemSchema("folderType", labelTitle1, codeMetadataFacultative());
 		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
 
 		setupTaxonomy1(documentFondType, categoryType);
@@ -120,9 +120,9 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		Map<Language, String> labelTitle3 = new HashMap<>();
 		labelTitle3.put(Language.French, "taxo2");
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", labelTitle2, collection, Arrays.asList("documentFond", "category"));
+		Taxonomy firstTaxonomy = Taxonomy
+				.createPublic("taxo1", labelTitle2, collection, Arrays.asList("documentFond", "category"));
 		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", labelTitle3, collection, Arrays.asList("administrativeUnit"));
-
 
 		taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 	}

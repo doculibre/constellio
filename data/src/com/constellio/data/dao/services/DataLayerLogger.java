@@ -42,6 +42,8 @@ public class DataLayerLogger {
 
 	private boolean queryDebuggingMode;
 
+	private boolean backgroundThreadQueryDebuggingMode = false;
+
 	private String queryDebuggingPrefix;
 
 	public String getQueryDebuggingPrefix() {
@@ -55,7 +57,8 @@ public class DataLayerLogger {
 
 	public void logQueryResponse(String queryName, SolrParams params, QueryResponse response) {
 
-		if (queryDebuggingMode) {
+		if (queryDebuggingMode && (backgroundThreadQueryDebuggingMode || queryName == null || !queryName.toLowerCase()
+				.contains("background"))) {
 
 			StringBuilder queryReport = new StringBuilder();
 

@@ -22,6 +22,13 @@ public class ImportedCollectionSettings {
 		return code;
 	}
 
+	public ImportedCollectionSettings() {
+	}
+
+	public ImportedCollectionSettings(String code) {
+		this.code = code;
+	}
+
 	public ImportedCollectionSettings setCode(String code) {
 		this.code = code;
 		return this;

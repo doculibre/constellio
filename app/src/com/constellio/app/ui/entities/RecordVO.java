@@ -3,9 +3,11 @@ package com.constellio.app.ui.entities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
@@ -24,13 +26,13 @@ public class RecordVO implements Serializable {
 	private String extension;
 
 	private String niceTitle;
-	
+
 	private boolean saved;
 
 	final List<MetadataValueVO> metadataValues;
 
 	VIEW_MODE viewMode;
-	
+
 	private Record record;
 
 	public RecordVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
@@ -236,6 +238,15 @@ public class RecordVO implements Serializable {
 		return get(metadata.getLocalCode());
 	}
 
+	public <T extends Object> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		return get(metadata);
+	}
+
+	public <T extends Object> T get(MetadataVO metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		T value = null;
+		return get(metadata);
+	}
+
 	public <T extends Object> T get(MetadataVO metadata) {
 		T value = null;
 		if (metadata != null) {
@@ -257,7 +268,7 @@ public class RecordVO implements Serializable {
 			}
 		}
 	}
-	
+
 	public void set(Metadata metadata, Object value) {
 		set(metadata.getLocalCode(), value);
 	}

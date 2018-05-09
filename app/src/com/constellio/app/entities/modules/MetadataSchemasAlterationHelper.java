@@ -81,7 +81,7 @@ public abstract class MetadataSchemasAlterationHelper {
 				String schemaKey = schemaTypeKey + "." + schemaBuilder.getLocalCode();
 
 				String schemaLabel = migrationResourcesProvider.getString(schemaKey, language.getLocale());
-				addLabel(schemaBuilder, schemaLabel, true, language);
+  				addLabel(schemaBuilder, schemaLabel, true, language);
 				for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
 
 					boolean overwrite = true;
