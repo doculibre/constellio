@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -399,5 +400,13 @@ public class Task extends RecordWrapper {
 
 	public String getQuestion() {
 		return get(QUESTION);
+	}
+
+	public static boolean isExpressionLanguage(String decision) {
+		String value = StringUtils.trimToEmpty(decision);
+		if (StringUtils.startsWith(value, "${") && StringUtils.endsWith(value, "}")) {
+			return true;
+		}
+		return false;
 	}
 }
