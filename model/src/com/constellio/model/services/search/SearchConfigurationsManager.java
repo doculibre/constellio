@@ -2,13 +2,8 @@ package com.constellio.model.services.search;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.data.TextView;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.search.Elevations.QueryElevation;
@@ -21,22 +16,9 @@ import java.util.*;
 
 public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollectionManager<Elevations> {
 	public static final String ELEVATE_FILE_NAME = "/elevate.xml";
-	public static final String SYNONYME_FILE_PATH = "/synonyms.txt";
 
-	List<String> synonyms = new ArrayList<>();
-
-	DataLayerFactory dataLayerFactory;
-
-	public SearchConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager, DataLayerFactory dataLayerFacotry) {
+	public SearchConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
 		super(configManager, collectionsListManager, cacheManager);
-
-		this.dataLayerFactory = dataLayerFacotry;
-
-		initializeLocal();
-	}
-
-	public void initializeLocal() {
-		synonyms = getSynonymsOnServer();
 	}
 
 	@Override
@@ -214,57 +196,6 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 		if(elevations != null && elevations.addDocExclusion(recordId)) {
 			updateCollectionElevations(collection, elevations);
 		}
-	}
-
-	public List<String> getSynonyms() {
-		return Collections.unmodifiableList(synonyms);
-	}
-
-	public void setSynonyms(List<String> synonyms) {
-		this.synonyms = new ArrayList<>(synonyms);
-		setSynonyms();
-	}
-
-	private void setSynonyms() {
-		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		if(solrFileSystem != null) {
-			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
-			TextView aStringView = readData.getView(new TextView());
-			aStringView.setData(getSynonymeAsOneString());
-			readData.setDataFromView(aStringView);
-			solrFileSystem.writeData(SYNONYME_FILE_PATH, readData);
-			server.reload();
-		}
-	}
-
-	private List<String> getSynonymsOnServer() {
-		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		if(solrFileSystem != null) {
-			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
-
-			TextView aStringView = readData.getView(new TextView());
-
-			String synonymsAsOneString = aStringView.getData();
-
-			return Arrays.asList(synonymsAsOneString.split("\\r\\n|\\n|\\r"));
-		} else  {
-			return new ArrayList<>();
-		}
-	}
-
-
-	private String getSynonymeAsOneString() {
-		StringBuilder allSynonyms = new StringBuilder();
-
-		for(String synonym : synonyms) {
-			allSynonyms.append(synonym + "\n");
-		}
-
-		return allSynonyms.toString();
 	}
 
 	@Override

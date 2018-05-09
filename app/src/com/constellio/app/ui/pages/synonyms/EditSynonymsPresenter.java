@@ -3,19 +3,19 @@ package com.constellio.app.ui.pages.synonyms;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
     List<String> synonyms;
-    SearchConfigurationsManager searchConfigurationsManager;
+    SynonymsConfigurationsManager synonymsConfigurationsManager;
 
     public EditSynonymsPresenter(EditSynonymsView view) {
         super(view);
-        searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
-        this.synonyms = searchConfigurationsManager.getSynonyms();
+        synonymsConfigurationsManager = modelLayerFactory.getSynonymsConfigurationsManager();
+        this.synonyms = synonymsConfigurationsManager.getSynonyms(collection);
     }
 
     @Override
@@ -26,7 +26,7 @@ public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
     public void saveButtonClicked(String synonymsAsOneString) {
         String[] stringList = synonymsAsOneString.split("\\r\\n|\\n|\\r");
         synonyms = Arrays.asList(stringList);
-        searchConfigurationsManager.setSynonyms(synonyms);
+        synonymsConfigurationsManager.setSynonyms(collection, synonyms);
         view.navigate().to(CoreViews.class).displaySynonyms();
     }
 

@@ -33,10 +33,7 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchConfigurationsManager;
-import com.constellio.model.services.search.FreeTextSearchServices;
-import com.constellio.model.services.search.SearchBoostManager;
-import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.*;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -167,6 +164,8 @@ public interface ModelLayerFactory extends LayerFactory {
 	ModelLayerBackgroundThreadsManager getModelLayerBackgroundThreadsManager();
 
 	SearchConfigurationsManager getSearchConfigurationsManager();
+
+	SynonymsConfigurationsManager getSynonymsConfigurationsManager();
 
 	TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache();
 

@@ -9,6 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.search.*;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -57,10 +58,6 @@ import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImp
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.FreeTextSearchServices;
-import com.constellio.model.services.search.SearchBoostManager;
-import com.constellio.model.services.search.SearchConfigurationsManager;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -125,6 +122,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
+	private final SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	private ThesaurusManager thesaurusManager;
 
@@ -217,7 +215,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		} else {
 			taxonomiesSearchServicesCache = new NoTaxonomiesSearchServicesCache();
 		}
-		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager, dataLayerFactory));
+		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
+		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
 
 	}
 
@@ -470,6 +469,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public SearchConfigurationsManager getSearchConfigurationsManager() {
 		return searchConfigurationsManager;
+	}
+
+	@Override
+	public SynonymsConfigurationsManager getSynonymsConfigurationsManager() {
+		return synonymsConfigurationsManager;
 	}
 
 	@Override
