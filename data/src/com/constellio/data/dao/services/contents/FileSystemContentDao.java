@@ -226,33 +226,43 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			return;
 		}
 
+
 		try {
 			b = ioServices.newBufferedFileReader(replicatedRootRecoveryFile, FILE_SYSTEM_CONTENT_DAO_FILE_STREAM_NAME);
 			String lineRead;
 			boolean didCopySucced;
+
+
 			while((lineRead = b.readLine()) != null) {
 				File file = getFileOf(lineRead);
-				didCopySucced = fileCopy(getReplicatedVaultFile(file), file.getAbsolutePath());
+				File replicatedVaultFile = getReplicatedVaultFile(file);
+				if(!replicatedVaultFile.exists()) {
+					// file got deleted.
+					continue;
+				}
+				didCopySucced = fileCopy(replicatedVaultFile, file.getAbsolutePath());
 
 				if(!didCopySucced) {
-					throw new FileSystemContentDaoRuntimeException("Copying : " + lineRead + " to the vault");
+					throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(replicatedVaultFile);
 				}
 			}
 		} catch (FileNotFoundException e) {
-			throw new FileSystemContentDaoRuntimeException("La lecture du fichier de replication de restauration lance une erreur.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringVaultFiles(e);
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException("La lecture du fichier de replication de restauration n'est pas trouvé.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileRestauringVaultFiles(e);
 		} finally {
 			ioServices.closeQuietly(b);
 		}
 
 		if(!replicatedRootRecoveryFile.delete()) {
-			throw new FileSystemContentDaoRuntimeException("L'effacement du fichier de recouvrement de la vaulte a échoué.");
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile();
 		}
 		try {
-			replicatedRootRecoveryFile.createNewFile();
+			if(!replicatedRootRecoveryFile.createNewFile()) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile();
+			}
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException("La création du fichier de recouvrement de la vaulte a échoué.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile(e);
 		}
 	}
 
@@ -264,28 +274,37 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			boolean didCopySucced;
 			while((lineRead = b.readLine()) != null) {
 				File file = getFileOf(lineRead);
+
+				if(!file.exists()) {
+					// file got deleted.
+					continue;
+				}
+
 				didCopySucced = fileCopy(file, getReplicatedVaultFile(file).getAbsolutePath());
 
 				if(!didCopySucced) {
-					throw new FileSystemContentDaoRuntimeException("Copying : " + lineRead + " to the vault");
+					throw new FileSystemContentDaoRuntimeException
+							.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault(file.getAbsoluteFile());
 				}
 			}
 		} catch (FileNotFoundException e) {
-			throw new FileSystemContentDaoRuntimeException("La lecture du fichier de replication de restauration lance une erreur.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringReplicationVault(e);
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException("La lecture du fichier de replication de restauration n'est pas trouvé.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileRestauringReplicationVault(e);
 		} finally {
 			ioServices.closeQuietly(b);
 		}
 
 		if(!vaultRecoveryFile.delete()) {
-			throw new FileSystemContentDaoRuntimeException("L'effacement du fichier de recouvrement de la réplication a échoué.");
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile();
 		}
 
 		try {
-			vaultRecoveryFile.createNewFile();
+			if(!vaultRecoveryFile.createNewFile()) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile();
+			}
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException("La création du fichier de recouvrement de la réplication a échoué.",e);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile(e);
 		}
 	}
 

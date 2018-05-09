@@ -3,6 +3,7 @@ package com.constellio.data.dao.services.contents;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
@@ -31,8 +32,19 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
     private IOServices ioServices;
     private HashingService hashingService;
 
+    private String fileHash1;
+    private String fileHash2;
+    private String fileHash3;
+
+    private File fileOf1Vault;
+    private File fileOf1Replicate;
+    private File fileOf2Vault;
+    private File fileOf2Replicate;
+    private File fileOf3Vault;
+    private File fileOf3Replicate;
+
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         prepareSystem(
                 withZeCollection().withAllTestUsers()
         );
@@ -44,6 +56,19 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 
         getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
         fileSystemContentDao = Mockito.spy(new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration()));
+
+        fileHash1 = hashingService.getHashFromFile(getTestResourceFile("1.docx"));
+        fileHash2 = hashingService.getHashFromFile(getTestResourceFile("2.docx"));
+        fileHash3 = hashingService.getHashFromFile(getTestResourceFile("3.docx"));
+
+        fileOf1Vault = fileSystemContentDao.getFileOf(fileHash1);
+        fileOf1Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf1Vault);
+
+        fileOf2Vault = fileSystemContentDao.getFileOf(fileHash2);
+        fileOf2Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf2Vault);
+
+        fileOf3Vault = fileSystemContentDao.getFileOf(fileHash3);
+        fileOf3Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf3Vault);
     }
 
     @Test
@@ -76,9 +101,6 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         FileUtils.copyFile(getTestResourceFile("1.docx"), tempFile1=ioServices.newTemporaryFile(FILE_NAME_1));
         FileUtils.copyFile(getTestResourceFile("2.docx"), tempFile2=ioServices.newTemporaryFile(FILE_NAME_2));
         FileUtils.copyFile(getTestResourceFile("3.docx"), tempFile3=ioServices.newTemporaryFile(FILE_NAME_3));
-        String fileHash1 = hashingService.getHashFromFile(tempFile1);
-        String fileHash2 = hashingService.getHashFromFile(tempFile2);
-        String fileHash3 = hashingService.getHashFromFile(tempFile3);
 
         Mockito.doReturn(false).doCallRealMethod().when(fileSystemContentDao)
                 .moveFile((File) Mockito.any(), (File) Mockito.any());
@@ -93,15 +115,6 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         ioServices.deleteQuietly(tempFile2);
         ioServices.deleteQuietly(tempFile3);
 
-        File fileOf1Vault = fileSystemContentDao.getFileOf(fileHash1);
-        File fileOf1Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf1Vault);
-
-        File fileOf2Vault = fileSystemContentDao.getFileOf(fileHash2);
-        File fileOf2Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf2Vault);
-
-        File fileOf3Vault = fileSystemContentDao.getFileOf(fileHash3);
-        File fileOf3Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf3Vault);
-
         assertThat(fileOf1Vault.exists()).isFalse();
         assertThat(fileOf1Replicate.exists()).isTrue();
 
@@ -111,7 +124,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         assertThat(fileOf3Vault.exists()).isTrue();
         assertThat(fileOf3Replicate.exists()).isFalse();
 
-        assertThatRecoveryFilesHaveCertainValues(fileHash1, fileHash2, fileHash3);
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+                .getAbsolutePath(), fileHash1);
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
+                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash2, fileHash3);
 
         fileSystemContentDao.readLogsAndRepairs();
 
@@ -152,11 +168,6 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 
     @Test
     public void givenAddFileToVaultWithErrorsAddedToRecoveryFilesWhenReadLogAndRepairThenAllFileArePresent() throws Exception {
-
-        String fileHash1 = hashingService.getHashFromFile(getTestResourceFile("1.docx"));
-        String fileHash2 = hashingService.getHashFromFile(getTestResourceFile("2.docx"));
-        String fileHash3 = hashingService.getHashFromFile(getTestResourceFile("3.docx"));
-
         Mockito.doReturn(false).doCallRealMethod()
                 .doCallRealMethod().doReturn(false)
                 .doCallRealMethod().doReturn(false)
@@ -166,14 +177,6 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         fileSystemContentDao.add(fileHash2, getTestResourceInputStream("2.docx"));
         fileSystemContentDao.add(fileHash3, getTestResourceInputStream("3.docx"));
 
-        File fileOf1Vault = fileSystemContentDao.getFileOf(fileHash1);
-        File fileOf1Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf1Vault);
-
-        File fileOf2Vault = fileSystemContentDao.getFileOf(fileHash2);
-        File fileOf2Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf2Vault);
-
-        File fileOf3Vault = fileSystemContentDao.getFileOf(fileHash3);
-        File fileOf3Replicate = fileSystemContentDao.getReplicatedVaultFile(fileOf3Vault);
 
         assertThat(fileOf1Vault.exists()).isFalse();
         assertThat(fileOf1Replicate.exists()).isTrue();
@@ -184,7 +187,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         assertThat(fileOf3Vault.exists()).isTrue();
         assertThat(fileOf3Replicate.exists()).isFalse();
 
-        assertThatRecoveryFilesHaveCertainValues(fileHash1, fileHash2, fileHash3);
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+                .getAbsolutePath(), fileHash1);
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
+                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash2, fileHash3);
 
         fileSystemContentDao.readLogsAndRepairs();
 
@@ -200,6 +206,90 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         assertThat(fileOf3Replicate.exists()).isTrue();
     }
 
+    @Test
+    public void givenAddFileToVaultWithErrorsAndDeleteOneReplicationFileWhenReadLogAndRepairThenNoExceptionAndFileIsEmpty() throws Exception {
+
+        Mockito.doReturn(false).doCallRealMethod()
+                .doCallRealMethod().doReturn(false)
+                .doCallRealMethod().doReturn(false)
+                .when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
+
+        fileSystemContentDao.add(fileHash1, getTestResourceInputStream("1.docx"));
+        fileSystemContentDao.add(fileHash2, getTestResourceInputStream("2.docx"));
+        fileSystemContentDao.add(fileHash3, getTestResourceInputStream("3.docx"));
+
+        assertThat(fileOf1Vault.exists()).isFalse();
+        assertThat(fileOf1Replicate.exists()).isTrue();
+
+        assertThat(fileOf2Vault.exists()).isTrue();
+        assertThat(fileOf2Replicate.exists()).isFalse();
+
+        assertThat(fileOf3Vault.exists()).isTrue();
+        assertThat(fileOf3Replicate.exists()).isFalse();
+
+        // delete
+        assertThat(fileOf2Vault.delete()).isTrue();
+
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+                .getAbsolutePath(), fileHash1);
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
+                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash2, fileHash3);
+
+        fileSystemContentDao.readLogsAndRepairs();
+
+        assertThatRecoveryFileAreEmpty();
+
+        assertThat(fileOf1Vault.exists()).isTrue();
+        assertThat(fileOf1Replicate.exists()).isTrue();
+
+        assertThat(fileOf2Vault.exists()).isFalse();
+        assertThat(fileOf2Replicate.exists()).isFalse();
+
+        assertThat(fileOf3Vault.exists()).isTrue();
+        assertThat(fileOf3Replicate.exists()).isTrue();
+    }
+
+    @Test
+    public void givenAddFileToVaultWithErrorsAndDeleteOneVaultFileWhenReadLogAndRepairThenNoExceptionAndFileIsEmpty() throws Exception {
+        Mockito.doReturn(false).doCallRealMethod()
+                .doReturn(false).doCallRealMethod()
+                .doCallRealMethod().doReturn(false)
+                .when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
+
+        fileSystemContentDao.add(fileHash1, getTestResourceInputStream("1.docx"));
+        fileSystemContentDao.add(fileHash2, getTestResourceInputStream("2.docx"));
+        fileSystemContentDao.add(fileHash3, getTestResourceInputStream("3.docx"));
+
+        assertThat(fileOf1Vault.exists()).isFalse();
+        assertThat(fileOf1Replicate.exists()).isTrue();
+
+        assertThat(fileOf2Vault.exists()).isFalse();
+        assertThat(fileOf2Replicate.exists()).isTrue();
+
+        assertThat(fileOf3Vault.exists()).isTrue();
+        assertThat(fileOf3Replicate.exists()).isFalse();
+
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+                .getAbsolutePath(), fileHash1, fileHash2);
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
+                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash3);
+
+
+        assertThat(fileOf1Replicate.delete()).isTrue();
+
+        fileSystemContentDao.readLogsAndRepairs();
+
+        assertThatRecoveryFileAreEmpty();
+
+        assertThat(fileOf1Vault.exists()).isFalse();
+        assertThat(fileOf1Replicate.exists()).isFalse();
+
+        assertThat(fileOf2Vault.exists()).isTrue();
+        assertThat(fileOf2Replicate.exists()).isTrue();
+
+        assertThat(fileOf3Vault.exists()).isTrue();
+        assertThat(fileOf3Replicate.exists()).isTrue();
+    }
 
     @Test
     public void givenVaultAndReplicationFailToCopyWhenAddFileThenFailAndThrow() throws Exception {
@@ -248,20 +338,14 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
                 .getAbsolutePath())).isEqualTo(0);
     }
 
-    private void assertThatRecoveryFilesHaveCertainValues(String fileHash1, String fileHash2, String fileHash3) throws IOException {
+    private void assertThatRecoveryFilesHaveCertainValues(String filePath, String ... hashInTheSameOrder ) throws IOException {
         List<String> lineListOfReplicationRootRevoveryFile = Files.readAllLines(
-                Paths.get(fileSystemContentDao.getReplicationRootRecoveryFile().getAbsolutePath())
-                , StandardCharsets.UTF_8);
+                Paths.get(filePath), StandardCharsets.UTF_8);
 
-        assertThat(lineListOfReplicationRootRevoveryFile.get(0)).isEqualTo(fileHash1);
-        assertThat(lineListOfReplicationRootRevoveryFile.size()).isEqualTo(1);
+        for(int i = 0; i < lineListOfReplicationRootRevoveryFile.size(); i++) {
+            assertThat(lineListOfReplicationRootRevoveryFile.get(i)).isEqualTo(hashInTheSameOrder[i]);
+        }
 
-        List<String> lineListOfVaultRootRevoveryFile = Files.readAllLines(
-                Paths.get(fileSystemContentDao.getVaultRootRecoveryFile().getAbsolutePath())
-                , StandardCharsets.UTF_8);
-
-        assertThat(lineListOfVaultRootRevoveryFile.get(0)).isEqualTo(fileHash2);
-        assertThat(lineListOfVaultRootRevoveryFile.get(1)).isEqualTo(fileHash3);
-        assertThat(lineListOfVaultRootRevoveryFile.size()).isEqualTo(2);
+        assertThat(lineListOfReplicationRootRevoveryFile.size()).isEqualTo(hashInTheSameOrder.length);
     }
 }

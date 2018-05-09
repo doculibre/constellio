@@ -73,4 +73,72 @@ public class FileSystemContentDaoRuntimeException extends ContentDaoRuntimeExcep
 		}
 	}
 
+	public static class FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringVaultFiles extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringVaultFiles(Exception exception) {
+			super("Un fichier n'existe pas pendant la restauration de ce fichier dans la voûte", exception);
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_IOErrorWhileRestauringVaultFiles extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_IOErrorWhileRestauringVaultFiles(Exception exception) {
+			super("Une erreur d'IO sais produite pendant la restauration des fichiers de la voûte.", exception);
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile() {
+			super("Une erreur sait produite pendant la suppression du fichier de restauration de la réplication.");
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile() {
+			this(null);
+		}
+
+		public FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile(Exception exception) {
+			super("Une erreur sait produite pendant la création du fichier de restauration de la réplication.", exception);
+		}
+	}
+
+
+	public static class FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringReplicationVault extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringReplicationVault(Exception exception) {
+			super("Un fichier n'existe pas pendant la restauration de ce fichier dans la voûte de réplication", exception);
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_IOErrorWhileRestauringReplicationVault extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_IOErrorWhileRestauringReplicationVault(Exception exception) {
+			super("Une erreur d'IO sais produite pendant la restauration des fichiers de la voûte de réplication.", exception);
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile() {
+			super("Une erreur sait produite pendant la suppression du fichier de restauration de la voûte.");
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile() {
+			this(null);
+		}
+
+		public FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile(Exception exception) {
+			super("Une erreur sait produite pendant la création du fichier de restauration de la voûte.", exception);
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault(File file) {
+			super("Une erreur sait produite pendant la copie du fichier : " + file.getAbsolutePath() + " vers la voûte." );
+		}
+	}
+
+	public static class FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault extends FileSystemContentDaoRuntimeException {
+		public FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(File file) {
+			super("Une erreur sait produite pendant la copie du fichier : " + file.getAbsolutePath() + " vers la voûte de réplication.");
+		}
+	}
 }
