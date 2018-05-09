@@ -344,7 +344,7 @@ public class ReindexingServices {
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage;
 
 		if (new ConstellioEIMConfigs(modelLayerFactory).getMemoryConsumptionLevel().isPrioritizingMemoryConsumptionOrNormal()) {
-			File aggregatedValuesTempStorageFile = new File(new FoldersLocator().getWorkFolder(), "reindexing");
+			File aggregatedValuesTempStorageFile = new FoldersLocator().getReindexingAggregatedValuesFolder();
 			try {
 				FileUtils.deleteDirectory(aggregatedValuesTempStorageFile);
 			} catch (IOException e) {
@@ -574,4 +574,22 @@ public class ReindexingServices {
 		return null;
 	}
 
+	public boolean isLockFileExisting() {
+		return modelLayerFactory.getFoldersLocator().getReindexationLock().exists();
+	}
+
+	public void removeLockFile() {
+		File reindexationLock = modelLayerFactory.getFoldersLocator().getReindexationLock();
+		modelLayerFactory.getIOServicesFactory().newFileService().deleteQuietly(reindexationLock);
+	}
+
+	public void createLockFile() {
+		File reindexationLock = modelLayerFactory.getFoldersLocator().getReindexationLock();
+		reindexationLock.getParentFile().mkdirs();
+		try {
+			reindexationLock.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
