@@ -1,5 +1,7 @@
 package com.constellio.model.entities.schemas.sort;
 
+import static java.lang.Character.isDigit;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,19 +21,46 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 	@Override
 	public String normalize(String rawValue) { //rawValue = 1.1.1
 		int numberOfTriesRemaining = 2;
-		String previousValue = rawValue;
-		String normalizedValue = "";
-		while (numberOfTriesRemaining-- > 0 && !previousValue.equals(normalizedValue = getNormalizedValue(previousValue))) {
-			previousValue = normalizedValue;
+		String previousValue = AccentApostropheCleaner.removeAccents(rawValue.toLowerCase()).trim();
+
+		int maxSuccessiveDigitsCount = countMaxSuccessiveDigits(previousValue);
+		if (maxSuccessiveDigitsCount >= 1) {
+			String normalizedValue = "";
+			while (numberOfTriesRemaining-- > 0 && !previousValue
+					.equals(normalizedValue = getNormalizedValue(previousValue, maxSuccessiveDigitsCount))) {
+				previousValue = normalizedValue;
+			}
 		}
 		return previousValue;
 	}
 
-	private String getNormalizedValue(String rawValue) {
-		String normalizedText = AccentApostropheCleaner.removeAccents(rawValue.toLowerCase()).trim();
-		for (int i = 8; i > 0; i--) {
+	private static int countMaxSuccessiveDigits(String value) {
+
+		int current = 0;
+		int max = 0;
+		for (int i = 0; i < value.length(); i++) {
+			if (isDigit(value.charAt(i))) {
+				current++;
+			} else {
+				if (current > max) {
+					max = current;
+				}
+				current = 0;
+			}
+		}
+
+		if (current > max) {
+			max = current;
+		}
+
+		return max;
+	}
+
+	private String getNormalizedValue(String value, int maxSuccessiveDigitsCount) {
+
+		for (int i = maxSuccessiveDigitsCount; i > 0; i--) {
 			//String regex = "([^0-9]+|^)([0-9]{" + i + "})([^0-9]+|$)";
-			Matcher matcher = patterns[i - 1].matcher(normalizedText);
+			Matcher matcher = patterns[i - 1].matcher(value);
 			if (matcher.find()) {
 				StringBuffer fillers = new StringBuffer();
 				int zeros = 9 - i;
@@ -39,11 +68,11 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 					fillers.append("\\0");
 				}
 				String replacement = "$1" + fillers + "$2$3";
-				normalizedText = matcher.replaceAll(replacement);//normalizedText.replaceAll(regex, replacement);
+				value = matcher.replaceAll(replacement);//normalizedText.replaceAll(regex, replacement);
 
 			}
 		}
-		return normalizedText;
+		return value;
 	}
 
 	@Override
