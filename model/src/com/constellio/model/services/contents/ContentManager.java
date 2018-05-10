@@ -531,8 +531,13 @@ public class ContentManager implements StatefulService {
 								.setOverwriteModificationDateAndUser(false));
 						for (Record record : records) {
 							if (!closing.get()) {
-								tryConvertRecordContents(record, conversionManager, tempFolder);
-								transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+								try {
+									tryConvertRecordContents(record, conversionManager, tempFolder);
+								} catch (NullPointerException e) {
+									//unsupported extension
+								} finally {
+									transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+								}
 							}
 						}
 						try {
