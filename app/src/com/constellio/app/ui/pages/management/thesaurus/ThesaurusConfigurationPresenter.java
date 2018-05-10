@@ -1,17 +1,19 @@
 package com.constellio.app.ui.pages.management.thesaurus;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -19,24 +21,23 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.thesaurus.SkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.thesaurus.ThesaurusServiceBuilder;
@@ -293,7 +294,6 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	}
 
 	String getDocumentsWithAConcept() {
-
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
 		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
@@ -313,7 +313,8 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		// thesaurusMatch_ss:[* TO *]
 		SearchServices searchService = modelLayerFactory.newSearchServices();
 		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).where(es.connectorHttpDocument.thesaurusMatch()).isNull();
+		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
+				.where(es.connectorHttpDocument.thesaurusMatch()).isNull();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.setNumberOfRows(0);
 		SPEQueryResponse response = searchService.query(query);
@@ -323,35 +324,86 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 	String getUsedConcepts() {
 		// total de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
-		LogicalSearchQuery query = new LogicalSearchQuery();
+		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.setNumberOfRows(0);
 		query.setFieldFacetLimit(-1);
-		query.sortOn(new LogicalSearchQuerySort("count", true));
 		query.addFieldFacet("thesaurusMatch_ss");
-		searchService.getResultsCount(query);
 
 		SPEQueryResponse response = searchService.query(query);
+		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
+		long total = 0;
+		for(FacetValue facetValue: usedConcept) {
+			total += facetValue.getQuantity();
+		}
 
-		return "";
+		return "" + total;
 	}
 
 	String getMostUsedConcepts() {
 		//  résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=1000
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
-		LogicalSearchQuery query = new LogicalSearchQuery();
+		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.setNumberOfRows(0);
 		query.setFieldFacetLimit(1000);
 		query.addFieldFacet("thesaurusMatch_ss");
-		List<Record> records = searchService.search(query);
 
 		SPEQueryResponse response = searchService.query(query);
+		List<FacetValue> usedConceptFacet = response.getFieldFacetValues().get("thesaurusMatch_ss");
 
-		return "";
+		StringBuilder csv = new StringBuilder();
+		for (FacetValue facetValue: usedConceptFacet) {
+			SkosConcept concept = thesaurusManager.get(collection).getSkosConcept(facetValue.getValue());
+			csv.append(concept.getRdfAbout());
+			csv.append(";");
+			csv.append(facetValue.getQuantity());
+			csv.append("\n");
+		}
+
+		return csv.toString();
 	}
 
-	String getUnssedConcepts() {
+	List<SkosConcept> getUnusedConcepts() {
 		// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+		SearchServices searchService = modelLayerFactory.newSearchServices();
+		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.setNumberOfRows(0);
+		query.setFieldFacetLimit(-1);
+		query.addFieldFacet("thesaurusMatch_ss");
 
-		return "";
+		SPEQueryResponse response = searchService.query(query);
+		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
+
+		Map<String, SkosConcept> allConcept = thesaurusManager.get(collection).getAllConcepts();
+
+		for (FacetValue value: usedConcept) {
+			allConcept.remove(value.getValue());
+		}
+
+		List<SkosConcept> result = new ArrayList<>();
+		for(String conceptKey: allConcept.keySet()) {
+			SkosConcept concept = allConcept.get(conceptKey);
+			result.add(concept);
+		}	
+		return result;
+	}
+	
+	public InputStream getUnusedConceptsInputStream(final List<SkosConcept> unusedConcepts) {
+		StringBuilder csv = new StringBuilder();
+		for(SkosConcept unusedConcept: unusedConcepts) {
+			csv.append(unusedConcept.getRdfAbout());
+			csv.append("\n");
+		}
+		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Override
