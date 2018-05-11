@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
@@ -526,16 +527,22 @@ public class ContentManager implements StatefulService {
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
 						Transaction transaction = new Transaction();
-						transaction.setOptions(new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+						transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
+								.setOverwriteModificationDateAndUser(false));
 						for (Record record : records) {
 							if (!closing.get()) {
-								convertRecordContents(record, conversionManager, tempFolder);
-								transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+								try {
+									tryConvertRecordContents(record, conversionManager, tempFolder);
+								} catch (NullPointerException e) {
+									//unsupported extension
+								} finally {
+									transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+								}
 							}
 						}
 						try {
 							transaction.setRecordFlushing(RecordsFlushing.LATER());
-							recordServices.execute(transaction);
+							recordServices.executeWithoutImpactHandling(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
 						}
@@ -548,34 +555,44 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	private void convertRecordContents(Record record, ConversionManager conversionManager, File tempFolder) {
+	private boolean tryConvertRecordContents(Record record, ConversionManager conversionManager, File tempFolder) {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+		boolean isConversionSuccessful = true;
 		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
 			if (!contentMetadata.isMultivalue()) {
 				Content content = record.get(contentMetadata);
 				if (content != null) {
-					convertContentForPreview(content, conversionManager, tempFolder);
+					isConversionSuccessful = isConversionSuccessful &&
+							tryConvertContentForPreview(content, conversionManager, tempFolder);
 				}
 			}
 		}
+		return isConversionSuccessful;
 	}
 
-	private void convertContentForPreview(Content content, ConversionManager conversionManager, File tempFolder) {
+	private boolean tryConvertContentForPreview(Content content, ConversionManager conversionManager, File tempFolder) {
 		String hash = content.getCurrentVersion().getHash();
 		String filename = content.getCurrentVersion().getFilename();
 		ContentDao contentDao = getContentDao();
+		boolean isConversionSuccessful = true;
 		if (!contentDao.isDocumentExisting(hash + ".preview")) {
 			InputStream inputStream = null;
 			try {
 				inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
+				if(LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
+					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength()/(1024*1024));
+				}
+
 				File file = conversionManager.convertToPDF(inputStream, filename, tempFolder);
 				contentDao.moveFileToVault(file, hash + ".preview");
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot convert content '" + filename + "' with hash '" + hash + "'", t);
+				isConversionSuccessful = false;
 			} finally {
 				ioServices.closeQuietly(inputStream);
 			}
 		}
+		return isConversionSuccessful;
 	}
 
 	public void handleRecordsMarkedForParsing() {
