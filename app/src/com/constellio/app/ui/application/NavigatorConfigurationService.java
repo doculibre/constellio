@@ -18,7 +18,6 @@ import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
-import com.constellio.app.ui.pages.exclusion.DeleteExclusionsImpl;
 import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
@@ -316,7 +315,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SOLR_FEATURES, SolrFeatureViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION, OrderDecommissioningListViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION,
+				OrderDecommissioningListViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(SYSTEM_CHECK, SystemCheckViewImpl.class));
 

@@ -1,35 +1,32 @@
 package com.constellio.app.ui.pages.search;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.data.SolrFeatureDataProvider;
-import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.User;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.solr.client.solrj.ResponseParser;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.ltr.feature.SolrFeature;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.SolrFeatureDataProvider;
+import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 
 	private String STORE = "_DEFAULT_";
 	private SolrFeatureDataProvider dataProvider;
-
 
 	public SolrFeaturePresenter(SolrFeatureView view) {
 		super(view);
@@ -49,8 +46,7 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 			request.process(solrClient);
 			dataProvider.setFeatures(request.getFeatures());
 		} catch (Exception e) {
-			view.showErrorMessage("SolrFeatureView.solrUpdateError");
-
+			view.showErrorMessage($("SolrFeatureView.solrUpdateError"));
 			e.printStackTrace();
 		}
 
@@ -65,7 +61,7 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 			updateOnSolrServer(features);
 			dataProvider.setFeatures(features);
 		} catch (Exception e) {
-			view.showErrorMessage("SolrFeatureView.solrUpdateError");
+			view.showErrorMessage($("SolrFeatureView.solrUpdateError"));
 
 			e.printStackTrace();
 		}
@@ -80,7 +76,7 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 			updateOnSolrServer(features);
 			dataProvider.setFeatures(features);
 		} catch (Exception e) {
-			view.showErrorMessage("SolrFeatureView.solrUpdateError");
+			view.showErrorMessage($("SolrFeatureView.solrUpdateError"));
 
 			e.printStackTrace();
 		}
@@ -101,14 +97,14 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 		features.remove(feature);
 
 		try {
-			if(features.isEmpty()) {
+			if (features.isEmpty()) {
 				deleteOnSolrServer();
 			} else {
 				updateOnSolrServer(features);
 				dataProvider.setFeatures(features);
 			}
 		} catch (Exception e) {
-			view.showErrorMessage("SolrFeatureView.solrUpdateError");
+			view.showErrorMessage($("SolrFeatureView.solrUpdateError"));
 
 			e.printStackTrace();
 		}
@@ -120,12 +116,14 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 		return provider.getFeature(index);
 	}
 
-	protected void deleteOnSolrServer() throws IOException, SolrServerException {
+	protected void deleteOnSolrServer()
+			throws IOException, SolrServerException {
 		SolrFeatureRequest sfr = new SolrFeatureDeleteRequest();
 		sfr.process(new HttpSolrFeatureClient(getSolrServerUrl()));
 	}
 
-	protected void updateOnSolrServer(List<SolrFeature> features) throws IOException, SolrServerException {
+	protected void updateOnSolrServer(List<SolrFeature> features)
+			throws IOException, SolrServerException {
 		deleteOnSolrServer();
 
 		SolrFeatureRequest sfr = new SolrFeaturePutRequest();
@@ -141,7 +139,8 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 		}
 
 		@Override
-		protected HttpRequestBase createMethod(SolrRequest request, String collection) throws IOException, SolrServerException {
+		protected HttpRequestBase createMethod(SolrRequest request, String collection)
+				throws IOException, SolrServerException {
 			String path = requestWriter.getPath(request);
 			if (path == null || !path.startsWith("/")) {
 				path = DEFAULT_PATH;
