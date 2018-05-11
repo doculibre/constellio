@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCr
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
@@ -23,13 +24,13 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchConfigurationView {
-	
+
 	private SearchConfigurationPresenter presenter;
-	
+
 	public SearchConfigurationViewImpl() {
 		this.presenter = new SearchConfigurationPresenter(this);
 	}
-	
+
 	@Override
 	protected String getTitle() {
 		return $("SearchConfigurationView.title");
@@ -39,7 +40,10 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		VerticalLayout verticalLayout = new VerticalLayout();
 		CssLayout layout = new CustomCssLayout();
-		layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
+		user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices()
+				.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
+		layout.addComponents(createBoostMetadataButton(), createBoostRequestButton(), createSolrFeatureRequestButton(), createFacetteButton());
+		//layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			layout.addComponent(createCapsulesManagementButton());
@@ -107,10 +111,32 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 				public void buttonClick(Button.ClickEvent event) {
 					presenter.thesaurusConfigurationButtonClicked();
 				}
-			}, "config/thesaurus") : 
+			}, "config/thesaurus") :
 			null;
 	}
 
+	private Button createSolrFeatureRequestButton() {
+		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
+				createLink($("AdminView.solrFeature"), new Button.ClickListener() {
+
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						navigate().to().solrFeatures();
+					}
+				}, "config/boost-text-search") :
+				null;
+	}
+
+//	private Button createBoostRequestButton() {
+//		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
+//				createLink($("AdminView.searchBoostByQuery"), new Button.ClickListener() {
+//
+//					@Override
+//					public void buttonClick(Button.ClickEvent event) {
+//						navigate().to().searchBoostByQuerys();
+//					}
+//				}, "config/boost-text-search") :
+//				null;
 	private Button createSpellCheckerExclusionsManagementButton() {
 		return presenter.isSpellCheckerExclusionsManagementButtonVisible() ?
 			createLink($("AdminView.excluded"), new Button.ClickListener() {
@@ -154,9 +180,9 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 			}, "config/capsules") :
 			null;
 	}
-	
+
 	private Button createStatisticsButton() {
-		return presenter.isStatisticsButtonVisible() ? 
+		return presenter.isStatisticsButtonVisible() ?
 			createLink($("StatisticsView.viewTitle"), new Button.ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {

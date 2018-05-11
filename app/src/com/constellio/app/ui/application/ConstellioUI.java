@@ -403,8 +403,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 	
 	@Override
-	public void clearAttribute(String key) {
-		uiContext.remove(key);
+	public <T> T clearAttribute(String key) {
+		return (T) uiContext.remove(key);
 	}
 
 	@SuppressWarnings("unchecked")

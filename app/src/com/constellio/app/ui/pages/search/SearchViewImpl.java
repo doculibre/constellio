@@ -407,7 +407,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						presenter.searchResultClicked(searchResultVO.getRecordVO());
+						presenter.searchResultClicked();
 					}
 				};
 			}

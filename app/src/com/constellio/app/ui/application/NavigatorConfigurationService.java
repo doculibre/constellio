@@ -18,6 +18,7 @@ import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
 import com.constellio.app.ui.pages.events.EventViewImpl;
+import com.constellio.app.ui.pages.exclusion.DeleteExclusionsImpl;
 import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
@@ -92,10 +93,7 @@ import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainRecordsViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainViewImpl;
 import com.constellio.app.ui.pages.profile.ModifyProfileViewImpl;
-import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
-import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
-import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
-import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
+import com.constellio.app.ui.pages.search.*;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
 import com.constellio.app.ui.pages.spellchecker.DeleteSpellCheckerExclusionsViewImpl;
 import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
@@ -176,6 +174,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_SAVED_SEARCHES = "listSavedSearches";
 	public static final String SEARCH_BOOST_BY_METADATAS = "searchBoostByMetadatas";
 	public static final String SEARCH_BOOST_BY_QUERYS = "searchBoostByQuery";
+	public static final String SOLR_FEATURES = "solrFeatures";
 	public static final String FORCED_REINDEX = "reindex";
 	public static final String LABEL_CONFIG = "labelConfig";
 	public static final String LABEL_AJOUT = "addLabel";
@@ -316,8 +315,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EDIT_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION,
-				OrderDecommissioningListViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SOLR_FEATURES, SolrFeatureViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION, OrderDecommissioningListViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(SYSTEM_CHECK, SystemCheckViewImpl.class));
 
