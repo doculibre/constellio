@@ -544,12 +544,12 @@ public class ThesaurusService implements Serializable {
 		return !deniedTerms.contains(term.toLowerCase());
 	}
 
-	public List<String> suggestSimpleSearch(String input, Locale locale) {
+	public List<String> suggestSimpleSearch(String input, Locale locale, int minInputLength, int maxResults) {
 
 		// ordered Set to prioritize results found first (since last results are often found as last resort)
 		List<String> suggestions = new ArrayList<>();
 
-		if (StringUtils.isNotEmpty(input) && input.length() >= MIN_INPUT_LENGTH) {
+		if (StringUtils.isNotEmpty(input) && input.length() >= minInputLength) {
 
 				// get related pref labels that contains input
 
@@ -565,7 +565,7 @@ public class ThesaurusService implements Serializable {
 
 				// if not enough results, get related alt labels
 
-				if(suggestions.size() <= MAX_AUTOCOMPLETE_RESULTS) {
+				if(suggestions.size() <= maxResults) {
 					Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
 
 					for (SkosConcept suggestion : altLabelSuggestions) {

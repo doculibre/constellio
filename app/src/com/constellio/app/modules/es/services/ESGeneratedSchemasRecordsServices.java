@@ -62,11 +62,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorHttpDocument getConnectorHttpDocument(String id) {
-		return wrapConnectorHttpDocument(get(id));
+		return wrapConnectorHttpDocument(get(connectorHttpDocument.schemaType(),id));
 	}
 
 	public List<ConnectorHttpDocument> getConnectorHttpDocuments(List<String> ids) {
-		return wrapConnectorHttpDocuments(get(ids));
+		return wrapConnectorHttpDocuments(get(connectorHttpDocument.schemaType(),ids));
 	}
 
 	public ConnectorHttpDocument getConnectorHttpDocumentWithLegacyId(String legacyId) {
@@ -92,11 +92,6 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("charset");
 		}
 
-		public Metadata language() {
-			return metadata("language");
-		}
-
-
 		public Metadata connector() {
 			return metadata("connector");
 		}
@@ -113,8 +108,16 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("copyOf");
 		}
 
+		public Metadata description() {
+			return metadata("description");
+		}
+
 		public Metadata digest() {
 			return metadata("digest");
+		}
+
+		public Metadata domain() {
+			return metadata("domain");
 		}
 
 		public Metadata downloadTime() {
@@ -157,6 +160,10 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("inlinks");
 		}
 
+		public Metadata language() {
+			return metadata("language");
+		}
+
 		public Metadata level() {
 			return metadata("level");
 		}
@@ -181,10 +188,6 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("parsedContent");
 		}
 
-		public Metadata description() {
-			return metadata("description");
-		}
-
 		public Metadata priority() {
 			return metadata("priority");
 		}
@@ -195,6 +198,10 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 		public Metadata status() {
 			return metadata("status");
+		}
+
+		public Metadata thesaurusMatch() {
+			return metadata("thesaurusMatch");
 		}
 
 		public Metadata url() {
@@ -225,11 +232,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorInstance getConnectorInstance(String id) {
-		return wrapConnectorInstance(get(id));
+		return wrapConnectorInstance(get(connectorInstance.schemaType(),id));
 	}
 
 	public List<ConnectorInstance> getConnectorInstances(List<String> ids) {
-		return wrapConnectorInstances(get(ids));
+		return wrapConnectorInstances(get(connectorInstance.schemaType(),ids));
 	}
 
 	public ConnectorInstance getConnectorInstanceWithCode(String code) {
@@ -311,11 +318,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorHttpInstance getConnectorHttpInstance(String id) {
-		return wrapConnectorHttpInstance(get(id));
+		return wrapConnectorHttpInstance(get(connectorInstance.schemaType(),id));
 	}
 
 	public List<ConnectorHttpInstance> getConnectorHttpInstances(List<String> ids) {
-		return wrapConnectorHttpInstances(get(ids));
+		return wrapConnectorHttpInstances(get(connectorInstance.schemaType(),ids));
 	}
 
 	public ConnectorHttpInstance getConnectorHttpInstanceWithCode(String code) {
@@ -413,11 +420,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorLDAPInstance getConnectorLDAPInstance(String id) {
-		return wrapConnectorLDAPInstance(get(id));
+		return wrapConnectorLDAPInstance(get(connectorInstance.schemaType(),id));
 	}
 
 	public List<ConnectorLDAPInstance> getConnectorLDAPInstances(List<String> ids) {
-		return wrapConnectorLDAPInstances(get(ids));
+		return wrapConnectorLDAPInstances(get(connectorInstance.schemaType(),ids));
 	}
 
 	public ConnectorLDAPInstance getConnectorLDAPInstanceWithCode(String code) {
@@ -567,11 +574,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbInstance getConnectorSmbInstance(String id) {
-		return wrapConnectorSmbInstance(get(id));
+		return wrapConnectorSmbInstance(get(connectorInstance.schemaType(),id));
 	}
 
 	public List<ConnectorSmbInstance> getConnectorSmbInstances(List<String> ids) {
-		return wrapConnectorSmbInstances(get(ids));
+		return wrapConnectorSmbInstances(get(connectorInstance.schemaType(),ids));
 	}
 
 	public ConnectorSmbInstance getConnectorSmbInstanceWithCode(String code) {
@@ -653,11 +660,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorLDAPUserDocument getConnectorLDAPUserDocument(String id) {
-		return wrapConnectorLDAPUserDocument(get(id));
+		return wrapConnectorLDAPUserDocument(get(connectorLdapUserDocument.schemaType(),id));
 	}
 
 	public List<ConnectorLDAPUserDocument> getConnectorLDAPUserDocuments(List<String> ids) {
-		return wrapConnectorLDAPUserDocuments(get(ids));
+		return wrapConnectorLDAPUserDocuments(get(connectorLdapUserDocument.schemaType(),ids));
 	}
 
 	public ConnectorLDAPUserDocument getConnectorLDAPUserDocumentWithLegacyId(String legacyId) {
@@ -815,11 +822,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbDocument getConnectorSmbDocument(String id) {
-		return wrapConnectorSmbDocument(get(id));
+		return wrapConnectorSmbDocument(get(connectorSmbDocument.schemaType(),id));
 	}
 
 	public List<ConnectorSmbDocument> getConnectorSmbDocuments(List<String> ids) {
-		return wrapConnectorSmbDocuments(get(ids));
+		return wrapConnectorSmbDocuments(get(connectorSmbDocument.schemaType(),ids));
 	}
 
 	public ConnectorSmbDocument getConnectorSmbDocumentWithLegacyId(String legacyId) {
@@ -925,11 +932,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbFolder getConnectorSmbFolder(String id) {
-		return wrapConnectorSmbFolder(get(id));
+		return wrapConnectorSmbFolder(get(connectorSmbFolder.schemaType(),id));
 	}
 
 	public List<ConnectorSmbFolder> getConnectorSmbFolders(List<String> ids) {
-		return wrapConnectorSmbFolders(get(ids));
+		return wrapConnectorSmbFolders(get(connectorSmbFolder.schemaType(),ids));
 	}
 
 	public ConnectorSmbFolder getConnectorSmbFolderWithLegacyId(String legacyId) {
@@ -1011,11 +1018,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorType getConnectorType(String id) {
-		return wrapConnectorType(get(id));
+		return wrapConnectorType(get(connectorType.schemaType(),id));
 	}
 
 	public List<ConnectorType> getConnectorTypes(List<String> ids) {
-		return wrapConnectorTypes(get(ids));
+		return wrapConnectorTypes(get(connectorType.schemaType(),ids));
 	}
 
 	public ConnectorType getConnectorTypeWithCode(String code) {

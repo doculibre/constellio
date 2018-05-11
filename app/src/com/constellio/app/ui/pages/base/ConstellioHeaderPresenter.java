@@ -17,15 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchResultsViewMode;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.services.records.RecordImpl;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -34,6 +25,8 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -60,6 +53,10 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
+import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.app.ui.pages.search.SearchPresenter;
+import com.constellio.app.ui.pages.search.SearchResultsViewMode;
+import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -67,8 +64,10 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -76,6 +75,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -85,6 +86,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -823,6 +826,35 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		updateSelectionButton();
 		header.refreshButtons();
+	}
+
+	public List<String> getAutocompleteSuggestions(String text) {
+		List<String> suggestions = new ArrayList<>();
+		
+		int minInputLength = 3;
+		int maxResults = 10;
+		String[] excludedRequests = new String[0];
+		String collection = header.getCollection();
+
+        SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory);
+		ThesaurusManager thesaurusManager = modelLayerFactory.getThesaurusManager();
+		ThesaurusService thesaurusService = thesaurusManager.get(collection);
+		
+		List<String> statsSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
+		suggestions.addAll(statsSuggestions);
+		if (statsSuggestions.size() < maxResults) {
+			int thesaurusMaxResults = maxResults - statsSuggestions.size();
+			List<String> thesaurusSuggestions = thesaurusService.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength, thesaurusMaxResults);
+			suggestions.addAll(thesaurusSuggestions);
+		}
+		
+		return suggestions;
+	}
+
+	public int getAutocompleteBufferSize() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
 
 }

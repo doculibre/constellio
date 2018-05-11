@@ -22,6 +22,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.thesaurus.SkosConcept;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -137,10 +138,10 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     }
     
     private Component buildStatsSheetContent() {
-    	int nbDocumentsWithAtLeastOneConcept = 475833;
-    	int nbConceptsUsedAtLeastOnce = 1681069;
-    	int nbDocumentsWithoutAConcept = 23;
-    	int conceptsNotUsed = 9841;
+    	String nbDocumentsWithAtLeastOneConcept = presenter.getDocumentsWithAConcept();
+    	String nbConceptsUsedAtLeastOnce = presenter.getUsedConcepts();
+    	String nbDocumentsWithoutAConcept = presenter.getDocumentsWithoutAConcept();
+    	List<SkosConcept> conceptsNotUsed = presenter.getUnusedConcepts();
     	
     	Label nbDocumentsWithAtLeastOneConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithAtLeastOneConcept"));
     	Label nbDocumentsWithAtLeastOneConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithAtLeastOneConcept));
@@ -154,7 +155,7 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     	Label mostFrequentlyUsedConceptsLabel = new Label($("ThesaurusConfigurationView.stats.mostFrequentlyUsedConcepts"));
     	Label mostFrequentlyUsedConceptsComponent = new Label("Télécharger");
     	
-    	Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", conceptsNotUsed));
+    	Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", MessageFormat.format("{0}", conceptsNotUsed.size())));
     	Label conceptsNotUsedComponent = new Label("Télécharger");
 
     	List<CaptionAndComponent> captionsAndDisplayComponents = new ArrayList<>();
