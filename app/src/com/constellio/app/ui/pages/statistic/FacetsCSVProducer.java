@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.statistic;
 
+import com.constellio.app.ui.framework.components.AbstractCSVProducer;
 import com.constellio.app.ui.framework.containers.FacetsLazyContainer.FacetsLazyQueryFactory.FacetsItem;
 import com.constellio.app.ui.framework.data.FacetsDataProvider;
 import com.constellio.app.ui.framework.data.FacetsDataProvider.Facets;

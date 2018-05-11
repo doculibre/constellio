@@ -24,18 +24,28 @@ import com.vaadin.data.util.ObjectProperty;
 public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryContainer {
 
 	private RecordVOWithDistinctSchemasDataProvider dataProvider;
+	private List<String> reportMetadataList;
 
 	public RecordVOWithDistinctSchemaTypesLazyContainer(RecordVOWithDistinctSchemasDataProvider dataProvider,
 			List<String> reportMetadata) {
 		super(new RecordVOLazyQueryDefinition(dataProvider, reportMetadata),
 				new RecordVOLazyQueryFactory(dataProvider, reportMetadata));
 		this.dataProvider = dataProvider;
+		this.reportMetadataList = reportMetadata;
 		dataProvider.addDataRefreshListener(new DataRefreshListener() {
 			@Override
 			public void dataRefresh() {
 				RecordVOWithDistinctSchemaTypesLazyContainer.this.refresh();
 			}
 		});
+	}
+
+	public RecordVOWithDistinctSchemasDataProvider getDataProvider() {
+		return dataProvider;
+	}
+
+	public List<String> getReportMetadataList() {
+		return reportMetadataList;
 	}
 
 	public RecordVO getRecordVO(int index) {
@@ -110,20 +120,7 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 					List<Item> items = new ArrayList<Item>();
 					List<RecordVO> recordVOs = dataProvider.listRecordVOs(startIndex, count);
 					for (RecordVO recordVO : recordVOs) {
-						Item item = new BeanItem<>(recordVO);
-						List<String> propertiesIds = new ArrayList<>();
-						for (String reportMetadata : reportMetadataList) {
-							if (!propertiesIds.contains(reportMetadata)) {
-								String schemaCode = recordVO.getSchema().getCode();
-								Object value = recordVO.get(schemaCode + "_" + reportMetadata);
-								if (value == null) {
-									value = "";
-								}
-								item.addItemProperty(reportMetadata,
-										new ObjectProperty<>(value));
-							}
-						}
-						items.add(item);
+						items.add(new RecordVOWithDistinctSchemaItem(recordVO, reportMetadataList));
 					}
 					return items;
 				}
@@ -138,6 +135,25 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 					throw new UnsupportedOperationException("Query is read-only");
 				}
 			};
+		}
+
+		public static class RecordVOWithDistinctSchemaItem extends BeanItem<RecordVO> {
+			public RecordVOWithDistinctSchemaItem(RecordVO recordVO, List<String> reportMetadataList) {
+				super(recordVO);
+
+				List<String> propertiesIds = new ArrayList<>();
+				for (String reportMetadata : reportMetadataList) {
+					if (!propertiesIds.contains(reportMetadata)) {
+						String schemaCode = recordVO.getSchema().getCode();
+						Object value = recordVO.get(schemaCode + "_" + reportMetadata);
+						if (value == null) {
+							value = "";
+						}
+
+						addItemProperty(reportMetadata, new ObjectProperty<>(value));
+					}
+				}
+			}
 		}
 
 		private interface SerializableQuery extends Query, Serializable {

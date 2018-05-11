@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.statistic;
+package com.constellio.app.ui.framework.components;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import com.vaadin.data.Item;
@@ -56,9 +56,9 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
     protected String[] getHeaderRow() {
         List<String> headerRow = new ArrayList<>();
 
-        Object[] visibleColumns = table.getVisibleColumns();
+        Object[] visibleColumns = getTable().getVisibleColumns();
         for (int i = 0; i < visibleColumns.length; i++) {
-            headerRow.add(table.getColumnHeader(visibleColumns[i]));
+            headerRow.add(getTable().getColumnHeader(visibleColumns[i]));
         }
 
         return headerRow.toArray(new String[0]);
@@ -114,7 +114,7 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
         return row.toArray(new String[0]);
     }
 
-    private String getValue(Property prop) {
+    protected String getValue(Property prop) {
         Object value = prop.getValue();
 
         if(Number.class.isAssignableFrom(value.getClass())) {

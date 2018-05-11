@@ -1,20 +1,12 @@
 package com.constellio.app.ui.pages.statistic;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.AbstractCSVProducer;
 import com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.SearchEventVOLazyQueryFactory.SearchEventVOItem;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SearchEventVODataProvider;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SPEQueryResponse;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Item;
-import com.vaadin.data.Property;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
