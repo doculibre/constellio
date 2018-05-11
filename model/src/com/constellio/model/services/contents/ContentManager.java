@@ -631,7 +631,7 @@ public class ContentManager implements StatefulService {
 				record.set(Schemas.MARKED_FOR_PARSING, null);
 
 			}
-			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 			tx.getRecordUpdateOptions().setFullRewrite(true);
 			try {
 				recordServices.execute(tx);
