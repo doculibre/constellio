@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -293,7 +294,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		return "";
 	}
 
-	String getDocumentsWithAConcept() {
+	int getDocumentsWithAConcept() {
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
 		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
@@ -305,10 +306,10 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 		SPEQueryResponse response = searchService.query(query);
 
-		return "" + response.getFieldFacetValues().get("thesaurusMatch_ss").size();
+		return response.getFieldFacetValues().get("thesaurusMatch_ss").size();
 	}
 
-	String getDocumentsWithoutAConcept() {
+	int getDocumentsWithoutAConcept() {
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		// thesaurusMatch_ss:[* TO *]
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -319,10 +320,10 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		query.setNumberOfRows(0);
 		SPEQueryResponse response = searchService.query(query);
 
-		return "" + response.getNumFound();
+		return (int) response.getNumFound();
 	}
 
-	String getUsedConcepts() {
+	int getUsedConcepts() {
 		// total de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -335,15 +336,17 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 		SPEQueryResponse response = searchService.query(query);
 		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
-		long total = 0;
-		for(FacetValue facetValue: usedConcept) {
+		int total = 0;
+		for (FacetValue facetValue: usedConcept) {
 			total += facetValue.getQuantity();
 		}
 
-		return "" + total;
+		return total;
 	}
 
-	String getMostUsedConcepts() {
+	Map<SkosConcept, Long> getMostUsedConcepts() {
+		Map<SkosConcept, Long> result = new LinkedHashMap<>();
+		
 		//  résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=1000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -357,19 +360,25 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		SPEQueryResponse response = searchService.query(query);
 		List<FacetValue> usedConceptFacet = response.getFieldFacetValues().get("thesaurusMatch_ss");
 
+		
+		return result;
+	}
+	
+	InputStream getMostUsedConceptsInputStream(Map<SkosConcept, Long> mostUsedConcepts) {
 		StringBuilder csv = new StringBuilder();
-		for (FacetValue facetValue: usedConceptFacet) {
-			SkosConcept concept = thesaurusManager.get(collection).getSkosConcept(facetValue.getValue());
+		for (SkosConcept concept: mostUsedConcepts.keySet()) {
+			long quantity = mostUsedConcepts.get(concept);
 			csv.append(concept.getRdfAbout());
 			csv.append(";");
-			csv.append(facetValue.getQuantity());
+			csv.append(quantity);
 			csv.append("\n");
 		}
-
-		return csv.toString();
+		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));
 	}
 
 	List<SkosConcept> getUnusedConcepts() {
+		List<SkosConcept> result = new ArrayList<>();
+		
 		// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -389,7 +398,6 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 			allConcept.remove(value.getValue());
 		}
 
-		List<SkosConcept> result = new ArrayList<>();
 		for(String conceptKey: allConcept.keySet()) {
 			SkosConcept concept = allConcept.get(conceptKey);
 			result.add(concept);

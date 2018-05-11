@@ -44,6 +44,7 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 		this.suggestionsProvider = suggestionsProvider;
 		
 		setMinChars(1);
+		setCache(false);
 		setSuggestionProvider(new AutocompleteSuggestionProvider() {
 			@Override
 			public Collection<AutocompleteSuggestion> querySuggestions(AutocompleteQuery query) {
