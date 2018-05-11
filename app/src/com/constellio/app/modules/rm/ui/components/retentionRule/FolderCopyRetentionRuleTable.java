@@ -524,7 +524,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							break;
 						}
 					}
-					if (activeRetentionPeriod && retentionPeriod.getRetentionType() == RetentionType.OPEN) {
+					if (activeRetentionPeriod &&
+							(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
+							retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
 						yearsField.setEnabled(true);
 					} else {
@@ -547,7 +549,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							}
 							yearsField.setValue(null);
 							yearsField.setEnabled(activeRetentionPeriod &&
-									newRetentionPeriod.getRetentionType() == RetentionType.OPEN);
+									(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
+									retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
 						} else {
 							yearsField.setEnabled(true);
 						}
