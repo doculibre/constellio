@@ -109,6 +109,18 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getReindexingFolder() {
+		return new File(getWorkFolder(), "reindexing");
+	}
+
+	public File getReindexingAggregatedValuesFolder() {
+		return new File(getReindexingFolder(), "aggregatedValues");
+	}
+
+	public File getReindexationLock() {
+		return new File(getReindexingFolder(), "reindexation.lock");
+	}
+
 	public File getVAADINFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getConstellioWebappFolder(), "VAADIN");
