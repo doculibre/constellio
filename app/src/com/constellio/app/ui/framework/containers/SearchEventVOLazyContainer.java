@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SearchEventVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
+    public static final String ID = "searchEvent_default_id";
     public static final String CLICK_COUNT = "searchEvent_default_clickCount";
     public static final String ORIGINAL_QUERY = "searchEvent_default_originalQuery";
     public static final String PAGE_NAVIGATION_COUNT = "searchEvent_default_pageNavigationCount";
@@ -32,11 +33,37 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String SOUS_COLLECTION = "searchEvent_default_sousCollection";
     public static final String LANGUE = "searchEvent_default_langue";
 
-    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE));
-    public static final List<String> PROPERTIES_WITH_PARAMS = Collections.unmodifiableList(Arrays.asList(CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, CLICK_COUNT, NUM_FOUND, Q_TIME, NUM_PAGE, PARAMS));
+    private static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(ID, CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE));
+    private static final List<String> PROPERTIES_WITH_PARAMS = Collections.unmodifiableList(Arrays.asList(ID, CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, PARAMS));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);
+    }
+
+    public static List<String> getProperties(MetadataSchemaVO schema) {
+        List<String> props = new ArrayList<>();
+        for(String p:PROPERTIES) {
+            for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
+                if(p.equals(metadataVO.getCode())) {
+                    props.add(p);
+                    break;
+                }
+            }
+        }
+        return props;
+    }
+
+    public static List<String> getPropertiesWithParams(MetadataSchemaVO schema) {
+        List<String> props = new ArrayList<>();
+        for(String p:PROPERTIES_WITH_PARAMS) {
+            for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
+                if(p.equals(metadataVO.getCode())) {
+                    props.add(p);
+                    break;
+                }
+            }
+        }
+        return props;
     }
 
     public static class SearchEventVOLazyQueryDefinition extends LazyQueryDefinition {
@@ -46,7 +73,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
             super(true, 100, null);
 
             if(properties == null || properties.isEmpty()) {
-                properties = PROPERTIES_WITH_PARAMS;
+                properties = getPropertiesWithParams(dataProvider.getSchema());
             }
 
             MetadataSchemaVO schema = dataProvider.getSchema();

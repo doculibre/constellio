@@ -38,6 +38,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -223,7 +224,9 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				if (context.isNewUrl(url)) {
 					context.markAsFetched(url);
 
-					savedDocuments.add(connectorHttp.newUnfetchedURLDocument(url, linksLevel));
+					ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+					document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+					savedDocuments.add(document);
 				}
 			}
 
@@ -243,7 +246,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.setParsedContent(results.getParsedContent())
 				.setDigest(results.getDigest())
 				.setLanguage(results.getLanguage())
-				//.setOutlinks(urls)
+				.setOutlinks(urls)
 				.setDescription(results.getDescription())
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))

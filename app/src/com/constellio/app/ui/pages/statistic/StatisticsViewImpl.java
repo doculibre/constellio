@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.statistic;
 
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.AbstractCSVProducer;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -13,7 +15,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
-import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
@@ -36,8 +37,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.PROPERTIES;
-import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.PROPERTIES_WITH_PARAMS;
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getProperties;
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getPropertiesWithParams;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, Serializable {
@@ -406,6 +407,9 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.LANGUE:
                 return $("StatisticsView.langue");
 
+            case SearchEventVOLazyContainer.ID:
+                return $("StatisticsView.id");
+
             default:
                 return property;
         }
@@ -431,7 +435,8 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                 properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY);
                 break;
             default:
-                properties = new ArrayList<>(PROPERTIES_WITH_PARAMS);
+                MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
+                properties = new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
         }
 
         return properties;
@@ -441,7 +446,8 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         if(isStatisticTypeChoice()) {
             return initColumnsHeader();
         } else {
-            return new ArrayList<>(isParamsShowed() ? PROPERTIES_WITH_PARAMS : PROPERTIES);
+            MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
+            return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
         }
     }
 
