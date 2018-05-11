@@ -27,7 +27,10 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class VaultMigrationScript {
 
-//	static String currentCollection;
+	private static final int LENGTH_OF_HASH = 28;
+	private static final int LENGTH_OF_PARSED_HASH = 36;
+	private static final int LENGTH_OF_PREVIEW_HASH = 36;
+	//	static String currentCollection;
 	static AppLayerFactory appLayerFactory;
 	static ModelLayerFactory modelLayerFactory;
 	static SearchServices searchServices;
@@ -55,6 +58,7 @@ public class VaultMigrationScript {
 			for (final MetadataSchemaType metadataSchemaType : metadataSchemaTypeList) {
 				for (Metadata metadata : metadataSchemaType.getAllMetadatas()) {
 					if (MetadataValueType.CONTENT.equals(metadata.getType())) {
+						System.out.println(metadataSchemaType);
 						final String metadataCode = metadata.getCode();
 						ActionExecutorInBatch actionExecutorInBatch = new ActionExecutorInBatch(searchServices, "", 1000) {
 
@@ -63,10 +67,19 @@ public class VaultMigrationScript {
 								Metadata contentMetadata = metadataSchemaType.getMetadata(metadataCode);
 								Transaction transaction = new Transaction();
 								for (Record record : records) {
-									Content recordContent = record.get(contentMetadata);
-									ContentImpl content = (ContentImpl) recordContent;
-									content.changeHashCodesOfAllVersions();
-									setOfHashCodes.addAll(content.getHashOfAllVersions());
+									if("UnmodifiableRandomAccessList".equals(record.get(contentMetadata).getClass().getSimpleName())){
+										List<Content> recordContents = record.get(contentMetadata);
+										for(Content recordContent : recordContents){
+											ContentImpl content = (ContentImpl) recordContent;
+											content.changeHashCodesOfAllVersions();
+											setOfHashCodes.addAll(content.getHashOfAllVersions());
+										}
+									}else{
+										Content recordContent = record.get(contentMetadata);
+										ContentImpl content = (ContentImpl) recordContent;
+										content.changeHashCodesOfAllVersions();
+										setOfHashCodes.addAll(content.getHashOfAllVersions());
+									}
 								}
 								transaction.update(records);
 								recordServices.execute(transaction);
@@ -89,9 +102,9 @@ public class VaultMigrationScript {
 		File fileToMove;
 			while(iterator.hasNext()) {
 				fileToMove = iterator.next();
-				Boolean firstCondition = fileToMove.getName().length() < 28 && !fileToMove.getName().contains("parsed") && !fileToMove.getName().contains("preview");
-				Boolean secondCondition = fileToMove.getName().length() < 36 && fileToMove.getName().contains("parsed");
-				Boolean thirdCondition = fileToMove.getName().length() < 37 && fileToMove.getName().contains("preview");
+				Boolean firstCondition = fileToMove.getName().length() < LENGTH_OF_HASH && !fileToMove.getName().contains("parsed") && !fileToMove.getName().contains("preview");
+				Boolean secondCondition = fileToMove.getName().length() < LENGTH_OF_PARSED_HASH && fileToMove.getName().contains("parsed");
+				Boolean thirdCondition = fileToMove.getName().length() < LENGTH_OF_PREVIEW_HASH && fileToMove.getName().contains("preview");
 				if (firstCondition || secondCondition || thirdCondition) {
 					moveFileToRightPath(fileToMove, parentFile, listOfHashCodes, true);
 				} else if (fileToMove.getName().contains("+")) {
@@ -100,21 +113,23 @@ public class VaultMigrationScript {
 			}
 	}
 
-	private static String rename(Set<String> listOfHashCodes, String oldName){
+	public static String rename(Set<String> listOfHashCodes, String oldName){
 		String newName = "";
 		boolean contain = false;
 		String [] oldNameParts =oldName.split("_");
 		for (String hashCode : listOfHashCodes){
-			for(int index=0; index<oldNameParts.length; index++){
-				if (!hashCode.contains(oldNameParts[index])){
-					contain = false;
-					break;
-				}else{
-					contain = true;
+			if((hashCode.contains("parsed")&& oldName.contains("parsed")) || (!hashCode.contains("parsed")&& !oldName.contains("parsed"))){
+				for(int index=0; index<oldNameParts.length; index++){
+					if (!hashCode.contains(oldNameParts[index])){
+						contain = false;
+						break;
+					}else{
+						contain = true;
+					}
 				}
-			}
-			if (contain == true){
-				return hashCode;
+				if (contain == true){
+					return hashCode;
+				}
 			}
 		}
 		return newName;
@@ -133,11 +148,17 @@ public class VaultMigrationScript {
 			newName = newName.replace("+","-");
 		}
 
-		Boolean firstCondition = newName.length() < 28 && !newName.contains("parsed") && !newName.contains("preview");
-		Boolean secondCondition = newName.length() < 36 && newName.contains("parsed");
-		Boolean thirdCondition = newName.length() < 37 && newName.contains("preview");
-		if(firstCondition || secondCondition || thirdCondition){
+		Boolean firstCondition = newName.length() < LENGTH_OF_HASH && !newName.contains("parsed") && !newName.contains("preview");
+		Boolean secondCondition = newName.length() < LENGTH_OF_PARSED_HASH && newName.contains("parsed");
+		Boolean thirdCondition = newName.length() < LENGTH_OF_PREVIEW_HASH && newName.contains("preview");
+		if(firstCondition){
 			newName = rename(listOfHashCodes,newName);
+		}
+		if(secondCondition){
+			newName = rename(listOfHashCodes,newName.replace("__parsed",""))+"__parsed";
+		}
+		if(thirdCondition){
+			newName = rename(listOfHashCodes,newName.replace(".preview",""))+".preview";
 		}
 		folderToRemove = fileToMove.getParentFile();
 
