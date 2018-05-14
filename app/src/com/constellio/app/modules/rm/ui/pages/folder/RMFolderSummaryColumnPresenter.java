@@ -34,6 +34,6 @@ public class RMFolderSummaryColumnPresenter extends SingleSchemaBasePresenter<RM
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return false;
+        return true;
     }
 }
