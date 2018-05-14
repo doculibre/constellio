@@ -811,6 +811,7 @@ public class ContentManager implements StatefulService {
 					}
 					Transaction transaction = new Transaction(batch);
 					transaction.setSkippingRequiredValuesValidation(true);
+					transaction.getRecordUpdateOptions().setOverwriteModificationDateAndUser(false);
 					try {
 						recordServices.execute(transaction);
 					} catch (RecordServicesException e) {
