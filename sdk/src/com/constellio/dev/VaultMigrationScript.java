@@ -3,7 +3,6 @@ package com.constellio.dev;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.*;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -11,11 +10,9 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -58,7 +55,6 @@ public class VaultMigrationScript {
 			for (final MetadataSchemaType metadataSchemaType : metadataSchemaTypeList) {
 				for (Metadata metadata : metadataSchemaType.getAllMetadatas()) {
 					if (MetadataValueType.CONTENT.equals(metadata.getType())) {
-						System.out.println(metadataSchemaType);
 						final String metadataCode = metadata.getCode();
 						ActionExecutorInBatch actionExecutorInBatch = new ActionExecutorInBatch(searchServices, "", 1000) {
 
@@ -118,18 +114,16 @@ public class VaultMigrationScript {
 		boolean contain = false;
 		String [] oldNameParts =oldName.split("_");
 		for (String hashCode : listOfHashCodes){
-			if((hashCode.contains("parsed")&& oldName.contains("parsed")) || (!hashCode.contains("parsed")&& !oldName.contains("parsed"))){
-				for(int index=0; index<oldNameParts.length; index++){
-					if (!hashCode.contains(oldNameParts[index])){
-						contain = false;
-						break;
-					}else{
-						contain = true;
-					}
+			for(int index=0; index<oldNameParts.length; index++){
+				if (!hashCode.contains(oldNameParts[index])){
+					contain = false;
+					break;
+				}else{
+					contain = true;
 				}
-				if (contain == true){
-					return hashCode;
-				}
+			}
+			if (contain == true){
+				return hashCode;
 			}
 		}
 		return newName;

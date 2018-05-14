@@ -496,6 +496,10 @@ public class ContentImpl implements Content {
 
 	public void changeHashCodesOfAllVersions(){
 		List<ContentVersion> listOfContentVersion = new ArrayList<>();
+		if (currentCheckedOutVersion != null) {
+			currentCheckedOutVersion = changeHashOf(currentCheckedOutVersion);
+		}
+		ensureHistoryIsLoaded();
 		if(history != null){
 			for (ContentVersion version : history){
 				listOfContentVersion.add(changeHashOf(version));
