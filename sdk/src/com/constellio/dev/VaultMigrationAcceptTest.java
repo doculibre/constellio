@@ -44,8 +44,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@UiTest
-@MainTest
+//@UiTest
+//@MainTest
 public class VaultMigrationAcceptTest extends ConstellioTest {
     public static final LocalDate DEFAULT_OPENING_DATE = new LocalDate(2001, 01, 05);
     public static final String FOLDER_TITLE = "FolderTest";
@@ -71,7 +71,8 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
             }
         });
 
-        prepareSystem(
+//        TODO Francis : givenDocumentsWithContentWithOtherVersionsWhenMigrateVaultThenHashesAreCorrectlyReplaced ne roule pas avec prepare system
+        prepareSystemWithoutHyperTurbo(
                 withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers().withRMTest(records)
         );
 
@@ -282,7 +283,7 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
         String oldHash = "S96isCbmZrsCoBc14-wA=";
         String newHash = "3TPfsAx_S96isCbmZrsCoBc14-wA=";
         Set<String> listOfHashs = new HashSet<>();
-        listOfHashs.addAll(asList("3TPfsAx_S96isCbmZrsCoBc14-wA=","3TPfsAx_S96isCbmZrsCoBc14-wA=__parsed","56Qk2Evo-9vWFU-rnjUpTFEfozc="));
+        listOfHashs.addAll(asList("3TPfsAx_S96isCbmZrsCoBc14-wA=","56Qk2Evo-9vWFU-rnjUpTFEfozc="));
 
         assertThat(VaultMigrationScript.rename(listOfHashs, oldHash)).isEqualTo(newHash);
     }
@@ -292,7 +293,7 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
         String oldHash = "S96isCbmZrsCoBc14-wA=";
         String newHash = "3TPfsAx__S96isCbmZrsCoBc14-wA=";
         Set<String> listOfHashs = new HashSet<>();
-        listOfHashs.addAll(asList("3TPfsAx__S96isCbmZrsCoBc14-wA=","3TPfsAx__S96isCbmZrsCoBc14-wA=__parsed","56Qk2Evo-9vWFU-rnjUpTFEfozc="));
+        listOfHashs.addAll(asList("3TPfsAx__S96isCbmZrsCoBc14-wA=","56Qk2Evo-9vWFU-rnjUpTFEfozc="));
 
         assertThat(VaultMigrationScript.rename(listOfHashs, oldHash)).isEqualTo(newHash);
     }
