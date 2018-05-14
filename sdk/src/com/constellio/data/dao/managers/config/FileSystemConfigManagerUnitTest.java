@@ -31,7 +31,10 @@ import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusManager;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
@@ -49,6 +52,7 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Mock DataLayerExtensions dataLayerExtensions;
 	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
 	@Mock FileOutputStream binaryOutputStream;
+	@Mock EventBusManager eventBusManager;
 
 	PropertiesConfiguration propertiesConfiguration;
 	XMLConfiguration xmlConfiguration;
@@ -84,13 +88,14 @@ public class FileSystemConfigManagerUnitTest extends ConstellioTest {
 	@Mock DocumentAlteration alterDoc;
 
 	@Mock Properties fileProperties;
-
+	@Mock EventBus eventBus;
 	ConstellioCache cache;
 
 	@Before
 	public void setUp() {
-		cache = new SerializationCheckCache("zeCache");
-		configManager = spy(new FileSystemConfigManager(configurationRoot, ioServices, hashService, cache, dataLayerExtensions));
+		cache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
+		configManager = spy(
+				new FileSystemConfigManager(configurationRoot, ioServices, hashService, cache, dataLayerExtensions, eventBus));
 
 		properties = new HashMap<String, String>();
 		propertiesAdded = new HashMap<String, String>();

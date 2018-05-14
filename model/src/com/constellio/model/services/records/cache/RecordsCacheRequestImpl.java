@@ -9,6 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -76,10 +77,12 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public void insert(List<Record> records) {
+	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		for (Record record : records) {
-			insert(record);
+			statuses.add(insert(record, insertionReason));
 		}
+		return statuses;
 	}
 
 	@Override
@@ -116,7 +119,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record record) {
+	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
 		if (cache.size() < 10000) {
 			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 				if (!record.getSchemaCode().startsWith("event")) {
@@ -128,7 +131,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		} else {
 			LOGGER.info("inserting in request cache aborted, since request cache is full");
 		}
-		CacheInsertionStatus status = nested.insert(record);
+		CacheInsertionStatus status = nested.insert(record, insertionReason);
 		if (status == CacheInsertionStatus.ACCEPTED) {
 			insertInRequestcache(record);
 		}
@@ -156,9 +159,9 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record record) {
+	public CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason) {
 		forceInsertInRequestcache(record);
-		return nested.forceInsert(record);
+		return nested.forceInsert(record, insertionReason);
 	}
 
 	@Override

@@ -42,6 +42,7 @@ import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.events.EventBus;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ThreadList;
@@ -88,6 +89,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 	@Mock ConfigUpdatedEventListener secondListener;
 	@Mock ConfigUpdatedEventListener otherPathListener;
 	@Mock ConfigEventListener otherEventListener;
+	@Mock EventBus eventBus;
 
 	CuratorFramework client;
 
@@ -110,7 +112,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 			client.delete().deletingChildrenIfNeeded().forPath("/constellio" + TEST_FOLDER);
 		}
 
-		configManager = spy(new ZooKeeperConfigManager(zhHost, TEST_FOLDER, ioServices));
+		configManager = spy(new ZooKeeperConfigManager(zhHost, TEST_FOLDER, ioServices, eventBus));
 		configManager.initialize();
 
 		this.loadProperties();

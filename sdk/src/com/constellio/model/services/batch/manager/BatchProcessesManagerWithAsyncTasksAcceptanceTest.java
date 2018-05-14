@@ -2,6 +2,7 @@ package com.constellio.model.services.batch.manager;
 
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -15,6 +16,7 @@ import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.services.batch.controller.BatchProcessState;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends ConstellioTest {
@@ -36,6 +38,10 @@ public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends Constelli
 		words = "";
 		givenBackgroundThreadsEnabled();
 
+		ModelLayerFactory otherInstanceModelLayerFactory = getModelLayerFactory("other-instance");
+		BatchProcessesManager otherBatchProcessManager = otherInstanceModelLayerFactory.getBatchProcessesManager();
+		linkEventBus(getModelLayerFactory(), otherInstanceModelLayerFactory);
+
 		String task1 = batchProcessesManager.addAsyncTask(
 				new AsyncTaskCreationRequest(new WordAsyncTask("Hell"), zeCollection, "first task")).getId();
 		String task2 = batchProcessesManager.addAsyncTask(
@@ -56,6 +62,20 @@ public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends Constelli
 		assertThat(extractingSimpleCodeAndParameters(task2State.getValidationErrors(), "words")).isEmpty();
 
 		BatchProcessState task3State = batchProcessesManager.getBatchProcessState(task3);
+		assertThat(extractingWarningsSimpleCodeAndParameters(task3State.getValidationErrors(), "words")).isEmpty();
+		assertThat(extractingSimpleCodeAndParameters(task3State.getValidationErrors(), "words")).containsOnly(
+				tuple("BatchProcessesManagerWithAsyncTasksAcceptanceTest$WordAsyncTask_ponctuationDetected", "rld!"));
+
+		task1State = otherBatchProcessManager.getBatchProcessState(task1);
+		assertThat(extractingWarningsSimpleCodeAndParameters(task1State.getValidationErrors(), "words")).containsOnly(
+				tuple("BatchProcessesManagerWithAsyncTasksAcceptanceTest$WordAsyncTask_hellIsNotARecommendedPlace", "Hell"));
+		assertThat(extractingSimpleCodeAndParameters(task1State.getValidationErrors(), "words")).isEmpty();
+
+		task2State = otherBatchProcessManager.getBatchProcessState(task2);
+		assertThat(extractingWarningsSimpleCodeAndParameters(task2State.getValidationErrors(), "words")).isEmpty();
+		assertThat(extractingSimpleCodeAndParameters(task2State.getValidationErrors(), "words")).isEmpty();
+
+		task3State = otherBatchProcessManager.getBatchProcessState(task3);
 		assertThat(extractingWarningsSimpleCodeAndParameters(task3State.getValidationErrors(), "words")).isEmpty();
 		assertThat(extractingSimpleCodeAndParameters(task3State.getValidationErrors(), "words")).containsOnly(
 				tuple("BatchProcessesManagerWithAsyncTasksAcceptanceTest$WordAsyncTask_ponctuationDetected", "rld!"));
