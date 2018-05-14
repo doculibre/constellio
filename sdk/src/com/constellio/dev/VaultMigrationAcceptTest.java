@@ -1,5 +1,6 @@
 package com.constellio.dev;
 
+import com.constellio.app.entities.modules.VaultMigrationScript;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -8,7 +9,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
@@ -29,7 +29,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.MainTest;
-import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import org.joda.time.LocalDate;
@@ -72,6 +71,10 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
             }
         });
 
+        prepareSystem(
+                withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers().withRMTest(records)
+        );
+
         searchServices = getModelLayerFactory().newSearchServices();
         contentManager = getModelLayerFactory().getContentManager();
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -80,11 +83,6 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
         givenTransactionLogIsEnabled();
 
         recordServices = getModelLayerFactory().newRecordServices();;
-
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers().withRMTest(records)
-        );
-
     }
 
     public void createDocuments() throws IOException, RecordServicesException {
@@ -221,10 +219,7 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
         MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes("zeCollection");
         MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
                 .getSchemaTypes("zeCollection").getSchemaType("document");
-        Set<String> hashCodes = VaultMigrationScript.improveHashCodes(getAppLayerFactory());
-        DataLayerConfiguration dataLayerConfiguration = getDataLayerFactory().getDataLayerConfiguration();
-        File file = dataLayerConfiguration.getContentDaoFileSystemFolder();
-        VaultMigrationScript.migrateVault(file,hashCodes);
+        VaultMigrationScript.migrateVault(getAppLayerFactory());
 
         List<Record> newRecords = searchServices.search(new LogicalSearchQuery(from(schemaType).returnAll()));
         for(Record record : newRecords){
@@ -302,8 +297,8 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
         assertThat(VaultMigrationScript.rename(listOfHashs, oldHash)).isEqualTo(newHash);
     }
 
-    @Test
-    @MainTestDefaultStart
+//    @Test
+//    @MainTestDefaultStart
     public void start() throws Exception {
         createDocuments();
         createTasks();
@@ -311,10 +306,8 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
         createTemporaryRecord();
         createDocumentTypes();
         createDecommissioningLists();
-        Set<String> hashCodes = VaultMigrationScript.improveHashCodes(getAppLayerFactory());
-        DataLayerConfiguration dataLayerConfiguration = getDataLayerFactory().getDataLayerConfiguration();
-        File file = dataLayerConfiguration.getContentDaoFileSystemFolder();
-        VaultMigrationScript.migrateVault(file,hashCodes);
+
+        VaultMigrationScript.migrateVault(getAppLayerFactory());
         driver = newWebDriver();
         waitUntilICloseTheBrowsers();
     }

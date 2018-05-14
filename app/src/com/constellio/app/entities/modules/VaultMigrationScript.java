@@ -1,7 +1,8 @@
-package com.constellio.dev;
+package com.constellio.app.entities.modules;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -32,7 +33,6 @@ public class VaultMigrationScript {
 	static ModelLayerFactory modelLayerFactory;
 	static SearchServices searchServices;
 	static RecordServices recordServices;
-	static RMSchemasRecordsServices rm;
 
 	private static void startBackend() {
 		//Only enable this line to run in production
@@ -90,9 +90,13 @@ public class VaultMigrationScript {
 		return setOfHashCodes;
 	}
 
-	public static void migrateVault(File parentFile,Set<String> listOfHashCodes) throws Exception {
+	public static void migrateVault(AppLayerFactory appLayerFactory) throws Exception {
 //      Longueur du hash : 28
 //      Longueur du parsedHash : 36
+		Set<String> listOfHashCodes = improveHashCodes(appLayerFactory);
+		DataLayerConfiguration dataLayerConfiguration = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration();
+		File parentFile = dataLayerConfiguration.getContentDaoFileSystemFolder();
+
 		java.util.Collection<File> leafFiles = FileUtils.listFiles(parentFile,null,true);
 		Iterator<File> iterator = leafFiles.iterator();
 		File fileToMove;
@@ -173,10 +177,9 @@ public class VaultMigrationScript {
 
 	public static void main(String argv[])
 			throws Exception {
-//		RecordPopulateServices.LOG_CONTENT_MISSING = false;
 		startBackend();
 
-		improveHashCodes(appLayerFactory);
+		migrateVault(appLayerFactory);
 	}
 
 }
