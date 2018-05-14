@@ -71,7 +71,7 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
             }
         });
 
-//        TODO Francis : givenDocumentsWithContentWithOtherVersionsWhenMigrateVaultThenHashesAreCorrectlyReplaced ne roule pas avec prepare system
+//        TODO Francis : givenDocumentsWithContentWhenMigrateVaultThenContentsExistInVault ne roule pas avec prepare system
         prepareSystemWithoutHyperTurbo(
                 withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers().withRMTest(records)
         );
