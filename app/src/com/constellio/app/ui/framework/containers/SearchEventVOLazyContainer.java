@@ -59,7 +59,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     @NotNull
     private static List<String> getDeclaredProperties(MetadataSchemaVO schema, List<String> properties) {
         List<String> props = new ArrayList<>();
-        for(String p : properties) {
+        mainLoop: for(String p : properties) {
             switch (p) {
                 case NUM_PAGE:
                 case SOUS_COLLECTION:
@@ -72,7 +72,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                     for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
                         if (p.equals(metadataVO.getCode())) {
                             props.add(p);
-                            break;
+                            break mainLoop;
                         }
                     }
             }
