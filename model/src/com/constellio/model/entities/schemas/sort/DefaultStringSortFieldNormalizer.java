@@ -53,7 +53,7 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 			max = current;
 		}
 
-		return max;
+		return Math.min(max, 8);
 	}
 
 	private String getNormalizedValue(String value, int maxSuccessiveDigitsCount) {
