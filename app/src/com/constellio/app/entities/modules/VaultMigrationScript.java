@@ -116,7 +116,7 @@ public class VaultMigrationScript {
 					fileToMove.getName().length() < LENGTH_OF_PREVIEW_HASH && fileToMove.getName().contains("preview");
 			if (firstCondition || secondCondition || thirdCondition) {
 				moveFileToRightPath(fileToMove, parentFile, listOfHashCodes, true);
-			} else if (fileToMove.getName().contains("+")) {
+			} else {
 				moveFileToRightPath(fileToMove, parentFile, listOfHashCodes, false);
 			}
 		}
@@ -187,6 +187,23 @@ public class VaultMigrationScript {
 		}
 	}
 
+	/**
+	 * Étapes :
+	 * 1. On roule un check d’intégrité de la voute (nous dit le nombre de fichiers dans la voute et le nombre de fichiers manquants)
+	 * 2. On arrête Constellio
+	 * 3. On modifie manuellement les 2 configs du fichier conf/constellio.properties
+	 * dao.contents.filesystem.separatormode=THREE_LEVELS_OF_ONE_DIGITS
+	 * hashing.encoding=BASE64_URL_ENCODED
+	 * 4. On roule le script, un Main sans paramètre (cd /opt/constellio/webapp-x.y.z/WEB-INF; sudo java -cp “lib/*:classes” com.constellio.app.entities.modules.VaultMigrationScript)
+	 * 5. On repart
+	 * 6. On roule un check d’intégrité de la voute, on compare avec celui du début, ça devrait être identique
+	 *
+	 *Note : la voute ne sera pas dans un état super clean : il reste des dossiers avec l'ancien pattern, mais c’est des dossiers
+	 * vides ou des contenus non référencé dans solr. On fera un autre script pour ça, mais ça ne dérange pas pour le moment.
+	 *
+	 * @param argv
+	 * @throws Exception
+	 */
 	public static void main(String argv[])
 			throws Exception {
 		startBackend();
