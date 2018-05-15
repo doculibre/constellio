@@ -407,6 +407,9 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.LANGUE:
                 return $("StatisticsView.langue");
 
+            case SearchEventVOLazyContainer.TYPE_RECHERCHE:
+                return $("StatisticsView.typeRecherche");
+
             case SearchEventVOLazyContainer.ID:
                 return $("StatisticsView.id");
 

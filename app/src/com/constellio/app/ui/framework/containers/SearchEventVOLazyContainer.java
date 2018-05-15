@@ -9,7 +9,9 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.vaadin.addons.lazyquerycontainer.*;
 
 import java.io.Serializable;
@@ -17,6 +19,11 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.collections4.ListUtils.union;
 
 public class SearchEventVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
     public static final String ID = "searchEvent_default_id";
@@ -32,35 +39,42 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String NUM_PAGE = "searchEvent_default_numPage";
     public static final String SOUS_COLLECTION = "searchEvent_default_sousCollection";
     public static final String LANGUE = "searchEvent_default_langue";
+    public static final String TYPE_RECHERCHE = "searchEvent_default_type_recherche";
 
-    private static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(ID, CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE));
-    private static final List<String> PROPERTIES_WITH_PARAMS = Collections.unmodifiableList(Arrays.asList(ID, CREATION_DATE, QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, PARAMS));
+    private static final List<String> PROPERTIES = unmodifiableList(asList(ID, CREATION_DATE, ORIGINAL_QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, TYPE_RECHERCHE));
+    private static final List<String> PROPERTIES_WITH_PARAMS = unmodifiableList(union(PROPERTIES, asList(PARAMS)));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);
     }
 
     public static List<String> getProperties(MetadataSchemaVO schema) {
-        List<String> props = new ArrayList<>();
-        for(String p:PROPERTIES) {
-            for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
-                if(p.equals(metadataVO.getCode())) {
-                    props.add(p);
-                    break;
-                }
-            }
-        }
-        return props;
+        return getDeclaredProperties(schema, PROPERTIES);
     }
 
     public static List<String> getPropertiesWithParams(MetadataSchemaVO schema) {
+        return getDeclaredProperties(schema, PROPERTIES_WITH_PARAMS);
+    }
+
+    @NotNull
+    private static List<String> getDeclaredProperties(MetadataSchemaVO schema, List<String> properties) {
         List<String> props = new ArrayList<>();
-        for(String p:PROPERTIES_WITH_PARAMS) {
-            for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
-                if(p.equals(metadataVO.getCode())) {
+        for(String p : properties) {
+            switch (p) {
+                case NUM_PAGE:
+                case SOUS_COLLECTION:
+                case LANGUE:
+                case TYPE_RECHERCHE:
                     props.add(p);
                     break;
-                }
+
+                default:
+                    for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
+                        if (p.equals(metadataVO.getCode())) {
+                            props.add(p);
+                            break;
+                        }
+                    }
             }
         }
         return props;
@@ -167,42 +181,44 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
             @Override
             public Property<?> getItemProperty(Object id) {
                 if(NUM_PAGE.equals(id)) {
-                    final Property<?> paramsProp = super.getItemProperty(this.definedMetadatas.get(PARAMS));
-
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
-                            String params = paramsProp.getValue().toString();
-                            double rows = getString("rows", params);
-                            double start = getString("start", params);
+                            String params = getRecord().get(PARAMS).toString();
+                            double rows = getDouble("rows", params);
+                            double start = getDouble("start", params);
 
                             if(start < 0) {
                                 return 1;
                             } else if(rows == 0) {
-                                return start;
+                                return (int) start;
                             } else {
                                 return (int) ((start / rows) + 1);
                             }
                         }
                     };
                 } else if(SOUS_COLLECTION.equals(id)) {
-                    final Property<?> paramsProp = super.getItemProperty(this.definedMetadatas.get(PARAMS));
-
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
-                            String params = paramsProp.getValue().toString();
+                            String params = getRecord().get(PARAMS).toString();
                             return getSousCollection(params);
                         }
                     };
                 } else if(LANGUE.equals(id)) {
-                    final Property<?> paramsProp = super.getItemProperty(this.definedMetadatas.get(PARAMS));
-
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
-                            String params = paramsProp.getValue().toString();
+                            String params = getRecord().get(PARAMS).toString();
                             return getLangue(params);
+                        }
+                    };
+                } else if(TYPE_RECHERCHE.equals(id)) {
+                    return new ObjectValueProperty() {
+                        @Override
+                        public Object getValue() {
+                            String params = getRecord().get(PARAMS).toString();
+                            return getTypeRecherche(params);
                         }
                     };
                 }
@@ -218,13 +234,33 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                 return getRegexpValue("USRsousCollection_s:\\(\\\"(.*)\\\"\\)", params);
             }
 
-            private double getString(String token, String params) {
+            private String getTypeRecherche(String params) {
+                String query = getRecord().get(ORIGINAL_QUERY).toString();
+                if(StringUtils.contains(query, "\"")) {
+                    return $("StatisticsView.expressionExacte");
+                }
+
+                String mm = getTokenString("mm", params);
+                if("1".equals(mm)) {
+                    return $("StatisticsView.auMoinsUnDesMots");
+                } else if("100%".equals(mm)) {
+                    return $("StatisticsView.tousLesMots");
+                }
+
+                return mm;
+            }
+
+            private double getDouble(String token, String params) {
                 try {
-                    return Double.parseDouble(getRegexpValue(token+"=(\\S+),", params));
+                    return Double.parseDouble(getTokenString(token, params));
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                     return 0;
                 }
+            }
+
+            private String getTokenString(String token, String params) {
+                return getRegexpValue(token+"=(\\S+),", params);
             }
 
             private String getRegexpValue(String regExpGroup, String from) {
