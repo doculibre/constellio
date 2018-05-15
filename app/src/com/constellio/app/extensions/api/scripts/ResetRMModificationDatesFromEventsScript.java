@@ -32,18 +32,19 @@ public class ResetRMModificationDatesFromEventsScript extends ScriptWithLogOutpu
         for(String collection : appLayerFactory
                 .getCollectionsManager().getCollectionCodesExcludingSystem()) {
             final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            final HashMap<String, LocalDateTime> documentsLastModificationDate = new HashMap<>();
+            final HashMap<String, LocalDateTime> recordsLastModificationDate = new HashMap<>();
 
-            onCondition(LogicalSearchQueryOperators.from(rm.eventSchemaType()).where(rm.eventType()).is(EventType.MODIFY_DOCUMENT))
+            onCondition(LogicalSearchQueryOperators.from(rm.eventSchemaType())
+            .where(rm.eventType()).isIn(asList(EventType.MODIFY_DOCUMENT, EventType.MODIFY_FOLDER)))
             .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
                     @Override
                     public void modifyRecord(Record record) {
                         Event event = rm.wrapEvent(record);
                         String recordId = event.getRecordId();
                         LocalDateTime createdOn = event.getCreatedOn();
-                        LocalDateTime previousDate = documentsLastModificationDate.get(recordId);
+                        LocalDateTime previousDate = recordsLastModificationDate.get(recordId);
                         if(previousDate == null || previousDate.isBefore(createdOn)) {
-                            documentsLastModificationDate.put(recordId, createdOn);
+                            recordsLastModificationDate.put(recordId, createdOn);
                         }
                     }
                 }
@@ -53,7 +54,19 @@ public class ResetRMModificationDatesFromEventsScript extends ScriptWithLogOutpu
             .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
                     @Override
                     public void modifyRecord(Record record) {
-                        LocalDateTime lastModificationDate = documentsLastModificationDate.get(record.getId());
+                        LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
+                        if(lastModificationDate != null) {
+                            record.set(Schemas.MODIFIED_ON, lastModificationDate);
+                        }
+                    }
+                }
+            );
+
+            onCondition(LogicalSearchQueryOperators.from(rm.folderSchemaType()).returnAll())
+            .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
+                    @Override
+                    public void modifyRecord(Record record) {
+                        LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
                         if(lastModificationDate != null) {
                             record.set(Schemas.MODIFIED_ON, lastModificationDate);
                         }
