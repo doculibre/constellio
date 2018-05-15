@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.constellio.data.conf.HashingEncoding;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -96,6 +97,8 @@ public class ContentManager implements StatefulService {
 
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
 
+	static final String SCAN_ENTIRE_CONTENT_FOLDER = "ScanEntireContentFolder";
+
 	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
 
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
@@ -166,6 +169,20 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
+//		Runnable scanEntireContentFolderInBackgroundRunnable = new Runnable() {
+//			@Override
+//			public void run() {
+//				boolean inScanEntireContentFolderSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanEntireContentFolderSchedule();
+//				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+//						&& inScanEntireContentFolderSchedule
+//						&& hasNotScannedContentFolderYet()) {
+//					addFlag();
+//					scanEntireContentFolder();
+//				} else if(!inScanEntireContentFolderSchedule && hasNotScannedContentFolderYet()){
+//					removeFlag();
+//				}
+//			}
+//		};
 
 
 		backgroundThreadsManager.configure(
@@ -179,6 +196,11 @@ public class ContentManager implements StatefulService {
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+//		backgroundThreadsManager.configure(
+//				BackgroundThreadConfiguration.repeatingAction(SCAN_ENTIRE_CONTENT_FOLDER, scanEntireContentFolderInBackgroundRunnable)
+//						.executedEvery(Duration.standardHours(8))
+//						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
 			Runnable contentImportAction = new Runnable() {
@@ -196,6 +218,42 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	public String scanEntireContentFolder() {
+		StringBuilder reportBuilder = new StringBuilder();
+		reportBuilder.append("INFO: Starting scan of content folder\n\n");
+		scanFolder("", reportBuilder);
+		reportBuilder.append("\nINFO: Scan of content folder completed");
+		return reportBuilder.toString();
+	}
+
+	private StringBuilder scanFolder(String folderId, StringBuilder reportBuilder) {
+		ContentDao contentDao = getContentDao();
+		List<String> subFiles = contentDao.getFolderContents(folderId);
+		for(String fileId: subFiles) {
+			File file = contentDao.getFileOf(fileId);
+			if(file.exists() && shouldFileBeScannedForDeletion(file)) {
+				if(file.isDirectory()) {
+					scanFolder(fileId, reportBuilder);
+				} else if(!isReferenced(file)) {
+					try {
+						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+						reportBuilder.append("INFO: Successfully deleted file " + file.getName() + "\n");
+					} catch (Exception e) {
+						reportBuilder.append("ERROR: Could not delete file " + file.getName() + "\n");
+						reportBuilder.append(e.getMessage() + "\n");
+					}
+				}
+			}
+		}
+		return reportBuilder;
+	}
+
+	private boolean shouldFileBeScannedForDeletion(File file) {
+		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"));
+		List<String> restrictedFiles = asList("tlogs", "tlogs_bck");
+		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
 
 	public ContentManager setServiceThreadEnabled(boolean serviceThreadEnabled) {
@@ -490,6 +548,17 @@ public class ContentManager implements StatefulService {
 			} catch (OptimisticLocking e) {
 				throw new ImpossibleRuntimeException(e);
 			}
+		}
+	}
+
+	boolean isReferenced(File file) {
+		HashingEncoding hashingEncoding = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding();
+		switch (hashingEncoding) {
+			case BASE64_URL_ENCODED:
+			case BASE32:
+				return isReferenced(file.getName());
+			default:
+				return true;
 		}
 	}
 
