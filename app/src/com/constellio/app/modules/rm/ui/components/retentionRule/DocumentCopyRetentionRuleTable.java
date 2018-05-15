@@ -423,7 +423,9 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 							break;
 						}
 					}
-					if (activeRetentionPeriod && retentionPeriod.getRetentionType() == RetentionType.OPEN) {
+					if (activeRetentionPeriod &&
+							(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
+							retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
 						yearsField.setEnabled(true);
 					} else {
@@ -446,7 +448,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 							}
 							yearsField.setValue(null);
 							yearsField.setEnabled(activeRetentionPeriod &&
-									newRetentionPeriod.getRetentionType() == RetentionType.OPEN);
+									(newRetentionPeriod.getRetentionType() == RetentionType.OPEN ||
+									newRetentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
 						} else {
 							yearsField.setEnabled(true);
 						}
@@ -462,7 +465,9 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 							RetentionPeriod period = activeRetentionPeriod ?
 									copyRetentionRule.getActiveRetentionPeriod() :
 									copyRetentionRule.getSemiActiveRetentionPeriod();
-							if (activeRetentionPeriod && period.getRetentionType() == RetentionType.OPEN) {
+							if (activeRetentionPeriod &&
+									(period.getRetentionType() == RetentionType.OPEN ||
+									period.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 								copyRetentionRule.setOpenActiveRetentionPeriod(newValue);
 							} else if (newValue != null) {
 								openRetentionPeriodDDVField.setValue(null);
