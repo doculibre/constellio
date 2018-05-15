@@ -427,6 +427,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 		SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+		searchEvent.setOriginalQuery(query.getFreeTextQuery());
 		searchEvent.setClickCount(0);
 
 		ArrayList<String> paramList = new ArrayList<>();
@@ -929,6 +930,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		newSearchEvent.setParams(params);
 		newSearchEvent.setClickCount(searchEvent.getClickCount());
 		newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
+		newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
 		newSearchEvent.setQuery(searchEvent.getQuery());
 		newSearchEvent.setNumFound(searchEvent.getNumFound());
 		newSearchEvent.setQTime(searchEvent.getQTime());

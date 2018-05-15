@@ -40,6 +40,15 @@ public class SearchEvent extends RecordWrapper {
 		return this;
 	}
 
+	public String getOriginalQuery() {
+		return get(ORIGINAL_QUERY);
+	}
+
+	public SearchEvent setOriginalQuery(String query) {
+		set(ORIGINAL_QUERY, query);
+		return this;
+	}
+
 	public SearchEvent setParams(List<String> listParams) {
 		set(PARAMS, listParams);
 		return this;
