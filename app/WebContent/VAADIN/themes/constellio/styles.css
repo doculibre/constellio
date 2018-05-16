@@ -13268,6 +13268,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 }
 
+.constellio .force-higher-opacity .v-textarea-force-higher-opacity {
+	opacity: 2 !important;
+}
+
 .constellio .base-form .v-slot-base-form-field .v-has-caption {
 	width: 100%;
 }

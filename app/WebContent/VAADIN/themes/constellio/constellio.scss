@@ -1102,6 +1102,12 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+	
+	.force-higher-opacity {
+		.v-textarea-force-higher-opacity {
+	    	opacity: 2 !important;
+	    }
+	}
 
 	.base-form {
 		.v-slot-base-form-field {
