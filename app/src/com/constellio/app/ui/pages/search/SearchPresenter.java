@@ -452,6 +452,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setOriginalQuery(query.getFreeTextQuery());
 		searchEvent.setClickCount(0);
 
+		Capsule capsule = getCapsuleForCurrentSearch();
+		if(capsule != null) {
+			searchEvent.setCapsule(capsule);
+		}
+
 		ArrayList<String> paramList = new ArrayList<>();
 
 		for (String paramName : modifiableSolrParams.getParameterNames()) {
@@ -963,6 +968,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		newSearchEvent.setQuery(searchEvent.getQuery());
 		newSearchEvent.setNumFound(searchEvent.getNumFound());
 		newSearchEvent.setQTime(searchEvent.getQTime());
+		newSearchEvent.setCapsule(searchEvent.getCapsule());
 
 		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
 			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", newSearchEvent.getWrappedRecord());

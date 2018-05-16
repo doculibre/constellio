@@ -1,15 +1,21 @@
 package com.constellio.app.ui.framework.containers;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.SearchEventVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.vaadin.addons.lazyquerycontainer.*;
@@ -40,8 +46,9 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String SOUS_COLLECTION = "searchEvent_default_sousCollection";
     public static final String LANGUE = "searchEvent_default_langue";
     public static final String TYPE_RECHERCHE = "searchEvent_default_type_recherche";
+    public static final String CAPSULE = "searchEvent_default_capsule";
 
-    private static final List<String> PROPERTIES = unmodifiableList(asList(ID, CREATION_DATE, ORIGINAL_QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, TYPE_RECHERCHE));
+    private static final List<String> PROPERTIES = unmodifiableList(asList(ID, CREATION_DATE, ORIGINAL_QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, TYPE_RECHERCHE, CAPSULE));
     private static final List<String> PROPERTIES_WITH_PARAMS = unmodifiableList(union(PROPERTIES, asList(PARAMS)));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
@@ -59,7 +66,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     @NotNull
     private static List<String> getDeclaredProperties(MetadataSchemaVO schema, List<String> properties) {
         List<String> props = new ArrayList<>();
-        mainLoop: for(String p : properties) {
+        for(String p : properties) {
             switch (p) {
                 case NUM_PAGE:
                 case SOUS_COLLECTION:
@@ -72,7 +79,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                     for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
                         if (p.equals(metadataVO.getCode())) {
                             props.add(p);
-                            break mainLoop;
+                            break;
                         }
                     }
             }
@@ -221,6 +228,29 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             return getTypeRecherche(params);
                         }
                     };
+                } else if(CAPSULE.equals(id)) {
+                    List<String> idCapsule = getRecord().get(CAPSULE);
+                    if (idCapsule != null) {
+                        AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+                        String collection = getRecord().getSchema().getCollection();
+
+                        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
+                                appLayerFactory.getModelLayerFactory());
+
+                        final List<Capsule> capsules = schemasRecordsServices.getCapsules(idCapsule);
+                        if(capsules != null) {
+                            return new ObjectValueProperty() {
+                                @Override
+                                public Object getValue() {
+                                    List<String> codes = new ArrayList<>(capsules.size());
+                                    for (Capsule capsule : capsules) {
+                                        codes.add(capsule != null ? capsule.getCode() : null);
+                                    }
+                                    return StringUtils.join(codes, ", ");
+                                }
+                            };
+                        }
+                    }
                 }
 
                 return super.getItemProperty(this.definedMetadatas.get(id));

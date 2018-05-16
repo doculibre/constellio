@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
@@ -17,6 +18,7 @@ public class SearchEvent extends RecordWrapper {
 	public static final String ORIGINAL_QUERY = "originalQuery";
 	public static final String NUM_FOUND = "numFound";
 	public static final String Q_TIME = "qTime";
+	public static final String CAPSULE = "capsule";
 	public static final String DWELL_TIME = "dwellTime";
 
 	public SearchEvent(Record record, MetadataSchemaTypes types) {
@@ -104,6 +106,25 @@ public class SearchEvent extends RecordWrapper {
 
 	public SearchEvent setDwellTime(long dwellTime) {
 		set(DWELL_TIME, dwellTime);
+		return this;
+	}
+
+	public List<String> getCapsule() {
+		return get(CAPSULE);
+	}
+
+	public SearchEvent setCapsule(List<String> capsule) {
+		set(CAPSULE, capsule);
+		return this;
+	}
+
+	public SearchEvent setCapsule(Record... capsule) {
+		set(CAPSULE, Arrays.asList(capsule));
+		return this;
+	}
+
+	public SearchEvent setCapsule(Capsule... capsule) {
+		set(CAPSULE, Arrays.asList(capsule));
 		return this;
 	}
 }
