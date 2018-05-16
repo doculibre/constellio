@@ -13268,7 +13268,7 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 }
 
-.constellio .force-higher-opacity .v-textarea-force-higher-opacity {
+.constellio .force-higher-opacity.v-textarea-force-higher-opacity {
 	opacity: 2 !important;
 }
 
