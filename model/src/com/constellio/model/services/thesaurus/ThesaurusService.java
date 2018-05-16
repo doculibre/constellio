@@ -605,7 +605,9 @@ public class ThesaurusService implements Serializable {
 	private boolean isValidAutocompleteSuggestion(String input, String suggestion) {
 		boolean valid = false;
 
-		if (isNotExcludedByUser(suggestion) && suggestion.startsWith(parseForSearch(input))) {
+		String normalizedInput = parseForSearch(input);
+		String normalizedSuggestion = parseForSearch(suggestion);
+		if (isNotExcludedByUser(suggestion) && normalizedSuggestion.startsWith(normalizedInput)) {
 			valid = true;
 		}
 
