@@ -1102,6 +1102,12 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+	
+	.force-higher-opacity {
+		.v-textarea-force-higher-opacity {
+	    	opacity: 2 !important;
+	    }
+	}
 
 	.base-form {
 		.v-slot-base-form-field {
@@ -1536,6 +1542,7 @@ $popup-view-z-index: 3;
 								    border: 1px solid rgb(25, 125, 225);
 								    border-radius: 4px;
 								    margin-left: 10px;
+								    margin-top: 3px;
 								    padding-left: 5px;
 								    padding-right: 5px;
 								}

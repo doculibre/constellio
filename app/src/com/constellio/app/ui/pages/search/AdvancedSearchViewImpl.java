@@ -29,6 +29,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
+import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -372,7 +374,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				Object itemId = event.getItemId();
 				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
-				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
+				((AdvancedSearchPresenter) presenter).searchResultClicked();
 			}
 		});
         return table;

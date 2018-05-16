@@ -2,13 +2,16 @@ package com.constellio.app.ui.pages.management.thesaurus;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -27,6 +30,8 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -138,10 +143,10 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     }
     
     private Component buildStatsSheetContent() {
-    	String nbDocumentsWithAtLeastOneConcept = presenter.getDocumentsWithAConcept();
-    	String nbConceptsUsedAtLeastOnce = presenter.getUsedConcepts();
-    	String nbDocumentsWithoutAConcept = presenter.getDocumentsWithoutAConcept();
-    	List<SkosConcept> conceptsNotUsed = presenter.getUnusedConcepts();
+    	int nbDocumentsWithAtLeastOneConcept = presenter.getDocumentsWithAConcept();
+    	int nbConceptsUsedAtLeastOnce = presenter.getUsedConcepts();
+    	int nbDocumentsWithoutAConcept = presenter.getDocumentsWithoutAConcept();
+    	final List<SkosConcept> unusedConcepts = presenter.getUnusedConcepts();
     	
     	Label nbDocumentsWithAtLeastOneConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithAtLeastOneConcept"));
     	Label nbDocumentsWithAtLeastOneConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithAtLeastOneConcept));
@@ -153,10 +158,23 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     	Label nbDocumentsWithoutAConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithoutAConcept));
     	
     	Label mostFrequentlyUsedConceptsLabel = new Label($("ThesaurusConfigurationView.stats.mostFrequentlyUsedConcepts"));
-    	Label mostFrequentlyUsedConceptsComponent = new Label("Télécharger");
+    	DownloadLink mostFrequentlyUsedConceptsComponent = new DownloadLink(new StreamResource(new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				Map<SkosConcept, Long> mostUsedConcepts = presenter.getMostUsedConcepts();
+				return presenter.getMostUsedConceptsInputStream(mostUsedConcepts);
+			}
+    		
+    	}, "mostFrequentlyUsedConcepts.csv"), $("download"));
     	
-    	Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", MessageFormat.format("{0}", conceptsNotUsed.size())));
-    	Label conceptsNotUsedComponent = new Label("Télécharger");
+    	Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", MessageFormat.format("{0}", unusedConcepts.size())));
+    	DownloadLink conceptsNotUsedComponent = new DownloadLink(new StreamResource(new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				return presenter.getUnusedConceptsInputStream(unusedConcepts);
+			}
+    		
+    	}, "unusedConcepts.csv"), $("download"));
 
     	List<CaptionAndComponent> captionsAndDisplayComponents = new ArrayList<>();
     	captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithAtLeastOneConceptLabel, nbDocumentsWithAtLeastOneConceptComponent));

@@ -153,6 +153,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				return presenter.getAutocompleteBufferSize();
 			}
 		});
+		searchField.setMinChars(3);
 		searchField.addStyleName("header-search");
 		searchField.addFocusListener(new FocusListener() {
 			@Override

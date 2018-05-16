@@ -62,6 +62,7 @@ subprojects {
         compile "org.apache.pdfbox:pdfbox:2.0.8"
         compile "org.apache.pdfbox:pdfbox-debugger:2.0.8"
         compile "org.apache.pdfbox:pdfbox-tools:2.0.8"
+        compile "org.apache.solr:solr-ltr:6.5.0"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
         compile name: 'mets-api'

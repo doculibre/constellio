@@ -809,6 +809,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("qTime");
 		}
 
+		public Metadata dwellTime() {
+			return metadata("dwellTime");
+		}
+
 		public Metadata query() {
 			return metadata("query");
 		}
