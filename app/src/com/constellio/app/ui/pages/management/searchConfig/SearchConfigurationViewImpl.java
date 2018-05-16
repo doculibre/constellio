@@ -12,6 +12,8 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -23,13 +25,13 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchConfigurationView {
-	
+
 	private SearchConfigurationPresenter presenter;
-	
+
 	public SearchConfigurationViewImpl() {
 		this.presenter = new SearchConfigurationPresenter(this);
 	}
-	
+
 	@Override
 	protected String getTitle() {
 		return $("SearchConfigurationView.title");
@@ -39,7 +41,9 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		VerticalLayout verticalLayout = new VerticalLayout();
 		CssLayout layout = new CustomCssLayout();
-		layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
+		layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(),
+				createSolrFeatureRequestButton(), createFacetsManagementButton());
+		//layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			layout.addComponent(createCapsulesManagementButton());
@@ -49,127 +53,151 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 			layout.addComponent(createThesaurusConfigurationButton());
 		}
 
-        verticalLayout.addComponent(layout);
+		verticalLayout.addComponent(layout);
 
-        if (presenter.isSystemSectionTitleVisible()) {
-            Label systemSectionTitle = new Label($("SearchConfigurationView.systemSectionTitle"));
-            systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
-            verticalLayout.addComponent(systemSectionTitle);
-        }  
+		if (presenter.isSystemSectionTitleVisible()) {
+			Label systemSectionTitle = new Label($("SearchConfigurationView.systemSectionTitle"));
+			systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
+			verticalLayout.addComponent(systemSectionTitle);
+		}
 
-        if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-        	CssLayout layoutSystemPilot = new CustomCssLayout();
-            layoutSystemPilot.addComponents(createSynonymsManagementButton(), createElevationManagementButton());
-            verticalLayout.setSpacing(true);
-            verticalLayout.addComponent(layoutSystemPilot);
-        }
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			CssLayout layoutSystemPilot = new CustomCssLayout();
+			layoutSystemPilot.addComponents(createSynonymsManagementButton(), createElevationManagementButton());
+			verticalLayout.setSpacing(true);
+			verticalLayout.addComponent(layoutSystemPilot);
+		}
 
 		return verticalLayout;
 	}
 
 	private Button createSearchBoostByMetadatasButton() {
 		return presenter.isBoostMetadataButtonVisible() ?
-			createLink($("AdminView.searchBoostByMetadata"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.searchBoostByMetadatasButtonClicked();
-				}
-			}, "config/boost-metadata-search") :
-			null;
+				createLink($("AdminView.searchBoostByMetadata"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.searchBoostByMetadatasButtonClicked();
+					}
+				}, "config/boost-metadata-search") :
+				null;
 	}
 
 	private Button createSynonymsManagementButton() {
 		return presenter.isSynonymsManagementButtonVisible() ?
-			createLink($("AdminView.synonymsManagement"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.synonymsManagementButtonClicked();
-				}
-			}, "config/synonyms") :
-			null;
+				createLink($("AdminView.synonymsManagement"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.synonymsManagementButtonClicked();
+					}
+				}, "config/synonyms") :
+				null;
 	}
 
 	private Button createElevationManagementButton() {
 		return presenter.isElevationManagementButtonVisible() ?
-			createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.elevationManagementButtonClicked();
-				}
-			}, "config/search-exclusions") :
-			null;
+				createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.elevationManagementButtonClicked();
+					}
+				}, "config/search-exclusions") :
+				null;
 	}
 
-	private Button createThesaurusConfigurationButton(){
+	private Button createThesaurusConfigurationButton() {
 		return presenter.isThesaurusConfigurationButtonVisible() ?
-			createLink($("AdminView.thesaurus"),new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.thesaurusConfigurationButtonClicked();
-				}
-			}, "config/thesaurus") : 
-			null;
+				createLink($("AdminView.thesaurus"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.thesaurusConfigurationButtonClicked();
+					}
+				}, "config/thesaurus") :
+				null;
 	}
 
+	private Button createSolrFeatureRequestButton() {
+		User user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices()
+				.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
+		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
+				createLink($("AdminView.solrFeature"), new Button.ClickListener() {
+
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						navigate().to().solrFeatures();
+					}
+				}, "config/boost-text-search") :
+				null;
+	}
+
+	//	private Button createBoostRequestButton() {
+	//		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
+	//				createLink($("AdminView.searchBoostByQuery"), new Button.ClickListener() {
+	//
+	//					@Override
+	//					public void buttonClick(Button.ClickEvent event) {
+	//						navigate().to().searchBoostByQuerys();
+	//					}
+	//				}, "config/boost-text-search") :
+	//				null;
 	private Button createSpellCheckerExclusionsManagementButton() {
 		return presenter.isSpellCheckerExclusionsManagementButtonVisible() ?
-			createLink($("AdminView.excluded"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.spellCheckerExclusionsManagementButtonClicked();
-				}
-			}, "config/search-suggestions-exlusions") :
-			null;
+				createLink($("AdminView.excluded"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.spellCheckerExclusionsManagementButtonClicked();
+					}
+				}, "config/search-suggestions-exlusions") :
+				null;
 	}
 
 	private Button createSeachBoostByQueryButton() {
 		return presenter.isSearchBoostByQueryButtonVisible() ?
-			createLink($("AdminView.searchBoostByQuery"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.searchBoostByQueryButtonClicked();
-				}
-			}, "config/boost-text-search") :
-			null;
+				createLink($("AdminView.searchBoostByQuery"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.searchBoostByQueryButtonClicked();
+					}
+				}, "config/boost-text-search") :
+				null;
 	}
 
 	private Button createFacetsManagementButton() {
 		return presenter.isFacetsManagementButtonVisible() ?
-			createLink($("perm.core.manageFacets"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.facetsManagementButtonClicked();
-				}
-			}, "config/funnel") :
-			null;
+				createLink($("perm.core.manageFacets"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.facetsManagementButtonClicked();
+					}
+				}, "config/funnel") :
+				null;
 	}
 
 	private Button createCapsulesManagementButton() {
 		return presenter.isCapsulesManagementButtonVisible() ?
-			createLink($("ListCapsuleView.title"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					presenter.capsulesManagementButtonClicked();
-				}
-			}, "config/capsules") :
-			null;
-	}
-	
-	private Button createStatisticsButton() {
-		return presenter.isStatisticsButtonVisible() ? 
-			createLink($("StatisticsView.viewTitle"), new Button.ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					presenter.statisticsButtonClicked();
-				}
-			}, "config/chart_column") :
-			null;
+				createLink($("ListCapsuleView.title"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(Button.ClickEvent event) {
+						presenter.capsulesManagementButtonClicked();
+					}
+				}, "config/capsules") :
+				null;
 	}
 
-    @Override
-    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-        return getSearchConfigurationBreadCrumbTrail(this, null);
-    }
+	private Button createStatisticsButton() {
+		return presenter.isStatisticsButtonVisible() ?
+				createLink($("StatisticsView.viewTitle"), new Button.ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.statisticsButtonClicked();
+					}
+				}, "config/chart_column") :
+				null;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return getSearchConfigurationBreadCrumbTrail(this, null);
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {

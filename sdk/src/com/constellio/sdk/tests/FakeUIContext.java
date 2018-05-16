@@ -10,8 +10,8 @@ public class FakeUIContext implements UIContext {
 	Map<String, Object> values = new HashMap<>();
 
 	@Override
-	public void clearAttribute(String key) {
-		values.remove(key);
+	public <T> T clearAttribute(String key) {
+		return (T) values.remove(key);
 	}
 
 	@Override
