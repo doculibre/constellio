@@ -25,6 +25,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -115,6 +135,8 @@ import static java.util.Arrays.asList;
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
+	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
+	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";
 
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
@@ -331,29 +353,26 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return null;
 	}
 
-	public List<Capsule> getCapsuleForCurrentSearch() {
-		List<Capsule> correspondingCapsules = new ArrayList<>();
+	public Capsule getCapsuleForCurrentSearch() {
+		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 					appLayerFactory.getModelLayerFactory());
-			if (StringUtils.isNotEmpty(getUserSearchExpression())) {
-				String lowerCasedSearchTerms = getUserSearchExpression().toLowerCase();
-				String approstropheTrimmedSearchTerms = AccentApostropheCleaner.cleanAll(lowerCasedSearchTerms);
-				String[] searchTerms = approstropheTrimmedSearchTerms.split(" ");
-				MetadataSchema defaultCapsuleSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-						.getSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
-				//LogicalSearchCondition condition = from(defaultCapsuleSchema).where(defaultCapsuleSchema.getMetadata(Capsule.KEYWORDS)).isContaining(asList(searchTerms));
-				//TODO Check for a more efficient way to fix this.
-				LogicalSearchCondition condition = from(defaultCapsuleSchema).returnAll();
-
-				for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
-					if (CollectionUtils.containsAny(asList(searchTerms), capsule.getKeywords())) {
-						correspondingCapsules.add(capsule);
+			String searchedTerms = getUserSearchExpression();
+			if (StringUtils.isNotEmpty(searchedTerms)) {
+				String cleanedSearchTerms = AccentApostropheCleaner.cleanAll(searchedTerms);
+				loop1: for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
+					for (String keyword : capsule.getKeywords()) {
+						String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
+						if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
+							match = capsule;
+							break loop1;
+						}
 					}
 				}
 			}
 		}
-		return correspondingCapsules;
+		return match;
 	}
 
 	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {
@@ -402,7 +421,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			@Override
 			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
-
+				logSearchEvent(this, response);
 				if (!hasExtensionsBeenNotified) {
 					hasExtensionsBeenNotified = true;
 					SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)),
@@ -442,18 +461,26 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	private void logSearchEvent(SearchResultVODataProvider dataProvider, SPEQueryResponse response) {
+		LogicalSearchQuery query = dataProvider.getQuery();
+
+		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+		int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+
+		query.setStartRow(start);
+		query.setNumberOfRows(rows);
+
 		ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-				.addSolrModifiableParams(dataProvider.getQuery());
+				.addSolrModifiableParams(query);
 
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 		SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+		searchEvent.setClickCount(0);
 
 		ArrayList<String> paramList = new ArrayList<>();
 
 		for (String paramName : modifiableSolrParams.getParameterNames()) {
-			if (!paramName.equals("qf") && !paramName.equals("pf")
-					&& !paramName.equals("fl")) {
-				if (paramName.equals("q")) {
+			if (!StringUtils.equalsAny(paramName, "qf", "pf", "fl")) {
+				if ("q".equals(paramName)) {
 					searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
 				} else {
 					String[] values = modifiableSolrParams.getParams(paramName);
@@ -476,40 +503,46 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setNumFound(response.getNumFound());
 		UIContext uiContext = view.getUIContext();
 
-		Record oldSearchEventRecord = uiContext.getAttribute("CURRENT_SEARCH_EVENT");
+		Record oldSearchEventRecord = uiContext.getAttribute(CURRENT_SEARCH_EVENT);
 		SearchEvent oldSearchEvent = null;
 		if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
 			oldSearchEvent = schemasRecordsServices.wrapSearchEvent(oldSearchEventRecord);
 		}
 
 		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", searchEvent.getWrappedRecord());
+			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent.getWrappedRecord());
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			searchEventServices.save(searchEvent);
+
+			checkAndUpdateDwellTime(oldSearchEvent);
 		}
 	}
 
+	private void checkAndUpdateDwellTime(SearchEvent searchEvent) {
+		Long start = view.getUIContext().clearAttribute(SEARCH_EVENT_DWELL_TIME);
+		if(!ObjectUtils.allNotNull(searchEvent, start)) {
+			return;
+		}
+
+		long dwellTime = System.currentTimeMillis() - start;
+		searchEvent.setDwellTime(dwellTime);
+
+		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+		searchEventServices.updateDwellTime(searchEvent.getId(), dwellTime);
+	}
+
 	private boolean areSearchEventEqual(SearchEvent searchEvenFromSessionContext, SearchEvent searchEvent) {
-		if (searchEvenFromSessionContext == null && searchEvent != null
-				|| searchEvent == null && searchEvenFromSessionContext != null
-				|| searchEvent == null && searchEvenFromSessionContext == null) {
+		if (!ObjectUtils.allNotNull(searchEvenFromSessionContext, searchEvent)) {
 			return false;
 		}
 
-		if (searchEvenFromSessionContext.getUsername() == null &&
-				searchEvent.getUsername() != null
-				|| searchEvenFromSessionContext.getUsername() != null &&
-				searchEvent.getUsername() == null) {
+		if (!ObjectUtils.allNotNull(searchEvenFromSessionContext.getUsername(), searchEvent.getUsername())) {
 			return false;
 		}
 
-		boolean isUserEqual = searchEvent.getUsername() == null && searchEvenFromSessionContext.getUsername() == null
-				|| searchEvenFromSessionContext.getUsername()
-				.equals(searchEvent.getUsername());
+		boolean isUserEqual = searchEvenFromSessionContext.getUsername().equals(searchEvent.getUsername());
 
-		boolean isQEqual = searchEvenFromSessionContext.getQuery() == null &&
-				searchEvent.getQuery() == null || searchEvenFromSessionContext.getQuery()
-				.equals(searchEvent.getQuery());
+		boolean isQEqual = Objects.equals(searchEvenFromSessionContext.getQuery(), searchEvent.getQuery());
 
 		if (!isQEqual || !isUserEqual) {
 			return false;
@@ -911,38 +944,72 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return getCurrentUser().has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
 	}
 
-	public void searchResultClicked(RecordVO searchResultVO) {
+	public void searchResultClicked() {
+		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
+
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		Record searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementClickCounter(searchEvent.getId());
 	}
 
 	public void searchNavigationButtonClicked() {
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEvent = (Record) view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		Record searchEventRecord = view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
+				appLayerFactory.getModelLayerFactory());
 
-		searchEventServices.incrementPageNavigationCounter(searchEvent.getId());
+		SearchEvent searchEvent = schemasRecordsServices.wrapSearchEvent(searchEventRecord);
+
+		List<String> params = new ArrayList<>(searchEvent.getParams());
+
+		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+		int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+
+		ListIterator<String> listIterator = params.listIterator();
+		while(listIterator.hasNext()) {
+			String param = listIterator.next();
+
+			if(StringUtils.startsWith(param, "start=")) {
+				listIterator.set("start="+start);
+			}
+
+			if(StringUtils.startsWith(param, "rows=")) {
+				listIterator.set("rows="+rows);
+			}
+		}
+
+		SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
+		newSearchEvent.setParams(params);
+		newSearchEvent.setClickCount(searchEvent.getClickCount());
+		newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
+		newSearchEvent.setQuery(searchEvent.getQuery());
+		newSearchEvent.setNumFound(searchEvent.getNumFound());
+		newSearchEvent.setQTime(searchEvent.getQTime());
+
+		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
+			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", newSearchEvent.getWrappedRecord());
+			searchEventServices.save(newSearchEvent);
+		}
 	}
 
 	public void searchResultElevationClicked(RecordVO recordVO) {
 		String freeTextQuery = getSearchQuery().getFreeTextQuery();
 		Record record = recordVO.getRecord();
 		SearchConfigurationsManager searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
-		if (!searchConfigurationsManager.isElevated(freeTextQuery, record)) {
-			searchConfigurationsManager.setElevated(freeTextQuery, record, false);
+		if (!searchConfigurationsManager.isElevated(collection, freeTextQuery, record)) {
+			searchConfigurationsManager.setElevated(collection, freeTextQuery, record);
 		} else {
-			searchConfigurationsManager.removeElevated(freeTextQuery, record.getId());
+			searchConfigurationsManager.removeElevated(collection, freeTextQuery, record.getId());
 		}
 		view.refreshSearchResultsAndFacets();
 	}
 
 	public void searchResultExclusionClicked(RecordVO recordVO) {
-		String freeTextQuery = getSearchQuery().getFreeTextQuery();
 		Record record = recordVO.getRecord();
 		SearchConfigurationsManager searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
-		if (!searchConfigurationsManager.isExcluded(freeTextQuery, record)) {
-			searchConfigurationsManager.setElevated(freeTextQuery, record, true);
+		if (!searchConfigurationsManager.isExcluded(collection, record)) {
+			searchConfigurationsManager.setExcluded(collection, record);
 		}
 		view.refreshSearchResultsAndFacets();
 	}

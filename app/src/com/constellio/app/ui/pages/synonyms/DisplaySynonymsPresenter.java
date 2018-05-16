@@ -5,16 +5,16 @@ import java.util.List;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
 
 public class DisplaySynonymsPresenter extends BasePresenter<EditSynonymsView> {
     List<String> synonyms;
-    SearchConfigurationsManager searchConfigurationsManager;
+    SynonymsConfigurationsManager synonymsConfigurationsManager;
 
     public DisplaySynonymsPresenter(EditSynonymsView view) {
         super(view);
-        searchConfigurationsManager = modelLayerFactory.getSearchConfigurationsManager();
-        this.synonyms = searchConfigurationsManager.getSynonyms();
+        synonymsConfigurationsManager = modelLayerFactory.getSynonymsConfigurationsManager();
+        this.synonyms = synonymsConfigurationsManager.getSynonyms(collection);
     }
 
     @Override

@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -49,10 +50,24 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
+import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -129,6 +144,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void editDocumentButtonClicked() {
 		if (isEditDocumentPossible()) {
 			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+			updateSearchResultClicked();
 		}
 	}
 
@@ -294,11 +310,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
 			actionsComponent.navigate().to().listObjectAccessAuthorizations(documentVO.getId());
+			updateSearchResultClicked();
 		}
 	}
 
 	public void shareDocumentButtonClicked() {
 		actionsComponent.navigate().to().shareContent(documentVO.getId());
+		updateSearchResultClicked();
 	}
 
 	public void updateWindowClosed() {
@@ -451,6 +469,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void checkOutButtonClicked(SessionContext sessionContext) {
 		if (isCheckOutPossible()) {
+			updateSearchResultClicked();
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
 			Content content = document.getContent();
@@ -734,5 +753,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void logOpenDocument(RecordVO recordVO) {
 		loggingServices.openDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
+	}
+
+	protected void updateSearchResultClicked() {
+		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
+
+		SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
+		Record searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
+
+		searchEventServices.incrementClickCounter(searchEvent.getId());
 	}
 }

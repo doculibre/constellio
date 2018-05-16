@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -48,25 +38,20 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	
@@ -317,9 +302,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setSpacing(true);
 		Component capsuleComponent = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
-			if (!capsules.isEmpty()) {
-				capsuleComponent = buildCapsuleIU(capsules);
+			Capsule capsule = presenter.getCapsuleForCurrentSearch();
+			if (capsule != null) {
+				capsuleComponent = buildCapsuleUI(capsule);
 			}
 		}
 
@@ -405,6 +390,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setSelectedPageLength((int) event.getProperty().getValue());
 				hashMapAllSelection = new HashMap<>();
+
+				presenter.searchNavigationButtonClicked();
 			}
 		});
 
@@ -426,7 +413,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						presenter.searchResultClicked(searchResultVO.getRecordVO());
+						presenter.searchResultClicked();
 					}
 				};
 			}
@@ -769,15 +756,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return button;
 	}
 
-	private Component buildCapsuleIU(List<Capsule> capsules) {
+	private Component buildCapsuleUI(Capsule capsule) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		layout.addStyleName("search-result-capsule");
-		for (Capsule capsule : capsules) {
-			Panel capsuleComponent = new CapsuleComponent(capsule.getTitle(), capsule.getHTML());
-			capsuleComponent.setSizeFull();
-			layout.addComponent(capsuleComponent);
-		}
+		Component capsuleComponent = new CapsuleComponent(capsule.getTitle(), capsule.getHTML());
+		capsuleComponent.setSizeFull();
+		layout.addComponent(capsuleComponent);
 		return layout;
 	}
 

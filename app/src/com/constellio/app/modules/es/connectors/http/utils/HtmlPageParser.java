@@ -76,7 +76,7 @@ public class HtmlPageParser {
 			throw new ImpossibleRuntimeException(e);
 		}
 		return new HtmlPageParserResults(digest, parsedContentText, title, uniqueAnchors,
-				parsedContent.getMimetypeWithoutCharset(), parsedContent.getLanguage());
+				parsedContent.getMimetypeWithoutCharset(), parsedContent.getLanguage(), parsedContent.getDescription());
 	}
 
 	private byte[] getContent(HtmlPage page)
@@ -136,14 +136,17 @@ public class HtmlPageParser {
 
 		private String mimetype;
 
+		private String description;
+
 		public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls, String mimetype,
-				String language) {
+				String language, String description) {
 			this.digest = digest;
 			this.parsedContent = parsedContent;
 			this.title = title;
 			this.linkedUrls = linkedUrls;
 			this.mimetype = mimetype;
 			this.language = language;
+			this.description = description;
 		}
 
 		public String getDigest() {
@@ -168,6 +171,10 @@ public class HtmlPageParser {
 
 		public String getLanguage() {
 			return language;
+		}
+
+		public String getDescription() {
+			return description;
 		}
 	}
 }

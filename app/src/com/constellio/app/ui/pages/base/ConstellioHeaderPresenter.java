@@ -77,6 +77,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -86,6 +88,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
+import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -825,6 +829,35 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		updateSelectionButton();
 		header.refreshButtons();
+	}
+
+	public List<String> getAutocompleteSuggestions(String text) {
+		List<String> suggestions = new ArrayList<>();
+
+		int minInputLength = 3;
+		int maxResults = 10;
+		String[] excludedRequests = new String[0];
+		String collection = header.getCollection();
+
+        SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory);
+		ThesaurusManager thesaurusManager = modelLayerFactory.getThesaurusManager();
+		ThesaurusService thesaurusService = thesaurusManager.get(collection);
+
+		List<String> statsSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
+		suggestions.addAll(statsSuggestions);
+		if (statsSuggestions.size() < maxResults) {
+			int thesaurusMaxResults = maxResults - statsSuggestions.size();
+			List<String> thesaurusSuggestions = thesaurusService.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength, thesaurusMaxResults);
+			suggestions.addAll(thesaurusSuggestions);
+		}
+
+		return suggestions;
+	}
+
+	public int getAutocompleteBufferSize() {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
 
 }

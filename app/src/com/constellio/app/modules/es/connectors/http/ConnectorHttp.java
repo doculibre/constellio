@@ -97,7 +97,9 @@ public class ConnectorHttp extends Connector {
 		urls.addAll(connectorInstance.getSeedsList());
 		urls.removeAll(connectorInstance.getOnDemandsList());
 		for (String url : urls) {
-			documents.add(newUnfetchedURLDocument(url, 0));
+			ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+			httpDocument.setInlinks(Arrays.asList(url));
+			documents.add(httpDocument);
 			context.markAsFetched(url);
 
 		}
@@ -115,7 +117,9 @@ public class ConnectorHttp extends Connector {
 		List<ConnectorHttpDocument> documents = new ArrayList<>();
 		for (String url : getConnectorInstance().getOnDemandsList()) {
 			if (context.isNewUrl(url)) {
-				documents.add(newUnfetchedURLDocument(url, 0));
+				ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+				httpDocument.setInlinks(Arrays.asList(url));
+				documents.add(httpDocument);
 				context.markAsFetched(url);
 			} else {
 				documents.add(es.getConnectorHttpDocumentByUrl(url));
@@ -182,7 +186,10 @@ public class ConnectorHttp extends Connector {
 		for (String url : connectorInstance.getSeedsList()) {
 			if (context.isNewUrl(url)) {
 				try {
-					es.getRecordServices().add(newUnfetchedURLDocument(url, 0).getWrappedRecord());
+					ConnectorHttpDocument connectorHttpDocument = newUnfetchedURLDocument(url, 0);
+					connectorHttpDocument.setInlinks(Arrays.asList(url));
+
+					es.getRecordServices().add(connectorHttpDocument.getWrappedRecord());
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}

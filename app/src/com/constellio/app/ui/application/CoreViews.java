@@ -558,6 +558,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_QUERYS);
 	}
 
+	public void solrFeatures() {
+		navigator.navigateTo(NavigatorConfigurationService.SOLR_FEATURES);
+	}
+
 	public void connectorIndexationReport(String connectorId) {
 		Map<String, String> params = new HashMap<>();
 		if (connectorId != null) {

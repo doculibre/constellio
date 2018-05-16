@@ -622,9 +622,26 @@ $popup-view-z-index: 3;
 	}
 	
 	.information-capsule {
+		min-height: 38px;
+	    position: relative;
+	    border-radius: 10px;
+	    padding: 10px 10px 10px 10px;
+	    margin: 0 0 0 0px;
+	    box-shadow: inset 0px 5px 15px -12px rgba(0, 0, 0, 1);
+	    
+	    background-color: #ebebeb;
+		background-image: url('images/icons/suggestion.png');
+		background-repeat: no-repeat;
+	    background-position: left center; 
+	    
+		.information-capsule-title {
+			font-weight: bold;
+			padding-left: 50px;
+		}
+		
 		.information-capsule-content {
-			padding-left: 10px;	
-			padding-right: 10px;	
+			padding-bottom: 15px;
+			padding-left: 60px;
 		}
 	}
 	
@@ -1085,6 +1102,10 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+	
+	.force-higher-opacity.v-textarea-force-higher-opacity {
+	   	opacity: 2 !important;
+	}
 
 	.base-form {
 		.v-slot-base-form-field {
@@ -1486,6 +1507,7 @@ $popup-view-z-index: 3;
 								}
 
 								.search-result-title {
+									padding-top: 8px;
 									font-size: 18px;
 									text-align: left;
 								}
@@ -1514,9 +1536,11 @@ $popup-view-z-index: 3;
 									}
 								}
 								
-								.v-slot-search-result-elevation-buttons {
+								.search-result-elevation-buttons {
 								    border: 1px solid rgb(25, 125, 225);
 								    border-radius: 4px;
+								    margin-left: 10px;
+								    margin-top: 3px;
 								    padding-left: 5px;
 								    padding-right: 5px;
 								}

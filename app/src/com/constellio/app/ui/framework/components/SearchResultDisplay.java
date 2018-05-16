@@ -37,6 +37,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -57,8 +58,8 @@ public class SearchResultDisplay extends VerticalLayout {
 	public static final String CANCEL_EXCLUSION = "SearchResultDisplay.unexclusion";
 	public static final String CANCEL_ELEVATION = "SearchResultDisplay.unelevation";
 
-	private AppLayerFactory appLayerFactory;
-	private SessionContext sessionContext;
+	protected AppLayerFactory appLayerFactory;
+	protected SessionContext sessionContext;
 
 	SearchConfigurationsManager searchConfigurationsManager;
 
@@ -96,18 +97,19 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		I18NHorizontalLayout titleLayout = new I18NHorizontalLayout();
+		CssLayout titleLayout = new CssLayout();
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 		titleLink.setWidthUndefined();
 		titleLayout.addComponent(titleLink);
 
+		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
-				.has(ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
+				.has(currentSessionContext.getCurrentUser().getUsername());
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
-			boolean isElevated = searchConfigurationsManager.isElevated(query, record.getId());
+			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
 
 			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
 			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
@@ -142,8 +144,8 @@ public class SearchResultDisplay extends VerticalLayout {
 			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
 			
 			titleLayout.addComponent(elevationLayout);
-			titleLayout.setExpandRatio(elevationLayout, 1);
-			titleLayout.setSpacing(true);
+//			titleLayout.setExpandRatio(elevationLayout, 1);
+//			titleLayout.setSpacing(true);
 		}
 		return titleLayout;
 	}

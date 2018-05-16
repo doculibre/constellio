@@ -303,7 +303,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		Set<String> searchValues = getStringPermissiveCases("searchTermNotInThesaurus");
 
 		for(String searchValue : searchValues) {
-			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE);
+			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE, 3, 5);
 			assertThat(suggestions).containsExactly("searchtermnotinthesaurusautocomplete1", "searchtermnotinthesaurusautocomplete2", "searchtermnotinthesaurusautocomplete3", "searchtermnotinthesaurusautocomplete4", "searchtermnotinthesaurusautocomplete6");
 		}
 	}

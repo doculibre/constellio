@@ -51,6 +51,7 @@ public class DownloadLink extends Link {
 						// Content-Disposition: attachment generally forces download
 						stream.setParameter("Content-Disposition",
 								"attachment; filename=\"" + stream.getFileName() + "\"");
+						stream.setParameter("Cache-Control", "no-cache");
 					}
 					return stream;
 				}

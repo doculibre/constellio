@@ -59,7 +59,7 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 
             @Override
             protected void cancelButtonClick(RecordVO viewObject) {
-                navigateTo().previousView();
+                presenter.cancelButtonClicked();
             }
         };
     }

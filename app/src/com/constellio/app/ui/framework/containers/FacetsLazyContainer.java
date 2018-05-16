@@ -1,33 +1,29 @@
 package com.constellio.app.ui.framework.containers;
 
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.DataProvider;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.data.SolrDataProvider;
+import com.constellio.app.ui.framework.data.FacetsDataProvider;
+import com.constellio.app.ui.framework.data.FacetsDataProvider.Facets;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.util.NamedList;
-import org.apache.solr.common.util.SimpleOrderedMap;
 import org.vaadin.addons.lazyquerycontainer.*;
 
 import java.io.Serializable;
 import java.util.*;
 
-public class StatisticsLazyContainer extends LazyQueryContainer implements RefreshableContainer {
+public class FacetsLazyContainer extends LazyQueryContainer implements RefreshableContainer {
     public static final String CLICK_COUNT = "statistic_default_clickCount";
     public static final String FREQUENCY = "statistic_default_frequency";
     public static final String QUERY = "statistic_default_query";
 
     public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(QUERY, CLICK_COUNT, FREQUENCY));
 
-    public StatisticsLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
+    public FacetsLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);
     }
 
-    public static class StatisticsLazyQueryDefinition extends LazyQueryDefinition {
-        public StatisticsLazyQueryDefinition(List<String> properties) {
+    public static class FacetsLazyQueryDefinition extends LazyQueryDefinition {
+        public FacetsLazyQueryDefinition(List<String> properties) {
             super(true, 100, null);
 
             if(properties == null || properties.isEmpty()) {
@@ -40,11 +36,11 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
         }
     }
 
-    public static class StatisticsLazyQueryFactory implements QueryFactory, Serializable {
+    public static class FacetsLazyQueryFactory implements QueryFactory, Serializable {
         private final List<String> properties;
-        private final SolrDataProvider dataProvider;
+        private final FacetsDataProvider dataProvider;
 
-        public StatisticsLazyQueryFactory(SolrDataProvider dataProvider, List<String> properties) {
+        public FacetsLazyQueryFactory(FacetsDataProvider dataProvider, List<String> properties) {
             this.dataProvider = dataProvider;
 
             if(properties == null || properties.isEmpty()) {
@@ -55,44 +51,24 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
 
         @Override
         public Query constructQuery(final QueryDefinition queryDefinition) {
-            final ArrayList<SimpleOrderedMap> buckets = new ArrayList<>();
-
-            QueryResponse queryResponse = dataProvider.getQueryResponse();
-            NamedList<Object> namedList = queryResponse.getResponse();
-
-            try {
-                SimpleOrderedMap facets = (SimpleOrderedMap) namedList.get("facets");
-                SimpleOrderedMap queryS = (SimpleOrderedMap) facets.get("query_s");
-                buckets.addAll((ArrayList<SimpleOrderedMap>) queryS.get("buckets"));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
             return new Query() {
 
                 @Override
                 public int size() {
-                    return buckets.size();
+                    return (int) dataProvider.size();
                 }
 
                 @Override
                 public void saveItems(List<Item> addedItems, List<Item> modifiedItems, List<Item> removedItems) {
-                    throw new UnsupportedOperationException("Query is read-only");
                 }
 
                 @Override
                 public List<Item> loadItems(int startIndex, int count) {
                     List<Item> items = new ArrayList<Item>();
+                    List<Facets> facetsList = dataProvider.facetsList(startIndex, count);
 
-                    for (int i = startIndex; i < count; i++) {
-                        SimpleOrderedMap bucket = buckets.get(i);
-
-                        String query = (String) bucket.get("val");
-                        String clickCount = String.valueOf(((Number)bucket.get("clickCount_d")).intValue());
-                        String frequency = String.valueOf(((Number)bucket.get("count")).intValue());
-
-                        Item item = new StatisticsItem(query, clickCount, frequency);
-                        items.add(item);
+                    for (int i = 0; i < facetsList.size(); i++) {
+                        items.add(new FacetsItem(facetsList.get(i), properties));
                     }
 
                     return items;
@@ -100,25 +76,27 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
 
                 @Override
                 public boolean deleteAllItems() {
-                    throw new UnsupportedOperationException("Query is read-only");
+                    return false;
                 }
 
                 @Override
                 public Item constructItem() {
-                    throw new UnsupportedOperationException("Query is read-only");
+                    return null;
                 }
             };
         }
 
-        private class StatisticsItem implements Item {
-            private final String query;
-            private final String clickCount;
-            private final String frequency;
+        public static class FacetsItem implements Item {
+            private final List<String> properties;
+            private final Facets facets;
 
-            public StatisticsItem(String query, String clickCount, String frequency) {
-                this.query = query;
-                this.clickCount = clickCount;
-                this.frequency = frequency;
+            public FacetsItem(Facets facets, List<String> properties) {
+                this.facets = facets;
+
+                if(properties == null || properties.isEmpty()) {
+                    properties = PROPERTIES;
+                }
+                this.properties = properties;
             }
 
             @Override
@@ -129,11 +107,11 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
 
                 switch (id.toString()) {
                     case QUERY:
-                        return new ItemProperty(query);
+                        return new ItemProperty(facets.getQuery());
                     case CLICK_COUNT:
-                        return new ItemProperty(clickCount);
+                        return new ItemProperty(facets.getClickCount());
                     case FREQUENCY:
-                        return new ItemProperty(frequency);
+                        return new ItemProperty(facets.getFrequency());
                     default:
                         return new ItemProperty(id.toString());
                 }
@@ -155,7 +133,7 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
             }
         }
 
-        private class ItemProperty extends AbstractProperty<Object> {
+        private static class ItemProperty extends AbstractProperty<Object> {
             private final String value;
 
             public ItemProperty(String value) {
@@ -178,19 +156,19 @@ public class StatisticsLazyContainer extends LazyQueryContainer implements Refre
         }
     }
 
-    public static StatisticsLazyContainer defaultInstance(SolrDataProvider dataProvider, List<String> properties) {
-        StatisticsLazyQueryDefinition qDef = new StatisticsLazyQueryDefinition(properties);
-        StatisticsLazyQueryFactory qFact = new StatisticsLazyQueryFactory(dataProvider, properties);
+    public static FacetsLazyContainer defaultInstance(FacetsDataProvider dataProvider, List<String> properties) {
+        FacetsLazyQueryDefinition qDef = new FacetsLazyQueryDefinition(properties);
+        FacetsLazyQueryFactory qFact = new FacetsLazyQueryFactory(dataProvider, properties);
 
-        final StatisticsLazyContainer statisticsLazyContainer = new StatisticsLazyContainer(qDef, qFact);
+        final FacetsLazyContainer facetsLazyContainer = new FacetsLazyContainer(qDef, qFact);
 
         dataProvider.addDataRefreshListener(new DataProvider.DataRefreshListener() {
             @Override
             public void dataRefresh() {
-                statisticsLazyContainer.refresh();
+                facetsLazyContainer.refresh();
             }
         });
 
-        return statisticsLazyContainer;
+        return facetsLazyContainer;
     }
 }

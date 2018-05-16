@@ -258,6 +258,10 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		return super.getContainerProperty(itemId, propertyId);
 	}
 
+	public T getContainer() {
+		return container;
+	}
+
 	@SuppressWarnings("deprecation")
 	private static class PaintTargetAdapter implements Serializable, PaintTarget {
 

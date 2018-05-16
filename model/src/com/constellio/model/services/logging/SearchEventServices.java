@@ -32,7 +32,7 @@ public class SearchEventServices {
 
 	static Map<String, Object> incrementCounterMap;
 
-	boolean toogleAddLater = true;
+	boolean limit = true;
 
 	static {
 		incrementCounterMap = new HashMap<>();
@@ -60,6 +60,23 @@ public class SearchEventServices {
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void updateDwellTime(String searchEventId, long dwellTime) {
+
+		SolrInputDocument doc = new SolrInputDocument();
+
+		doc.setField("id", searchEventId);
+		doc.setField(schemas.searchEvent.dwellTime().getDataStoreCode(), dwellTime);
+
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.ADD_LATER());
+		tx.setUpdatedDocuments(asList(doc));
+		try {
+			modelLayerFactory.getDataLayerFactory().newEventsDao().getBigVaultServer().addAll(tx);
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	public void incrementClickCounter(String searchEventId) {
@@ -94,43 +111,61 @@ public class SearchEventServices {
 		}
 	}
 
-	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
+	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
 		computeExcludedRequest(excludedRequest, params);
 
-		String limit = "";
-		if (maxLines != null && maxLines > 0) {
-			limit = ", 'limit': "+maxLines;
+		String limits = "";
+		if (limit != null && limit > 0) {
+			limits = ", 'limit': "+limit;
 		}
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		String offsets = "";
+		if (offset != null && offset > 0) {
+			offsets = ", 'offset': "+ offset;
+		}
+
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
+	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 			ModifiableSolrParams params = new ModifiableSolrParams();
 			params.set("q", "*:*");
 			params.set("rows", "0");
 			params.add("fq", "numFound_d:[1 TO *]");
 			params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 			params.add("fq", "collection_s:" + collection);
+			if (StringUtils.isNotBlank(paramsfilter)) {
+				params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+			}
 
-			computeDateParams(from, to, params);
+		computeDateParams(from, to, params);
 
-			computeExcludedRequest(excludedRequest, params);
+		computeExcludedRequest(excludedRequest, params);
 
-		String limit = "";
-		if (maxLines != null && maxLines > 0) {
-			limit = ", 'limit': "+maxLines;
+		String limits = "";
+		if (limit != null && limit > 0) {
+			limits = ", 'limit': "+ limit;
 		}
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		String offsets = "";
+		if (offset != null && offset > 0) {
+			offsets = ", 'offset': "+ offset;
+		}
+
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
@@ -161,65 +196,92 @@ public class SearchEventServices {
 		return queries;
 	}
 
-	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
+	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "numFound_d:0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
 		computeExcludedRequest(excludedRequest, params);
 
-		String limit = "";
-		if (maxLines != null && maxLines > 0) {
-			limit = ", 'limit': "+maxLines;
+		String limits = "";
+		if (limit != null && limit > 0) {
+			limits = ", 'limit': "+ limit;
 		}
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		String offsets = "";
+		if (offset != null && offset > 0) {
+			offsets = ", 'offset': "+ offset;
+		}
+
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
+	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "clickCount_d:[1 TO *]");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
 		computeExcludedRequest(excludedRequest, params);
 
-		String limit = "";
-		if (maxLines != null && maxLines > 0) {
-			limit = ", 'limit': "+maxLines;
+		String limits = "";
+		if (limit != null && limit > 0) {
+			limits = ", 'limit': "+ limit;
 		}
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		String offsets = "";
+		if (offset != null && offset > 0) {
+			offsets = ", 'offset': "+ offset;
+		}
+
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to, Integer maxLines, String excludedRequest) {
+	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to, String excludedRequest, Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
 		params.add("fq", "clickCount_d:0");
 		params.add("fq", "schema_s:" + SearchEvent.SCHEMA_TYPE + "*");
 		params.add("fq", "collection_s:" + collection);
+		if (StringUtils.isNotBlank(paramsfilter)) {
+			params.add("fq", "params_ss:*" + ClientUtils.escapeQueryChars(paramsfilter) + "*");
+		}
 
 		computeDateParams(from, to, params);
 
 		computeExcludedRequest(excludedRequest, params);
 
-		String limit = "";
-		if (maxLines != null && maxLines > 0) {
-			limit = ", 'limit': "+maxLines;
+		String limits = "";
+		if (limit != null && limit > 0) {
+			limits = ", 'limit': "+ limit;
 		}
-		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + limit + ", 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
+
+		String offsets = "";
+		if (offset != null && offset > 0) {
+			offsets = ", 'offset': "+ offset;
+		}
+
+		params.add("json.facet", "{'query_s': {'type':'terms', 'field':'query_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)'}}}");
 
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}

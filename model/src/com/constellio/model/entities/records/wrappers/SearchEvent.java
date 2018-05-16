@@ -17,6 +17,7 @@ public class SearchEvent extends RecordWrapper {
 	public static final String ORIGINAL_QUERY = "originalQuery";
 	public static final String NUM_FOUND = "numFound";
 	public static final String Q_TIME = "qTime";
+	public static final String DWELL_TIME = "dwellTime";
 
 	public SearchEvent(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -84,6 +85,16 @@ public class SearchEvent extends RecordWrapper {
 
 	public SearchEvent setQTime(long qTime) {
 		set(Q_TIME, qTime);
+		return this;
+	}
+
+	public long getDwellTime() {
+		Number dwellTime = get(DWELL_TIME);
+		return dwellTime == null ? 0 : dwellTime.longValue();
+	}
+
+	public SearchEvent setDwellTime(long dwellTime) {
+		set(DWELL_TIME, dwellTime);
 		return this;
 	}
 }

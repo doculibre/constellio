@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotDownloadDocument;
@@ -43,6 +31,19 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static java.util.Arrays.asList;
 
 class ConnectorHttpFetchJob extends ConnectorJob {
 
@@ -164,8 +165,14 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
 					httpDocument.setLanguage(parsedContent.getLanguage());
 					httpDocument.setParsedContent(parsedContent.getParsedContent());
+					httpDocument.setDescription(parsedContent.getDescription());
 
-					httpDocument.setTitle(extractFilename(httpDocument.getURL()));
+					String metadataTitle = parsedContent.getTitle();
+					if (StringUtils.isBlank(metadataTitle)) {
+						metadataTitle = extractFilename(httpDocument.getURL());
+					}
+
+					httpDocument.setTitle(metadataTitle);
 					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
 
@@ -217,7 +224,9 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				if (context.isNewUrl(url)) {
 					context.markAsFetched(url);
 
-					savedDocuments.add(connectorHttp.newUnfetchedURLDocument(url, linksLevel));
+					ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+					document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+					savedDocuments.add(document);
 				}
 			}
 
@@ -237,7 +246,8 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.setParsedContent(results.getParsedContent())
 				.setDigest(results.getDigest())
 				.setLanguage(results.getLanguage())
-				//.setOutlinks(urls)
+				.setOutlinks(urls)
+				.setDescription(results.getDescription())
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
 				.addStringProperty("charset", page.getWebResponse().getContentCharset());
