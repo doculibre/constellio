@@ -635,7 +635,7 @@ public class ContentManager implements StatefulService {
 				record.set(Schemas.MARKED_FOR_PARSING, null);
 
 			}
-			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 			tx.getRecordUpdateOptions().setFullRewrite(true);
 			try {
 				recordServices.execute(tx);
@@ -810,6 +810,7 @@ public class ContentManager implements StatefulService {
 					}
 					Transaction transaction = new Transaction(batch);
 					transaction.setSkippingRequiredValuesValidation(true);
+					transaction.getRecordUpdateOptions().setOverwriteModificationDateAndUser(false);
 					try {
 						recordServices.execute(transaction);
 					} catch (RecordServicesException e) {
