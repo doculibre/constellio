@@ -1,4 +1,4 @@
-package com.constellio.data.dao.services.ignite;
+package com.constellio.data.dao.services.leaderElection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,32 +8,27 @@ import org.apache.ignite.IgniteCluster;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 
-public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
+public class IgniteLeaderElectionManager implements LeaderElectionManager {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(IgniteLeaderElectionManager.class);
 
 	DataLayerFactory dataLayerFactory;
 
-	public DefaultLeaderElectionServiceImpl(DataLayerFactory dataLayerFactory) {
+	public IgniteLeaderElectionManager(DataLayerFactory dataLayerFactory) {
 		this.dataLayerFactory = dataLayerFactory;
 	}
 
-	@Override
 	public boolean isCurrentNodeLeader() {
-		ConstellioCacheManager constellioCacheManager = dataLayerFactory.getSettingsCacheManager();
-
-		if (constellioCacheManager instanceof ConstellioIgniteCacheManager) {
-			return isCurrentNodeLeader(((ConstellioIgniteCacheManager) constellioCacheManager).getClient());
-		} else {
-			return true;
-		}
+		return isCurrentNodeLeader(dataLayerFactory.getIgniteClient());
 
 	}
 
-	public boolean isCurrentNodeLeader(Ignite ignite) {
+	boolean isCurrentNodeLeader(Ignite ignite) {
 		IgniteCluster cluster = ignite.cluster();
 
 		Collection<ClusterNode> clients = new ArrayList<>();
@@ -49,6 +44,16 @@ public class DefaultLeaderElectionServiceImpl implements LeaderElectionService {
 
 		ClusterNode localNode = cluster.localNode();
 		return localNode.id().equals(oldest.id());
+
 	}
 
+	@Override
+	public void initialize() {
+
+	}
+
+	@Override
+	public void close() {
+
+	}
 }

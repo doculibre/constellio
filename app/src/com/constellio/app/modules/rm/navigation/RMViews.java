@@ -3,7 +3,10 @@ package com.constellio.app.modules.rm.navigation;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.server.BrowserWindowOpener;
+import com.vaadin.ui.UI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +22,10 @@ public class RMViews extends CoreViews {
 
 	public void displayFolder(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
+	}
+
+	public void displayFolder(String id, String homePageUrl, boolean isToOpenInNewTab) {
+		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id, isToOpenInNewTab);
 	}
 
 	public void addFolder() {
@@ -60,6 +67,10 @@ public class RMViews extends CoreViews {
 
 	public void displayDocument(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	public void displayDocument(String id, String homePageUrl, boolean isToOpenInNewTab) {
+		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id, isToOpenInNewTab);
 	}
 
 	public void newDocument() {

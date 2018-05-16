@@ -134,7 +134,7 @@ public class TaskTable extends RecordVOTable {
 						@Override
 						protected String getConfirmDialogMessage() {
 							if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
-								return $("TaskPresenterServices.subTaskPresentWarning");
+								return $("DisplayTaskView.subTaskPresentWarning");
 							} else {
 								return $("ConfirmDialog.confirmDelete");
 							}

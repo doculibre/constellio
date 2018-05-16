@@ -10,20 +10,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.assertj.core.groups.Tuple.tuple;
 
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.es.ConstellioESModule;
-import com.constellio.app.modules.es.extensions.api.ConnectorHttpDocumentExtension;
-import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
-import com.constellio.model.services.thesaurus.ThesaurusService;
-import com.constellio.model.services.thesaurus.ThesaurusServiceBuilder;
 import org.eclipse.jetty.server.Server;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDateTime;
@@ -54,7 +46,6 @@ import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ConnectorHttpAcceptanceTest extends ConstellioTest {
-	public static final String SKOS_XML_FILE_PATH = "C:\\Users\\constellios\\Documents\\SKOS\\SKOS destination 21 juillet 2017.xml";
 	Server server;
 
 	String htmlMimetype = "text/html";
@@ -499,7 +490,6 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				tuple(MODIFY_EVENT, WEBSITE + "singes/macaque.html")
 		);
 	}
-
 
 	@Test
 	public void givenWebSiteIsModifiedThenUpdatedCorrectly()

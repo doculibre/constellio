@@ -270,7 +270,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if(presenter.hasMetadataReport()) {
-			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT);
+			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"), FontAwesome.LIST_ALT);
 			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
 
 				@Override

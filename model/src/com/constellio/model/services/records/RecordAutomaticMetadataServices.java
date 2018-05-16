@@ -37,6 +37,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
@@ -56,6 +57,9 @@ import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesPar
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
@@ -140,7 +144,7 @@ public class RecordAutomaticMetadataServices {
 			//We don't want to calculate this metadata during record imports
 
 			if (!record.isSaved()) {
-				setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(record, metadata, transaction, types);
+				setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(context, record, metadata, transaction, types);
 
 			} else if (transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()) {
 				setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
@@ -168,7 +172,8 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(RecordImpl record, Metadata metadata,
+	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(TransactionExecutionContext context,
+			RecordImpl record, Metadata metadata,
 			Transaction transaction, MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
@@ -176,19 +181,10 @@ public class RecordAutomaticMetadataServices {
 		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
 		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
 
-		List<Record> aggregatedRecords = new ArrayList<>();
-
-		for (Record transactionRecord : transaction.getRecords()) {
-			if (transactionRecord.getTypeCode().equals(schemaType.getCode())
-					&& transactionRecord.getValues(referenceMetadata).contains(record.getId())) {
-				aggregatedRecords.add(transactionRecord);
-			}
-		}
-
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
 			TransactionAggregatedValuesParams aggregatedValuesParams = new TransactionAggregatedValuesParams(
-					record, metadata, aggregatedDataEntry, types, aggregatedRecords);
+					record, metadata, aggregatedDataEntry, types);
 			List<Object> values = new ArrayList<>();
 			//TODO Populate based on transaction values
 			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(metadata, values) {
@@ -408,6 +404,7 @@ public class RecordAutomaticMetadataServices {
 			AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue = context.getAllPrincipalsAuthsDependencyValue();
 			if (allPrincipalsAuthsDependencyValue == null) {
 
+				List<String> disabledGroups = new ArrayList<>();
 				List<Group> groups = new ArrayList<>();
 				List<User> users = new ArrayList<>();
 				Set<String> usersInTransaction = new HashSet<>();
@@ -436,6 +433,7 @@ public class RecordAutomaticMetadataServices {
 					}
 
 				}
+
 				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
 					for (Record record : searchServices
 							.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
@@ -458,13 +456,28 @@ public class RecordAutomaticMetadataServices {
 						}
 					}
 				}
-				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users);
+
+				RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+				SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
+						Collection.SYSTEM_COLLECTION, modelLayerFactory);
+				if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+					for (Record record : searchServices
+							.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+									.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+						GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+						if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+							disabledGroups.add(globalGroup.getCode());
+						}
+					}
+				}
+
+				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users, disabledGroups);
 				context.setAllPrincipalsAuthsDependencyValue(allPrincipalsAuthsDependencyValue);
 			}
 			return allPrincipalsAuthsDependencyValue;
 
 		} else {
-			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>());
+			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>(), new ArrayList<String>());
 		}
 
 	}

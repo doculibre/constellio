@@ -179,8 +179,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			if(task.getAssigner() == null) {
 
-				if ((task.getAssigneeUsersCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
-						|| task.getAssigneeGroupsCandidates() != null && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
+				if ((task.getAssigneeUsersCandidates() != null && task.getAssigneeUsersCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
+						|| task.getAssigneeGroupsCandidates() != null && task.getAssigneeGroupsCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
 						|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
@@ -379,8 +379,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					isInclusiveDecision = false;
 				}
 
-
-				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
+				Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
+				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision || DisplayTaskPresenter.containsExpressionLanguage(decisions)) {
 					field.setVisible(false);
 					return;
 				} else {

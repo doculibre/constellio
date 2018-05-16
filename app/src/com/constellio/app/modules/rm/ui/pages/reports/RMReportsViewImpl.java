@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
@@ -38,12 +39,12 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 		CssLayout panel = new CssLayout();
 		layout.addStyleName("view-group");
 
-		for (String report : presenter.getSupportedReports()) {
-			if (presenter.isWithSchemaType(report)) {
-				String schemaType = presenter.getSchemaTypeValue(report);
+		for (ReportWithCaptionVO report : presenter.getSupportedReports()) {
+			if (presenter.isWithSchemaType(report.getTitle())) {
+				String schemaType = presenter.getSchemaTypeValue(report.getTitle());
 				WindowButton windowButton = buildLookupButton(schemaType, report);
 
-				setReportButtonStyle(report, windowButton);
+				setReportButtonStyle(report.getTitle(), windowButton);
 				panel.addComponent(windowButton);
 			} else {
 				ReportButton button = new ReportButton(report, presenter);
@@ -65,9 +66,9 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 		};
 	}
 
-	private WindowButton buildLookupButton(final String schemaType, final String title) {
-		return new WindowButton($(title),
-				$(title)) {
+	private WindowButton buildLookupButton(final String schemaType, final ReportWithCaptionVO report) {
+		return new WindowButton($(report.getCaption()),
+				$(report.getCaption())) {
 			@Override
 			protected Component buildWindowContent() {
 
@@ -80,7 +81,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.setSchemaTypeValue((String) lookupSchemaType.getValue());
-						ReportButton reportButton = new ReportButton(title, presenter);
+						ReportButton reportButton = new ReportButton(report, presenter);
 						reportButton.click();
 						getWindow().close();
 					}

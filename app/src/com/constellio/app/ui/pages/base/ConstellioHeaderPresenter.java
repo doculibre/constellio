@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -75,6 +76,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -124,14 +126,14 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public void searchRequested(String expression, String schemaTypeCode) {
 		if (StringUtils.isNotBlank(schemaTypeCode)) {
 			SavedSearch temporarySearch = buildAdvancedTemporarySearch(null, expression);
-			if(temporarySearch != null) {
+			if (temporarySearch != null) {
 				header.hideAdvancedSearchPopup().navigateTo().advancedSearchReplay(temporarySearch.getId());
 			} else {
 				header.hideAdvancedSearchPopup().navigateTo().advancedSearch();
 			}
 		} else if (StringUtils.isNotBlank(expression)) {
 			SavedSearch temporarySearch = buildSimpleTemporarySearch(null, expression);
-			if(temporarySearch != null) {
+			if (temporarySearch != null) {
 				header.hideAdvancedSearchPopup().navigateTo().simpleSearchReplay(temporarySearch.getId());
 			} else {
 				header.hideAdvancedSearchPopup().navigateTo().simpleSearch(expression);
@@ -140,8 +142,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private SavedSearch buildTemporarySearch(Record tmpSearchRecord, String expression, String searchType) {
-		if(tmpSearchRecord == null) {
-			tmpSearchRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = modelLayerFactory.newRecordServices()
+					.newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		}
 		SortParameters sortParameters = buildSortParameters();
 
@@ -157,11 +160,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.setResultsViewMode(SearchResultsViewMode.DETAILED)
 				.setPageLength(0);
 
-		if(StringUtils.isNotBlank(expression)) {
+		if (StringUtils.isNotBlank(expression)) {
 			search.setFreeTextSearch(expression);
 		}
 
-		if(AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
+		if (AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
 			search.setSchemaFilter(schemaTypeCode).setAdvancedSearch(header.getAdvancedSearchCriteria())
 					.setTitle($("SearchView.savedSearch.temporaryAdvance"));
 		} else {
@@ -170,7 +173,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-			modelLayerFactory.getRecordsCaches().getCache(header.getCollection()).forceInsert(search.getWrappedRecord());
+			modelLayerFactory.getRecordsCaches().getCache(header.getCollection())
+					.forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
 			return search;
 
 		} catch (Exception e) {
@@ -192,44 +196,44 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		String sortCriterion;
 		SearchPresenter.SortOrder sortOrder;
 		switch (searchSortType) {
-			case RELEVENCE:
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				sortCriterion = null;
-				break;
-			case PATH_ASC:
-				sortCriterion = Schemas.PATH.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case PATH_DES:
-				sortCriterion = Schemas.PATH.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			case ID_ASC:
-				sortCriterion = Schemas.IDENTIFIER.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case ID_DES:
-				sortCriterion = Schemas.IDENTIFIER.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			case CREATION_DATE_ASC:
-				sortCriterion = Schemas.CREATED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case CREATION_DATE_DES:
-				sortCriterion = Schemas.CREATED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			case MODIFICATION_DATE_ASC:
-				sortCriterion = Schemas.MODIFIED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case MODIFICATION_DATE_DES:
-				sortCriterion = Schemas.MODIFIED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			default:
-				throw new RuntimeException("Unsupported type " + searchSortType);
+		case RELEVENCE:
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			sortCriterion = null;
+			break;
+		case PATH_ASC:
+			sortCriterion = Schemas.PATH.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case PATH_DES:
+			sortCriterion = Schemas.PATH.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		case ID_ASC:
+			sortCriterion = Schemas.IDENTIFIER.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case ID_DES:
+			sortCriterion = Schemas.IDENTIFIER.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		case CREATION_DATE_ASC:
+			sortCriterion = Schemas.CREATED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case CREATION_DATE_DES:
+			sortCriterion = Schemas.CREATED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		case MODIFICATION_DATE_ASC:
+			sortCriterion = Schemas.MODIFIED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case MODIFICATION_DATE_DES:
+			sortCriterion = Schemas.MODIFIED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		default:
+			throw new RuntimeException("Unsupported type " + searchSortType);
 		}
 
 		return new SortParameters(sortCriterion, sortOrder);
@@ -342,7 +346,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
+		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
@@ -524,7 +528,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private Locale getLocale(String languageCode) {
-		i18n.getSupportedLanguages();
 		for (Language language : Language.values()) {
 			if (language.getCode().equals(languageCode)) {
 				return new Locale(languageCode);
@@ -830,7 +833,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public List<String> getAutocompleteSuggestions(String text) {
 		List<String> suggestions = new ArrayList<>();
-		
+
 		int minInputLength = 3;
 		int maxResults = 10;
 		String[] excludedRequests = new String[0];
@@ -839,7 +842,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
         SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory);
 		ThesaurusManager thesaurusManager = modelLayerFactory.getThesaurusManager();
 		ThesaurusService thesaurusService = thesaurusManager.get(collection);
-		
+
 		List<String> statsSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
 		suggestions.addAll(statsSuggestions);
 		if (statsSuggestions.size() < maxResults) {
@@ -847,7 +850,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			List<String> thesaurusSuggestions = thesaurusService.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength, thesaurusMaxResults);
 			suggestions.addAll(thesaurusSuggestions);
 		}
-		
+
 		return suggestions;
 	}
 

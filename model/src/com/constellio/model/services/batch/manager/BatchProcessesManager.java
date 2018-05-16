@@ -1,5 +1,6 @@
 package com.constellio.model.services.batch.manager;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -545,6 +546,6 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public void updateBatchProcessState(String batchProcessId, BatchProcessState state) {
-		statusCache.put(batchProcessId, state);
+		statusCache.put(batchProcessId, state, WAS_MODIFIED);
 	}
 }

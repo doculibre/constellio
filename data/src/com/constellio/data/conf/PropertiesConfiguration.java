@@ -163,7 +163,10 @@ public abstract class PropertiesConfiguration {
 		if (durationString == null) {
 			return defaultDuration;
 		} else {
-			if (durationString.toUpperCase().endsWith("S")) {
+			if (durationString.toUpperCase().endsWith("MS")) {
+				return new Duration(Long.valueOf(StringUtils.substringBefore(durationString.toUpperCase(), "MS")));
+
+			} else if (durationString.toUpperCase().endsWith("S")) {
 				return Duration.standardSeconds(Long.valueOf(StringUtils.substringBefore(durationString.toUpperCase(), "S")));
 
 			} else if (durationString.toUpperCase().endsWith("M")) {

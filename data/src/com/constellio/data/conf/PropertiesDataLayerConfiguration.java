@@ -91,6 +91,14 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			this.filter = filter;
 		}
 
+		public void setEventLifespan(Duration duration) {
+			setDuration("eventBus.solr.eventLifespan", duration);
+		}
+
+		public void setSolrEventBusRetrieveAndSendFrequency(Duration duration) {
+			setDuration("eventBus.solr.retrieveAndSendFrequency", duration);
+		}
+
 		public SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter() {
 			return filter == null ? super.getSecondTransactionLogReplayFilter() : filter;
 		}
@@ -241,7 +249,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public String getCacheUrl() {
-		return getRequiredString("dao.cache.url");
+		return getString("dao.cache.url", null);
 	}
 
 	@Override
@@ -352,5 +360,24 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public String getOnlineConversionUrl() {
 		return getString("conversion.url", null);
 	}
-	
+
+	@Override
+	public EventBusSendingServiceType getEventBusSendingServiceType() {
+		return (EventBusSendingServiceType) getEnum("eventBus.type", EventBusSendingServiceType.STANDALONE);
+	}
+
+	@Override
+	public Duration getSolrEventBusSendingServiceTypeEventLifespan() {
+		return getDuration("eventBus.solr.eventLifespan", Duration.standardMinutes(10));
+	}
+
+	@Override
+	public Duration getSolrEventBusSendingServiceTypePollAndRetrieveFrequency() {
+		return getDuration("eventBus.solr.retrieveAndSendFrequency", Duration.standardSeconds(1));
+	}
+
+	@Override
+	public ElectionServiceType getElectionServiceType() {
+		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
+	}
 }

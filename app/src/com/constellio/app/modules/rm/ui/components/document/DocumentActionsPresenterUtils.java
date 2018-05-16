@@ -1,5 +1,18 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -140,10 +153,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
 
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), getModelLayerFactory());
+			boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
 			if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), getModelLayerFactory());
-				if (rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (isManualEntry) {
 					document.setTitle(newName);
+				}
+			} else if(FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename()).equals(document.getTitle())) {
+				if (isManualEntry) {
+					document.setTitle(FilenameUtils.removeExtension(newName));
 				}
 			}
 

@@ -95,7 +95,7 @@ public class FilterUtils {
 				stringBuilder.append("_*");
 			}
 
-			for (String aGroup : user.getUserGroups()) {
+			for (String aGroup :  user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
 					stringBuilder.append(" OR ");
 					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());

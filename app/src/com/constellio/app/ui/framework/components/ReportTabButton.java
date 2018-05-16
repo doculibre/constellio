@@ -152,9 +152,10 @@ public class ReportTabButton extends WindowButton {
         try {
             NewReportPresenter newReportPresenter;
             if(viewPresenter == null) {
-                AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
-                Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
-                newReportPresenter = Advancedpresenter;
+//                AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+//                Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+//                newReportPresenter = Advancedpresenter;
+                newReportPresenter = ((AdvancedSearchView) view).getPresenter();
             } else {
                 newReportPresenter = this.viewPresenter;
             }

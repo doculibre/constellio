@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -30,6 +29,7 @@ import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -52,6 +52,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -92,7 +93,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	boolean dryRun;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-													 AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -185,7 +186,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		String fullConnectorDocPath = connectorFolder.getURL();
 		String legacyId = fullConnectorDocPath;
-		if(connectorFolder.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE+"_")) {
+		if (connectorFolder.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE + "_")) {
 			legacyId = connectorFolder.get(ConnectorSmbFolder.CONNECTOR_URL);
 		}
 		if (params.getInTaxonomy() != null) {
@@ -215,7 +216,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata,
-							   ClassifiedRecordPathInfo recordUrlInfo) {
+			ClassifiedRecordPathInfo recordUrlInfo) {
 		LOGGER.info("Process Folder : [" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode()
 				+ ", " + recordUrlInfo + "]");
 		String folderName = recordUrlInfo.getLastPathSegment();
@@ -227,11 +228,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			String folderTypeId = params.getFolderTypeId();
 			Record parentConcept = recordUrlInfo.getConceptWhereRecordIsCreated();
 			if (parentConcept != null) {
-				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept, folderTypeId);
+				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept,
+						folderTypeId);
 			} else if (targetTaxonomy != null) {
 				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName, folderTypeId);
 			} else {
-				if(folderTypeId != null) {
+				if (folderTypeId != null) {
 					rmFolder = rm.newFolderWithType(folderTypeId);
 				} else {
 					rmFolder = rm.newFolder();
@@ -244,7 +246,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			try {
 				recordServices.validateRecordInTransaction(rmFolder.getWrappedRecord(), transaction);
 			} catch (ValidationException e) {
-				throw new RuntimeException(e);
+				throw new ValidationRuntimeException(e.getErrors());
 			}
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
@@ -268,7 +270,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		if (rmRecord == null) {
 			String folderTypeId = params.getFolderTypeId();
-			if(folderTypeId != null) {
+			if (folderTypeId != null) {
 				rmFolder = rm.newFolderWithType(folderTypeId);
 			} else {
 				rmFolder = rm.newFolder();
@@ -352,7 +354,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
 		Folder newRmFolder;
-		if(folderTypeId != null) {
+		if (folderTypeId != null) {
 			newRmFolder = rm.newFolderWithType(folderTypeId);
 		} else {
 			newRmFolder = rm.newFolder();
@@ -369,9 +371,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
+			MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
 		Folder newRmFolder;
-		if(folderTypeId != null) {
+		if (folderTypeId != null) {
 			newRmFolder = rm.newFolderWithType(folderTypeId);
 		} else {
 			newRmFolder = rm.newFolder();
@@ -556,7 +558,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (rmFolder.getCopyStatusEntered() == null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (rmFolder.getOpenDate() == null) {
+		if (rmFolder.getOpenDate() == null || (!rmFolder.getWrappedRecord().isSaved() && params.getDefaultOpenDate() != null)) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
 
@@ -605,31 +607,31 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private void setMetadataInRmRecord(RecordWrapper rmRecord, MetadataSchema schema, String metadataCode, String value) {
 		Metadata metadata = schema.getMetadata(metadataCode);
 		switch (metadata.getType()) {
-			case STRING:
-				if (metadata.isMultivalue()) {
-					rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
-				} else {
-					rmRecord.set(metadataCode, value);
-				}
-				break;
-			case REFERENCE:
-				String collection = rmRecord.getCollection();
-				MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
-				MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
-				MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
-				Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
-				Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
-				rmRecord.set(metadataCode, referencedRecord.getId());
-				break;
-			case ENUM:
-				rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
-				break;
-			case DATE:
-				rmRecord.set(metadataCode, parseDate(value));
-				break;
-			case DATE_TIME:
-				rmRecord.set(metadataCode, parseDateTime(value));
-				break;
+		case STRING:
+			if (metadata.isMultivalue()) {
+				rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
+			} else {
+				rmRecord.set(metadataCode, value);
+			}
+			break;
+		case REFERENCE:
+			String collection = rmRecord.getCollection();
+			MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
+			MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
+			Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
+			Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
+			rmRecord.set(metadataCode, referencedRecord.getId());
+			break;
+		case ENUM:
+			rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
+			break;
+		case DATE:
+			rmRecord.set(metadataCode, parseDate(value));
+			break;
+		case DATE_TIME:
+			rmRecord.set(metadataCode, parseDateTime(value));
+			break;
 		}
 	}
 
@@ -644,7 +646,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	public Map<String, ClassifiedDocument> classifyDocuments(String inRmFolder, List<ConnectorDocument<?>> documentsRecords,
-															 Boolean majorVersions) {
+			Boolean majorVersions) {
 		Map<String, ClassifiedDocument> createdRecordsByUrls = new HashMap<>();
 		for (ConnectorDocument document : documentsRecords) {
 			try {
@@ -663,7 +665,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		ContentVersionDataSummary newVersionDataSummary = null;
 		try {
 			String fullUrl;
-			if(connectorDocument.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE+"_")) {
+			if (connectorDocument.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE + "_")) {
 				fullUrl = connectorDocument.get(ConnectorSmbDocument.CONNECTOR_URL);
 			} else {
 				fullUrl = connectorDocument.getURL();
@@ -672,7 +674,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 			if (document == null) {
 				String documentTypeId = params.getDocumentTypeId();
-				if(documentTypeId != null) {
+				if (documentTypeId != null) {
 					document = rm.newDocumentWithType(documentTypeId);
 				} else {
 					document = rm.newDocument();
@@ -743,7 +745,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
-									  ContentVersionDataSummary newVersionDataSummary, Document document) {
+			ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
 				document.getContent().updateContentWithVersionAndName(currentUser, newVersionDataSummary, versionNumber,

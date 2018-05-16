@@ -4,6 +4,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.Iterator;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -29,7 +30,7 @@ public class RecordCachesServices {
 				Iterator<Record> recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 5000);
 
 				while (recordsIterator.hasNext()) {
-					recordsCache.insert(recordsIterator.next());
+					recordsCache.insert(recordsIterator.next(), InsertionReason.WAS_OBTAINED);
 				}
 			}
 		}

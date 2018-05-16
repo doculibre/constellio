@@ -268,6 +268,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			}
 		});
 		passwordField.setEnabled(presenter.canModifyPassword());
+		passwordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
 		confirmPasswordField = new PasswordField();
 		confirmPasswordField.setCaption($("ModifyProfileView.confirmPassword"));
@@ -286,6 +287,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		};
 		confirmPasswordField.addValidator(passwordFieldsValidator);
 		confirmPasswordField.setEnabled(presenter.canModifyPassword());
+		confirmPasswordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
 		oldPasswordField = new PasswordField();
 		oldPasswordField.setCaption($("ModifyProfileView.oldPassword"));
@@ -293,6 +295,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		oldPasswordField.setId("oldPassword");
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
+		oldPasswordField.setReadOnly(!presenter.isPasswordChangeEnabled());
 
 		loginLanguageCodeField = new BaseComboBox($("ModifyProfileView.loginLanguageCode"));
 		loginLanguageCodeField.setId("loginLanguageCode");

@@ -1,6 +1,9 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.utils.MaskUtils.format;
@@ -29,6 +32,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.DataStore;
@@ -97,6 +101,8 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
@@ -470,7 +476,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -488,7 +494,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -520,7 +526,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			records.add(record);
 		}
 
@@ -528,12 +534,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	public void insertInCache(Record record) {
-		recordsCaches.insert(record);
+	public void insertInCache(Record record, InsertionReason reason) {
+		insertInCache(record.getCollection(), asList(record), reason);
 	}
 
-	public void insertInCache(String collection, List<Record> records) {
-		recordsCaches.insert(collection, records);
+	public void insertInCache(String collection, List<Record> records, InsertionReason reason) {
+
+		List<Record> insertedRecords = new ArrayList<>();
+		for (Record record : records) {
+			CacheConfig cacheConfig = recordsCaches.getCache(collection).getCacheConfigOf(record.getTypeCode());
+			if (cacheConfig != null) {
+				if (evaluateCacheInsert(record, cacheConfig) != CacheInsertionStatus.ACCEPTED && cacheConfig.isPermanent()) {
+					insertedRecords.add(realtimeGetRecordById(record.getId()));
+				} else {
+					insertedRecords.add(record);
+				}
+			}
+		}
+		recordsCaches.insert(collection, insertedRecords, reason);
+
 	}
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
@@ -588,18 +607,35 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		}
 
+		ValidationErrors errors = new ValidationErrors();
+		boolean catchValidationsErrors = transaction.getRecordUpdateOptions().isCatchExtensionsValidationsErrors();
+
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(transaction.getCollection());
 		for (Record record : transaction.getRecords()) {
+			ValidationErrors transactionExtensionErrors =
+					catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 			if (record.isDirty()) {
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
-									modifiedMetadatas), options);
+									modifiedMetadatas, transactionExtensionErrors), options);
 				} else {
 					extensions.callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(
-									record, transaction.getUser()), options);
+									record, transaction.getUser(), transactionExtensionErrors), options);
+				}
+			}
+		}
+
+		if (!errors.isEmpty()) {
+
+			if (catchValidationsErrors) {
+				LOGGER.warn("Validating errors added by extensions : \n" + $(errors));
+
+			} else {
+				if (!errors.isEmpty()) {
+					throw new RecordServicesException.ValidationException(transaction, errors);
 				}
 			}
 		}
@@ -649,10 +685,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 
 					} else if (step instanceof SequenceRecordPreparationStep) {
+
 						SequencesManager sequencesManager = modelFactory.getDataLayerFactory().getSequencesManager();
+
 						for (Metadata metadata : step.getMetadatas()) {
 
 							SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
+
 							if (dataEntry.getFixedSequenceCode() != null) {
 								if (record.get(metadata) == null) {
 									String sequenceCode = dataEntry.getFixedSequenceCode();
@@ -660,11 +699,29 @@ public class RecordServicesImpl extends BaseRecordServices {
 									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							} else {
-								Metadata metadataProvidingSequenceCode = schema
-										.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
 
-								if (record.isModified(metadataProvidingSequenceCode) && !record.isModified(metadata)) {
-									String sequenceCode = record.get(metadataProvidingSequenceCode);
+								Metadata metadataProvidingReference;
+								Metadata metadataProvidingSequenceCode;
+								String sequenceCode = null;
+
+								if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
+									String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
+									metadataProvidingReference = schema.getMetadata(splittedCode[0]);
+									metadataProvidingSequenceCode = types.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType()).getMetadata(splittedCode[1]);
+									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
+
+									if(metadataProvidingReferenceValue!=null){
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
+									}
+								}
+								else{
+									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
+									metadataProvidingSequenceCode = metadataProvidingReference;
+									sequenceCode = record.get(metadataProvidingSequenceCode);
+								}
+
+								// if user did not changed seqNumber AND reference changed
+								if (!record.isModified(metadata) && record.isModified(metadataProvidingReference)) {
 									String value = sequenceCode == null ?
 											null :
 											format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
@@ -724,10 +781,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
 		}
 
-		ValidationErrors errors = new ValidationErrors();
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
-
-		boolean catchValidationsErrors = transaction.getRecordUpdateOptions().isCatchExtensionsValidationsErrors();
 
 		ValidationErrors transactionExtensionErrors =
 				catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
@@ -850,7 +904,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
-		insertInCache(collection, recordsToInsert);
+		insertInCache(collection, recordsToInsert, WAS_MODIFIED);
 
 	}
 

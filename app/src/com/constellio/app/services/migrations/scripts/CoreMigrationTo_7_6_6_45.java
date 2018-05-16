@@ -43,27 +43,29 @@ public class CoreMigrationTo_7_6_6_45 implements MigrationScript {
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-		new ActionExecutorInBatch(searchServices, "set auth's target schema type", 10000) {
+		if (schemas.user.schemaType().getDefaultSchema().hasMetadataWithCode("groupsauthorizations")) {
+			new ActionExecutorInBatch(searchServices, "set auth's target schema type", 10000) {
 
-			@Override
-			public void doActionOnBatch(List<Record> records)
-					throws Exception {
+				@Override
+				public void doActionOnBatch(List<Record> records)
+						throws Exception {
 
-				Transaction tx = new Transaction();
-				tx.setOptions(validationExceptionSafeOptions().setOptimisticLockingResolution(EXCEPTION));
+					Transaction tx = new Transaction();
+					tx.setOptions(validationExceptionSafeOptions().setOptimisticLockingResolution(EXCEPTION));
 
-				for (Record record : records) {
-					User user = schemas.wrapUser(record);
-					user.set("alluserauthorizations", new ArrayList<>());
-					user.set("groupsauthorizations", new ArrayList<>());
-					tx.add(user);
+					for (Record record : records) {
+						User user = schemas.wrapUser(record);
+						user.set("alluserauthorizations", new ArrayList<>());
+						user.set("groupsauthorizations", new ArrayList<>());
+						tx.add(user);
+					}
+
+					recordServices.execute(tx);
+
 				}
-
-				recordServices.execute(tx);
-
-			}
-		}.execute(from(schemas.user.schemaType())
-				.where(schemas.user.schema().get("groupsauthorizations")).isNotNull());
+			}.execute(from(schemas.user.schemaType())
+					.where(schemas.user.schema().get("groupsauthorizations")).isNotNull());
+		}
 	}
 
 	class CoreSchemaAlterationFor_7_6_6_1 extends MetadataSchemasAlterationHelper {

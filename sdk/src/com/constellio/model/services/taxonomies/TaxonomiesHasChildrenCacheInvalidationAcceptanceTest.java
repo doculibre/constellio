@@ -7,6 +7,8 @@ import static com.constellio.model.entities.security.global.AuthorizationModific
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,8 @@ import java.util.Map;
 import org.assertj.core.api.ListAssert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -25,13 +29,16 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 
+@RunWith(Parameterized.class)
 public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends ConstellioTest {
 
 	private static String FOLDER1 = "folder1";
@@ -39,21 +46,45 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
+	RecordServices recordServicesOfOtherInstance;
 	RMSchemasRecordsServices rm;
 	AuthorizationsServices authServices;
+	AuthorizationsServices authServicesOfOtherInstance;
 
-	MemoryTaxonomiesSearchServicesCache cache;
+	EventBusTaxonomiesSearchServicesCache cache;
 	List<String> observedCacheIds = new ArrayList<>();
+
+	String testCase;
+
+	public TaxonomiesHasChildrenCacheInvalidationAcceptanceTest(String testCase) {
+		this.testCase = testCase;
+	}
+
+	@Parameterized.Parameters(name = "{0}")
+	public static Collection<Object[]> testCases() {
+		return Arrays.asList(new Object[][] {
+				{ "testingInvalidationsOnLocalCache" }, { "testingInvalidationsOnRemoteCache" } });
+	}
 
 	@Before
 	public void setUp()
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users));
+
+		ModelLayerFactory modelLayerFactoryOfOtherInstance = getModelLayerFactory("other-instance");
+		TestUtils.linkEventBus(getModelLayerFactory(), modelLayerFactoryOfOtherInstance);
+
 		//TODO Do not run this test with ignite cache
-		cache = (MemoryTaxonomiesSearchServicesCache) getModelLayerFactory().getTaxonomiesSearchServicesCache();
-		recordServices = getModelLayerFactory().newRecordServices();
-		authServices = getModelLayerFactory().newAuthorizationsServices();
+		cache = (EventBusTaxonomiesSearchServicesCache) getModelLayerFactory().getTaxonomiesSearchServicesCache();
+
+		if (testCase.equals("testingInvalidationsOnLocalCache")) {
+			recordServices = getModelLayerFactory().newRecordServices();
+			authServices = getModelLayerFactory().newAuthorizationsServices();
+		} else {
+			recordServices = modelLayerFactoryOfOtherInstance.newRecordServices();
+			authServices = modelLayerFactoryOfOtherInstance.newAuthorizationsServices();
+		}
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		observedCacheIds.add(records.categoryId_X);
@@ -930,7 +961,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		List<String> entriesInfo = new ArrayList<>();
 
 		for (String id : observedCacheIds) {
-			Map<String, Map<String, Boolean>> recordCache = cache.getMemoryCache(id);
+			Map<String, Map<String, Boolean>> recordCache = ((MemoryTaxonomiesSearchServicesCache) cache.nestedCache)
+					.getMemoryCache(id);
 			for (Map.Entry<String, Map<String, Boolean>> entry : recordCache.entrySet()) {
 				String user = entry.getKey();
 				Map<String, Boolean> modes = entry.getValue();

@@ -56,7 +56,7 @@ import com.constellio.model.utils.XMLConfigReader;
 
 public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes> {
 
-	private static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
+	public static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
 	private final DataStoreTypesFactory typesFactory;
 	private final TaxonomiesManager taxonomiesManager;
 	private final ConfigManager configManager;
@@ -67,7 +67,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private SearchServices searchServices;
 	private ModelLayerFactory modelLayerFactory;
 	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
-	private ConstellioCacheManager cacheManager; 
+	private ConstellioCacheManager cacheManager;
 
 	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory, Delayed<ConstellioModulesManager> modulesManagerDelayed) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
@@ -248,7 +248,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 		try {
 			saveUpdateSchemaTypes(builder);
-		} catch (OptimisticLocking  optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			modify(collection, alteration);
 		}
 
@@ -324,7 +324,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return new SchemaTypesAlterationImpactsCalculator().calculatePotentialImpacts(schemaTypesBuilder);
 	}
 
-	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document) throws OptimisticLocking {
+	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document)
+			throws OptimisticLocking {
 		try {
 			String collection = schemaTypesBuilder.getCollection();
 			oneXmlConfigPerCollectionManager.update(collection, "" + schemaTypesBuilder.getVersion(), document);
@@ -333,7 +334,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throw new MetadataSchemasManagerRuntimeException.CannotUpdateDocument(document.toString(), e);
 
 		} catch (OptimisticLockingConfiguration e) {
-			throw new MetadataSchemasManagerException.OptimisticLocking( e);
+			throw new MetadataSchemasManagerException.OptimisticLocking(e);
 
 		}
 	}

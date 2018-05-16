@@ -140,6 +140,7 @@ public class RMFolderExtension extends RecordExtension {
 			folder.setAdministrativeUnitEntered((String) null);
 			folder.setCategoryEntered((String) null);
 			folder.setRetentionRuleEntered((String) null);
+
 			folder.setCopyStatusEntered(null);
 		}
 	}

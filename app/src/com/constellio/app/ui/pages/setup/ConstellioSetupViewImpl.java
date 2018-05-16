@@ -123,7 +123,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		String linkTarget = presenter.getLogoTarget();
 		Link logo = new Link(null, new ExternalResource(linkTarget));
 		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
-		logo.setIcon(LogoUtils.getLogoResource(modelLayerFactory));
+		logo.setIcon(LogoUtils.getAuthentificationImageResource(modelLayerFactory));
 		logo.addStyleName("setup-logo");
 		logo.setSizeUndefined();
 		hLayout.addComponent(logo);
@@ -146,7 +146,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		preSetupButtonsLayout = new VerticalLayout();
 		preSetupButtonsLayout.setSpacing(true);
 
-		for (final String localeCode : asList("fr", "en")) {
+		for (final String localeCode : localeCodes) {
 			Button languageButton = new Button($("ConstellioSetupView.setup." + localeCode));
 			languageButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			languageButton.setIcon(new ThemeResource("images/icons/language/" + localeCode + ".png"));

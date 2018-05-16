@@ -9,6 +9,7 @@ import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameCont
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -42,7 +43,6 @@ import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
+import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -198,6 +199,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void givenSystemLanguageIs(String languageCode) {
 		getCurrentTestSession().getFactoriesTestFeatures().setSystemLanguage(languageCode);
+		if (languageCode.equals("ar")) {
+			configure(new AppLayerConfigurationAlteration() {
+				@Override
+				public void alter(InMemoryAppLayerConfiguration configuration) {
+					configuration.setEnabledPrototypeLanguages("ar");
+				}
+			});
+		}
 	}
 
 	@AfterClass
@@ -251,8 +260,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public void invalidateStaticCaches() {
 		FoldersLocator.invalidateCaches();
 		ReindexingServices.markReindexingHasFinished();
-		DataLayerFactory.countInit = 0;
-		DataLayerFactory.countConstructor = 0;
 	}
 
 	@org.junit.Before
@@ -1504,14 +1511,27 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void assumeNotSolrCloud() {
-		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
+		assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
 	}
 
 	protected void assumeLocalSolr() {
 		assumeNotSolrCloud();
 
 		String httpUrl = sdkProperties.get("dao.records.http.url").toLowerCase();
-		Assume.assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
+		assumeTrue(httpUrl.contains("localhost") || httpUrl.contains("127.0.0.1"));
+	}
+
+	protected void assumeFileSystemConfigs() {
+		assumeTrue(sdkProperties.get("dao.settings.type").equals("filesystem"));
+	}
+
+	protected void assumeZookeeperConfigs() {
+		assumeTrue(sdkProperties.get("dao.settings.type").equals("zookeeper"));
+	}
+
+	protected void assumePluginsSDK() {
+		File file = new FoldersLocator().getPluginsSDKProject();
+		assumeTrue(file.exists());
 	}
 
 	protected Session newCMISSessionAsUserInZeCollection(String username) {
@@ -1548,8 +1568,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void syncSolrConfigurationFiles(DataLayerFactory dataLayerFactory) {
 		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
+
 		//for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
 		AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
+		assumeTrue(serverFileSystem != null);
 		AtomicFileSystem defaultConfiguration = new ChildAtomicFileSystem(
 				new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService(BASE64)),
 				getServerConfigurations(server.getName()));

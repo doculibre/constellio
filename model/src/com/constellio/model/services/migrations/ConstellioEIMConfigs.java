@@ -29,6 +29,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration INCLUDE_CONTENTS_IN_SAVESTATE;
 
+	public static final SystemConfiguration ENABLE_ADMIN_USER_PASSWORD_CHANGE;
 	public static final SystemConfiguration USER_TITLE_PATTERN;
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
@@ -38,6 +39,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
 	public static final SystemConfiguration LOGO_LINK;
+	public static final SystemConfiguration AUTHENTIFICATION_IMAGE;
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
@@ -127,6 +129,7 @@ public class ConstellioEIMConfigs {
 
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
+		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
@@ -217,6 +220,9 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
 
 		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
+
+		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
+				.whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -431,5 +437,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isStatisticReportEnabled() {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
+	}
+
+	public boolean isAdminPasswordChangeEnabled() {
+		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
 	}
 }

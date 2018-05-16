@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -643,7 +644,7 @@ public class SearchServices {
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
 		if (!records.isEmpty() && Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled() && query.getReturnedMetadatas().isFullyLoaded()) {
 			for (Map.Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
-				getConnectedRecordsCache().insert(entry.getKey(), entry.getValue());
+				getConnectedRecordsCache().insert(entry.getKey(), entry.getValue(), WAS_OBTAINED);
 			}
 
 		}
@@ -743,7 +744,7 @@ public class SearchServices {
 							loadUsingMultithreading(cache, records);
 
 						} else {
-							cache.insert(records);
+							cache.insert(records, WAS_OBTAINED);
 						}
 					}
 					cache.markAsFullyLoaded(schemaType.getCode());
@@ -758,7 +759,7 @@ public class SearchServices {
 		} else {
 			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
 			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-				cache.insert(records);
+				cache.insert(records, WAS_OBTAINED);
 			}
 			return records;
 		}
@@ -782,7 +783,7 @@ public class SearchServices {
 							loadUsingMultithreading(cache, records);
 
 						} else {
-							cache.insert(records);
+							cache.insert(records, WAS_OBTAINED);
 						}
 					}
 					cache.markAsFullyLoaded(schemaType.getCode());
@@ -802,7 +803,7 @@ public class SearchServices {
 		} else {
 			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
 			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-				cache.insert(records);
+				cache.insert(records, WAS_OBTAINED);
 			}
 			return records;
 		}
@@ -825,7 +826,7 @@ public class SearchServices {
 							records = recordIterator.hasNext() ? recordIterator.next() : null;
 						}
 						if (records != null) {
-							cache.insert(records);
+							cache.insert(records, WAS_OBTAINED);
 						} else {
 							hasMoreRecords = false;
 						}

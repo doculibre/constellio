@@ -20,7 +20,9 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.data.events.EventBus;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
@@ -40,6 +42,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	@Mock OneXMLConfigPerCollectionManagerListener managerListener, otherManagerListener;
 	@Mock DataLayerExtensions dataLayerExtensions;
 	@Mock DataLayerSystemExtensions dataLayerSystemExtensions;
+	@Mock EventBus eventBus;
 	List<String> languages = Arrays.asList("fr");
 	SerializationCheckCache cache;
 
@@ -48,7 +51,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 			throws Exception {
 
 		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
-		cache = new SerializationCheckCache("zeCache");
+		cache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 
 		configReader = new XMLConfigReader<String>() {
 			@Override
@@ -69,8 +72,9 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		IOServices ioServices = getIOLayerFactory().newIOServices();
 		HashingService hashingServices = getIOLayerFactory().newHashingService(BASE64);
-		ConstellioCache cache = new SerializationCheckCache("zeCache");
-		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices, cache, dataLayerExtensions);
+		ConstellioCache cache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
+		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices, cache, dataLayerExtensions,
+				eventBus);
 
 		collectionsListManager = new CollectionsListManager(configManager);
 		collectionsListManager.initialize();

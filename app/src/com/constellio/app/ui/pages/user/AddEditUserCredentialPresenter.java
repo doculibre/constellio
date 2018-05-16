@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -252,5 +253,9 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_USERS).globally();
+	}
+
+	public boolean isPasswordChangeEnabled() {
+		return !User.ADMIN.equals(username) || new ConstellioEIMConfigs(modelLayerFactory).isAdminPasswordChangeEnabled();
 	}
 }

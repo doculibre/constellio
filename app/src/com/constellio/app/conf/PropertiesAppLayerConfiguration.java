@@ -1,14 +1,17 @@
 package com.constellio.app.conf;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
-import com.constellio.model.conf.PropertiesModelLayerConfiguration;
+import com.constellio.model.entities.Language;
 import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class PropertiesAppLayerConfiguration extends PropertiesConfiguration implements AppLayerConfiguration {
@@ -54,6 +57,10 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 			setBoolean("fastMigrations.enabled", value);
 		}
 
+		public void setEnabledPrototypeLanguages(String value) {
+			setString("enabledPrototypeLanguages", value);
+		}
+
 	}
 
 	public static PropertiesAppLayerConfiguration newVolatileConfiguration(PropertiesAppLayerConfiguration config) {
@@ -96,4 +103,28 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 		return getBoolean("fastMigrations.enabled", true);
 	}
 
+	@Override
+	public List<Language> getSupportedLanguages() {
+		String enabledPrototypeLanguages = getString("enabledPrototypeLanguages", "");
+
+		List<Language> languages = new ArrayList<>();
+		languages.add(Language.French);
+		languages.add(Language.English);
+
+		if (enabledPrototypeLanguages.contains("ar")) {
+			languages.add(Language.Arabic);
+		}
+		return Collections.unmodifiableList(languages);
+	}
+
+	@Override
+	public List<String> getSupportedLanguageCodes() {
+		List<String> languageCodes = new ArrayList<>();
+
+		for (Language language : getSupportedLanguages()) {
+			languageCodes.add(language.getCode());
+		}
+
+		return Collections.unmodifiableList(languageCodes);
+	}
 }

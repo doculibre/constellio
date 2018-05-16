@@ -197,6 +197,20 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		return newGlobalGroupVOsInWithUsersInCollection;
 	}
 
+	public List<GlobalGroupVO> listInactiveGlobalGroupVOsWithUsersInCollection(String collection) {
+
+		List<GlobalGroupVO> newGlobalGroupVOsInWithUsersInCollection = new ArrayList<>();
+		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
+			GlobalGroupStatus status = globalGroupVO.getStatus();
+			if (status == GlobalGroupStatus.INACTIVE &&
+					(globalGroupVO.getCollections().contains(collection))) {
+				newGlobalGroupVOsInWithUsersInCollection.add(globalGroupVO);
+			}
+		}
+		sort(newGlobalGroupVOsInWithUsersInCollection);
+		return newGlobalGroupVOsInWithUsersInCollection;
+	}
+
 	private void sort(List<GlobalGroupVO> globalGroupVOs) {
 		Collections.sort(globalGroupVOs, new Comparator<GlobalGroupVO>() {
 			@Override

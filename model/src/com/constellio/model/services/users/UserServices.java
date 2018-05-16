@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -27,6 +28,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -289,8 +291,8 @@ public class UserServices {
 	}
 
 	public Group getGroupInCollection(String groupCode, String collection) {
-		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
-		return wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection));
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		return schemas.getGroupWithCode(groupCode);
 	}
 
 	public void addGlobalGroupsInCollection(String collection) {
@@ -1068,12 +1070,25 @@ public class UserServices {
 		}
 
 		if (includedGroup) {
+
 			SchemasRecordsServices schemas = new SchemasRecordsServices(group.getCollection(), modelLayerFactory);
 			if (includeGroupInheritance) {
-				for (Group aGroup : schemas.getAllGroups()) {
-					if (group.getId().equals(aGroup.getParent())) {
-						getUsersRecordsInGroup(aGroup, returnedUserRecords, usernamesOfReturnedUsers, true,
+				GroupAuthorizationsInheritance inheritance =
+						modelLayerFactory.getSystemConfigurationsManager().getValue(GROUP_AUTHORIZATIONS_INHERITANCE);
+
+				if (inheritance == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
+
+					if (group.getParent() != null) {
+						Group parentGroup = schemas.getGroup(group.getParent());
+						getUsersRecordsInGroup(parentGroup, returnedUserRecords, usernamesOfReturnedUsers, true,
 								onlyActiveUsersAndGroups);
+					}
+				} else {
+					for (Group aGroup : schemas.getAllGroups()) {
+						if (group.getId().equals(aGroup.getParent())) {
+							getUsersRecordsInGroup(aGroup, returnedUserRecords, usernamesOfReturnedUsers, true,
+									onlyActiveUsersAndGroups);
+						}
 					}
 				}
 			}

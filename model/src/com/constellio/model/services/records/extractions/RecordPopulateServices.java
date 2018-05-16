@@ -79,7 +79,11 @@ public class RecordPopulateServices {
 						Object currentPopulatedValue = populator.populate(record, contentMetadatas);
 
 						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-							record.set(metadata, currentPopulatedValue);
+							if(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && shouldRemoveExtension(originalRecord, metadata, contentMetadatas, populator)) {
+                                record.set(metadata, FilenameUtils.removeExtension((String) currentPopulatedValue));
+							} else {
+								record.set(metadata, currentPopulatedValue);
+							}
 						}
 					}
 				}
@@ -90,6 +94,16 @@ public class RecordPopulateServices {
 				LOGGER.error("No content " + e.getId());
 			}
 		}
+	}
+
+	private boolean shouldRemoveExtension(Record originalRecord, Metadata metadata, List<Metadata> contentMetadatas, RecordMetadataPopulator populator) {
+		if(originalRecord == null) {
+			return false;
+		}
+		Object previousValue = originalRecord.get(metadata);
+		Object previousPopulatedValue = populator.populate(originalRecord, contentMetadatas);
+		return previousValue != null && !previousValue.equals(previousPopulatedValue) &&
+				previousValue.equals(FilenameUtils.removeExtension((String) previousPopulatedValue));
 	}
 
 	private String getCategory(ParsedContentProvider parsedContentProvider, List<Metadata> contentMetadatas, Record record) {
@@ -138,7 +152,9 @@ public class RecordPopulateServices {
 			return currentValue == null;
 
 		}
-		if (previousValue.equals(previousPopulatedValue)) {
+		if (previousValue.equals(previousPopulatedValue) ||
+				(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) &&
+						previousValue.equals(FilenameUtils.removeExtension((String) previousPopulatedValue)))) {
 			return previousValue.equals(currentValue);
 
 		}

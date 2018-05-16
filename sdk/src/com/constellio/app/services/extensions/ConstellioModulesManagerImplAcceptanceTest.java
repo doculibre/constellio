@@ -1,6 +1,7 @@
 package com.constellio.app.services.extensions;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -38,7 +39,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 @SlowTest
 public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	CollectionsManager collectionsManager;
-	ConstellioPluginManager pluginManager;
+	ConstellioPluginManager pluginManager, pluginManagerOfAnotherInstance;
 	CollectionsListManager collectionsListManager;
 	MigrationServices migrationServices;
 
@@ -62,7 +63,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Mock InstallableModule pluginDependentOfModuleAB;
 	@Mock InstallableModule pluginWithoutDependencies;
 
-	ConstellioModulesManagerImpl manager;
+	ConstellioModulesManagerImpl manager, managerOfAnotherInstance;
 
 	InOrder inOrder;
 
@@ -72,6 +73,9 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		withSpiedServices(ConstellioPluginManager.class);
 
 		pluginManager = getAppLayerFactory().getPluginManager();
+		pluginManagerOfAnotherInstance = getAppLayerFactory("other-instance").getPluginManager();
+		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
+
 		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB, complementaryPluginDependentOfModuleAB,
 				complementaryPluginWithoutDependencies,
 				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getRegistredModulesAndActivePlugins();
@@ -82,8 +86,22 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 				complementaryPluginWithoutDependencies,
 				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getActivePluginModules();
 
+		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB, complementaryPluginDependentOfModuleAB,
+				complementaryPluginWithoutDependencies,
+				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManagerOfAnotherInstance)
+				.getRegistredModulesAndActivePlugins();
+
+		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB)).when(pluginManagerOfAnotherInstance)
+				.getRegisteredModules();
+
+		doReturn(Arrays.asList(complementaryPluginDependentOfModuleAB,
+				complementaryPluginWithoutDependencies,
+				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManagerOfAnotherInstance)
+				.getActivePluginModules();
+
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 		manager = (ConstellioModulesManagerImpl) getAppLayerFactory().getModulesManager();
+		managerOfAnotherInstance = (ConstellioModulesManagerImpl) getAppLayerFactory("other-instance").getModulesManager();
 		migrationServices = getAppLayerFactory().newMigrationServices();
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 
@@ -139,6 +157,9 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	public void whenGetModulesByIdThenReturnCorrectModules() {
 		assertThat(manager.getInstalledModule("moduleA_Id")).isEqualTo(moduleA);
 		assertThat(manager.getInstalledModule("moduleB_Id")).isEqualTo(moduleB);
+
+		assertThat(managerOfAnotherInstance.getInstalledModule("moduleA_Id")).isEqualTo(moduleA);
+		assertThat(managerOfAnotherInstance.getInstalledModule("moduleB_Id")).isEqualTo(moduleB);
 	}
 
 	@Test(expected = ConstellioPluginManagerRuntimeException_NoSuchModule.class)
@@ -165,6 +186,12 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
 		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
 
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1"))
+				.containsOnly(moduleA, moduleB, complementaryModuleAB,
+						complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection2"))
+				.containsOnly(moduleB, complementaryPluginWithoutDependencies);
+
 		ConstellioModulesManagerImpl otherManager = new ConstellioModulesManagerImpl(getAppLayerFactory(),
 				pluginManager, new Delayed<>(migrationServices));
 		otherManager.initialize();
@@ -190,9 +217,18 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, complementaryPluginWithoutDependencies);
 		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, complementaryPluginWithoutDependencies);
 
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1"))
+				.containsOnly(moduleA, complementaryPluginWithoutDependencies);
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1"))
+				.containsOnly(moduleA, complementaryPluginWithoutDependencies);
+
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleB);
 		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB, complementaryModuleAB,
 				complementaryPluginDependentOfModuleAB, complementaryPluginWithoutDependencies);
+
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1"))
+				.containsOnly(moduleA, moduleB, complementaryModuleAB,
+						complementaryPluginDependentOfModuleAB, complementaryPluginWithoutDependencies);
 	}
 
 	@Test
@@ -208,6 +244,8 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.installValidModuleAndGetInvalidOnes(moduleB, collectionsListManager);
 		assertThat(manager.getEnabledModules("collection1")).isEmpty();
 		assertThat(manager.getEnabledModules("collection2")).isEmpty();
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1")).isEmpty();
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection2")).isEmpty();
 
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleA);
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleB);
@@ -216,10 +254,21 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
 		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
 
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1"))
+				.containsOnly(moduleA, moduleB, complementaryModuleAB,
+						complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection2"))
+				.containsOnly(moduleB, complementaryPluginWithoutDependencies);
+
 		manager.disableModule("collection1", moduleA);
 		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleB, complementaryModuleAB,
 				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
 		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
+
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection1")).containsOnly(moduleB, complementaryModuleAB,
+				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(managerOfAnotherInstance.getEnabledModules("collection2"))
+				.containsOnly(moduleB, complementaryPluginWithoutDependencies);
 	}
 
 	@Test
@@ -232,6 +281,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).isEmpty();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isFalse();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isFalse();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 	}
 
 	@Test
@@ -258,6 +314,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).contains(moduleA);
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isFalse();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).contains(moduleA);
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isFalse();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 	}
 
 	@Test
@@ -328,6 +391,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).contains(moduleA);
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isFalse();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).contains(moduleA);
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isFalse();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 	}
 
 	@Test
@@ -345,6 +415,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).contains(moduleA);
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isFalse();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).contains(moduleA);
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isFalse();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 	}
 
 	@Test
@@ -362,6 +439,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).isEmpty();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isTrue();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).contains(moduleA);
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isTrue();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 
 	}
 
@@ -382,6 +466,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).contains(moduleA);
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isFalse();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).containsOnly(complementaryPluginWithoutDependencies);
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).contains(moduleA);
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isFalse();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 	}
 
 	@Test
@@ -407,6 +498,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDisabledModules(zeCollection)).isEmpty();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isTrue();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
+
+		assertThat(managerOfAnotherInstance.getAllModules()).contains(moduleA, moduleB);
+		assertThat(managerOfAnotherInstance.getModulesAvailableForInstallation()).contains(moduleB);
+		assertThat(managerOfAnotherInstance.getEnabledModules(zeCollection)).contains(moduleA);
+		assertThat(managerOfAnotherInstance.getDisabledModules(zeCollection)).isEmpty();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleA)).isTrue();
+		assertThat(managerOfAnotherInstance.isModuleEnabled(zeCollection, moduleB)).isFalse();
 	}
 
 	@Test
@@ -468,6 +566,20 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 				.contains("core.manageTaxonomies");
 
 		assertThat(manager.getPermissionsInGroup("anotherCollection", "rm.folders"))
+				.contains("rm.shareFolders");
+
+		assertThat(managerOfAnotherInstance.getPermissionGroups(zeCollection))
+				.has(permissionGroupStartingWith("core."))
+				.doesNotHave(permissionGroupStartingWith("rm."));
+
+		assertThat(managerOfAnotherInstance.getPermissionGroups("anotherCollection"))
+				.has(permissionGroupStartingWith("core."))
+				.has(permissionGroupStartingWith("rm."));
+
+		assertThat(managerOfAnotherInstance.getPermissionsInGroup("anotherCollection", "core.management.collection"))
+				.contains("core.manageTaxonomies");
+
+		assertThat(managerOfAnotherInstance.getPermissionsInGroup("anotherCollection", "rm.folders"))
 				.contains("rm.shareFolders");
 
 	}
