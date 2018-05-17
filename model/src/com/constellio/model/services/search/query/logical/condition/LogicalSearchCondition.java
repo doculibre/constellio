@@ -1,6 +1,7 @@
 package com.constellio.model.services.search.query.logical.condition;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -128,6 +129,18 @@ public abstract class LogicalSearchCondition {
 
 	public boolean isCollectionSearch() {
 		return filters != null && filters.getCollection() != null;
+	}
+
+	public List<String> getFilterSchemaTypesCodes() {
+		if (filters instanceof SchemaTypesFilters) {
+			return ((SchemaTypesFilters) filters).getSchemaTypesCodes();
+
+		} else if (filters instanceof SchemaFilters) {
+			return Collections.singletonList(((SchemaFilters) filters).getSchemaType());
+
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
 	public String getCollection() {
