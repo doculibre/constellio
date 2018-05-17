@@ -232,6 +232,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		return result;
 	}
 
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+		return null;
+	}
+
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
 		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();

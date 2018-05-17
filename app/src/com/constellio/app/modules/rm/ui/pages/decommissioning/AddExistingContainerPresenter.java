@@ -7,6 +7,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,6 +177,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		return getMetadataAllowedInAdvancedSearch(ContainerRecord.SCHEMA_TYPE);
+	}
+
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+		return null;
 	}
 
 	@Override

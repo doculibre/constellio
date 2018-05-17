@@ -261,6 +261,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+		return null;
+	}
+
+	@Override
 	public MetadataVO getMetadataVO(String metadataCode) {
 		return super.getMetadataVO(metadataCode);
 	}
