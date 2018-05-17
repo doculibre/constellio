@@ -55,7 +55,8 @@ public class ResetRMModificationDatesFromEventsScript extends ScriptWithLogOutpu
 
             SearchResponseIterator<Record> eventIterator = searchServices.recordsIterator(
                     LogicalSearchQueryOperators.from(rm.eventSchemaType())
-                    .where(rm.eventType()).isIn(asList(EventType.MODIFY_DOCUMENT, EventType.MODIFY_FOLDER)), 100);
+                    .where(rm.eventType()).is(EventType.MODIFY_DOCUMENT), 100);
+//                    .where(rm.eventType()).isIn(asList(EventType.MODIFY_DOCUMENT, EventType.MODIFY_FOLDER)), 100);
             while (eventIterator.hasNext()) {
                 Event event = rm.wrapEvent(eventIterator.next());
                 String recordId = event.getRecordId();
@@ -82,21 +83,21 @@ public class ResetRMModificationDatesFromEventsScript extends ScriptWithLogOutpu
                 }
             );
 
-            onCondition(LogicalSearchQueryOperators.from(rm.folderSchemaType()).returnAll())
-            .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
-                    @Override
-                    public void modifyRecord(Record record) {
-                        LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
-                        if(lastModificationDate != null) {
-                            LocalDateTime previousModificationDate = record.get(Schemas.MODIFIED_ON);
-                            if(timeComparator.compare(previousModificationDate, lastModificationDate, isEqualRange) != 0) {
-                                printChangesToOutputLogger(record, lastModificationDate);
-                                record.set(Schemas.MODIFIED_ON, lastModificationDate);
-                            }
-                        }
-                    }
-                }
-            );
+//            onCondition(LogicalSearchQueryOperators.from(rm.folderSchemaType()).returnAll())
+//            .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
+//                    @Override
+//                    public void modifyRecord(Record record) {
+//                        LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
+//                        if(lastModificationDate != null) {
+//                            LocalDateTime previousModificationDate = record.get(Schemas.MODIFIED_ON);
+//                            if(timeComparator.compare(previousModificationDate, lastModificationDate, isEqualRange) != 0) {
+//                                printChangesToOutputLogger(record, lastModificationDate);
+//                                record.set(Schemas.MODIFIED_ON, lastModificationDate);
+//                            }
+//                        }
+//                    }
+//                }
+//            );
         }
     }
 
