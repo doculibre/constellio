@@ -43,6 +43,7 @@ public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 		transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		transaction.setSkippingRequiredValuesValidation(true);
 		transaction.addUpdate(batch);
+		transaction.getRecordUpdateOptions().setOverwriteModificationDateAndUser(false);
 		return transaction;
 	}
 
