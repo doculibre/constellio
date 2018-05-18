@@ -81,6 +81,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         
         tableLayout = new VerticalLayout();
         tableLayout.setSizeFull();
+        tableLayout.addStyleName("stats-table-layout");
 
         verticalLayout.addComponent(buildSearchForm());
         //verticalLayout.addComponent(buildApplyFilterButton());
@@ -282,6 +283,9 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
         List<String> visibleColumns = initVisibleColumns();
         resultTable.setVisibleColumns(visibleColumns.toArray(new String[0]));
+
+        ///Table doesn't have horizontal scroll bar, but you can put it inside a Panel which can have one. You'll just need to set undefined width for both the Table and the root layout of the panel.
+        //panel.getContent().setSizeUndefined();
 
         tableLayout.removeAllComponents();
 

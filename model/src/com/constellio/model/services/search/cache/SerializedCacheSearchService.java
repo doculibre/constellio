@@ -7,6 +7,7 @@ import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,7 +68,9 @@ public class SerializedCacheSearchService {
 		Map<String, List<FacetValue>> fieldFacetValues = cache.getFieldFacetValues();
 		Map<String, Integer> queryFacetsValues = cache.getQueryFacetsValues();
 
-		return new SPEQueryResponse(fieldFacetValues, emptyStatisticsValues, queryFacetsValues, System.currentTimeMillis() - qtime,
+		long duration = Math.max(System.currentTimeMillis() - qtime, 1);
+
+		return new SPEQueryResponse(fieldFacetValues, emptyStatisticsValues, queryFacetsValues, duration,
 				numFound, records, highlights, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
 	}
 
