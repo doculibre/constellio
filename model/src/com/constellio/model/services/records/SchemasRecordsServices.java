@@ -22,6 +22,7 @@ import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -511,5 +512,9 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
 		return modelLayerFactory.newUserServices().getAllUsersInGroup(group, includeGroupInheritance, onlyActiveUsersAndGroups);
+	}
+
+	public ValueListItem newValueListItem(String schemaCode) {
+		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
 	}
 }
