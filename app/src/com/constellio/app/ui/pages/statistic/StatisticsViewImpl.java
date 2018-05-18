@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getProperties;
@@ -227,11 +228,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         endDateField.getValue(),
                         filterField.getValue());
 
-                if(Objects.equals(statisticType, newStatisticType)) {
-                    resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
-                } else {
-                    buildResultTable();
-                }
+                buildResultTable();
 
                 statisticType = newStatisticType;
             }
@@ -317,7 +314,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     }
 
     private Resource getCsvDocumentResource() {
-        return new StreamResource(new StreamResource.StreamSource() {
+        StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
             @Override
             public InputStream getStream() {
                 try {
@@ -327,7 +324,39 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                     return null;
                 }
             }
-        }, $("StatisticsView.viewTitle") + ".csv");
+        }, composeCsvName());
+        resource.setCacheTime(0);
+
+        return resource;
+    }
+
+    protected String composeCsvName() {
+        StringBuilder sb = new StringBuilder(StringUtils.replaceChars(((CBItem) statisticTypeField.getValue()).toString(), ' ', '_'));
+        sb.append("_"+getCollection());
+
+        String filter = filterField.getValue();
+        if(StringUtils.isNotBlank(filter)) {
+            sb.append("_"+StringUtils.replaceChars(filter, ' ', '_'));
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
+        Date startDate = startDateField.getValue();
+        if(startDate != null) {
+            sb.append("_"+sdf.format(startDate));
+        }
+
+        Date endDate = endDateField.getValue();
+        if(endDate != null) {
+            sb.append("_");
+            if(startDate != null) {
+                sb.append("au_");
+            } else {
+                sb.append("jusqu_au_");
+            }
+            sb.append(sdf.format(endDate));
+        }
+
+        return sb.toString() + ".csv";
     }
 
     @NotNull

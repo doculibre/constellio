@@ -513,15 +513,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			return false;
 		}
 
-		if (!ObjectUtils.allNotNull(searchEvenFromSessionContext.getUsername(), searchEvent.getUsername())) {
+		if (ObjectUtils.notEqual(searchEvenFromSessionContext.getUsername(), searchEvent.getUsername())) {
 			return false;
 		}
 
-		boolean isUserEqual = searchEvenFromSessionContext.getUsername().equals(searchEvent.getUsername());
-
-		boolean isQEqual = Objects.equals(searchEvenFromSessionContext.getQuery(), searchEvent.getQuery());
-
-		if (!isQEqual || !isUserEqual) {
+		if (ObjectUtils.notEqual(searchEvenFromSessionContext.getQuery(), searchEvent.getQuery())) {
 			return false;
 		}
 
