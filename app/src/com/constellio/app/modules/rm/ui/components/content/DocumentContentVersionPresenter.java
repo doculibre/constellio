@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.components.content;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -20,9 +21,11 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
@@ -165,8 +168,16 @@ public class DocumentContentVersionPresenter implements Serializable {
 		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
 		SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
-		Record searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementClickCounter(searchEvent.getId());
+
+		String url = null;
+		try {
+			url = documentVO.get("url");
+		} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+		}
+		String clicks = defaultIfBlank(url, documentVO.getId());
+		searchEventServices.updateClicks(searchEvent, clicks);
 	}
 }

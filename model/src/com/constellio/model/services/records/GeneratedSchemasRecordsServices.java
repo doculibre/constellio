@@ -789,6 +789,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("clickCount");
 		}
 
+		public Metadata clicks() {
+			return metadata("clicks");
+		}
+
 		public Metadata numFound() {
 			return metadata("numFound");
 		}

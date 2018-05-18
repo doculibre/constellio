@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -94,6 +95,26 @@ public class SearchEventServices {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	public void updateClicks(SearchEvent searchEvent,  String clicks) {
+		SolrInputDocument doc = new SolrInputDocument();
+
+		List<String> clickses = new ArrayList<>(ListUtils.defaultIfNull(searchEvent.getClicks(), new ArrayList<String>()));
+		clickses.add(clicks);
+
+		searchEvent.setClicks(clickses);
+
+		doc.setField("id", searchEvent.getId());
+		doc.addField(schemas.searchEvent.clicks().getDataStoreCode(), clickses);
+
+		BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.ADD_LATER());
+		tx.setUpdatedDocuments(asList(doc));
+		try {
+			modelLayerFactory.getDataLayerFactory().newEventsDao().getBigVaultServer().addAll(tx);
+		} catch (BigVaultException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void incrementPageNavigationCounter(String searchEventId) {
