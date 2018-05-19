@@ -14,9 +14,10 @@ import java.util.*;
 public class FacetsLazyContainer extends LazyQueryContainer implements RefreshableContainer {
     public static final String CLICK_COUNT = "statistic_default_clickCount";
     public static final String FREQUENCY = "statistic_default_frequency";
-    public static final String QUERY = "statistic_default_query";
+    public static final String ORIGINAL_QUERY = "statistic_default_originalQuery";
+    public static final String CLICKS = "statistic_default_clicks";
 
-    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(QUERY, CLICK_COUNT, FREQUENCY));
+    public static final List<String> PROPERTIES = Collections.unmodifiableList(Arrays.asList(ORIGINAL_QUERY, CLICK_COUNT, FREQUENCY, CLICKS));
 
     public FacetsLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {
         super(queryDefinition, queryFactory);
@@ -106,12 +107,14 @@ public class FacetsLazyContainer extends LazyQueryContainer implements Refreshab
                 }
 
                 switch (id.toString()) {
-                    case QUERY:
+                    case ORIGINAL_QUERY:
                         return new ItemProperty(facets.getQuery());
                     case CLICK_COUNT:
                         return new ItemProperty(facets.getClickCount());
                     case FREQUENCY:
                         return new ItemProperty(facets.getFrequency());
+                    case CLICKS:
+                        return new ItemProperty(facets.getClicks());
                     default:
                         return new ItemProperty(id.toString());
                 }
@@ -134,14 +137,14 @@ public class FacetsLazyContainer extends LazyQueryContainer implements Refreshab
         }
 
         private static class ItemProperty extends AbstractProperty<Object> {
-            private final String value;
+            private final Object value;
 
-            public ItemProperty(String value) {
+            public ItemProperty(Object value) {
                 this.value = value;
             }
 
             @Override
-            public String getValue() {
+            public Object getValue() {
                 return value;
             }
 

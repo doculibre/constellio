@@ -6,6 +6,7 @@ import org.apache.solr.common.util.SimpleOrderedMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 public abstract class FacetsDataProvider extends AbstractDataProvider {
     public long size() {
@@ -29,7 +30,18 @@ public abstract class FacetsDataProvider extends AbstractDataProvider {
             String clickCount = String.valueOf(((Number)bucket.get("clickCount_d")).intValue());
             String frequency = String.valueOf(((Number)bucket.get("count")).intValue());
 
-            facets.add(new Facets(query, clickCount, frequency));
+            List<String> clicks = new ArrayList<>();
+
+            SimpleOrderedMap clicksSs = (SimpleOrderedMap) bucket.get("clicks_ss");
+            if(clicksSs != null && clicksSs.get("buckets") != null) {
+                List<SimpleOrderedMap> clicksBuckets = (List<SimpleOrderedMap>) clicksSs.get("buckets");
+                ListIterator<SimpleOrderedMap> iterator = clicksBuckets.listIterator();
+                while(iterator.hasNext()) {
+                    clicks.add((String) iterator.next().get("val"));
+                }
+            }
+
+            facets.add(new Facets(query, clickCount, frequency, clicks));
         }
 
         return facets;
@@ -51,7 +63,7 @@ public abstract class FacetsDataProvider extends AbstractDataProvider {
         NamedList<Object> namedList = queryResponse.getResponse();
 
         SimpleOrderedMap facets = (SimpleOrderedMap) namedList.get("facets");
-        return (SimpleOrderedMap) facets.get("query_s");
+        return (SimpleOrderedMap) facets.get("originalQuery_s");
     }
 
     public abstract QueryResponse getQueryResponse(Integer offset, Integer limit);
@@ -60,11 +72,13 @@ public abstract class FacetsDataProvider extends AbstractDataProvider {
         private final String query;
         private final String clickCount;
         private final String frequency;
+        private final List<String> clicks;
 
-        public Facets(String query, String clickCount, String frequency) {
+        public Facets(String query, String clickCount, String frequency, List<String> clicks) {
             this.query = query;
             this.clickCount = clickCount;
             this.frequency = frequency;
+            this.clicks = clicks;
         }
 
         public String getQuery() {
@@ -77,6 +91,10 @@ public abstract class FacetsDataProvider extends AbstractDataProvider {
 
         public String getFrequency() {
             return frequency;
+        }
+
+        public List<String> getClicks() {
+            return clicks;
         }
     }
 }
