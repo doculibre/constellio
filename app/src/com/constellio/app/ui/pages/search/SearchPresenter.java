@@ -46,6 +46,7 @@ import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -70,11 +71,7 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -103,12 +100,30 @@ import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.vaadin.server.StreamResource.StreamSource;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
-	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
 	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";
+	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
 
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
@@ -495,14 +510,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setNumFound(response.getNumFound());
 		UIContext uiContext = view.getUIContext();
 
-		Record oldSearchEventRecord = uiContext.getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent oldSearchEventRecord = uiContext.getAttribute(CURRENT_SEARCH_EVENT);
 		SearchEvent oldSearchEvent = null;
 		if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
-			oldSearchEvent = schemasRecordsServices.wrapSearchEvent(oldSearchEventRecord);
+			oldSearchEvent = oldSearchEventRecord;
 		}
 
 		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent.getWrappedRecord());
+			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			searchEventServices.save(searchEvent);
 
@@ -932,22 +947,29 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return getCurrentUser().has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
 	}
 
-	public void searchResultClicked() {
+	public void searchResultClicked(RecordVO recordVO) {
 		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementClickCounter(searchEvent.getId());
+
+		String url = null;
+		try {
+			url = recordVO.get("url");
+		} catch (RecordVORuntimeException_NoSuchMetadata e) {
+			LOGGER.warn(e.getMessage(), e);
+		}
+		String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+		searchEventServices.updateClicks(searchEvent, clicks);
 	}
 
 	public void searchNavigationButtonClicked() {
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		Record searchEventRecord = view.getUIContext().getAttribute("CURRENT_SEARCH_EVENT");
+		SearchEvent searchEvent = view.getUIContext().getAttribute(CURRENT_SEARCH_EVENT);
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 				appLayerFactory.getModelLayerFactory());
-
-		SearchEvent searchEvent = schemasRecordsServices.wrapSearchEvent(searchEventRecord);
 
 		List<String> params = new ArrayList<>(searchEvent.getParams());
 
@@ -978,7 +1000,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		newSearchEvent.setCapsule(searchEvent.getCapsule());
 
 		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-			view.getUIContext().setAttribute("CURRENT_SEARCH_EVENT", newSearchEvent.getWrappedRecord());
+			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
 			searchEventServices.save(newSearchEvent);
 		}
 	}

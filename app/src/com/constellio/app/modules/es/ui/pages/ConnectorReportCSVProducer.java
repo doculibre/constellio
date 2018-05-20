@@ -57,17 +57,6 @@ public class ConnectorReportCSVProducer extends AbstractCSVProducer {
     }
 
     @Override
-    protected String getValue(Property prop) {
-        Object value = prop.getValue();
-
-        if(Collection.class.isAssignableFrom(value.getClass())) {
-            return StringUtils.join((Collection)value, System.lineSeparator());
-        }
-
-        return super.getValue(prop);
-    }
-
-    @Override
     public Table getTable() {
         final Table table = super.getTable();
 

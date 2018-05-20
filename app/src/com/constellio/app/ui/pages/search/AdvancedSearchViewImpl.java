@@ -14,7 +14,6 @@ import java.util.Observer;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -53,7 +52,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
@@ -374,7 +372,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				Object itemId = event.getItemId();
 				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
-				((AdvancedSearchPresenter) presenter).searchResultClicked();
+				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
 			}
 		});
         return table;

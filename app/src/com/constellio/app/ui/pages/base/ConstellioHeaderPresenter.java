@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -18,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -124,6 +126,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	public void searchRequested(String expression, String schemaTypeCode) {
+		ConstellioUI.getCurrent().setAttribute(CURRENT_SEARCH_EVENT, null);
+
 		if (StringUtils.isNotBlank(schemaTypeCode)) {
 			SavedSearch temporarySearch = buildAdvancedTemporarySearch(null, expression);
 			if (temporarySearch != null) {

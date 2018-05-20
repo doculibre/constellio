@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -120,6 +121,10 @@ public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
 
         if(Number.class.isAssignableFrom(value.getClass())) {
             return String.valueOf(((Number) value).longValue());
+        }
+
+        if(Collection.class.isAssignableFrom(value.getClass())) {
+            return StringUtils.join((Collection)value, System.lineSeparator());
         }
 
         return value.toString();

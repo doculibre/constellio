@@ -81,6 +81,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         
         tableLayout = new VerticalLayout();
         tableLayout.setSizeFull();
+        tableLayout.addStyleName("stats-table-layout");
 
         verticalLayout.addComponent(buildSearchForm());
         //verticalLayout.addComponent(buildApplyFilterButton());
@@ -399,6 +400,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.CLICK_COUNT:
                 return $("StatisticsView.clickCount");
 
+            case FacetsLazyContainer.ORIGINAL_QUERY:
             case SearchEventVOLazyContainer.ORIGINAL_QUERY:
                 return $("StatisticsView.originalQuery");
 
@@ -414,7 +416,6 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.NUM_FOUND:
                 return $("StatisticsView.numFound");
 
-            case FacetsLazyContainer.QUERY:
             case SearchEventVOLazyContainer.QUERY:
                 return $("StatisticsView.query");
 
@@ -442,6 +443,10 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
             case SearchEventVOLazyContainer.CAPSULE:
                 return $("StatisticsView.capsule");
 
+            case FacetsLazyContainer.CLICKS:
+            case SearchEventVOLazyContainer.CLICKS:
+                return $("StatisticsView.clicks");
+
             case SearchEventVOLazyContainer.ID:
                 return $("StatisticsView.id");
 
@@ -455,19 +460,19 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
         switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
             case StatisticsPresenter.FAMOUS_REQUEST:
-                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
-                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICKS);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
-                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-                properties = Arrays.asList(FacetsLazyContainer.QUERY, FacetsLazyContainer.FREQUENCY);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICKS);
                 break;
             default:
                 MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();

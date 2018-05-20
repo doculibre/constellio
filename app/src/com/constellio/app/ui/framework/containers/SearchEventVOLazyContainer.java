@@ -47,8 +47,9 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
     public static final String LANGUE = "searchEvent_default_langue";
     public static final String TYPE_RECHERCHE = "searchEvent_default_type_recherche";
     public static final String CAPSULE = "searchEvent_default_capsule";
+    public static final String CLICKS = "searchEvent_default_clicks";
 
-    private static final List<String> PROPERTIES = unmodifiableList(asList(ID, CREATION_DATE, ORIGINAL_QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, TYPE_RECHERCHE, CAPSULE));
+    private static final List<String> PROPERTIES = unmodifiableList(asList(ID, CREATION_DATE, ORIGINAL_QUERY, SOUS_COLLECTION, LANGUE, NUM_FOUND, CLICK_COUNT, Q_TIME, NUM_PAGE, TYPE_RECHERCHE, CAPSULE, CLICKS));
     private static final List<String> PROPERTIES_WITH_PARAMS = unmodifiableList(union(PROPERTIES, asList(PARAMS)));
 
     public SearchEventVOLazyContainer(QueryDefinition queryDefinition, QueryFactory queryFactory) {

@@ -87,16 +87,6 @@ public class HttpSessionContext extends BaseSessionContext {
 	}
 
 	@Override
-	public SessionContext setCurrentSearchEventRecord(Record searchEvent) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public Record getCurrentSearchEventRecord() {
-		throw new NotImplementedException();
-	}
-
-	@Override
 	public boolean isForcedSignOut() {
 		return Boolean.TRUE.equals(getAttribute(FORCED_SIGN_OUT_ATTRIBUTE));
 	}

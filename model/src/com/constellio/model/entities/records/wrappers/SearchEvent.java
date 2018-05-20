@@ -20,6 +20,7 @@ public class SearchEvent extends RecordWrapper {
 	public static final String Q_TIME = "qTime";
 	public static final String CAPSULE = "capsule";
 	public static final String DWELL_TIME = "dwellTime";
+	public static final String CLICKS = "clicks";
 
 	public SearchEvent(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -125,6 +126,15 @@ public class SearchEvent extends RecordWrapper {
 
 	public SearchEvent setCapsule(Capsule... capsule) {
 		set(CAPSULE, Arrays.asList(capsule));
+		return this;
+	}
+
+	public List<String> getClicks() {
+		return get(CLICKS);
+	}
+
+	public SearchEvent setClicks(List<String> clicks) {
+		set(CLICKS, clicks);
 		return this;
 	}
 }
