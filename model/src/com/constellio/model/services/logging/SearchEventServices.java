@@ -148,24 +148,6 @@ public class SearchEventServices {
 
 		addJsonFacetQuery(offset, limit, params);
 
-		/*
-		{
-	'query_s':{
-		'type':'terms',
-		'field':'query_s',
-		'numBuckets':true,
-		'facet':{
-			'clickCount_d':'sum(clickCount_d)'
-		},
-		'clicks_ss':{
-			'type':'terms',
-			'field':'clicks_ss',
-			'numBuckets':true
-		}
-	}
-}
-		 */
-
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
@@ -286,7 +268,7 @@ public class SearchEventServices {
 			offsets = ", 'offset': "+ offset;
 		}
 
-		String clicks = "'clicks_ss':{'type':'terms', 'field':'clicks_ss'}";
+		String clicks = "'clicks_ss':{'type':'terms', 'field':'clicks_ss', 'limit':10}";
 		String query = "'originalQuery_s':{'type':'terms', 'field':'originalQuery_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)', "+clicks+"}}";
 
 		params.add("json.facet", "{" + query + "}");

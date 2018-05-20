@@ -344,9 +344,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		return total;
 	}
 
-	Map<SkosConcept, Long> getMostUsedConcepts() {
-		Map<SkosConcept, Long> result = new LinkedHashMap<>();
-		
+	List<FacetValue> getMostUsedConcepts() {
 		//  résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=1000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -358,19 +356,15 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		query.addFieldFacet("thesaurusMatch_ss");
 
 		SPEQueryResponse response = searchService.query(query);
-		List<FacetValue> usedConceptFacet = response.getFieldFacetValues().get("thesaurusMatch_ss");
-
-		
-		return result;
+		return response.getFieldFacetValues().get("thesaurusMatch_ss");
 	}
 	
-	InputStream getMostUsedConceptsInputStream(Map<SkosConcept, Long> mostUsedConcepts) {
+	InputStream getMostUsedConceptsInputStream(List<FacetValue> mostUsedConcepts) {
 		StringBuilder csv = new StringBuilder();
-		for (SkosConcept concept: mostUsedConcepts.keySet()) {
-			long quantity = mostUsedConcepts.get(concept);
-			csv.append(concept.getRdfAbout());
+		for (FacetValue concept: mostUsedConcepts) {
+			csv.append(concept.getValue());
 			csv.append(";");
-			csv.append(quantity);
+			csv.append(concept.getQuantity());
 			csv.append("\n");
 		}
 		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));

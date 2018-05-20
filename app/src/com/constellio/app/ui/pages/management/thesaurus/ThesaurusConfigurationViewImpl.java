@@ -161,8 +161,7 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     	DownloadLink mostFrequentlyUsedConceptsComponent = new DownloadLink(new StreamResource(new StreamSource() {
 			@Override
 			public InputStream getStream() {
-				Map<SkosConcept, Long> mostUsedConcepts = presenter.getMostUsedConcepts();
-				return presenter.getMostUsedConceptsInputStream(mostUsedConcepts);
+				return presenter.getMostUsedConceptsInputStream(presenter.getMostUsedConcepts());
 			}
     		
     	}, "mostFrequentlyUsedConcepts.csv"), $("download"));
@@ -292,7 +291,6 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     private BaseForm<FormBean> buildRejectedTermsForm() {
         rejectedTermsField = new BaseTextArea();
         rejectedTermsField.setCaption($("ThesaurusConfigurationView.rejectedTerms"));
-        rejectedTermsField.setValue(presenter.getRejectedTerms());
         rejectedTermsField.setWidth("100%");
         rejectedTermsField.setHeight("300px");
         
@@ -312,7 +310,8 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
                 rejectedTermsField.setValue(presenter.getRejectedTerms());
 			}
     	};
-    	
+
+        rejectedTermsField.setValue(presenter.getRejectedTerms());
     	rejectedTermsForm.setSizeFull();
     	return rejectedTermsForm;
     } 
