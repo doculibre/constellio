@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -82,6 +82,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -325,6 +326,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public Capsule getCapsuleForCurrentSearch() {
+		Locale currentLocale = view.getSessionContext().getCurrentLocale();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
@@ -333,11 +337,22 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			if (StringUtils.isNotEmpty(searchedTerms)) {
 				String cleanedSearchTerms = AccentApostropheCleaner.cleanAll(searchedTerms);
 				loop1: for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
-					for (String keyword : capsule.getKeywords()) {
-						String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
-						if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
-							match = capsule;
-							break loop1;
+					boolean validLanguage;
+					if (capsule.getLanguage() == null) {
+						validLanguage = true;
+					} else {
+						String languageId = capsule.getLanguage();
+						Record languageRecord = recordServices.getDocumentById(languageId);
+						String languageCode = languageRecord.get(Schemas.CODE);
+						validLanguage = currentLocale.getLanguage().equalsIgnoreCase(languageCode);
+					}
+					if (validLanguage) {
+						for (String keyword : capsule.getKeywords()) {
+							String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
+							if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
+								match = capsule;
+								break loop1;
+							}
 						}
 					}
 				}

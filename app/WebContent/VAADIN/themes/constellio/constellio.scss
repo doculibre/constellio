@@ -1751,6 +1751,14 @@ $popup-view-z-index: 3;
 	    		overflow-x: hidden;
 	    	}
     	}
+    	
+    	.stats-table-layout {
+	    	.v-table {
+		    	.v-scrollable {
+		    		overflow-x: auto;
+		    	}
+	    	}
+    	} 
 
 		.batch-processes {
 	    	.v-table {

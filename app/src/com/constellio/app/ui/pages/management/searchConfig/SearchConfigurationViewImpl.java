@@ -212,7 +212,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 	public static TitleBreadcrumbTrail getSearchConfigurationBreadCrumbTrail(BaseView view, String title) {
 		return new TitleBreadcrumbTrail(view, title) {
 			@Override
-			public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 				return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
 					@Override
 					public boolean isEnabled() {

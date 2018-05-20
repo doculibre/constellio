@@ -41,7 +41,8 @@ public class ContentVersionUploadField extends BaseUploadField {
 	@Override
 	protected Component newItemCaption(Object itemId) {
 		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
-		return new ContentVersionCaption(contentVersionVO);
+		boolean majorVersionFieldVisible = isMajorVersionField(contentVersionVO);
+		return new ContentVersionCaption(contentVersionVO, majorVersionFieldVisible);
 	}
 
 	protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
@@ -92,19 +93,19 @@ public class ContentVersionUploadField extends BaseUploadField {
 		}
 	}
 
-	class ContentVersionCaption extends VerticalLayout {
+	public static class ContentVersionCaption extends VerticalLayout {
 
 		private Component captionComponent;
 
 		private OptionGroup majorVersionField;
 
-		private ContentVersionCaption(ContentVersionVO contentVersionVO) {
+		public ContentVersionCaption(ContentVersionVO contentVersionVO, boolean majorVersionFieldVisible) {
 			setSpacing(true);
 
-			captionComponent = new DownloadContentVersionLink(contentVersionVO);
+			captionComponent = newCaptionComponent(contentVersionVO);
 
 			majorVersionField = new OptionGroup();
-			majorVersionField.setVisible(isMajorVersionField(contentVersionVO));
+			majorVersionField.setVisible(majorVersionFieldVisible);
 			majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 			majorVersionField.addItem(true);
 			majorVersionField.addItem(false);
@@ -122,6 +123,10 @@ public class ContentVersionUploadField extends BaseUploadField {
 		private void setMajorVersionFieldVisible(boolean visible) {
 			majorVersionField.setVisible(visible);
 			majorVersionField.setRequired(visible);
+		}
+		
+		protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
+			return new DownloadContentVersionLink(contentVersionVO);
 		}
 
 	}

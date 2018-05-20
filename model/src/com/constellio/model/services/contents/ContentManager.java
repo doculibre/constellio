@@ -822,6 +822,10 @@ public class ContentManager implements StatefulService {
 
 		}
 	}
+	
+	public HashingService getHashingService() {
+		return hashingService;
+	}
 
 	public static class UploadOptions {
 		private boolean handleDeletionOfUnreferencedHashes;

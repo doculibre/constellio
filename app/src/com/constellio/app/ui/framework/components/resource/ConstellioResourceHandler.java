@@ -56,10 +56,12 @@ public class ConstellioResourceHandler implements RequestHandler {
     		String version = paramsMap.get("version");
     		String preview = paramsMap.get("preview");
     		String filePath = paramsMap.get("file");
+    		String hashParam = paramsMap.get("hash");
+    		String filenameParam = paramsMap.get("z-filename");
     		
     		String filename;
     		InputStream in = null;
-			if (recordId != null) {
+			if (recordId != null || hashParam != null) {
 	    		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 	    		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 	    		UserServices userServices = modelLayerFactory.newUserServices();
@@ -68,44 +70,48 @@ public class ConstellioResourceHandler implements RequestHandler {
 	    		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 	    		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	    		
-	    		VaadinSession vaadinSession = VaadinSession.getCurrent();
-	    		UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
-	    		String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
-	    		
-	    		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-	    		User user = userServices.getUserInCollection(userVO.getUsername(), collection);
-	    		Record record = recordServices.getDocumentById(recordId);
-	    		
-	    		if (user.hasReadAccess().on(record)) {
-	    			String schemaCode = record.getSchemaCode();
-	    			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
-	    			Object metadataValue = record.get(metadata);
-	    			if (metadataValue instanceof Content) {
-		    			Content content = (Content) metadataValue;
-		    			ContentVersion contentVersion = content.getVersion(version);
-		    			
-		    			String hash = contentVersion.getHash();
-		    			filename = contentVersion.getFilename();
-		    			if ("true".equals(preview)) {
-		    				if (contentManager.hasContentPreview(hash)) {
-				    			in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".handleRequest");
-		    				} else {
-		    					in = null;
-		    				}
-		    			} else {
-			    			in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".handleRequest");
-		    			}
-	    			} else if (metadataValue instanceof String) {
-	    				filename = paramsMap.get("z-filename");
-	    				String stringValue = (String) metadataValue;
-	    				in = ioServices.newByteInputStream(stringValue.getBytes(), getClass().getSimpleName() + ".handleRequest");
-	    			} else {
-		    			filename = null;
-	    				in = null;
-	    			}
+	    		if (hashParam != null) {
+	    			filename = filenameParam;
+	    			in = contentManager.getContentInputStream(hashParam, getClass().getSimpleName() + ".handleRequest");
 	    		} else {
-	    			filename = null;
-	    			in = null;
+		    		VaadinSession vaadinSession = VaadinSession.getCurrent();
+		    		UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
+		    		String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
+		    		
+		    		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		    		User user = userServices.getUserInCollection(userVO.getUsername(), collection);
+		    		Record record = recordServices.getDocumentById(recordId);
+		    		if (user.hasReadAccess().on(record)) {
+		    			String schemaCode = record.getSchemaCode();
+		    			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
+		    			Object metadataValue = record.get(metadata);
+		    			if (metadataValue instanceof Content) {
+			    			Content content = (Content) metadataValue;
+			    			ContentVersion contentVersion = content.getVersion(version);
+			    			
+			    			String hash = contentVersion.getHash();
+			    			filename = contentVersion.getFilename();
+			    			if ("true".equals(preview)) {
+			    				if (contentManager.hasContentPreview(hash)) {
+					    			in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+			    				} else {
+			    					in = null;
+			    				}
+			    			} else {
+				    			in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+			    			}
+		    			} else if (metadataValue instanceof String) {
+		    				filename = paramsMap.get("z-filename");
+		    				String stringValue = (String) metadataValue;
+		    				in = ioServices.newByteInputStream(stringValue.getBytes(), getClass().getSimpleName() + ".handleRequest");
+		    			} else {
+			    			filename = null;
+		    				in = null;
+		    			}
+		    		} else {
+		    			filename = null;
+		    			in = null;
+		    		}
 	    		}
     		} else if (filePath != null) {
     			File file = new File(filePath);
@@ -153,6 +159,14 @@ public class ConstellioResourceHandler implements RequestHandler {
     	Map<String, String> params = new LinkedHashMap<>();
     	params.put("file", file.getAbsolutePath());
     	String resourcePath = ParamUtils.addParams(PATH, params);
+        return new ExternalResource(resourcePath);
+    }
+
+    public static Resource createResource(String hash, String filename) {
+    	Map<String, String> params = new LinkedHashMap<>();
+    	params.put("hash", hash);
+    	params.put("z-filename", filename);
+    	String resourcePath = ParamUtils.addParams(PATH , params);
         return new ExternalResource(resourcePath);
     }
     
