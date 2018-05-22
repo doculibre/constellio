@@ -5,7 +5,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -15,12 +17,14 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -39,36 +43,47 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-		VerticalLayout verticalLayout = new VerticalLayout();
-		CssLayout layout = new CustomCssLayout();
-		layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(),
+		VerticalLayout mainLayout = new VerticalLayout();
+		
+		CssLayout collectionSectionLayout = new CustomCssLayout();
+		collectionSectionLayout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(),
 				createSolrFeatureRequestButton(), createFacetsManagementButton());
 		//layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			layout.addComponent(createCapsulesManagementButton());
+			collectionSectionLayout.addComponent(createCapsulesManagementButton());
 			if (presenter.canManageCorrectorExclusions()) {
-				layout.addComponent(createSpellCheckerExclusionsManagementButton());
+				collectionSectionLayout.addComponent(createSpellCheckerExclusionsManagementButton());
 			}
-			layout.addComponent(createThesaurusConfigurationButton());
+			collectionSectionLayout.addComponent(createThesaurusConfigurationButton());
+		}
+		
+		List<NavigationItem> collectionItems = presenter.getCollectionItems();
+		for (NavigationItem navigationItem : collectionItems) {
+			buildButton(collectionSectionLayout, navigationItem);
 		}
 
-		verticalLayout.addComponent(layout);
+		mainLayout.addComponent(collectionSectionLayout);
 
 		if (presenter.isSystemSectionTitleVisible()) {
 			Label systemSectionTitle = new Label($("SearchConfigurationView.systemSectionTitle"));
 			systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
-			verticalLayout.addComponent(systemSectionTitle);
+			mainLayout.addComponent(systemSectionTitle);
 		}
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			CssLayout layoutSystemPilot = new CustomCssLayout();
-			layoutSystemPilot.addComponents(createSynonymsManagementButton(), createElevationManagementButton());
-			verticalLayout.setSpacing(true);
-			verticalLayout.addComponent(layoutSystemPilot);
+			CssLayout systemSection = new CustomCssLayout();
+			systemSection.addComponents(createSynonymsManagementButton(), createElevationManagementButton());
+			mainLayout.setSpacing(true);
+			mainLayout.addComponent(systemSection);
+			
+			List<NavigationItem> systemItems = presenter.getSystemItems();
+			for (NavigationItem navigationItem : systemItems) {
+				buildButton(systemSection, navigationItem);
+			}
 		}
 
-		return verticalLayout;
+		return mainLayout;
 	}
 
 	private Button createSearchBoostByMetadatasButton() {
@@ -231,5 +246,22 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 				});
 			}
 		};
+	}
+
+	private void buildButton(Layout layout, final NavigationItem item) {
+		Button button = new Button($("SearchConfigurationView." + item.getCode()), new ThemeResource(item.getIcon()));
+		button.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		button.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		button.addStyleName(item.getCode());
+		ComponentState state = presenter.getStateFor(item);
+		button.setEnabled(state.isEnabled());
+		button.setVisible(state.isVisible());
+		button.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				item.activate(navigate());
+			}
+		});
+		layout.addComponent(button);
 	}
 }
