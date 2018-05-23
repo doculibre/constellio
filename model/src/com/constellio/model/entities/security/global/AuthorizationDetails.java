@@ -22,6 +22,8 @@ public interface AuthorizationDetails extends Serializable {
 
 	public boolean isSynced();
 
+	boolean isNegative();
+
 	AuthorizationDetails withNewEndDate(LocalDate endate);
 
 	boolean isFutureAuthorization();

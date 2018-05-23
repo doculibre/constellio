@@ -24,6 +24,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String LAST_TOKEN_RECALCULATE = "lastTokenRecalculate";
 	public static final String OVERRIDE_INHERITED = "overrideInherited";
 	public static final String SYNCED = "synced";
+	public static final String NEGATIVE = "negative";
 
 	public SolrAuthorizationDetails(Record record,
 			MetadataSchemaTypes types) {
@@ -132,6 +133,16 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	}
 
 	@Override
+	public boolean isNegative() {
+		return getBooleanWithDefaultValue(NEGATIVE, false);
+	}
+
+	public SolrAuthorizationDetails setNegative(boolean negative) {
+		set(NEGATIVE, Boolean.TRUE.equals(negative) ? true : null);
+		return this;
+	}
+
+	@Override
 	public boolean isActiveAuthorization() {
 		return isActiveAuthorizationAtDate(TimeProvider.getLocalDate());
 	}
@@ -176,7 +187,6 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static SolrAuthorizationDetails wrapNullable(Record record, MetadataSchemaTypes types) {
 		return record == null ? null : new SolrAuthorizationDetails(record, types);
 	}
-
 
 	public SolrAuthorizationDetails getCopyOfOriginalRecord() {
 		return SolrAuthorizationDetails.wrapNullable(wrappedRecord.getCopyOfOriginalRecord(), types);

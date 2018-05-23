@@ -163,6 +163,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 	}
 
 	@Override
+	public boolean isNegative() {
+		return false;
+	}
+
+	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
 	}
