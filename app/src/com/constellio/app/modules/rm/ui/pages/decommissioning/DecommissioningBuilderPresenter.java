@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,7 +264,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
-		return null;
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	@Override

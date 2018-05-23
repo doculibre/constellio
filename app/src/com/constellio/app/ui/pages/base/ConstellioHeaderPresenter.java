@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.search.*;
 import com.constellio.model.entities.schemas.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,10 +58,6 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchResultsViewMode;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -265,16 +263,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	@Override
 	public Map<String,String> getMetadataSchemasList(String schemaTypeCode){
-		SessionContext sessionContext = header.getSessionContext();
-		Map<String,String> metadataSchemasMap = new HashMap<>();
-		String collection = sessionContext.getCurrentCollection();
-		String language = sessionContext.getCurrentLocale().getLanguage();
-		List<MetadataSchema> metadataSchemas = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaType(schemaTypeCode).getSchemas();
-		for (MetadataSchema metadataSchema : metadataSchemas){
-			metadataSchemasMap.put(metadataSchema.getCode(), metadataSchema.getLabel(Language.withCode(language)));
-		}
-		return metadataSchemasMap;
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	public List<MetadataSchemaTypeVO> getSchemaTypes() {
