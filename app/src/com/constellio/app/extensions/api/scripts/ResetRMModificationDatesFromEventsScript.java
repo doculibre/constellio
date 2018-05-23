@@ -5,124 +5,152 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.contents.ContentDao;
-import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-public class ResetRMModificationDatesFromEventsScript extends ScriptWithLogOutput {
+public class ResetRMModificationDatesFromEventsScript {
 
-    private static ScriptParameter TIME_UNIT = new ScriptParameter(ScriptParameterType.COMBOBOX, "Time unit", true);
-    private static ScriptParameter TIME_VALUE = new ScriptParameter(ScriptParameterType.STRING, "Time value", true);
+//    private static ScriptParameter TIME_UNIT = new ScriptParameter(ScriptParameterType.COMBOBOX, "Time unit", true);
+//    private static ScriptParameter TIME_VALUE = new ScriptParameter(ScriptParameterType.STRING, "Time value", true);
+    static AppLayerFactory appLayerFactory;
+    static ModelLayerFactory modelLayerFactory;
+    static SearchServices searchServices;
+    static RecordServices recordServices;
+    static File tempFile;
+    static BufferedWriter writer;
 
-    public ResetRMModificationDatesFromEventsScript(AppLayerFactory appLayerFactory) {
-        super(appLayerFactory, "Record", "ResetRMModificationDatesFromEventsScript");
+
+    private static void startBackend() {
+        appLayerFactory = startLayerFactoriesWithoutBackgroundThreads();
     }
 
-    @Override
-    protected void execute() throws Exception {
-        String timeUnit = parameterValues.get(TIME_UNIT);
-        String timeValue = parameterValues.get(TIME_VALUE);
-        if(timeUnit == null || timeValue == null) {
-            return;
-        }
+    public static void execute(AppLayerFactory appLayerFactory) throws Exception {
+        try {
+            modelLayerFactory = appLayerFactory.getModelLayerFactory();
+            searchServices = modelLayerFactory.newSearchServices();
+            recordServices = modelLayerFactory.newRecordServices();
+            String filename = "script-" + new SimpleDateFormat("yyyy-MM-dd hh.mm").format(new Date()) + ".txt";
+            tempFile = new File(new FoldersLocator().getWorkFolder(), filename);
 
-        final Duration isEqualRange = buildDurationRange(timeUnit, timeValue);
-
-        final RoundedLocalDateTimeComparator timeComparator = new RoundedLocalDateTimeComparator();
-        for(String collection : appLayerFactory
-                .getCollectionsManager().getCollectionCodesExcludingSystem()) {
-            final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            final HashMap<String, LocalDateTime> recordsLastModificationDate = new HashMap<>();
-
-            SearchResponseIterator<Record> eventIterator = searchServices.recordsIterator(
-                    LogicalSearchQueryOperators.from(rm.eventSchemaType())
-                    .where(rm.eventType()).is(EventType.MODIFY_DOCUMENT), 100);
-//                    .where(rm.eventType()).isIn(asList(EventType.MODIFY_DOCUMENT, EventType.MODIFY_FOLDER)), 100);
-            while (eventIterator.hasNext()) {
-                Event event = rm.wrapEvent(eventIterator.next());
-                String recordId = event.getRecordId();
-                LocalDateTime createdOn = event.getCreatedOn();
-                LocalDateTime previousDate = recordsLastModificationDate.get(recordId);
-                if(previousDate == null || previousDate.isBefore(createdOn)) {
-                    recordsLastModificationDate.put(recordId, createdOn);
+            if(!tempFile.exists()) {
+                tempFile.createNewFile();
+            } else {
+                if(tempFile.delete()) {
+                    tempFile.createNewFile();
                 }
             }
+            IOUtils.closeQuietly();
+            writer = new BufferedWriter(new FileWriter(tempFile, true));
 
-            onCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType()).returnAll())
-            .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
-                    @Override
-                    public void modifyRecord(Record record) {
-                        LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
-                        if(lastModificationDate != null) {
-                            LocalDateTime previousModificationDate = record.get(Schemas.MODIFIED_ON);
-                            if(timeComparator.compare(previousModificationDate, lastModificationDate, isEqualRange) != 0) {
-                                printChangesToOutputLogger(record, lastModificationDate);
-                                record.set(Schemas.MODIFIED_ON, lastModificationDate);
-                            }
-                        }
+            final Duration isEqualRange = Duration.standardMinutes(5);
+
+            final RoundedLocalDateTimeComparator timeComparator = new RoundedLocalDateTimeComparator();
+            for(String collection : appLayerFactory
+                    .getCollectionsManager().getCollectionCodesExcludingSystem()) {
+                final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+                final HashMap<String, LocalDateTime> recordsLastModificationDate = new HashMap<>();
+
+                SearchResponseIterator<Record> eventIterator = searchServices.recordsIterator(
+                        LogicalSearchQueryOperators.from(rm.eventSchemaType())
+                                .where(rm.eventType()).is(EventType.MODIFY_DOCUMENT), 100);
+                while (eventIterator.hasNext()) {
+                    Event event = rm.wrapEvent(eventIterator.next());
+                    String recordId = event.getRecordId();
+                    LocalDateTime createdOn = event.getCreatedOn();
+                    LocalDateTime previousDate = recordsLastModificationDate.get(recordId);
+                    if(previousDate == null || previousDate.isBefore(createdOn)) {
+                        recordsLastModificationDate.put(recordId, createdOn);
                     }
                 }
-            );
 
-//            onCondition(LogicalSearchQueryOperators.from(rm.folderSchemaType()).returnAll())
-//            .modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
-//                    @Override
-//                    public void modifyRecord(Record record) {
-//                        LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
-//                        if(lastModificationDate != null) {
-//                            LocalDateTime previousModificationDate = record.get(Schemas.MODIFIED_ON);
-//                            if(timeComparator.compare(previousModificationDate, lastModificationDate, isEqualRange) != 0) {
-//                                printChangesToOutputLogger(record, lastModificationDate);
-//                                record.set(Schemas.MODIFIED_ON, lastModificationDate);
+                ActionExecutorInBatch actionExecutorInBatch = new ActionExecutorInBatch(searchServices, "", 100) {
+
+                    @Override
+                    public void doActionOnBatch(List<Record> records)
+                            throws Exception {
+                        Transaction transaction = new Transaction();
+                        RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions()
+                                .setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
+                                .setSkippingReferenceToLogicallyDeletedValidation(true).setSkipUSRMetadatasRequirementValidations(true)
+                                .setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true)
+                                .setOverwriteModificationDateAndUser(false);
+                        transaction.setOptions(recordUpdateOptions);
+
+                        for (Record record : records) {
+                            LocalDateTime lastModificationDate = recordsLastModificationDate.get(record.getId());
+                            if (lastModificationDate != null) {
+                                LocalDateTime previousModificationDate = record.get(Schemas.MODIFIED_ON);
+                                if (timeComparator.compare(previousModificationDate, lastModificationDate, isEqualRange) != 0) {
+                                    printChangesToOutputLogger(record, previousModificationDate, lastModificationDate);
+                                    record.set(Schemas.MODIFIED_ON, lastModificationDate);
+                                }
+                            }
+//                            if(record.get(Schemas.MODIFIED_ON) == null) {
+//                                printChangesToOutputLogger(record, null, LocalDateTime.now());
+//                                record.set(Schemas.MODIFIED_ON, LocalDateTime.now());
+//                            } else {
+//                                printChangesToOutputLogger(record, (LocalDateTime) record.get(Schemas.MODIFIED_ON), ((LocalDateTime) record.get(Schemas.MODIFIED_ON)).minusSeconds(1));
+//                                record.set(Schemas.MODIFIED_ON, ((LocalDateTime) record.get(Schemas.MODIFIED_ON)).minusSeconds(1));
 //                            }
-//                        }
-//                    }
-//                }
-//            );
+
+                            transaction.update(record);
+                        }
+
+                        if(transaction.getRecords() != null && !transaction.getRecords().isEmpty()) {
+                            recordServices.execute(transaction);
+                        }
+                    }
+                };
+
+                actionExecutorInBatch
+                        .execute(new LogicalSearchQuery(LogicalSearchQueryOperators.from(rm.documentSchemaType()).returnAll()));
+            }
+        } finally {
+            IOUtils.closeQuietly(writer);
         }
     }
 
-    private Duration buildDurationRange(String timeUnit, String timeValue) {
-        long value = Long.parseLong(timeValue);
-        switch (timeUnit) {
-            case "Day":
-                return Duration.standardDays(value);
-            case "Hour":
-                return Duration.standardHours(value);
-            case "Minute":
-                return Duration.standardMinutes(value);
-            default:
-                return Duration.standardSeconds(value);
+    private static void printChangesToOutputLogger(Record record, LocalDateTime previousModificationDate, LocalDateTime lastModificationDate) {
+        try {
+            writer.append("Changed modification date for " + SchemaUtils.getSchemaTypeCode(record.getSchemaCode())
+                    + " " + record.getId() + " - " + record.getTitle()
+                    + " from " + StringUtils.defaultIfBlank(previousModificationDate.toString(), "null")
+                    + " to " + lastModificationDate.toString());
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private void printChangesToOutputLogger(Record record, LocalDateTime lastModificationDate) {
-        outputLogger.appendToFile("Changed modification date for " + SchemaUtils.getSchemaTypeCode(record.getSchemaCode())
-                + " " + record.getId() + " - " + record.getTitle()
-                + " from " + StringUtils.defaultIfBlank(record.get(Schemas.MODIFIED_ON).toString(), "null")
-                + " to " + lastModificationDate.toString() + "\n");
-    }
-
-    private class RoundedLocalDateTimeComparator implements Comparator<LocalDateTime> {
+    private static class RoundedLocalDateTimeComparator implements Comparator<LocalDateTime> {
 
         public int compare(LocalDateTime o1, LocalDateTime o2, Duration isEqualRange) {
             if(o1 == null && o2 == null) {
@@ -153,11 +181,9 @@ public class ResetRMModificationDatesFromEventsScript extends ScriptWithLogOutpu
         }
     }
 
-    @Override
-    public List<ScriptParameter> getParameters() {
-        List<ScriptParameter> scriptParameters = new ArrayList<>();
-        scriptParameters.add(TIME_UNIT.setOptions(asList("Day", "Hour", "Minute", "Second")));
-        scriptParameters.add(TIME_VALUE);
-        return scriptParameters;
+    public static void main(String argv[])
+            throws Exception {
+        startBackend();
+        execute(appLayerFactory);
     }
 }
