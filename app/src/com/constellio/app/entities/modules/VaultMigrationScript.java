@@ -70,6 +70,7 @@ public class VaultMigrationScript {
 									throws Exception {
 								Metadata contentMetadata = metadataSchemaType.getMetadata(metadataCode);
 								Transaction transaction = new Transaction();
+								transaction.getRecordUpdateOptions().setOverwriteModificationDateAndUser(false);
 								for (Record record : records) {
 
 									for (Content recordContent : record.<Content>getValues(contentMetadata)) {
