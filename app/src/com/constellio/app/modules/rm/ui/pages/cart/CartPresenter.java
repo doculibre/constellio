@@ -723,10 +723,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	@Override
 	public Object getReportParameters(String report) {
 		List<String> recordids = getNotDeletedRecordsIds(view.getCurrentSchemaType());
-		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.schemaType(view.getCurrentSchemaType())).returnAll());
 
 		return new SearchResultReportParameters(recordids, view.getCurrentSchemaType(),
-				collection, report, getCurrentUser(), query);
+				collection, report, getCurrentUser(), null);
 	}
 
 	public void backButtonClicked() {
@@ -805,5 +804,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private boolean isNotHidden(Metadata metadata) {
 		MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 		return config.getInputType() != MetadataInputType.HIDDEN;
+	}
+
+	public boolean canCurrentUserBuildDecommissioningList() {
+		return getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
+				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 }
