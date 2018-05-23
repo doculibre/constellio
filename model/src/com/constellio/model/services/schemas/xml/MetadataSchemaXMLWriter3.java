@@ -1,9 +1,6 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -50,6 +47,7 @@ public class MetadataSchemaXMLWriter3 {
 	private SAXBuilder saxBuilder = new SAXBuilder();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
+
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
@@ -311,6 +309,11 @@ public class MetadataSchemaXMLWriter3 {
 		if (!metadata.getValidators().isEmpty()) {
 			metadataElement.addContent(writeRecordMetadataValidators(metadata));
 		}
+
+		if(metadata.getCustomParameter() != null && !metadata.getCustomParameter().isEmpty()) {
+			metadataElement.addContent(toCustomParameterElement(metadata));
+		}
+
 		if (!metadata.getPopulateConfigs().isEmpty()) {
 			metadataElement.addContent(toPopulateConfigsElement(metadata.getPopulateConfigs()));
 		}
@@ -516,6 +519,26 @@ public class MetadataSchemaXMLWriter3 {
 	private String writeEnum(EnumWithSmallCode value) {
 		return value.getCode();
 	}
+
+	private Element toCustomParameterElement(Metadata metadata) {
+
+		Element customElement = new Element("customParameter");
+		for(String keyToCustomParameter : metadata.getCustomParameter().keySet()) {
+			Map<String, Object> customParameter = metadata.getCustomParameter();
+
+			Object value = customParameter.get(keyToCustomParameter);
+
+			Element element = TypeConvertionUtil.getElement(keyToCustomParameter, value);
+			if(element != null) {
+				customElement.addContent(element);
+			}
+		}
+
+		return customElement;
+	}
+
+
+
 
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {
 		Element populateConfigsElement = new Element("populateConfigs");

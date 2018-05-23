@@ -88,6 +88,7 @@ public class MetadataBuilder {
 	private Boolean duplicable;
 	private Set<String> customAttributes;
 	private MetadataSchemaBuilder schemaBuilder;
+	private Map<String, Object> customParameter;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;
@@ -110,8 +111,16 @@ public class MetadataBuilder {
 		return copy;
 	}
 
+	public Map<String, Object> getCustomParameter() {
+		return Collections.unmodifiableMap(customParameter);
+	}
+
+	public void setCustomParameter(Map<String, Object> customParameter) {
+		this.customParameter = customParameter;
+	}
+
 	static MetadataBuilder createCustomMetadataFromDefault(MetadataSchemaBuilder schemaBuilder, MetadataBuilder defaultMetadata,
-			String codeSchema) {
+														   String codeSchema) {
 		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.classProvider = defaultMetadata.classProvider;
 		builder.setLocalCode(defaultMetadata.localCode);
@@ -128,6 +137,8 @@ public class MetadataBuilder {
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
 		builder.multiLingual = defaultMetadata.multiLingual;
 		builder.customAttributes = defaultMetadata.customAttributes;
+		builder.customParameter = defaultMetadata.customParameter;
+
 		return builder;
 	}
 
@@ -154,6 +165,8 @@ public class MetadataBuilder {
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		builder.setDuplicable(false);
 		builder.customAttributes = new HashSet<>();
+		builder.customParameter = new HashMap();
+
 		return builder;
 	}
 
@@ -217,6 +230,7 @@ public class MetadataBuilder {
 		builder.duplicable = metadata.isDuplicable();
 		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
 		builder.customAttributes = new HashSet<>(metadata.getCustomAttributes());
+		builder.customParameter = new HashMap<>(metadata.getCustomParameter());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -282,6 +296,12 @@ public class MetadataBuilder {
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
 		if (inheritanceMetadata.isDuplicable() != null && !inheritanceMetadata.isDuplicable().equals(metadata.isDuplicable())) {
 			builder.duplicable = metadata.isDuplicable();
+		}
+
+		if(metadata.getCustomParameter() == null || metadata.getCustomParameter().size() <= 0) {
+			builder.customParameter = new HashMap<>(inheritanceMetadata.getCustomParameter());
+		} else {
+			builder.customParameter = metadata.getCustomParameter();
 		}
 	}
 
@@ -720,8 +740,12 @@ public class MetadataBuilder {
 			duplicable = inheritance.isDuplicable();
 		}
 
+		if(customParameter == null || customParameter.size() <= 0) {
+			customParameter = inheritance.getCustomParameter();
+		}
+
 		return new Metadata(inheritance, this.getLabels(), this.getEnabled(), this.getDefaultRequirement(), this.code,
-				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs, duplicable);
+				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs, duplicable, customParameter);
 	}
 
 	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, final ModelLayerFactory modelLayerFactory) {
@@ -766,10 +790,11 @@ public class MetadataBuilder {
 			duplicable = false;
 		}
 
+
 		return new Metadata(localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
 				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
-				encryptionServicesFactory, duplicable);
+				encryptionServicesFactory, duplicable, customParameter);
 	}
 
 	private void validateNotReferencingTaxonomy(String typeWithAllowedSchemas, TaxonomiesManager taxonomiesManager) {

@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -141,4 +142,5 @@ public class InheritedMetadataBehaviors implements Serializable {
 	public Set<String> getCustomAttributes() {
 		return customAttributes;
 	}
+
 }

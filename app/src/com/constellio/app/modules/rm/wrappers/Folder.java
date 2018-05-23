@@ -114,6 +114,7 @@ public class Folder extends RMObject {
 
 	public static final String SUB_FOLDERS_TOKENS = "subFoldersTokens";
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
+	public static final String SUMMARY = "summary";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
