@@ -1,14 +1,9 @@
 package com.constellio.app.api.search;
 
-import com.constellio.app.api.HttpServletRequestAuthenticator;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.FreeTextSearchServices;
-import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
@@ -16,39 +11,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.request.LocalSolrQueryRequest;
-import org.apache.solr.response.JSONResponseWriter;
-import org.apache.solr.response.SolrQueryResponse;
-import org.apache.solr.response.XMLResponseWriter;
-import org.apache.solr.servlet.SolrRequestParsers;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class SearchWebService extends AbstractSearchServlet {
-
-	public static final String THESAURUS_VALUE = "thesaurusValue";
-	public static final String SKOS_CONCEPTS = "skosConcepts";
-
-
 	@Override
 	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		ModifiableSolrParams solrParams = getModifiableSolrParams(req.getQueryString());
 		boolean searchingInEvents = "true".equals(req.getParameter("searchEvents"));
-		ModifiableSolrParams solrParams = new ModifiableSolrParams(
-				SolrRequestParsers.parseQueryString(req.getQueryString()));
-		String thesaurusValue = solrParams.get(THESAURUS_VALUE);
-		solrParams.remove("searchEvents");
-		solrParams.remove(THESAURUS_VALUE);
-		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
-		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
+		String thesaurusValue = req.getParameter(THESAURUS_VALUE);
+
 		solrParams.add("fq", "-type_s:index");
 
 		solrParams.set("rows", StringUtils.defaultString(solrParams.get("rows"), "" + 10));

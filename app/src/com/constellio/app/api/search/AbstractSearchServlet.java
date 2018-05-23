@@ -7,6 +7,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -24,8 +25,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public abstract class AbstractSearchServlet extends HttpServlet {
     public static final String THESAURUS_VALUE = "thesaurusValue";
@@ -45,8 +44,9 @@ public abstract class AbstractSearchServlet extends HttpServlet {
     }
 
     @NotNull
-    protected ModifiableSolrParams getModifiableSolrParams(HttpServletRequest request) {
-        ModifiableSolrParams solrParams = new ModifiableSolrParams(SolrRequestParsers.parseQueryString(request.getQueryString()));
+    protected ModifiableSolrParams getModifiableSolrParams(String queryString) {
+        ModifiableSolrParams solrParams = new ModifiableSolrParams(SolrRequestParsers.parseQueryString(queryString));
+
         solrParams.remove(SEARCH_EVENTS);
         solrParams.remove(THESAURUS_VALUE);
         solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
@@ -57,11 +57,13 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 
     protected String getCollection(ModifiableSolrParams solrParams) {
         String[] strings = solrParams.getParams("fq");
+        String prefix = "collection_s";
+
         String collection = "";
 
-        for(String param : strings) {
-            if(param.startsWith("collection_s")) {
-                collection = param.replace("collection_s:", "");
+        for (String param : strings) {
+            if (StringUtils.startsWith(param, prefix)) {
+                collection = StringUtils.removeAll(param, prefix);
                 break;
             }
         }
@@ -69,27 +71,15 @@ public abstract class AbstractSearchServlet extends HttpServlet {
         return collection;
     }
 
-    private String getRegexpValue(String regExpGroup, String from) {
-        Pattern p = Pattern.compile(regExpGroup);   // the pattern to search for
-        Matcher m = p.matcher(from);
-
-        if (m.find()) {
-            return m.group(1);
-        } else {
-            return "";
-        }
-    }
-
     protected Language getLanguage(ModifiableSolrParams solrParams) {
         String[] strings = solrParams.getParams("fq");
-        Pattern p = Pattern.compile("language_s:\\(\\\"(.*)\\\"\\)");
+        String prefix = "language_s:";
 
         String langue = "";
 
-        for(String param : strings) {
-            Matcher m = p.matcher(param);
-            if(m.find()) {
-                langue = m.group(1);
+        for (String param : strings) {
+            if (StringUtils.startsWith(param, prefix)) {
+                langue = StringUtils.removeAll(param, prefix);
                 break;
             }
         }
@@ -136,11 +126,11 @@ public abstract class AbstractSearchServlet extends HttpServlet {
             sResponse.setAllValues(queryResponse.getResponse());
         }
 
-        if(skosConceptsNL  != null || skosConceptsNL.size() > 0) {
-            sResponse.getValues().add(SKOS_CONCEPTS , skosConceptsNL);
+        if (skosConceptsNL != null && skosConceptsNL.size() > 0) {
+            sResponse.getValues().add(SKOS_CONCEPTS, skosConceptsNL);
         }
 
-        if(featuredLinkNL  != null || featuredLinkNL.size() > 0) {
+        if (featuredLinkNL != null && featuredLinkNL.size() > 0) {
             sResponse.getValues().add(FEATURED_LINKS, featuredLinkNL);
         }
 
