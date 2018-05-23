@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -565,6 +566,7 @@ public class RecordDeleteServices {
 			transaction.add(hierarchyRecord);
 		}
 		transaction.setRecordFlushing(options.getRecordsFlushing());
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		transaction.setUser(user);
 		try {
 			transaction.setRecordFlushing(options.getRecordsFlushing());
