@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.api.extensions.params.FilterCapsuleParam;
+import com.constellio.app.ui.util.CapsuleUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -342,37 +344,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public Capsule getCapsuleForCurrentSearch() {
 		Locale currentLocale = view.getSessionContext().getCurrentLocale();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
-					appLayerFactory.getModelLayerFactory());
-			String searchedTerms = getUserSearchExpression();
-			if (StringUtils.isNotEmpty(searchedTerms)) {
-				String cleanedSearchTerms = AccentApostropheCleaner.cleanAll(searchedTerms);
-				loop1: for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
-					boolean validLanguage;
-					if (capsule.getLanguage() == null) {
-						validLanguage = true;
-					} else {
-						String languageId = capsule.getLanguage();
-						Record languageRecord = recordServices.getDocumentById(languageId);
-						String languageCode = languageRecord.get(Schemas.CODE);
-						validLanguage = currentLocale.getLanguage().equalsIgnoreCase(languageCode);
-					}
-					if (validLanguage) {
-						for (String keyword : capsule.getKeywords()) {
-							String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
-							if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
-								match = capsule;
-								break loop1;
-							}
-						}
-					}
-				}
-			}
+			match = CapsuleUtils.findCapsule(collection, currentLocale.getLanguage(), getUserSearchExpression(), getSearchQuery());
 		}
+
 		return match;
 	}
 

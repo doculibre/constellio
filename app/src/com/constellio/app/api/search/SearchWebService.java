@@ -33,29 +33,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class SearchWebService extends HttpServlet {
+public class SearchWebService extends AbstractSearchServlet {
 
-	private static synchronized ConstellioFactories getConstellioFactories() {
-		return ConstellioFactories.getInstance();
-	}
 	public static final String THESAURUS_VALUE = "thesaurusValue";
 	public static final String SKOS_CONCEPTS = "skosConcepts";
 
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-
-
-		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
-		if (user == null) {
-			throw new RuntimeException("Invalid serviceKey/token");
-		}
-
-		boolean searchingInEvents = "true".equals(request.getParameter("searchEvents"));
+	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		boolean searchingInEvents = "true".equals(req.getParameter("searchEvents"));
 		ModifiableSolrParams solrParams = new ModifiableSolrParams(
-				SolrRequestParsers.parseQueryString(request.getQueryString()));
+				SolrRequestParsers.parseQueryString(req.getQueryString()));
 		String thesaurusValue = solrParams.get(THESAURUS_VALUE);
 		solrParams.remove("searchEvents");
 		solrParams.remove(THESAURUS_VALUE);
@@ -105,7 +93,10 @@ public class SearchWebService extends HttpServlet {
 					if (!paramName.equals("qf") && !paramName.equals("pf")
 							&& !paramName.equals("fl")) {
 						if (paramName.equals("q")) {
-							searchEvent.setQuery(StringUtils.stripAccents(solrParams.get(paramName).toLowerCase()));
+							String query = StringUtils.stripAccents(solrParams.get(paramName).toLowerCase());
+
+							searchEvent.setQuery(query);
+							searchEvent.setOriginalQuery(query);
 						} else {
 							String[] values = solrParams.getParams(paramName);
 
@@ -179,57 +170,6 @@ public class SearchWebService extends HttpServlet {
 			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
 		}
 
-		writeResponse(response, solrParams, queryResponse, skosConceptsNL);
-	}
-
-	private ModelLayerFactory modelLayerFactory() {
-		return ConstellioFactories.getInstance().getModelLayerFactory();
-	}
-
-	private QueryResponse getQueryResponse(ModifiableSolrParams solrParams, UserCredential user) {
-		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
-		FreeTextSearchServices freeTextSearchServices = modelLayerFactory.newFreeTextSearchServices();
-		return freeTextSearchServices.search(new FreeTextQuery(solrParams).filteredByUser(user));
-	}
-
-	private QueryResponse getEventQueryResponse(ModifiableSolrParams solrParams) {
-		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
-		FreeTextSearchServices freeTextSearchServices = modelLayerFactory.newFreeTextSearchServices();
-		return freeTextSearchServices.search(new FreeTextQuery(solrParams).searchEvents());
-	}
-
-	private void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL) {
-		response.setContentType("application/xml; charset=UTF-8");
-		OutputStream outputStream;
-		try {
-			outputStream = response.getOutputStream();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-		SolrQueryResponse sResponse = new SolrQueryResponse();
-		sResponse.setAllValues(queryResponse.getResponse());
-
-		if(skosConceptsNL  != null || skosConceptsNL.size() > 0) {
-			sResponse.getValues().add(SKOS_CONCEPTS , skosConceptsNL);
-		}
-
-		XMLResponseWriter xmlWriter = new XMLResponseWriter();
-
-		try (OutputStreamWriter out = new OutputStreamWriter(outputStream)) {
-			if (("json").equals(solrParams.get("wt"))) {
-				response.setCharacterEncoding("UTF-8");
-				response.setContentType("application/json; charset=UTF-8");
-				JSONResponseWriter jsonWriter = new JSONResponseWriter();
-				jsonWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
-			} else {
-				response.setCharacterEncoding("UTF-8");
-				response.setContentType("application/xml; charset=UTF-8");
-				xmlWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
-			}
-			out.flush();
-		} catch (IOException e) {
-			throw new RuntimeException("Unable to convert Solr response into XML", e);
-		}
+		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null);
 	}
 }
