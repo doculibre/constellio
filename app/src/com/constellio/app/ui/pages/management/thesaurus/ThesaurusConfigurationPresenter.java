@@ -10,11 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -361,13 +357,29 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	
 	InputStream getMostUsedConceptsInputStream(List<FacetValue> mostUsedConcepts) {
 		StringBuilder csv = new StringBuilder();
+		csv.append("\"À propos\"");
+		csv.append(",");
+		csv.append("\"Français (skos:prefLabel)\"");
+		csv.append(",");
+		csv.append("\"Anglais (skos:prefLabel)\"");
+		csv.append(",");
+		csv.append("\"Fréquence\"");
+		csv.append("\n");
+
 		for (FacetValue concept: mostUsedConcepts) {
-			csv.append(concept.getValue());
-			csv.append(";");
-			csv.append(concept.getQuantity());
-			csv.append("\n");
+			SkosConcept skosConcept = thesaurusManager.get(collection).getSkosConcept(concept.getValue());
+			if (skosConcept != null) {
+				csv.append("\""+skosConcept.getRdfAbout()+"\"");
+				csv.append(",");
+				csv.append("\""+skosConcept.getPrefLabel(Locale.FRENCH)+"\"");
+				csv.append(",");
+				csv.append("\""+skosConcept.getPrefLabel(Locale.ENGLISH)+"\"");
+				csv.append(",");
+				csv.append("\""+concept.getQuantity()+"\"");
+				csv.append("\n");
+			}
 		}
-		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));
+		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.ISO_8859_1));
 	}
 
 	List<SkosConcept> getUnusedConcepts() {
@@ -401,11 +413,22 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	
 	public InputStream getUnusedConceptsInputStream(final List<SkosConcept> unusedConcepts) {
 		StringBuilder csv = new StringBuilder();
+		csv.append("\"À propos\"");
+		csv.append(",");
+		csv.append("\"Français (skos:prefLabel)\"");
+		csv.append(",");
+		csv.append("\"Anglais (skos:prefLabel)\"");
+		csv.append("\n");
+
 		for(SkosConcept unusedConcept: unusedConcepts) {
-			csv.append(unusedConcept.getRdfAbout());
+			csv.append("\""+unusedConcept.getRdfAbout()+"\"");
+			csv.append(",");
+			csv.append("\""+unusedConcept.getPrefLabel(Locale.FRENCH)+"\"");
+			csv.append(",");
+			csv.append("\""+unusedConcept.getPrefLabel(Locale.ENGLISH)+"\"");
 			csv.append("\n");
 		}
-		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.UTF_8));
+		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.ISO_8859_1));
 	}
 
 	@Override
