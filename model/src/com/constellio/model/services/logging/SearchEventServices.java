@@ -269,7 +269,8 @@ public class SearchEventServices {
 		}
 
 		String clicks = "'clicks_ss':{'type':'terms', 'field':'clicks_ss', 'limit':10}";
-		String query = "'originalQuery_s':{'type':'terms', 'field':'originalQuery_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)', "+clicks+"}}";
+		String originalQuery = "'originalQuery_s':{'type':'terms', 'field':'originalQuery_s', 'limit':1}";
+		String query = "'query_s':{'type':'terms', 'field':'query_s'" + offsets + limits + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)', "+clicks+", "+originalQuery+"}}";
 
 		params.add("json.facet", "{" + query + "}");
 	}

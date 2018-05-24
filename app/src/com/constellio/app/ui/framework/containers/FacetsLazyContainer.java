@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.data.FacetsDataProvider.Facets;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.addons.lazyquerycontainer.*;
 
 import java.io.Serializable;
@@ -114,7 +115,7 @@ public class FacetsLazyContainer extends LazyQueryContainer implements Refreshab
                     case FREQUENCY:
                         return new ItemProperty(facets.getFrequency());
                     case CLICKS:
-                        return new ItemProperty(facets.getClicks());
+                        return new ItemProperty(StringUtils.join(facets.getClicks(), ", "));
                     default:
                         return new ItemProperty(id.toString());
                 }

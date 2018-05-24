@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.data;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
@@ -27,6 +28,15 @@ public abstract class FacetsDataProvider extends AbstractDataProvider {
             SimpleOrderedMap bucket = buckets.get(i);
 
             String query = (String) bucket.get("val");
+            SimpleOrderedMap originalQuery = (SimpleOrderedMap) bucket.get("originalQuery_s");
+            if(originalQuery != null  && originalQuery.get("buckets") != null) {
+                List<SimpleOrderedMap> originalQueryBuckets = (List<SimpleOrderedMap>) originalQuery.get("buckets");
+                if (!originalQueryBuckets.isEmpty() &&
+                        StringUtils.isNotBlank((String) originalQueryBuckets.get(0).get("val"))) {
+                    query = (String) originalQueryBuckets.get(0).get("val");
+                }
+            }
+
             String clickCount = String.valueOf(((Number)bucket.get("clickCount_d")).intValue());
             String frequency = String.valueOf(((Number)bucket.get("count")).intValue());
 
@@ -63,7 +73,7 @@ public abstract class FacetsDataProvider extends AbstractDataProvider {
         NamedList<Object> namedList = queryResponse.getResponse();
 
         SimpleOrderedMap facets = (SimpleOrderedMap) namedList.get("facets");
-        return (SimpleOrderedMap) facets.get("originalQuery_s");
+        return (SimpleOrderedMap) facets.get("query_s");
     }
 
     public abstract QueryResponse getQueryResponse(Integer offset, Integer limit);

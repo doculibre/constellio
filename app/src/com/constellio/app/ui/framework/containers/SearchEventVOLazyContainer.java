@@ -13,9 +13,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.vaadin.addons.lazyquerycontainer.*;
@@ -252,6 +249,25 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             };
                         }
                     }
+                } else if(CLICKS.equals(id)) {
+                    return new ObjectValueProperty() {
+                        @Override
+                        public Object getValue() {
+                            List<String> urls = getRecord().get(CLICKS);
+                            return StringUtils.join(urls, ", ");
+                        }
+                    };
+                } else if(ORIGINAL_QUERY.equals(id)) {
+                    return new ObjectValueProperty() {
+                        @Override
+                        public Object getValue() {
+                            String q = getRecord().get(ORIGINAL_QUERY);
+                            if(q == null) {
+                                q = getRecord().get(QUERY);
+                            }
+                            return q;
+                        }
+                    };
                 }
 
                 return super.getItemProperty(this.definedMetadatas.get(id));
@@ -266,8 +282,12 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
             }
 
             private String getTypeRecherche(String params) {
-                String query = getRecord().get(ORIGINAL_QUERY).toString();
-                if(StringUtils.contains(query, "\"")) {
+                Object o = getRecord().get(ORIGINAL_QUERY);
+                if(o == null) {
+                    o = getRecord().get(QUERY);
+                }
+
+                if(o != null && StringUtils.contains(o.toString(), "\"")) {
                     return $("StatisticsView.expressionExacte");
                 }
 
