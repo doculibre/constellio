@@ -16,6 +16,8 @@ import com.constellio.model.entities.security.Role;
 
 public class AuthorizationVO implements Serializable {
 	String authId;
+	String receivedFromMetadataLabel;
+	String receivedFromRecordCaption;
 	List<String> users;
 	List<String> groups;
 	List<String> records;
@@ -25,30 +27,29 @@ public class AuthorizationVO implements Serializable {
 	LocalDate startDate;
 	LocalDate endDate;
 	boolean synched;
-	String receivedFromMetadataLabel;
-	String receivedFromRecordCaption;
+	boolean negative;
 
 	public static AuthorizationVO forUsers(String id) {
 		return new AuthorizationVO(
 				asList(id), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null, false);
 	}
 
 	public static AuthorizationVO forGroups(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), asList(id), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null, false);
 	}
 
 	public static AuthorizationVO forContent(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), new ArrayList<String>(), asList(id), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false, null, null,false);
 	}
 
 	public AuthorizationVO(List<String> users, List<String> groups, List<String> records, List<String> accessRoles,
 			List<String> userRoles, List<String> userRolesTitles, String authId, LocalDate startDate, LocalDate endDate,
-			boolean synched, String receivedFromMetadataLabel, String receivedFromRecordCaption) {
+			boolean synched, String receivedFromMetadataLabel, String receivedFromRecordCaption, boolean negative) {
 		this.users = users;
 		this.records = records;
 		this.accessRoles = accessRoles;
@@ -61,6 +62,7 @@ public class AuthorizationVO implements Serializable {
 		this.synched = synched;
 		this.receivedFromMetadataLabel = receivedFromMetadataLabel;
 		this.receivedFromRecordCaption = receivedFromRecordCaption;
+		this.negative = negative;
 	}
 
 	public List<String> getUsers() {
@@ -143,8 +145,16 @@ public class AuthorizationVO implements Serializable {
 		this.endDate = endDate;
 	}
 
+	public void setNegative(boolean negative) {
+		this.negative = negative;
+	}
+
 	public boolean isSynched() {
 		return synched;
+	}
+
+	public boolean isNegative() {
+		return negative;
 	}
 
 	public String getReceivedFromMetadataLabel() {

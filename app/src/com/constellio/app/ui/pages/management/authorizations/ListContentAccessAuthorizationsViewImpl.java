@@ -49,10 +49,11 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 		protected Component buildWindowContent() {
 			buildUsersAndGroupsField();
 			buildAccessField();
+			buildNegativeAuthorizationField();
 			buildRolesField();
 			buildDateFields();
 			return new BaseForm<AuthorizationVO>(
-					AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate) {
+					AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate, negative) {
 				@Override
 				protected void saveButtonClick(AuthorizationVO authorization)
 						throws ValidationException {

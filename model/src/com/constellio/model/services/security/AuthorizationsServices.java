@@ -347,7 +347,7 @@ public class AuthorizationsServices {
 		}
 
 		SolrAuthorizationDetails details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
-				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths())
+				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(),request.isNegative())
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		return add(new Authorization(details, request.getPrincipals()), request.getExecutedBy());
 	}
@@ -1227,7 +1227,7 @@ public class AuthorizationsServices {
 	AuthorizationDetails inheritedToSpecific(AuthTransaction transaction, Record record, String collection, String id) {
 		AuthorizationDetails inherited = getDetails(collection, id);
 		SolrAuthorizationDetails detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
-				inherited.getStartDate(), inherited.getEndDate(), false);
+				inherited.getStartDate(), inherited.getEndDate(), false,inherited.isNegative());
 		detail.setTarget(record.getId());
 
 		detail.setTargetSchemaType(record.getTypeCode());
@@ -1295,11 +1295,11 @@ public class AuthorizationsServices {
 	}
 
 	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
-			LocalDate startDate, LocalDate endDate, boolean overrideInherited) {
+			LocalDate startDate, LocalDate endDate, boolean overrideInherited, boolean negative) {
 		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
 				: schemas(collection).newSolrAuthorizationDetailsWithId(id);
 
-		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited);
+		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited).setNegative(negative);
 	}
 
 }

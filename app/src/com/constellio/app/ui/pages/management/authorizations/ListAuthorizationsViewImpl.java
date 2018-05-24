@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
+import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -38,14 +39,9 @@ import com.vaadin.data.Container;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements ListAuthorizationsView {
@@ -297,6 +293,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public abstract class AddAuthorizationButton extends WindowButton {
 		@PropertyId("accessRoles") protected ListOptionGroup accessRoles;
 		@PropertyId("userRoles") protected ListOptionGroup userRoles;
+		@PropertyId("negative") protected CheckBox negative;
 		@PropertyId("startDate") protected JodaDateField startDate;
 		@PropertyId("endDate") protected JodaDateField endDate;
 
@@ -336,6 +333,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			userRoles.setRequired(presenter.seeRolesField());
 			userRoles.setMultiSelect(true);
 			userRoles.setId("userRoles");
+		}
+
+		protected void buildNegativeAuthorizationField(){
+			negative = new CheckBox();
+			negative.setCaption($("AuthorizationsView.negativeAuthotization"));
+			negative.setEnabled(presenter.isNegativeAuthorizationConfigEnabled());
+			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabled());
+			negative.setId("negative");
 		}
 
 		protected void buildDateFields() {

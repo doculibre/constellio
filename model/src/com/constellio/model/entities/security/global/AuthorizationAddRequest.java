@@ -255,7 +255,16 @@ public class AuthorizationAddRequest {
 		return this;
 	}
 
+	public AuthorizationAddRequest andNegative(boolean value) {
+		this.negative = value;
+		return this;
+	}
+
 	public boolean isOverridingInheritedAuths() {
 		return overridingInheritedAuths;
 	}
+
+    public boolean isNegative() {
+		return negative;
+    }
 }

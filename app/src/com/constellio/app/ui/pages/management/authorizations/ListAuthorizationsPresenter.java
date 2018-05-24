@@ -23,6 +23,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
@@ -154,7 +155,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		principals.addAll(authorizationVO.getGroups());
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
 				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
-				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
+				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate())
+				.andNegative(authorizationVO.isNegative());
 	}
 
 	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
@@ -188,6 +190,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		authorizations = authorizationsServices().getRecordAuthorizations(record);
 		//}
 		return authorizations;
+	}
+
+	public boolean isNegativeAuthorizationConfigEnabled() {
+		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled();
 	}
 
 	private static class AuthorizationReceivedFromMetadata {

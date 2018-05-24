@@ -100,7 +100,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getDetail().getId(), authorization.getDetail().getStartDate(),
-				authorization.getDetail().getEndDate(), authorization.getDetail().isSynced(), metadataLabel, recordCaption);
+				authorization.getDetail().getEndDate(), authorization.getDetail().isSynced(), metadataLabel, recordCaption, authorization.getDetail().isNegative());
 
 		return authorizationVO;
 	}
