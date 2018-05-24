@@ -592,7 +592,7 @@ public class ThesaurusService implements Serializable {
 
 	private void addToSuggestions(List<String> suggestions, String suggestion) {
 		if(suggestions.size()<MAX_AUTOCOMPLETE_RESULTS) {
-			suggestions.add(suggestion.toLowerCase());
+			suggestions.add(StringUtils.capitalize(suggestion.toLowerCase()));
 		}
 	}
 
