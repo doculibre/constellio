@@ -3662,6 +3662,26 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	@Test
 	public void givenUserHasNegativeAccessesFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
+
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForUser(charles).on(FOLDER1).givingNegativeReadWriteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth4 = add(authorizationForUser(legends).on(FOLDER4).givingNegativeReadWriteAccess());
+
+		auth5 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
+		auth6 = add(authorizationForUser(heroes).on(FOLDER2).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER1_DOC1, FOLDER4)) {
+	 		verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, charles, alice, chuck);
+			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, charles, chuck);
+			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, charles, chuck);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, alice, chuck);
+			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, chuck);
+			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck);
+		}
 		throw new RuntimeException("TODO");
 	}
 
