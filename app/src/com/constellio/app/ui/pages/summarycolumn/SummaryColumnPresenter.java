@@ -1,8 +1,11 @@
-package com.constellio.app.modules.rm.ui.pages.folder;
+package com.constellio.app.ui.pages.summarycolumn;
 
+import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.User;
@@ -19,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SummaryColumnPresenter extends SingleSchemaBasePresenter<RMFolderSummaryColumnView>  {
+public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryColumnView>  {
 
     private static final String SCHEMA_CODE = "schemaCode";
     public static final String PREFIX = "prefix";
@@ -29,9 +32,14 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<RMFolderSu
     private Map<String, String> parameters;
     public static final String SUMMARY_COLOMN = "summaryColumn";
 
-    public SummaryColumnPresenter(RMFolderSummaryColumnView view) {
+    public SummaryColumnPresenter(SummaryColumnView view) {
         super(view);
     }
+
+    public SummaryColumnPresenter(SummaryColumnView view, String schemaCode) {
+        super(view, schemaCode);
+    }
+
 
     public void forParams(String params) {
         Map<String, String> paramsMap = ParamUtils.getParamsMap(params);

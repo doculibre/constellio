@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
-import com.constellio.app.modules.rm.ui.pages.folder.RMFolderSummaryColumnViewImpl;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.vaadin.navigator.Navigator;
@@ -272,7 +271,4 @@ public class RMViews extends CoreViews {
         navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
     }
 
-	public void folderSummaryColumn(String param) {
-		navigator.navigateTo(RMNavigationConfiguration.SUMMARY_CONFIGURATOR + "/" + param);
-	}
 }

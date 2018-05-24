@@ -1,5 +1,6 @@
-package com.constellio.app.modules.rm.ui.pages.folder;
+package com.constellio.app.ui.pages.summarycolumn;
 
+import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class SummaryColumnViewImpl extends BaseViewImpl implements RMFolderSummaryColumnView {
+public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumnView {
 
 
     SummaryColumnPresenter presenter;

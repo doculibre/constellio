@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.ui.pages.folder;
+package com.constellio.app.ui.pages.summarycolumn;
 
 import com.constellio.app.ui.entities.MetadataVO;
 

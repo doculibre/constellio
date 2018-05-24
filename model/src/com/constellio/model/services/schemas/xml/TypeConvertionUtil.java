@@ -25,17 +25,17 @@ public class TypeConvertionUtil {
             throw new TypeRuntimeException.CannotGetTypeFromNullValueRunTimeException("object");
         }
 
-        if(object.getClass() == List.class) {
+        if(object instanceof List) {
             return LIST_TYPE;
-        } else if(object.getClass() == Map.class) {
+        } else if(object instanceof Map) {
             return MAP_WITH_SRING_AS_KEY_TYPE;
-        } else if (object.getClass() == Boolean.class) {
+        } else if (object instanceof Boolean) {
             return BOOLEAN_TYPE;
-        } else if(object.getClass() == Integer.class) {
+        } else if(object instanceof Integer) {
             return INTEGER_TYPE;
-        } else if (object.getClass() == Double.class) {
+        } else if (object instanceof Double) {
             return DOUBLE_TYPE;
-        } else if(object.getClass() == String.class) {
+        } else if(object instanceof String) {
             return STRING_TYPE;
         } else {
             throw new TypeRuntimeException.UnsupportedTypeRunTimeException(object.getClass().toString());
@@ -77,7 +77,7 @@ public class TypeConvertionUtil {
 
     public static Object getObjectFromElement(Element element) {
 
-        String type = element.getText();
+        String type = element.getName();
 
         if(type == null) {
             throw new TypeRuntimeException.CannotGetTypeFromNullValueRunTimeException(type);
@@ -95,7 +95,7 @@ public class TypeConvertionUtil {
             return parseDouble(element);
         } else if(INTEGER_TYPE.equals(type)) {
             return parseInt(element);
-        } else if(STRING_TYPE.equals(STRING_TYPE)) {
+        } else if(STRING_TYPE.equals(type)) {
             return element.getAttributeValue(VALUE_ATTRIBUTE);
         } else {
             throw new TypeRuntimeException.UnsupportedTypeRunTimeException(type);
@@ -123,9 +123,9 @@ public class TypeConvertionUtil {
     public static boolean parseBoolean(Element element) {
         String value = element.getAttributeValue(VALUE_ATTRIBUTE);
 
-        if(Boolean.TRUE.equals(value)) {
+        if(Boolean.TRUE.toString().equals(value)) {
             return true;
-        } else if(Boolean.FALSE.equals(value)) {
+        } else if(Boolean.FALSE.toString().equals(value)) {
             return false;
         } else {
             throw new TypeRuntimeException.InvalidValueForTypeRunTimeException(value, BOOLEAN_TYPE);
@@ -172,7 +172,7 @@ public class TypeConvertionUtil {
             Object value = map.get(key);
             Element element = getElement(key, value);
             if(element != null) {
-                mapRootElement.addContent(getElement(key, value));
+                mapRootElement.addContent(element);
             }
         }
 
