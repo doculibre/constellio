@@ -849,7 +849,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		List<String> statsSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
 		suggestions.addAll(statsSuggestions);
-		if (statsSuggestions.size() < maxResults) {
+		if (thesaurusService != null && statsSuggestions.size() < maxResults) {
 			int thesaurusMaxResults = maxResults - statsSuggestions.size();
 			List<String> thesaurusSuggestions = thesaurusService.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength, thesaurusMaxResults);
 			suggestions.addAll(thesaurusSuggestions);
