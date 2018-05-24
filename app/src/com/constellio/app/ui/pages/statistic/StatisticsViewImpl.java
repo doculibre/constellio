@@ -259,7 +259,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         List<String> columnsHeader = initColumnsHeader();
         LazyQueryContainer container = getContainer(columnsHeader);
 
-        resultTable = new BaseTable(getClass().getName(), "", container);
+        resultTable = new BaseTable(getClass().getName() + System.currentTimeMillis(), "", container);
         resultTable.setWidth("100%");
         resultTable.setPageLength(Math.min(container.size(), DEFAULT_LINE_NUMBER));
 
