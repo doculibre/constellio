@@ -41,7 +41,7 @@ public abstract class PropertiesConfiguration {
 		}
 	}
 
-	protected String getString(String key, String defaultValue) {
+	public String getString(String key, String defaultValue) {
 		String value = configs.get(key);
 		return value == null ? defaultValue : value;
 	}

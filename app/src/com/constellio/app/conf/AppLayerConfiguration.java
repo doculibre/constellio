@@ -19,6 +19,7 @@ public interface AppLayerConfiguration {
 
 	boolean isFastMigrationsEnabled();
 
+	String getString(String key, String defaultValue);
 	List<Language> getSupportedLanguages();
 
 	List<String> getSupportedLanguageCodes();
