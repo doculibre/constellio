@@ -169,20 +169,24 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-//		Runnable scanEntireContentFolderInBackgroundRunnable = new Runnable() {
-//			@Override
-//			public void run() {
-//				boolean inScanEntireContentFolderSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanEntireContentFolderSchedule();
-//				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
-//						&& inScanEntireContentFolderSchedule
-//						&& hasNotScannedContentFolderYet()) {
-//					addFlag();
-//					scanEntireContentFolder();
-//				} else if(!inScanEntireContentFolderSchedule && hasNotScannedContentFolderYet()){
-//					removeFlag();
-//				}
-//			}
-//		};
+		Runnable scanEntireContentFolderInBackgroundRunnable = new Runnable() {
+			@Override
+			public void run() {
+				boolean isInScanEntireContentFolderSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanEntireContentFolderSchedule();
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+						&& isInScanEntireContentFolderSchedule
+						&& !doesContentScanLockFileExist()) {
+					try {
+						createContentScanLockFile();
+						scanEntireContentFolder();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				} else if(!isInScanEntireContentFolderSchedule && doesContentScanLockFileExist()){
+					deleteContentScanLockFile();
+				}
+			}
+		};
 
 
 		backgroundThreadsManager.configure(
@@ -197,10 +201,10 @@ public class ContentManager implements StatefulService {
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
-//		backgroundThreadsManager.configure(
-//				BackgroundThreadConfiguration.repeatingAction(SCAN_ENTIRE_CONTENT_FOLDER, scanEntireContentFolderInBackgroundRunnable)
-//						.executedEvery(Duration.standardHours(8))
-//						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+		backgroundThreadsManager.configure(
+				BackgroundThreadConfiguration.repeatingAction(SCAN_ENTIRE_CONTENT_FOLDER, scanEntireContentFolderInBackgroundRunnable)
+						.executedEvery(Duration.standardHours(2))
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
 			Runnable contentImportAction = new Runnable() {
@@ -218,6 +222,27 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	private void createContentScanLockFile() throws IOException {
+		File confFolder = modelLayerFactory.getFoldersLocator().getConfFolder();
+		File lockFile = new File(confFolder, "contentScan.lock");
+
+		if (!lockFile.exists()) {
+			lockFile.createNewFile();
+		}
+	}
+
+	private boolean doesContentScanLockFileExist() {
+		File confFolder = modelLayerFactory.getFoldersLocator().getConfFolder();
+		File lockFile = new File(confFolder, "contentScan.lock");
+		return lockFile.exists();
+	}
+
+	private void  deleteContentScanLockFile() {
+		File confFolder = modelLayerFactory.getFoldersLocator().getConfFolder();
+		File lockFile = new File(confFolder, "contentScan.lock");
+		ioServices.deleteQuietly(lockFile);
 	}
 
 	public String scanEntireContentFolder() {
