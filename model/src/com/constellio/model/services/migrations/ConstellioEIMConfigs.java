@@ -434,7 +434,7 @@ public class ConstellioEIMConfigs {
 		return isCurrentlyInSchedule(manager.<String>getValue(VIEWER_CONTENTS_CONVERSION_SCHEDULE));
 	}
 
-	public boolean isInScanEntireContentFolderSchedule() {
+	public boolean isInScanVaultContentsSchedule() {
 		return LocalDate.now().getDayOfWeek() >= 6;
 	}
 

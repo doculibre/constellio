@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.constellio.data.conf.HashingEncoding;
+import com.constellio.model.entities.records.wrappers.VaultScanReport;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -97,7 +99,7 @@ public class ContentManager implements StatefulService {
 
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
 
-	static final String SCAN_ENTIRE_CONTENT_FOLDER = "ScanEntireContentFolder";
+	static final String SCAN_VAULT_CONTENTS = "ScanVaultContents";
 
 	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
 
@@ -169,20 +171,24 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-		Runnable scanEntireContentFolderInBackgroundRunnable = new Runnable() {
+		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
-				boolean isInScanEntireContentFolderSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanEntireContentFolderSchedule();
+				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
-						&& isInScanEntireContentFolderSchedule
+						&& isInScanVaultContentsSchedule
 						&& !doesContentScanLockFileExist()) {
 					try {
 						createContentScanLockFile();
-						scanEntireContentFolder();
+						VaultScanResults vaultScanResults = new VaultScanResults();
+						scanVaultContents(vaultScanResults);
+						addReportsAsTemporaryRecords(vaultScanResults);
 					} catch (IOException e) {
 						e.printStackTrace();
+					} catch (RecordServicesException e) {
+						e.printStackTrace();
 					}
-				} else if(!isInScanEntireContentFolderSchedule && doesContentScanLockFileExist()){
+				} else if(!isInScanVaultContentsSchedule && doesContentScanLockFileExist()){
 					deleteContentScanLockFile();
 				}
 			}
@@ -202,8 +208,9 @@ public class ContentManager implements StatefulService {
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(SCAN_ENTIRE_CONTENT_FOLDER, scanEntireContentFolderInBackgroundRunnable)
+				BackgroundThreadConfiguration.repeatingAction(SCAN_VAULT_CONTENTS, scanVaultContentsInBackgroundRunnable)
 						.executedEvery(Duration.standardHours(2))
+//						.executedEvery(Duration.standardSeconds(10))
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
@@ -222,6 +229,24 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	private void addReportsAsTemporaryRecords(VaultScanResults vaultScanResults) throws RecordServicesException {
+		List<String> collectionList = collectionsListManager.getCollectionsExcludingSystem();
+		ArrayList<VaultScanReport> reportList = new ArrayList<>();
+		for(String collection: collectionList) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			reportList.add(schemas.newVaultScanReport());
+		}
+
+		//TODO replace text for content
+		for(VaultScanReport report: reportList) {
+			report.set(VaultScanReport.MESSAGE, vaultScanResults.getReportMessage());
+			report.set(VaultScanReport.NUMBER_OF_DELETED_CONTENTS, vaultScanResults.getNumberOfDeletedContents());
+		}
+		Transaction transaction = new Transaction();
+		transaction.addAll(reportList);
+		recordServices.execute(transaction);
 	}
 
 	private void createContentScanLockFile() throws IOException {
@@ -245,34 +270,32 @@ public class ContentManager implements StatefulService {
 		ioServices.deleteQuietly(lockFile);
 	}
 
-	public String scanEntireContentFolder() {
-		StringBuilder reportBuilder = new StringBuilder();
-		reportBuilder.append("INFO: Starting scan of content folder\n\n");
-		scanFolder("", reportBuilder);
-		reportBuilder.append("\nINFO: Scan of content folder completed");
-		return reportBuilder.toString();
+	public void scanVaultContents(VaultScanResults vaultScanResults) {
+		vaultScanResults.appendMessage("INFO: Starting scan of content folder\n\n");
+		scanFolder("", vaultScanResults);
+		vaultScanResults.appendMessage("\nINFO: Scan of content folder completed");
 	}
 
-	private StringBuilder scanFolder(String folderId, StringBuilder reportBuilder) {
+	private void scanFolder(String folderId, VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
 		List<String> subFiles = contentDao.getFolderContents(folderId);
 		for(String fileId: subFiles) {
 			File file = contentDao.getFileOf(fileId);
 			if(file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if(file.isDirectory()) {
-					scanFolder(fileId, reportBuilder);
+					scanFolder(fileId, vaultScanResults);
 				} else if(!isReferenced(file)) {
 					try {
 						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
-						reportBuilder.append("INFO: Successfully deleted file " + file.getName() + "\n");
+						vaultScanResults.incrementNumberOfDeletedContents();
+						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
 					} catch (Exception e) {
-						reportBuilder.append("ERROR: Could not delete file " + file.getName() + "\n");
-						reportBuilder.append(e.getMessage() + "\n");
+						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+						vaultScanResults.appendMessage(e.getMessage() + "\n");
 					}
 				}
 			}
 		}
-		return reportBuilder;
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
@@ -1021,6 +1044,27 @@ public class ContentManager implements StatefulService {
 
 		public ContentVersionDataSummary getContentVersionDataSummary() {
 			return contentVersionDataSummary;
+		}
+	}
+
+	private class VaultScanResults {
+		private StringBuilder reportMessage = new StringBuilder();
+		private int numberOfDeletedContents = 0;
+
+		public void appendMessage(String message) {
+			reportMessage.append(message);
+		}
+
+		public String getReportMessage() {
+			return reportMessage.toString();
+		}
+
+		public void incrementNumberOfDeletedContents() {
+			numberOfDeletedContents++;
+		}
+
+		public int getNumberOfDeletedContents() {
+			return numberOfDeletedContents;
 		}
 	}
 }
