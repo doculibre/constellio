@@ -2,6 +2,7 @@ package com.constellio.model.services.contents;
 
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static java.util.Arrays.asList;
@@ -20,8 +21,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.VaultScanReport;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -56,17 +63,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
@@ -177,6 +174,7 @@ public class ContentManager implements StatefulService {
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
 						&& isInScanVaultContentsSchedule
+						&& isEncodingSafeForScan()
 						&& !doesContentScanLockFileExist()) {
 					try {
 						createContentScanLockFile();
@@ -272,26 +270,30 @@ public class ContentManager implements StatefulService {
 
 	public void scanVaultContents(VaultScanResults vaultScanResults) {
 		vaultScanResults.appendMessage("INFO: Starting scan of content folder\n\n");
-		scanFolder("", vaultScanResults);
+		Set<String> allReferencedHashes = getAllReferencedHashes();
+		scanFolder("", allReferencedHashes, vaultScanResults);
 		vaultScanResults.appendMessage("\nINFO: Scan of content folder completed");
 	}
 
-	private void scanFolder(String folderId, VaultScanResults vaultScanResults) {
+	private void scanFolder(String folderId, Set<String> firstScanReferencedContents, VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
 		List<String> subFiles = contentDao.getFolderContents(folderId);
 		for(String fileId: subFiles) {
 			File file = contentDao.getFileOf(fileId);
 			if(file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if(file.isDirectory()) {
-					scanFolder(fileId, vaultScanResults);
-				} else if(!isReferenced(file)) {
-					try {
-						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
-						vaultScanResults.incrementNumberOfDeletedContents();
-						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
-					} catch (Exception e) {
-						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
-						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					scanFolder(fileId, firstScanReferencedContents, vaultScanResults);
+				} else if(!firstScanReferencedContents.contains(file.getName())) {
+					recordServices.flushRecords();
+					if(!isReferenced(file)) {
+						try {
+							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+							vaultScanResults.incrementNumberOfDeletedContents();
+							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+						} catch (Exception e) {
+							vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+							vaultScanResults.appendMessage(e.getMessage() + "\n");
+						}
 					}
 				}
 			}
@@ -596,6 +598,65 @@ public class ContentManager implements StatefulService {
 			} catch (OptimisticLocking e) {
 				throw new ImpossibleRuntimeException(e);
 			}
+		}
+	}
+
+	private Set<String> getAllReferencedHashes() {
+		Set<String> referencedHashes = new HashSet<>();
+		List<String> collections = collectionsListManager.getCollections();
+		for (String collection : collections) {
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+			for (final MetadataSchemaType metadataSchemaType : metadataSchemaTypeList) {
+				List<Metadata> contentMetadatas = new ArrayList<>();
+				for (Metadata metadata : metadataSchemaType.getAllMetadatas()) {
+					if (MetadataValueType.CONTENT.equals(metadata.getType())) {
+						contentMetadatas.add(metadata);
+					}
+				}
+
+				if(!contentMetadatas.isEmpty()) {
+					referencedHashes.addAll(findReferencedContentsForSchemaType(metadataSchemaType, contentMetadatas));
+				}
+			}
+		}
+		return referencedHashes;
+	}
+
+	private Set<String> findReferencedContentsForSchemaType(MetadataSchemaType metadataSchemaType, List<Metadata> contentMetadatas) {
+		Set<String> referencedHashes = new HashSet<>();
+		LogicalSearchCondition condition = from(metadataSchemaType).where(contentMetadatas.get(0)).isNotNull();
+		for(int i = 1; i < contentMetadatas.size(); i++) {
+			condition = condition.orWhere(contentMetadatas.get(i)).isNotNull();
+		}
+
+		SearchResponseIterator<Record> recordsIterator =
+				searchServices.recordsIterator(new LogicalSearchQuery(condition));
+		while (recordsIterator.hasNext()) {
+			Record record = recordsIterator.next();
+			for(Metadata metadata: contentMetadatas) {
+				MetadataSchema recordSchema = metadataSchemaType.getSchema(record.getSchemaCode());
+
+				if(recordSchema.hasMetadataWithCode(metadata.getLocalCode())
+						&& MetadataValueType.CONTENT.equals(recordSchema.getMetadata(metadata.getLocalCode()).getType())) {
+					for (Content recordContent : record.<Content>getValues(metadata)) {
+						ContentImpl content = (ContentImpl) recordContent;
+						referencedHashes.addAll(content.getHashOfAllVersions());
+					}
+				}
+			}
+		}
+		return referencedHashes;
+	}
+
+	boolean isEncodingSafeForScan() {
+		HashingEncoding hashingEncoding = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding();
+		switch (hashingEncoding) {
+			case BASE64_URL_ENCODED:
+			case BASE32:
+				return true;
+			default:
+				return false;
 		}
 	}
 
