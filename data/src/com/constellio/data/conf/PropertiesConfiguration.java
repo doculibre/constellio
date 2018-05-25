@@ -24,7 +24,7 @@ public abstract class PropertiesConfiguration {
 		this.propertyFile = propertyFile;
 	}
 
-	protected Object getEnum(String key, Enum<?> defaultValue) {
+	public Object getEnum(String key, Enum<?> defaultValue) {
 		String value = getString(key, null);
 
 		if (value == null) {
@@ -94,12 +94,12 @@ public abstract class PropertiesConfiguration {
 		configs.put(key, value);
 	}
 
-	protected Boolean getBoolean(String key, boolean defaultValue) {
+	public Boolean getBoolean(String key, boolean defaultValue) {
 		String stringValue = getString(key, defaultValue ? "true" : "false");
 		return Boolean.valueOf(stringValue);
 	}
 
-	protected File getFile(String key, File defaultValue) {
+	public File getFile(String key, File defaultValue) {
 		String value = configs.get(key);
 
 		if (value == null) {
@@ -141,7 +141,7 @@ public abstract class PropertiesConfiguration {
 		return Integer.parseInt(getRequiredString(key));
 	}
 
-	protected int getInt(String key, int defaultValue) {
+	public int getInt(String key, int defaultValue) {
 		try {
 			return Integer.parseInt(getRequiredString(key));
 		} catch (Exception e) {
@@ -149,7 +149,7 @@ public abstract class PropertiesConfiguration {
 		}
 	}
 
-	protected long getLong(String key, long defaultValue) {
+	public long getLong(String key, long defaultValue) {
 		try {
 			return Long.parseLong(getRequiredString(key));
 		} catch (Exception e) {
@@ -157,7 +157,7 @@ public abstract class PropertiesConfiguration {
 		}
 	}
 
-	protected Duration getDuration(String key, Duration defaultDuration) {
+	public Duration getDuration(String key, Duration defaultDuration) {
 		String durationString = getString(key, null);
 
 		if (durationString == null) {
