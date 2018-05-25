@@ -57,7 +57,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 
     protected String getCollection(ModifiableSolrParams solrParams) {
         String[] strings = solrParams.getParams("fq");
-        String prefix = "collection_s";
+        String prefix = "collection_s:";
 
         String collection = "";
 
