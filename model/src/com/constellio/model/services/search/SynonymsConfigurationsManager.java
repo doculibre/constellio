@@ -88,6 +88,8 @@ public class SynonymsConfigurationsManager extends AbstractOneXMLConfigPerCollec
 	}
 
 	public String computeSynonyms(String collection, String query) {
+		query = StringUtils.defaultString(query);
+
 		if(StringUtils.contains(query, "\"")) {
 			return query;
 		}
