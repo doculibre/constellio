@@ -39,13 +39,7 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
         for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
             if (highlightedDateStoreCodes.contains(entry.getKey())) {
                 String description = searchResultVO.getRecordVO().get(metadata);
-
-                Set<String> values = getRegexpValue(StringUtils.join(entry.getValue()));
-                for(String value:values) {
-                    description = StringUtils.replaceAll(description, value, "<em>"+value+"</em>");
-                }
-
-                parts.add(description);
+                parts.add(copyHighlightedPortion(StringUtils.join((List<String>)entry.getValue(), " "), description));
             }
         }
         String formattedHighlights = StringUtils.join(parts, SEPARATOR);
@@ -63,16 +57,11 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
         }
     }
 
-    private Set<String> getRegexpValue(String from) {
-        Pattern p = Pattern.compile("(<em>)(.*?)(</em>)");   // the pattern to search for
-        Matcher m = p.matcher(from);
+    private String copyHighlightedPortion(String highlihted, String normal) {
+        String removedEmTag = StringUtils.removeAll(highlihted, "<em>");
+        removedEmTag = StringUtils.removeAll(removedEmTag, "</em>");
 
-        Set<String> list = new HashSet<>();
-
-        while (m.find()) {
-            list.add(m.group(2));
-        }
-
-        return list;
+        int index = StringUtils.indexOf(normal, removedEmTag);
+        return StringUtils.overlay(normal, highlihted, index, removedEmTag.length());
     }
 }
