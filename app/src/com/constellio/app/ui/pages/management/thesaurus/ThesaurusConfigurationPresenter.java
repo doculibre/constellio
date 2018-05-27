@@ -294,20 +294,17 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
 		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
+				.where(es.connectorHttpDocument.thesaurusMatch()).isNotNull();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.setNumberOfRows(0);
-		query.setFieldFacetLimit(-1);
-		query.addFieldFacet("thesaurusMatch_ss");
-
 		SPEQueryResponse response = searchService.query(query);
 
-		return response.getFieldFacetValues().get("thesaurusMatch_ss").size();
+		return (int) response.getNumFound();
 	}
 
 	int getDocumentsWithoutAConcept() {
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		// thesaurusMatch_ss:[* TO *]
 		SearchServices searchService = modelLayerFactory.newSearchServices();
 		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
@@ -320,7 +317,6 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	}
 
 	int getUsedConcepts() {
-		// total de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
 		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
@@ -332,12 +328,8 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 		SPEQueryResponse response = searchService.query(query);
 		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
-		int total = 0;
-		for (FacetValue facetValue: usedConcept) {
-			total += facetValue.getQuantity();
-		}
 
-		return total;
+		return usedConcept.size();
 	}
 
 	List<FacetValue> getMostUsedConcepts() {
