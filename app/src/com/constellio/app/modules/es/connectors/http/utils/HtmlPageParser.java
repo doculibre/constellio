@@ -6,8 +6,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import com.gargoylesoftware.htmlunit.html.*;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.io.LimitedInputStream;
@@ -25,8 +28,6 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class HtmlPageParser {
 
@@ -62,6 +63,34 @@ public class HtmlPageParser {
 			parsedContent = fileParser.parse(new ByteArrayInputStream(content), true);
 			title = (String) parsedContent.getNormalizedProperty("title");
 			parsedContentText = parsedContent.getParsedContent();
+
+			String description = parsedContent.getDescription();
+			if (StringUtils.isEmpty(description)) {
+				List<HtmlElement> h1 = ListUtils.emptyIfNull(page.getDocumentElement().getHtmlElementsByTagName("h1"));
+				if (!h1.isEmpty()) {
+					List<HtmlElement> scripts = ListUtils.emptyIfNull(page.getDocumentElement().getHtmlElementsByTagName("script"));
+
+					DomElement h1Element = h1.get(0);
+					StringBuilder builder = new StringBuilder();
+					for (DomElement nextElement = h1Element; nextElement != null; nextElement = nextElement.getNextElementSibling()) {
+						String textContent = getTextContent(nextElement);
+						if(StringUtils.isNotBlank(textContent)) {
+							for(HtmlElement script: scripts) {
+								textContent = StringUtils.remove(textContent, getTextContent(script));
+							}
+
+							builder.append(textContent);
+							if (builder.length() > 200) {
+								break;
+							}
+						}
+                    }
+
+					parsedContent.setDescription(StringUtils.left(builder.toString(), 200));
+				}
+			}
+
+
 		} catch (FileParserException e) {
 			throw new ConnectorHttpDocumentFetchException_CannotParseDocument(url, e);
 		}
@@ -77,6 +106,36 @@ public class HtmlPageParser {
 		}
 		return new HtmlPageParserResults(digest, parsedContentText, title, uniqueAnchors,
 				parsedContent.getMimetypeWithoutCharset(), parsedContent.getLanguage(), parsedContent.getDescription());
+	}
+
+	public String getTextContent(DomNode node) {
+		switch (node.getNodeType()) {
+			case DomNode.ELEMENT_NODE:
+			case DomNode.ATTRIBUTE_NODE:
+			case DomNode.ENTITY_NODE:
+			case DomNode.ENTITY_REFERENCE_NODE:
+			case DomNode.DOCUMENT_FRAGMENT_NODE:
+				final StringBuilder builder = new StringBuilder();
+				for (final DomNode child : node.getChildren()) {
+					final short childType = child.getNodeType();
+					if (childType != DomNode.COMMENT_NODE && childType != DomNode.PROCESSING_INSTRUCTION_NODE) {
+						if(builder.length() > 0) {
+							builder.append(" ");
+						}
+						builder.append(getTextContent(child));
+					}
+				}
+				return builder.toString();
+
+			case DomNode.TEXT_NODE:
+			case DomNode.CDATA_SECTION_NODE:
+			case DomNode.COMMENT_NODE:
+			case DomNode.PROCESSING_INSTRUCTION_NODE:
+				return node.getNodeValue();
+
+			default:
+				return null;
+		}
 	}
 
 	private byte[] getContent(HtmlPage page)

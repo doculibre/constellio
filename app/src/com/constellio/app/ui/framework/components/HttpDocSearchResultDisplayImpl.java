@@ -6,14 +6,13 @@ import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import org.apache.commons.collections.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
     public HttpDocSearchResultDisplayImpl(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
@@ -39,7 +38,14 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
         List<String> parts = new ArrayList<>(highlights.size());
         for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
             if (highlightedDateStoreCodes.contains(entry.getKey())) {
-                parts.add(StringUtils.join(entry.getValue(), SEPARATOR));
+                String description = searchResultVO.getRecordVO().get(metadata);
+
+                Set<String> values = getRegexpValue(StringUtils.join(entry.getValue()));
+                for(String value:values) {
+                    description = StringUtils.replaceAll(description, value, "<em>"+value+"</em>");
+                }
+
+                parts.add(description);
             }
         }
         String formattedHighlights = StringUtils.join(parts, SEPARATOR);
@@ -55,5 +61,18 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
         } else {
             return super.newHighlightsLabel(searchResultVO);
         }
+    }
+
+    private Set<String> getRegexpValue(String from) {
+        Pattern p = Pattern.compile("(<em>)(.*?)(</em>)");   // the pattern to search for
+        Matcher m = p.matcher(from);
+
+        Set<String> list = new HashSet<>();
+
+        while (m.find()) {
+            list.add(m.group(2));
+        }
+
+        return list;
     }
 }
