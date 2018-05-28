@@ -174,9 +174,10 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		for(ReportedMetadata reportedMetadata : report.getReportedMetadata()){
-			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(reportedMetadata.getMetadataCode());
-			returnMetadataVOs.add(builder.build(metadata, view.getSessionContext()));
-
+			if(schemasManager.getSchemaTypes(collection).hasMetadata(reportedMetadata.getMetadataCode())) {
+				Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(reportedMetadata.getMetadataCode());
+				returnMetadataVOs.add(builder.build(metadata, view.getSessionContext()));
+			}
 		}
 		return returnMetadataVOs;
 	}
