@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.data.utils.dev.Toggle;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +102,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public void saveButtonClicked(RecordVO record) {
 		if (multipleMode) {
-			if (numberOfContainer < 1) {
+			if (numberOfContainer < 1 || numberOfContainer > 100) {
 				view.showErrorMessage($("AddEditContainerView.invalidNumberOfContainer"));
 				return;
 			}
@@ -129,7 +130,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	protected boolean hasPageAccess(String params, User user) {
 		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		if(StringUtils.countMatches(params, "/") > 0) {
-			return securityServices.canCreateContainers(user) && isSequenceActivated();
+			return securityServices.canCreateContainers(user) &&
+					(areContainersSequential() || Toggle.FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY.isEnabled());
 		} else {
 			return securityServices.canCreateContainers(user);
 		}
@@ -248,9 +250,14 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		numberOfContainer = i;
 	}
 
-	public boolean isSequenceActivated() {
+	private boolean areContainersSequential() {
+		return isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER) ||
+				isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
+	}
+
+	private boolean isMetadataSequential(String metadataCode) {
 		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER).getDataEntry().getType());
+				.getMetadata(metadataCode).getDataEntry().getType());
 	}
 
 	public SessionContext getSessionContext() {
