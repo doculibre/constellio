@@ -11,7 +11,6 @@ import com.constellio.app.ui.framework.containers.SummaryColumnContainer;
 import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
@@ -57,7 +56,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         metadataComboBox = new BaseComboBox($("RMFolderSummaryColumnViewImpl.metadata"));
 
-        final List<SummaryColumnVO> summaryColumnVOList = presenter.dataInMetadataSummaryColumn();
+        final List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
 
         metadataComboBox.setTextInputAllowed(false);
         metadataComboBox.setRequired(true);
@@ -74,31 +73,21 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         });
 
 
-        for(MetadataVO metadataVO : presenter.getMetadatas()) {
-            metadataComboBox.addItem(metadataVO);
-        }
-
-        removeMetadataFromPossibleSelection();
+        refreshMetadataCombox();
 
         table = new BaseTable(getClass().getName());
 
         summaryColumnDataProvider = new SummaryColumnDataProvider(summaryColumnVOList);
         summaryColumnContainer = new SummaryColumnContainer(summaryColumnDataProvider, this);
 
-        //
-
         table.setContainerDataSource(summaryColumnContainer);
-        table.addContainerProperty("up", Button.class, null);
-//        table.setItemCaption("up", "");
-//        table.addContainerProperty("down", Button.class, null);
-//        table.setItemCaption("down", "");
-//        table.addContainerProperty($("RMFolderSummaryColumnViewImpl.metadataHeader"), MetadataVO.class, null);
-//        table.addContainerProperty($("RMFolderSummaryColumnViewImpl.prefixHeader"), String.class, null);
-//        table.addContainerProperty($("RMFolderSummaryColumnViewImpl.displayConditionHeader"), SummaryColumnParams.DisplayCondition.class, null);
-//        table.addContainerProperty("delete", Button.class, null);
-//        table.setItemCaption("delete", "");
-
-        //setTableData(summaryColumnVOList);
+        table.setColumnHeader(SummaryColumnContainer.UP, "");
+        table.setColumnHeader(SummaryColumnContainer.DOWN, "");
+        table.setColumnHeader(SummaryColumnContainer.METADATA_VO, $("RMFolderSummaryColumnViewImpl.metadataHeader"));
+        table.setColumnHeader(SummaryColumnContainer.PREFIX, $("RMFolderSummaryColumnViewImpl.prefixHeader"));
+        table.setColumnHeader(SummaryColumnContainer.DISPLAY_CONDITION, $("RMFolderSummaryColumnViewImpl.displayConditionHeader"));
+        table.setColumnHeader(SummaryColumnContainer.MODIFY, "");
+        table.setColumnHeader(SummaryColumnContainer.DELETE, "");
 
         prefix = new BaseTextField($("RMFolderSummaryColumnViewImpl.prefix"));
         displayCondition = new ListOptionGroup($("RMFolderSummaryColumnViewImpl.displayCondition"));
@@ -109,13 +98,19 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
         BaseForm<SummaryColumnParams> baseForm = new BaseForm<SummaryColumnParams>(new SummaryColumnParams(), this, metadataComboBox, prefix, displayCondition) {
             @Override
-            protected void saveButtonClick(final SummaryColumnParams viewObject) throws ValidationException {
+            protected void saveButtonClick(final SummaryColumnParams viewObject) {
 
+                SummaryColumnVO summaryColumnVO = summaryColumnParamsToSummaryVO(viewObject);
                 if(modifingSummaryColumnVO != null) {
                     presenter.modifyMetadataForSummaryColumn(viewObject);
+                    List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
+                    int index = presenter.findMetadataIndex(summaryColumnVOList, viewObject.getMetadataVO().getCode());
+                    summaryColumnDataProvider.removeSummaryColumnVO(index);
+                    summaryColumnDataProvider.addSummaryColumnVO(index, summaryColumnVO);
+                    presenter.getMetadatas();
                 } else {
                     presenter.addMetadaForSummary(viewObject);
-                    summaryColumnDataProvider.addSummaryColumnVO(summaryColumnParamsToSummaryVO(viewObject));
+                    summaryColumnDataProvider.addSummaryColumnVO(summaryColumnVO);
                 }
 
                 summaryColumnDataProvider.fireDataRefreshEvent();
@@ -130,7 +125,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         };
 
 
-        table.setWidth("100%");
+        this.table.setWidth("100%");
 
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setSpacing(true);
@@ -138,6 +133,15 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         verticalLayout.addComponent(table);
 
         return verticalLayout;
+    }
+
+    private void refreshMetadataCombox() {
+        metadataComboBox.removeAllItems();
+        for(MetadataVO metadataVO : presenter.getMetadatas()) {
+            metadataComboBox.addItem(metadataVO);
+        }
+
+        removeMetadataFromPossibleSelection();
     }
 
 
@@ -152,37 +156,38 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 
     private void removeMetadataFromPossibleSelection() {
-        List<SummaryColumnVO> summaryColumnVOList = presenter.dataInMetadataSummaryColumn();
+        List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
 
         for(SummaryColumnVO summaryColumnVO : summaryColumnVOList) {
-            metadataComboBox.removeItem(summaryColumnVO.getMetadataVO());
+            this.metadataComboBox.removeItem(summaryColumnVO.getMetadataVO());
         }
     }
 
     private void clearFields() {
-        displayCondition.setValue(null);
-        prefix.setValue("");
-        metadataComboBox.setValue(null);
+        this.displayCondition.setValue(null);
+        this.prefix.setValue("");
+        this.metadataComboBox.setValue(null);
         this.modifingSummaryColumnVO = null;
     }
 
     @Override
     public void alterSummaryMetadata(SummaryColumnVO summaryColumnVO) {
-        this.modifingSummaryColumnVO = summaryColumnVO;
-        metadataComboBox.addItem(this.modifingSummaryColumnVO.getMetadataVO());
-        metadataComboBox.setValue(summaryColumnVO.getMetadataVO());
-        prefix.setValue(summaryColumnVO.getPrefix());
+        this.metadataComboBox.addItem(summaryColumnVO.getMetadataVO());
+        this.metadataComboBox.setValue(summaryColumnVO.getMetadataVO());
+        this.prefix.setValue(summaryColumnVO.getPrefix());
         if(summaryColumnVO.isAlwaysShown()) {
-            displayCondition.setValue(SummaryColumnParams.DisplayCondition.ALWAYS);
+            this.displayCondition.setValue(SummaryColumnParams.DisplayCondition.ALWAYS);
         } else {
-            displayCondition.setValue(SummaryColumnParams.DisplayCondition.COMPLETED);
+            this.displayCondition.setValue(SummaryColumnParams.DisplayCondition.COMPLETED);
         }
+        this.modifingSummaryColumnVO = summaryColumnVO;
     }
 
     @Override
     public void deleteSummaryMetadata(SummaryColumnVO summaryColumnVO) {
-        presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
-        summaryColumnDataProvider.removeSummaryColumnVO(summaryColumnVO);
-        summaryColumnDataProvider.fireDataRefreshEvent();
+        this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
+        this.summaryColumnDataProvider.removeSummaryColumnVO(summaryColumnVO);
+        refreshMetadataCombox();
+        this.summaryColumnDataProvider.fireDataRefreshEvent();
     }
 }

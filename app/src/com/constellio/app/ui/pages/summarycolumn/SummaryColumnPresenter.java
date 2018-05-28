@@ -62,7 +62,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
 
 
-    public List<SummaryColumnVO> dataInMetadataSummaryColumn() {
+    public List<SummaryColumnVO> summaryColumnVOList() {
         Object objectList = getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
         List<SummaryColumnVO> lSummaryColumnVOList = new ArrayList<>();
 
@@ -119,6 +119,16 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         }
 
         return null;
+    }
+
+    public int findMetadataIndex(List<SummaryColumnVO> metadataList, String metadaCode) {
+        for(int i = 0; i < metadataList.size(); i++) {
+            SummaryColumnVO summaryColumnVO = metadataList.get(i);
+            if(summaryColumnVO.getMetadataVO().getCode().equalsIgnoreCase(metadaCode)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public void addMetadaForSummary(SummaryColumnParams summaryColumnParams) {

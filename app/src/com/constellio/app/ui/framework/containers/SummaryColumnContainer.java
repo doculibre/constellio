@@ -127,7 +127,6 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
                 @Override
                 protected void buttonClick(ClickEvent event) {
                     summaryColumnView.alterSummaryMetadata(summaryColumnVOItemId);
-                    summaryColumnDataProvider.fireDataRefreshEvent();
                 }
             };
         } else if (DELETE.equals(propertyId)) {

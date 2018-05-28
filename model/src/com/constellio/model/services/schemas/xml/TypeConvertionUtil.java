@@ -209,7 +209,7 @@ public class TypeConvertionUtil {
                 }
             }
         }
-        if(!Strings.isBlank(mapKey)) {
+        if(element != null && !Strings.isBlank(mapKey)) {
             element.setAttribute(TypeConvertionUtil.KEY_ATTRIBUTE, mapKey);
         }
 
