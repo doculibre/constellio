@@ -23,7 +23,7 @@ public class SummaryColumnParams {
         }
     }
 
-    private MetadataVO metadata;
+    private MetadataVO metadataVO;
     private String prefix;
     private DisplayCondition displayCondition;
 
@@ -39,12 +39,12 @@ public class SummaryColumnParams {
         this.displayCondition = displayCondition;
     }
 
-    public MetadataVO getMetadata() {
-        return metadata;
+    public MetadataVO getMetadataVO() {
+        return metadataVO;
     }
 
-    public void setMetadata(MetadataVO metadata) {
-        this.metadata = metadata;
+    public void setMetadataVO(MetadataVO metadata) {
+        this.metadataVO = metadata;
     }
 
     public String getPrefix() {

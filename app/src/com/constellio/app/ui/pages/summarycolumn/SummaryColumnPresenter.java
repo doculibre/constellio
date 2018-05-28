@@ -2,10 +2,8 @@ package com.constellio.app.ui.pages.summarycolumn;
 
 import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.User;
@@ -70,7 +68,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
         if (objectList instanceof List) {
             for (Object listObject : (List) objectList) {
-                HashMap<String, Object> mapObject = (HashMap<String, Object>) listObject;
+                Map<String, Object> mapObject = (Map<String, Object>) listObject;
 
                 SummaryColumnVO columnResumeParams = new SummaryColumnVO();
                 String metadataCode = (String) mapObject.get("metadataCode");
@@ -88,7 +86,42 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         return lSummaryColumnVOList;
     }
 
-    public void addMetadaForSummary(SummaryColumnParams metadataVO) {
+    public void modifyMetadataForSummaryColumn(SummaryColumnParams summaryColumnParams) {
+        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+
+        List list = (List) modifiableMap.get(SUMMARY_COLOMN);
+
+        Map<String,Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
+
+        summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
+        summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
+
+        saveMetadata(modifiableMap);
+    }
+
+    public void deleteMetadataForSummaryColumn(SummaryColumnVO summaryColumnParams) {
+        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+
+        List list = (List) modifiableMap.get(SUMMARY_COLOMN);
+
+        Map<String,Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
+
+        list.remove(summaryInmap);
+
+        saveMetadata(modifiableMap);
+    }
+
+    public Map<String, Object> getMapInList(List<Map<String, Object>> list, String metadataCode){
+        for(Map<String,Object> map : list) {
+            if(((String)map.get(METADATA_CODE)).equalsIgnoreCase(metadataCode)) {
+                return map;
+            }
+        }
+
+        return null;
+    }
+
+    public void addMetadaForSummary(SummaryColumnParams summaryColumnParams) {
         Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
         List list = (List) modifiableMap.get(SUMMARY_COLOMN);
@@ -98,21 +131,21 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         }
 
         Map summaryInmap = new HashMap();
-        summaryInmap.put(PREFIX, metadataVO.getPrefix());
-        summaryInmap.put(IS_ALWAYS_SHOWN, metadataVO.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
-        summaryInmap.put(METADATA_CODE, metadataVO.getMetadata().getCode());
+        summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
+        summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
+        summaryInmap.put(METADATA_CODE, summaryColumnParams.getMetadataVO().getCode());
         list.add(summaryInmap);
 
         modifiableMap.put(SUMMARY_COLOMN, list);
-        saveMetadata(metadataVO.getMetadata().getCode(), modifiableMap);
+        saveMetadata(modifiableMap);
     }
 
-    public void saveMetadata(final String metadataCode, final Map<String, Object> customParameter) {
+    public void saveMetadata(final Map<String, Object> customParameter) {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
-                types.getSchema(getSchemaCode()).get(metadataCode).setCustomParameter(customParameter);
+                types.getSchema(getSchemaCode()).get(Folder.SUMMARY).setCustomParameter(customParameter);
             }
         });
     }
@@ -148,40 +181,6 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
             return object;
         } else {
             throw new TypeRuntimeException.UnsupportedTypeRunTimeException(object.getClass().getName());
-        }
-    }
-
-    public void moveUpSummaryMetadata(String metadataCode) {
-        List<Map> list = (List<Map>) getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
-
-        if(list == null || list.size() < 2 || list.get(0).get(METADATA_CODE).equals(metadataCode)) {
-            return;
-        }
-
-        for(int i = 0; i + 1 < list.size(); i++) {
-            if(list.get(i + 1).get(METADATA_CODE).equals(metadataCode)) {
-                Map map = list.remove(i + 1);
-
-                list.add(i, map);
-
-                break;
-            }
-        }
-    }
-
-    public void moveDownSummaryMetadata(String metadataCode) {
-        List<Map> list = (List<Map>) getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
-
-        if(list == null || list.size() < 2 || list.get(list.size() - 1).get(METADATA_CODE).equals(metadataCode)) {
-            return;
-        }
-
-        for(int i = list.size() - 1; i  >= 0; i--) {
-            if(list.get(i - 1).get(METADATA_CODE).equals(metadataCode)) {
-                Map map = list.remove(i - 1);
-                list.add(i, map);
-                break;
-            }
         }
     }
 
