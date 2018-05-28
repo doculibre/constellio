@@ -31,6 +31,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
     public static final String SKOS_CONCEPTS = "skosConcepts";
     public static final String SEARCH_EVENTS = "searchEvents";
     public static final String FEATURED_LINKS = "featuredLinks";
+    public static final String FACET_LABELS = "facet_labels";
 
     @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -112,7 +113,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
         return freeTextSearchServices.search(new FreeTextQuery(solrParams).searchEvents());
     }
 
-    protected void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL, NamedList featuredLinkNL) {
+    protected void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL, NamedList featuredLinkNL, NamedList facetLabelsNL) {
         response.setContentType("application/xml; charset=UTF-8");
         OutputStream outputStream;
         try {
@@ -132,6 +133,10 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 
         if (featuredLinkNL != null && featuredLinkNL.size() > 0) {
             sResponse.getValues().add(FEATURED_LINKS, featuredLinkNL);
+        }
+
+        if (facetLabelsNL != null && facetLabelsNL.size() > 0) {
+            sResponse.getValues().add(FACET_LABELS, facetLabelsNL);
         }
 
         XMLResponseWriter xmlWriter = new XMLResponseWriter();
