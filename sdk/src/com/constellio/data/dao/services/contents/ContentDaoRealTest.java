@@ -1,15 +1,18 @@
 package com.constellio.data.dao.services.contents;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.sdk.tests.TestUtils.frenchPangram;
-import static java.io.File.separator;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import com.constellio.data.conf.DigitSeparatorMode;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,28 +22,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import com.constellio.data.conf.DigitSeparatorMode;
-import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.io.services.facades.FileService;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.sdk.tests.TestUtils.frenchPangram;
+import static java.io.File.separator;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 public class ContentDaoRealTest extends ConstellioTest {
@@ -122,7 +113,8 @@ public class ContentDaoRealTest extends ConstellioTest {
 			assertThat(root.listFiles()).extracting("name", "file").containsOnly(
 					tuple("an", false),
 					tuple("anIdWithA", false),
-					tuple("z+", false)
+					tuple("z+", false),
+					tuple("recoveryfile.bac", true)
 			);
 
 			assertThat(new File(root, "an").listFiles()).extracting("name", "file").containsOnly(
@@ -179,6 +171,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 			File root = ((FileSystemContentDao) vaultDao).rootFolder;
 			assertThat(root.listFiles()).extracting("name", "file").containsOnly(
 					tuple("a", false),
+					tuple("recoveryfile.bac", true),
 					tuple("z", false)
 			);
 
@@ -383,12 +376,13 @@ public class ContentDaoRealTest extends ConstellioTest {
             fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
         } catch (Exception e) {
             // Then
-            assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure.class);
+			if(((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+				assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication.class);
+			} else {
+				assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault.class);
+			}
 
-            assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isEmpty();
-            if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
-                assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isEmpty();
-            }
+			assertVaultAndReplicationVaultAreEmpty();
         }
     }
 
@@ -429,10 +423,7 @@ public class ContentDaoRealTest extends ConstellioTest {
             // Then
             assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure.class);
 
-            assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isEmpty();
-            if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
-                assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isEmpty();
-            }
+			assertVaultAndReplicationVaultAreEmpty();
         }
     }
 
@@ -507,11 +498,19 @@ public class ContentDaoRealTest extends ConstellioTest {
 
         // When
         vaultDao.delete(Arrays.asList(theId));
+		assertVaultAndReplicationVaultAreEmpty();
 
-        // Then
-        assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isEmpty();
-        if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
-            assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isEmpty();
-        }
-    }
+
+	}
+
+	private void assertVaultAndReplicationVaultAreEmpty() throws IOException {
+		// Then
+		List<Path> filePresentInRootFolder = listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath());
+		assertThat(filePresentInRootFolder.size()).isEqualTo(1);
+		assertThat(filePresentInRootFolder.get(0).toString().endsWith("recoveryfile.bac")).isTrue();
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			List<Path> filePresentInReplicatedRootFolder = listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath());
+			assertThat(filePresentInReplicatedRootFolder.get(0).toString().endsWith("recoveryfile.bac")).isTrue();
+		}
+	}
 }
