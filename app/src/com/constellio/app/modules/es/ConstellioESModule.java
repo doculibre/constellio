@@ -187,6 +187,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchPageExtensions.add(new ESSearchPageExtension(appLayerFactory));
 		extensions.treeNodeAppExtension.add(new TreeNodeAppExtension());
 		extensions.searchCriterionExtensions.add(new ESSMBConnectorUrlCriterionExtension(appLayerFactory, collection));
+		extensions.recordExportExtensions.add(new ESRecordExportExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
