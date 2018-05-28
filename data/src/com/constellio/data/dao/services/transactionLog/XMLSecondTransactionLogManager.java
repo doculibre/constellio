@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -156,9 +158,19 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public void moveTLOGToBackup() {
 		regroupAndMoveInVault();
-		String backupFolderId = "tlogs_bck/" + TimeProvider.getLocalDateTime().toString("yyyy-MM-dd-HH-mm-ss");
-		contentDao.moveFolder("tlogs", backupFolderId);
+		File tlogsFolder = contentDao.getFileOf("tlogs/");
+		Collection<File> tlogs = FileUtils.listFiles(tlogsFolder, new String[]{"tlog"}, false);
+		String backupFolderId = "tlogs_bck/" + TimeProvider.getLocalDateTime().toString("yyyy-MM-dd-HH-mm-ss") + ".zip";
 
+		ZipService zipService = new ZipService(ioServices);
+		try {
+			File zipFile = contentDao.getFileOf(backupFolderId);
+			ioServices.touch(zipFile);
+			zipService.zip(zipFile, new ArrayList<>(tlogs));
+			ioServices.deleteQuietly(tlogsFolder);
+		} catch (ZipServiceException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -172,6 +184,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 			for (String backup : backups) {
 				String backupName = backup.split("/")[1];
+				backupName = backupName.replace(".zip", "");
 				DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");
 				LocalDateTime backupDateTime = LocalDateTime.parse(backupName, dateTimeFormatter);
 				if (deletedFolderId == null || deletedFolderDateTime.isAfter(backupDateTime)) {
@@ -180,7 +193,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 				}
 			}
 
-			contentDao.deleteFolder(deletedFolderId);
+			ioServices.deleteQuietly(contentDao.getFileOf(deletedFolderId));
 		}
 
 	}
@@ -189,24 +202,35 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	public void moveLastBackupAsCurrentLog() {
 		String lastTLOGBackup = getLastTLOGBackup();
 		if(lastTLOGBackup != null) {
-			contentDao.moveFolder(lastTLOGBackup, "tlogs");
+			File tlogsFolder = contentDao.getFileOf("tlogs/");
+			ioServices.deleteQuietly(tlogsFolder);
+
+			ZipService zipService = new ZipService(ioServices);
+			try {
+				File lastBackupFile = contentDao.getFileOf(lastTLOGBackup);
+				zipService.unzip(lastBackupFile, tlogsFolder);
+				ioServices.deleteQuietly(lastBackupFile);
+			} catch (ZipServiceException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public String getLastTLOGBackup() {
 		List<String> backups = contentDao.getFolderContents("tlogs_bck");
-		String deletedFolderId = null;
-		LocalDateTime deletedFolderDateTime = null;
+		String lastFolderId = null;
+		LocalDateTime lastFolderDateTime = null;
 		for (String backup : backups) {
 			String backupName = backup.split("/")[1];
+			backupName = backupName.replace(".zip", "");
 			DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");
 			LocalDateTime backupDateTime = LocalDateTime.parse(backupName, dateTimeFormatter);
-			if (deletedFolderId == null || deletedFolderDateTime.isAfter(backupDateTime)) {
-				deletedFolderId = backup;
-				deletedFolderDateTime = backupDateTime;
+			if (lastFolderId == null || lastFolderDateTime.isBefore(backupDateTime)) {
+				lastFolderId = backup;
+				lastFolderDateTime = backupDateTime;
 			}
 		}
-		return deletedFolderId;
+		return lastFolderId;
 	}
 
 	private void clearSolrCollection() {
