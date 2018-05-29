@@ -34,4 +34,6 @@ public interface ContentDao {
 			throws ContentDaoException_NoSuchContent;
 
 	File getFileOf(String contentId);
+
+	void readLogsAndRepairs();
 }

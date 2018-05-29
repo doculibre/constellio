@@ -133,6 +133,11 @@ public class HadoopContentDao implements StatefulService, ContentDao {
 		throw new UnsupportedOperationException("getContentInputStreamFactory is not yet supported for HadoopContentDao");
 	}
 
+	@Override
+	public void readLogsAndRepairs() {
+		throw new UnsupportedOperationException("readLogsAndRepairs is not supported for HadoopContentDao.");
+	}
+
 	private String formatIDToHadoop(String id) {
 		return id.replace("/", "_");
 	}

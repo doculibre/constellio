@@ -50,6 +50,9 @@ public class Toggle {
 	public static AvailableToggle LOG_CONNECTOR_INFOS_WARNINGS_ERRORS_IN_CONSOLE = newToggle(true);
 	public static AvailableToggle LOG_CONVERSION_FILENAME_AND_SIZE = newToggle(false);
 
+	public static AvailableToggle EVENT_BUS_RECORDS_CACHE = newToggle(true);
+
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

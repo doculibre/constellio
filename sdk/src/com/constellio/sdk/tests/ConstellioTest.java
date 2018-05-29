@@ -6,7 +6,6 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
-import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -50,8 +49,6 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 
 			testSession.close(true, false);
-			DataLayerFactory.countInit = 0;
-			DataLayerFactory.countConstructor = 0;
 			ReindexingServices.markReindexingHasFinished();
 
 			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");

@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
@@ -21,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -176,12 +179,15 @@ public class RecordsCacheImpl implements RecordsCache {
 		fullyLoadedSchemaTypes.add(schemaType);
 	}
 
-	public void insert(List<Record> records) {
+	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		if (records != null) {
 			for (Record record : records) {
-				insert(record);
+				statuses.add(insert(record, insertionReason));
 			}
 		}
+
+		return statuses;
 	}
 
 	@Override
@@ -194,7 +200,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			List<String> recordIds = new ArrayList<>();
 			for (Record record : records) {
 				recordIds.add(record.getId());
-				insert(record);
+				insert(record, WAS_OBTAINED);
 			}
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
@@ -355,7 +361,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record insertedRecord) {
+	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 			if (!insertedRecord.getSchemaCode().startsWith("event")
@@ -381,7 +387,7 @@ public class RecordsCacheImpl implements RecordsCache {
 							insertRecordIntoAnAlreadyExistingVolatileCacheHolder(recordCopy, cacheConfig, holder);
 						}
 						holder.set(recordCopy);
-						if (cacheConfig.isPermanent()) {
+						if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
 							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 						}
 					} else {
@@ -389,7 +395,7 @@ public class RecordsCacheImpl implements RecordsCache {
 					}
 				} else {
 					holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
-					if (cacheConfig.isPermanent()) {
+					if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
 						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 					}
 				}
@@ -401,7 +407,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord) {
+	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (insertedRecord == null) {
 			return CacheInsertionStatus.REFUSED_NULL;
@@ -417,7 +423,7 @@ public class RecordsCacheImpl implements RecordsCache {
 				}
 
 				if (status == ACCEPTED) {
-					return forceInsert(insertedRecord);
+					return forceInsert(insertedRecord, insertionReason);
 				} else {
 					return status;
 				}

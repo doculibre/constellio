@@ -26,8 +26,11 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.EventDataSerializer;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.conf.FoldersLocator;
@@ -65,13 +68,15 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	StatefullServiceDecorator statefullServiceDecorator = new StatefullServiceDecorator();
 	@Mock ConstellioCacheManager cacheManager;
 	@Mock BigVaultServer bigVaultServer;
+	@Mock EventBusManager eventBusManager;
+	@Mock EventDataSerializer eventDataSerializer;
 
 	ConstellioCache zeCache;
 
 	@Before
 	public void setUp() {
 
-		zeCache = new SerializationCheckCache("zeCache");
+		zeCache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(cacheManager);
@@ -93,6 +98,9 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(foldersLocator.getLanguageProfiles()).thenReturn(profiles);
 		when(dataLayerFactory.getRecordsVaultServer()).thenReturn(bigVaultServer);
 		when(profiles.listFiles()).thenReturn(new File[0]);
+
+		when(dataLayerFactory.getEventBusManager()).thenReturn(eventBusManager);
+		when(eventBusManager.getEventDataSerializer()).thenReturn(eventDataSerializer);
 
 		modelLayerFactory = spy(
 				new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator, modelLayerConfiguration,

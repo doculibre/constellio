@@ -47,6 +47,9 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -1054,5 +1057,25 @@ public class TestUtils {
 		}
 
 		return tuples;
+	}
+
+	public static void linkEventBus(ModelLayerFactory modelLayerFactory1, ModelLayerFactory modelLayerFactory2) {
+		linkEventBus(modelLayerFactory1.getDataLayerFactory(), modelLayerFactory2.getDataLayerFactory());
+	}
+
+	public static SDKEventBusSendingService linkEventBus(DataLayerFactory dataLayerFactory1, DataLayerFactory dataLayerFactory2) {
+		EventBusManager eventBusManager1 = dataLayerFactory1.getEventBusManager();
+		EventBusManager eventBusManager2 = dataLayerFactory2.getEventBusManager();
+		assertThat(eventBusManager1).isNotSameAs(eventBusManager2);
+
+		SDKEventBusSendingService sendingService1 = new SDKEventBusSendingService();
+		SDKEventBusSendingService sendingService2 = new SDKEventBusSendingService();
+
+
+		eventBusManager1.setEventBusSendingService(sendingService1);
+		eventBusManager2.setEventBusSendingService(sendingService2);
+		SDKEventBusSendingService.interconnect(sendingService1, sendingService2);
+
+		return sendingService1;
 	}
 }

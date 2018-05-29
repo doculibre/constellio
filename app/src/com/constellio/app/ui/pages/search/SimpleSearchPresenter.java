@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
@@ -220,9 +221,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		} else {
 			tmpSearchRecord = getTemporarySearchRecord();
-			if(tmpSearchRecord != null) {
+			if (tmpSearchRecord != null) {
 				SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-				if(!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
 					tmpSearchRecord = recordServices()
 							.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 				}
@@ -242,7 +243,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageNumber(pageNumber)
 				.setPageLength(selectedPageLength);
 		((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord());
+		modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord(), WAS_MODIFIED);
 		//			recordServices().update(search);
 		updateUIContext(search);
 		if (refreshPage) {

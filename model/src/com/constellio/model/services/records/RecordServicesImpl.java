@@ -1,6 +1,9 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.utils.MaskUtils.format;
@@ -29,6 +32,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.DataStore;
@@ -97,6 +101,8 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
@@ -470,7 +476,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -488,7 +494,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			return record;
 
 		} catch (NoSuchRecordWithId e) {
@@ -520,7 +526,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
-			insertInCache(record);
+			insertInCache(record, WAS_OBTAINED);
 			records.add(record);
 		}
 
@@ -528,12 +534,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	public void insertInCache(Record record) {
-		recordsCaches.insert(record);
+	public void insertInCache(Record record, InsertionReason reason) {
+		insertInCache(record.getCollection(), asList(record), reason);
 	}
 
-	public void insertInCache(String collection, List<Record> records) {
-		recordsCaches.insert(collection, records);
+	public void insertInCache(String collection, List<Record> records, InsertionReason reason) {
+
+		List<Record> insertedRecords = new ArrayList<>();
+		for (Record record : records) {
+			CacheConfig cacheConfig = recordsCaches.getCache(collection).getCacheConfigOf(record.getTypeCode());
+			if (cacheConfig != null) {
+				if (evaluateCacheInsert(record, cacheConfig) != CacheInsertionStatus.ACCEPTED && cacheConfig.isPermanent()) {
+					insertedRecords.add(realtimeGetRecordById(record.getId()));
+				} else {
+					insertedRecords.add(record);
+				}
+			}
+		}
+		recordsCaches.insert(collection, insertedRecords, reason);
+
 	}
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
@@ -850,7 +869,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
-		insertInCache(collection, recordsToInsert);
+		insertInCache(collection, recordsToInsert, WAS_MODIFIED);
 
 	}
 
