@@ -45,6 +45,7 @@ public class BaseRichTextArea extends CKEditorTextField {
 
 	private void init() {
 		setWidth("100%");
+		setHeight("600px");
 		setCaptionAsHtml(true);
 		addStyleName("base-rich-text");
 	}
