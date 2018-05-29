@@ -7,6 +7,8 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import com.lowagie.text.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -32,6 +34,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
     public static final String SEARCH_EVENTS = "searchEvents";
     public static final String FEATURED_LINKS = "featuredLinks";
     public static final String FACET_LABELS = "facet_labels";
+    public static final String AUTOCOMPLETE = "autocomplete";
 
     @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -113,7 +116,8 @@ public abstract class AbstractSearchServlet extends HttpServlet {
         return freeTextSearchServices.search(new FreeTextQuery(solrParams).searchEvents());
     }
 
-    protected void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL, NamedList featuredLinkNL, NamedList facetLabelsNL) {
+    @SuppressWarnings("unchecked")
+	protected void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL, NamedList featuredLinkNL, NamedList facetLabelsNL, NamedList autocompleteSuggestionsNL) {
         response.setContentType("application/xml; charset=UTF-8");
         OutputStream outputStream;
         try {
@@ -138,6 +142,10 @@ public abstract class AbstractSearchServlet extends HttpServlet {
         if (facetLabelsNL != null && facetLabelsNL.size() > 0) {
             sResponse.getValues().add(FACET_LABELS, facetLabelsNL);
         }
+        
+        if (autocompleteSuggestionsNL != null && autocompleteSuggestionsNL.size() > 0) {
+        	sResponse.getValues().add(AUTOCOMPLETE, autocompleteSuggestionsNL);
+        } 
 
         XMLResponseWriter xmlWriter = new XMLResponseWriter();
 
