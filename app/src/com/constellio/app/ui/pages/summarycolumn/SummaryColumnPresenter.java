@@ -25,6 +25,8 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     private static final String SCHEMA_CODE = "schemaCode";
     public static final String PREFIX = "prefix";
     public static final String METADATA_CODE = "metadataCode";
+    public static final String REFERENCE_METADATA_DISPLAY = "referenceMetadataDisplay";
+
     public static final String IS_ALWAYS_SHOWN = "isAlwaysShown";
     private String schemaCode;
     private Map<String, String> parameters;
@@ -75,9 +77,11 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
                 MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
                 MetadataVO metadataVO = metadataToVOBuilder.build(getMetadata(metadataCode), view.getSessionContext());
 
-                columnResumeParams.setMetadata(metadataVO);
+                columnResumeParams.setMetadataVO(metadataVO);
                 columnResumeParams.setPrefix((String) mapObject.get("prefix"));
-                columnResumeParams.setAlwaysShown(Boolean.TRUE.toString().equals(mapObject.get("isAlwaysShown")));
+                columnResumeParams.setAlwaysShown(Boolean.TRUE.toString().equals(mapObject.get(IS_ALWAYS_SHOWN)));
+                columnResumeParams.setReferenceMetadataDisplay((Integer) mapObject.get(REFERENCE_METADATA_DISPLAY));
+
 
                 lSummaryColumnVOList.add(columnResumeParams);
             }
@@ -95,6 +99,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
         summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
         summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
+        summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay());
 
         saveMetadata(modifiableMap);
     }
@@ -144,6 +149,9 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
         summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
         summaryInmap.put(METADATA_CODE, summaryColumnParams.getMetadataVO().getCode());
+        if(summaryColumnParams.getReferenceMetadataDisplay() != null) {
+            summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay().ordinal());
+        }
         list.add(summaryInmap);
 
         modifiableMap.put(SUMMARY_COLOMN, list);

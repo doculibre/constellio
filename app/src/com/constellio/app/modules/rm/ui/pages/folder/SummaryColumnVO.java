@@ -6,6 +6,15 @@ public class SummaryColumnVO {
     String prefix;
     MetadataVO metadataVO;
     boolean isAlwaysShown;
+    Integer referenceMetadataDisplay;
+
+    public Integer getReferenceMetadataDisplay() {
+        return referenceMetadataDisplay;
+    }
+
+    public void setReferenceMetadataDisplay(Integer referenceMetadataDisplay) {
+        this.referenceMetadataDisplay = referenceMetadataDisplay;
+    }
 
     public String getPrefix() {
         return prefix;
@@ -20,7 +29,7 @@ public class SummaryColumnVO {
         return metadataVO;
     }
 
-    public SummaryColumnVO setMetadata(MetadataVO metadataVO) {
+    public SummaryColumnVO setMetadataVO(MetadataVO metadataVO) {
         this.metadataVO = metadataVO;
         return this;
     }

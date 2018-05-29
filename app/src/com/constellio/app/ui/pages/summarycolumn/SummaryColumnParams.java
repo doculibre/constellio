@@ -23,12 +23,47 @@ public class SummaryColumnParams {
         }
     }
 
+    public enum ReferenceMetadataDisplay {
+        CODE,
+        TITLE;
+
+        @Override
+        public String toString() {
+            if(this == CODE) {
+                return $("SummaryColomnParams.ReferenceDisplay.code");
+            } else if (this == TITLE) {
+                return $("SummaryColomnParams.ReferenceDisplay.title");
+            }
+
+            return this.toString();
+        }
+
+        public static ReferenceMetadataDisplay fromInteger(int intToParse) {
+            switch(intToParse) {
+                case 0:
+                    return CODE;
+                case 1:
+                    return TITLE;
+            }
+            return null;
+        }
+    }
+
     private MetadataVO metadataVO;
     private String prefix;
     private DisplayCondition displayCondition;
+    private ReferenceMetadataDisplay referenceMetadataDisplay;
 
     public SummaryColumnParams(){
 
+    }
+
+    public ReferenceMetadataDisplay getReferenceMetadataDisplay() {
+        return referenceMetadataDisplay;
+    }
+
+    public void setReferenceMetadataDisplay(ReferenceMetadataDisplay referenceMetadataDisplay) {
+        this.referenceMetadataDisplay = referenceMetadataDisplay;
     }
 
     public DisplayCondition getDisplayCondition() {

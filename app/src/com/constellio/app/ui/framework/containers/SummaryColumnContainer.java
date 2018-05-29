@@ -20,11 +20,11 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
     public static final String METADATA_VO = "metadataVo";
     public static final String PREFIX = "prefix";
     public static final String DISPLAY_CONDITION = "displayCondition";
+    public static final String REFERENCE_METADATA_DISPLAY = "referenceMetadataDisplay";
     public static final String MODIFY = "modify";
     public static final String DELETE = "delete";
 
     SummaryColumnView summaryColumnView;
-
 
     public SummaryColumnContainer(SummaryColumnDataProvider dataProvider, SummaryColumnViewImpl summaryColumnPresenter) {
         super(dataProvider);
@@ -46,6 +46,7 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
         containerPropertyIds.add(METADATA_VO);
         containerPropertyIds.add(PREFIX);
         containerPropertyIds.add(DISPLAY_CONDITION);
+        containerPropertyIds.add(REFERENCE_METADATA_DISPLAY);
         containerPropertyIds.add(MODIFY);
         containerPropertyIds.add(DELETE);
 
@@ -66,6 +67,8 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
             type = String.class;
         } else if (DISPLAY_CONDITION.equals(propertyId)) {
             type = SummaryColumnParams.DisplayCondition.class;
+        } else if (REFERENCE_METADATA_DISPLAY.equals(propertyId)) {
+            type = SummaryColumnParams.ReferenceMetadataDisplay.class;
         } else if (MODIFY.equals(propertyId)) {
             type = BaseButton.class;
         } else if (DELETE.equals(propertyId)) {
@@ -122,6 +125,14 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
             value = summaryColumnVOItemId.getPrefix();
         } else if (DISPLAY_CONDITION.equals(propertyId)) {
             value = summaryColumnVOItemId.isAlwaysShown() ? SummaryColumnParams.DisplayCondition.ALWAYS : SummaryColumnParams.DisplayCondition.COMPLETED;
+        } else if (REFERENCE_METADATA_DISPLAY.equals(propertyId)) {
+            if(summaryColumnVOItemId.getReferenceMetadataDisplay() != null) {
+                value = SummaryColumnParams.ReferenceMetadataDisplay
+                        .fromInteger(summaryColumnVOItemId.getReferenceMetadataDisplay());
+            } else {
+                value = null;
+            }
+
         } else if (MODIFY.equals(propertyId)) {
             value = new BaseButton("modify") {
                 @Override
