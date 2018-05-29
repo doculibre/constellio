@@ -221,13 +221,16 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		String lastFolderId = null;
 		LocalDateTime lastFolderDateTime = null;
 		for (String backup : backups) {
-			String backupName = backup.split("/")[1];
-			backupName = backupName.replace(".zip", "");
-			DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");
-			LocalDateTime backupDateTime = LocalDateTime.parse(backupName, dateTimeFormatter);
-			if (lastFolderId == null || lastFolderDateTime.isBefore(backupDateTime)) {
-				lastFolderId = backup;
-				lastFolderDateTime = backupDateTime;
+			File backupFile = contentDao.getFileOf(backup);
+			if(!backupFile.isDirectory()) {
+				String backupName = backup.split("/")[1];
+				backupName = backupName.replace(".zip", "");
+				DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");
+				LocalDateTime backupDateTime = LocalDateTime.parse(backupName, dateTimeFormatter);
+				if (lastFolderId == null || lastFolderDateTime.isBefore(backupDateTime)) {
+					lastFolderId = backup;
+					lastFolderDateTime = backupDateTime;
+				}
 			}
 		}
 		return lastFolderId;
