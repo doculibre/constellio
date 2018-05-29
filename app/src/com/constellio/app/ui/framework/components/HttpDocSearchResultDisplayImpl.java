@@ -35,13 +35,19 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
 
         Map<String, List<String>> highlights = searchResultVO.getHighlights();
 
+        String description = searchResultVO.getRecordVO().get(metadata);
+
         List<String> parts = new ArrayList<>(highlights.size());
-        for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
-            if (highlightedDateStoreCodes.contains(entry.getKey())) {
-                String description = searchResultVO.getRecordVO().get(metadata);
-                parts.add(copyHighlightedPortion(StringUtils.join((List<String>)entry.getValue(), " "), description));
+        if (!highlights.isEmpty()) {
+            for (Map.Entry<String, List<String>> entry : highlights.entrySet()) {
+                if (highlightedDateStoreCodes.contains(entry.getKey())) {
+                    parts.add(copyHighlightedPortion(StringUtils.join((List<String>)entry.getValue(), " "), description));
+                }
             }
+        } else {
+            parts.add(description);
         }
+
         String formattedHighlights = StringUtils.join(parts, SEPARATOR);
 
         if(StringUtils.isNotBlank(formattedHighlights)) {
