@@ -67,6 +67,10 @@ subprojects {
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
         compile name: 'mets-api'
+        
+		compile "com.j256.ormlite:ormlite-core:5.1"
+		compile "com.j256.ormlite:ormlite-jdbc:5.1"
+		compile "mysql:mysql-connector-java:5.1.20"
     }
 
     configurations {
