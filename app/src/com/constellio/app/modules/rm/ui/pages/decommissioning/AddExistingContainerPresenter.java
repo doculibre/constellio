@@ -8,6 +8,7 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,13 +235,22 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	private LogicalSearchCondition selectByDecommissioningListProperties() {
-		if (rmConfigs().areMixedContainersAllowed()) {
-			return from(rmRecordServices().containerRecord.schemaType())
-					.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
+		LogicalSearchCondition condition = null;
+		OngoingLogicalSearchCondition fromContainers = from(rmRecordServices().containerRecord.schemaType());
+		if(rmConfigs().isDecommissioningTypeRequiredInContainers()) {
+			condition = fromContainers.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
-		return from(rmRecordServices().containerRecord.schemaType())
-				.where(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId))
-				.andWhere(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
+
+		if (rmConfigs().areMixedContainersAllowed() && condition != null) {
+			condition = condition.andWhere(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId));
+		} else if (rmConfigs().areMixedContainersAllowed()) {
+			condition = fromContainers.where(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId));
+		}
+
+		if(condition == null) {
+			condition = fromContainers.returnAll();
+		}
+		return condition;
 	}
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
