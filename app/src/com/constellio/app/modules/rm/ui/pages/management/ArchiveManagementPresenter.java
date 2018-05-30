@@ -62,4 +62,8 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 				.getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER).getDataEntry().getType())
 				&& presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
+
+	public boolean hasAccessToBagInfoPage() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
 }
