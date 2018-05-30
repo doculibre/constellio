@@ -10,18 +10,20 @@ public class RMDecommissioningTypeRequiredScript implements SystemConfigurationS
 	@Override
 	public void onNewCollection(Boolean newValue, String collection, ModelLayerFactory modelLayerFactory) {
 		if (Boolean.TRUE.equals(newValue)) {
-			setFolderMainCopyRuleRequirement(false, modelLayerFactory, collection);
+			setContainerDecommissioningTypeRequirement(true, modelLayerFactory, collection);
+		} else {
+			setContainerDecommissioningTypeRequirement(false, modelLayerFactory, collection);
 		}
 	}
 
-	private void setFolderMainCopyRuleRequirement(final boolean value, ModelLayerFactory modelLayerFactory, String collection) {
+	private void setContainerDecommissioningTypeRequirement(final boolean value, ModelLayerFactory modelLayerFactory, String collection) {
 		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 
 				if (types.hasSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 					types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.DECOMMISSIONING_TYPE)
-							.setDefaultRequirement(!value);
+							.setDefaultRequirement(value);
 				}
 			}
 		});
@@ -38,6 +40,6 @@ public class RMDecommissioningTypeRequiredScript implements SystemConfigurationS
 
 	@Override
 	public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory, String collection) {
-		setFolderMainCopyRuleRequirement(newValue, modelLayerFactory, collection);
+		setContainerDecommissioningTypeRequirement(newValue, modelLayerFactory, collection);
 	}
 }
