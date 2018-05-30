@@ -94,6 +94,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
         };
         baginfo.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
         baginfo.addStyleName(BAG_INFO);
+        baginfo.setVisible(presenter.hasAccessToBagInfoPage());
 
         presenter.onViewAssembled();
         CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports, baginfo);
