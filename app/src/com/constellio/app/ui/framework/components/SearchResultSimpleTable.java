@@ -75,7 +75,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				recordWindow.center();
 
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO);
+				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO, presenter.getUser());
 
 				Component windowComponent = appLayerFactory.getExtensions()
 						.forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -38,14 +39,22 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView {
 	private final DisplayContainerPresenter presenter;
 	private Label borrowedLabel;
+	private boolean popup = false;
 
 	public DisplayContainerViewImpl() {
-		presenter = new DisplayContainerPresenter(this);
+		this(null, false);
+	}
+
+	public DisplayContainerViewImpl(RecordVO recordVO, boolean popup) {
+		presenter = new DisplayContainerPresenter(this, recordVO, popup);
+		this.popup = popup;
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forContainerId(event.getParameters());
+		if(event != null) {
+			presenter.forContainerId(event.getParameters());
+		}
 	}
 
 	public DisplayContainerPresenter getPresenter() {
@@ -108,12 +117,16 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
+		if(!popup) {
+			return new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.backButtonClicked();
+				}
+			};
+		} else {
+			return null;
+		}
 	}
 
 	private Component buildFoldersTable(final RecordVODataProvider provider) {
@@ -134,7 +147,12 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		});
 
 		RecordVOTable table = new RecordVOTable($("DisplayContainerView.foldersTableTitle"), container);
-		table.setWidth("100%");
+		if(popup) {
+			table.setWidth("80%");
+		} else {
+			table.setWidth("100%");
+		}
+
 		table.setColumnHeader("buttons", "");
 
 		return table;
