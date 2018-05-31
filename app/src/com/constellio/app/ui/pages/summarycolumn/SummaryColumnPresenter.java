@@ -168,7 +168,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         });
     }
 
-    private Map<String, Object> copyUnModifiableMapToModifiableMap(Map<String, Object> map) {
+    protected Map<String, Object> copyUnModifiableMapToModifiableMap(Map<String, Object> map) {
 
         Map<String, Object> newModifiableMap = new HashMap<>();
 
@@ -181,7 +181,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         return newModifiableMap;
     }
 
-    private Object getModifiableValue(Object object) {
+    protected Object getModifiableValue(Object object) {
         if(object instanceof List) {
            List<Object> newList = new ArrayList<>();
            for(Object itemInList : ((List) object)) {

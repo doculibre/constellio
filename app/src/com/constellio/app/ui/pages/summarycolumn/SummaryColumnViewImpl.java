@@ -16,6 +16,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 import java.util.Map;
@@ -128,7 +129,6 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
                     int index = presenter.findMetadataIndex(summaryColumnVOList, viewObject.getMetadataVO().getCode());
                     summaryColumnDataProvider.removeSummaryColumnVO(index);
                     summaryColumnDataProvider.addSummaryColumnVO(index, summaryColumnVO);
-                    presenter.getMetadatas();
                 } else {
                     presenter.addMetadaForSummary(viewObject);
                     summaryColumnDataProvider.addSummaryColumnVO(summaryColumnVO);
@@ -159,7 +159,9 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
     private void refreshMetadataCombox() {
         metadataComboBox.removeAllItems();
         for(MetadataVO metadataVO : presenter.getMetadatas()) {
-            metadataComboBox.addItem(metadataVO);
+            if(metadataVO.getType() != MetadataValueType.STRUCTURE) {
+                metadataComboBox.addItem(metadataVO);
+            }
         }
 
         removeMetadataFromPossibleSelection();
@@ -219,11 +221,25 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         this.modifingSummaryColumnVO = summaryColumnVO;
     }
 
-    @Override
     public void deleteSummaryMetadata(SummaryColumnVO summaryColumnVO) {
         this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
         this.summaryColumnDataProvider.removeSummaryColumnVO(summaryColumnVO);
         refreshMetadataCombox();
         this.summaryColumnDataProvider.fireDataRefreshEvent();
+    }
+
+    public void deleteRow(final SummaryColumnVO columnVO) {
+        ConfirmDialog.show(
+                UI.getCurrent(),
+                $("SummaryColumnViewImpl.deleteConfirmation"),
+                $("SummaryColumnViewImpl.deleteConfirmationMesssage"),
+                $("Ok"),
+                $("cancel"),
+                new ConfirmDialog.Listener() {
+                    @Override
+                    public void onClose(ConfirmDialog dialog) {
+                        deleteSummaryMetadata(columnVO);
+                    }
+                });
     }
 }

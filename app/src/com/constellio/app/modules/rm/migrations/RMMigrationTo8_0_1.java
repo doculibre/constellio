@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.migrations;
 
+import com.constellio.app.entities.calculators.SummaryColumnCalculator;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -31,7 +32,7 @@ public class RMMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder defaultSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
-            defaultSchema.createUndeletable(Folder.SUMMARY).setType(MetadataValueType.STRING);
+            defaultSchema.createUndeletable(Folder.SUMMARY).setType(MetadataValueType.STRING).defineDataEntry().asCalculated(SummaryColumnCalculator.class);
             // summary
         }
     }

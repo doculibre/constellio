@@ -6,7 +6,6 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnView;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnViewImpl;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 
@@ -24,11 +23,11 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
     public static final String MODIFY = "modify";
     public static final String DELETE = "delete";
 
-    SummaryColumnView summaryColumnView;
+    SummaryColumnView view;
 
-    public SummaryColumnContainer(SummaryColumnDataProvider dataProvider, SummaryColumnViewImpl summaryColumnPresenter) {
+    public SummaryColumnContainer(SummaryColumnDataProvider dataProvider, SummaryColumnView summaryColumnPresenter) {
         super(dataProvider);
-        this.summaryColumnView = summaryColumnPresenter;
+        this.view = summaryColumnPresenter;
     }
 
     @Override
@@ -137,15 +136,14 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
             value = new BaseButton("modify") {
                 @Override
                 protected void buttonClick(ClickEvent event) {
-                    summaryColumnView.alterSummaryMetadata(summaryColumnVOItemId);
+                    view.alterSummaryMetadata(summaryColumnVOItemId);
                 }
             };
         } else if (DELETE.equals(propertyId)) {
             value = new BaseButton("delete") {
                 @Override
                 protected void buttonClick(ClickEvent event) {
-                    summaryColumnView.deleteSummaryMetadata(summaryColumnVOItemId);
-                    summaryColumnDataProvider.fireDataRefreshEvent();
+                    view.deleteRow(summaryColumnVOItemId);
                 }
             };
         } else {

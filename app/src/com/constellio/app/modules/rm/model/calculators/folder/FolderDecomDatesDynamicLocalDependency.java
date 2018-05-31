@@ -29,7 +29,7 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 	);
 
 	@Override
-	public boolean isDependentOf(Metadata metadata) {
+	public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 		return isMetadataUsableByCopyRetentionRules(metadata);
 	}
 
