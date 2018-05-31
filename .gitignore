@@ -58,6 +58,8 @@ benckmarks/
 !/connectors/*/libs/*.jar
 /.idea
 .benchmarks.mv.db
+.DS_Store
+*/out
 
 /sdk/src/com/intelligid/DeveloperTestSuite.*
 /sdk/intelligid.log*

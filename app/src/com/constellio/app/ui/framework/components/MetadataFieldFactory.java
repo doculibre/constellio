@@ -119,10 +119,6 @@ public class MetadataFieldFactory implements Serializable {
 		MetadataDisplayType metadataDisplayType = metadata.getMetadataDisplayType();
 		MetadataValueType metadataValueType = metadata.getType();
 
-		if (Toggle.DEMO_FEATURES.isEnabled()) {
-			//if (metadata.hasCustomAttributes())
-		}
-
 		if (metadataInputType == MetadataInputType.HIDDEN) {
 			field = null;
 		} else {
