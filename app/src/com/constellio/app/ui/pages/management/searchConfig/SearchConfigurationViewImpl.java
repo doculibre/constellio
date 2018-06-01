@@ -56,6 +56,8 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 				collectionSectionLayout.addComponent(createSpellCheckerExclusionsManagementButton());
 			}
 			collectionSectionLayout.addComponent(createThesaurusConfigurationButton());
+			collectionSectionLayout.addComponents(createSynonymsManagementButton());
+			collectionSectionLayout.addComponents(createElevationManagementButton());
 		}
 		
 		List<NavigationItem> collectionItems = presenter.getCollectionItems();
@@ -65,21 +67,20 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 
 		mainLayout.addComponent(collectionSectionLayout);
 
-		if (presenter.isSystemSectionTitleVisible()) {
+		List<NavigationItem> systemItems = presenter.getSystemItems();
+		if (presenter.isSystemSectionTitleVisible() && !systemItems.isEmpty()) {
 			Label systemSectionTitle = new Label($("SearchConfigurationView.systemSectionTitle"));
 			systemSectionTitle.addStyleName(ValoTheme.LABEL_H1);
 			mainLayout.addComponent(systemSectionTitle);
-		}
 
-		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			CssLayout systemSection = new CustomCssLayout();
-			systemSection.addComponents(createSynonymsManagementButton(), createElevationManagementButton());
-			mainLayout.setSpacing(true);
-			mainLayout.addComponent(systemSection);
-			
-			List<NavigationItem> systemItems = presenter.getSystemItems();
-			for (NavigationItem navigationItem : systemItems) {
-				buildButton(systemSection, navigationItem);
+			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+				CssLayout systemSection = new CustomCssLayout();
+				mainLayout.setSpacing(true);
+				mainLayout.addComponent(systemSection);
+				
+				for (NavigationItem navigationItem : systemItems) {
+					buildButton(systemSection, navigationItem);
+				}
 			}
 		}
 

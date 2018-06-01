@@ -18,9 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.model.entities.records.Record;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class HttpSessionContext extends BaseSessionContext {
 	

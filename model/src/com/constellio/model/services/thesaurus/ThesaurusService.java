@@ -150,7 +150,7 @@ public class ThesaurusService implements Serializable {
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
-		if(StringUtils.isNotBlank(input) && !input.startsWith("*")) {
+		if (StringUtils.isNotBlank(input) && !input.startsWith("*")) {
 			String parsedInput = parseForSearch(input);
 			Pattern p = Pattern.compile(parsedInput + ".*\\(.*\\)"); // search for "generalSearchedWord (specification)"
 
@@ -164,7 +164,7 @@ public class ThesaurusService implements Serializable {
 
 					String parsedLabelValue = parseForSearch(thesaurusLabel.getValue(locale));
 
-					if (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue).find()) {
+					if (parsedLabelValue != null && (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue).find())) {
 						skosConcepts.add(skosConcept);
 					}
 				}

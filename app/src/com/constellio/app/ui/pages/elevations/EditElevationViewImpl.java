@@ -70,6 +70,8 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
         baseTable.setContainerDataSource(buttonsContainer);
         baseTable.setSizeFull();
         baseTable.setSortEnabled(false);
+        baseTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 40);
+        
         buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
             @Override
             protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -128,23 +130,28 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
             }
         });
 
-        addRaisedZoneToTable();
+        List<String> elevateQueries = presenter.getAllQuery();
+        if (!elevateQueries.isEmpty()) {
+            addRaisedZoneToTable();
 
-        for(String query : presenter.getAllQuery()) {
-        	addQueryToTable(query);
+            for(String query : elevateQueries) {
+            	addQueryToTable(query);
 
-            baseTable.setColumnExpandRatio(INFORMATION, 1);
-            baseTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID,  60);
+                baseTable.setColumnExpandRatio(INFORMATION, 1);
+                baseTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID,  60);
 
-            List<Elevations.QueryElevation.DocElevation> docElevations = presenter.getElevations(query);
-            addDocElevationsToTable(query, docElevations);
+                List<Elevations.QueryElevation.DocElevation> docElevations = presenter.getElevations(query);
+                addDocElevationsToTable(query, docElevations);
+            }
         }
 
-        addExcludedZoneToTable();
-
         List<String> exclusions = presenter.getExclusions();
-        for(String id:exclusions) {
-            addDocExclusionToTable(id);
+        if (!exclusions.isEmpty()) {
+            addExcludedZoneToTable();
+
+            for (String id: exclusions) {
+                addDocExclusionToTable(id);
+            }
         }
 
         verticalLayout.addComponent(baseTable);

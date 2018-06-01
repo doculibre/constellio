@@ -131,7 +131,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         endDateField.getValue(),
                         filterField.getValue());
 
-                if(Objects.equals(statisticType, newStatisticType)) {
+                if (Objects.equals(statisticType, newStatisticType)) {
                     resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
                 } else {
                     buildResultTable();

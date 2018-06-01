@@ -397,6 +397,10 @@ public class SearchServices {
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
+		return addSolrModifiableParams(query, true);
+	}
+
+	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query, boolean addSynonyms) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 
 		for (String filterQuery : query.getFilterQueries()) {
@@ -584,7 +588,7 @@ public class SearchServices {
 
 		if (query.isMoreLikeThis()) {
 			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
-		} else if(collection != null && query.getFreeTextQuery() != null) {
+		} else if(addSynonyms && collection != null && query.getFreeTextQuery() != null) {
 			params.add(CommonParams.Q, modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
 		} else {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));

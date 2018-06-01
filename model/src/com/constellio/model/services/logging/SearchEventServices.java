@@ -184,14 +184,14 @@ public class SearchEventServices {
 		params.add("fq", "numFound_d:[1 TO *]");
 		params.add("fq", "collection_s:" + collection);
 		params.add("facet", "true");
-		params.add("facet.field", "query_s");
+		params.add("facet.field", "originalQuery_s");
 		params.add("facet.limit", String.valueOf(maxResults));
 
 		List<String> queries = new ArrayList<>();
 		QueryResponse queryResponse = modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
-		for(FacetField.Count count : queryResponse.getFacetField("query_s").getValues()) {
-			if(count.getCount()>0){
-				queries.add(count.getName());
+		for (FacetField.Count count : queryResponse.getFacetField("originalQuery_s").getValues()) {
+			if (count.getCount() > 0){
+				queries.add(StringUtils.capitalize(count.getName()));
 			}
 		}
 		return queries;

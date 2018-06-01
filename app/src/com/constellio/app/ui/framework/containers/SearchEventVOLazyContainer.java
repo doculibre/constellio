@@ -1,5 +1,31 @@
 package com.constellio.app.ui.framework.containers;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.collections4.ListUtils.union;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -9,26 +35,16 @@ import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.SearchEventVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.*;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
-import static org.apache.commons.collections4.ListUtils.union;
 
 public class SearchEventVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(SearchEventVOLazyContainer.class);
+	
     public static final String ID = "searchEvent_default_id";
     public static final String CLICK_COUNT = "searchEvent_default_clickCount";
     public static final String ORIGINAL_QUERY = "searchEvent_default_originalQuery";
@@ -185,7 +201,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
 
             @Override
             public Property<?> getItemProperty(Object id) {
-                if(NUM_PAGE.equals(id)) {
+                if (NUM_PAGE.equals(id)) {
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
@@ -202,7 +218,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             }
                         }
                     };
-                } else if(SOUS_COLLECTION.equals(id)) {
+                } else if (SOUS_COLLECTION.equals(id)) {
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
@@ -210,7 +226,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             return getSousCollection(params);
                         }
                     };
-                } else if(LANGUE.equals(id)) {
+                } else if (LANGUE.equals(id)) {
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
@@ -218,7 +234,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             return getLangue(params);
                         }
                     };
-                } else if(TYPE_RECHERCHE.equals(id)) {
+                } else if (TYPE_RECHERCHE.equals(id)) {
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
@@ -226,7 +242,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             return getTypeRecherche(params);
                         }
                     };
-                } else if(CAPSULE.equals(id)) {
+                } else if (CAPSULE.equals(id)) {
                     List<String> idCapsule = getRecord().get(CAPSULE);
                     if (idCapsule != null) {
                         AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
@@ -235,21 +251,25 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                         SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
                                 appLayerFactory.getModelLayerFactory());
 
-                        final List<Capsule> capsules = schemasRecordsServices.getCapsules(idCapsule);
-                        if(capsules != null) {
-                            return new ObjectValueProperty() {
-                                @Override
-                                public Object getValue() {
-                                    List<String> codes = new ArrayList<>(capsules.size());
-                                    for (Capsule capsule : capsules) {
-                                        codes.add(capsule != null ? capsule.getCode() : null);
+                        try {
+                            final List<Capsule> capsules = schemasRecordsServices.getCapsules(idCapsule);
+                            if (capsules != null) {
+                                return new ObjectValueProperty() {
+                                    @Override
+                                    public Object getValue() {
+                                        List<String> codes = new ArrayList<>(capsules.size());
+                                        for (Capsule capsule : capsules) {
+                                            codes.add(capsule != null ? capsule.getCode() : null);
+                                        }
+                                        return StringUtils.join(codes, ", ");
                                     }
-                                    return StringUtils.join(codes, ", ");
-                                }
-                            };
+                                };
+                            }
+                        } catch (NoSuchRecordWithId e) {
+                        	// Capsule no longer exists
                         }
                     }
-                } else if(CLICKS.equals(id)) {
+                } else if (CLICKS.equals(id)) {
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
@@ -257,7 +277,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                             return StringUtils.join(urls, ", ");
                         }
                     };
-                } else if(ORIGINAL_QUERY.equals(id)) {
+                } else if (ORIGINAL_QUERY.equals(id)) {
                     return new ObjectValueProperty() {
                         @Override
                         public Object getValue() {
