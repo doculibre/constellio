@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
 import com.constellio.app.ui.entities.MetadataVO;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -36,6 +37,16 @@ public class SummaryColumnParams {
             }
 
             return this.toString();
+        }
+
+        public String getLocalCode() {
+            if(this == CODE) {
+                return "code";
+            } else if (this == TITLE) {
+                return "title";
+            }
+
+            throw new NotImplementedException();
         }
 
         public static ReferenceMetadataDisplay fromInteger(int intToParse) {

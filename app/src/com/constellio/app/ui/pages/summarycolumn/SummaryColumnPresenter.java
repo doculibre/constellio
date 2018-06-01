@@ -31,6 +31,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     private String schemaCode;
     private Map<String, String> parameters;
     public static final String SUMMARY_COLOMN = "summaryColumn";
+    List<Map<String,Object>> originalCustomParametersSummaryColumn;
 
     public SummaryColumnPresenter(SummaryColumnView view) {
         super(view);
@@ -44,6 +45,12 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     public void forParams(String params) {
         Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
         this.schemaCode = paramsMap.get(SCHEMA_CODE);
+
+        if(getSummaryMetadata().getCustomParameter() != null) {
+            originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
+        } else {
+            originalCustomParametersSummaryColumn = null;
+        }
     }
 
     public List<MetadataVO> getMetadatas() {
@@ -160,12 +167,33 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
     public void saveMetadata(final Map<String, Object> customParameter) {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+        if(!isListMapEqual(originalCustomParametersSummaryColumn, (List<Map<String, Object>>) customParameter.get(SUMMARY_COLOMN))
+                && !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
+            appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+            view.showReindexationRequiredMessage();
+        }
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
                 types.getSchema(getSchemaCode()).get(Folder.SUMMARY).setCustomParameter(customParameter);
             }
         });
+    }
+
+    private boolean isListMapEqual(List<Map<String, Object>> listMap1, List<Map<String, Object>> listMap2) {
+        if(listMap1 == null && listMap2 != null || listMap1 != null && listMap2 == null || listMap1.size() != listMap2.size()) {
+            return false;
+        }
+
+        for(int i = 0; i < listMap1.size(); i++) {
+            for (String stringObjectMap : listMap1.get(i).keySet()) {
+                if(!listMap1.get(i).get(stringObjectMap)
+                        .equals(listMap2.get(i).get(stringObjectMap))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     protected Map<String, Object> copyUnModifiableMapToModifiableMap(Map<String, Object> map) {

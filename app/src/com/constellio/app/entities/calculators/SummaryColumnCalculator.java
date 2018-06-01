@@ -1,5 +1,6 @@
 package com.constellio.app.entities.calculators;
 
+import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -111,19 +112,26 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
         MetadataList metadataList = schema.getMetadatas();
         Metadata metadata = metadataList.getMetadataWithLocalCode("summary");
         List<Map> summaryColumnList = (List<Map>) metadata.getCustomParameter().get(SUMMARY_COLOMN);
-        for(Map currentMap : summaryColumnList) {
+        if(summaryColumnList != null) {
+            for (Map currentMap : summaryColumnList) {
 
 
-            String metadataCode = (String) currentMap.get(METADATA_CODE);
-            Metadata currentMetadata = schema.getMetadata(metadataCode);
+                String metadataCode = (String) currentMap.get(METADATA_CODE);
+                Metadata currentMetadata = schema.getMetadata(metadataCode);
 
-            if(currentMetadata.getType() == MetadataValueType.REFERENCE) {
-                dependencies.add(toReferenceDependency(types, schema, metadataCode, (String) currentMap.get(REFERENCE_METADATA_DISPLAY)));
+                if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
+                    dependencies.add(toReferenceDependency(types, schema, metadataCode, getReferenceMetadataDisplayStringValue(currentMap)));
+                }
             }
         }
 
         dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+    }
 
+    public String getReferenceMetadataDisplayStringValue(Map mapWithReferenceMetadataDisplay) {
+        SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay.fromInteger((Integer) mapWithReferenceMetadataDisplay.get(REFERENCE_METADATA_DISPLAY));
+
+        return referenceMetadataDisplay.getLocalCode();
     }
 
     public String addPrefixContentToString(String itemShown, Map summarySettings) {
@@ -235,10 +243,10 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
         Metadata referenceMetadata = schema.getMetadata(metadataCode);
         String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
         MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);
-        String referenceMetadataCode = referencedSchema + "_" + metadataLocalCode;
+        String referenceMetadataCode = referencedSchema.getCode() + "_" + metadataLocalCode;
         Metadata copiedMetadata = referencedSchema.getMetadata(referenceMetadataCode);
 
-        boolean isRequired = false;
+        boolean isRequired = referenceMetadata.isDefaultRequirement();
         boolean isMultivalue = copiedMetadata.isMultivalue() || referenceMetadata.isMultivalue();
         boolean isGroupedByReferences = false;
         return new ReferenceDependency<>(metadataCode, referenceMetadataCode, isRequired,

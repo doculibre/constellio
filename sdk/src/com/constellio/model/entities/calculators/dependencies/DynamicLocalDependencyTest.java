@@ -18,10 +18,11 @@ import com.constellio.model.entities.schemas.Metadata;
 public class DynamicLocalDependencyTest {
 	DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 		@Override
-		public boolean isDependentOf(Metadata metadata) {
+		public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 			return true;
 		}
 	};
+
 	@Mock
 	private DynamicDependencyValues values = mock(DynamicDependencyValues.class);
 

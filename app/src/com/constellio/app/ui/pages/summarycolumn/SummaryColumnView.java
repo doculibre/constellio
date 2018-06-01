@@ -6,4 +6,5 @@ import com.constellio.app.ui.pages.base.BaseView;
 public interface SummaryColumnView extends BaseView {
     void alterSummaryMetadata(SummaryColumnVO summaryColumnView);
     void deleteRow(SummaryColumnVO columnVO);
+    void showReindexationRequiredMessage();
 }

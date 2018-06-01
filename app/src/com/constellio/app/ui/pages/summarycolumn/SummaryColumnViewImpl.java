@@ -51,7 +51,6 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-
         Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
         presenter.setSchemaCode(params.get("schemaCode"));
         presenter.setParameters(params);
@@ -241,5 +240,10 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
                         deleteSummaryMetadata(columnVO);
                     }
                 });
+    }
+
+    @Override
+    public void showReindexationRequiredMessage() {
+        this.showMessage($("SummaryColumnViewImpl.reindexingRequired"));
     }
 }
