@@ -120,22 +120,25 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         BaseForm<SummaryColumnParams> baseForm = new BaseForm<SummaryColumnParams>(new SummaryColumnParams(), this, metadataComboBox, prefix, displayCondition, referenceMetadataDisplayComboBox) {
             @Override
             protected void saveButtonClick(final SummaryColumnParams viewObject) {
+                if(!presenter.isReindextionFlag() && presenter.isThereAModification(viewObject)) {
+                    ConfirmDialog.show(
+                            UI.getCurrent(),
+                            $("SummaryColumnViewImpl.save.title"),
+                            $("SummaryColumnViewImpl.save.message"),
+                            $("Ok"),
+                            $("cancel"),
+                            new ConfirmDialog.Listener() {
+                                @Override
+                                public void onClose(ConfirmDialog dialog) {
+                                    if (dialog.isConfirmed()) {
+                                        addConfiguration(viewObject);
+                                    }
+                                }
+                            });
 
-                SummaryColumnVO summaryColumnVO = summaryColumnParamsToSummaryVO(viewObject);
-                if(modifingSummaryColumnVO != null) {
-                    presenter.modifyMetadataForSummaryColumn(viewObject);
-                    List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
-                    int index = presenter.findMetadataIndex(summaryColumnVOList, viewObject.getMetadataVO().getCode());
-                    summaryColumnDataProvider.removeSummaryColumnVO(index);
-                    summaryColumnDataProvider.addSummaryColumnVO(index, summaryColumnVO);
                 } else {
-                    presenter.addMetadaForSummary(viewObject);
-                    summaryColumnDataProvider.addSummaryColumnVO(summaryColumnVO);
+                    addConfiguration(viewObject);
                 }
-
-                summaryColumnDataProvider.fireDataRefreshEvent();
-                clearFields();
-                removeMetadataFromPossibleSelection();
             }
 
             @Override
@@ -153,6 +156,24 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         verticalLayout.addComponent(table);
 
         return verticalLayout;
+    }
+
+    private void addConfiguration(SummaryColumnParams viewObject) {
+        SummaryColumnVO summaryColumnVO = summaryColumnParamsToSummaryVO(viewObject);
+        if(modifingSummaryColumnVO != null) {
+            presenter.modifyMetadataForSummaryColumn(viewObject);
+            List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
+            int index = presenter.findMetadataIndex(summaryColumnVOList, viewObject.getMetadataVO().getCode());
+            summaryColumnDataProvider.removeSummaryColumnVO(index);
+            summaryColumnDataProvider.addSummaryColumnVO(index, summaryColumnVO);
+        } else {
+            presenter.addMetadaForSummary(viewObject);
+            summaryColumnDataProvider.addSummaryColumnVO(summaryColumnVO);
+        }
+
+        summaryColumnDataProvider.fireDataRefreshEvent();
+        clearFields();
+        removeMetadataFromPossibleSelection();
     }
 
     private void refreshMetadataCombox() {
@@ -237,7 +258,9 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
                 new ConfirmDialog.Listener() {
                     @Override
                     public void onClose(ConfirmDialog dialog) {
-                        deleteSummaryMetadata(columnVO);
+                        if(dialog.isConfirmed()) {
+                            deleteSummaryMetadata(columnVO);
+                        }
                     }
                 });
     }

@@ -124,6 +124,9 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     }
 
     public Map<String, Object> getMapInList(List<Map<String, Object>> list, String metadataCode){
+        if(list == null) {
+            return null;
+        }
         for(Map<String,Object> map : list) {
             if(((String)map.get(METADATA_CODE)).equalsIgnoreCase(metadataCode)) {
                 return map;
@@ -178,6 +181,30 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
                 types.getSchema(getSchemaCode()).get(Folder.SUMMARY).setCustomParameter(customParameter);
             }
         });
+    }
+
+    public boolean isThereAModification(SummaryColumnParams summaryColumnParams) {
+        Map<String,Object> map = getMapInList(originalCustomParametersSummaryColumn, summaryColumnParams.getMetadataVO().getCode());
+
+        if(map == null) {
+            return true;
+        }
+
+        SummaryColumnParams.DisplayCondition displayCondition = SummaryColumnParams.DisplayCondition.COMPLETED;
+        String alwaysShown = (String) map.get(IS_ALWAYS_SHOWN);
+        if(Boolean.TRUE.equals(alwaysShown)) {
+            displayCondition = SummaryColumnParams.DisplayCondition.ALWAYS;
+        }
+
+        map.get(REFERENCE_METADATA_DISPLAY);
+        SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay.fromInteger((Integer) map.get(REFERENCE_METADATA_DISPLAY));
+
+        return !(map.get(METADATA_CODE).equals(summaryColumnParams.getMetadataVO().getCode())
+                && map.get(PREFIX).equals(summaryColumnParams.getPrefix())
+                && displayCondition == summaryColumnParams.getDisplayCondition()
+                && referenceMetadataDisplay == summaryColumnParams.getReferenceMetadataDisplay());
+
+
     }
 
     private boolean isListMapEqual(List<Map<String, Object>> listMap1, List<Map<String, Object>> listMap2) {
@@ -245,5 +272,13 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     @Override
     protected boolean hasPageAccess(String params, User user) {
         return true;
+    }
+
+    public boolean isReindextionFlag() {
+        return appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
+    }
+
+    public void setReindextionFlag(boolean value) {
+        appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(value);
     }
 }

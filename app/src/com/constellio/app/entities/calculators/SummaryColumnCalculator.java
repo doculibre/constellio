@@ -103,6 +103,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
     @Override
     public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
         dependencies.clear();
+        System.out.println("initialize 1");
     }
 
     @Override
@@ -124,7 +125,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
                 }
             }
         }
-
+        System.out.println("initialize 2");
         dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
     }
 
