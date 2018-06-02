@@ -1,28 +1,20 @@
 package com.constellio.app.ui.pages.statistic;
 
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
-import com.constellio.app.ui.framework.components.AbstractCSVProducer;
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.containers.FacetsLazyContainer;
-import com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.data.Property;
-import com.vaadin.data.fieldgroup.PropertyId;
-import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.Resource;
-import com.vaadin.server.StreamResource;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getProperties;
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getPropertiesWithParams;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -31,16 +23,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getProperties;
-import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getPropertiesWithParams;
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.AbstractCSVProducer;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
+import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.containers.FacetsLazyContainer;
+import com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property;
+import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
 public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, Serializable {
     private static Logger LOGGER = LoggerFactory.getLogger(StatisticsViewImpl.class);
@@ -50,7 +72,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     private final StatisticsPresenter presenter;
 
     private FormBean formBean = new FormBean();
-
+    
     @PropertyId("excludedRequest")
     private TextArea excludedRequestField;
     @PropertyId("statisticType")
@@ -64,7 +86,9 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     @PropertyId("filter")
     private TextField filterField;
     @PropertyId("showParams")
-    private CheckBox showParams;
+    private CheckBox showParamsField;
+    @PropertyId("capsuleId")
+    private ComboBox capsuleIdField;
 
     private Table resultTable;
     private VerticalLayout tableLayout;
@@ -129,7 +153,8 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         newStatisticType,
                         startDateField.getValue(),
                         endDateField.getValue(),
-                        filterField.getValue());
+                        filterField.getValue(),
+                        (String) capsuleIdField.getValue());
 
                 if (Objects.equals(statisticType, newStatisticType)) {
                     resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
@@ -196,18 +221,27 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         filterField = new BaseTextField($("StatisticsView.filter"));
         filterField.setId("filter");
 
-        showParams = new CheckBox($("StatisticsView.showParams"));
-        showParams.setId("showParams");
-        showParams.setValue(false);
-        showParams.addValueChangeListener(new Property.ValueChangeListener() {
+        showParamsField = new CheckBox($("StatisticsView.showParams"));
+        showParamsField.setId("showParams");
+        showParamsField.setValue(false);
+        showParamsField.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 buildResultTable();
             }
         });
 
-        BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this,
-                excludedRequestField, statisticTypeField, startDateField, endDateField, filterField, showParams, linesField) {
+		capsuleIdField = new RecordComboBox(Capsule.DEFAULT_SCHEMA);
+		capsuleIdField.setCaption($("StatisticsView.capsuleField"));
+
+		List<Field<?>> formFields = new ArrayList<>();
+		formFields.addAll(Arrays.asList(excludedRequestField, statisticTypeField, startDateField, endDateField, filterField, showParamsField, linesField));
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			formFields.add(5, capsuleIdField);
+		}	
+        
+		BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this,
+				formFields.toArray(new Field[0])) {
             private String statisticType;
 
             @Override
@@ -227,7 +261,8 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                         newStatisticType,
                         startDateField.getValue(),
                         endDateField.getValue(),
-                        filterField.getValue());
+                        filterField.getValue(),
+                        (String) capsuleIdField.getValue());
 
                 buildResultTable();
 
@@ -247,7 +282,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         statisticTypeField.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                showParams.setVisible(!isStatisticTypeChoice());
+                showParamsField.setVisible(!isStatisticTypeChoice());
             }
         });
         statisticTypeField.select(item);
@@ -381,7 +416,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         }
     }
 
-    private boolean isStatisticTypeChoice() {
+	private boolean isStatisticTypeChoice() {
         switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
             case StatisticsPresenter.FAMOUS_REQUEST:
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
@@ -492,10 +527,10 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
     }
 
     private boolean isParamsShowed() {
-        if(showParams == null) {
+        if(showParamsField == null) {
             return false;
         } else {
-            return BooleanUtils.isTrue(showParams.getValue());
+            return BooleanUtils.isTrue(showParamsField.getValue());
         }
     }
 
@@ -541,6 +576,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         private Date startDate;
         private Date endDate;
         private String filter;
+        private String capsuleId;
 
         public String getExcludedRequest() {
             return excludedRequest;
@@ -581,5 +617,13 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         public void setFilter(String filter) {
             this.filter = filter;
         }
+
+		public String getCapsuleId() {
+			return capsuleId;
+		}
+
+		public void setCapsuleId(String capsuleId) {
+			this.capsuleId = capsuleId;
+		}
     }
 }
