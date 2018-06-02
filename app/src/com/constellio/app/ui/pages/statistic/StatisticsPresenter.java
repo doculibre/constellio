@@ -98,7 +98,7 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
         if (StringUtils.isNotBlank(excludedRequest)) {
             Scanner scanner = new Scanner(excludedRequest);
             while(scanner.hasNextLine()) {
-                query.setCondition(query.getCondition().andWhere(rm.searchEvent.query()).isNotEqual(scanner.nextLine()));
+                query.setCondition(query.getCondition().andWhere(rm.searchEvent.query()).isNotEqual(StringUtils.lowerCase(StringUtils.stripAccents(scanner.nextLine()))));
             }
         }
 

@@ -293,7 +293,7 @@ public class SearchEventServices {
 		if (StringUtils.isNotBlank(excludedRequest)) {
 			Scanner scanner = new Scanner(excludedRequest);
 			while(scanner.hasNextLine()) {
-				params.add("fq", "-query_s:" + scanner.nextLine());
+				params.add("fq", "-query_s:" + StringUtils.lowerCase(StringUtils.stripAccents(scanner.nextLine())));
 			}
 		}
 	}
