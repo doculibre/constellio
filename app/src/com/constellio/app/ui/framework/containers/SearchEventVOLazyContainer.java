@@ -231,7 +231,7 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
                         @Override
                         public Object getValue() {
                             String params = getRecord().get(PARAMS).toString();
-                            return getLangue(params);
+                            return StringUtils.removeAll(getLangue(params), "\"");
                         }
                     };
                 } else if (TYPE_RECHERCHE.equals(id)) {
