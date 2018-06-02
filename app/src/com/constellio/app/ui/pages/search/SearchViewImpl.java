@@ -43,6 +43,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.themes.ValoTheme;
+import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Arrays;
@@ -67,6 +68,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout summary;
 	private VerticalLayout resultsArea;
 	private VerticalLayout facetsArea;
+	private VerticalLayout capsuleArea;
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
@@ -237,6 +239,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			resultsArea.addComponent(results);
 		}
 
+		refreshCapsule();
+
 		return dataProvider;
 	}
 
@@ -300,6 +304,27 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
+
+		refreshCapsule();
+
+		VerticalLayout main = new VerticalLayout(thesaurusDisambiguation, spellCheckerSuggestions, summary, capsuleArea);
+
+		main.addComponent(body);
+		main.addStyleName("suggestions-summary-results-facets");
+		main.setWidth("100%");
+		main.setSpacing(true);
+
+		return main;
+	}
+
+	@Nullable
+	private void refreshCapsule() {
+		if(capsuleArea == null) {
+			capsuleArea = new VerticalLayout();
+		} else {
+			capsuleArea.removeAllComponents();
+		}
+
 		Component capsuleComponent = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			Capsule capsule = presenter.getCapsuleForCurrentSearch();
@@ -308,16 +333,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		}
 
-		VerticalLayout main = new VerticalLayout(thesaurusDisambiguation, spellCheckerSuggestions, summary);
 		if (capsuleComponent != null) {
-			main.addComponent(capsuleComponent);
+			capsuleArea.addComponent(capsuleComponent);
 		}
-		main.addComponent(body);
-		main.addStyleName("suggestions-summary-results-facets");
-		main.setWidth("100%");
-		main.setSpacing(true);
-
-		return main;
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
