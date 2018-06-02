@@ -824,6 +824,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 		public Metadata username() {
 			return metadata("username");
 		}
+
+		public Metadata capsule() {
+			return metadata("capsule");
+		}
 	}
 	public TemporaryRecord wrapTemporaryRecord(Record record) {
 		return record == null ? null : new TemporaryRecord(record, getTypes());
