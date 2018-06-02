@@ -565,7 +565,7 @@ public class SearchServices {
 		}
 
 		String collection = query.getCondition().getCollection();
-		if(collection != null) {
+		if (collection != null) {
 			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
 			List<String> excludeIds = manager.getDocExlusions(collection);
 
