@@ -1,6 +1,7 @@
 package com.constellio.app.modules.es.connectors.http.robotstxt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -108,6 +109,7 @@ public class RobotsTxtReader {
             robots.addGroup(currentGroup);
         }
 
+        robots.setFetchTime(DateTime.now());
         return robots;
     }
 

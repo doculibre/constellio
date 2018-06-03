@@ -19,15 +19,19 @@ public class NextFetchCalculator implements MetadataValueCalculator<LocalDateTim
 	LocalDependency<LocalDateTime> fetchedDateTimeParam = LocalDependency.toADateTime(ConnectorDocument.FETCHED_DATETIME);
 	LocalDependency<Double> fetchDelayParam = LocalDependency.toANumber(ConnectorDocument.FETCH_DELAY);
 	LocalDependency<FetchFrequency> fetchFrequencyParam = LocalDependency.toAnEnum(ConnectorDocument.FETCH_FREQUENCY);
+	LocalDependency<String> fetchStatus = LocalDependency.toAString(ConnectorDocument.STATUS);
 	LocalDependency<String> fetchErrorCode = LocalDependency.toAString(ConnectorDocument.ERROR_CODE);
+	LocalDependency<String> fetchErrorMessage = LocalDependency.toAString(ConnectorDocument.ERROR_MESSAGE);
 
 	@Override
 	public LocalDateTime calculate(CalculatorParameters parameters) {
 		LocalDateTime fetchedDateTime = parameters.get(fetchedDateTimeParam);
 		Double fetchDelay = parameters.get(fetchDelayParam);
+		String status = parameters.get(fetchStatus);
 		String errorCode = parameters.get(fetchErrorCode);
+		String errorMessage = parameters.get(fetchErrorMessage);
 
-		if(StringUtils.isNotBlank(errorCode)) {
+		if(StringUtils.equals(status, ConnectorDocumentStatus.ERROR.getCode()) && StringUtils.isNotBlank(errorMessage) && StringUtils.isBlank(errorCode)) {
 			return fetchedDateTime == null ? null : fetchedDateTime.plusHours(24);
 		} else {
 			return fetchedDateTime == null || fetchDelay == null ? null : fetchedDateTime.plusDays(fetchDelay.intValue());
@@ -51,6 +55,6 @@ public class NextFetchCalculator implements MetadataValueCalculator<LocalDateTim
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(fetchedDateTimeParam, fetchDelayParam, fetchFrequencyParam, fetchErrorCode);
+		return asList(fetchedDateTimeParam, fetchDelayParam, fetchFrequencyParam, fetchStatus, fetchErrorCode, fetchErrorMessage);
 	}
 }

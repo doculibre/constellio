@@ -1,10 +1,9 @@
 package com.constellio.app.modules.es.connectors.http.robotstxt;
 
-import com.constellio.app.modules.es.connectors.http.ConnectorHttp;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.util.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -13,7 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RobotsTxtFactory {
     private static final String SEPARATOR = "://";
-    private final static String ROBOT_TXT_FILE = "robots.txt";
+    private static final String ROBOT_TXT_FILE = "robots.txt";
+    private static final int HOURS = 24;
     private final ConcurrentHashMap<String, RobotsTxt> robotsTxt = new ConcurrentHashMap<>();
 
     public synchronized RobotsTxt getRobotsTxt(String url) {
@@ -21,11 +21,14 @@ public class RobotsTxtFactory {
         if (baseUrl != null) {
             try {
                 RobotsTxt robotsTxt = this.robotsTxt.get(baseUrl);
-                if (robotsTxt == null) {
+                if (robotsTxt == null || (robotsTxt.getFetchTime() != null && robotsTxt.getFetchTime().plusHours(HOURS).isBeforeNow())) {
                     URL base = new URL(baseUrl);
 
                     try (InputStream robotsTxtStream = new URL(base, ROBOT_TXT_FILE).openStream()) {
                         robotsTxt = RobotsTxt.read(robotsTxtStream);
+                        this.robotsTxt.put(baseUrl, robotsTxt);
+                    } catch (FileNotFoundException e) {
+                        robotsTxt = RobotsTxt.read(new ByteArrayInputStream(new byte[0]));
                         this.robotsTxt.put(baseUrl, robotsTxt);
                     }
                 }

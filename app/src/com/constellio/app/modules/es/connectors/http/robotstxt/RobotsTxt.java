@@ -1,5 +1,7 @@
 package com.constellio.app.modules.es.connectors.http.robotstxt;
 
+import org.joda.time.DateTime;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -12,14 +14,6 @@ public abstract class RobotsTxt {
      * @return <code>true</code> if there is an access to the requested path
      */
     public abstract boolean query(String userAgent, String path);
-
-    /**
-     * Gets crawl delay.
-     * @return crawl delay in seconds or <code>0</code> if no delay declared
-     * @deprecated
-     */
-    @Deprecated
-    public abstract Integer getCrawlDelay();
 
     /**
      * Gets host.
@@ -39,6 +33,12 @@ public abstract class RobotsTxt {
      * @return list of disallowed resources
      */
     public abstract List<String> getDisallowList(String userAgent);
+
+    /**
+     * Gets time when robot.txt was fetched.
+     * @return
+     */
+    public abstract DateTime getFetchTime();
 
     /**
      * Reads robots.txt available at the URL.

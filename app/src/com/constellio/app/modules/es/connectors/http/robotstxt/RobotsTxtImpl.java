@@ -1,5 +1,7 @@
 package com.constellio.app.modules.es.connectors.http.robotstxt;
 
+import org.joda.time.DateTime;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
@@ -16,6 +18,7 @@ public class RobotsTxtImpl extends RobotsTxt {
     private Integer crawlDelay;
     private String host;
     private final List<String> sitemaps = new ArrayList<>();
+    private DateTime fetchTime;
 
     private final MatchingStrategy matchingStrategy;
     private final WinningStrategy winningStrategy;
@@ -50,20 +53,12 @@ public class RobotsTxtImpl extends RobotsTxt {
         return sitemaps;
     }
 
-    /**
-     * Sets crawl delay.
-     *
-     * @param crawlDelay crawl delay.
-     * @deprecated
-     */
-    @Deprecated
-    public void setCrawlDelay(Integer crawlDelay) {
-        this.crawlDelay = crawlDelay;
+    public DateTime getFetchTime() {
+        return fetchTime;
     }
 
-    @Override
-    public Integer getCrawlDelay() {
-        return crawlDelay;
+    public void setFetchTime(DateTime fetchTime) {
+        this.fetchTime = fetchTime;
     }
 
     @Override
