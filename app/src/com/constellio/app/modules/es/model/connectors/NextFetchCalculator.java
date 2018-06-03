@@ -28,7 +28,7 @@ public class NextFetchCalculator implements MetadataValueCalculator<LocalDateTim
 		String errorCode = parameters.get(fetchErrorCode);
 
 		if(StringUtils.isNotBlank(errorCode)) {
-			return fetchedDateTime == null ? null : fetchedDateTime.plusHours(6);
+			return fetchedDateTime == null ? null : fetchedDateTime.plusHours(24);
 		} else {
 			return fetchedDateTime == null || fetchDelay == null ? null : fetchedDateTime.plusDays(fetchDelay.intValue());
 		}
