@@ -210,7 +210,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		if (code == null) {
 			return null;
 		}
-		return code.substring(code.lastIndexOf("_") + 1, code.length() - 1);
+		return code.substring(code.lastIndexOf("_") + 1, code.length());
 	}
 
 	@Override
