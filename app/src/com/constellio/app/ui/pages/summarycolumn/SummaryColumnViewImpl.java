@@ -16,6 +16,7 @@ import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import org.springframework.core.annotation.Order;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
@@ -25,7 +26,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumnView {
 
-    SummaryColumnPresenter presenter;
+    private SummaryColumnPresenter presenter;
 
     @PropertyId("metadataVO")
     private ComboBox metadataComboBox;
@@ -54,6 +55,11 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
         Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
         presenter.setSchemaCode(params.get("schemaCode"));
         presenter.setParameters(params);
+    }
+
+    @Override
+    public SummaryColumnPresenter getSummaryColumnPresenter() {
+        return presenter;
     }
 
     @Override
@@ -226,6 +232,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
     @Override
     public void alterSummaryMetadata(SummaryColumnVO summaryColumnVO) {
+        this.metadataComboBox.setValue(null);
         this.metadataComboBox.addItem(summaryColumnVO.getMetadataVO());
         this.metadataComboBox.setValue(summaryColumnVO.getMetadataVO());
         this.prefix.setValue(summaryColumnVO.getPrefix());
@@ -249,10 +256,19 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
     }
 
     public void deleteRow(final SummaryColumnVO columnVO) {
+
+        String message = $("SummaryColumnViewImpl.save.message");
+
+        if(!presenter.isReindextionFlag()) {
+            message = $("SummaryColumnViewImpl.deleteConfirmationMesssage") + message;
+        }
+
+
+
         ConfirmDialog.show(
                 UI.getCurrent(),
                 $("SummaryColumnViewImpl.deleteConfirmation"),
-                $("SummaryColumnViewImpl.deleteConfirmationMesssage"),
+                message,
                 $("Ok"),
                 $("cancel"),
                 new ConfirmDialog.Listener() {
@@ -265,8 +281,21 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
                 });
     }
 
+
     @Override
-    public void showReindexationRequiredMessage() {
-        this.showMessage($("SummaryColumnViewImpl.reindexingRequired"));
+    public boolean showReindexationWarningIfRequired(ConfirmDialog.Listener confirmDialogListener) {
+        if(presenter.isReindextionFlag()) {
+            ConfirmDialog.show(
+                    UI.getCurrent(),
+                    $("SummaryColumnViewImpl.save.title"),
+                    $("SummaryColumnViewImpl.save.message"),
+                    $("Ok"),
+                    $("cancel"),
+                    confirmDialogListener);
+            return true;
+        } else {
+            return false;
+        }
+
     }
 }

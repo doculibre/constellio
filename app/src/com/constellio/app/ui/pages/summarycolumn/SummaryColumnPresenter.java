@@ -15,10 +15,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryColumnView>  {
 
@@ -106,7 +103,9 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
         summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
         summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
-        summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay());
+        if(summaryColumnParams.getReferenceMetadataDisplay() != null) {
+            summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay());
+        }
 
         saveMetadata(modifiableMap);
     }
@@ -146,6 +145,56 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         return -1;
     }
 
+    public int findMetadataInMapList(List<Map> mapList, String metadataCode) {
+        int index = -1;
+
+        if(mapList == null) {
+            return index;
+        }
+
+
+        for(int i = 0; i < mapList.size(); i++) {
+            if(metadataCode.equalsIgnoreCase((String) mapList.get(i).get(METADATA_CODE))) {
+                index = i;
+                break;
+            }
+        }
+
+        return index;
+    }
+
+    public void moveMetadataDown(String metadataCode) {
+        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+        List<Map> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+
+        int index = findMetadataInMapList(list, metadataCode);
+
+        if(index >= list.size() - 1) {
+            return;
+        }
+
+        Collections.swap(list, index, index+1);
+
+        modifiableMap.put(SUMMARY_COLOMN, list);
+        saveMetadata(modifiableMap);
+    }
+
+    public void moveMetadataUp(String metadataCode) {
+        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+        List<Map> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+
+        int index = findMetadataInMapList(list, metadataCode);
+
+        if(index <= 0) {
+            return;
+        }
+
+        Collections.swap(list, index, index-1);
+
+        modifiableMap.put(SUMMARY_COLOMN, list);
+        saveMetadata(modifiableMap);
+    }
+
     public void addMetadaForSummary(SummaryColumnParams summaryColumnParams) {
         Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
@@ -173,7 +222,6 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         if(!isListMapEqual(originalCustomParametersSummaryColumn, (List<Map<String, Object>>) customParameter.get(SUMMARY_COLOMN))
                 && !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
             appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
-            view.showReindexationRequiredMessage();
         }
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
@@ -278,7 +326,4 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         return appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
     }
 
-    public void setReindextionFlag(boolean value) {
-        appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(value);
-    }
 }

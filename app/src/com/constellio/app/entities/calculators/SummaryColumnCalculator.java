@@ -48,45 +48,48 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		DynamicDependencyValues values = parameters.get(dynamicMetadatasDependency);
 		StringBuilder summmaryColumnValue = new StringBuilder();
 		List<Map> listMap = (List<Map>) parameters.getMetadata().getCustomParameter().get(SUMMARY_COLOMN);
-		for (Map currentMap : listMap) {
-			String localeCode = getLocalCodeFromCode((String) currentMap.get(METADATA_CODE));
-			Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
 
-			StringBuilder textForMetadata = new StringBuilder();
+		if (listMap != null) {
 
-			if (metadata.getType() != MetadataValueType.REFERENCE) {
-				if (metadata.isMultivalue()) {
-					List metadataValue = values.getValue(localeCode);
-					for (int i = 0; i < metadataValue.size(); i++) {
-						Object object = metadataValue.get(i);
-						textForMetadata.append(getValue(values, parameters, metadata, object, currentMap));
-						if (i != metadataValue.size() - 1) {
-							textForMetadata.append(", ");
+			for (Map currentMap : listMap) {
+				String localeCode = getLocalCodeFromCode((String) currentMap.get(METADATA_CODE));
+				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
+
+				StringBuilder textForMetadata = new StringBuilder();
+
+				if (metadata.getType() != MetadataValueType.REFERENCE) {
+					if (metadata.isMultivalue()) {
+						List metadataValue = values.getValue(localeCode);
+						for (int i = 0; i < metadataValue.size(); i++) {
+							Object object = metadataValue.get(i);
+							textForMetadata.append(getValue(values, parameters, metadata, object, currentMap));
+							if (i != metadataValue.size() - 1) {
+								textForMetadata.append(", ");
+							}
 						}
+					} else {
+						Object metadataValue = values.getValue(localeCode);
+						textForMetadata.append(getValue(values, parameters, metadata, metadataValue, currentMap));
 					}
 				} else {
-					Object metadataValue = values.getValue(localeCode);
-					textForMetadata.append(getValue(values, parameters, metadata, metadataValue, currentMap));
-				}
-			} else {
-				ReferenceDependency referenceDependency = getReferenceDependancy(localeCode);
+					ReferenceDependency referenceDependency = getReferenceDependancy(localeCode);
 
-				if (metadata.isMultivalue()) {
-					List<String> valueList = (List<String>) parameters.get(referenceDependency);
-					for (int i = 0; i < valueList.size(); i++) {
-						textForMetadata.append(valueList.get(i));
-						if (i != valueList.size() - 1) {
-							textForMetadata.append(", ");
+					if (metadata.isMultivalue()) {
+						List<String> valueList = (List<String>) parameters.get(referenceDependency);
+						for (int i = 0; i < valueList.size(); i++) {
+							textForMetadata.append(valueList.get(i));
+							if (i != valueList.size() - 1) {
+								textForMetadata.append(", ");
+							}
 						}
+
+					} else {
+						textForMetadata.append((String) parameters.get(referenceDependency));
 					}
 
-				} else {
-					textForMetadata.append((String) parameters.get(referenceDependency));
 				}
-
+				summmaryColumnValue.append(addPrefixContentToString(textForMetadata.toString(), currentMap));
 			}
-			summmaryColumnValue.append(addPrefixContentToString(textForMetadata.toString(), currentMap));
-
 		}
 		return summmaryColumnValue.toString();
 	}
@@ -107,7 +110,6 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	@Override
 	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
 		dependencies.clear();
-		System.out.println("initialize 1");
 
 		metadataCode = calculatedMetadata.getCode();
 
@@ -118,7 +120,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				dependencies.add(toLocalDependency(schemaMetadatas, metadataCode));
 			}
 		}
-		System.out.println("initialize 2");
+
 		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
 	}
 

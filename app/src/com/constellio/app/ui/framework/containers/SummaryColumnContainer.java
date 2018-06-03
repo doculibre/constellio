@@ -8,6 +8,7 @@ import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,9 +26,9 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 
     SummaryColumnView view;
 
-    public SummaryColumnContainer(SummaryColumnDataProvider dataProvider, SummaryColumnView summaryColumnPresenter) {
+    public SummaryColumnContainer(SummaryColumnDataProvider dataProvider, SummaryColumnView summaryColumnView) {
         super(dataProvider);
-        this.view = summaryColumnPresenter;
+        this.view = summaryColumnView;
     }
 
     @Override
@@ -87,35 +88,40 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
         Object value;
 
         if (UP.equals(propertyId)) {
+
             value = new BaseButton("UP") {
                 @Override
                 protected void buttonClick(ClickEvent event) {
-                    List<SummaryColumnVO> summaryColumnVOS = summaryColumnDataProvider.getSummaryColumnVOs();
-                    int index = summaryColumnVOS.indexOf(summaryColumnVOItemId);
-
-                    if(index <= 0) {
-                        return;
+                    if(!view.getSummaryColumnPresenter().isReindextionFlag()) {
+                        view.showReindexationWarningIfRequired(new ConfirmDialog.Listener() {
+                            @Override
+                            public void onClose(ConfirmDialog dialog) {
+                                if (dialog.isConfirmed()) {
+                                    moveRowUp(summaryColumnDataProvider, summaryColumnVOItemId);
+                                }
+                            }
+                        });
+                    } else {
+                        moveRowUp(summaryColumnDataProvider, summaryColumnVOItemId);
                     }
-
-                    SummaryColumnVO summaryColumnVO = summaryColumnDataProvider.removeSummaryColumnVO(index);
-                    summaryColumnDataProvider.addSummaryColumnVO(index - 1, summaryColumnVO);
-                    summaryColumnDataProvider.fireDataRefreshEvent();
                 }
             };
         } else if (DOWN.equals(propertyId)) {
             value = new BaseButton("DOWN") {
                 @Override
                 protected void buttonClick(ClickEvent event) {
-                    List<SummaryColumnVO> summaryColumnVOS = summaryColumnDataProvider.getSummaryColumnVOs();
-                    int index = summaryColumnVOS.indexOf(summaryColumnVOItemId);
-
-                    if(index >= (summaryColumnVOS.size() - 1)) {
-                        return;
+                    if(!view.getSummaryColumnPresenter().isReindextionFlag()) {
+                        view.showReindexationWarningIfRequired(new ConfirmDialog.Listener() {
+                            @Override
+                            public void onClose(ConfirmDialog dialog) {
+                                if (dialog.isConfirmed()) {
+                                    moveRowDown(summaryColumnDataProvider, summaryColumnVOItemId);
+                                }
+                            }
+                        });
+                    } else {
+                        moveRowDown(summaryColumnDataProvider, summaryColumnVOItemId);
                     }
-
-                    SummaryColumnVO summaryColumnVO = summaryColumnDataProvider.removeSummaryColumnVO(index);
-                    summaryColumnDataProvider.addSummaryColumnVO(index + 1, summaryColumnVO);
-                    summaryColumnDataProvider.fireDataRefreshEvent();
                 }
             };
         } else if (METADATA_VO.equals(propertyId)) {
@@ -151,6 +157,34 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
         }
         Class<?> type = getType(propertyId);
         return new ObjectProperty(value, type);
+    }
+
+    private void moveRowUp(SummaryColumnDataProvider summaryColumnDataProvider, SummaryColumnVO summaryColumnVOItemId) {
+        List<SummaryColumnVO> summaryColumnVOS = summaryColumnDataProvider.getSummaryColumnVOs();
+        int index = summaryColumnVOS.indexOf(summaryColumnVOItemId);
+
+        if(index <= 0) {
+            return;
+        }
+
+        view.getSummaryColumnPresenter().moveMetadataUp(summaryColumnVOItemId.getMetadataVO().getCode());
+        SummaryColumnVO summaryColumnVO = summaryColumnDataProvider.removeSummaryColumnVO(index);
+        summaryColumnDataProvider.addSummaryColumnVO(index - 1, summaryColumnVO);
+        summaryColumnDataProvider.fireDataRefreshEvent();
+    }
+
+    private void moveRowDown(SummaryColumnDataProvider summaryColumnDataProvider, SummaryColumnVO summaryColumnVOItemId) {
+        List<SummaryColumnVO> summaryColumnVOS = summaryColumnDataProvider.getSummaryColumnVOs();
+        int index = summaryColumnVOS.indexOf(summaryColumnVOItemId);
+
+        if(index >= (summaryColumnVOS.size() - 1)) {
+            return;
+        }
+
+        view.getSummaryColumnPresenter().moveMetadataDown(summaryColumnVOItemId.getMetadataVO().getCode());
+        SummaryColumnVO summaryColumnVO = summaryColumnDataProvider.removeSummaryColumnVO(index);
+        summaryColumnDataProvider.addSummaryColumnVO(index + 1, summaryColumnVO);
+        summaryColumnDataProvider.fireDataRefreshEvent();
     }
 
 
