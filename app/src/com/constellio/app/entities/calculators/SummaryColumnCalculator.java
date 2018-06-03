@@ -122,6 +122,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
 	}
 
+
 	@Override
 	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
@@ -135,15 +136,14 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				String metadataCode = (String) currentMap.get(METADATA_CODE);
 				Metadata currentMetadata = schema.getMetadata(metadataCode);
 
-				if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
-					dependencies.add(toReferenceDependency(types, schema, metadataCode,
-							getReferenceMetadataDisplayStringValue(currentMap)));
-				}
-			}
-		}
-		System.out.println("initialize 2");
-		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
-	}
+                if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
+                    dependencies.add(toReferenceDependency(types, schema, metadataCode, getReferenceMetadataDisplayStringValue(currentMap)));
+                }
+            }
+        }
+
+        dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+    }
 
 	public String getReferenceMetadataDisplayStringValue(Map mapWithReferenceMetadataDisplay) {
 		SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay

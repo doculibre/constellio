@@ -818,9 +818,9 @@ public class RecordAutomaticMetadataServices {
 			Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
 			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
 
-		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
-		System.out.println(metadataWithCalculatedDataEntry.getLocalCode());
-		boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
+			MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
+
+			boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
 				&& !record.getLazyTransientValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
 
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
