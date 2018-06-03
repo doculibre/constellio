@@ -5,10 +5,7 @@ import static org.apache.tika.io.IOUtils.toByteArray;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.*;
 
 import com.gargoylesoftware.htmlunit.html.*;
 import org.apache.commons.collections4.ListUtils;
@@ -138,6 +135,16 @@ public class HtmlPageParser {
             }
         }
 
+        String language = parsedContent.getLanguage();
+        HtmlElement docElement = page.getDocumentElement();
+        if (docElement != null) {
+            String lang = docElement.getLangAttribute();
+            try {
+                Locale langLocale = new Locale(lang);
+                language = langLocale.getLanguage();
+            } catch (Exception e) {}
+        }
+
         if (parsedContentText.isEmpty()) {
             throw new ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent(url);
         }
@@ -148,7 +155,7 @@ public class HtmlPageParser {
             throw new ImpossibleRuntimeException(e);
         }
         return new HtmlPageParserResults(digest, parsedContentText, title, uniqueAnchors,
-                parsedContent.getMimetypeWithoutCharset(), parsedContent.getLanguage(), parsedContent.getDescription());
+                parsedContent.getMimetypeWithoutCharset(), language, parsedContent.getDescription());
     }
 
     public String getTextContent(DomNode node) {
