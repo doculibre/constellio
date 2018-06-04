@@ -52,7 +52,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		if (listMap != null) {
 
 			for (Map currentMap : listMap) {
-				String localeCode = getLocalCodeFromCode((String) currentMap.get(METADATA_CODE));
+				String code = (String) currentMap.get(METADATA_CODE);
+				String localeCode = getLocalCodeFromCode(code);
 				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
 
 				StringBuilder textForMetadata = new StringBuilder();
@@ -62,17 +63,17 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 						List metadataValue = values.getValue(localeCode);
 						for (int i = 0; i < metadataValue.size(); i++) {
 							Object object = metadataValue.get(i);
-							textForMetadata.append(getValue(values, parameters, metadata, object, currentMap));
+							textForMetadata.append(getValue(values, parameters, metadata, object));
 							if (i != metadataValue.size() - 1) {
 								textForMetadata.append(", ");
 							}
 						}
 					} else {
 						Object metadataValue = values.getValue(localeCode);
-						textForMetadata.append(getValue(values, parameters, metadata, metadataValue, currentMap));
+						textForMetadata.append(getValue(values, parameters, metadata, metadataValue));
 					}
 				} else {
-					ReferenceDependency referenceDependency = getReferenceDependancy(localeCode);
+					ReferenceDependency referenceDependency = getReferenceDependancy(code);
 
 					if (metadata.isMultivalue()) {
 						List<String> valueList = (List<String>) parameters.get(referenceDependency);
@@ -164,9 +165,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		return itemShown;
 	}
 
-	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata, Object value,
-			Map customParameter) {
-		String returnValue = null;
+	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata, Object value) {
+		String returnValue = "";
 		if (value != null) {
 			switch (metadata.getType()) {
 			case DATE:
@@ -200,8 +200,6 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				break;
 			}
 		}
-
-		returnValue = addPrefixContentToString(returnValue, customParameter);
 
 		return returnValue;
 	}
