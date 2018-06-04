@@ -13,9 +13,7 @@ import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.entities.SearchBoost;
@@ -132,14 +130,8 @@ public class SearchBoostByMetadataPresenterAcceptTest extends ConstellioTest {
 	public void whenGetMetadatasThenGetAllMetadatasFromCollection()
 			throws Exception {
 
-		MetadataListFilter filterSearchable = new MetadataListFilter() {
-			@Override
-			public boolean isReturned(Metadata metadata) {
-				return metadata.isSearchable();
-			}
-		};
 		assertThat(presenter.getMetadatasSearchBoostVO()).hasSize(
-				metadataSchemasManager.getSchemaTypes(zeCollection).getAllMetadatas().only(filterSearchable).size());
+				presenter.getSearcheableMetadatas().size());
 		assertThat(presenter.getMetadatasSearchBoostVO()).extracting("key").doesNotHaveDuplicates();
 	}
 
