@@ -1,6 +1,8 @@
 package com.constellio.model.services.logging;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
@@ -98,14 +100,31 @@ public class SearchEventServices {
 	}
 
 	public void updateClicks(SearchEvent searchEvent,  String clicks) {
-		SolrInputDocument doc = new SolrInputDocument();
-
 		List<String> clickses = new ArrayList<>(ListUtils.defaultIfNull(searchEvent.getClicks(), new ArrayList<String>()));
 		clickses.add(clicks);
 
 		searchEvent.setClicks(clickses);
 
-		doc.setField("id", searchEvent.getId());
+		updateClicks(searchEvent.getId(), clickses);
+	}
+
+	public void updateClicks(String searchEventId,  String clicks) {
+		try {
+			RecordDTO recordDTO = modelLayerFactory.getDataLayerFactory().newEventsDao().get(searchEventId);
+
+			List<String> clickses = new ArrayList<>(ListUtils.defaultIfNull((List<String>) recordDTO.getFields().get(SearchEvent.CLICKS), new ArrayList<String>()));
+
+			clickses.add(clicks);
+
+			updateClicks(searchEventId, clickses);
+		} catch (RecordDaoException.NoSuchRecordWithId noSuchRecordWithId) {
+			noSuchRecordWithId.printStackTrace();
+		}
+	}
+
+	public void updateClicks(String searchEventId,  List<String> clickses) {
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", searchEventId);
 		doc.addField(schemas.searchEvent.clicks().getDataStoreCode(), clickses);
 
 		BigVaultServerTransaction tx = new BigVaultServerTransaction(RecordsFlushing.ADD_LATER());

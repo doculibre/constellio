@@ -148,6 +148,6 @@ public class SearchWebService extends AbstractSearchServlet {
 			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
 		}
 
-		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, null, null);
+		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, null, null, null);
 	}
 }
