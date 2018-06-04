@@ -249,7 +249,7 @@ public class RMConfigs {
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
 						AllowModificationOfArchivisticStatusAndExpectedDatesChoice.class)
-				.withDefaultValue(AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED)
+				.withDefaultValue(AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED_FOR_IMPORTED_RECORDS)
 				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
 
 		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
