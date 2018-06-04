@@ -177,7 +177,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo7_7_1(),
 				new RMMigrationTo7_7_2(),
 				new RMMigrationTo7_7_3(),
-				new RMMigrationTo7_7_4()
+				new RMMigrationTo7_7_4(),
+				new RMMigrationTo8_1()
 		);
 	}
 

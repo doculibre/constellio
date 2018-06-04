@@ -137,6 +137,9 @@ public class MetadataToVOBuilder implements Serializable {
 		}
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
+		for(Language keyset : metadata.getLabels().keySet()) {
+			labels.put(keyset.getLocale(), metadata.getLabels().get(keyset));
+		}
 		labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
 				Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode

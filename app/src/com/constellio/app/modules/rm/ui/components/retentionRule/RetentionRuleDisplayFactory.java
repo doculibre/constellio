@@ -7,6 +7,7 @@ import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEF
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
@@ -19,10 +20,12 @@ import com.vaadin.ui.Component;
 public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 	private final RetentionRuleDisplayPresenter presenter;
 	private final List<VariableRetentionPeriodVO> openPeriodsDDVList;
+	private Locale locale;
 
-	public RetentionRuleDisplayFactory(RetentionRuleDisplayPresenter presenter) {
+	public RetentionRuleDisplayFactory(RetentionRuleDisplayPresenter presenter, Locale locale) {
 		this.presenter = presenter;
 		this.openPeriodsDDVList = presenter.getOpenActivePeriodsDDVList();
+		this.locale = locale;
 	}
 
 	@Override
@@ -32,7 +35,7 @@ public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 		String metadataCode = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
 		RetentionRuleVO retentionRuleVO = (RetentionRuleVO) recordVO;
 		if (COPY_RETENTION_RULES.equals(metadataCode)) {
-			component = new FolderCopyRetentionRuleTable(retentionRuleVO, false, presenter);
+			component = new FolderCopyRetentionRuleTable(retentionRuleVO, false, presenter, locale);
 			component.setVisible(presenter.shouldDisplayFolderRetentionRules());
 		} else if (DOCUMENT_COPY_RETENTION_RULES.equals(metadataCode)) {
 			component = new DocumentCopyRetentionRuleTable(retentionRuleVO, false, presenter);

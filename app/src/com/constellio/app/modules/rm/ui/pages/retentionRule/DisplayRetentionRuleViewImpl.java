@@ -60,7 +60,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
-		recordDisplay = new RetentionRuleDisplay(presenter, retentionRuleVO);
+		recordDisplay = new RetentionRuleDisplay(presenter, retentionRuleVO, getSessionContext().getCurrentLocale());
 		recordDisplay.setWidth("100%");
 
 		mainLayout.addComponent(recordDisplay);
