@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
@@ -117,7 +118,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : records) {
 			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
-					.setTitle((String) record.get(Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
+					.setTitle((String) record.get(Schemas.TITLE, ConstellioUI.getCurrentSessionContext().getCurrentLocale())).setCode((String) record.get(Schemas.CODE));
 			returnList.add(variableRetentionPeriodVO);
 		}
 		return returnList;
