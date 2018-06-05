@@ -99,7 +99,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 	public Locale getLocale() {
 		Locale locale = super.getLocale();
 		if (locale == null) {
-			locale = ConstellioUI.getCurrent().getLocale();
+			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		}
 		return locale;
 	}
