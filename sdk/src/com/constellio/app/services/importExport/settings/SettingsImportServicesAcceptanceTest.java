@@ -736,10 +736,53 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
+	public void whenModifiyingValueOfLablesMetadatasThenValueIsUpdated() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English,LABEL_EN);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo(LABEL_EN);
+
+		labelMap = new HashMap<>();
+		labelMap.put(Language.French, "Label modifié fr");
+		labelMap.put(Language.English,"Label modifié en");
+		metadata.setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo( "Label modifié fr");
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo( "Label modifié en");
+
+	}
+
+
+	@Test
 	public void whenImportingMetadataWithOnlyFrenchLabelThenSet() throws ValidationException {
 		Map<Language, String> labelMap = new HashMap<>();
 		labelMap.put(Language.French, LABEL_FR);
 		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().keySet()).doesNotContain(English);
+	}
+
+	@Test
+	public void whenImportingMetadataAndSettingOneValueLabelThenFrenchLabelIsSet() throws ValidationException {
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabel("label");
 
 		importMetadata(metadata);
 		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
