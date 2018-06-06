@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -39,11 +40,7 @@ import com.vaadin.server.ClientConnector;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.Window;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 	
@@ -279,6 +276,17 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
 					button.setRecordVoList(presenter.getDocumentVO());
 					button.click();
+				}
+			});
+		}
+
+		//FIXME WorkflowExtension
+		if (true) {
+			ContextMenuItem workflowItem = addItem($("DocumentActionsComponent.startWorkflow"), FontAwesome.CODE_FORK);
+			workflowItem.addItemClickListener(new BaseContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
+
 				}
 			});
 		}

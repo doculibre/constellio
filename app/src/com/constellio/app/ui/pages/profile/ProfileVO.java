@@ -27,6 +27,7 @@ public class ProfileVO implements Serializable {
 	String fax;
 	String address;
 	boolean agentManuallyDisabled;
+	boolean hideNotActive;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email, String personalEmails,
 			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
@@ -47,6 +48,7 @@ public class ProfileVO implements Serializable {
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = null;
 		this.defaultPageLength = null;
+		this.hideNotActive = false;
 	}
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String startTab,
@@ -67,11 +69,12 @@ public class ProfileVO implements Serializable {
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = null;
 		this.defaultPageLength = null;
+		this.hideNotActive = false;
 	}
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String fax, String jobTitle, String address, String startTab,
 					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, SearchPageLength defaultPageLength, String password, String confirmPassword,
-					 String oldPassword, boolean agentManuallyDisabled, String defaultAdministrativeUnit) {
+					 String oldPassword, boolean agentManuallyDisabled, boolean hideNotActive, String defaultAdministrativeUnit) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -90,6 +93,7 @@ public class ProfileVO implements Serializable {
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = defaultAdministrativeUnit;
 		this.defaultPageLength = defaultPageLength;
+		this.hideNotActive = hideNotActive;
 	}
 
 	public String getUsername() {
@@ -250,5 +254,13 @@ public class ProfileVO implements Serializable {
 
 	public void setDefaultPageLength(SearchPageLength defaultPageLength) {
 		this.defaultPageLength = defaultPageLength;
+	}
+
+	public boolean isHideNotActive() {
+		return hideNotActive;
+	}
+
+	public void setHideNotActive(boolean hideNotActive) {
+		this.hideNotActive = hideNotActive;
 	}
 }

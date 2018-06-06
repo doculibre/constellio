@@ -270,6 +270,17 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 				}
 			});
 		}
+
+		//FIXME WorkflowExtension
+		if (true) {
+			MenuItem workflowItem = rootItem.addItem($("DocumentActionsComponent.startWorkflow"), FontAwesome.CODE_FORK, null);
+			workflowItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+
+				}
+			});
+		}
 	}
 
 	@Override
