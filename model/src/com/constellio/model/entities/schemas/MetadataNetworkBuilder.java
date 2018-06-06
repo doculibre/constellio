@@ -1,21 +1,32 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AGGREGATION_INPUT;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AUTOMATIC_METADATA_INPUT;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.SEQUENCE_INPUT;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
-
-import java.util.*;
-
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.*;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
-import static java.util.Arrays.asList;
 
 public class MetadataNetworkBuilder {
 
@@ -226,10 +237,6 @@ public class MetadataNetworkBuilder {
 
 	private static void build(final MetadataNetworkBuilder builder, MetadataSchema schema, Metadata metadata) {
 
-		if (metadata.getLocalCode().equals("refText")) {
-			System.out.println("todo");
-		}
-
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
 
 			Metadata toMetadata = builder.idMetadataOfType(metadata.getReferencedSchemaType());
@@ -237,7 +244,9 @@ public class MetadataNetworkBuilder {
 			int level = builder.getDependencyLevelRequiredFor(metadata, asList(toMetadata), false, false);
 			builder.addNetworkLink(metadata, asList(toMetadata), null, level, REFERENCE, false, false);
 
-		} else if (DataEntryType.COPIED == metadata.getDataEntry().getType()) {
+		}
+
+		if (DataEntryType.COPIED == metadata.getDataEntry().getType()) {
 			CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
 
 			Metadata refMetadata = builder.metadata(dataEntry.getReferenceMetadata());
@@ -356,14 +365,15 @@ public class MetadataNetworkBuilder {
 				if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
 					String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 					Metadata firstMetadata = schema.getMetadata(splittedCode[0]);
-					Metadata secondMetadata = builder.type(firstMetadata.getReferencedSchemaType()).getDefaultSchema().getMetadata(splittedCode[1]);
+					Metadata secondMetadata = builder.type(firstMetadata.getReferencedSchemaType()).getDefaultSchema()
+							.getMetadata(splittedCode[1]);
 					metadatas.add(firstMetadata);
 					metadatas.add(secondMetadata);
 				} else {
 					metadatas.add(schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode()));
 				}
 
-				for(Metadata sequenceInputMetadata : metadatas) {
+				for (Metadata sequenceInputMetadata : metadatas) {
 					int level = builder.getDependencyLevelRequiredFor(metadata, asList(sequenceInputMetadata), false, true);
 					builder.addNetworkLink(metadata, sequenceInputMetadata, null, level, SEQUENCE_INPUT, false, true);
 				}
