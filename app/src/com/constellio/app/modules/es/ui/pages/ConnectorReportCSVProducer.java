@@ -8,13 +8,10 @@ import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaType
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer.RecordVOLazyQueryFactory.RecordVOWithDistinctSchemaItem;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.vaadin.data.Item;
-import com.vaadin.data.Property;
 import com.vaadin.ui.Table;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -22,9 +19,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ConnectorReportCSVProducer extends AbstractCSVProducer {
     private RecordVOWithDistinctSchemasDataProvider provider;
     private List<String> reportMetadataList;
+    private final Long maxRow;
 
-    public ConnectorReportCSVProducer(Table table) {
-        super(table);
+    public ConnectorReportCSVProducer(Table table, Long maxRow) {
+        super(table, maxRow);
+
+        this.maxRow = maxRow;
 
         RecordVOWithDistinctSchemaTypesLazyContainer container = getContainer((BasePagedTable) table);
 
@@ -43,6 +43,10 @@ public class ConnectorReportCSVProducer extends AbstractCSVProducer {
 
     @Override
     protected long getRowCount() {
+        if(maxRow != null && maxRow.longValue() > 0) {
+            return Math.min(provider.size(), maxRow);
+        }
+
         return provider.size();
     }
 

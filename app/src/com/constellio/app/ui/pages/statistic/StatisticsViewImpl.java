@@ -104,7 +104,8 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
         verticalLayout.setSizeFull();
         
         tableLayout = new VerticalLayout();
-        tableLayout.setSizeFull();
+        tableLayout.setHeight("100%");
+        tableLayout.setWidth("95%");
         tableLayout.addStyleName("stats-table-layout");
 
         verticalLayout.addComponent(buildSearchForm());

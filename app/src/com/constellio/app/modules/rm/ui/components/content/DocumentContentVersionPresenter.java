@@ -168,7 +168,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
 		SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
-		SearchEvent searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementClickCounter(searchEvent.getId());
 

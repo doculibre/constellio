@@ -126,7 +126,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	public void searchRequested(String expression, String schemaTypeCode) {
-		ConstellioUI.getCurrent().setAttribute(CURRENT_SEARCH_EVENT, null);
+		ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, null);
 
 		if (StringUtils.isNotBlank(schemaTypeCode)) {
 			SavedSearch temporarySearch = buildAdvancedTemporarySearch(null, expression);

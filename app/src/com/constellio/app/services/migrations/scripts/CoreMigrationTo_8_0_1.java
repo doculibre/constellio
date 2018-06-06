@@ -33,7 +33,7 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 			
 			Transaction transaction = new Transaction();
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
-			transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("fr").setTitle("Francais"));
+			transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("fr").setTitle("Français"));
 			transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("en").setTitle("Anglais"));
 			
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();

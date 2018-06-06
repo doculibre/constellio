@@ -470,14 +470,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setNumFound(response.getNumFound());
 		UIContext uiContext = view.getUIContext();
 
-		SearchEvent oldSearchEventRecord = uiContext.getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent oldSearchEventRecord = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 		SearchEvent oldSearchEvent = null;
 		if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
 			oldSearchEvent = oldSearchEventRecord;
 		}
 
 		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
+			ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 			searchEventServices.save(searchEvent);
 
@@ -911,7 +911,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		SearchEvent searchEvent = ConstellioUI.getCurrent().getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
 		searchEventServices.incrementClickCounter(searchEvent.getId());
 
@@ -927,7 +927,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void searchNavigationButtonClicked() {
 		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		SearchEvent searchEvent = view.getUIContext().getAttribute(CURRENT_SEARCH_EVENT);
+		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 				appLayerFactory.getModelLayerFactory());
 
@@ -960,7 +960,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		newSearchEvent.setCapsule(searchEvent.getCapsule());
 
 		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-			view.getUIContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
+			ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
 			searchEventServices.save(newSearchEvent);
 		}
 	}

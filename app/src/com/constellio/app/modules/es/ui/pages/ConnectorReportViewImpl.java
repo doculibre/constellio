@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
@@ -20,6 +21,8 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.statistic.FacetsCSVProducer;
 import com.constellio.app.ui.pages.statistic.SearchEventCSVProducer;
 import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.converter.StringToLongConverter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -38,6 +41,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	private ConnectorReportPresenter presenter;
 	private BasePagedTable<RecordVOWithDistinctSchemaTypesLazyContainer> table;
 	private HorizontalLayout tableControls;
+	private BaseTextField linesField;
 	private BaseTextField filterField;
 	private VerticalLayout mainLayout;
 	private Layout csvLayout;
@@ -59,7 +63,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 		mainLayout.setSpacing(true);
 		
 		BaseDisplay statsDisplay = buildStatsDisplay();
-		HorizontalLayout filterComponent = buildFilterComponent();
+		Layout filterComponent = buildFilterComponent();
 
 		RecordVOWithDistinctSchemaTypesLazyContainer container = new RecordVOWithDistinctSchemaTypesLazyContainer(
 				presenter.getDataProvider(), presenter.getReportMetadataList());
@@ -153,17 +157,48 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	}
 
 	protected Layout createCSVLinkLayout(BasePagedTable table) {
-		HorizontalLayout layout = new HorizontalLayout();
-		layout.setSizeFull();
+		final HorizontalLayout layout = new HorizontalLayout();
+		layout.setSpacing(true);
 
-		DownloadLink downloadLink = new DownloadLink(getCsvDocumentResource(table), $("ConnectorReportView.downloadCsv"));
+		final DownloadLink downloadLink = new DownloadLink(getCsvDocumentResource(table), $("ConnectorReportView.downloadCsv"));
 
-		layout.addComponent(downloadLink);
-		layout.setComponentAlignment(downloadLink, Alignment.TOP_RIGHT);
+		Label labelLinesField = new Label($("ConnectorReportView.linesFieldLabel"));
 
-		downloadLink.setVisible(table.getContainer().size() > 0);
+		linesField = new BaseTextField();
+		linesField.setConversionError($("ConnectorReportView.linesFieldConversionError"));
+		linesField.setConverter(new StringToLongConverter());
+		linesField.addValueChangeListener(new Property.ValueChangeListener() {
+			private Object oldValue;
+			private DownloadLink oldLink = downloadLink;
 
-		return layout;
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				Object current = linesField.getConvertedValue();
+
+				if(!Objects.equals(oldValue, current)) {
+					DownloadLink newComponent = new DownloadLink(getCsvDocumentResource(ConnectorReportViewImpl.this.table), $("ConnectorReportView.downloadCsv"));
+					layout.replaceComponent(oldLink, newComponent);
+					oldLink = newComponent;
+				}
+
+				oldValue = current;
+			}
+		});
+
+		layout.addComponents(labelLinesField, linesField, downloadLink);
+		layout.setComponentAlignment(labelLinesField, Alignment.MIDDLE_LEFT);
+		layout.setComponentAlignment(linesField, Alignment.MIDDLE_CENTER);
+		layout.setComponentAlignment(downloadLink, Alignment.MIDDLE_RIGHT);
+
+		HorizontalLayout layout2 = new HorizontalLayout();
+		layout2.setSizeFull();
+
+		layout2.addComponent(layout);
+		layout2.setComponentAlignment(layout, Alignment.MIDDLE_RIGHT);
+
+		layout2.setVisible(table.getContainer().size() > 0);
+
+		return layout2;
 	}
 
 	private Resource getCsvDocumentResource(final BasePagedTable table) {
@@ -171,7 +206,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 			@Override
 			public InputStream getStream() {
 				try {
-					return new FileInputStream(new ConnectorReportCSVProducer(table).produceCSVFile());
+					return new FileInputStream(new ConnectorReportCSVProducer(table, (Long)linesField.getConvertedValue()).produceCSVFile());
 				} catch (IOException e) {
 					LOGGER.error("Error during CSV generation", e);
 					return null;
