@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public abstract class AbstractCSVProducer implements Iterator<List<String[]>> {
-    public final static int OFFSET = 1000;
+    public final static int OFFSET = 100000;
 
     private Long maxRow;
     private int currentPage;
