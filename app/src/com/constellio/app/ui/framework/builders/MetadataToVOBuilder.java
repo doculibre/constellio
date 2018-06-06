@@ -143,8 +143,8 @@ public class MetadataToVOBuilder implements Serializable {
 		Map<Locale, String> labels = new HashMap<Locale, String>();
 		Locale currentLocale = sessionContext.getCurrentLocale();
 		String metadataLabel = metadata.getLabel(Language.withCode(currentLocale.getLanguage()));
-		if (isMultiLingual && currentLocale != null) {
-			metadataLabel += " (" + currentLocale.getLanguage().toUpperCase() + ")";
+		if (isMultiLingual && locale != null) {
+			metadataLabel += " (" + locale.getLanguage().toUpperCase() + ")";
 		}
 		labels.put(currentLocale, metadataLabel);
 
