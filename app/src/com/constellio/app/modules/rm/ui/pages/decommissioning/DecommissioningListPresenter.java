@@ -3,7 +3,9 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.ValidateDecommissioningListProcessableParams;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -34,6 +36,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
@@ -62,6 +65,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	String recordId;
 
 	private Set<String> missingFolders = new HashSet<>();
+
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	public DecommissioningListPresenter(DecommissioningListView view) {
 		super(view, DecommissioningList.DEFAULT_SCHEMA);
@@ -96,33 +101,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<User> getAvailableManagers() throws DecommissioningEmailServiceException {
-
-
-//		AuthorizationsServices authorizationServices = modelLayerFactory.newAuthorizationsServices();
-//
-		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+	    SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 
 		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
 
-//		List<Authorization> recordAuthorizations = authorizationServices.getRecordAuthorizations(record);
-//		Set<String> allUsers = new HashSet<>();
-//		for(Authorization authorization: recordAuthorizations) {
-//			AuthorizationDetails detail = authorization.getDetail();
-//			List<String> roles = detail.getRoles();
-//			List<String> userIds = authorization.getGrantedToPrincipals();
-//			if(roles.contains("M")) {
-//				allUsers.addAll(userIds);
-//			}
-//		}
-//
-//		List<User> userList = new ArrayList<>();
-//
-//		for(String strUser : allUsers) {
-//			User user = schemasRecordsServices.getUser(strUser);
-//			userList.add(user);
-//		}
-//
-//		return userList;
 		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
 				.getUsersWithPermissionOnRecord(
 						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
@@ -260,6 +242,16 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
+
+		for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
+		    ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList);
+		    extension.validateProcessable(params);
+		    if (!params.getValidationErrors().isEmpty()) {
+		        view.showErrorMessage($(params.getValidationErrors().getValidationErrors().get(0)));
+		        return;
+            }
+        }
+
 //TODO show error message if exception is thrown
 		try {		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
@@ -930,7 +922,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {
-		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 		return rmModuleExtensions.getDecommissioningListFolderTableExtension();
 	}
 
