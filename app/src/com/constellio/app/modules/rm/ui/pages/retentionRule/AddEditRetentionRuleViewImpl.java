@@ -134,7 +134,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 			switch (metadataVO.getLocalCode()) {
 			case RetentionRule.COPY_RETENTION_RULES:
 				if (presenter.isFoldersCopyRetentionRulesVisible()) {
-					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter) {
+					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter, getSessionContext().getCurrentLocale()) {
 						@Override
 						protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
 							presenter.disposalTypeChanged(copyRetentionRule);
