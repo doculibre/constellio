@@ -2,13 +2,8 @@ package com.constellio.app.ui.pages.management.schemaRecords;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +15,24 @@ import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.FieldOverridePresenter;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.OverrideMode;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 @SuppressWarnings("serial")
 public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddEditSchemaRecordView>
@@ -34,20 +41,46 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditSchemaRecordPresenter.class);
 
 	private static final String CANNOT_CHANGE_LINKED_SCHEMA_WHEN_REFERENCED = "cannotChangeLinkedSchemaWhenReferenced";
+	
+	private String schemaCode;
+	
+	private RecordVO recordVO;
 
 	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view) {
 		super(view);
 	}
 
-	public void forSchema(String schemaCode) {
-		setSchemaCode(schemaCode);
+	public void forParams(String params) {
+		computeParams(params);
+		view.setRecordVO(recordVO);
 	}
+	
+	private void computeParams(String params) {
+		if (schemaCode == null) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+			schemaCode = paramsMap.get("schema");
+			String id = paramsMap.get("id");
+			String parentRecordId = paramsMap.get("parentRecordId");
 
-	public RecordVO getRecordVO(String id) {
-		if (StringUtils.isNotBlank(id)) {
-			return presenterService().getRecordVO(id, VIEW_MODE.FORM, view.getSessionContext());
-		} else {
-			return new RecordToVOBuilder().build(newRecord(), VIEW_MODE.FORM, view.getSessionContext());
+			RecordServices recordServices = recordServices();
+			Record record;
+			if (StringUtils.isNotBlank(id)) {
+				record = recordServices.getDocumentById(id);
+				schemaCode = record.getSchemaCode();
+			} else if (StringUtils.isNotBlank(parentRecordId)) {
+				Record parentRecord = recordServices.getDocumentById(parentRecordId);
+				schemaCode = parentRecord.getSchemaCode();
+				MetadataSchema schema = schema(schemaCode);
+				Metadata parentMetadata = schema.get(HierarchicalValueListItem.PARENT);
+				record = recordServices.newRecordWithSchema(schema);
+				record.set(parentMetadata, parentRecordId);
+			} else {
+				MetadataSchema schema = schema(schemaCode);
+				record = recordServices.newRecordWithSchema(schema);
+			}
+			
+			setSchemaCode(schemaCode);
+			recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.FORM, view.getSessionContext());
 		}
 	}
 
@@ -67,7 +100,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 			}
 
 			addOrUpdate(record);
-			view.navigate().to().listSchemaRecords(schemaCode);
+			view.navigate().to().displaySchemaRecord(record.getId());
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			LOGGER.error(e.getMessage(), e);
@@ -95,7 +128,8 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(params);
+		computeParams(params);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		return new SchemaRecordsPresentersServices(appLayerFactory).canManageSchemaType(schemaTypeCode, user);
 	}
 
@@ -111,7 +145,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	private String getLinkedSchemaType(String metadataCode) {
 
-		String ddvTypeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
+		String ddvTypeCode = SchemaUtils.getSchemaTypeCode(metadataCode);
 
 		for (MetadataSchemaType type : types().getSchemaTypes()) {
 			MetadataSchema defaultSchema = type.getDefaultSchema();
