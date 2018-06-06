@@ -49,7 +49,7 @@ public class TaxonomyManagementSearchViewImpl extends BaseViewImpl implements Ta
 
 	@Override
 	protected String getTitle() {
-		return presenter.getTaxonomy().getTitle().get(getSessionContext().getCurrentLocale().getLanguage());
+		return presenter.getTaxonomy().getTitle();
 	}
 
 	@Override

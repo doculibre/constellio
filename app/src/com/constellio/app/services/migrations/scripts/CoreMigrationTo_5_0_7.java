@@ -146,7 +146,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 		private MetadataSchemaTypeBuilder createReportSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Report.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
-
+			defaultSchema.get(Report.TITLE).setMultiLingual(true);
 			defaultSchema.createUndeletable(Report.USERNAME).setType(STRING);
 			defaultSchema.createUndeletable(Report.SCHEMA_TYPE_CODE).setType(STRING).setDefaultRequirement(true);
 			defaultSchema.createUndeletable(Report.COLUMNS_COUNT).setType(NUMBER);

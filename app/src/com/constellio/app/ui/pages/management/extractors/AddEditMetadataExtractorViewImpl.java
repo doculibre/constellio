@@ -13,6 +13,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.extractors.fields.ListAddRemoveRegexConfigField;
+import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -75,7 +76,7 @@ public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements Ad
 			@Override
 			public String getItemCaption(Object itemId) {
 				MetadataSchemaTypeVO schemaTypeVO = (MetadataSchemaTypeVO) itemId;
-				return schemaTypeVO.getLabel(getLocale());
+				return schemaTypeVO.getLabel(Language.withCode(getLocale().getLanguage()));
 			}
 		};
 		schemaTypeField.addItems(schemaTypeOptions);

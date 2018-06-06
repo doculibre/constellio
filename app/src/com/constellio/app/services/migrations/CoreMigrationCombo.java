@@ -58,8 +58,6 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -235,8 +233,9 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 			}
 
-			typesBuilder.getDefaultSchema(Facet.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
-			typesBuilder.getDefaultSchema(Report.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
+			for (String metadata : asList("facet_default_title", "report_default_title", "printable_default_title")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
 
 			//
 			//

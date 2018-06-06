@@ -366,7 +366,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			migrateLabel(typesBuilder);
 			migrateMetadatasForRequestEvents(typesBuilder);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setSortable(true);
-			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT);
+			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT)
+					.setMultiLingual(true);
 			typesBuilder.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE).setEssential(false);
 		}
 

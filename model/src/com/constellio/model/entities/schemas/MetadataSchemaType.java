@@ -130,10 +130,6 @@ public class MetadataSchemaType implements Serializable {
 		return inTransactionLog;
 	}
 
-	public List<MetadataSchema> getSchemas() {
-		return customSchemas;
-	}
-
 	public MetadataSchema getDefaultSchema() {
 		return defaultSchema;
 	}

@@ -43,7 +43,7 @@ public class AllowedReferencesTest extends ConstellioTest {
 
 		when(zeType.getCode()).thenReturn(allowedTypeCode);
 		when(zeType.getDefaultSchema()).thenReturn(zeTypeDefaultSchema);
-		when(zeType.getSchemas()).thenReturn(allowedSchemas);
+		when(zeType.getCustomSchemas()).thenReturn(allowedSchemas);
 		when(anotherType.getCode()).thenReturn("anotherType");
 
 		when(zeTypeDefaultSchema.getCode()).thenReturn("zeType_default");

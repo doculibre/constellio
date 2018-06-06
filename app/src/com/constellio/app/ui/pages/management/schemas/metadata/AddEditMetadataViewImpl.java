@@ -468,6 +468,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		multiLingualField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING
 				|| formMetadataVO.getValueType() == MetadataValueType.TEXT);
 
+		// TODO désactivé
+		multiLingualField.setVisible(false);
+
 
 				customAttributesField = new ArrayList<>();
 		for (String attribute : presenter.getAvailableExtraAttributes()) {

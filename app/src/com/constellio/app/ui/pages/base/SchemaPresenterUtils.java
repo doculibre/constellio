@@ -244,7 +244,12 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 			boolean systemReserved = metadata.isSystemReserved() && !metadata.hasSameCode(Schemas.LEGACY_ID);
 			if (!systemReserved && metadata.isEnabled() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
-				Object metadataValue = record.get(metadata);
+				Object metadataValue;
+				if (metadataVO.isMultiLingual() && metadataVO.getLocale() != null) {
+					metadataValue = record.get(metadata, metadataVO.getLocale());
+				} else {
+					metadataValue = record.get(metadata);
+				}
 				Object metadataVOValue = metadataValueVO.getValue();
 				if (metadataVOValue instanceof RecordVO) {
 					metadataVOValue = ((RecordVO) metadataVOValue).getId();
@@ -296,7 +301,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 					valueDifferent = !metadataValueVO.equals(metadataValue);
 				}
 				if (valueDifferent) {
-					record.set(metadata, metadataVOValue);
+					if (metadataVO.isMultiLingual() && metadataVO.getLocale() != null) {
+						metadataValue = record.set(metadata, metadataVO.getLocale(), metadataVOValue);
+					} else {
+						metadataValue = record.set(metadata, metadataVOValue);
+					}
 				}
 			}
 		}

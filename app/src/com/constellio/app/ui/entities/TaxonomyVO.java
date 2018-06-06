@@ -1,5 +1,6 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.entities.Language;
 
 import java.io.Serializable;
@@ -48,8 +49,20 @@ public class TaxonomyVO implements Serializable {
 		this.code = code;
 	}
 
-	public java.util.Map<Language, String> getTitle() {
+	public java.util.Map<Language, String> getTitleMap() {
 		return title;
+	}
+
+	public String getTitle(Language language) {
+		return title.get(language);
+	}
+
+
+	public String getTitle() {
+		if(title == null) {
+			return null;
+		}
+		return title.get(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
 	}
 
 	public void setTitle(java.util.Map<Language, String> title) {

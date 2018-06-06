@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
@@ -145,7 +144,6 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-			boolean isMultiLingual = language.size() > 1;
 
 			//Folder
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
@@ -163,7 +161,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 			ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
 			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, null,
-					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique(), isMultiLingual);
+					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
 
 			typesBuilder.getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA)
 					.get(VariableRetentionPeriod.CODE).setUnmodifiable(true).addValidator(IntegerStringValidator.class);
