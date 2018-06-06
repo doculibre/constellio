@@ -44,6 +44,12 @@ public class CorePermissions {
 	public static final String MANAGE_EXCEL_REPORT = permission(COLLECTION_MANAGEMENT, "manageExcelReport");
 	//public static final String MANAGE_SEARCH_CONFIG = permission(COLLECTION_MANAGEMENT, "manageSearchConfiguration");
 
+	public static final String ACCESS_SEARCH_CAPSULE = permission(COLLECTION_MANAGEMENT, "accessSearchCapsule",
+			Toggle.ADVANCED_SEARCH_CONFIGS);
+	public static final String MANAGE_SYNONYMS = permission(COLLECTION_MANAGEMENT, "manageSynonyms", Toggle.ADVANCED_SEARCH_CONFIGS);
+	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(COLLECTION_MANAGEMENT, "excludeAndRaiseOnSearchResult",
+			Toggle.ADVANCED_SEARCH_CONFIGS);
+
 	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(COLLECTION_MANAGEMENT);
 
 	// System management
@@ -61,7 +67,6 @@ public class CorePermissions {
 	public static final String MANAGE_LABELS = permission(SYSTEM_MANAGEMENT, "manageLabels");
 	public static final String MANAGE_PRINTABLE_REPORT = permission(SYSTEM_MANAGEMENT, "managePrintableReport");
 	public static final String VIEW_SYSTEM_BATCH_PROCESSES = permission(SYSTEM_MANAGEMENT, "viewSystemBatchProcesses");
-	public static final String MANAGE_SYNONYMS = permission(SYSTEM_MANAGEMENT, "manageSynonyms", Toggle.ADVANCED_SEARCH_CONFIGS);
 	public static final String DELETE_CORRECTION_SUGGESTION = permission(SYSTEM_MANAGEMENT, "deleteCorrectorSuggestion", Toggle.ADVANCED_SEARCH_CONFIGS);
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
@@ -72,9 +77,4 @@ public class CorePermissions {
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "seeAllTemporaryRecords");
 	public static final String ACCESS_DELETE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT,"accessDeleteAllTemporaryRecords");
-
-	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(SYSTEM_MANAGEMENT, "excludeAndRaiseOnSearchResult",
-			Toggle.ADVANCED_SEARCH_CONFIGS);
-	public static final String ACCESS_SEARCH_CAPSULE = permission(SYSTEM_MANAGEMENT, "accessSearchCapsule",
-			Toggle.ADVANCED_SEARCH_CONFIGS);
 }
