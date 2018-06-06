@@ -5,6 +5,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.services.metadata.MetadataDeletionException;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,6 +70,15 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 		presenter.displayButtonClicked(taxonomyVO);
 
 		verify(view.navigate().to()).taxonomyManagement("taxoCode");
+	}
+
+	@Test
+	public void whenDeleteButtonClickedThenNavigateToListTaxonomies() throws MetadataDeletionException {
+		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+
+		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
+		presenter.deleteButtonClicked("taxo1Code");
+		verify(view.navigate().to()).listTaxonomies();
 	}
 
 }
