@@ -89,7 +89,13 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 					}
 
 				}
-				summmaryColumnValue.append(addPrefixContentToString(textForMetadata.toString(), currentMap));
+				String prefixContentToStirng = addPrefixContentToString(textForMetadata.toString(), currentMap);
+
+				if(!Strings.isNullOrEmpty(prefixContentToStirng) && summmaryColumnValue.length() > 0) {
+					prefixContentToStirng = ", " + prefixContentToStirng;
+				}
+
+				summmaryColumnValue.append(prefixContentToStirng);
 			}
 		}
 		return summmaryColumnValue.toString();

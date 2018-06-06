@@ -385,7 +385,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
 			}
 		});
-		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("init.allTypes.allSchemas.title"));
+		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("init.allTypes.allSchemas.title"));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
 		table.setPageLength(Math.min(15, container.size()));
@@ -515,7 +515,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
-				dataProvider, asList(CommonMetadataBuilder.TITLE));
+				dataProvider, asList(CommonMetadataBuilder.SUMMARY));
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override

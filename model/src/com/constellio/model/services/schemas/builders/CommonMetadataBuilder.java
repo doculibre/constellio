@@ -57,6 +57,7 @@ public class CommonMetadataBuilder {
 	public static final String CREATED_ON = "createdOn";
 	public static final String MODIFIED_ON = "modifiedOn";
 	public static final String TITLE = "title";
+	public static final String SUMMARY = "summary";
 	public static final String FOLLOWERS = "followers";
 	public static final String LEGACY_ID = "legacyIdentifier";
 	public static final String SEARCHABLE = "searchable";
