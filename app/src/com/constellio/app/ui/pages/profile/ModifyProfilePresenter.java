@@ -163,7 +163,10 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
             } catch (Exception e) {
                 defaultAdministrativeUnit = null;
             }
-            hideNotActive = user.get(RMUser.HIDE_NOT_ACTIVE);
+            Boolean hideNotActiveUserParam = user.get(RMUser.HIDE_NOT_ACTIVE);
+            if (Boolean.TRUE.equals(hideNotActiveUserParam)) {
+                hideNotActive = true;
+            }
         }
         if (loginLanguage == null || loginLanguage.isEmpty()) {
             loginLanguage = view.getSessionContext().getCurrentLocale().getLanguage();
