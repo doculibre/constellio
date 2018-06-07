@@ -58,6 +58,10 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
 	}
 
+	public boolean hasAccessToBagInfoPage() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
+
 	public boolean isMultipleContainersButtonVisible() {
 		return (areContainersSequential() || Toggle.FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY.isEnabled())
 				&& presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
