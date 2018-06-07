@@ -5,8 +5,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +40,8 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 	private Converter<String, T> itemConverter;
 
 	private int prefixSize = 0; // Default value
+	
+	private Map<String, T> lastSuggestions = new HashMap<>();
 
 	public BaseAutocompleteField(final AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		super();
@@ -56,6 +60,7 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 					String stringSuggestion = getCaption(objectSuggestion);
 					if (!StringUtils.equalsIgnoreCase(stringSuggestion, term)) {
 						suggestions.add(new AutocompleteSuggestion(stringSuggestion));
+						lastSuggestions.put(stringSuggestion, objectSuggestion);
 					}
 				}
 				return suggestions;
@@ -66,6 +71,42 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 		setInputPrompt($("BaseAutocompleteField.inputPrompt"));
 		setNullRepresentation("");
 //		setPageLength(suggestionsProvider.getBufferSize());
+		setConverter(new Converter<String, T>() {
+			@Override
+			public T convertToModel(String value, Class<? extends T> targetType, Locale locale)
+					throws ConversionException {
+				T result;
+				if (value != null) {
+					result = lastSuggestions.get(value);
+				} else {
+					result = null;
+				}
+				return result;
+			}
+
+			@Override
+			public String convertToPresentation(T value, Class<? extends String> targetType, Locale locale)
+					throws ConversionException {
+				String result;
+				if (value != null) {
+					result = getCaption(value);
+				} else {
+					result = null;
+				}
+				return result;
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public Class<T> getModelType() {
+				return (Class<T>) Object.class;
+			}
+
+			@Override
+			public Class<String> getPresentationType() {
+				return String.class;
+			}
+		});
 	}
 
 	@Override
