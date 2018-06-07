@@ -951,4 +951,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
     public Set<String> getMissingFolders() {
         return missingFolders;
     }
+
+	public boolean hasAccessToSIPGeneration() {
+		return getCurrentUser().has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
+	}
 }
