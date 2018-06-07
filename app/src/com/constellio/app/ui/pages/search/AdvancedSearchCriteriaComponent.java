@@ -6,8 +6,6 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import java.io.Serializable;
 import java.util.*;
 
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.LocalDateTime;
 
@@ -256,7 +254,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildMultipleValuesComponent(final Criterion criterion) {
-
 			final ComboBox value = new BaseComboBox();
 			Map<String,String> metadataSchemas = presenter.getMetadataSchemasList(criterion.getSchemaType());
 			for(String code : metadataSchemas.keySet()){

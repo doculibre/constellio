@@ -34,6 +34,11 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 	}
 
+	public ListTaxonomyPresenter(ListTaxonomyView view, TaxonomiesManager taxonomiesManager) {
+		super(view);
+		this.taxonomiesManager = taxonomiesManager;
+	}
+
 	public List<TaxonomyVO> getTaxonomies() {
 		titles = new ArrayList<>();
 		TaxonomyToVOBuilder builder = new TaxonomyToVOBuilder();
@@ -82,7 +87,7 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		}
 	}
 
-	private void deleteMetadatasInClassifiedObjects(Taxonomy taxonomy) throws MetadataDeletionException {
+	protected void deleteMetadatasInClassifiedObjects(Taxonomy taxonomy) throws MetadataDeletionException {
 		String localFolderCode =  Folder.DEFAULT_SCHEMA +"_"+ taxonomy.getCode() + "Ref";
 		String localDocumentCode =  Document.DEFAULT_SCHEMA +"_"+ taxonomy.getCode() + "Ref";
 		MetadataSchema defaultFolderSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
@@ -98,7 +103,7 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		}
 	}
 
-	private boolean hasConcepts(Taxonomy taxonomy){
+	protected boolean hasConcepts(Taxonomy taxonomy){
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LogicalSearchQuery query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
 				.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
@@ -108,7 +113,7 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 	}
 
 	private MetadataDeletionService metadataDeletionService() {
-		if (metadataDeletionService == null) {
+		if (metadataDeletionService == null){
 			this.metadataDeletionService = new MetadataDeletionService(appLayerFactory, collection);
 		}
 		return metadataDeletionService;
