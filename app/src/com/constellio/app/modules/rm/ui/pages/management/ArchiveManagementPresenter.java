@@ -63,6 +63,10 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 				&& presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
+	public boolean hasAccessToBagInfoPage() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
+
 	private boolean areContainersSequential() {
 		return isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER) ||
 				isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
