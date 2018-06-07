@@ -138,6 +138,6 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return user.has(RMPermissionsTo.MANAGE_REPORTS).globally();
+        return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
     }
 }
