@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -31,6 +30,7 @@ import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogConte
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -40,10 +40,14 @@ import com.vaadin.server.ClientConnector;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Window;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
-	
+
 	private boolean visible;
 	private RecordVO recordVO;
 	private ContentVersionVO contentVersionVO;
@@ -80,7 +84,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			presenter.setRecordVO(documentVO);
 		}
 	}
-	
+
 	protected DocumentContextMenuPresenter newPresenter() {
 		return new DocumentContextMenuPresenter(this);
 	}
@@ -266,30 +270,25 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			});
 		}
 
-		if(presenter.hasMetadataReport()) {
-			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT);
+		if (presenter.hasMetadataReport()) {
+			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReport"),
+					FontAwesome.LIST_ALT);
 			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
 
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
-					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
+					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
+							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
 					button.setRecordVoList(presenter.getDocumentVO());
 					button.click();
 				}
 			});
 		}
 
-		//FIXME WorkflowExtension
-		if (true) {
-			ContextMenuItem workflowItem = addItem($("DocumentActionsComponent.startWorkflow"), FontAwesome.CODE_FORK);
-			workflowItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		presenter.addItemsFromExtensions(this, (BaseViewImpl) parentView);
 
-				}
-			});
-		}
 	}
 
 	@Override
@@ -495,5 +494,5 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			}
 		}
 	}
-	
+
 }

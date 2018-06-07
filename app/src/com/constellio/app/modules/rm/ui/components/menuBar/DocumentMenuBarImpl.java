@@ -276,7 +276,6 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			});
 		}
 
-		//FIXME WorkflowExtension
 		BaseViewImpl parentView = (BaseViewImpl) ConstellioUI.getCurrent().getCurrentView();
 		presenter.addItemsFromExtensions(rootItem, parentView);
 
