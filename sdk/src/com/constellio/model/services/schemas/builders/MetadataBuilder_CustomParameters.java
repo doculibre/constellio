@@ -1,7 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator1;
-import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
 import org.junit.Before;
 import org.junit.Test;
 

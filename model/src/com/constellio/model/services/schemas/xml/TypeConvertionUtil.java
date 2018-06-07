@@ -2,7 +2,6 @@ package com.constellio.model.services.schemas.xml;
 
 import com.constellio.model.services.exception.TypeRuntimeException;
 import com.rometools.utils.Strings;
-import com.sun.javafx.collections.MappingChange;
 import org.jdom2.Element;
 
 import java.util.*;

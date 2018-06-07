@@ -1,10 +1,7 @@
 package com.constellio.app.api.extensions.params;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-
-import javax.swing.text.View;
 
 public class ListSchemaExtraCommandParams {
     MetadataSchemaVO schemaVO;
