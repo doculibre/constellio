@@ -71,16 +71,8 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
 		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
 
-		Folder folder = rmRecordSchemaManager.newFolder();
 
-		folder.setAdministrativeUnitEntered(records.unitId_11b);
-		folder.setDescription("Ze description");
-		folder.setCategoryEntered(records.categoryId_X110);
-		folder.setTitle("Ze folder");
-		folder.setRetentionRuleEntered(records.ruleId_2);
-		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
-		folder.setOpenDate(new LocalDate(2014, 11, 4));
-
+		Folder folder = createFolder();
 		recordServices.add(folder);
 
 		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
@@ -102,7 +94,8 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
 		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
 
-		Folder folder = addFolder();
+		Folder folder = createFolder();
+		recordServices.add(folder);
 
 		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
 
@@ -112,18 +105,16 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	@NotNull
-	private Folder addFolder() throws RecordServicesException {
+	private Folder createFolder() throws RecordServicesException {
 		Folder folder = rmRecordSchemaManager.newFolder();
 
 		folder.setAdministrativeUnitEntered(records.unitId_11b);
-		folder.setDescription("Ze description");
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(records.ruleId_2);
 		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		folder.setOpenDate(new LocalDate(2014, 11, 4));
 
-		recordServices.add(folder);
 		return folder;
 	}
 
@@ -136,20 +127,10 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 		summaryColumnParams.setMetadataVO(findMetadata(Folder.TITLE));
 		summaryColumnParams.setPrefix("prefix :");
 		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnParams.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
 
 		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
 
-		Folder folder = rmRecordSchemaManager.newFolder();
-
-		folder.setAdministrativeUnitEntered(records.unitId_11b);
-		folder.setDescription("Ze description");
-		folder.setCategoryEntered(records.categoryId_X110);
-		folder.setTitle("Ze folder");
-		folder.setRetentionRuleEntered(records.ruleId_2);
-		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
-		folder.setOpenDate(new LocalDate(2014, 11, 4));
-
+		Folder folder = createFolder();
 		recordServices.add(folder);
 
 		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
@@ -172,14 +153,7 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
 		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
 
-		Folder folder = rmRecordSchemaManager.newFolder();
-
-		folder.setAdministrativeUnitEntered(records.unitId_11b);
-		folder.setDescription("Ze description");
-		folder.setCategoryEntered(records.categoryId_X110);
-		folder.setTitle("Ze folder");
-		folder.setRetentionRuleEntered(records.ruleId_2);
-		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		Folder folder = createFolder();
 
 		folder.setKeywords(asList("keyword1, keyword2, keyword3"));
 		folder.setOpenDate(new LocalDate(2014, 11, 4));
@@ -191,29 +165,39 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 		String summary = resultFolder.get(Folder.SUMMARY);
 
 		assertThat(summary).isEqualTo("prefix : keyword1, keyword2, keyword3");
-
 	}
 
 	@Test
-	public void givenOneFolderWithValueDynamicDependancyMultiValueAndDynamicDepencySingleThenSummaryMetadataHaveAValueTest()
+	public void givenOneFolderWithValueDynamicDependancyMultiValueAndTwoDynamicDepencySingleThenSummaryMetadataHaveAValueTest()
 			throws Exception {
-		SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
 
-		summaryColumnParams.setMetadataVO(findMetadata(Folder.KEYWORDS));
-		summaryColumnParams.setPrefix("prefix :");
-		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnParams.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+		SummaryColumnParams summaryColumnParams1 = new SummaryColumnParams();
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
+		summaryColumnParams1.setMetadataVO(findMetadata(Folder.KEYWORDS));
+		summaryColumnParams1.setPrefix("prefix1 :");
+		summaryColumnParams1.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
 
-		Folder folder = rmRecordSchemaManager.newFolder();
+		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams1);
 
-		folder.setAdministrativeUnitEntered(records.unitId_11b);
-		folder.setDescription("Ze description");
-		folder.setCategoryEntered(records.categoryId_X110);
-		folder.setTitle("Ze folder");
-		folder.setRetentionRuleEntered(records.ruleId_2);
-		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		SummaryColumnParams summaryColumnParams2 = new SummaryColumnParams();
+
+		summaryColumnParams2.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		summaryColumnParams2.setPrefix("prefix2 :");
+		summaryColumnParams2.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+		summaryColumnParams2.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+
+		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams2);
+
+		SummaryColumnParams summaryColumnParams3 = new SummaryColumnParams();
+
+		summaryColumnParams3.setMetadataVO(findMetadata(Folder.DESCRIPTION));
+		summaryColumnParams3.setPrefix("prefix3 :");
+		summaryColumnParams3.setDisplayCondition(SummaryColumnParams.DisplayCondition.COMPLETED);
+		summaryColumnParams3.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+
+		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams3);
+
+		Folder folder = createFolder();
 
 		folder.setKeywords(asList("keyword1, keyword2, keyword3"));
 		folder.setOpenDate(new LocalDate(2014, 11, 4));
@@ -224,8 +208,7 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
 		String summary = resultFolder.get(Folder.SUMMARY);
 
-		assertThat(summary).isEqualTo("prefix : keyword1, keyword2, keyword3");
-
+		assertThat(summary).isEqualTo("prefix1 : keyword1, keyword2, keyword3, prefix2 : 11B");
 	}
 
 	private MetadataVO findMetadata(String localCode) {

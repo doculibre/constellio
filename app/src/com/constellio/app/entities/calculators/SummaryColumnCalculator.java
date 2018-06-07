@@ -57,37 +57,38 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
 
 				StringBuilder textForMetadata = new StringBuilder();
-
-				if (metadata.getType() != MetadataValueType.REFERENCE) {
-					if (metadata.isMultivalue()) {
-						List metadataValue = values.getValue(localeCode);
-						for (int i = 0; i < metadataValue.size(); i++) {
-							Object object = metadataValue.get(i);
-							textForMetadata.append(getValue(values, parameters, metadata, object));
-							if (i != metadataValue.size() - 1) {
-								textForMetadata.append(", ");
+				if(metadata != null) {
+					if (metadata.getType() != MetadataValueType.REFERENCE) {
+						if (metadata.isMultivalue()) {
+							List metadataValue = values.getValue(localeCode);
+							for (int i = 0; i < metadataValue.size(); i++) {
+								Object object = metadataValue.get(i);
+								textForMetadata.append(getValue(values, parameters, metadata, object));
+								if (i != metadataValue.size() - 1) {
+									textForMetadata.append(", ");
+								}
 							}
+						} else {
+							Object metadataValue = values.getValue(localeCode);
+							textForMetadata.append(getValue(values, parameters, metadata, metadataValue));
 						}
 					} else {
-						Object metadataValue = values.getValue(localeCode);
-						textForMetadata.append(getValue(values, parameters, metadata, metadataValue));
-					}
-				} else {
-					ReferenceDependency referenceDependency = getReferenceDependancy(code);
+						ReferenceDependency referenceDependency = getReferenceDependancy(code);
 
-					if (metadata.isMultivalue()) {
-						List<String> valueList = (List<String>) parameters.get(referenceDependency);
-						for (int i = 0; i < valueList.size(); i++) {
-							textForMetadata.append(valueList.get(i));
-							if (i != valueList.size() - 1) {
-								textForMetadata.append(", ");
+						if (metadata.isMultivalue()) {
+							List<String> valueList = (List<String>) parameters.get(referenceDependency);
+							for (int i = 0; i < valueList.size(); i++) {
+								textForMetadata.append(valueList.get(i));
+								if (i != valueList.size() - 1) {
+									textForMetadata.append(", ");
+								}
 							}
+
+						} else {
+							textForMetadata.append((String) parameters.get(referenceDependency));
 						}
 
-					} else {
-						textForMetadata.append((String) parameters.get(referenceDependency));
 					}
-
 				}
 				String prefixContentToStirng = addPrefixContentToString(textForMetadata.toString(), currentMap);
 
