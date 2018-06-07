@@ -1,6 +1,6 @@
 package com.constellio.app.ui.framework.data;
 
-import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryColumnVO;
 
 import java.util.Collections;
 import java.util.List;

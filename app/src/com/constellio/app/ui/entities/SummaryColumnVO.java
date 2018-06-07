@@ -1,6 +1,4 @@
-package com.constellio.app.modules.rm.ui.pages.folder;
-
-import com.constellio.app.ui.entities.MetadataVO;
+package com.constellio.app.ui.entities;
 
 public class SummaryColumnVO {
     String prefix;

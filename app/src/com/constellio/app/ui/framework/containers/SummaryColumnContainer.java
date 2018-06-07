@@ -1,6 +1,6 @@
 package com.constellio.app.ui.framework.containers;
 
-import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;

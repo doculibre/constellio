@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
-import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.exception.TypeRuntimeException;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -226,7 +226,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
-                types.getSchema(getSchemaCode()).get(Folder.SUMMARY).setCustomParameter(customParameter);
+                types.getSchema(getSchemaCode()).get(Schemas.SUMMARY.getLocalCode()).setCustomParameter(customParameter);
             }
         });
     }
@@ -308,7 +308,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
     public Metadata getSummaryMetadata() {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-        Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(Folder.SUMMARY);
+        Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(Schemas.SUMMARY.getLocalCode());
         return metadata;
     }
 

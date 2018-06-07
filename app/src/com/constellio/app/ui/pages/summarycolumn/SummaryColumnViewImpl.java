@@ -1,6 +1,6 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
-import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -16,7 +16,6 @@ import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
-import org.springframework.core.annotation.Order;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
@@ -257,10 +256,9 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
     public void deleteRow(final SummaryColumnVO columnVO) {
 
-        String message = $("SummaryColumnViewImpl.save.message");
-
+        String message = $("SummaryColumnViewImpl.deleteConfirmationMesssage");
         if(!presenter.isReindextionFlag()) {
-            message = $("SummaryColumnViewImpl.deleteConfirmationMesssage") + message;
+            message = $("SummaryColumnViewImpl.save.message") + " " + message;
         }
 
 

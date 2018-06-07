@@ -1,6 +1,6 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
-import com.constellio.app.modules.rm.ui.pages.folder.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.pages.base.BaseView;
 import org.vaadin.dialogs.ConfirmDialog;
 
