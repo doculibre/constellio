@@ -185,7 +185,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
     private void refreshMetadataCombox() {
         metadataComboBox.removeAllItems();
         for(MetadataVO metadataVO : presenter.getMetadatas()) {
-            if(metadataVO.getType() != MetadataValueType.STRUCTURE && metadataVO.getLocalCode().equals("summary")) {
+            if(metadataVO.getType() != MetadataValueType.STRUCTURE && !metadataVO.getLocalCode().equals("summary")) {
                 metadataComboBox.addItem(metadataVO);
             }
         }
