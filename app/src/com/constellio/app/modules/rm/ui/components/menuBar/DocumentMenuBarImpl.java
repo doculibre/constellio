@@ -29,6 +29,7 @@ import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -44,7 +45,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
 public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
-	
+
 	private boolean visible = true;
 	private RecordVO recordVO;
 	private ContentVersionVO contentVersionVO;
@@ -77,7 +78,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			presenter.setRecordVO(documentVO);
 		}
 	}
-	
+
 	protected DocumentMenuBarPresenter newPresenter() {
 		return new DocumentMenuBarPresenter(this);
 	}
@@ -92,14 +93,14 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 		this.visible = visible;
 	}
-	
+
 	@Override
 	public void buildMenuItems() {
 		removeItems();
 
 		MenuItem rootItem = addItem("", FontAwesome.BARS, null);
 		rootItem.setIcon(FontAwesome.BARS);
-		
+
 		if (StringUtils.isNotBlank(borrowedMessage)) {
 			rootItem.addItem(borrowedMessage, null);
 		}
@@ -127,7 +128,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (downloadDocumentButtonVisible) {
-			MenuItem downloadDocumentItem = rootItem.addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD, null);
+			MenuItem downloadDocumentItem = rootItem
+					.addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD, null);
 			downloadDocumentItem.setCommand(new Command() {
 				@SuppressWarnings("deprecation")
 				@Override
@@ -191,7 +193,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (shareDocumentButtonVisible) {
-			MenuItem shareDocumentItem = rootItem.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, null);
+			MenuItem shareDocumentItem = rootItem
+					.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, null);
 			shareDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -221,7 +224,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (alertWhenAvailableButtonVisible) {
-			MenuItem alertWhenAvailableItem = rootItem.addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, null);
+			MenuItem alertWhenAvailableItem = rootItem
+					.addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, null);
 			alertWhenAvailableItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -256,8 +260,9 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			});
 		}
 
-		if(presenter.hasMetadataReport()) {
-		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT, null);
+		if (presenter.hasMetadataReport()) {
+			MenuItem metadataReportGenerator = rootItem
+					.addItem($("DocumentActionsComponent.printMetadataReport"), FontAwesome.LIST_ALT, null);
 			metadataReportGenerator.setCommand(new Command() {
 
 				@Override
@@ -272,15 +277,9 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		//FIXME WorkflowExtension
-		if (true) {
-			MenuItem workflowItem = rootItem.addItem($("DocumentActionsComponent.startWorkflow"), FontAwesome.CODE_FORK, null);
-			workflowItem.setCommand(new Command() {
-				@Override
-				public void menuSelected(MenuItem selectedItem) {
+		BaseViewImpl parentView = (BaseViewImpl) ConstellioUI.getCurrent().getCurrentView();
+		presenter.addItemsFromExtensions(rootItem, parentView);
 
-				}
-			});
-		}
 	}
 
 	@Override
