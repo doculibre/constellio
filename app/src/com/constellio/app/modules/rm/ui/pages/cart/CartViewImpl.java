@@ -383,10 +383,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			@Override
 			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
 				Property loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
-				String value = (String) loadContainerProperty.getValue();
-				if(Strings.isNullOrEmpty(value)) {
-					loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+				if(loadContainerProperty.getValue() instanceof String) {
+					String value = (String) loadContainerProperty.getValue();
+					if (Strings.isNullOrEmpty(value)) {
+						loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+					}
 				}
+
 				return loadContainerProperty;
 			}
 

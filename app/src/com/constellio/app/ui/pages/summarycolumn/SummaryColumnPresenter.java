@@ -76,18 +76,18 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
             for (Object listObject : (List) objectList) {
                 Map<String, Object> mapObject = (Map<String, Object>) listObject;
 
-                SummaryColumnVO columnResumeParams = new SummaryColumnVO();
+                SummaryColumnVO summaryCoumnVo = new SummaryColumnVO();
                 String metadataCode = (String) mapObject.get("metadataCode");
                 MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
                 MetadataVO metadataVO = metadataToVOBuilder.build(getMetadata(metadataCode), view.getSessionContext());
 
-                columnResumeParams.setMetadataVO(metadataVO);
-                columnResumeParams.setPrefix((String) mapObject.get("prefix"));
-                columnResumeParams.setAlwaysShown(Boolean.TRUE.toString().equals(mapObject.get(IS_ALWAYS_SHOWN)));
-                columnResumeParams.setReferenceMetadataDisplay((Integer) mapObject.get(REFERENCE_METADATA_DISPLAY));
+                summaryCoumnVo.setMetadataVO(metadataVO);
+                summaryCoumnVo.setPrefix((String) mapObject.get("prefix"));
+                summaryCoumnVo.setAlwaysShown((Boolean) mapObject.get(IS_ALWAYS_SHOWN));
+                summaryCoumnVo.setReferenceMetadataDisplay((Integer) mapObject.get(REFERENCE_METADATA_DISPLAY));
 
 
-                lSummaryColumnVOList.add(columnResumeParams);
+                lSummaryColumnVOList.add(summaryCoumnVo);
             }
         }
 
