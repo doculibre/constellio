@@ -1,9 +1,13 @@
 package com.constellio.app.ui.pages.management.extractors;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
@@ -33,10 +37,12 @@ import org.apache.tika.io.IOUtils;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class PropertiesAnalyserViewImpl extends BaseViewImpl implements PropertiesAnalyserView {
 
@@ -150,6 +156,47 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 			@Override
 			public void buttonClick(ClickEvent event) {
 				presenter.backButtonClicked();
+			}
+		};
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+				return asList(new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ViewGroup.AdminViewGroup");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to().adminModule();
+					}
+				},
+				new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListMetadataExtractorsView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to().listMetadataExtractors();
+					}
+				});
 			}
 		};
 	}
