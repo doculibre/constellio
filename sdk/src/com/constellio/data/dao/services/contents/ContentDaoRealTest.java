@@ -114,7 +114,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 					tuple("an", false),
 					tuple("anIdWithA", false),
 					tuple("z+", false),
-					tuple("recoveryfile.bac", true)
+					tuple("vaultrecoveryfolder", false)
 			);
 
 			assertThat(new File(root, "an").listFiles()).extracting("name", "file").containsOnly(
@@ -171,7 +171,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 			File root = ((FileSystemContentDao) vaultDao).rootFolder;
 			assertThat(root.listFiles()).extracting("name", "file").containsOnly(
 					tuple("a", false),
-					tuple("recoveryfile.bac", true),
+					tuple("vaultrecoveryfolder", false),
 					tuple("z", false)
 			);
 
@@ -506,11 +506,9 @@ public class ContentDaoRealTest extends ConstellioTest {
 	private void assertVaultAndReplicationVaultAreEmpty() throws IOException {
 		// Then
 		List<Path> filePresentInRootFolder = listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath());
-		assertThat(filePresentInRootFolder.size()).isEqualTo(1);
-		assertThat(filePresentInRootFolder.get(0).toString().endsWith("recoveryfile.bac")).isTrue();
+		assertThat(filePresentInRootFolder.size()).isEqualTo(0);
 		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
-			List<Path> filePresentInReplicatedRootFolder = listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath());
-			assertThat(filePresentInReplicatedRootFolder.get(0).toString().endsWith("recoveryfile.bac")).isTrue();
+			assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isEmpty();
 		}
 	}
 }
