@@ -683,4 +683,7 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
+    public void propertiesAnalyser() {
+		navigator.navigateTo(NavigatorConfigurationService.PROPERTIES_ANALYSER);
+    }
 }
