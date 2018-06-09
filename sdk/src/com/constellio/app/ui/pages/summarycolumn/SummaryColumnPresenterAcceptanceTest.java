@@ -92,7 +92,7 @@ public class SummaryColumnPresenterAcceptanceTest extends ConstellioTest {
         SummaryColumnParams summaryColumnParams2 = new SummaryColumnParams();
         summaryColumnParams2.setPrefix("b");
         summaryColumnParams2.setDisplayCondition(SummaryColumnParams.DisplayCondition.COMPLETED);
-        summaryColumnParams2.setMetadataVO(builder.build(rmSchemasRecordsServices.folder.title(), FakeSessionContext.adminInCollection(zeCollection)));
+        summaryColumnParams2.setMetadataVO(builder.build(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"), FakeSessionContext.adminInCollection(zeCollection)));
 
         summaryColumnPresenterFolderEmploye.addMetadaForSummary(summaryColumnParams2);
 
@@ -104,8 +104,8 @@ public class SummaryColumnPresenterAcceptanceTest extends ConstellioTest {
 
         assertThat(summaryColomnList).isNotNull();
         assertThat(summaryColomnList.size()).isEqualTo(1);
-        assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folder.title().getCode());
+        assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"));
         assertThat(summarymap.get(SummaryColumnPresenter.PREFIX)).isEqualTo("b");
-        assertThat(summarymap.get(SummaryColumnPresenter.IS_ALWAYS_SHOWN)).isEqualTo(true);
+        assertThat(summarymap.get(SummaryColumnPresenter.IS_ALWAYS_SHOWN)).isEqualTo(false);
     }
 }
