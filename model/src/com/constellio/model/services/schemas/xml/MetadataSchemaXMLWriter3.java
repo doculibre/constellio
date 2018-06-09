@@ -77,6 +77,14 @@ public class MetadataSchemaXMLWriter3 {
 
 		writeLabels(defaultSchemaElement, defaultSchema.getLabels());
 		//		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
+		addAllMetadataToSchema(collectionSchema, defaultSchema, defaultSchemaElement);
+		if (!defaultSchema.getValidators().isEmpty()) {
+			defaultSchemaElement.addContent(writeSchemaValidators(defaultSchema));
+		}
+		schemaTypeElement.addContent(defaultSchemaElement);
+	}
+
+	private void addAllMetadataToSchema(MetadataSchema collectionSchema, MetadataSchema defaultSchema, Element defaultSchemaElement) {
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
@@ -86,10 +94,6 @@ public class MetadataSchemaXMLWriter3 {
 
 			addMetadataToSchema(defaultSchemaElement, metadata, metadataInCollectionSchema);
 		}
-		if (!defaultSchema.getValidators().isEmpty()) {
-			defaultSchemaElement.addContent(writeSchemaValidators(defaultSchema));
-		}
-		schemaTypeElement.addContent(defaultSchemaElement);
 	}
 
 	private Element writeSchemaValidators(MetadataSchema defaultSchema) {
@@ -163,15 +167,7 @@ public class MetadataSchemaXMLWriter3 {
 		schemaElement.setAttribute("code", schema.getLocalCode());
 		writeLabels(schemaElement, schema.getLabels());
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
-		for (Metadata metadata : schema.getMetadatas()) {
-			Metadata globalMetadataInCollectionSchema = null;
-			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode()) && collectionSchema
-					.hasMetadataWithCode(metadata.getLocalCode())) {
-				globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadata.getLocalCode());
-			}
-
-			addMetadataToSchema(schemaElement, metadata, globalMetadataInCollectionSchema);
-		}
+		addAllMetadataToSchema(collectionSchema, schema, schemaElement);
 		if (!schema.getValidators().isEmpty()) {
 			schemaElement.addContent(writeSchemaValidators(schema));
 		}
@@ -509,6 +505,11 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("duplicable", writeBoolean(metadata.isDuplicable()));
 			differentFromInheritance = true;
 		}
+
+		if(metadata.getCustomParameter() != null && metadata.getCustomParameter().size() > 0) {
+			metadataElement.addContent(toCustomParameterElement(metadata));
+		}
+
 		return differentFromInheritance;
 	}
 

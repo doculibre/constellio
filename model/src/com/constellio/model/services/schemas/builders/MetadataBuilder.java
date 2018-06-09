@@ -137,7 +137,6 @@ public class MetadataBuilder {
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
 		builder.multiLingual = defaultMetadata.multiLingual;
 		builder.customAttributes = defaultMetadata.customAttributes;
-		builder.customParameter = defaultMetadata.customParameter;
 
 		return builder;
 	}
@@ -298,11 +297,8 @@ public class MetadataBuilder {
 			builder.duplicable = metadata.isDuplicable();
 		}
 
-		if(metadata.getCustomParameter() == null || metadata.getCustomParameter().size() <= 0) {
-			builder.customParameter = new HashMap<>(inheritanceMetadata.getCustomParameter());
-		} else {
-			builder.customParameter = metadata.getCustomParameter();
-		}
+		builder.customParameter = metadata.getCustomParameter();
+
 	}
 
 	public MetadataBuilder getInheritance() {
