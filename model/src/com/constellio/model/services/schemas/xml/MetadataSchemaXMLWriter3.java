@@ -48,7 +48,6 @@ public class MetadataSchemaXMLWriter3 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
-
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
 				new ArrayList<String>(), Arrays.asList(Language.French, Language.English), MetadataNetwork.EMPTY()), document);
@@ -84,7 +83,8 @@ public class MetadataSchemaXMLWriter3 {
 		schemaTypeElement.addContent(defaultSchemaElement);
 	}
 
-	private void addAllMetadataToSchema(MetadataSchema collectionSchema, MetadataSchema defaultSchema, Element defaultSchemaElement) {
+	private void addAllMetadataToSchema(MetadataSchema collectionSchema, MetadataSchema defaultSchema,
+			Element defaultSchemaElement) {
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
@@ -306,7 +306,7 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.addContent(writeRecordMetadataValidators(metadata));
 		}
 
-		if(metadata.getCustomParameter() != null && !metadata.getCustomParameter().isEmpty()) {
+		if (metadata.getCustomParameter() != null && !metadata.getCustomParameter().isEmpty()) {
 			metadataElement.addContent(toCustomParameterElement(metadata));
 		}
 
@@ -506,8 +506,9 @@ public class MetadataSchemaXMLWriter3 {
 			differentFromInheritance = true;
 		}
 
-		if(metadata.getCustomParameter() != null && metadata.getCustomParameter().size() > 0) {
+		if (metadata.getCustomParameter() != null && metadata.getCustomParameter().size() > 0) {
 			metadataElement.addContent(toCustomParameterElement(metadata));
+			differentFromInheritance = true;
 		}
 
 		return differentFromInheritance;
@@ -524,22 +525,19 @@ public class MetadataSchemaXMLWriter3 {
 	private Element toCustomParameterElement(Metadata metadata) {
 
 		Element customElement = new Element("customParameter");
-		for(String keyToCustomParameter : metadata.getCustomParameter().keySet()) {
+		for (String keyToCustomParameter : metadata.getCustomParameter().keySet()) {
 			Map<String, Object> customParameter = metadata.getCustomParameter();
 
 			Object value = customParameter.get(keyToCustomParameter);
 
 			Element element = TypeConvertionUtil.getElement(keyToCustomParameter, value);
-			if(element != null) {
+			if (element != null) {
 				customElement.addContent(element);
 			}
 		}
 
 		return customElement;
 	}
-
-
-
 
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {
 		Element populateConfigsElement = new Element("populateConfigs");
