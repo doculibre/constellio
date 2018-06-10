@@ -401,7 +401,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
 			}
 		});
-		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("init.allTypes.allSchemas.title"));
+		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.title"));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
 		table.setPageLength(Math.min(15, container.size()));

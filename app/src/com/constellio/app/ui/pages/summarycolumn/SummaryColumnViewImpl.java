@@ -56,6 +56,11 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
     }
 
     @Override
+    public String getTitle() {
+        return $("SummaryColumnViewImpl.title");
+    }
+
+    @Override
     public SummaryColumnPresenter getSummaryColumnPresenter() {
         return presenter;
     }
