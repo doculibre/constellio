@@ -104,7 +104,7 @@ public class SummaryColumnPresenterAcceptanceTest extends ConstellioTest {
 
         assertThat(summaryColomnList).isNotNull();
         assertThat(summaryColomnList.size()).isEqualTo(1);
-        assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"));
+        assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title").getCode());
         assertThat(summarymap.get(SummaryColumnPresenter.PREFIX)).isEqualTo("b");
         assertThat(summarymap.get(SummaryColumnPresenter.IS_ALWAYS_SHOWN)).isEqualTo(false);
     }

@@ -218,11 +218,7 @@ public class Metadata implements DataStoreField {
 		this.dataStoreCode = computeDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
-		if(customParameter == null || customParameter.size() <= 0) {
-			this.customParameter = Collections.unmodifiableMap(inheritance.getCustomParameter());
-		} else {
-			this.customParameter = Collections.unmodifiableMap(customParameter);
-		}
+		this.customParameter = Collections.unmodifiableMap(customParameter);
 	}
 
 	public Map<String, Object> getCustomParameter() {

@@ -736,8 +736,8 @@ public class MetadataBuilder {
 			duplicable = inheritance.isDuplicable();
 		}
 
-		if(customParameter == null || customParameter.size() <= 0) {
-			customParameter = inheritance.getCustomParameter();
+		if(customParameter == null) {
+			customParameter = new HashMap<>();
 		}
 
 		return new Metadata(inheritance, this.getLabels(), this.getEnabled(), this.getDefaultRequirement(), this.code,

@@ -26,6 +26,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 import com.google.common.base.Strings;
 
 public class SummaryColumnCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
@@ -53,7 +54,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 			for (Map currentMap : listMap) {
 				String code = (String) currentMap.get(METADATA_CODE);
-				String localeCode = getLocalCodeFromCode(code);
+				String localeCode = TypeConvertionUtil.getMetadataLocalCode(code);
 				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
 
 				StringBuilder textForMetadata = new StringBuilder();
@@ -211,13 +212,6 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		return returnValue;
 	}
 
-	public static String getLocalCodeFromCode(String code) {
-		if (code == null) {
-			return null;
-		}
-		return code.substring(code.lastIndexOf("_") + 1, code.length());
-	}
-
 	@Override
 	public String getDefaultValue() {
 		return "";
@@ -248,7 +242,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 			if (list != null) {
 				for (Map listItem : (List<Map>) list) {
-					if (listItem.get(METADATA_CODE).equals(metadata.getCode()) || metadata.getLocalCode()
+					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE)).equals(metadata.getLocalCode()) || metadata.getLocalCode()
 							.equals(Schemas.TITLE.getLocalCode())) {
 						return true;
 					}

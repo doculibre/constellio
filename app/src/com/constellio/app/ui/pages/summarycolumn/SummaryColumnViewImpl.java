@@ -18,8 +18,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -65,7 +64,8 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
         metadataComboBox = new BaseComboBox($("SummaryColumnViewImpl.metadata"));
 
-        final List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
+        List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
+
 
         metadataComboBox.setTextInputAllowed(false);
         metadataComboBox.setRequired(true);
@@ -183,7 +183,18 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
     private void refreshMetadataCombox() {
         metadataComboBox.removeAllItems();
-        for(MetadataVO metadataVO : presenter.getMetadatas()) {
+
+        List<MetadataVO> metadataVOS = presenter.getMetadatas();
+
+        Collections.sort(metadataVOS, new Comparator<MetadataVO>() {
+            @Override
+            public int compare(MetadataVO o1, MetadataVO o2) {
+                Locale currentLocale = getSessionContext().getCurrentLocale();
+                return o1.getLabel(currentLocale).compareTo(o2.getLabel(currentLocale));
+            }
+        });
+
+        for(MetadataVO metadataVO : metadataVOS) {
             if(metadataVO.getType() != MetadataValueType.STRUCTURE && !metadataVO.getLocalCode().equals("summary")) {
                 metadataComboBox.addItem(metadataVO);
             }

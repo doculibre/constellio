@@ -11,7 +11,7 @@ import java.util.Map;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MetadataBuilder_CustomParameters extends MetadataBuilderTest {
+public class MetadataBuilder_CustomParametersTest extends MetadataBuilderTest {
 
     java.util.Map<String, Object> customParameterMap1;
     java.util.Map<String, Object> customParameterMap2;
@@ -65,8 +65,7 @@ public class MetadataBuilder_CustomParameters extends MetadataBuilderTest {
     }
 
     @Test
-    public void givenMetadatanWithCustomParameterAndInheritanceWhenBuildingThenMetadataWithInheritanceHasAll()
-            throws Exception {
+    public void givenMetadatanWithCustomParameterAndInheritanceWhenBuildingThenMetadataWithInheritanceHasAll() {
 
         inheritedMetadataBuilder.setType(STRING).setCustomParameter(customParameterMap1);
         metadataWithInheritanceBuilder.setCustomParameter(customParameterMap2);
@@ -100,8 +99,7 @@ public class MetadataBuilder_CustomParameters extends MetadataBuilderTest {
     }
 
     @Test
-    public void givenMetadataCustomParameterInMetadataAndInheritanceWhenModifyingThenMetadataWithInheritanceHasOnlyValueFromCustom()
-            throws Exception {
+    public void givenMetadataCustomParameterInMetadataAndInheritanceWhenModifyingThenMetadataWithInheritanceHasOnlyValueFromCustom() {
         inheritedMetadataBuilder.setType(STRING).setCustomParameter(customParameterMap1);
         metadataWithInheritanceBuilder.setCustomParameter(customParameterMap2);
 
@@ -135,8 +133,7 @@ public class MetadataBuilder_CustomParameters extends MetadataBuilderTest {
     }
 
     @Test
-    public void givenRecordMetadataValidatorsDefinedDuplicatelyInMetadataAndInheritanceWhenBuildingThenNoDuplicate()
-            throws Exception {
+    public void givenRecordMetadataValidatorsDefinedDuplicatelyInMetadataAndInheritanceWhenBuildingThenNoDuplicate() {
         inheritedMetadataBuilder.setType(STRING).setCustomParameter(customParameterMap1);
 
 

@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
-import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.exception.TypeRuntimeException;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -69,6 +69,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
 
     public List<SummaryColumnVO> summaryColumnVOList() {
+        MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
         Object objectList = getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
         List<SummaryColumnVO> lSummaryColumnVOList = new ArrayList<>();
 
@@ -78,14 +79,14 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
                 SummaryColumnVO summaryCoumnVo = new SummaryColumnVO();
                 String metadataCode = (String) mapObject.get("metadataCode");
+                Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(TypeConvertionUtil.getSchemaCode(metadataCode)).getMetadatas().getMetadataWithLocalCode(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
                 MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
-                MetadataVO metadataVO = metadataToVOBuilder.build(getMetadata(metadataCode), view.getSessionContext());
+                MetadataVO metadataVO = metadataToVOBuilder.build(metadata, view.getSessionContext());
 
                 summaryCoumnVo.setMetadataVO(metadataVO);
                 summaryCoumnVo.setPrefix((String) mapObject.get("prefix"));
                 summaryCoumnVo.setAlwaysShown((Boolean) mapObject.get(IS_ALWAYS_SHOWN));
                 summaryCoumnVo.setReferenceMetadataDisplay((Integer) mapObject.get(REFERENCE_METADATA_DISPLAY));
-
 
                 lSummaryColumnVOList.add(summaryCoumnVo);
             }
@@ -94,26 +95,27 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         return lSummaryColumnVOList;
     }
 
-    public void modifyMetadataForSummaryColumn(SummaryColumnParams summaryColumnParams) {
-        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
-        List list = (List) modifiableMap.get(SUMMARY_COLOMN);
+    public void modifyMetadataForSummaryColumn(SummaryColumnParams summaryColumnParams) {
+        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+
+        List<Map<String,Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
 
         Map<String,Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
 
         summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
         summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
         if(summaryColumnParams.getReferenceMetadataDisplay() != null) {
-            summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay());
+            summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay().ordinal());
         }
 
         saveMetadata(modifiableMap);
     }
 
     public void deleteMetadataForSummaryColumn(SummaryColumnVO summaryColumnParams) {
-        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap( getSummaryMetadata().getCustomParameter());
 
-        List list = (List) modifiableMap.get(SUMMARY_COLOMN);
+        List<Map<String,Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
 
         Map<String,Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
 
@@ -145,7 +147,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
         return -1;
     }
 
-    public int findMetadataInMapList(List<Map> mapList, String metadataCode) {
+    public int findMetadataInMapList(List<Map<String,Object>> mapList, String metadataCode) {
         int index = -1;
 
         if(mapList == null) {
@@ -164,8 +166,8 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     }
 
     public void moveMetadataDown(String metadataCode) {
-        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
-        List<Map> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+        List<Map<String,Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
 
         int index = findMetadataInMapList(list, metadataCode);
 
@@ -180,8 +182,8 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     }
 
     public void moveMetadataUp(String metadataCode) {
-        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
-        List<Map> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+        List<Map<String,Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
 
         int index = findMetadataInMapList(list, metadataCode);
 
@@ -196,9 +198,9 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
     }
 
     public void addMetadaForSummary(SummaryColumnParams summaryColumnParams) {
-        Map modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
+        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
-        List list = (List) modifiableMap.get(SUMMARY_COLOMN);
+        List<Map<String,Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
 
         if(list == null) {
             list = new ArrayList();
@@ -219,14 +221,14 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
     public void saveMetadata(final Map<String, Object> customParameter) {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-        if(!isListMapEqual(originalCustomParametersSummaryColumn, (List<Map<String, Object>>) customParameter.get(SUMMARY_COLOMN))
+        if(!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(SUMMARY_COLOMN))
                 && !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
             appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
         }
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
-                types.getSchema(getSchemaCode()).get(Schemas.SUMMARY.getLocalCode()).setCustomParameter(customParameter);
+                types.getSchema(getSchemaCode()).get("summary").setCustomParameter(customParameter);
             }
         });
     }
@@ -308,7 +310,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
     public Metadata getSummaryMetadata() {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-        Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(Schemas.SUMMARY.getLocalCode());
+        Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata("summary");
         return metadata;
     }
 

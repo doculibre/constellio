@@ -214,4 +214,22 @@ public class TypeConvertionUtil {
 
         return element;
     }
+
+    public static String getMetadataLocalCode(String code) {
+        if(code == null)  {
+            return null;
+        }
+
+        int index = code.lastIndexOf("_");
+        return code.substring(index + 1, code.length());
+    }
+
+    public static String getSchemaCode(String code) {
+        if(code == null)  {
+            return null;
+        }
+
+        int index = code.lastIndexOf("_");
+        return code.substring(0, index);
+    }
 }

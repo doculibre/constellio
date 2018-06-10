@@ -16,15 +16,7 @@ public class ListSchemaExtraCommandParams {
         return schemaVO;
     }
 
-    public void setSchemaVO(MetadataSchemaVO schemaVO) {
-        this.schemaVO = schemaVO;
-    }
-
     public BaseViewImpl getView() {
         return view;
-    }
-
-    public void setView(BaseViewImpl view) {
-        this.view = view;
     }
 }
