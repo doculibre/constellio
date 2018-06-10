@@ -280,8 +280,13 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
-			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-			reloadCurrentTask();
+			try {
+				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
+				reloadCurrentTask();
+			} catch (RecordServicesException e) {
+				view.showErrorMessage(e.getMessage());
+				e.printStackTrace();
+			}
 		}
 	}
 

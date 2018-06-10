@@ -188,12 +188,22 @@ public class QuickCompleteWindow {
     }
 
     private void completeQuicklyButtonClicked(Task task, String decision, Boolean accepted, String reason) {
-        quickCompleteTask(appLayerFactory, task, decision, accepted, reason, view.getSessionContext().getCurrentUser().getId());
+        try {
+            quickCompleteTask(appLayerFactory, task, decision, accepted, reason, view.getSessionContext().getCurrentUser().getId());
+        } catch (RecordServicesException e) {
+            e.printStackTrace();
+            view.showErrorMessage(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            view.showErrorMessage(e.getMessage());
+            throw new RuntimeException();
+        }
+
         presenter.reloadTaskModified(task);
     }
 
     static public void quickCompleteTask(AppLayerFactory appLayerFactory, Task task,
-                                         String decision, Boolean accepted, String reason, String respondantId) {
+                                         String decision, Boolean accepted, String reason, String respondantId) throws RecordServicesException {
         TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(task.getCollection(), appLayerFactory);
         TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemas);
         TaskStatus finishedStatus = tasksSearchServices
@@ -208,11 +218,7 @@ public class QuickCompleteWindow {
         }
 
         task.setDecision(decision);
-        try {
-            appLayerFactory.getModelLayerFactory().newRecordServices().update(task);
-        } catch (RecordServicesException e) {
-            e.printStackTrace();
-        }
+        appLayerFactory.getModelLayerFactory().newRecordServices().update(task);
     }
 
     public void show() {

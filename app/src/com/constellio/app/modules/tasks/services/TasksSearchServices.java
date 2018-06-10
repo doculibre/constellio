@@ -41,7 +41,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
@@ -53,7 +53,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {
@@ -72,7 +72,7 @@ public class TasksSearchServices {
 								)
 						)
 				));
-		return new LogicalSearchQuery(condition).filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
+		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getDirectSubTasks(String taskId, User user) {
@@ -80,7 +80,7 @@ public class TasksSearchServices {
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.parentTask()).isEqualTo(taskId)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
-				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getRecentlyCompletedTasks(User user) {
@@ -91,7 +91,7 @@ public class TasksSearchServices {
 						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
 	}
 
 	public TaskStatus getClosedStatus() {

@@ -16,6 +16,9 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 public class TaskFieldFactory extends MetadataFieldFactory {
 
 	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
+	public static final String ASSIGNEE_GROUPS_CANDIDATES = "assigneeGroupsCandidates";
+	public static final String ASSIGNEE_USERS_CANDIDATES = "assigneeUsersCandidates";
+	public static final String ASSIGNATION_MODES = "assignationModes";
 
 	private List<String> unavailablesTaskTypes;
 
@@ -27,7 +30,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 		super(isViewOnly);
 		this.unavailablesTaskTypes = unavailablesTaskTypes;
 	}
-
+//assigneeGroupsCandidates assigneeUsersCandidates escalationAssignee assignationModes
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
@@ -80,6 +83,18 @@ public class TaskFieldFactory extends MetadataFieldFactory {
         	break;
 		case REMINDER_FREQUENCY:
 			field = new TaskReminderFrequencyFieldImpl();
+			break;
+		case ASSIGNEE_GROUPS_CANDIDATES:
+			field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
+			postBuild(field, metadata);
+			break;
+		case ASSIGNEE_USERS_CANDIDATES:
+			field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
+			postBuild(field, metadata);
+			break;
+		case ASSIGNATION_MODES:
+			field = new TaskAssignationEnumField(metadata.getEnumClass());
+			postBuild(field, metadata);
 			break;
 		default:
 			field = super.build(metadata);

@@ -610,7 +610,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 								lookupWindow.close();
 							}
 						} else {
-							LookupField.this.setValue(item);
+							if (!LookupField.this.isReadOnly()) {
+								LookupField.this.setValue(item);
+							}
 						}
 					}
 				});

@@ -14,6 +14,7 @@ import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
@@ -21,6 +22,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -57,6 +60,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import javax.ws.rs.core.Response;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
+	public static final String ASSIGNATION_MODES = "assignationModes";
 	TaskVO taskVO;
 	transient TasksSearchServices tasksSearchServices;
 	transient private TasksSchemasRecordsServices tasksSchemas;
@@ -503,6 +507,27 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public void customFieldValueChanged(CustomTaskField<?> customField) {
 		adjustCustomFields(customField);
+	}
+
+	public void fieldValueChanged(Field<?> customField) {
+
+		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
+		boolean assigneeValue = StringUtils.isNotBlank(assignee.getValue());
+
+		ListAddRemoveField group = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
+		boolean groupValue = CollectionUtils.isNotEmpty(group.getValue());
+
+		ListAddRemoveField user = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
+		boolean userValue = CollectionUtils.isNotEmpty(user.getValue());
+
+		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
+		boolean prioriteValue = CollectionUtils.isNotEmpty(priorite.getValue());
+
+		assignee.setReadOnly(groupValue || userValue || prioriteValue);
+		group.setReadOnly(assigneeValue);
+		user.setReadOnly(assigneeValue);
+		priorite.setReadOnly(assigneeValue);
+
 	}
 
 	void adjustCustomFields(CustomTaskField<?> customField) {

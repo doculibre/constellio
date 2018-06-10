@@ -445,8 +445,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
-			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-			refreshCurrentTab();
+			try {
+				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
+				refreshCurrentTab();
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				view.showErrorMessage(e.getMessage());
+			}
 		}
 	}
 
