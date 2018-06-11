@@ -10,11 +10,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.server.Resource;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -53,6 +62,9 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -734,5 +746,86 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void logOpenDocument(RecordVO recordVO) {
 		loggingServices.openDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
+	}
+
+	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
+
+		final String collection = presenterUtils.getCollection();
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		final Record record = currentDocument();
+
+		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
+			@Override
+			public Document getDocument() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				return rm.wrapDocument(record);
+			}
+
+			@Override
+			public RecordVO getRecordVO() {
+				return documentVO;
+			}
+
+			@Override
+			public BaseViewImpl getView() {
+				return view;
+			}
+
+			@Override
+			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
+				MenuItem item = rootItem.addItem(caption, icon, null);
+				item.setCommand(new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						runnable.run();
+					}
+				});
+			}
+		});
+	}
+
+	public void addItemsFromExtensions(final BaseContextMenu menu, final BaseViewImpl view) {
+
+		final String collection = presenterUtils.getCollection();
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		final Record record = currentDocument();
+
+		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
+			@Override
+			public Document getDocument() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				return rm.wrapDocument(record);
+			}
+
+			@Override
+			public RecordVO getRecordVO() {
+				return documentVO;
+			}
+
+			@Override
+			public BaseViewImpl getView() {
+				return view;
+			}
+
+			@Override
+			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
+				ContextMenuItem item = menu.addItem(caption, icon);
+				item.addItemClickListener(new ContextMenuItemClickListener() {
+					@Override
+					public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
+						runnable.run();
+					}
+				});
+			}
+		});
+
 	}
 }

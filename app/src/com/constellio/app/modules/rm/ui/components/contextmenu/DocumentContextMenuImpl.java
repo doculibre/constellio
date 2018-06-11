@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -270,18 +271,23 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		if(presenter.hasMetadataReport()) {
-			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"), FontAwesome.LIST_ALT);
+			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"),
+					FontAwesome.LIST_ALT);
 			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
 
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
-					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"), $("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
+					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
+							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
 					button.setRecordVoList(presenter.getDocumentVO());
 					button.click();
 				}
 			});
 		}
+
+		View parentView = ConstellioUI.getCurrent().getCurrentView();
+		presenter.addItemsFromExtensions(this, (BaseViewImpl) parentView);
 	}
 
 	@Override
