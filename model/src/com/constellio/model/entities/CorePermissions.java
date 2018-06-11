@@ -50,7 +50,7 @@ public class CorePermissions {
 	public static final String EXCLUDE_AND_RAISE_SEARCH_RESULT = permission(COLLECTION_MANAGEMENT, "excludeAndRaiseOnSearchResult",
 			Toggle.ADVANCED_SEARCH_CONFIGS);
 	public static final String DELETE_CORRECTION_SUGGESTION = permission(COLLECTION_MANAGEMENT, "deleteCorrectorSuggestion", Toggle.ADVANCED_SEARCH_CONFIGS);
-
+	public static final String MANAGE_THESAURUS = permission(COLLECTION_MANAGEMENT, "manageThesaurus", Toggle.ADVANCED_SEARCH_CONFIGS);
 
 	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(COLLECTION_MANAGEMENT);
 
