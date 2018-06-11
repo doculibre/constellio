@@ -169,6 +169,22 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	@Override
+	public boolean isReadByUser(RecordVO recordVO) {
+		return taskPresenterServices.isReadByUser(toRecord(recordVO));
+	}
+
+	@Override
+	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
+		try {
+			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
+			reloadCurrentTask();
+		} catch (RecordServicesException e) {
+			view.showErrorMessage(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}

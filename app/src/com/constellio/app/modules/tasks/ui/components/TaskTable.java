@@ -76,6 +76,7 @@ public class TaskTable extends RecordVOTable {
 				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
+						presenter.setReadByUser(recordVO, true);
 						presenter.displayButtonClicked(recordVO);
 					}
 				});
@@ -84,11 +85,27 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, true);
 							presenter.editButtonClicked(recordVO);
 						}
 					});
 				}
 
+				if (presenter.isReadByUser(recordVO)) {
+					rootItem.addItem($("TaskTable.markeAsUnread"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, false);
+						}
+					});
+				} else {
+					rootItem.addItem($("TaskTable.markAsRead"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, true);
+						}
+					});
+				}
 
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
 
@@ -203,6 +220,10 @@ public class TaskTable extends RecordVOTable {
 		boolean isAutoAssignButtonEnabled(RecordVO recordVO);
 
 		boolean isEditButtonEnabled(RecordVO recordVO);
+
+		boolean isReadByUser(RecordVO recordVO);
+
+		void setReadByUser(RecordVO recordVO, boolean readByUser);
 
 		boolean isCompleteButtonEnabled(RecordVO recordVO);
 
