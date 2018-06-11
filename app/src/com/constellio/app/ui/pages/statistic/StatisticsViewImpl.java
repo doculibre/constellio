@@ -502,13 +502,13 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
                 properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICKS);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
                 properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
                 break;
             case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICKS);
+                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
                 break;
             default:
                 MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
