@@ -403,8 +403,8 @@ public class Task extends RecordWrapper {
 		return get(QUESTION);
 	}
 
-	public static boolean isExpressionLanguage(String decision) {
-		String value = StringUtils.trimToEmpty(decision);
+	public static boolean isExpressionLanguage(String text) {
+		String value = StringUtils.trimToEmpty(text);
 		if (StringUtils.startsWith(value, "${") && StringUtils.endsWith(value, "}")) {
 			return true;
 		}
