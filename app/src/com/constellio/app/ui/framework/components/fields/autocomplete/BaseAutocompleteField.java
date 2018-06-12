@@ -84,6 +84,10 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 					result = (T) value;
 				} else if (value != null) {
 					result = lastSuggestions.get(value);
+
+					if(result == null && getModelType().isAssignableFrom(String.class)) {
+						result = (T) value;
+					}
 				} else {
 					result = null;
 				}
