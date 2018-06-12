@@ -254,7 +254,15 @@ public class TaskTable extends RecordVOTable {
 		@Override
 		public String getStyle(Table source, Object itemId, Object propertyId) {
 			String style;
-			if (!isDueDateColumn(propertyId)) {
+			if(isTitleColumn(propertyId)) {
+				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
+				if(!presenter.isReadByUser(item.getRecord())) {
+					// TODO Rendre gras le texte plutôt que le fond
+					style = OVER_DUE_TASK_STYLE;
+				} else {
+					style = null;
+				}
+			} else if (!isDueDateColumn(propertyId)) {
 				style = null;
 			} else {
 				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
@@ -268,6 +276,14 @@ public class TaskTable extends RecordVOTable {
 				}
 			}
 			return style;
+		}
+
+		private boolean isTitleColumn(Object propertyId) {
+			if (!(propertyId instanceof MetadataVO)) {
+				return false;
+			}
+			MetadataVO metadata = (MetadataVO) propertyId;
+			return Task.TITLE.equals(MetadataVO.getCodeWithoutPrefix(metadata.getCode()));
 		}
 
 		private boolean isDueDateColumn(Object propertyId) {
