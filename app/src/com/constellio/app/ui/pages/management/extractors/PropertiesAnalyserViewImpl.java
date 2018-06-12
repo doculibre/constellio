@@ -128,7 +128,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 		table.setColumnHeader("Key", $("PropertiesAnalyserView.key"));
 		table.setColumnHeader("Value", $("PropertiesAnalyserView.value"));
 
-		table.setContainerDataSource(buildContainer(presenter.getStylesContainer(), List.class));
+		table.setContainerDataSource(buildContainer(presenter.getStylesContainer(), String.class));
 		return table;
 	}
 
@@ -140,7 +140,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 		for(Map.Entry<String, Object> property: values.entrySet()) {
 			Item item = container.addItem(property.getKey());
 			item.getItemProperty("Key").setValue(property.getKey());
-			item.getItemProperty("Value").setValue(property.getValue());
+			item.getItemProperty("Value").setValue(property.getValue().toString());
 		}
 		return container;
 	}
