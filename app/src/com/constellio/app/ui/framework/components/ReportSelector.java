@@ -88,8 +88,9 @@ public class ReportSelector extends HorizontalLayout {
 				if (factory == null) {
 					return new Label($("ReportViewer.noReportFactoryAvailable"));
 				} else {
-					return new ReportViewer(factory.getReportBuilder(presenter.getReportParameters(getSelectedReport())),
-							factory.getFilename(presenter.getReportParameters(getSelectedReport())));
+					Object reportParameters = presenter.getReportParameters(getSelectedReport());
+					return new ReportViewer(factory.getReportBuilder(reportParameters),
+							factory.getFilename(reportParameters));
 				}
 			}
 

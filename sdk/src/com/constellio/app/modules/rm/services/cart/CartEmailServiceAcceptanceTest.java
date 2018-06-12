@@ -138,7 +138,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	public void givenDocumentWithContentWhenGetDocumentsAttachmentsThenOk()
 			throws Exception {
 		List<MessageAttachment> attachments = cartEmlService
-				.getDocumentsAttachments(asList(document22WithContent2HavingTitle2.getId()));
+				.getDocumentsAttachments(asList(document22WithContent2HavingTitle2.getId()), users.adminIn(zeCollection));
 		assertThat(attachments.size()).isEqualTo(1);
 
 		MessageAttachment attachment = attachments.get(0);
@@ -151,21 +151,21 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	public void givenNonExistingDocumentWhenGetDocumentsAttachmentsThenEmptyAttachments()
 			throws Exception {
 		cartEmlService
-				.getDocumentsAttachments(asList("invalidId"));
+				.getDocumentsAttachments(asList("invalidId"), users.adminIn(zeCollection));
 	}
 
 	@Test
 	public void givenDocumentWithoutContentWhenGetDocumentsAttachmentsThenOk()
 			throws Exception {
 		List<MessageAttachment> attachments = cartEmlService
-				.getDocumentsAttachments(asList(documentWithoutContent.getId()));
+				.getDocumentsAttachments(asList(documentWithoutContent.getId()), users.adminIn(zeCollection));
 		assertThat(attachments).isEmpty();
 	}
 
 	@Test
 	public void givenCartWithTestDocumentsWhenGetAttachmentsThenOk()
 			throws Exception {
-		List<MessageAttachment> attachments = cartEmlService.getAttachments(cart);
+		List<MessageAttachment> attachments = cartEmlService.getAttachments(cart, users.adminIn(zeCollection));
 		validateAttachments(attachments);
 	}
 
@@ -197,7 +197,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
 		validateEml(emlStreamFactory);
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
@@ -205,7 +205,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenHasAdequateMimeType()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
 		File tempFolder = newTempFolder();
 		File file = new File(tempFolder, "test.eml");
 		FileUtils.copyInputStreamToFile(emlStreamFactory, file);
@@ -219,7 +219,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	public void givenEmptyCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
 		recordServices.add(cart.setDocuments(new ArrayList<String>()));
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
 
