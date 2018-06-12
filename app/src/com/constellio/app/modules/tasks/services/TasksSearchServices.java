@@ -77,7 +77,7 @@ public class TasksSearchServices {
 
 	public long getCountUnreadTasksToUserQuery(User user) {
 		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
-				where(tasksSchemas.userTask.readByUser()).isTrue(),
+				where(tasksSchemas.userTask.readByUser()).isFalse(),
 				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
 				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
 				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),

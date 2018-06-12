@@ -1,7 +1,6 @@
 package com.constellio.app.ui.framework.components.table;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -417,19 +417,9 @@ $popup-view-z-index: 3;
 	}
 
 
-
 	.v-table-cell-content-error {
-		color: #FFFFFF;
-		background-color: #F5A9A9;
-		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff3019+0,cf0404+100;Red+3D */
-		background: #F5A9A9; /* Old browsers */
-		background: -moz-linear-gradient(top,  #F5A9A9 0%, #d65353 100%); /* FF3.6+ */
-		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#F5A9A9), color-stop(100%,#d65353)); /* Chrome,Safari4+ */
-		background: -webkit-linear-gradient(top,  #F5A9A9 0%,#d65353 100%); /* Chrome10+,Safari5.1+ */
-		background: -o-linear-gradient(top,  #F5A9A9 0%,#d65353 100%); /* Opera 11.10+ */
-		background: -ms-linear-gradient(top,  #F5A9A9 0%,#d65353 100%); /* IE10+ */
-		background: linear-gradient(to bottom,  #F5A9A9 0%,#d65353 100%); /* W3C */
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F5A9A9', endColorstr='#d65353',GradientType=0 ); /* IE6-9 */
+		color: red;
+		font-weight: bold;
 	}
 
 	.v-table-cell-content-disabled {
