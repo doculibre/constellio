@@ -379,6 +379,10 @@ public class FoldersLocator {
 		return new File(getConstellioProject(), "sdk");
 	}
 
+	public File getSDKResourcesProject() {
+		return new File(getSDKProject(), "sdk-resources");
+	}
+
 	public File getPluginsRepository() {
 		return new File(getConstellioProject().getParentFile(), "constellio-plugins");
 	}

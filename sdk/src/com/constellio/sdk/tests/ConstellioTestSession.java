@@ -87,12 +87,13 @@ public class ConstellioTestSession {
 			propertiesChecked = true;
 
 			File sdkProject = new FoldersLocator().getSDKProject();
+			File sdkResourcesFolder = new FoldersLocator().getSDKResourcesProject();
 			File buildFolder = new File(sdkProject, "build");
 			File classesFolder = new File(buildFolder, "classes");
 			File classesTestFolder = new File(classesFolder, "test");
 
 			File classesLog4J = new File(classesTestFolder, "log4j.properties");
-			File sdkLog4J = new File(sdkProject, "log4j.properties");
+			File sdkLog4J = new File(sdkResourcesFolder, "log4j.properties");
 			if (!classesLog4J.exists()) {
 				try {
 					FileUtils.copyFile(sdkLog4J, classesLog4J);
