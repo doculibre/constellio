@@ -75,6 +75,27 @@ public class TasksSearchServices {
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
+	public long getCountUnreadTasksToUserQuery(User user) {
+		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
+				where(tasksSchemas.userTask.readByUser()).isFalse(),
+				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
+				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
+				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
+				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
+				anyConditions(
+						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
+						allConditions(
+								where(tasksSchemas.userTask.assignee()).isNull(),
+								anyConditions(
+										where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
+										where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
+								)
+						)
+				));
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).filteredWithUser(user);
+		return searchServices.getResultsCount(query);
+	}
+
 	public LogicalSearchQuery getDirectSubTasks(String taskId, User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.parentTask()).isEqualTo(taskId)

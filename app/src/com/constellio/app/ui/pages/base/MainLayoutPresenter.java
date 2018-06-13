@@ -109,4 +109,10 @@ public class MainLayoutPresenter implements Serializable {
 		}
 		return version;
 	}
+
+	public String getBadge(NavigationItem item) {
+		User user = getUser();
+		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+		return item.getBadge(user, appLayerFactory);
+	}
 }

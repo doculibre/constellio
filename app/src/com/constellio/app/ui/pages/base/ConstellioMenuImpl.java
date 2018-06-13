@@ -5,7 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -16,6 +20,7 @@ import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
@@ -27,6 +32,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
@@ -133,6 +139,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuItemsLayout.setHeight(100.0f, Unit.PERCENTAGE);
 
 		mainMenuButtons = buildMainMenuButtons();
+		
+		final Map<ConstellioMenuButton, Label> badgeLabels = new HashMap<>();
 
 		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
 			Button menuButton = mainMenuButton.getButton();
@@ -151,11 +159,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				menuButton.addStyleName("disabled");
 			}
 
-			// FIXME Use the badge mechanism properly
-			//			Label badgeLabel = new Label();
-			//			buildBadgeWrapper(menuButton, badgeLabel);
-			//			badgeLabel.setId("myBadgeId");
-			//			mainMenuItemComponent = buildBadgeWrapper(menuButton, badgeLabel);
+			Label badgeLabel = new Label("1");
+			mainMenuItemComponent = buildBadgeWrapper(menuButton, badgeLabel);
+			badgeLabels.put(mainMenuButton, badgeLabel);
 
 			menuItemsLayout.addComponent(mainMenuItemComponent);
 		}
@@ -179,6 +185,15 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 						newSelection = true;
 					} else {
 						menuButton.removeStyleName(selectedStyleName);
+					}
+					
+					String badge = mainMenuButton.getBadge(event);
+					Label badgeLabel = badgeLabels.get(mainMenuButton);
+					if (StringUtils.isNotBlank(badge)) {
+						badgeLabel.setValue(badge);
+						badgeLabel.setVisible(true);
+					} else {
+						badgeLabel.setVisible(false);
 					}
 				}
 				if (!newSelection && lastSelectedButton != null) {
@@ -267,14 +282,16 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		return mainMenuButtons;
 	}
 
-	private Component buildBadgeWrapper(final Component menuItemButton, final Component badgeLabel) {
+	private Component buildBadgeWrapper(final Component menuItemButton, final Label badgeLabel) {
 		CssLayout dashboardWrapper = new CssLayout(menuItemButton);
 		dashboardWrapper.addStyleName("badgewrapper");
 		dashboardWrapper.addStyleName(ValoTheme.MENU_ITEM);
 		dashboardWrapper.setWidth(100.0f, Unit.PERCENTAGE);
 		badgeLabel.addStyleName(ValoTheme.MENU_BADGE);
 		badgeLabel.setWidthUndefined();
-		badgeLabel.setVisible(false);
+		if (StringUtils.isBlank(badgeLabel.getValue())) {
+			badgeLabel.setVisible(false);
+		}
 		dashboardWrapper.addComponent(badgeLabel);
 		return dashboardWrapper;
 	}
@@ -316,6 +333,10 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 		public Button getButton() {
 			return button;
+		}
+		
+		public String getBadge(ViewChangeEvent event) {
+			return null;
 		}
 
 	}
