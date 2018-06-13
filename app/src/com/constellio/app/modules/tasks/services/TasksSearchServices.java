@@ -41,7 +41,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
@@ -53,7 +53,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {
@@ -72,7 +72,7 @@ public class TasksSearchServices {
 								)
 						)
 				));
-		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
+		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getDirectSubTasks(String taskId, User user) {
@@ -80,7 +80,7 @@ public class TasksSearchServices {
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.parentTask()).isEqualTo(taskId)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getRecentlyCompletedTasks(User user) {
@@ -91,7 +91,7 @@ public class TasksSearchServices {
 						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate());
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public TaskStatus getClosedStatus() {
@@ -107,7 +107,8 @@ public class TasksSearchServices {
 				from(tasksSchemas.ddvTaskStatus.schema()).where(tasksSchemas.ddvTaskStatus.statusType())
 						.is(FINISHED)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.sortDesc(tasksSchemas.ddvTaskStatus.createdOn()).setNumberOfRows(1);
+				.sortDesc(tasksSchemas.ddvTaskStatus.createdOn())
+				.sortDesc(tasksSchemas.ddvTaskStatus.modifiedOn()).setNumberOfRows(1);
 		List<Record> result = searchServices.search(firstClosedTaskStatusQuery);
 		if (result.isEmpty()) {
 			return null;
