@@ -51,11 +51,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.Page;
-import com.vaadin.server.Resource;
-import com.vaadin.server.Responsive;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.*;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
@@ -434,7 +430,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void recordIdRemoved(String recordId) {
+		getSession().lock();
 		presenter.selectedRecordIdRemoved(recordId);
+		getSession().unlock();
 	}
 
 	@Override
