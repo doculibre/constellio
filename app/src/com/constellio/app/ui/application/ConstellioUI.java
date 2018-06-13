@@ -32,6 +32,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
+import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
@@ -421,6 +422,10 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	public View getCurrentView() {
 		return currentView;
+	}
+
+	public MainLayout getMainLayout() {
+		return mainLayout;
 	}
 
 }

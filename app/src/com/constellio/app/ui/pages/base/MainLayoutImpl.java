@@ -58,7 +58,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private CssLayout contentFooterWrapperLayout;
 	private VerticalLayout contentFooterLayout;
 	private ConstellioHeaderImpl header;
-	private Component mainMenu;
+	private ConstellioMenuImpl mainMenu;
 	private SingleComponentContainer contentViewWrapper;
 	private DragAndDropWrapper dragAndDropWrapper;
 	private UserDocumentsWindow userDocumentsWindow;
@@ -167,7 +167,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return new ConstellioHeaderImpl();
 	}
 
-	protected Component buildMainMenu() {
+	protected ConstellioMenuImpl buildMainMenu() {
 		ConstellioMenuImpl mainMenu = new ConstellioMenuImpl() {
 			@Override
 			protected List<ConstellioMenuButton> buildMainMenuButtons() {
@@ -245,7 +245,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		});
 		return new ConstellioMenuButton(item.getViewGroup(), button) {
 			@Override
-			public String getBadge(ViewChangeEvent event) {
+			public String getBadge() {
 				return presenter.getBadge(item);
 			}
 		};
@@ -264,6 +264,11 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	@Override
 	public ConstellioHeaderImpl getHeader() {
 		return header;
+	}
+
+	@Override
+	public ConstellioMenu getMenu() {
+		return mainMenu;
 	}
 
 }

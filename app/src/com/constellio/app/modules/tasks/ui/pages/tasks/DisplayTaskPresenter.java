@@ -1,5 +1,15 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.util.List;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -29,18 +39,7 @@ import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-
-import java.io.IOException;
-import java.util.List;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-import static java.util.Arrays.asList;
 
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
 	TaskVO taskVO;
@@ -178,6 +177,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		try {
 			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
 			reloadCurrentTask();
+			view.getMainLayout().getMenu().refreshBadges();
 		} catch (RecordServicesException e) {
 			view.showErrorMessage(e.getMessage());
 			e.printStackTrace();

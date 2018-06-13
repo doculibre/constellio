@@ -63,6 +63,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private CssLayout menuItemsLayout;
 
 	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
+	
+	private Map<ConstellioMenuButton, Label> badgeLabels = new HashMap<>();
 
 	public ConstellioMenuImpl() {
 		this.presenter = new ConstellioMenuPresenter(this);
@@ -140,8 +142,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 		mainMenuButtons = buildMainMenuButtons();
 		
-		final Map<ConstellioMenuButton, Label> badgeLabels = new HashMap<>();
-
 		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
 			Button menuButton = mainMenuButton.getButton();
 			menuButton.addClickListener(new ClickListener() {
@@ -187,14 +187,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 						menuButton.removeStyleName(selectedStyleName);
 					}
 					
-					String badge = mainMenuButton.getBadge(event);
-					Label badgeLabel = badgeLabels.get(mainMenuButton);
-					if (StringUtils.isNotBlank(badge)) {
-						badgeLabel.setValue(badge);
-						badgeLabel.setVisible(true);
-					} else {
-						badgeLabel.setVisible(false);
-					}
+					refreshBadge(mainMenuButton);
+					
 				}
 				if (!newSelection && lastSelectedButton != null) {
 					lastSelectedButton.addStyleName(selectedStyleName);
@@ -208,6 +202,24 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		});
 
 		return menuItemsLayout;
+	}
+	
+	private void refreshBadge(ConstellioMenuButton mainMenuButton) {
+		String badge = mainMenuButton.getBadge();
+		Label badgeLabel = badgeLabels.get(mainMenuButton);
+		if (StringUtils.isNotBlank(badge)) {
+			badgeLabel.setValue(badge);
+			badgeLabel.setVisible(true);
+		} else {
+			badgeLabel.setVisible(false);
+		}
+	}
+	
+	@Override
+	public void refreshBadges() {
+		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
+			refreshBadge(mainMenuButton);
+		}
 	}
 
 	protected void buildUserMenuItems(MenuBar userMenu) {
@@ -335,7 +347,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			return button;
 		}
 		
-		public String getBadge(ViewChangeEvent event) {
+		public String getBadge() {
 			return null;
 		}
 

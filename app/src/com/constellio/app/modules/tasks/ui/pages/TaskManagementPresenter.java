@@ -222,6 +222,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		try {
 			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
 			refreshCurrentTab();
+			view.getMainLayout().getMenu().refreshBadges();
 		} catch (RecordServicesException e) {
 			view.showErrorMessage(e.getMessage());
 			e.printStackTrace();
