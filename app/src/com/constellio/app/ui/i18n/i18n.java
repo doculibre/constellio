@@ -65,6 +65,10 @@ public class i18n {
 		return $(key, null, args);
 	}
 
+	public static String $(String key, Map<String, Object> args) {
+		return $(key, null, args);
+	}
+
 	public static String $(String key, Locale locale) {
 		return $(key, locale, (Object) null);
 	}
