@@ -44,6 +44,8 @@ public class MetadataSchema implements Serializable {
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
+	private boolean isActive;
+
 	private final String dataStore;
 
 	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
@@ -63,6 +65,7 @@ public class MetadataSchema implements Serializable {
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 		this.dataStore = dataStore;
+		this.isActive = true;
 	}
 
 	public String getLocalCode() {
@@ -219,5 +222,13 @@ public class MetadataSchema implements Serializable {
 
 	public String getDataStore() {
 		return dataStore;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean active) {
+		isActive = active;
 	}
 }

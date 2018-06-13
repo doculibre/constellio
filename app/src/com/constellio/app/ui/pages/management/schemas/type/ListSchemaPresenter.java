@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -14,12 +15,19 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaView> {
 
@@ -36,9 +44,9 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
 	}
 
-	public SchemaVODataProvider getDataProvider() {
+	public SchemaVODataProvider getDataProvider(boolean active) {
 		return new SchemaVODataProvider(new MetadataSchemaToVOBuilder(), modelLayerFactory, collection, schemaTypeCode,
-				view.getSessionContext());
+				view.getSessionContext(), active);
 	}
 
 	public void setSchemaTypeCode(String schemaTypeCode) {
@@ -137,6 +145,23 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 
 	public void closeAllWindows(){
 		view.closeAllWindows();
+	}
+
+	public void disableButtonClick(String schemaCode) {
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		appSchemasServices.disableSchema(collection,schemaCode);
+		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
+		for(Record record : records){
+			try {
+				recordServices.logicallyDelete(record, User.GOD);
+
+			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDelete"));
+			}
+		}
 	}
 
 }

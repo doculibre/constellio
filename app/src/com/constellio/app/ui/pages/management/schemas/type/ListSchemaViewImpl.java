@@ -65,13 +65,38 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		viewLayout.addComponents(addButton, buildTables());
+		viewLayout.addComponents(addButton, buildSchemasTables());
 		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return viewLayout;
 	}
 
-	private Component buildTables() {
-		final SchemaVODataProvider dataProvider = presenter.getDataProvider();
+	private TabSheet buildSchemasTables() {
+		TabSheet tabSheet = new TabSheet();
+		Table activeRecordsTable = buildTables(true);
+		Table inactiveRecordsTable = buildTables(false);
+
+		VerticalLayout activeLayout = new VerticalLayout();
+		Button addButton = new AddButton() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+		};
+		activeLayout.addComponent(addButton);
+		activeLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		activeLayout.addComponent(activeRecordsTable);
+
+		VerticalLayout inactiveLayout = new VerticalLayout();
+		inactiveLayout.addComponent(inactiveRecordsTable);
+
+		tabSheet.addTab(activeLayout, $("ListValueDomainRecordsViewImpl.actives", activeRecordsTable.size()));
+		tabSheet.addTab(inactiveLayout, $("ListValueDomainRecordsViewImpl.inactives", inactiveRecordsTable.size()));
+
+		return tabSheet;
+	}
+
+	private Table buildTables(final boolean active) {
+		final SchemaVODataProvider dataProvider = presenter.getDataProvider(active);
 		SchemaVOLazyContainer schemaContainer = new SchemaVOLazyContainer(dataProvider);
 		ButtonsContainer<SchemaVOLazyContainer> buttonsContainer = new ButtonsContainer<>(schemaContainer, "buttons");
 
@@ -142,11 +167,11 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 					@Override
 					public boolean isVisible() {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						if(entity == null || entity.getCode() == null || !entity.getCode().endsWith("default")) {
-							return false;
-						}
+//						Integer index = (Integer) itemId;
+//						MetadataSchemaVO entity = dataProvider.getSchemaVO(index,active);
+//						if(entity == null || entity.getCode() == null || !entity.getCode().endsWith("default")) {
+//							return false;
+//						}
 						return true;
 					}
 				};
@@ -181,13 +206,40 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 					@Override
 					public boolean isVisible() {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+//						Integer index = (Integer) itemId;
+//						MetadataSchemaVO entity = dataProvider.getSchemaVO(index,active);
 						return super.isVisible() ;
 					}
 				};
 			}
 		});
+
+		if(active){
+			buttonsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					return new DisableButton() {
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							Integer index = (Integer) itemId;
+							MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+							presenter.disableButtonClick(entity.getCode());
+						}
+					};
+				}
+			});
+		}else{
+			buttonsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					return new EnableButton() {
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+						}
+					};
+				}
+			});
+		}
 
 		Table table = new BaseTable(getClass().getName(), $("ListSchemaView.tableTitle", schemaContainer.size()), buttonsContainer);
 		table.setSizeFull();
@@ -206,5 +258,5 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		return table;
 	}
-
+	
 }

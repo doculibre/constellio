@@ -123,6 +123,7 @@ public class MetadataSchemaXMLReader3 {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
 		schemaBuilder.setLabels(readLabels(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
+		schemaBuilder.setActive(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement,"isActive"));
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
 		}
