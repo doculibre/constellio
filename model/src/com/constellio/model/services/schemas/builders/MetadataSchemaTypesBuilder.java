@@ -104,7 +104,7 @@ public class MetadataSchemaTypesBuilder {
 
 		for (MetadataSchemaType type : tempTypes.getSchemaTypes()) {
 			for (MetadataSchema schema : type.getAllSchemas()) {
-				for (Metadata metadata : schema.getMetadatas().onlyCalculated().onlyWithoutInheritance()) {
+				for (Metadata metadata : schema.getMetadatas().onlyCalculated()) {
 					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
 							.getCalculator();
 					if (calculator instanceof InitializedMetadataValueCalculator) {
