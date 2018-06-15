@@ -246,7 +246,6 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
             displayCondition = SummaryColumnParams.DisplayCondition.ALWAYS;
         }
 
-        map.get(REFERENCE_METADATA_DISPLAY);
         SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay.fromInteger((Integer) map.get(REFERENCE_METADATA_DISPLAY));
 
         return !(map.get(METADATA_CODE).equals(summaryColumnParams.getMetadataVO().getCode())
