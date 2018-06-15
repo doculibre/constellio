@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.schemas.type;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
@@ -14,6 +15,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -84,7 +86,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		};
 
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), editListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), EditButton.ICON_RESOURCE, editListener);
 
 		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
 			final MenuBar.Command deleteListener = new MenuBar.Command() {
@@ -93,7 +95,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
 				}
 			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), deleteListener);
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"), deleteListener);
 		}
 
 		final MenuBar.Command formOrderListener = new MenuBar.Command() {
@@ -103,7 +105,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.formConfiguration"), formOrderListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.formConfiguration"), new ThemeResource("images/icons/config/display-config-form.png"), formOrderListener);
 
 		final MenuBar.Command formListener = new MenuBar.Command() {
 			@Override
@@ -112,7 +114,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.display"), formListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.display"), new ThemeResource("images/icons/config/display-config-display.png"), formListener);
 
 
 
@@ -123,7 +125,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"), searchListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"), new ThemeResource("images/icons/config/display-config-search.png"), searchListener);
 
 
 		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode().endsWith("default"))) {
@@ -133,7 +135,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					presenter.tableButtonClicked();
 				}
 			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.table"), tableListener);
+			rootItem.addItem($("ListSchemaViewImpl.menu.table"),new ThemeResource("images/icons/config/display-config-table.png"), tableListener);
 		}
 
 		for(ListSchemaExtraCommandReturnParams schemaExtraCommandReturnParams : presenter.getExtensionMenuBar(metadataSchemaVO)) {

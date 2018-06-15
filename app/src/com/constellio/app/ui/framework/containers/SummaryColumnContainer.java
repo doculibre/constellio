@@ -3,16 +3,22 @@ package com.constellio.app.ui.framework.containers;
 import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Button;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvider> {
     public static final String UP = "up";
@@ -89,7 +95,8 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 
         if (UP.equals(propertyId)) {
 
-            value = new BaseButton("UP") {
+            value = new IconButton(new ThemeResource("images/icons/actions/arrow_down_blue.png"), $("UP"), true) {
+
                 @Override
                 protected void buttonClick(ClickEvent event) {
                     if(!view.getSummaryColumnPresenter().isReindextionFlag()) {
@@ -107,7 +114,7 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
                 }
             };
         } else if (DOWN.equals(propertyId)) {
-            value = new BaseButton("DOWN") {
+            value = new IconButton(new ThemeResource("images/icons/actions/arrow_down_blue.png"), $("DOWN"), true) {
                 @Override
                 protected void buttonClick(ClickEvent event) {
                     if(!view.getSummaryColumnPresenter().isReindextionFlag()) {
@@ -139,14 +146,14 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
             }
 
         } else if (MODIFY.equals(propertyId)) {
-            value = new BaseButton("modify") {
+            value = new IconButton(EditButton.ICON_RESOURCE, $("edit"), true) {
                 @Override
                 protected void buttonClick(ClickEvent event) {
                     view.alterSummaryMetadata(summaryColumnVOItemId);
                 }
             };
         } else if (DELETE.equals(propertyId)) {
-            value = new BaseButton("delete") {
+            value = new IconButton(new ThemeResource("images/icons/actions/delete.png"), $("delete"), true) {
                 @Override
                 protected void buttonClick(ClickEvent event) {
                     view.deleteRow(summaryColumnVOItemId);
