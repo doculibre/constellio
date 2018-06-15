@@ -421,6 +421,7 @@ public class MetadataSchemaXMLReader3 {
 
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
 
+		Boolean isAddOnly = null;
 		List<String> styles = new ArrayList<>();
 		List<String> properties = new ArrayList<>();
 		List<RegexConfig> regexes = new ArrayList<>();
@@ -428,6 +429,9 @@ public class MetadataSchemaXMLReader3 {
 
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
+			if (populateConfigsElement.getAttributeValue("isAddOnly") != null) {
+				isAddOnly = true;
+			}
 			if (populateConfigsElement.getAttributeValue("styles") != null) {
 				styles.addAll(asList(populateConfigsElement.getAttributeValue("styles").split(",")));
 			}
@@ -448,6 +452,7 @@ public class MetadataSchemaXMLReader3 {
 		metadataPopulateConfigsBuilder.setProperties(properties);
 		metadataPopulateConfigsBuilder.setRegexes(regexes);
 		metadataPopulateConfigsBuilder.setMetadataPopulators(metadataPopulators);
+		metadataPopulateConfigsBuilder.setAddOnly(isAddOnly);
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
 	}
 

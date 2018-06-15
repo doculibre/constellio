@@ -520,6 +520,10 @@ public class MetadataSchemaXMLWriter3 {
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {
 		Element populateConfigsElement = new Element("populateConfigs");
 
+		if(Boolean.TRUE.equals(!populateConfigs.isAddOnly())) {
+			populateConfigsElement.setAttribute("isAddOnly", "true");
+		}
+
 		if (!populateConfigs.getStyles().isEmpty()) {
 			populateConfigsElement.setAttribute("styles", toCommaSeparatedString(populateConfigs.getStyles()));
 		}

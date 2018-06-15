@@ -12,16 +12,19 @@ public class MetadataPopulateConfigs implements Serializable {
 	private final List<String> styles = new ArrayList<>();
 	private final List<String> properties = new ArrayList<>();
 	private final List<RegexConfig> regexes = new ArrayList<>();
+	private final Boolean isAddOnly;
 
 	public MetadataPopulateConfigs() {
+		this.isAddOnly = false;
 	}
 
 	public MetadataPopulateConfigs(List<String> styles, List<String> properties, List<RegexConfig> regexes,
-			List<MetadataPopulator> metadataPopulators) {
+			List<MetadataPopulator> metadataPopulators, Boolean isAddOnly) {
 		this.styles.addAll(styles);
 		this.properties.addAll(properties);
 		this.regexes.addAll(regexes);
 		this.metadataPopulators.addAll(metadataPopulators);
+		this.isAddOnly = isAddOnly;
 	}
 
 	public List<String> getStyles() {
@@ -83,6 +86,10 @@ public class MetadataPopulateConfigs implements Serializable {
 
 	public boolean isConfigured() {
 		return !styles.isEmpty() || !properties.isEmpty() || !regexes.isEmpty() || !metadataPopulators.isEmpty();
+	}
+
+	public Boolean isAddOnly() {
+		return isAddOnly;
 	}
 }
 
