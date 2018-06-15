@@ -71,6 +71,82 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenPopulateBordereauxWithLesserDispositionDateWhenGetDispositonDateAndMinimumDateIsDestructionDateThenReturnDestructionDate(){
+		Folder folderA01 =  records.getFolder_A01();
+		folderA01.setActualDepositDate(new LocalDate(2008, 10, 31));
+		folderA01.setActualDestructionDate(new LocalDate(2006, 10, 31));
+		folderA01.setActualTransferDate(new LocalDate(2007, 10, 31));
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, true);
+
+		assertThat(service.getDispositionDate(folderA01.getWrappedRecord())).isEqualTo(new LocalDate(2006, 10, 31));
+	}
+
+	@Test
+	public void givenPopulateBordereauxWithLesserDispositionDateWhenGetDispositonDateAndMinimumDateIsDepositDateThenReturnDepositDate(){
+		Folder folderA01 =  records.getFolder_A01();
+		folderA01.setActualDepositDate(new LocalDate(2006, 8, 31));
+		folderA01.setActualDestructionDate(new LocalDate(2006, 10, 31));
+		folderA01.setActualTransferDate(new LocalDate(2007, 10, 31));
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, true);
+
+		assertThat(service.getDispositionDate(folderA01.getWrappedRecord())).isEqualTo(new LocalDate(2006, 8, 31));
+	}
+
+	@Test
+	public void givenPopulateBordereauxWithLesserDispositionDateWhenGetDispositonDateAndMinimumDateIsTransferDateThenReturnTransferDate(){
+		Folder folderA01 =  records.getFolder_A01();
+		folderA01.setActualDepositDate(new LocalDate(2008, 10, 31));
+		folderA01.setActualDestructionDate(new LocalDate(2006, 10, 31));
+		folderA01.setActualTransferDate(new LocalDate(2005, 10, 31));
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, true);
+
+		assertThat(service.getDispositionDate(folderA01.getWrappedRecord())).isEqualTo(new LocalDate(2005, 10, 31));
+	}
+
+	@Test
+	public void givenPopulateBordereauxWithGreaterDispositionDateWhenGetDispositonDateAndMaximumDateIsDestructionDateThenReturnDestructionDate(){
+		Folder folderA01 =  records.getFolder_A01();
+		folderA01.setActualDepositDate(new LocalDate(2008, 10, 31));
+		folderA01.setActualDestructionDate(new LocalDate(2009, 10, 31));
+		folderA01.setActualTransferDate(new LocalDate(2007, 10, 31));
+
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, false);
+
+		assertThat(service.getDispositionDate(folderA01.getWrappedRecord())).isEqualTo(new LocalDate(2009, 10, 31));
+	}
+
+	@Test
+	public void givenPopulateBordereauxWithGreaterDispositionDateWhenGetDispositonDateAndMaximumDateIsDepositDateThenReturnDepositDate(){
+		Folder folderA01 =  records.getFolder_A01();
+		folderA01.setActualDepositDate(new LocalDate(2009, 12, 31));
+		folderA01.setActualDestructionDate(new LocalDate(2009, 10, 31));
+		folderA01.setActualTransferDate(new LocalDate(2007, 10, 31));
+
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, false);
+
+		assertThat(service.getDispositionDate(folderA01.getWrappedRecord())).isEqualTo(new LocalDate(2009, 12, 31));
+	}
+
+	@Test
+	public void givenPopulateBordereauxWithGreaterDispositionDateWhenGetDispositonDateAndMaximumDateIsTransferDateThenReturnTransferDate(){
+		Folder folderA01 =  records.getFolder_A01();
+		folderA01.setActualDepositDate(new LocalDate(2009, 12, 31));
+		folderA01.setActualDestructionDate(new LocalDate(2009, 10, 31));
+		folderA01.setActualTransferDate(new LocalDate(2010, 10, 31));
+
+		givenConfig(RMConfigs.POPULATE_BORDEREAUX_WITH_LESSER_DISPOSITION_DATE, false);
+
+		assertThat(service.getDispositionDate(folderA01.getWrappedRecord())).isEqualTo(new LocalDate(2010, 10, 31));
+	}
+
+	@Test
+	public void givenContainerBac07WhenGetContainerRecordExtremeDatesThenReturnExtremeDates() throws Exception {
+		ContainerRecord container = records.getContainerBac07();
+
+		assertThat(service.getContainerRecordExtremeDates(container)).isEqualTo("2002-2009");
+	}
+
+	@Test
 	public void whenGetUniformRuleForContainer13ThenReturnIt() {
 		assertThat(service.getUniformRuleOf(records.getContainerBac13())).isEqualTo("ruleId_2");
 	}
