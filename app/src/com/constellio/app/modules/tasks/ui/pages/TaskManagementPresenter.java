@@ -1,12 +1,6 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
@@ -398,13 +392,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private List<String> getMetadataForTab(String tabId) {
 		switch (tabId) {
 		case TASKS_ASSIGNED_TO_CURRENT_USER:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNER, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNER, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
 		case TASKS_ASSIGNED_BY_CURRENT_USER:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNEE, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNEE, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
 		case TASKS_NOT_ASSIGNED:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
 		default:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNER, ASSIGNEE, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNER, Task.DEFAULT_SCHEMA+"_"+END_DATE);
 		}
 	}
 

@@ -92,7 +92,7 @@ public class TaskTable extends RecordVOTable {
 				}
 
 				if (presenter.isReadByUser(recordVO)) {
-					rootItem.addItem($("TaskTable.markeAsUnread"), EditButton.ICON_RESOURCE, new Command() {
+					rootItem.addItem($("TaskTable.markAsUnread"), EditButton.ICON_RESOURCE, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
 							presenter.setReadByUser(recordVO, false);

@@ -58,6 +58,7 @@ dependencies {
     compile "org.vaadin.addons:actionbuttontextfield:1.0.2"
     compile "org.vaadin.addons:googleanalyticstracker:2.1.0"
     compile "org.vaadin.addon:confirmdialog:2.1.2"
+    compile "org.vaadin.addon:filteringtable:1.0.0.v7"
     compile "com.vaadin:vaadin-themes:7.7.5"
     compile "com.vaadin:vaadin-client-compiled:7.7.5"
     compile "com.vaadin:vaadin-shared:7.7.5"
