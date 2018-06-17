@@ -139,7 +139,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		}
 
 		for(ListSchemaExtraCommandReturnParams schemaExtraCommandReturnParams : presenter.getExtensionMenuBar(metadataSchemaVO)) {
-			rootItem.addItem($(schemaExtraCommandReturnParams.getCaption()), schemaExtraCommandReturnParams.getCommand());
+			rootItem.addItem($(schemaExtraCommandReturnParams.getCaption()), schemaExtraCommandReturnParams.getRessource(), schemaExtraCommandReturnParams.getCommand());
 		}
 
 		HorizontalLayout buttonVerticalLayout = new HorizontalLayout();

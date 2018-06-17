@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.params.ParamUtils;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.MenuBar;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class RMListSchemaExtention extends ListSchemaExtention {
                     String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);
                     listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderSummaryColumn(params);
                 }
-            }, $("ListSchemaViewImpl.menu.resumeConfiguration")));
+            }, $("ListSchemaViewImpl.menu.resumeConfiguration"), new ThemeResource("images/icons/config/display-config-summary-column.png")));
         }
 
         return listSchemaExtraCommandParams1;
