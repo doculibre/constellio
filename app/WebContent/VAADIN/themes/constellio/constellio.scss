@@ -573,6 +573,12 @@ $popup-view-z-index: 3;
     		}
     	}
     }
+    
+    .filters-panel {
+    	.v-filterselect {
+    		height: 23px;
+    	}
+    }
 
     .autocomplete-error, .lookup-error {
     	.v-filterselect-input {

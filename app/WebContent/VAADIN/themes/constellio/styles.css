@@ -12822,6 +12822,10 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 10px;
 }
 
+.constellio .filters-panel .v-filterselect {
+	height: 23px;
+}
+
 .constellio .autocomplete-error .v-filterselect-input, .constellio .lookup-error .v-filterselect-input {
 	border-color: #ed473b !important;
 	background: #fffbfb;
