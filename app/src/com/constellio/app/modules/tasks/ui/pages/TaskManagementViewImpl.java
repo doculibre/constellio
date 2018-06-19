@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -38,6 +39,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	private final TaskManagementPresenter presenter;
 	private TabSheet sheet;
 	private ComboBox timestamp;
+	private String previousSelectedTab;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
@@ -102,7 +104,29 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		}
 
 		mainLayout.addComponents(timestamp, sheet);
+
+		previousSelectedTab = presenter.getPreviousSelectedTab();
+		backToPreviousSelectedTab();
+
 		return mainLayout;
+	}
+
+	public void backToPreviousSelectedTab() {
+		if(previousSelectedTab != null) {
+			Iterator<Component> iterator = sheet.iterator();
+			while(iterator.hasNext()) {
+				Component component = iterator.next();
+				if(previousSelectedTab.equals(component.getId())) {
+					sheet.setSelectedTab(component);
+					presenter.tabSelected(previousSelectedTab);
+					break;
+				}
+			}
+		}
+	}
+
+	public String getPreviousSelectedTab() {
+		return previousSelectedTab;
 	}
 
 	@Override
@@ -113,6 +137,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	@Override
 	public Component getSelectedTab() {
 		return sheet.getSelectedTab();
+	}
+
+	@Override
+	public void registerPreviousSelectedTab() {
+		presenter.registerPreviousSelectedTab();
 	}
 
 	@Override

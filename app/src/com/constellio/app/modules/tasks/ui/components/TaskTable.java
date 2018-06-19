@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.vaadin.data.Item;
+import com.vaadin.event.ItemClickEvent;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -53,6 +55,27 @@ public class TaskTable extends RecordVOTable {
 		setCellStyleGenerator(new TaskStyleGenerator());
 		setPageLength(Math.min(15, provider.size()));
 		setWidth("100%");
+
+		addDisplayOnClickListener();
+	}
+
+	protected void addDisplayOnClickListener() {
+		this.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Item item = event.getItem();
+				RecordVO recordVO = null;
+				if (item instanceof RecordVO) {
+					recordVO = (RecordVO) item;
+				} else if (item instanceof RecordVOItem) {
+					recordVO = ((RecordVOItem) item).getRecord();
+				}
+
+				if(recordVO != null) {
+					displayTask(recordVO);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -76,8 +99,7 @@ public class TaskTable extends RecordVOTable {
 				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.setReadByUser(recordVO, true);
-						presenter.displayButtonClicked(recordVO);
+						displayTask(recordVO);
 					}
 				});
 				
@@ -85,8 +107,7 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							presenter.setReadByUser(recordVO, true);
-							presenter.editButtonClicked(recordVO);
+							editTask(recordVO);
 						}
 					});
 				}
@@ -180,6 +201,18 @@ public class TaskTable extends RecordVOTable {
 		return records;
 	}
 
+	private void editTask(RecordVO recordVO) {
+		presenter.setReadByUser(recordVO, true);
+		presenter.registerPreviousSelectedTab();
+		presenter.editButtonClicked(recordVO);
+	}
+
+	private void displayTask(RecordVO recordVO) {
+		presenter.setReadByUser(recordVO, true);
+		presenter.registerPreviousSelectedTab();
+		presenter.displayButtonClicked(recordVO);
+	}
+
 	@Override
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 		if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
@@ -237,7 +270,7 @@ public class TaskTable extends RecordVOTable {
 
 		void completeQuicklyButtonClicked(RecordVO recordVO);
 
-		public BaseView getView();
+		BaseView getView();
 
 		void reloadTaskModified(Task task);
 
@@ -245,6 +278,7 @@ public class TaskTable extends RecordVOTable {
 
 		void updateTaskStarred(boolean isStarred, String taskId);
 
+		void registerPreviousSelectedTab();
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

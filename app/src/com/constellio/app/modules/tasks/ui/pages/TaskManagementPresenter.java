@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.joda.time.LocalDate;
@@ -55,6 +56,8 @@ import com.vaadin.ui.Component;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
+	private final String TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB = "TaskManagementPresenterPreviousTab";
+
 	public static final String TASKS_ASSIGNED_BY_CURRENT_USER = "tasksAssignedByCurrentUser";
 	public static final String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
 	public static final String TASKS_ASSIGNED_TO_CURRENT_USER = "tasksAssignedToCurrentUser";
@@ -162,7 +165,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void deleteButtonClicked(RecordVO record) {
 		taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
-		view.reloadCurrentTab();
+		refreshCurrentTab();
 	}
 
 	@Override
@@ -221,6 +224,17 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 			view.showErrorMessage(e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	public String getPreviousSelectedTab() {
+		String attribute = ConstellioUI.getCurrentSessionContext().getAttribute(TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB);
+		ConstellioUI.getCurrentSessionContext().setAttribute(TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, null);
+
+		return attribute;
+	}
+
+	public void registerPreviousSelectedTab() {
+		ConstellioUI.getCurrentSessionContext().setAttribute(TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -42,6 +43,8 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
+	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
+
 	TaskVO taskVO;
 	private RecordVODataProvider subTaskDataProvider;
 	private RecordVODataProvider eventsDataProvider;
@@ -84,7 +87,16 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices(), tasksSearchServices, loggingServices);
 	}
 
+	public String getPreviousSelectedTab() {
+		String attribute = ConstellioUI.getCurrentSessionContext().getAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB);
+		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, null);
 
+		return attribute;
+	}
+
+	public void registerPreviousSelectedTab() {
+		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
+	}
 
 	public RecordVO getTask() {
 		return taskVO;
@@ -354,7 +366,12 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void selectInitialTabForUser() {
-		view.selectMetadataTab();
+		String previousSelectedTab = getPreviousSelectedTab();
+		if(previousSelectedTab != null && DisplayTaskView.SUB_TASKS_ID.equals(previousSelectedTab)) {
+			view.selectTasksTab();
+		} else {
+			view.selectMetadataTab();
+		}
 	}
 
 	public void viewAssembled() {
