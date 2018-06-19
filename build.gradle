@@ -68,7 +68,7 @@ subprojects {
     configurations {
         compile.exclude module: "asm-debug-all"
         compile.exclude module: "org.objectweb.asm"
-
+        compile.exclude group: 'asm', module: 'asm'
     }
 
     jar {
