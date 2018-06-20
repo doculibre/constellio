@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.modules.tasks.ui.pages.TaskManagementPresenter;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TasksLogsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskViewImpl;
@@ -94,6 +95,8 @@ public class TasksNavigationConfiguration implements Serializable {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(TASK_MANAGEMENT, FontAwesome.TASKS, TasksViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
+				ConstellioUI.getCurrentSessionContext().setAttribute(TaskManagementPresenter.TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, null);
+
 				navigate.to(TaskViews.class).taskManagement();
 			}
 

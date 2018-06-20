@@ -866,4 +866,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	public void updateRecords() {
 		selectionTableAdapter.refreshUI();
 	}
+
+	public ConstellioHeaderPresenter getPresenter() {
+		return presenter;
+	}
 }
