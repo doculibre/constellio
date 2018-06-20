@@ -86,8 +86,7 @@ dependencies {
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
     compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:filteringtable:0.9.15.v7"
-    //compile files("../libs/vaadin-popupbutton-2.5.0.jar")
-    //compile files("../libs/vaadin-filteringtable-0.9.15.v7.jar")
+    compile "org.vaadin.addons:activelink:7.3.1"
 }
 
 war {
