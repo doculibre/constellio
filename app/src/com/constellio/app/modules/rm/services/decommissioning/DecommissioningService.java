@@ -1068,14 +1068,13 @@ public class DecommissioningService {
 	}
 
 	private LocalDate getMinimumLocalDateForRecord(Record record, boolean takeActualDates) {
-        Folder folder = rm.wrapFolder(record);
-        if (!takeActualDates){
-            List<LocalDate> dates = getListOfExpectedDates(folder);
-            return getMinimal(dates);
-        }
-        List<LocalDate> dates = getListOfAllDates(folder);
-
-        return getMinimal(dates);
+		Folder folder = rm.wrapFolder(record);
+		if (!takeActualDates){
+			List<LocalDate> dates = getListOfExpectedDates(folder);
+			return getMinimal(dates);
+		}
+		List<LocalDate> dates = getListOfAllDates(folder);
+		return getMinimal(dates);
 	}
 
 	private LocalDate getMaximalLocalDateForRecord(Record record, boolean takeActualDates) {
