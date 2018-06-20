@@ -1,14 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
@@ -34,6 +25,14 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
 import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 	private final TaskManagementPresenter presenter;
