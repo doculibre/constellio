@@ -72,6 +72,10 @@ public class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl
 		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 	}
 
+	public User getTransactionUser() {
+		return transactionUser;
+	}
+
 	public static class UnModifiedMetadataRuntimeException extends RuntimeException {
 		public UnModifiedMetadataRuntimeException(String metadataLocalCode) {
 			super("Metadata '" + metadataLocalCode + "' was not modified");

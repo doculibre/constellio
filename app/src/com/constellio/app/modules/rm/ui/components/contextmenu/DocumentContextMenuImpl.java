@@ -358,8 +358,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
+	public void setCopyDocumentButtonState(ComponentState state) {
+	}
 
+	@Override
+	public void setStartWorkflowButtonState(ComponentState state) {
 	}
 
 	@Override
@@ -433,8 +436,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setFinalizeButtonVisible(boolean visible) {
-		finalizeButtonVisible = visible;
+	public void setFinalizeButtonState(ComponentState state) {
+		finalizeButtonVisible = state.isVisible();
 	}
 
 	@Override

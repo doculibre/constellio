@@ -723,6 +723,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void drop(DragAndDropEvent event) {
+		if (!uploadButton.isVisible()) return;
 		openUploadWindow(false);
 		uploadWindow.drop(event);
 	}
@@ -743,6 +744,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		uploadWindow = null;
 		initUploadWindow();
 		uploadWindow.open(checkingIn);
+	}
+
+	@Override
+	public void setCopyDocumentButtonState(ComponentState state) {
+		copyContentButton.setVisible(state.isVisible());
+		copyContentButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
@@ -803,8 +810,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setFinalizeButtonVisible(boolean visible) {
-		finalizeButton.setVisible(visible);
+	public void setFinalizeButtonState(ComponentState state) {
+		finalizeButton.setVisible(state.isVisible());
+		finalizeButton.setEnabled(state.isVisible());
 	}
 
 	@Override

@@ -185,7 +185,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchExpression;
 	}
 
-	public void batchEditRequested(String code, Object value, String schemaType) {
+	public boolean batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
@@ -195,6 +195,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		BatchProcess process = manager.addBatchProcessInStandby(query, action, username, "userBatchProcess");
 		manager.markAsPending(process);
+		return true;
 	}
 
 	@Override
@@ -484,7 +485,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
 		BatchProcessResults results = batchProcessingPresenterService()
 				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
@@ -493,7 +494,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		} else {
 			view.navigate().to().advancedSearch();
 		}
-
+		return true;
 	}
 
 	@Override

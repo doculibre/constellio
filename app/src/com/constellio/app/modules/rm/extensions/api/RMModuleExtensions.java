@@ -11,18 +11,26 @@ import java.util.List;
 public class RMModuleExtensions implements ModuleExtensions {
 
 	private RMReportBuilderFactories rmReportBuilderFactories;
+	private List<DecommissioningBuilderPresenterExtension> decommissioningBuilderPresenterExtensions;
 	private DecommissioningListFolderTableExtension decommissioningListFolderTableExtension;
 	private List<DecommissioningListPresenterExtension> decommissioningListPresenterExtensions;
 	private List<DocumentExtension> documentExtensions;
+	private List<FolderExtension> folderExtensions;
 
 	public RMModuleExtensions(AppLayerFactory appLayerFactory) {
 		rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
+		decommissioningBuilderPresenterExtensions = new ArrayList<>();
 		decommissioningListPresenterExtensions = new ArrayList<>();
 		documentExtensions = new ArrayList<>();
+		folderExtensions = new ArrayList<>();
 	}
 
 	public RMReportBuilderFactories getReportBuilderFactories() {
 		return rmReportBuilderFactories;
+	}
+
+	public List<DecommissioningBuilderPresenterExtension> getDecommissioningBuilderPresenterExtensions() {
+		return decommissioningBuilderPresenterExtensions;
 	}
 
 	public DecommissioningListFolderTableExtension getDecommissioningListFolderTableExtension() {
@@ -47,5 +55,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 			documentExtension.addMenuItems(params);
 		}
 	}
-	
+
+    public List<FolderExtension> getFolderExtensions() {
+		return folderExtensions;
+    }
 }

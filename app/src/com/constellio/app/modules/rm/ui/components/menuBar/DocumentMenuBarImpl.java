@@ -348,6 +348,11 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
+	public void setCopyDocumentButtonState(ComponentState state) {
+
+	}
+
+	@Override
 	public void setStartWorkflowButtonState(ComponentState state) {
 
 	}
@@ -423,8 +428,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setFinalizeButtonVisible(boolean visible) {
-		finalizeButtonVisible = visible;
+	public void setFinalizeButtonState(ComponentState state) {
+		finalizeButtonVisible = state.isVisible();
 	}
 
 	@Override

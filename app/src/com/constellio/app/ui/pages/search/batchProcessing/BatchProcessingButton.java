@@ -189,11 +189,13 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						presenter.processBatchButtonClicked(typeField.getValue(), view.getSchemaType(), viewObject);
+						boolean success = presenter.processBatchButtonClicked(typeField.getValue(), view.getSchemaType(), viewObject);
 
 						getWindow().close();
 
-						batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
+						if (success) {
+							batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
+						}
 					} catch (RecordServicesException.ValidationException e) {
 						view.showErrorMessage($(e.getErrors()));
 					} catch (Throwable e) {
