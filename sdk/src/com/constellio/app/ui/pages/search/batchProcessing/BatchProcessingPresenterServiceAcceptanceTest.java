@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.services.records.RecordServices;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -70,6 +71,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	MetadataSchemaType folderSchemaType;
 	SearchServices searchServices;
 	CopyRetentionRuleFactory copyRetentionRuleFactory;
+	RecordServices recordService;
 
 	LocalDate date1 = aDate();
 	LocalDate date2 = aDate();
@@ -91,7 +93,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.withAllTest(users));
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
+		recordService = getModelLayerFactory().newRecordServices();
 		folderSchemaType = rm.folderSchemaType();
 		searchServices = getModelLayerFactory().newSearchServices();
 		presenterService = new BatchProcessingPresenterService(zeCollection, getAppLayerFactory(), Locale.FRENCH);
@@ -116,6 +118,54 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		dateTime1String = DateFormatUtils.format(dateTime1);
 		dateTime2String = DateFormatUtils.format(dateTime2);
 		dateTime3String = DateFormatUtils.format(dateTime3);
+	}
+
+	@Test
+	public void givenFolderWithTwoPossibleDelaiAndWithPrincipalCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
+
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_30);
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("10", "30","folder_default_administrativeUnitCode"),
+				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
+				tuple("10 (Unité 10)", "30 (Unité 30)", "folder_default_administrativeUnit"),
+				tuple("42-5-C", "888-0-D", "folder_default_mainCopyRule")
+		);
+	}
+
+	@Test
+	public void givenFolderWithTwoPossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
+
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_30);
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("30", "10","folder_default_administrativeUnitCode"),
+				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
+				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
+				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule")
+		);
 	}
 
 	@Test
@@ -858,7 +908,6 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
-
 	}
 
 	public void whenBatchProcessingThenOriginalTypeIsNonNullIfEachRecordsHaveTheSameType()

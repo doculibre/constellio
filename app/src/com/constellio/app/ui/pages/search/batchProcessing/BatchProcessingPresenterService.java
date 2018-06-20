@@ -19,6 +19,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -195,13 +200,13 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, boolean unmodifiable,
-							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-							String schemaTypeCode, MetadataInputType metadataInputType,
-							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
-							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes) {
+													   MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
+													   boolean multivalue, boolean readOnly, boolean unmodifiable,
+													   Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+													   String schemaTypeCode, MetadataInputType metadataInputType,
+													   MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
+													   boolean enabled, StructureFactory structureFactory, String metadataGroup,
+													   Object defaultValue, String inputMask, Set<String> customAttributes) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -249,7 +254,7 @@ public class BatchProcessingPresenterService {
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, List<String> records,
-			String username, String title)
+									   String username, String title)
 			throws RecordServicesException {
 
 		//		System.out.println("**************** EXECUTE ****************");
@@ -301,13 +306,13 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, boolean unmodifiable,
-							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-							String schemaTypeCode, MetadataInputType metadataInputType,
-							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
-							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes) {
+													   MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
+													   boolean multivalue, boolean readOnly, boolean unmodifiable,
+													   Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+													   String schemaTypeCode, MetadataInputType metadataInputType,
+													   MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
+													   boolean enabled, StructureFactory structureFactory, String metadataGroup,
+													   Object defaultValue, String inputMask, Set<String> customAttributes) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -365,7 +370,7 @@ public class BatchProcessingPresenterService {
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, LogicalSearchQuery query,
-			String username, String title)
+									   String username, String title)
 			throws RecordServicesException {
 
 		//		System.out.println("**************** EXECUTE ****************");
@@ -548,47 +553,47 @@ public class BatchProcessingPresenterService {
 		}
 		switch (metadata.getType()) {
 
-		case DATE:
-			return DateFormatUtils.format((LocalDate) value);
+			case DATE:
+				return DateFormatUtils.format((LocalDate) value);
 
-		case DATE_TIME:
-			return DateFormatUtils.format((LocalDateTime) value);
+			case DATE_TIME:
+				return DateFormatUtils.format((LocalDateTime) value);
 
-		case STRING:
-		case TEXT:
-			return value.toString();
+			case STRING:
+			case TEXT:
+				return value.toString();
 
-		case INTEGER:
-		case NUMBER:
-			return value.toString();
+			case INTEGER:
+			case NUMBER:
+				return value.toString();
 
-		case BOOLEAN:
-			return $(value.toString(), locale);
+			case BOOLEAN:
+				return $(value.toString(), locale);
 
-		case REFERENCE:
-			Record record = recordServices.getDocumentById(value.toString());
-			String code = record.get(Schemas.CODE);
-			if (code == null) {
-				return record.getId() + " (" + record.getTitle() + ")";
-			} else {
-				return code + " (" + record.getTitle() + ")";
-			}
+			case REFERENCE:
+				Record record = recordServices.getDocumentById(value.toString());
+				String code = record.get(Schemas.CODE);
+				if (code == null) {
+					return record.getId() + " (" + record.getTitle() + ")";
+				} else {
+					return code + " (" + record.getTitle() + ")";
+				}
 
-		case CONTENT:
-			return ((Content) value).getCurrentVersion().getFilename();
+			case CONTENT:
+				return ((Content) value).getCurrentVersion().getFilename();
 
-		case STRUCTURE:
-			return value.toString();
+			case STRUCTURE:
+				return value.toString();
 
-		case ENUM:
-			return $(metadata.getEnumClass().getSimpleName() + "." + ((EnumWithSmallCode) value).getCode(), locale);
+			case ENUM:
+				return $(metadata.getEnumClass().getSimpleName() + "." + ((EnumWithSmallCode) value).getCode(), locale);
 		}
 
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
 	public List<Transaction> prepareTransactions(final BatchProcessRequest request, boolean recalculate) {
-
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaTypes types = schemas.getTypes();
 		final List<Transaction> transactionList = new ArrayList<>();
 		Transaction transaction = new Transaction();
@@ -624,8 +629,43 @@ public class BatchProcessingPresenterService {
 				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
+
 					if (isNonEmptyValue(metadata, entry.getValue())) {
 						record.set(metadata, entry.getValue());
+						if(Folder.SCHEMA_TYPE.equals(metadata.getSchemaTypeCode()) && Folder.ADMINISTRATIVE_UNIT_ENTERED.equals(metadata.getLocalCode())) {
+							recordServices.recalculate(record);
+
+							Folder folder = rmSchemasRecordsServices.wrapFolder(record);
+							RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(folder.getRetentionRule());
+							List<CopyRetentionRule> copyRetentionRuleList = retentionRule.getCopyRetentionRules();
+
+							if(folder.getCopyStatus() == CopyType.PRINCIPAL) {
+								int numberOfPrincipal = 0;
+								CopyRetentionRule lastCopyRetentionRule = null;
+								for(CopyRetentionRule copyRetentionRule : copyRetentionRuleList) {
+									if(copyRetentionRule.getCopyType() == CopyType.PRINCIPAL){
+										lastCopyRetentionRule = copyRetentionRule;
+										numberOfPrincipal++;
+									}
+								}
+
+								if(numberOfPrincipal == 1) {
+									folder.setMainCopyRuleEntered(lastCopyRetentionRule.getId());
+								}
+							} else {
+								CopyRetentionRule lastCopyRetentionRule = null;
+								for(CopyRetentionRule copyRetentionRule : copyRetentionRuleList) {
+									if(copyRetentionRule.getCopyType() == CopyType.SECONDARY){
+										lastCopyRetentionRule = copyRetentionRule;
+										break;
+									}
+								}
+
+								if(lastCopyRetentionRule != null) {
+									folder.setMainCopyRuleEntered(lastCopyRetentionRule.getId());
+								}
+							}
+						}
 					}
 				}
 			}

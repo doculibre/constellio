@@ -151,7 +151,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					Set<String> ids = new HashSet<>();
 					for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 						if (typeId.equals(copyRetentionRule.getTypeId())
-								&& copyRetentionRule.getCopyType() == uniformCopyType
+								&& copyRetentionRule.getCopyType() == uniformCopyType || uniformCopyType == null
 								&& !ids.contains(copyRetentionRule.getId())) {
 							ids.add(copyRetentionRule.getId());
 							options.add(copyRetentionRule);
@@ -161,7 +161,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					if (options.isEmpty()) {
 						for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 							if (copyRetentionRule.getTypeId() == null
-									&& copyRetentionRule.getCopyType() == uniformCopyType
+									&& copyRetentionRule.getCopyType() == uniformCopyType || uniformCopyType == null
 									&& !ids.contains(copyRetentionRule.getId())) {
 								ids.add(copyRetentionRule.getId());
 								options.add(copyRetentionRule);
@@ -184,14 +184,15 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
 				options = new ArrayList<>();
 				Set<String> ids = new HashSet<>();
-				for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
-					if (copyRetentionRule.getTypeId() == null
-							&& copyRetentionRule.getCopyType() == uniformCopyType
-							&& !ids.contains(copyRetentionRule.getId())) {
-						ids.add(copyRetentionRule.getId());
-						options.add(copyRetentionRule);
-					}
-				}
+
+                for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+                    if (copyRetentionRule.getTypeId() == null
+                            && (copyRetentionRule.getCopyType() == uniformCopyType || uniformCopyType == null)
+                            && !ids.contains(copyRetentionRule.getId())) {
+                        ids.add(copyRetentionRule.getId());
+                        options.add(copyRetentionRule);
+                    }
+                }
 			} else if(request.getQuery() != null) {
 				options = getOptionsWithQuery(request);
 			} else {
