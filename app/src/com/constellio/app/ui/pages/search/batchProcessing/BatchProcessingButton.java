@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
 import java.io.InputStream;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,14 +240,14 @@ public class BatchProcessingButton extends WindowButton {
 		}
 
 		@Override
-		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 			if (metadataVO == null || metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
 				return null;
 			}
 			if (fieldFactory != null) {
-				return fieldFactory.build(recordVO, metadataVO);
+				return fieldFactory.build(recordVO, metadataVO, locale);
 			}
-			return super.build(recordVO, metadataVO);
+			return super.build(recordVO, metadataVO, locale);
 		}
 	}
 }

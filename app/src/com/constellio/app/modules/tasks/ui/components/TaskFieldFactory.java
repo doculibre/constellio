@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.*;
@@ -9,6 +10,7 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.vaadin.ui.Field;
 
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
@@ -29,7 +31,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata) {
+	public Field<?> build(MetadataVO metadata, Locale locale) {
 		Field<?> field;
 		MetadataInputType inputType = metadata.getMetadataInputType();
 		switch (metadata.getLocalCode()) {
@@ -82,7 +84,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			field = new TaskReminderFrequencyFieldImpl();
 			break;
 		default:
-			field = super.build(metadata);
+			field = super.build(metadata, locale);
 		}
 		if (field instanceof CustomTaskField) {
 			postBuild(field, metadata);

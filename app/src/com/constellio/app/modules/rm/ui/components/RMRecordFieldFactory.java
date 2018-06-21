@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.components;
 
+import java.util.Locale;
+
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
@@ -12,8 +14,8 @@ public class RMRecordFieldFactory extends RecordFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-		return super.build(recordVO, metadataVO);
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
+		return super.build(recordVO, metadataVO, locale);
 	}
 
 //	@Override

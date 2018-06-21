@@ -18,6 +18,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.ui.Field;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION;
 
@@ -49,7 +50,7 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 	}
 	
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
 		if(DEFAULT_UNIFORM_SUBDIVISION.equals(metadataVO.getLocalCode()) && !presenter.areUniformSubdivisionsEnabled()) {
 			return null;
@@ -95,7 +96,7 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 				presenter.subdivisionFieldCreated();
 				return uniformSubdivisionField;
 			}
-			field = super.build(recordVO, metadataVO);
+			field = super.build(recordVO, metadataVO, locale);
 		}
 
 		return field;
