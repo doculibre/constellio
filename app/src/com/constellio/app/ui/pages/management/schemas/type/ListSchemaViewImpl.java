@@ -167,11 +167,11 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 					@Override
 					public boolean isVisible() {
-//						Integer index = (Integer) itemId;
-//						MetadataSchemaVO entity = dataProvider.getSchemaVO(index,active);
-//						if(entity == null || entity.getCode() == null || !entity.getCode().endsWith("default")) {
-//							return false;
-//						}
+						Integer index = (Integer) itemId;
+						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+						if(entity == null || entity.getCode() == null || !entity.getCode().endsWith("default")) {
+							return false;
+						}
 						return true;
 					}
 				};
@@ -206,8 +206,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 					@Override
 					public boolean isVisible() {
-//						Integer index = (Integer) itemId;
-//						MetadataSchemaVO entity = dataProvider.getSchemaVO(index,active);
 						return super.isVisible() ;
 					}
 				};
@@ -235,6 +233,9 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					return new EnableButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
+							Integer index = (Integer) itemId;
+							MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+							presenter.enableButtonClick(entity.getCode());
 						}
 					};
 				}

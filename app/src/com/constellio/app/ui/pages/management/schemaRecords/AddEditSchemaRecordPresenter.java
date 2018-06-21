@@ -6,7 +6,6 @@ import java.util.List;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
@@ -103,8 +102,10 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		MetadataSchemaType type = types().getSchemaType(schemaTypeCode);
 		List<Choice> result = new ArrayList<>();
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
-			result.add(new Choice(schema.getCode(), schema.getLabel(language)));
+			if(schema.isActive()){
+				Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+				result.add(new Choice(schema.getCode(), schema.getLabel(language)));
+			}
 		}
 		return result;
 	}

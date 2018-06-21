@@ -306,4 +306,15 @@ public class AppSchemasServices {
 		}
 	}
 
+	public void enableSchema(String collection, String schemaCode) {
+		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
+		MetadataSchemaBuilder builder = types.getSchema(schemaCode);
+		builder.setActive(true);
+		try {
+			schemasManager.saveUpdateSchemaTypes(types);
+		} catch (MetadataSchemasManagerException.OptimisticLocking optimistickLocking) {
+			throw new RuntimeException(optimistickLocking);
+		}
+	}
+
 }

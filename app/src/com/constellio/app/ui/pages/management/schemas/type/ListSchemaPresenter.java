@@ -17,16 +17,19 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaView> {
@@ -157,11 +160,45 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		for(Record record : records){
 			try {
 				recordServices.logicallyDelete(record, User.GOD);
-
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDelete"));
 			}
 		}
+		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
+	}
+
+	public void enableButtonClick(String schemaCode){
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		appSchemasServices.enableSchema(collection,schemaCode);
+
+		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
+		for(Record record : records){
+			if (hasOtherActiveRecordWithSameCode(record)) {
+				view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordHasSameCode"));
+			} else {
+				try {
+					recordServices.restore(record, User.GOD);
+				} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord e) {
+					view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
+				}
+			}
+		}
+		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
+	}
+
+	private boolean hasOtherActiveRecordWithSameCode(Record record) {
+		String code = record.get(Schemas.CODE);
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		MetadataSchemaType type = types().getSchemaType(record.getTypeCode());
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		query.setCondition(
+				from(type).where(Schemas.CODE).isEqualTo(code).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId()));
+
+		return searchServices().hasResults(query);
 	}
 
 }
