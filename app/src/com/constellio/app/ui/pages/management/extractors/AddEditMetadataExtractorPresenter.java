@@ -118,6 +118,7 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 				metadataBuilder.getPopulateConfigsBuilder().setStyles(metadataExtractorVO.getStyles());
 				metadataBuilder.getPopulateConfigsBuilder().setProperties(metadataExtractorVO.getProperties());
 				metadataBuilder.getPopulateConfigsBuilder().setRegexes(regexConfigs);
+				metadataBuilder.getPopulateConfigsBuilder().setAddOnly(metadataExtractorVO.isAddOnly());
 			}
 		});
 		view.navigate().to().listMetadataExtractors();

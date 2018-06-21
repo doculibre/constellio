@@ -21,6 +21,8 @@ public class MetadataExtractorVO implements Serializable {
 
 	private List<RegexConfigVO> regexes = new ArrayList<>();
 
+	private Boolean isAddOnly = false;
+
 	public MetadataExtractorVO(MetadataVO metadataVO, MetadataPopulateConfigs metadataPopulateConfigs) {
 		this.metadataVO = metadataVO;
 		this.styles.addAll(metadataPopulateConfigs.getStyles());
@@ -28,6 +30,7 @@ public class MetadataExtractorVO implements Serializable {
 		for (RegexConfig regexConfig : metadataPopulateConfigs.getRegexes()) {
 			this.regexes.add(regexConfigToVOBuilder.build(regexConfig));
 		}
+		this.isAddOnly = metadataPopulateConfigs.isAddOnly();
 	}
 
 	public final MetadataVO getMetadataVO() {
@@ -62,4 +65,16 @@ public class MetadataExtractorVO implements Serializable {
 		this.regexes = regexes;
 	}
 
+	//Do not rename, necessary for view properties
+	public Boolean getIsAddOnly() {
+		return isAddOnly;
+	}
+
+	public Boolean isAddOnly() {
+		return isAddOnly;
+	}
+
+	public void setIsAddOnly(Boolean addOnly) {
+		this.isAddOnly = addOnly;
+	}
 }

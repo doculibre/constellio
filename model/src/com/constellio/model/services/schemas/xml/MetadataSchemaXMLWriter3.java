@@ -520,7 +520,7 @@ public class MetadataSchemaXMLWriter3 {
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {
 		Element populateConfigsElement = new Element("populateConfigs");
 
-		if(Boolean.TRUE.equals(!populateConfigs.isAddOnly())) {
+		if(Boolean.TRUE.equals(populateConfigs.isAddOnly())) {
 			populateConfigsElement.setAttribute("isAddOnly", "true");
 		}
 

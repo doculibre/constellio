@@ -88,8 +88,8 @@ public class MetadataPopulateConfigs implements Serializable {
 		return !styles.isEmpty() || !properties.isEmpty() || !regexes.isEmpty() || !metadataPopulators.isEmpty();
 	}
 
-	public Boolean isAddOnly() {
-		return isAddOnly;
+	public boolean isAddOnly() {
+		return Boolean.TRUE.equals(isAddOnly);
 	}
 }
 

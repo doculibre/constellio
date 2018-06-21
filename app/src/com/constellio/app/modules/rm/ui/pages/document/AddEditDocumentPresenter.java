@@ -361,7 +361,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String currentTitle = document.getTitle();
 			String currentContentFilename = documentVO.getContent().getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(currentContentFilename));
-			if (currentTitle.endsWith("." + extension)) {
+			if (currentTitle.endsWith("." + extension) &&
+					(isAddView() || !document.getSchema().getMetadata(Schemas.TITLE_CODE).getPopulateConfigs().isAddOnly())) {
 				document.getContent().renameCurrentVersion(currentTitle);
 			}
 		}
