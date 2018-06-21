@@ -16,6 +16,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private List<DecommissioningListPresenterExtension> decommissioningListPresenterExtensions;
 	private List<DocumentExtension> documentExtensions;
 	private List<FolderExtension> folderExtensions;
+	private List<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
 
 	public RMModuleExtensions(AppLayerFactory appLayerFactory) {
 		rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
@@ -23,6 +24,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		decommissioningListPresenterExtensions = new ArrayList<>();
 		documentExtensions = new ArrayList<>();
 		folderExtensions = new ArrayList<>();
+		advancedSearchPresenterExtensions = new ArrayList<>();
 	}
 
 	public RMReportBuilderFactories getReportBuilderFactories() {
@@ -59,4 +61,8 @@ public class RMModuleExtensions implements ModuleExtensions {
     public List<FolderExtension> getFolderExtensions() {
 		return folderExtensions;
     }
+
+    public List<AdvancedSearchPresenterExtension> getAdvancedSearchPresenterExtensions() {
+		return advancedSearchPresenterExtensions;
+	}
 }
