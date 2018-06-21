@@ -346,7 +346,7 @@ public class RMEventsSearchServices {
 		Metadata timestamp = Schemas.CREATED_ON;
 
 		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser);
-		return condition == null ? null : new LogicalSearchQuery(condition.andWhere(metadataRecordID).isEqualTo(recordID))
+		return condition == null ? LogicalSearchQuery.returningNoResults() : new LogicalSearchQuery(condition.andWhere(metadataRecordID).isEqualTo(recordID))
 				.sortDesc(timestamp);
 	}
 

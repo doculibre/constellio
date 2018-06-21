@@ -30,7 +30,7 @@ public class ReportViewer extends VerticalLayout {
 		viewer.setSource(new StreamResource(source, filename));
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
-		viewer.setHeight("100%");
+		viewer.setHeight("95%");
 
 		Link download = new Link($("ReportViewer.download", filename),
 				new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
