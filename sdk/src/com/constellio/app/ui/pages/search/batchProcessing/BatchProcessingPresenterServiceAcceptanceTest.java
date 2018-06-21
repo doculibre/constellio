@@ -1,43 +1,18 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.model.services.records.RecordServices;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
@@ -50,6 +25,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -60,6 +36,24 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTest {
 
@@ -142,6 +136,46 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("10 (Unité 10)", "30 (Unité 30)", "folder_default_administrativeUnit"),
 				tuple("42-5-C", "888-0-D", "folder_default_mainCopyRule")
 		);
+	}
+
+	@Test
+	public void givenFolderWithThreePossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_30);
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+
+		principal5_2_T.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		RetentionRule retentionRule = rm.getRetentionRule(records.ruleId_1);
+
+		List newRetentionRuleList = new ArrayList();
+		for(CopyRetentionRule currentCopyRetentionRule : retentionRule.getCopyRetentionRules()) {
+			newRetentionRuleList.add(currentCopyRetentionRule);
+		}
+		newRetentionRuleList.add(principal5_2_T);
+
+		retentionRule.setCopyRetentionRules(newRetentionRuleList);
+
+		recordService.update(retentionRule);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications())
+				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("30", "10","folder_default_administrativeUnitCode"),
+				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
+				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
+				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule")
+		);
+
 	}
 
 	@Test

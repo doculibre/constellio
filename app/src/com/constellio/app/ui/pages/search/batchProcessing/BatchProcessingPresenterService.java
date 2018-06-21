@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.api.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -593,7 +594,6 @@ public class BatchProcessingPresenterService {
 	}
 
 	public List<Transaction> prepareTransactions(final BatchProcessRequest request, boolean recalculate) {
-		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaTypes types = schemas.getTypes();
 		final List<Transaction> transactionList = new ArrayList<>();
 		Transaction transaction = new Transaction();
@@ -632,40 +632,10 @@ public class BatchProcessingPresenterService {
 
 					if (isNonEmptyValue(metadata, entry.getValue())) {
 						record.set(metadata, entry.getValue());
-						if(Folder.SCHEMA_TYPE.equals(metadata.getSchemaTypeCode()) && Folder.ADMINISTRATIVE_UNIT_ENTERED.equals(metadata.getLocalCode())) {
-							recordServices.recalculate(record);
 
-							Folder folder = rmSchemasRecordsServices.wrapFolder(record);
-							RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(folder.getRetentionRule());
-							List<CopyRetentionRule> copyRetentionRuleList = retentionRule.getCopyRetentionRules();
-
-							if(folder.getCopyStatus() == CopyType.PRINCIPAL) {
-								int numberOfPrincipal = 0;
-								CopyRetentionRule lastCopyRetentionRule = null;
-								for(CopyRetentionRule copyRetentionRule : copyRetentionRuleList) {
-									if(copyRetentionRule.getCopyType() == CopyType.PRINCIPAL){
-										lastCopyRetentionRule = copyRetentionRule;
-										numberOfPrincipal++;
-									}
-								}
-
-								if(numberOfPrincipal == 1) {
-									folder.setMainCopyRuleEntered(lastCopyRetentionRule.getId());
-								}
-							} else {
-								CopyRetentionRule lastCopyRetentionRule = null;
-								for(CopyRetentionRule copyRetentionRule : copyRetentionRuleList) {
-									if(copyRetentionRule.getCopyType() == CopyType.SECONDARY){
-										lastCopyRetentionRule = copyRetentionRule;
-										break;
-									}
-								}
-
-								if(lastCopyRetentionRule != null) {
-									folder.setMainCopyRuleEntered(lastCopyRetentionRule.getId());
-								}
-							}
-						}
+						appLayerFactory.getExtensions()
+								.forCollection(collection)
+								.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, metadata));
 					}
 				}
 			}
