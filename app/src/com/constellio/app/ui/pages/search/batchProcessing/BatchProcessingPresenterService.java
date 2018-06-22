@@ -19,12 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.api.extensions.params.BatchProcessingSpecialCaseParams;
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -598,6 +593,7 @@ public class BatchProcessingPresenterService {
 		final List<Transaction> transactionList = new ArrayList<>();
 		Transaction transaction = new Transaction();
 		int counter = 0;
+		Map<String, Map<String, Object>> specialCaseModificationByRecordId = new HashMap<>();
 
 		List<Record> recordList = searchServices.search(request.getQuery());
 		for (Record record : recordList) {
@@ -632,14 +628,19 @@ public class BatchProcessingPresenterService {
 
 					if (isNonEmptyValue(metadata, entry.getValue())) {
 						record.set(metadata, entry.getValue());
-
-						appLayerFactory.getExtensions()
+						Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
 								.forCollection(collection)
 								.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, metadata));
+						if(temporaryMetadataChangeHash.size() > 0) {
+							specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+						}
 					}
 				}
 			}
+
 		}
+
+		request.setSpecialCaseModifiedMetadatas(specialCaseModificationByRecordId);
 		if (counter < 1000) {
 			transactionList.add(transaction);
 		}

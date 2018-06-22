@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +42,10 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	private final TaskList taskList;
 	private final User user;
 	private final BatchProcessReport report;
+	private final ModelLayerFactory modelLayerFactory;
 
 	public BatchProcessTask(TaskList taskList, List<Record> records, BatchProcessAction action, RecordServices recordServices,
-			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user, BatchProcessReport report) {
+							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user, BatchProcessReport report, ModelLayerFactory modelLayerFactory) {
 		this.records = records;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
@@ -52,6 +54,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 		this.taskList = taskList;
 		this.user = user;
 		this.report = report;
+		this.modelLayerFactory = modelLayerFactory;
 
 		List<String> ids = new RecordUtils().toIdList(records);
 		Set<String> idsSet = new HashSet<>(ids);
@@ -76,7 +79,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	void execute(List<Record> batch, List<String> errors) {
 		Transaction transaction = null;
 		try {
-			transaction = action.execute(batch, metadataSchemaTypes, new RecordProvider(recordServices));
+			transaction = action.execute(batch, metadataSchemaTypes, new RecordProvider(recordServices), modelLayerFactory);
 
 		} catch (Throwable t) {
 			if (report != null) {
@@ -122,7 +125,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 
 	RecordModificationImpactHandler createSubTaskImpactHandler() {
 		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user,
-				report);
+				report, modelLayerFactory);
 	}
 
 	private void addRecordsIdsToErrorList(List<Record> batch, List<String> errors) {

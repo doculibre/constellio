@@ -45,7 +45,7 @@ public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		handler = spy(new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user));
+		handler = spy(new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user, getModelLayerFactory()));
 
 		doReturn(schemaUtils).when(handler).newSchemaUtils();
 		when(schemaUtils.toMetadataCodes(reindexedMetadatas)).thenReturn(reindexedMetadatasCodes);

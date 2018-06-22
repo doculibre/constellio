@@ -68,7 +68,7 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 
-		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList));
+		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList, getModelLayerFactory()));
 		records.add(record1);
 		records.add(record2);
 		tasks.add(aTask);

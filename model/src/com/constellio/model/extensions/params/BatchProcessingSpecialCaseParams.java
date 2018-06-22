@@ -1,4 +1,4 @@
-package com.constellio.app.api.extensions.params;
+package com.constellio.model.extensions.params;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -11,6 +11,7 @@ public class BatchProcessingSpecialCaseParams {
         this.record = record;
         this.metadata = metadata;
     }
+
 
     public Record getRecord() {
         return this.record;

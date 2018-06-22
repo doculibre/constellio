@@ -73,7 +73,7 @@ public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest 
 	public void whenExecutingThenCreateTransactionSetForcedChangeFieldsForAllRecords()
 			throws Exception {
 
-		Transaction transaction = action.execute(batch, schemaTypes, recordProvider);
+		Transaction transaction = action.execute(batch, schemaTypes, recordProvider, getModelLayerFactory());
 
 		assertThat(transaction.getRecords()).containsOnly(record1, record2, record3);
 		for (Record record : batch) {

@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -21,12 +22,14 @@ public class BatchProcessTasksFactory {
 	private final SearchServices searchServices;
 	private final UserServices userServices;
 	private final TaskList taskList;
+	private final ModelLayerFactory modelLayerFactory;
 
-	public BatchProcessTasksFactory(RecordServices recordServices, SearchServices searchServices, UserServices userServices, TaskList taskList) {
+	public BatchProcessTasksFactory(RecordServices recordServices, SearchServices searchServices, UserServices userServices, TaskList taskList, ModelLayerFactory modelLayerFactory) {
 		this.recordServices = recordServices;
 		this.searchServices = searchServices;
 		this.userServices = userServices;
 		this.taskList = taskList;
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	public List<BatchProcessTask> createBatchProcessTasks(RecordBatchProcess batchProcess, List<Record> records, List<String> errorList,
@@ -43,7 +46,7 @@ public class BatchProcessTasksFactory {
 			List<Record> recordsForTask = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));
 			BatchProcessTask reindexationTask = new BatchProcessTask(taskList, recordsForTask, batchProcess.getAction(),
 					recordServices,
-					metadataSchemaTypes, searchServices, user, report);
+					metadataSchemaTypes, searchServices, user, report, modelLayerFactory);
 			tasks.add(reindexationTask);
 		}
 		return tasks;

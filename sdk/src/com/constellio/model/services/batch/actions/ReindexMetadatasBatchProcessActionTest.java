@@ -59,7 +59,7 @@ public class ReindexMetadatasBatchProcessActionTest extends ConstellioTest {
 	public void whenExecutingThenCreateTransactionSetForcedReindexedFieldsOptionsAndAddRecords()
 			throws Exception {
 
-		Transaction transaction = action.execute(batch, schemaTypes, recordProvider);
+		Transaction transaction = action.execute(batch, schemaTypes, recordProvider, getModelLayerFactory());
 
 		assertThat(transaction.getRecordUpdateOptions().getTransactionRecordsReindexation())
 				.isEqualTo(new TransactionRecordsReindexation(reindexedMetadatas));

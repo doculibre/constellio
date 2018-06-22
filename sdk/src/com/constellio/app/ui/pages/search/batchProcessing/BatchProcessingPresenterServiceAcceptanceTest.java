@@ -115,6 +115,50 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	}
 
 	@Test
+	public void givenTwoFolderOnePrincipalAndOneSecondaryAndThreePossibleDelaiWhenSelectingPrincipalDelaiThenOnlyPrincpalRuleChanged() throws Exception {
+
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
+
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		Folder folder2 = rm.getFolder(records.folder_A05).setAdministrativeUnitEntered(records.unitId_30);
+
+		recordService.update(folder2);
+
+		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+		CopyRetentionRule principal5_2_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+
+		principal5_2_C.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		RetentionRule retentionRule = rm.getRetentionRule(records.ruleId_1);
+
+		List newRetentionRuleList = new ArrayList();
+		for(CopyRetentionRule currentCopyRetentionRule : retentionRule.getCopyRetentionRules()) {
+			newRetentionRuleList.add(currentCopyRetentionRule);
+		}
+		newRetentionRuleList.add(principal5_2_C);
+
+		retentionRule.setCopyRetentionRules(newRetentionRuleList);
+
+		recordService.update(retentionRule);
+
+		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04, records.folder_A05))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_1)
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, principal5_2_C.getId());
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+		Map<String,Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
+
+		assertThat(mapSpecialCase.size() == 1);
+		assertThat(mapSpecialCase.get("A05").get("folder_default_mainCopyRuleIdEntered").equals(retentionRule.getSecondaryCopy().getId()));
+	}
+
+	@Test
 	public void givenFolderWithTwoPossibleDelaiAndWithPrincipalCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
 
 		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);

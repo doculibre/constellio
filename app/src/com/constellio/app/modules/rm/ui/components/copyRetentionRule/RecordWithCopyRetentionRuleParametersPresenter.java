@@ -151,7 +151,8 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					Set<String> ids = new HashSet<>();
 					for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 						if (typeId.equals(copyRetentionRule.getTypeId())
-								&& copyRetentionRule.getCopyType() == uniformCopyType || uniformCopyType == null
+								&& copyRetentionRule.getCopyType() == uniformCopyType
+								|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
 								&& !ids.contains(copyRetentionRule.getId())) {
 							ids.add(copyRetentionRule.getId());
 							options.add(copyRetentionRule);
@@ -161,7 +162,8 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					if (options.isEmpty()) {
 						for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 							if (copyRetentionRule.getTypeId() == null
-									&& copyRetentionRule.getCopyType() == uniformCopyType || uniformCopyType == null
+									&& copyRetentionRule.getCopyType() == uniformCopyType
+									|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
 									&& !ids.contains(copyRetentionRule.getId())) {
 								ids.add(copyRetentionRule.getId());
 								options.add(copyRetentionRule);
@@ -187,7 +189,8 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
                 for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
                     if (copyRetentionRule.getTypeId() == null
-                            && (copyRetentionRule.getCopyType() == uniformCopyType || uniformCopyType == null)
+                            && copyRetentionRule.getCopyType() == uniformCopyType
+							|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
                             && !ids.contains(copyRetentionRule.getId())) {
                         ids.add(copyRetentionRule.getId());
                         options.add(copyRetentionRule);

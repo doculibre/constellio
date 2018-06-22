@@ -54,6 +54,8 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
@@ -107,7 +109,6 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<BatchProcessingSpecialCaseExtension> batchProcessingSpecialCaseExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -610,9 +611,5 @@ public class AppLayerCollectionExtensions {
         return new ArrayList<>(unwantedTaxonomies);
     }
 
-    public void batchProcessingSpecialCaseExtensions(BatchProcessingSpecialCaseParams batchProcessingSpecialCaseParams) {
-		for(BatchProcessingSpecialCaseExtension batchProcessingSpecialCaseExtension : batchProcessingSpecialCaseExtensions) {
-			batchProcessingSpecialCaseExtension.processSpecialCase(batchProcessingSpecialCaseParams);
-		}
-	}
+
 }
