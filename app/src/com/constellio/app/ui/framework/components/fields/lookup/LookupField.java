@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.Query;
@@ -153,12 +154,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			autoCompleteField.focus();
 		}
 
-		lookupWindowButton = new WindowButton(null, $("search")) {
-			@Override
-			protected Component buildWindowContent() {
-				return new LookupWindowContent(getWindow());
-			}
-		};
+		createLookupWindowBouton();
 		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
 		lookupWindowButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		lookupWindowButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
@@ -190,6 +186,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		mainLayout.setWidth("100%");
 
 		return mainLayout;
+	}
+
+	@NotNull
+	public WindowButton createLookupWindowBouton() {
+		lookupWindowButton = new WindowButton(null, $("search")) {
+			@Override
+			protected Component buildWindowContent() {
+				return new LookupWindowContent(getWindow());
+			}
+		};
+		return lookupWindowButton;
 	}
 
 	protected BaseAutocompleteField<T> newAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
