@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.components.display;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
@@ -9,6 +10,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.display.LinkReferenceDisplay;
+import com.constellio.app.ui.framework.components.display.ReferenceActiveLink;
 import com.vaadin.ui.Component;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
@@ -25,9 +27,9 @@ public class TaskDisplayFactory extends MetadataDisplayFactory {
 		} else if (REMINDER_FREQUENCY.equals(metadataCode) || REMINDER_FREQUENCY.equals(metadataCodeWithoutPrefix)) {
 			return new TaskReminderFrequencyDisplay((String) displayValue);
 		} else if (LINKED_DOCUMENTS.equals(metadataCode) || LINKED_DOCUMENTS.equals(metadataCodeWithoutPrefix)) {
-			return new LinkReferenceDisplay(RMNavigationConfiguration.DISPLAY_DOCUMENT, displayValue.toString());
+			return new ReferenceActiveLink(RMNavigationConfiguration.DISPLAY_DOCUMENT, displayValue.toString());
 		} else if (LINKED_FOLDERS.equals(metadataCode) || LINKED_FOLDERS.equals(metadataCodeWithoutPrefix)) {
-			return new LinkReferenceDisplay(RMNavigationConfiguration.DISPLAY_FOLDER, displayValue.toString());
+			return new ReferenceActiveLink(RMNavigationConfiguration.DISPLAY_FOLDER, displayValue.toString());
 		} else {
 			return super.buildSingleValue(recordVO, metadata, displayValue);
 		}

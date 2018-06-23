@@ -92,9 +92,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		if (true) {
+		/*if (true) {
 			return new com.constellio.app.ui.framework.components.table.BaseFilteringTable();
-		}
+		}*/
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName("records-management");
 
