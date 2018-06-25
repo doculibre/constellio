@@ -1,29 +1,15 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.framework.components.table.BaseFilteringTable;
 import com.vaadin.data.Container;
-import com.vaadin.data.Item;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.filter.Compare;
 import com.vaadin.event.ItemClickEvent;
-import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
-import com.vaadin.shared.ui.datefield.Resolution;
-import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.CustomTable;
-import com.vaadin.ui.Field;
 import com.vaadin.ui.Table;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.tepi.filtertable.FilterDecorator;
-import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.FilterTable;
-import org.tepi.filtertable.numberfilter.NumberFilterPopupConfig;
 
 import java.util.Collection;
-import java.util.Locale;
 
 public class FilterTableAdapter extends FilterTable {
     private final Table adaptedTable;
