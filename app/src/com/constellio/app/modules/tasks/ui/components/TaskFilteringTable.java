@@ -87,11 +87,8 @@ public class TaskFilteringTable extends FilterTable {
 
     @Override
     public Property getContainerProperty(Object itemId, Object propertyId) {
-        Property containerProperty = super.getContainerProperty(itemId, propertyId);
         return taskTable.getContainerProperty(itemId, propertyId);
     }
-
-
 
     @Override
     public Collection<?> getSortableContainerPropertyIds() {
@@ -109,5 +106,19 @@ public class TaskFilteringTable extends FilterTable {
     public Class<?> getType() {
         Class<?> type = taskTable.getType();
         return type != null ? type : super.getType();
+    }
+
+    @Override
+    public Class<?> getType(Object propertyId) {
+        Class<?> type = taskTable.getType(propertyId);
+        if(type == null) {
+            type = super.getType(propertyId);
+        }
+        return type;
+    }
+
+    @Override
+    protected Object getPropertyValue(Object rowId, Object colId, Property property) {
+        return property.getValue();
     }
 }
