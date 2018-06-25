@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.tasks.ui.components.TaskFilteringTable;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -146,7 +147,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	@Override
 	public void displayTasks(RecordVODataProvider provider) {
 		VerticalLayout layout = getEmptiedSelectedTab();
-		layout.addComponent(new TaskTable(provider, presenter) {
+		TaskTable taskTable = new TaskTable(provider, presenter) {
 			@Override
 			protected TableColumnsManager newColumnsManager() {
 				return new RecordVOTableColumnsManager() {
@@ -163,7 +164,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 							SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 							for (MetadataSchemaVO schemaVO : schemaVOs) {
-								if(CollectionUtils.isNotEmpty(schemaVO.getTableMetadataCodes())) {
+								if (CollectionUtils.isNotEmpty(schemaVO.getTableMetadataCodes())) {
 									defaultVisibleColumnIds.addAll(schemaVO.getTableMetadataCodes());
 								} else {
 									String schemaCode = schemaVO.getCode();
@@ -186,7 +187,9 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 					}
 				};
 			}
-		});
+		};
+
+		layout.addComponent(new TaskFilteringTable(taskTable));
 	}
 
 //	@Override
