@@ -58,6 +58,10 @@ public class TaskFilteringTable extends FilterTable {
         setCellStyleGenerator(new CellStyleGeneratorAdapter(taskTable, taskTable.getCellStyleGenerator()));
 
         addStyleName(taskTable.getStyleName());
+
+        resetFilters();
+
+        setSizeFull();
     }
 
     @Override
@@ -115,10 +119,5 @@ public class TaskFilteringTable extends FilterTable {
             type = super.getType(propertyId);
         }
         return type;
-    }
-
-    @Override
-    protected Object getPropertyValue(Object rowId, Object colId, Property property) {
-        return property.getValue();
     }
 }
