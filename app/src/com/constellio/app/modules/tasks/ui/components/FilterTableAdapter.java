@@ -1,63 +1,77 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.table.BaseFilteringTable;
 import com.vaadin.data.Container;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.filter.Compare;
 import com.vaadin.event.ItemClickEvent;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.shared.ui.datefield.Resolution;
+import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.CustomTable;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.Table;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.tepi.filtertable.FilterDecorator;
+import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.FilterTable;
+import org.tepi.filtertable.numberfilter.NumberFilterPopupConfig;
 
 import java.util.Collection;
+import java.util.Locale;
 
-public class TaskFilteringTable extends FilterTable {
-    private final TaskTable taskTable;
+public class FilterTableAdapter extends FilterTable {
+    private final Table adaptedTable;
 
-    public TaskFilteringTable(TaskTable taskTable) {
-        this.taskTable = taskTable;
+    public FilterTableAdapter(Table adaptedTable) {
+        this.adaptedTable = adaptedTable;
 
-        Collection<?> listeners = taskTable.getListeners(AttachEvent.class);
+        Collection<?> listeners = adaptedTable.getListeners(AttachEvent.class);
         for(Object al: CollectionUtils.emptyIfNull(listeners)) {
             ((AttachListener)al).attach(new AttachEvent(this));
         }
 
-        setContainerDataSource(taskTable.getContainerDataSource());
+        setContainerDataSource(adaptedTable.getContainerDataSource());
 
-        Object[] visibleColumns = taskTable.getVisibleColumns();
+        Object[] visibleColumns = adaptedTable.getVisibleColumns();
         for (Object propertyId : ArrayUtils.nullToEmpty(visibleColumns)) {
-            addGeneratedColumn(propertyId.toString(), new ColumnGeneratorAdapter(taskTable, taskTable.getColumnGenerator(propertyId.toString())));
+            addGeneratedColumn(propertyId.toString(), new ColumnGeneratorAdapter(adaptedTable, adaptedTable.getColumnGenerator(propertyId.toString())));
         }
 
         setVisibleColumns(visibleColumns);
-        setColumnHeaders(taskTable.getColumnHeaders());
+        setColumnHeaders(adaptedTable.getColumnHeaders());
 
-        setColumnReorderingAllowed(taskTable.isColumnReorderingAllowed());
-        setColumnCollapsingAllowed(taskTable.isColumnCollapsingAllowed());
+        setColumnReorderingAllowed(adaptedTable.isColumnReorderingAllowed());
+        setColumnCollapsingAllowed(adaptedTable.isColumnCollapsingAllowed());
 
-        Collection<?> propertyIds = taskTable.getContainerPropertyIds();
+        Collection<?> propertyIds = adaptedTable.getContainerPropertyIds();
         for (Object propertyId : CollectionUtils.emptyIfNull(propertyIds)) {
-            setColumnCollapsed(propertyId, taskTable.isColumnCollapsed(propertyId));
+            setColumnCollapsed(propertyId, adaptedTable.isColumnCollapsed(propertyId));
         }
 
-        listeners = taskTable.getListeners(Table.ColumnCollapseEvent.class);
+        listeners = adaptedTable.getListeners(Table.ColumnCollapseEvent.class);
         for(Object tccl: CollectionUtils.emptyIfNull(listeners)) {
             addColumnCollapseListener(new ColumnCollapseListenerAdapter((Table.ColumnCollapseListener) tccl));
         }
 
-        listeners = taskTable.getListeners(Table.ColumnReorderEvent.class);
+        listeners = adaptedTable.getListeners(Table.ColumnReorderEvent.class);
         for(Object tccl: CollectionUtils.emptyIfNull(listeners)) {
             addColumnReorderListener(new ColumnReorderListenerAdapter((Table.ColumnReorderListener) tccl));
         }
 
-        listeners = taskTable.getListeners(ItemClickEvent.class);
+        listeners = adaptedTable.getListeners(ItemClickEvent.class);
         for(Object tccl: CollectionUtils.emptyIfNull(listeners)) {
             addItemClickListener((ItemClickEvent.ItemClickListener) tccl);
         }
 
-        setCellStyleGenerator(new CellStyleGeneratorAdapter(taskTable, taskTable.getCellStyleGenerator()));
+        setCellStyleGenerator(new CellStyleGeneratorAdapter(adaptedTable, adaptedTable.getCellStyleGenerator()));
 
-        addStyleName(taskTable.getStyleName());
+        addStyleName(adaptedTable.getStyleName());
 
         resetFilters();
 
@@ -71,7 +85,7 @@ public class TaskFilteringTable extends FilterTable {
 
     @Override
     public ColumnGenerator getColumnGenerator(Object columnId) throws IllegalArgumentException {
-        Table.ColumnGenerator columnGenerator = taskTable.getColumnGenerator(columnId);
+        Table.ColumnGenerator columnGenerator = adaptedTable.getColumnGenerator(columnId);
         if(columnGenerator instanceof CustomTable.ColumnGenerator) {
             return (ColumnGenerator) columnGenerator;
         }
@@ -81,40 +95,40 @@ public class TaskFilteringTable extends FilterTable {
 
     @Override
     public Container getContainerDataSource() {
-        return taskTable.getContainerDataSource();
+        return adaptedTable.getContainerDataSource();
     }
 
     @Override
     public String[] getColumnHeaders() {
-        return taskTable.getColumnHeaders();
+        return adaptedTable.getColumnHeaders();
     }
 
     @Override
     public Property getContainerProperty(Object itemId, Object propertyId) {
-        return taskTable.getContainerProperty(itemId, propertyId);
+        return adaptedTable.getContainerProperty(itemId, propertyId);
     }
 
     @Override
     public Collection<?> getSortableContainerPropertyIds() {
-        return taskTable.getSortableContainerPropertyIds();
+        return adaptedTable.getSortableContainerPropertyIds();
     }
 
     @Override
     public void containerItemSetChange(Container.ItemSetChangeEvent event) {
-        taskTable.containerItemSetChange(event);
+        adaptedTable.containerItemSetChange(event);
 
         super.containerItemSetChange(event);
     }
 
     @Override
     public Class<?> getType() {
-        Class<?> type = taskTable.getType();
+        Class<?> type = adaptedTable.getType();
         return type != null ? type : super.getType();
     }
 
     @Override
     public Class<?> getType(Object propertyId) {
-        Class<?> type = taskTable.getType(propertyId);
+        Class<?> type = adaptedTable.getType(propertyId);
         if(type == null) {
             type = super.getType(propertyId);
         }

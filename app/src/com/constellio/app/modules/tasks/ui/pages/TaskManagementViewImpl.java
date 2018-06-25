@@ -1,7 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.ui.components.TaskFilteringTable;
+import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -189,7 +189,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		};
 
-		layout.addComponent(new TaskFilteringTable(taskTable));
+		layout.addComponent(new FilterTableAdapter(taskTable));
 	}
 
 //	@Override
