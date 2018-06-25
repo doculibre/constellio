@@ -1,9 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
-import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
+import com.constellio.app.modules.tasks.ui.components.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -12,6 +10,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.table.BaseFilteringTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -189,7 +188,17 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		};
 
-		layout.addComponent(new FilterTableAdapter(taskTable));
+		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable);
+
+		// cas uniquement pour l'exemple
+		tableAdapter.setFilterFieldVisible("menuBar", false);
+		tableAdapter.setFilterDecorator(new DemoFilterDecorator());
+		tableAdapter.setFilterGenerator(new DemoFilterGenerator());
+		tableAdapter.setFilterBarVisible(true);
+
+
+		layout.addComponent(tableAdapter);
+		//layout.addComponent(new BaseFilteringTable());
 	}
 
 //	@Override

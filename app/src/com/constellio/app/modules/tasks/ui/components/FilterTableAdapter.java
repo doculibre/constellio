@@ -62,6 +62,8 @@ public class FilterTableAdapter extends FilterTable {
         resetFilters();
 
         setSizeFull();
+
+        setFilterBarVisible(true);
     }
 
     @Override
@@ -97,13 +99,6 @@ public class FilterTableAdapter extends FilterTable {
     @Override
     public Collection<?> getSortableContainerPropertyIds() {
         return adaptedTable.getSortableContainerPropertyIds();
-    }
-
-    @Override
-    public void containerItemSetChange(Container.ItemSetChangeEvent event) {
-        adaptedTable.containerItemSetChange(event);
-
-        super.containerItemSetChange(event);
     }
 
     @Override
