@@ -1,11 +1,14 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import org.joda.time.LocalDate;
+import org.tepi.filtertable.FilterGenerator;
+import org.tepi.filtertable.datefilter.DateFilterPopup;
+
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.data.RecordVOFilter;
 import com.vaadin.data.Container;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Field;
-import org.tepi.filtertable.FilterGenerator;
 
 public class DemoFilterGenerator implements FilterGenerator {
 
@@ -27,7 +30,19 @@ public class DemoFilterGenerator implements FilterGenerator {
 
     @Override
     public AbstractField<?> getCustomFilterComponent(Object propertyId) {
-        return null;
+    	AbstractField<?> customFilterComponent;
+		if (propertyId instanceof MetadataVO) {
+			MetadataVO metadataVO = (MetadataVO) propertyId;
+			Class<?> javaType = metadataVO.getJavaType();
+			if (LocalDate.class.isAssignableFrom(javaType)) {
+				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
+			} else {
+				customFilterComponent = null;
+			}
+		} else {
+			customFilterComponent = null;
+		}
+        return customFilterComponent;
     }
 
     @Override

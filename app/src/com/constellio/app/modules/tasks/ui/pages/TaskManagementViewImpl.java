@@ -1,7 +1,21 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.ui.components.*;
+import com.constellio.app.modules.tasks.ui.components.DemoFilterDecorator;
+import com.constellio.app.modules.tasks.ui.components.DemoFilterGenerator;
+import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
+import com.constellio.app.modules.tasks.ui.components.TaskTable;
+import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -10,7 +24,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.table.BaseFilteringTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -23,16 +36,12 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 	private final TaskManagementPresenter presenter;
@@ -188,12 +197,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		};
 
-		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable);
+		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
 
 		// cas uniquement pour l'exemple
 		tableAdapter.setFilterFieldVisible("menuBar", false);
-		tableAdapter.setFilterDecorator(new DemoFilterDecorator());
-		tableAdapter.setFilterGenerator(new DemoFilterGenerator());
 		tableAdapter.setFilterBarVisible(true);
 
 

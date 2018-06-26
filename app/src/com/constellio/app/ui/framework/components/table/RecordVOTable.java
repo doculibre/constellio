@@ -1,9 +1,11 @@
 package com.constellio.app.ui.framework.components.table;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
@@ -276,6 +278,13 @@ public class RecordVOTable extends BaseTable {
 	public Class<?> getType(Object propertyId) {
 		Class<?> type;
 		if (propertyId instanceof MetadataVO) {
+//			MetadataVO metadataVO = (MetadataVO) propertyId;
+//			Class<?> javaType = metadataVO.getJavaType();
+//			if (LocalDateTime.class.isAssignableFrom(javaType) || LocalDate.class.isAssignableFrom(javaType) || Number.class.isAssignableFrom(javaType) || Boolean.class.isAssignableFrom(javaType)) {
+//				type = javaType;
+//			} else {
+//				type = Component.class;
+//			}
 			type = Component.class;
 		} else {
 			type = super.getType(propertyId);

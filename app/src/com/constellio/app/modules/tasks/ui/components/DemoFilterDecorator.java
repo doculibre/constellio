@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.datefield.Resolution;
 import org.tepi.filtertable.FilterDecorator;
@@ -80,7 +81,7 @@ public class DemoFilterDecorator implements FilterDecorator {
 
     @Override
     public String getDateFormatPattern(Object propertyId) {
-        return null;
+        return DateFormatUtils.getDateFormat();
     }
 
     @Override
@@ -90,7 +91,13 @@ public class DemoFilterDecorator implements FilterDecorator {
 
     @Override
     public NumberFilterPopupConfig getNumberFilterPopupConfig() {
-        return null;
+    	NumberFilterPopupConfig config = new NumberFilterPopupConfig();
+    	config.setLtPrompt("Plus petit que");
+    	config.setGtPrompt("Plus grand que");
+    	config.setEqPrompt("Égal à");
+    	config.setResetCaption("Annuler");
+    	config.setOkCaption("Appliquer");
+        return config;
     }
 
     @Override

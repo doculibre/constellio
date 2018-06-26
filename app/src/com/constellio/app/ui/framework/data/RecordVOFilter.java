@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.data;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -35,11 +37,22 @@ public class RecordVOFilter implements Container.Filter {
         switch (metadata.getType()) {
             case TEXT:
             case STRING:
-                query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText((String) value));
+	            {
+	            	String stringValue = (String) value;
+	            	if (StringUtils.isNotBlank(stringValue)) {
+	                    query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue));
+	            	}
+	            }
                 break;
-
+            case REFERENCE:
             default:
-                query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
+            	if (value instanceof String) {
+                	String stringValue = (String) value;
+                	if (StringUtils.isNotBlank(stringValue)) {
+//                        query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue));
+                	}
+            	}
+//                query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
         }
     }
 }

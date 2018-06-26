@@ -1,21 +1,31 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import java.util.Collection;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.tepi.filtertable.FilterDecorator;
+import org.tepi.filtertable.FilterGenerator;
+import org.tepi.filtertable.FilterTable;
+
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.CustomTable;
 import com.vaadin.ui.Table;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.tepi.filtertable.FilterTable;
-
-import java.util.Collection;
 
 public class FilterTableAdapter extends FilterTable {
     private final Table adaptedTable;
 
-    public FilterTableAdapter(Table adaptedTable) {
+    public FilterTableAdapter(Table adaptedTable, FilterDecorator decorator, FilterGenerator generator) {
         this.adaptedTable = adaptedTable;
+        
+        if (decorator != null) {
+    		setFilterDecorator(decorator);
+        }
+        if (generator != null) {
+    		setFilterGenerator(generator);
+        }
 
         Collection<?> listeners = adaptedTable.getListeners(AttachEvent.class);
         for(Object al: CollectionUtils.emptyIfNull(listeners)) {
@@ -109,8 +119,8 @@ public class FilterTableAdapter extends FilterTable {
 
     @Override
     public Class<?> getType(Object propertyId) {
-        Class<?> type = adaptedTable.getType(propertyId);
-        if(type == null) {
+    	Class<?> type = adaptedTable.getType(propertyId);
+        if (type == null) {
             type = super.getType(propertyId);
         }
         return type;
