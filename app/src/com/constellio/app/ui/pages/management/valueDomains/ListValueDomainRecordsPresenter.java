@@ -9,6 +9,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.Iterator;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.metadata.AppSchemasServices;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -136,7 +138,6 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		if (hasOtherActiveRecordWithSameCode(record)) {
 			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordHasSameCode"));
 		} else {
-
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 			try {
@@ -145,23 +146,11 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
 			}
 
+			enableLinkedSchema(record);
 			view.refreshTables();
 		}
+
 	}
-//TODO : Regarder avec Francis
-//	public void disableButtonClick(RecordVO recordVO) {
-//		Record record = getRecord(recordVO.getId());
-//		disableRecordsWithTheSameLinkedSchema(record);
-//		disableLinkedSchema(record);
-//		view.refreshTables();
-//	}
-//
-//	public void enableButtonClick(RecordVO recordVO) {
-//		Record record = getRecord(recordVO.getId());
-//		enableRecordsWithTheSameLinkedSchema(record);
-//		enableLinkedSchema(record);
-//		view.refreshTables();
-//	}
 
 	private boolean hasOtherActiveRecordWithSameCode(Record record) {
 		String code = record.get(Schemas.CODE);
@@ -194,53 +183,13 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		view.refreshTables();
 	}
 
-//	private RMSchemasRecordsServices rmSchemas() {
-//		return new RMSchemasRecordsServices(collection, appLayerFactory);
-//	}
-//
-//	private void disableLinkedSchema(Record record) {
-//		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
-//		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-//		appSchemasServices.disableSchema(collection,linkedSchema);
-//	}
-//
-//	private void disableRecordsWithTheSameLinkedSchema(Record record) {
-//		SearchServices searchServices = modelLayerFactory.newSearchServices();
-//		RecordServices recordServices = modelLayerFactory.newRecordServices();
-//		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
-//		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
-//				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(linkedSchema)));
-//		for(Record actualRecord : records) {
-//			try {
-//				recordServices.logicallyDelete(actualRecord, User.GOD);
-//			} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-//				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDelete"));
-//			}
-//		}
-//	}
-//
-//	private void enableLinkedSchema(Record record) {
-//		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
-//		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-//		appSchemasServices.enableSchema(collection,linkedSchema);
-//	}
-//
-//	private void enableRecordsWithTheSameLinkedSchema(Record record) {
-//		SearchServices searchServices = modelLayerFactory.newSearchServices();
-//		RecordServices recordServices = modelLayerFactory.newRecordServices();
-//		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
-//		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
-//				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(linkedSchema)));
-//		for(Record actualRecord : records) {
-//			if (hasOtherActiveRecordWithSameCode(actualRecord)) {
-//				view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordHasSameCode"));
-//			}else{
-//				try {
-//					recordServices.restore(actualRecord, User.GOD);
-//				} catch (RecordServicesRuntimeException_CannotRestoreRecord e) {
-//					view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
-//				}
-//			}
-//		}
-//	}
+	private RMSchemasRecordsServices rmSchemas() {
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	private void enableLinkedSchema(Record record) {
+		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		appSchemasServices.enableSchema(collection,linkedSchema);
+	}
 }
