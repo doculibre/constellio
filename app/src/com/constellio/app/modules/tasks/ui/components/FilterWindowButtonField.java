@@ -23,8 +23,9 @@ public class FilterWindowButtonField extends CustomField {
     @Override
     protected Component initContent() {
         HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setWidth("100%");
 
-        WindowButton.WindowConfiguration windowConfiguration = WindowButton.WindowConfiguration.modalDialog("50%", "500px");
+        WindowButton.WindowConfiguration windowConfiguration = WindowButton.WindowConfiguration.modalDialog("600px", "300px");
         WindowButton windowButton = new WindowButton(null, $("DetailsFieldGroup.detailsWindow"), windowConfiguration) {
             @Override
             protected Component buildWindowContent() {
@@ -38,6 +39,7 @@ public class FilterWindowButtonField extends CustomField {
                 Button closeButton = new BaseButton($("Ok")) {
                     @Override
                     protected void buttonClick(ClickEvent event) {
+                    	Object value = field.getValue();
                         setValue(field.getValue());
                         getWindow().close();
                     }
@@ -49,7 +51,10 @@ public class FilterWindowButtonField extends CustomField {
                 return windowLayout;
             }
         };
-        windowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
+        windowButton.setIcon(null);
+        windowButton.setCaption("...");
+        windowButton.setWidth("100%");
+        windowButton.setHeight("24px");
 
         horizontalLayout.addComponent(windowButton);
         horizontalLayout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
