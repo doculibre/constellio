@@ -21,7 +21,7 @@ import java.util.List;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
+public class CreateSubTaskModificationImpactHandlerAcceptanceTest extends ConstellioTest {
 
 	@Mock SearchServices searchServices;
 	@Mock RecordServices recordServices;

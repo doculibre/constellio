@@ -19,7 +19,6 @@ import com.sun.star.xforms.Model;
 
 public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessAction {
 	final Map<String, Object> metadataChangedValues;
-	private ModelLayerFactory modelLayerFactory;
 
 	public ChangeValueOfMetadataBatchProcessAction(Map<String, Object> metadataChangedValues) {
 		this.metadataChangedValues = metadataChangedValues;
@@ -41,7 +40,9 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 					Metadata metadata = schemaTypes.getMetadata(metadataCode);
 
 					record.set(metadata, entry.getValue());
-					modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection()).batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, metadata));
+
+					modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
+							.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, metadata));
 					if (schemaTypes.isRecordTypeMetadata(metadata)) {
 						changeSchemaTypeAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, metadata);
 						schemaCode = record.getSchemaCode();

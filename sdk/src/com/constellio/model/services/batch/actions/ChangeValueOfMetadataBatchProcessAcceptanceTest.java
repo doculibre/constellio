@@ -20,7 +20,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest {
+public class ChangeValueOfMetadataBatchProcessAcceptanceTest extends ConstellioTest {
 	String changedMetadataCode1 = "type_default_code1";
 	String changedMetadataCode2 = "type_default_code2";
 	@Mock Metadata changedMetadata1;

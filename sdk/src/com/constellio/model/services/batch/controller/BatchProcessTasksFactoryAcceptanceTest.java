@@ -24,7 +24,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class BatchProcessTasksFactoryTest extends ConstellioTest {
+public class BatchProcessTasksFactoryAcceptanceTest extends ConstellioTest {
 
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock MetadataSchemasManager schemasManager;

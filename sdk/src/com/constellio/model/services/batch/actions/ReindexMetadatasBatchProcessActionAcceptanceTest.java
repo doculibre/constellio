@@ -18,7 +18,7 @@ import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class ReindexMetadatasBatchProcessActionTest extends ConstellioTest {
+public class ReindexMetadatasBatchProcessActionAcceptanceTest extends ConstellioTest {
 
 	@Mock List<String> reindexedMetadataCodes;
 	@Mock MetadataList reindexedMetadatas;
