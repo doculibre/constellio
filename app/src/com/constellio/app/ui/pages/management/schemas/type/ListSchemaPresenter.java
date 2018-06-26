@@ -1,9 +1,11 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -151,18 +153,26 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	}
 
 	public void disableButtonClick(String schemaCode) {
+		if(Folder.DEFAULT_SCHEMA.equals(schemaCode)){
+			view.showErrorMessage($("ListSchemaView.cannotLogicallyDeleteDefaultSchema"));
+		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
 		appSchemasServices.disableSchema(collection,schemaCode);
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
-		for(Record record : records){
-			try {
+		List<String> recordsWithErrors = new ArrayList<>();
+		for(Record record : records) {
+			try{
 				recordServices.logicallyDelete(record, User.GOD);
-			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDelete"));
+			}catch(RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord e){
+				recordsWithErrors.add(record.getTitle());
 			}
+		}
+
+		if(!recordsWithErrors.isEmpty()){
+			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", recordsWithErrors).replace("[","").replace("]",""));
 		}
 		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 	}
@@ -172,19 +182,29 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
 		appSchemasServices.enableSchema(collection,schemaCode);
-
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
-		for(Record record : records){
-			if (hasOtherActiveRecordWithSameCode(record)) {
-				view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordHasSameCode"));
-			} else {
-				try {
+		List<String> recordsThatHasOtherActiveRecordWithSameCode = new ArrayList<>();
+		List<String> recordsWithErrors = new ArrayList<>();
+		for(Record record : records) {
+			if(hasOtherActiveRecordWithSameCode(record)){
+				recordsThatHasOtherActiveRecordWithSameCode.add(record.getTitle());
+			}else{
+				try{
 					recordServices.restore(record, User.GOD);
-				} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord e) {
-					view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
+				}catch(RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord e){
+					recordsWithErrors.add(record.getTitle());
 				}
 			}
+		}
+
+		if(!recordsThatHasOtherActiveRecordWithSameCode.isEmpty() && !recordsWithErrors.isEmpty()){
+			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordsHasSameCode", recordsThatHasOtherActiveRecordWithSameCode).replace("[","").replace("]","")
+			+ "\n" +$("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", recordsWithErrors).replace("[","").replace("]",""));
+		}else if(!recordsThatHasOtherActiveRecordWithSameCode.isEmpty()){
+			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordsHasSameCode", recordsThatHasOtherActiveRecordWithSameCode).replace("[","").replace("]",""));
+		}else if(!recordsWithErrors.isEmpty()){
+			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", recordsWithErrors).replace("[","").replace("]",""));
 		}
 		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 	}
