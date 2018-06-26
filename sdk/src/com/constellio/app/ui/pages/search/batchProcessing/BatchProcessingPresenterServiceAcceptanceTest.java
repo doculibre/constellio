@@ -119,11 +119,16 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
 
+		RetentionRule retentionRule1 = rm.getRetentionRule(records.ruleId_2);
+		retentionRule1.setResponsibleAdministrativeUnits(false);
+		retentionRule1.setAdministrativeUnits(asList(records.unitId_30));
+		recordService.update(retentionRule1);
+
 		recordService.update(folder1);
 		recordService.recalculate(folder1);
 
 		Folder folder2 = rm.getFolder(records.folder_A05).setAdministrativeUnitEntered(records.unitId_30);
-
+		folder2.setRetentionRuleEntered(records.ruleId_2);
 		recordService.update(folder2);
 
 		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
@@ -131,17 +136,17 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		principal5_2_C.setInactiveDisposalType(DisposalType.DEPOSIT);
 
-		RetentionRule retentionRule = rm.getRetentionRule(records.ruleId_1);
+		RetentionRule retentionRule2 = rm.getRetentionRule(records.ruleId_1);
 
 		List newRetentionRuleList = new ArrayList();
-		for(CopyRetentionRule currentCopyRetentionRule : retentionRule.getCopyRetentionRules()) {
+		for(CopyRetentionRule currentCopyRetentionRule : retentionRule2.getCopyRetentionRules()) {
 			newRetentionRuleList.add(currentCopyRetentionRule);
 		}
 		newRetentionRuleList.add(principal5_2_C);
 
-		retentionRule.setCopyRetentionRules(newRetentionRuleList);
+		retentionRule2.setCopyRetentionRules(newRetentionRuleList);
 
-		recordService.update(retentionRule);
+		recordService.update(retentionRule2);
 
 		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
 
@@ -155,7 +160,14 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String,Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
 
 		assertThat(mapSpecialCase.size() == 1);
-		assertThat(mapSpecialCase.get("A05").get("folder_default_mainCopyRuleIdEntered").equals(retentionRule.getSecondaryCopy().getId()));
+		assertThat(mapSpecialCase.get("A05").get("folder_default_mainCopyRuleIdEntered").equals(retentionRule1.getSecondaryCopy().getId()));
+		assertThat(mapSpecialCase.get("A04")).isNull();
+		assertThat(results.getRecordModifications(folder2.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("2 (Rule #2)", "1 (Rule #1)", "folder_default_retentionRule"),
+				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
+				tuple("5-2-T", "888-0-D", "folder_default_mainCopyRule"));
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("42-5-C", "5-2-C", "folder_default_mainCopyRule"));
 	}
 
 	@Test
