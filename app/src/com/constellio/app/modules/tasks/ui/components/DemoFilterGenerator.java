@@ -1,21 +1,18 @@
 package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
-import com.vaadin.data.Property;
-import com.vaadin.ui.*;
+import com.vaadin.data.Container;
+import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.AbstractTextField;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Field;
 import org.joda.time.LocalDate;
 import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.datefilter.DateFilterPopup;
 import org.tepi.filtertable.numberfilter.NumberFilterPopup;
 
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.framework.components.MetadataFieldFactory;
-import com.constellio.app.ui.framework.data.RecordVOFilter;
-import com.vaadin.data.Container;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.AbstractTextField;
-import com.vaadin.ui.Field;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DemoFilterGenerator implements FilterGenerator {
