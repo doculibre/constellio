@@ -197,7 +197,7 @@ public class TaskPresenterServices {
 		Task task = tasksSchemas.wrapTask(record);
 		task.setReadByUser(readByUser);
 
-		recordServices.update(record);
+		recordServices.update(task.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setSkipUSRMetadatasRequirementValidations(true));
 	}
 
 	public void sendReminder(Record record, User user) {
