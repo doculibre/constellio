@@ -1,17 +1,9 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import com.constellio.app.modules.rm.ui.components.retentionRule.FolderCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.wrappers.type.YearType;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
-import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.MethodProperty;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.datefilter.DateFilterPopup;
@@ -27,7 +19,7 @@ public class DemoFilterGenerator implements FilterGenerator {
     @Override
     public Container.Filter generateFilter(final Object propertyId, final Object value) {
         if(propertyId instanceof MetadataVO) {
-            return new RecordVOFilter((MetadataVO) propertyId, value);
+            return new DemoRecordVOFilter((MetadataVO) propertyId, value);
         }
 
         // For other properties, use the default filter
@@ -48,7 +40,19 @@ public class DemoFilterGenerator implements FilterGenerator {
 			Class<?> javaType = metadataVO.getJavaType();
 			if (LocalDate.class.isAssignableFrom(javaType)) {
 				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
-			} else {
+			} else if (((MetadataVO) propertyId).codeMatches(Task.STARRED_BY_USERS)) {
+			    ComboBox cb = new ComboBox() {
+                    @Override
+                    public void setValue(Object newValue) throws ReadOnlyException {
+                        super.setValue(newValue);
+                    }
+                };
+			    cb.addItem(new SpecialBoolean($("yes"), true));
+			    cb.addItem(new SpecialBoolean($("no"), false));
+                cb.setWidth("100%");
+                cb.setHeight("24px");
+                customFilterComponent = cb;
+            } else {
 				MetadataFieldFactory factory = new TaskFieldFactory(false);
                 final Field<?> field = factory.build(metadataVO);
                 if (field != null) {
@@ -62,6 +66,25 @@ public class DemoFilterGenerator implements FilterGenerator {
 		}
 
         return customFilterComponent;
+    }
+
+    public static class SpecialBoolean {
+        private final boolean value;
+        private final String displayValue;
+
+        public SpecialBoolean(String displayValue, boolean value) {
+            this.value = value;
+            this.displayValue = displayValue;
+        }
+
+        public boolean getBoolean() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return displayValue;
+        }
     }
 
     @Override

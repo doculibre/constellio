@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
+import org.jetbrains.annotations.NotNull;
 
 public class RecordVOFilter implements Container.Filter {
     private final MetadataVO propertyId;
@@ -31,14 +32,13 @@ public class RecordVOFilter implements Container.Filter {
     }
 
     public void addCondition(LogicalSearchQuery query) {
-        SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(propertyId.getSchema().getCode(), ConstellioFactories.getInstance(), ConstellioUI.getCurrentSessionContext());
-        Metadata metadata = schemaPresenterUtils.getMetadata(propertyId.getLocalCode());
+        Metadata metadata = getMetadata();
 
         switch (metadata.getType()) {
             case TEXT:
             case STRING:
 	            {
-	            	String stringValue = (String) value;
+	            	String stringValue = (String) getValue();
 	            	if (StringUtils.isNotBlank(stringValue)) {
 	                    query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue));
 	            	}
@@ -46,13 +46,31 @@ public class RecordVOFilter implements Container.Filter {
                 break;
             case REFERENCE:
             default:
-            	if (value instanceof String) {
-                	String stringValue = (String) value;
+            	if (getValue() instanceof String) {
+                	String stringValue = (String) getValue();
                 	if (StringUtils.isNotBlank(stringValue)) {
 //                        query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue));
                 	}
             	}
 //                query.setCondition(query.getCondition().andWhere(metadata).isEqualTo(value));
         }
+    }
+
+    protected Metadata getMetadata() {
+        SchemaPresenterUtils schemaPresenterUtils = getSchemaPresenterUtils();
+        return schemaPresenterUtils.getMetadata(getPropertyId().getLocalCode());
+    }
+
+    @NotNull
+    protected SchemaPresenterUtils getSchemaPresenterUtils() {
+        return new SchemaPresenterUtils(getPropertyId().getSchema().getCode(), ConstellioFactories.getInstance(), ConstellioUI.getCurrentSessionContext());
+    }
+
+    public final MetadataVO getPropertyId() {
+        return propertyId;
+    }
+
+    public final Object getValue() {
+        return value;
     }
 }
