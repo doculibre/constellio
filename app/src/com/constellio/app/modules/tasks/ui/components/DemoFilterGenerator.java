@@ -7,11 +7,15 @@ import com.vaadin.ui.*;
 import org.joda.time.LocalDate;
 import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.datefilter.DateFilterPopup;
+import org.tepi.filtertable.numberfilter.NumberFilterPopup;
 
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOFilter;
 import com.vaadin.data.Container;
-
+import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.AbstractTextField;
+import com.vaadin.ui.Field;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DemoFilterGenerator implements FilterGenerator {
@@ -38,21 +42,23 @@ public class DemoFilterGenerator implements FilterGenerator {
 		if (propertyId instanceof MetadataVO) {
 			MetadataVO metadataVO = (MetadataVO) propertyId;
 			Class<?> javaType = metadataVO.getJavaType();
-			if (LocalDate.class.isAssignableFrom(javaType)) {
-				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
-			} else if (((MetadataVO) propertyId).codeMatches(Task.STARRED_BY_USERS)) {
-			    ComboBox cb = new ComboBox() {
+            if (((MetadataVO) propertyId).codeMatches(Task.STARRED_BY_USERS)) {
+                ComboBox cb = new ComboBox() {
                     @Override
                     public void setValue(Object newValue) throws ReadOnlyException {
                         super.setValue(newValue);
                     }
                 };
-			    cb.addItem(new SpecialBoolean($("yes"), true));
-			    cb.addItem(new SpecialBoolean($("no"), false));
+                cb.addItem(new SpecialBoolean($("yes"), true));
+                cb.addItem(new SpecialBoolean($("no"), false));
                 cb.setWidth("100%");
                 cb.setHeight("24px");
                 customFilterComponent = cb;
-            } else {
+            } else if (LocalDate.class.isAssignableFrom(javaType)) {
+				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
+			} else if (Number.class.isAssignableFrom(javaType)) {
+					customFilterComponent = new NumberFilterPopup(new DemoFilterDecorator());
+			} else {
 				MetadataFieldFactory factory = new TaskFieldFactory(false);
                 final Field<?> field = factory.build(metadataVO);
                 if (field != null) {
