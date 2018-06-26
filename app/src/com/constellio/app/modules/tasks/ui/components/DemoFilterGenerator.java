@@ -49,7 +49,7 @@ public class DemoFilterGenerator implements FilterGenerator {
 			if (LocalDate.class.isAssignableFrom(javaType)) {
 				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
 			} else {
-				MetadataFieldFactory factory = new MetadataFieldFactory();
+				MetadataFieldFactory factory = new TaskFieldFactory(false);
                 final Field<?> field = factory.build(metadataVO);
                 if (field != null) {
                     if(field instanceof AbstractTextField) {
