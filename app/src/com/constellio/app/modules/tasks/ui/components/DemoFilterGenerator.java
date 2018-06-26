@@ -1,26 +1,17 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import com.constellio.app.modules.rm.ui.components.retentionRule.FolderCopyRetentionRuleTable;
-import com.constellio.app.modules.rm.wrappers.type.YearType;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.MetadataFieldFactory;
-import com.constellio.app.ui.framework.components.fields.BaseTextArea;
-import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
-import com.constellio.data.utils.dev.Toggle;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.MethodProperty;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.tepi.filtertable.FilterGenerator;
 import org.tepi.filtertable.datefilter.DateFilterPopup;
+import org.tepi.filtertable.numberfilter.NumberFilterPopup;
 
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOFilter;
 import com.vaadin.data.Container;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.AbstractTextField;
+import com.vaadin.ui.Field;
 
 public class DemoFilterGenerator implements FilterGenerator {
 
@@ -48,6 +39,8 @@ public class DemoFilterGenerator implements FilterGenerator {
 			Class<?> javaType = metadataVO.getJavaType();
 			if (LocalDate.class.isAssignableFrom(javaType)) {
 				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
+			} else if (Number.class.isAssignableFrom(javaType)) {
+					customFilterComponent = new NumberFilterPopup(new DemoFilterDecorator());
 			} else {
 				MetadataFieldFactory factory = new TaskFieldFactory(false);
                 final Field<?> field = factory.build(metadataVO);

@@ -78,10 +78,18 @@ public class RecordVOFilter implements Container.Filter {
             			}
             		}
             		if (StringUtils.isNotBlank(greaterThanValue)) {
-            			query.setCondition(query.getCondition().andWhere(metadata).isGreaterOrEqualThan(new Double(greaterThanValue)));
+            			try {
+            				query.setCondition(query.getCondition().andWhere(metadata).isGreaterThan(new Double(greaterThanValue)));
+            			} catch (NumberFormatException e) {
+            				// Ignore
+            			}
             		}
             		if (StringUtils.isNotBlank(lessThanValue)) {
-            			query.setCondition(query.getCondition().andWhere(metadata).isLessOrEqualThan(new Double(lessThanValue)));
+            			try {
+	            			query.setCondition(query.getCondition().andWhere(metadata).isLessThan(new Double(lessThanValue)));
+	        			} catch (NumberFormatException e) {
+	        				// Ignore
+	        			}
             		}
             	}
             	break;
