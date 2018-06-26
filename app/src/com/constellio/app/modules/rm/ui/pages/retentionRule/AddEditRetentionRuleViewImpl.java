@@ -20,6 +20,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -129,7 +130,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 		}
 
 		@Override
-		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 			Field<?> field;
 			switch (metadataVO.getLocalCode()) {
 			case RetentionRule.COPY_RETENTION_RULES:
@@ -218,7 +219,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 				postBuild(field, recordVO, metadataVO);
 				break;
 			default:
-				field = super.build(recordVO, metadataVO);
+				field = super.build(recordVO, metadataVO, locale);
 				break;
 			}
 			return field;

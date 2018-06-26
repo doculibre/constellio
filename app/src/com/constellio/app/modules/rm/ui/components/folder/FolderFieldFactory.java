@@ -19,6 +19,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.TYPE;
 import static com.constellio.app.modules.rm.wrappers.Folder.*;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -58,7 +59,7 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
 		String[] taxonomyCodes = metadataVO.getTaxonomyCodes();
 		MetadataInputType inputType = metadataVO.getMetadataInputType();
@@ -125,7 +126,7 @@ public class FolderFieldFactory extends RMRecordFieldFactory {
 			field = new FolderDisposalTypeFieldImpl();
 			break;
 		default:
-			field = super.build(recordVO, metadataVO);
+			field = super.build(recordVO, metadataVO, locale);
 		}
 
 		if (field instanceof CustomFolderField) {

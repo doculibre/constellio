@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -40,11 +41,11 @@ public class BagInfoSIPForm extends BaseViewImpl {
 
     MetadataFieldFactory factory = new MetadataFieldFactory(){
         @Override
-        public Field<?> build(MetadataVO metadata) {
+        public Field<?> build(MetadataVO metadata, Locale locale) {
             if(metadata.getLocalCode().equals("title")) {
                 return null;
             }
-            return super.build(metadata);
+            return super.build(metadata, locale);
         }
     };
 

@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -161,7 +162,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
     private class PrintableReportRecordFieldFactory extends RecordFieldFactory {
         private ComboBox typeCombobox, schemaCombobox;
         @Override
-        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
             Field<?> field;
             switch (metadataVO.getCode()) {
                 case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE:
@@ -171,7 +172,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
                     field = createComboBoxForSchemaType(metadataVO);
                     break;
                 default:
-                    field = new MetadataFieldFactory().build(metadataVO);
+                    field = new MetadataFieldFactory().build(metadataVO, locale);
                     if(metadataVO.codeMatches(Printable.JASPERFILE)) {
                         field.addValidator(new Validator() {
                             @Override
