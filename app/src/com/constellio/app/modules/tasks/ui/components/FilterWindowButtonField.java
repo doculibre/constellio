@@ -40,7 +40,7 @@ public class FilterWindowButtonField extends CustomField {
                     @Override
                     protected void buttonClick(ClickEvent event) {
                     	Object value = field.getValue();
-                        setValue(field.getValue());
+                        setValue(value);
                         getWindow().close();
                     }
                 };
