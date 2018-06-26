@@ -1,10 +1,6 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.model.entities.records.Record;
@@ -145,6 +141,8 @@ public class TaskRecordExtension extends RecordExtension {
 			parentTaskTitle = parentTask.getTitle();
 		}
 		String status = tasksSchema.getTaskStatus(task.getStatus()).getTitle();
+		String status_fr = tasksSchema.getTaskStatus(task.getStatus()).getTitle(Locale.FRENCH);
+		String status_en = tasksSchema.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
 		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(task.getTitle()));
 		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(parentTaskTitle));
@@ -158,6 +156,8 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
 		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
+		newParameters.add(TASK_STATUS_FR + ":" + formatToParameter(status_fr));
+		newParameters.add(TASK_STATUS_EN + ":" + formatToParameter(status_en));
 		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
 		newParameters.add(TASK_REASON + ":" + formatToParameter(task.getReason()));
 		newParameters.add(TASK_END_DATE + ":" + formatToParameter(task.getEndDate()));
