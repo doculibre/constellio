@@ -256,7 +256,7 @@ public class BatchProcessingPresenterService {
 		//		System.out.println("**************** EXECUTE ****************");
 		//		System.out.println("ACTION : ");
 		//		System.out.println(action);
-		Transaction transaction = prepareTransaction(request, true);
+		Transaction transaction = prepareTransactionWithIds(request, true);
 		recordServices.validateTransaction(transaction);
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -281,7 +281,7 @@ public class BatchProcessingPresenterService {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		Transaction transaction = prepareTransaction(request, true);
+		Transaction transaction = prepareTransactionWithIds(request, true);
 		recordServices.validateTransaction(transaction);
 		BatchProcessResults results = toBatchProcessResults(transaction);
 
@@ -372,7 +372,7 @@ public class BatchProcessingPresenterService {
 		//		System.out.println("**************** EXECUTE ****************");
 		//		System.out.println("ACTION : ");
 		//		System.out.println(action);
-		List<Transaction> transactionList = prepareTransactions(request, true);
+		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
 
 		for (Transaction transaction : transactionList) {
 			recordServices.validateTransaction(transaction);
@@ -395,7 +395,7 @@ public class BatchProcessingPresenterService {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		List<Transaction> transactionList = prepareTransactions(request, true);
+		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
 
 		for (Transaction transaction : transactionList) {
 			recordServices.validateTransaction(transaction);
@@ -588,7 +588,7 @@ public class BatchProcessingPresenterService {
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	public List<Transaction> prepareTransactions(final BatchProcessRequest request, boolean recalculate) {
+	public List<Transaction> prepareTransactionWithQuery(final BatchProcessRequest request, boolean recalculate) {
 		final MetadataSchemaTypes types = schemas.getTypes();
 		final List<Transaction> transactionList = new ArrayList<>();
 		Transaction transaction = new Transaction();
@@ -628,16 +628,18 @@ public class BatchProcessingPresenterService {
 
 					if (isNonEmptyValue(metadata, entry.getValue())) {
 						record.set(metadata, entry.getValue());
-						Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
-								.forCollection(collection)
-								.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, metadata));
-						if(temporaryMetadataChangeHash.size() > 0) {
-							specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
-						}
+
 					}
 				}
 			}
 
+
+			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
+					.forCollection(collection)
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
+			if(temporaryMetadataChangeHash.size() > 0) {
+				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+			}
 		}
 
 		request.setSpecialCaseModifiedMetadatas(specialCaseModificationByRecordId);
@@ -648,8 +650,10 @@ public class BatchProcessingPresenterService {
 		return transactionList;
 	}
 
-	public Transaction prepareTransaction(BatchProcessRequest request, boolean recalculate) {
+	public Transaction prepareTransactionWithIds(BatchProcessRequest request, boolean recalculate) {
 		Transaction transaction = new Transaction();
+		Map<String, Map<String, Object>> specialCaseModificationByRecordId = new HashMap<>();
+
 		MetadataSchemaTypes types = schemas.getTypes();
 		for (String id : request.getIds()) {
 			Record record = recordServices.getDocumentById(id);
@@ -682,7 +686,15 @@ public class BatchProcessingPresenterService {
 				}
 			}
 
+			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
+					.forCollection(collection)
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
+			if(temporaryMetadataChangeHash.size() > 0) {
+				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+			}
 		}
+
+		request.setSpecialCaseModifiedMetadatas(specialCaseModificationByRecordId);
 
 		if (recalculate) {
 			for (Record record : transaction.getModifiedRecords()) {

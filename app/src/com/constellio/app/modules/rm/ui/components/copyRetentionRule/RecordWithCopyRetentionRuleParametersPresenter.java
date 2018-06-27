@@ -328,7 +328,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 				locale);
 
 		SchemaUtils schemaUtils = new SchemaUtils();
-		Transaction transaction = presenterService.prepareTransaction(request, false);
+		Transaction transaction = presenterService.prepareTransactionWithIds(request, false);
 		for (Record record : transaction.getRecords()) {
 			String schemaCode = record.getSchemaCode();
 			String schemaTypeCode = schemaUtils.getSchemaTypeCode(schemaCode);
