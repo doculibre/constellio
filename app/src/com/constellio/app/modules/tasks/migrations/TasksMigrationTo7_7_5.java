@@ -5,11 +5,8 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
 
@@ -42,8 +39,8 @@ public class TasksMigrationTo7_7_5 extends MigrationHelper implements MigrationS
 	}
 
 	private void reloadEmailTemplates() {
-		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-				.equals("en")) {
+		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager()
+                .getCollectionLanguages(collection).get(0).equals("en")) {
 			reloadEmailTemplate("taskAssigneeToYouTemplate_en.html", TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
 			reloadEmailTemplate("taskReminderTemplate_en.html", TasksEmailTemplates.TASK_REMINDER);
 			reloadEmailTemplate("subTasksModificationTemplate_en.html", TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
