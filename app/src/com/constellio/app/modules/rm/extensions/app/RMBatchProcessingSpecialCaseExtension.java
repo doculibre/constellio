@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.extensions.app;
 
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
@@ -12,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.Record;
 import  com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.records.RecordServices;
+import org.joda.time.LocalDateTime;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,7 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
     public Map<String, Object> processSpecialCase(BatchProcessingSpecialCaseParams batchProcessingSpecialCaseParams) {
         RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
         Record record = batchProcessingSpecialCaseParams.getRecord();
-        Map<String, Object> modifedMetadata = new HashMap<>();
+        Map<String, Object> modifiedMetadatas = new HashMap<>();
         MetadataSchemaTypes metadataSchemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 
@@ -42,8 +44,8 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
             recordServices.recalculate(record);
             Folder folder = rmSchemasRecordsServices.wrapFolder(record);
 
-            Metadata metadata1 = record.getModifiedMetadatas(metadataSchemaTypes).getMetadataWithLocalCode(Folder.ADMINISTRATIVE_UNIT_ENTERED);
-            if (metadata1 != null) {
+            Metadata administrativeUnitEnteredMetadata = record.getModifiedMetadatas(metadataSchemaTypes).getMetadataWithLocalCode(Folder.ADMINISTRATIVE_UNIT_ENTERED);
+            if (administrativeUnitEnteredMetadata != null) {
 
 
                 RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(folder.getRetentionRule());
@@ -61,7 +63,7 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
 
                     if (numberOfPrincipal == 1) {
                         if (!LangUtils.areNullableEqual(folder.getMainCopyRuleIdEntered(), lastCopyRetentionRule.getId())) {
-                            modifedMetadata.put(folder.getSchemaCode() + "_" + MAIN_COPY_RULE_ID_ENTERED, lastCopyRetentionRule.getId());
+                            modifiedMetadatas.put(folder.getSchemaCode() + "_" + MAIN_COPY_RULE_ID_ENTERED, lastCopyRetentionRule.getId());
                             folder.setMainCopyRuleEntered(lastCopyRetentionRule.getId());
                         }
                     }
@@ -76,50 +78,48 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
 
                     if (lastCopyRetentionRule != null) {
                         if (!LangUtils.areNullableEqual(folder.getMainCopyRuleIdEntered(), lastCopyRetentionRule.getId())) {
-                            modifedMetadata.put(folder.getSchemaCode() + "_" + MAIN_COPY_RULE_ID_ENTERED, lastCopyRetentionRule.getId());
+                            modifiedMetadatas.put(folder.getSchemaCode() + "_" + MAIN_COPY_RULE_ID_ENTERED, lastCopyRetentionRule.getId());
                             folder.setMainCopyRuleEntered(lastCopyRetentionRule.getId());
                         }
                     }
                 }
             }
-            Metadata metadata2 = record.getModifiedMetadatas(metadataSchemaTypes).getMetadataWithLocalCode(Folder.MAIN_COPY_RULE_ID_ENTERED);
-            if (metadata2 != null) {
+            Metadata mainCopyRuleEnteredMetadata = record.getModifiedMetadatas(metadataSchemaTypes).getMetadataWithLocalCode(Folder.MAIN_COPY_RULE_ID_ENTERED);
+            if (mainCopyRuleEnteredMetadata != null) {
 
                 String sRetentionRule = folder.getRetentionRule();
                 if (sRetentionRule != null) {
                     RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(sRetentionRule);
 
                     if (folder.getCopyStatus() == CopyType.SECONDARY) {
-                        if (!record.get(metadata2).equals(retentionRule.getId())) {
-                            if (!LangUtils.areNullableEqual(record.get(metadata2), retentionRule.getSecondaryCopy().getId())) {
-                                modifedMetadata.put(metadata2.getCode(), retentionRule.getSecondaryCopy().getId());
-                                record.set(metadata2, retentionRule.getSecondaryCopy().getId());
+                        if (!record.get(mainCopyRuleEnteredMetadata).equals(retentionRule.getId())) {
+                            if (!LangUtils.areNullableEqual(record.get(mainCopyRuleEnteredMetadata), retentionRule.getSecondaryCopy().getId())) {
+                                modifiedMetadatas.put(mainCopyRuleEnteredMetadata.getCode(), retentionRule.getSecondaryCopy().getId());
+                                record.set(mainCopyRuleEnteredMetadata, retentionRule.getSecondaryCopy().getId());
                             }
                         }
                     }
                 }
             }
-            Metadata metadata3 = record.getModifiedMetadatas(metadataSchemaTypes).getMetadataWithLocalCode(Folder.RETENTION_RULE);
-            if (metadata3 != null) {
-                String sRetentionRule = folder.getRetentionRule();
-                if (sRetentionRule != null) {
-                    RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(sRetentionRule);
-                        if (folder.getCopyStatus() == CopyType.SECONDARY) {
-                            if (!LangUtils.areNullableEqual(folder.getMainCopyRuleIdEntered(), retentionRule.getSecondaryCopy().getId())) {
-                                modifedMetadata.put(record.getSchemaCode() + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, retentionRule.getSecondaryCopy().getId());
-                                folder.setMainCopyRuleEntered(retentionRule.getSecondaryCopy().getId());
-                            }
-                        } else if(retentionRule.getPrincipalCopies().size() == 1) {
-                            modifedMetadata.put( record.getSchemaCode() + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, retentionRule.getPrincipalCopies().get(0).getId());
-                            folder.setMainCopyRuleEntered(retentionRule.getPrincipalCopies().get(0).getId());
+            Metadata retentionRuleMetadata = record.getModifiedMetadatas(metadataSchemaTypes).getMetadataWithLocalCode(Folder.RETENTION_RULE);
+            if (retentionRuleMetadata != null) {
+                String retentionRuleId = folder.getRetentionRule();
+                if (retentionRuleId != null) {
+                    RetentionRule retentionRule = rmSchemasRecordsServices.getRetentionRule(retentionRuleId);
+                    if (folder.getCopyStatus() == CopyType.SECONDARY) {
+                        if (!LangUtils.areNullableEqual(folder.getMainCopyRuleIdEntered(), retentionRule.getSecondaryCopy().getId())) {
+                            modifiedMetadatas.put(record.getSchemaCode() + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, retentionRule.getSecondaryCopy().getId());
+                            folder.setMainCopyRuleEntered(retentionRule.getSecondaryCopy().getId());
                         }
+                    } else if(retentionRule.getPrincipalCopies().size() == 1) {
+                        modifiedMetadatas.put( record.getSchemaCode() + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, retentionRule.getPrincipalCopies().get(0).getId());
+                        folder.setMainCopyRuleEntered(retentionRule.getPrincipalCopies().get(0).getId());
                     }
                 }
             }
+        }
 
-
-
-        return modifedMetadata;
+        return modifiedMetadatas;
     }
 
     private boolean isValidDelai(List<CopyRetentionRule> copyRetentionRules, String id) {

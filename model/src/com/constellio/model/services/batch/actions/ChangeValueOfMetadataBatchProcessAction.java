@@ -41,14 +41,14 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 
 					record.set(metadata, entry.getValue());
 
-					modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
-							.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
 					if (schemaTypes.isRecordTypeMetadata(metadata)) {
 						changeSchemaTypeAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, metadata);
 						schemaCode = record.getSchemaCode();
 					}
 				}
 			}
+			modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
 		}
 		transaction.addUpdate(batch);
 		return transaction;
