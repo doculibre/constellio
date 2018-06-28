@@ -2,9 +2,12 @@ package com.constellio.app.ui.pages.management.extractors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.vaadin.navigator.ViewChangeListener;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.MetadataExtractorVO;
@@ -47,6 +50,8 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 	private VerticalLayout mainLayout;
 
 	private Button addButton;
+
+	private Button propertiesAnalyser;
 
 	private Table table;
 
@@ -161,6 +166,19 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 		mainLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 
 		return mainLayout;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+		propertiesAnalyser = new BaseButton($("ListMetadataExtractorsView.propertiesAnalyser")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.propertiesAnalyserButtonClicked();
+			}
+		};
+		actionMenuButtons.add(propertiesAnalyser);
+		return actionMenuButtons;
 	}
 
 	@Override

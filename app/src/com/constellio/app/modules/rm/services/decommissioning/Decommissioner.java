@@ -270,8 +270,12 @@ public abstract class Decommissioner {
 					content = purgeMinorVersions(content);
 				}
 				if (createPDFa && content != null) {
-					content = createPDFa(content);
-					loggingServices.logPdfAGeneration(document, user);
+					try {
+						content = createPDFa(content);
+						loggingServices.logPdfAGeneration(document, user);
+					} catch (NullPointerException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			if (updater != null) {

@@ -30,6 +30,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
 
+import static java.util.Arrays.asList;
+
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String recordId;
@@ -142,7 +144,13 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 					List<Metadata> taxonomyRelationshipReferences = schema.getTaxonomyRelationshipReferences(selectedTaxonomy);
 					if (!taxonomyRelationshipReferences.isEmpty()) {
 						Metadata firstTaxonomyRelationshipReference = taxonomyRelationshipReferences.get(0);
-						List<String> taxonomyItemReferences = record.get(firstTaxonomyRelationshipReference);
+						List<String> taxonomyItemReferences = null;
+						Object value = record.get(firstTaxonomyRelationshipReference);
+						if(value != null && value instanceof String) {
+							taxonomyItemReferences = asList((String) value);
+						} else {
+							taxonomyItemReferences = (List<String>) value;
+						}
 						if (taxonomyItemReferences != null && !taxonomyItemReferences.isEmpty()) {
 							String taxonomyItemReference = taxonomyItemReferences.get(0);
 							while (taxonomyItemReference != null) {

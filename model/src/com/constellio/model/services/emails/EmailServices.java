@@ -32,6 +32,8 @@ import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
 
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +104,7 @@ public class EmailServices {
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
+		message.setSentDate(LocalDateTime.now().toDate());
 		if (StringUtils.isNotBlank(from)) {
 			message.setFrom(new InternetAddress(from));
 		}
