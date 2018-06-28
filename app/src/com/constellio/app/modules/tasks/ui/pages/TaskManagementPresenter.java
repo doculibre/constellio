@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.joda.time.LocalDate;
@@ -505,7 +506,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 			task.removeStarredBy(getCurrentUser().getId());
 		}
 		try {
-			recordServices().update(task);
+			recordServices().update(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}

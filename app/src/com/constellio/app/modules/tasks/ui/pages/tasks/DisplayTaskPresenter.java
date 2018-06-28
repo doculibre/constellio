@@ -34,6 +34,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
@@ -355,7 +356,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 			task.removeStarredBy(getCurrentUser().getId());
 		}
 		try {
-			recordServices().update(task);
+			recordServices().update(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
