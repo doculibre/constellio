@@ -9,6 +9,7 @@ import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -30,7 +31,7 @@ public class SchemaTypeAlterationBatchProcessAction implements BatchProcessActio
 	}
 
 	@Override
-	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
+	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
 		Transaction transaction = new Transaction();
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.getRecordUpdateOptions().setFullRewrite(true);
