@@ -55,10 +55,7 @@ import com.constellio.app.ui.pages.management.email.EmailServerConfigViewImpl;
 import com.constellio.app.ui.pages.management.extractors.AddEditMetadataExtractorViewImpl;
 import com.constellio.app.ui.pages.management.extractors.ListMetadataExtractorsViewImpl;
 import com.constellio.app.ui.pages.management.extractors.PropertiesAnalyserViewImpl;
-import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.facet.OrderFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.facet.*;
 import com.constellio.app.ui.pages.management.labels.AddEditLabelViewImpl;
 import com.constellio.app.ui.pages.management.labels.LabelViewImpl;
 import com.constellio.app.ui.pages.management.labels.ListLabelViewImpl;
@@ -100,6 +97,7 @@ import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
 import com.constellio.app.ui.pages.spellchecker.DeleteSpellCheckerExclusionsViewImpl;
 import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
+import com.constellio.app.ui.pages.summarycolumn.SummaryColumnViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
@@ -225,6 +223,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
     public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
+	public static final String SUMMARY_CONFIGURATOR = "summaryConfigurator";
 
     private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -352,6 +351,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteSpellCheckerExclusionsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryColumnViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

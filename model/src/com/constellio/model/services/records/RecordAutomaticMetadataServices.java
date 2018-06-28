@@ -276,7 +276,7 @@ public class RecordAutomaticMetadataServices {
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
 			calculatedValue = calculator.calculate(
 					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
-							schemaType, record.getCollection(), typeInPrincipalTaxonomy));
+							schemaType, record.getCollection(), typeInPrincipalTaxonomy, metadataWithCalculatedDataEntry));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
@@ -831,9 +831,9 @@ public class RecordAutomaticMetadataServices {
 			Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
 			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
 
-		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
+			MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
-		boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
+			boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
 				&& !record.getLazyTransientValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
 
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)

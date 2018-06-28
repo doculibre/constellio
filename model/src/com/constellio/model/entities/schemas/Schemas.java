@@ -93,6 +93,7 @@ Schemas {
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
 	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
 
+
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
 		if (localCode.startsWith("USR") || localCode.startsWith("MAP")) {

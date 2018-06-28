@@ -1,17 +1,21 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import java.util.Map;
-
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -67,7 +71,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		view.navigate().to().editDisplayForm(params);
 	}
 
-	public void orderButtonClicked(MetadataSchemaVO schemaVO) {
+	public void formOrderButtonClicked(MetadataSchemaVO schemaVO) {
 		parameters.put("schemaCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.FORM_DISPLAY_FORM, parameters);
 		view.navigate().to().formDisplayForm(params);
@@ -78,6 +82,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		String params = ParamUtils.addParams(NavigatorConfigurationService.SEARCH_DISPLAY_FORM, parameters);
 		view.navigate().to().searchDisplayForm(params);
 	}
+
 
 	public void tableButtonClicked() {
 		parameters.put("schemaCode", schemaTypeCode + "_default");
@@ -104,6 +109,10 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 				view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 			}
 		}
+	}
+
+	public List<ListSchemaExtraCommandReturnParams> getExtensionMenuBar(MetadataSchemaVO metadataSchemaVO) {
+		return appLayerFactory.getExtensions().forCollection(collection).getListSchemaExtraCommandExtensions(new ListSchemaExtraCommandParams(metadataSchemaVO, (BaseViewImpl) view));
 	}
 
 	public boolean isDeleteButtonVisible(String schemaCode) {

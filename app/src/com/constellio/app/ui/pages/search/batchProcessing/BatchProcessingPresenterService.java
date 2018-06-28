@@ -201,7 +201,7 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, Map<String,Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -219,7 +219,7 @@ public class BatchProcessingPresenterService {
 										unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 										metadataDisplayType,
 										allowedReferences,
-										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes) :
+										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, customParameters) :
 								null;
 					}
 				};
@@ -307,7 +307,7 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, Map<String,Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -339,7 +339,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, customParameters);
 					}
 				};
 			}

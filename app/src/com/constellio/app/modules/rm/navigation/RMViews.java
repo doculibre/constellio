@@ -281,4 +281,5 @@ public class RMViews extends CoreViews {
     public void displayRetentionRule(String id) {
         navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
     }
+
 }

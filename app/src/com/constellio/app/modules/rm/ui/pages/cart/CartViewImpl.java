@@ -34,8 +34,11 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.google.common.base.Strings;
 import com.vaadin.data.Container;
+import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
@@ -376,7 +379,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			protected TableColumnsManager newColumnsManager() {
 				return new TableColumnsManager();
 			}
-			
+
+			@Override
+			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
+				Property loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
+				if(loadContainerProperty.getValue() instanceof String) {
+					String value = (String) loadContainerProperty.getValue();
+					if (Strings.isNullOrEmpty(value)) {
+						loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+					}
+				}
+
+				return loadContainerProperty;
+			}
+
 		};
 		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 			@Override
@@ -385,7 +401,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
 			}
 		});
-		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("init.allTypes.allSchemas.title"));
+		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.title"));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
 		table.setPageLength(Math.min(15, container.size()));
@@ -515,7 +531,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
-				dataProvider, asList(CommonMetadataBuilder.TITLE));
+				dataProvider, asList(CommonMetadataBuilder.SUMMARY));
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override
