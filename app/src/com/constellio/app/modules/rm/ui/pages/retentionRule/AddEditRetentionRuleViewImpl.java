@@ -226,7 +226,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 		}
 
 		private Field<?> buildCategoriesField(RecordVO recordVO, MetadataVO metadataVO) {
-			ListAddRemoveRecordLookupField field = (ListAddRemoveRecordLookupField) super.build(recordVO, metadataVO);
+			ListAddRemoveRecordLookupField field = (ListAddRemoveRecordLookupField) super.build(recordVO, metadataVO, null);
 			if (field != null) {
 				field.setIgnoreLinkability(true);
 			}
