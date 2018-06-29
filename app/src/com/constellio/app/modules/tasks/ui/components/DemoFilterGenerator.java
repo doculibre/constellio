@@ -59,8 +59,9 @@ public class DemoFilterGenerator implements FilterGenerator {
 				MetadataFieldFactory factory = new TaskFieldFactory(false);
                 final Field<?> field = factory.build(metadataVO);
                 if (field != null) {
-                    if(field instanceof AbstractTextField) {
-                        customFilterComponent = (AbstractTextField) field;
+                    if(field instanceof AbstractTextField ||
+                            field instanceof ComboBox) {
+                        customFilterComponent = (AbstractField) field;
                     } else {
                         customFilterComponent = new FilterWindowButtonField(field);
                     }
