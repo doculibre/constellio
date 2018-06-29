@@ -317,8 +317,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return layout;
 			}
 		};
-		windowButton.setEnabled(!presenter.getCartFolders().isEmpty());
-		windowButton.setVisible(!presenter.getCartFolders().isEmpty());
+		windowButton.setEnabled(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
+		windowButton.setVisible(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
 		return windowButton;
 	}
 

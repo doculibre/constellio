@@ -246,7 +246,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		administrativeUnitLayout = new VerticalLayout();
 		administrativeUnitLayout.setSizeFull();
 		administrativeUnitLayout.setSpacing(true);
-		final LookupRecordField administrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
+		final ListAddRemoveRecordLookupField administrativeUnitField = new ListAddRemoveRecordLookupField(AdministrativeUnit.SCHEMA_TYPE);
 		administrativeUnitField.setCaption($("ExportView.administrativeUnit"));
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override

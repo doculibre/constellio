@@ -2,6 +2,7 @@ package com.constellio.model.services.migrations;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +18,8 @@ import com.constellio.model.entities.enums.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 public class ConstellioEIMConfigs {
 
@@ -434,6 +437,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isInViewerContentsConversionSchedule() {
 		return isCurrentlyInSchedule(manager.<String>getValue(VIEWER_CONTENTS_CONVERSION_SCHEDULE));
+	}
+
+	public boolean isInScanVaultContentsSchedule() {
+		return LocalDate.now().getDayOfWeek() >= 6;
 	}
 
 	public boolean isInBatchProcessesSchedule() {

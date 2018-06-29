@@ -7,7 +7,7 @@ import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class RecordInModificationBeforeSaveEvent implements RecordEvent {
+public class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl implements RecordEvent {
 
 	MetadataList modifiedMetadatas;
 

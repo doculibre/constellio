@@ -2,6 +2,7 @@ package com.constellio.model.services.contents;
 
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static java.util.Arrays.asList;
@@ -19,6 +20,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.wrappers.VaultScanReport;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -53,17 +63,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
@@ -95,6 +95,8 @@ public class ContentManager implements StatefulService {
 	static final String CONTENT_IMPORT_THREAD = "ContentImportThread";
 
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
+
+	static final String SCAN_VAULT_CONTENTS = "ScanVaultContents";
 
 	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
 
@@ -166,6 +168,29 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
+		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
+			@Override
+			public void run() {
+				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
+				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+						&& isInScanVaultContentsSchedule
+						&& isEncodingSafeForScan()
+						&& !doesContentScanLockFileExist()) {
+					try {
+						createContentScanLockFile();
+						VaultScanResults vaultScanResults = new VaultScanResults();
+						scanVaultContents(vaultScanResults);
+						addReportsAsTemporaryRecords(vaultScanResults);
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (RecordServicesException e) {
+						e.printStackTrace();
+					}
+				} else if(!isInScanVaultContentsSchedule && doesContentScanLockFileExist()){
+					deleteContentScanLockFile();
+				}
+			}
+		};
 
 
 		backgroundThreadsManager.configure(
@@ -178,6 +203,12 @@ public class ContentManager implements StatefulService {
 				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+		backgroundThreadsManager.configure(
+				BackgroundThreadConfiguration.repeatingAction(SCAN_VAULT_CONTENTS, scanVaultContentsInBackgroundRunnable)
+						.executedEvery(Duration.standardHours(2))
+//						.executedEvery(Duration.standardSeconds(10))
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
@@ -196,6 +227,83 @@ public class ContentManager implements StatefulService {
 
 		//
 		icapService.init();
+	}
+
+	private void addReportsAsTemporaryRecords(VaultScanResults vaultScanResults) throws RecordServicesException {
+		List<String> collectionList = collectionsListManager.getCollectionsExcludingSystem();
+		ArrayList<VaultScanReport> reportList = new ArrayList<>();
+		for(String collection: collectionList) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			reportList.add(schemas.newVaultScanReport());
+		}
+
+		//TODO replace text for content
+		for(VaultScanReport report: reportList) {
+			report.set(VaultScanReport.MESSAGE, vaultScanResults.getReportMessage());
+			report.set(VaultScanReport.NUMBER_OF_DELETED_CONTENTS, vaultScanResults.getNumberOfDeletedContents());
+		}
+		Transaction transaction = new Transaction();
+		transaction.addAll(reportList);
+		recordServices.execute(transaction);
+	}
+
+	private void createContentScanLockFile() throws IOException {
+		File confFolder = modelLayerFactory.getFoldersLocator().getConfFolder();
+		File lockFile = new File(confFolder, "contentScan.lock");
+
+		if (!lockFile.exists()) {
+			lockFile.createNewFile();
+		}
+	}
+
+	private boolean doesContentScanLockFileExist() {
+		File confFolder = modelLayerFactory.getFoldersLocator().getConfFolder();
+		File lockFile = new File(confFolder, "contentScan.lock");
+		return lockFile.exists();
+	}
+
+	private void  deleteContentScanLockFile() {
+		File confFolder = modelLayerFactory.getFoldersLocator().getConfFolder();
+		File lockFile = new File(confFolder, "contentScan.lock");
+		ioServices.deleteQuietly(lockFile);
+	}
+
+	public void scanVaultContents(VaultScanResults vaultScanResults) {
+		vaultScanResults.appendMessage("INFO: Starting scan of content folder\n\n");
+		Set<String> allReferencedHashes = getAllReferencedHashes();
+		scanFolder("", allReferencedHashes, vaultScanResults);
+		vaultScanResults.appendMessage("\nINFO: Scan of content folder completed");
+	}
+
+	private void scanFolder(String folderId, Set<String> firstScanReferencedContents, VaultScanResults vaultScanResults) {
+		ContentDao contentDao = getContentDao();
+		List<String> subFiles = contentDao.getFolderContents(folderId);
+		for(String fileId: subFiles) {
+			File file = contentDao.getFileOf(fileId);
+			if(file.exists() && shouldFileBeScannedForDeletion(file)) {
+				if(file.isDirectory()) {
+					scanFolder(fileId, firstScanReferencedContents, vaultScanResults);
+				} else if(!firstScanReferencedContents.contains(file.getName())) {
+					recordServices.flushRecords();
+					if(!isReferenced(file)) {
+						try {
+							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+							vaultScanResults.incrementNumberOfDeletedContents();
+							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+						} catch (Exception e) {
+							vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+							vaultScanResults.appendMessage(e.getMessage() + "\n");
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private boolean shouldFileBeScannedForDeletion(File file) {
+		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"));
+		List<String> restrictedFiles = asList("tlogs", "tlogs_bck");
+		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
 
 	public ContentManager setServiceThreadEnabled(boolean serviceThreadEnabled) {
@@ -493,6 +601,76 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
+	private Set<String> getAllReferencedHashes() {
+		Set<String> referencedHashes = new HashSet<>();
+		List<String> collections = collectionsListManager.getCollections();
+		for (String collection : collections) {
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+			for (final MetadataSchemaType metadataSchemaType : metadataSchemaTypeList) {
+				List<Metadata> contentMetadatas = new ArrayList<>();
+				for (Metadata metadata : metadataSchemaType.getAllMetadatas()) {
+					if (MetadataValueType.CONTENT.equals(metadata.getType())) {
+						contentMetadatas.add(metadata);
+					}
+				}
+
+				if(!contentMetadatas.isEmpty()) {
+					referencedHashes.addAll(findReferencedContentsForSchemaType(metadataSchemaType, contentMetadatas));
+				}
+			}
+		}
+		return referencedHashes;
+	}
+
+	private Set<String> findReferencedContentsForSchemaType(MetadataSchemaType metadataSchemaType, List<Metadata> contentMetadatas) {
+		Set<String> referencedHashes = new HashSet<>();
+		LogicalSearchCondition condition = from(metadataSchemaType).where(contentMetadatas.get(0)).isNotNull();
+		for(int i = 1; i < contentMetadatas.size(); i++) {
+			condition = condition.orWhere(contentMetadatas.get(i)).isNotNull();
+		}
+
+		SearchResponseIterator<Record> recordsIterator =
+				searchServices.recordsIterator(new LogicalSearchQuery(condition));
+		while (recordsIterator.hasNext()) {
+			Record record = recordsIterator.next();
+			for(Metadata metadata: contentMetadatas) {
+				MetadataSchema recordSchema = metadataSchemaType.getSchema(record.getSchemaCode());
+
+				if(recordSchema.hasMetadataWithCode(metadata.getLocalCode())
+						&& MetadataValueType.CONTENT.equals(recordSchema.getMetadata(metadata.getLocalCode()).getType())) {
+					for (Content recordContent : record.<Content>getValues(metadata)) {
+						ContentImpl content = (ContentImpl) recordContent;
+						referencedHashes.addAll(content.getHashOfAllVersions());
+					}
+				}
+			}
+		}
+		return referencedHashes;
+	}
+
+	boolean isEncodingSafeForScan() {
+		HashingEncoding hashingEncoding = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding();
+		switch (hashingEncoding) {
+			case BASE64_URL_ENCODED:
+			case BASE32:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	boolean isReferenced(File file) {
+		HashingEncoding hashingEncoding = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding();
+		switch (hashingEncoding) {
+			case BASE64_URL_ENCODED:
+			case BASE32:
+				return isReferenced(file.getName());
+			default:
+				return true;
+		}
+	}
+
 	boolean isReferenced(String hash) {
 		boolean referenced = false;
 		for (MetadataSchemaTypes types : metadataSchemasManager.getAllCollectionsSchemaTypes()) {
@@ -636,7 +814,7 @@ public class ContentManager implements StatefulService {
 				record.set(Schemas.MARKED_FOR_PARSING, null);
 
 			}
-			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setOverwriteModificationDateAndUser(false));
 			tx.getRecordUpdateOptions().setFullRewrite(true);
 			try {
 				recordServices.execute(tx);
@@ -811,6 +989,7 @@ public class ContentManager implements StatefulService {
 					}
 					Transaction transaction = new Transaction(batch);
 					transaction.setSkippingRequiredValuesValidation(true);
+					transaction.getRecordUpdateOptions().setOverwriteModificationDateAndUser(false);
 					try {
 						recordServices.execute(transaction);
 					} catch (RecordServicesException e) {
@@ -927,6 +1106,27 @@ public class ContentManager implements StatefulService {
 
 		public ContentVersionDataSummary getContentVersionDataSummary() {
 			return contentVersionDataSummary;
+		}
+	}
+
+	private class VaultScanResults {
+		private StringBuilder reportMessage = new StringBuilder();
+		private int numberOfDeletedContents = 0;
+
+		public void appendMessage(String message) {
+			reportMessage.append(message);
+		}
+
+		public String getReportMessage() {
+			return reportMessage.toString();
+		}
+
+		public void incrementNumberOfDeletedContents() {
+			numberOfDeletedContents++;
+		}
+
+		public int getNumberOfDeletedContents() {
+			return numberOfDeletedContents;
 		}
 	}
 }

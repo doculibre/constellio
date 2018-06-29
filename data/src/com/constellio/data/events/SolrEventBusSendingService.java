@@ -157,6 +157,15 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
+		query = "-timestamp_d:*";
+		try {
+			client.deleteByQuery(query);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	protected void receivingEvents(List<Event> received) {
@@ -268,6 +277,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		params.set("rows", "" + RECEIVING_BATCH_LIMIT);
 		params.set("sort", "timestamp_d asc");
 		params.set("q", "-readBy_ss:" + serviceId);
+		params.set("fq", "timestamp_d:*");
 
 		List<Event> events = new ArrayList<>();
 

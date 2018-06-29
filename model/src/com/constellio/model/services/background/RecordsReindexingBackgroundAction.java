@@ -50,7 +50,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				if (!records.isEmpty()) {
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
-							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true));
+							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true)
+							.setOverwriteModificationDateAndUser(false));
 
 					executeTransaction(transaction);
 
@@ -63,7 +64,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		try {
 			recordServices.executeHandlingImpactsAsync(transaction);
 		} catch (RecordServicesException e) {
-			LOGGER.info("Optimistic locking while reindexing recods", e);
+			LOGGER.info("Optimistic locking while reindexing records", e);
+			recordServices.flush();
 		}
 	}
 }

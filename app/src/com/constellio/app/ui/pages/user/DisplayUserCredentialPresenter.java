@@ -16,6 +16,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.users.UserServices;
 
 @SuppressWarnings("serial")
@@ -178,5 +179,9 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	public boolean userNotLDAPSynced(String username) {
 		UserCredential userCredential = userServices.getUserCredential(username);
 		return userCredential.getDn() == null && userServices.has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
+	}
+
+	public String getConstellioUrl() {
+		return new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getConstellioUrl();
 	}
 }

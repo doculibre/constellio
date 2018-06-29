@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -608,6 +609,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				super.buttonClick(event);
 			}
 		};
+		button.setVisible(presenter.hasAccessToSIPGeneration());
 
 		return button;
 	}

@@ -3,11 +3,7 @@ package com.constellio.app.ui.framework.components;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -75,7 +71,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				recordWindow.center();
 
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO);
+				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO, presenter.getUser());
 
 				Component windowComponent = appLayerFactory.getExtensions()
 						.forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);
@@ -93,8 +89,8 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		// TODO Make all columns appear (DataProvider in AdvancedSearchPresenter
 
 		listeners = new HashSet<>();
-		selectedItemIds = new HashSet<>();
-		deselectedItemIds = new HashSet<>();
+		selectedItemIds = new LinkedHashSet<>();
+		deselectedItemIds = new LinkedHashSet<>();
 		adaptee.setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
 		//		addStyleName(TABLE_STYLE);
 

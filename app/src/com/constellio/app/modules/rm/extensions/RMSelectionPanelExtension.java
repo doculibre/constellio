@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -231,7 +232,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
         ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
-                appLayerFactory, collection, true, param.getView().getSessionContext()) {
+                appLayerFactory, collection, param.getSchemaTypeCodes().size() != 1, false ,buildReportPresenter(param), param.getView().getSessionContext()) {
 
             @Override
             public void buttonClick(ClickEvent event) {
@@ -244,6 +245,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         ((VerticalLayout)param.getComponent()).addComponent(tabButton);
+    }
+
+    private RMSelectionPanelReportPresenter buildReportPresenter(final AvailableActionsParam param) {
+        return new RMSelectionPanelReportPresenter(appLayerFactory, collection, param.getUser()) {
+            @Override
+            public String getSelectedSchemaType() {
+                return param.getSchemaTypeCodes().get(0);
+            }
+
+            @Override
+            public List<String> getSelectedRecordIds() {
+                return param.getIds();
+            }
+        };
     }
 
     public void addSIPbutton(final AvailableActionsParam param) {

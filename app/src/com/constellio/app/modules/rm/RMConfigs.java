@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
+import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
@@ -73,7 +74,8 @@ public class RMConfigs {
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
-			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM;
+			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
+			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -200,6 +202,9 @@ public class RMConfigs {
 		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
 
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
+
+		add(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS = decommissioning.createBooleanTrueByDefault("isDecommissioningTypeRequiredInContainers")
+				.scriptedBy(RMDecommissioningTypeRequiredScript.class));
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
@@ -537,4 +542,7 @@ public class RMConfigs {
 		return manager.getValue(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM);
 	}
 
+	public boolean isDecommissioningTypeRequiredInContainers() {
+		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
+	}
 }

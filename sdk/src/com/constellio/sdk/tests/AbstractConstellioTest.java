@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.client.WebTarget;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -47,8 +48,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
@@ -110,6 +109,8 @@ import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.TestsSpeedStats;
 import com.constellio.sdk.tests.setups.Users;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractConstellioTest implements FailureDetectionTestWatcherListener {
 
@@ -120,7 +121,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public static final String SDK_STREAM = StreamsTestFeatures.SDK_STREAM;
 
 	public static SDKPropertiesLoader sdkPropertiesLoader = new SDKPropertiesLoader();
-	private static Logger LOGGER;
+	private final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
 	//	private static boolean batchProcessControllerStarted = false;
 	private static String[] notUnitTestSuffix = new String[] { "AcceptanceTest", "IntegrationTest", "RealTest", "LoadTest",
 			"StressTest", "PerformanceTest", "AcceptTest" };
@@ -174,7 +175,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public static void beforeClass()
 			throws Exception {
 		MetadataSchemasManager.cacheEnabled = true;
-		LOGGER = null;
 
 		System.setProperty(BenchmarkOptionsSystemProperties.BENCHMARK_ROUNDS_PROPERTY, "1");
 		System.setProperty(BenchmarkOptionsSystemProperties.WARMUP_ROUNDS_PROPERTY, "0");
@@ -264,15 +264,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@org.junit.Before
 	public void logTest() {
-
-		if (LOGGER == null) {
-			LOGGER = LoggerFactory.getLogger(getClass());
-		}
-		try {
-			FileUtils.write(new File("constellio.log"), "Test '" + getTestName() + "' has started", true);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		log.info("Test '" + getTestName() + "' has started");
 	}
 
 	private void assertThatStatesAreEqual(File state1, File state2)
@@ -301,11 +293,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			System.runFinalization();
 			previousMemoryUsage = getMemoryUsage();
 		} else {
-			try {
-				FileUtils.write(new File("constellio.log"), "Test '" + getTestName() + "' has ended", true);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			log.info("Test '" + getTestName() + "' has ended");
 		}
 	}
 
@@ -341,12 +329,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			}
 		}
 
-		try {
-			FileUtils.write(new File("constellio.log"), "Test '" + getTestName() + "' has ended" + (hasOneDelta ? deltas : ""),
-					true);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		log.info("Test '" + getTestName() + "' has ended" + (hasOneDelta ? deltas : ""));
 		previousMemoryUsage = currentMemoryUsage;
 	}
 
@@ -666,6 +649,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ensureNotUnitTest();
 		getCurrentTestSession().getFactoriesTestFeatures().load();
 		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path);
+	}
+
+	protected WebTarget newWebTarget(String path, ObjectMapper mapper) {
+		ensureNotUnitTest();
+		getCurrentTestSession().getFactoriesTestFeatures().load();
+		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path, mapper);
 	}
 
 	protected SolrClient newSearchClient() {
@@ -1576,12 +1565,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService(BASE64)),
 				getServerConfigurations(server.getName()));
 
-		LOGGER.info("Syncing the <{}> configurations...", server.getName());
+		log.info(String.format("Syncing the <%s> configurations...", server.getName()));
 		if (!AtomicFileSystemUtils.sync(defaultConfiguration, serverFileSystem)) {
 			server.reload();
-			LOGGER.info("Reloading the <{}> server", server.getName());
+			log.info(String.format("Reloading the <%s> server", server.getName()));
 		} else
-			LOGGER.info("No reloading for the <{}> server", server.getName());
+			log.info(String.format("No reloading for the <%s> server", server.getName()));
 
 	}
 

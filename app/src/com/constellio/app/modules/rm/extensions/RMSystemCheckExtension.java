@@ -3,12 +3,14 @@ package com.constellio.app.modules.rm.extensions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 	private static final String ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE = "typeCannotBeChangeForTypeType";
 	private static Logger LOGGER = LoggerFactory.getLogger(RMSystemCheckExtension.class);
 
+	private static final List<String> ALLOWED_SCHEMAS_NOT_STARTING_WITH_USR = asList(Email.SCHEMA);
+
 	String collection;
 
 	AppLayerFactory appLayerFactory;
@@ -96,6 +100,22 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 			DecommissioningList list = rm.wrapDecommissioningList(params.getRecord());
 			for (String folderToRemove : params.getValuesToRemove()) {
 				list.removeFolderDetail(folderToRemove);
+			}
+
+			return true;
+		} else if (params.isMetadata(DecommissioningList.SCHEMA_TYPE, DecommissioningList.CONTAINERS)) {
+			DecommissioningList list = rm.wrapDecommissioningList(params.getRecord());
+			List<DecomListFolderDetail> folderDetails = list.getFolderDetails();
+			for (String containerToRemove : params.getValuesToRemove()) {
+				list.removeContainerDetail(containerToRemove);
+
+				if(folderDetails != null) {
+					for(DecomListFolderDetail folder: folderDetails) {
+						if(containerToRemove.equals(folder.getContainerRecordId())) {
+							folder.setContainerRecordId(null);
+						}
+					}
+				}
 			}
 
 			return true;
@@ -277,7 +297,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 			if (metadataSchemaType.getCode().toLowerCase().equals("document") || metadataSchemaType.getCode().toLowerCase()
 					.equals("folder")) {
 				for (MetadataSchema metadataSchema : metadataSchemaType.getAllSchemas()) {
-					if (!metadataSchema.getLocalCode().startsWith("USR") && !metadataSchema.getLocalCode().equals("default")) {
+					if (!metadataSchema.getLocalCode().startsWith("USR") && !metadataSchema.getLocalCode().equals("default") &&
+							!ALLOWED_SCHEMAS_NOT_STARTING_WITH_USR.contains(metadataSchema.getCode())) {
 						Map<String, Object> parameter = new HashMap<>();
 						parameter.put("schemaCode", metadataSchema.getLocalCode());
 						parameter.put("metadataSchemaType", metadataSchemaType.getCode());

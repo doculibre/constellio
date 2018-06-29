@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 
@@ -57,9 +58,22 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
 	}
 
+	public boolean hasAccessToBagInfoPage() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
+
 	public boolean isMultipleContainersButtonVisible() {
-		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER).getDataEntry().getType())
+		return (areContainersSequential() || Toggle.FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY.isEnabled())
 				&& presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	}
+
+	private boolean areContainersSequential() {
+		return isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER) ||
+				isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
+	}
+
+	private boolean isMetadataSequential(String metadataCode) {
+		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getMetadata(metadataCode).getDataEntry().getType());
 	}
 }

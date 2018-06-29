@@ -326,4 +326,6 @@ public class ReportTabButton extends WindowButton {
     protected LogicalSearchQuery getLogicalSearchQuery(String selectedSchemaFilter) {
         return null;
     }
+
+
 }
