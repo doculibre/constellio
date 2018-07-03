@@ -96,33 +96,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<User> getAvailableManagers() throws DecommissioningEmailServiceException {
-
-
-//		AuthorizationsServices authorizationServices = modelLayerFactory.newAuthorizationsServices();
-//
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 
 		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
 
-//		List<Authorization> recordAuthorizations = authorizationServices.getRecordAuthorizations(record);
-//		Set<String> allUsers = new HashSet<>();
-//		for(Authorization authorization: recordAuthorizations) {
-//			AuthorizationDetails detail = authorization.getDetail();
-//			List<String> roles = detail.getRoles();
-//			List<String> userIds = authorization.getGrantedToPrincipals();
-//			if(roles.contains("M")) {
-//				allUsers.addAll(userIds);
-//			}
-//		}
-//
-//		List<User> userList = new ArrayList<>();
-//
-//		for(String strUser : allUsers) {
-//			User user = schemasRecordsServices.getUser(strUser);
-//			userList.add(user);
-//		}
-//
-//		return userList;
 		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
 				.getUsersWithPermissionOnRecord(
 						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
@@ -796,7 +773,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public SearchType calculateSearchType() {
-		if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+		if (OriginStatus.ACTIVE.equals(decommissioningList().getOriginArchivisticStatus())) {
 			switch (decommissioningList().getDecommissioningListType()) {
 			case FOLDERS_TO_DEPOSIT:
 				return SearchType.activeToDeposit;
@@ -811,7 +788,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			case DOCUMENTS_TO_TRANSFER:
 				return SearchType.documentTransfer;
 			}
-		} else if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+		} else if (OriginStatus.SEMI_ACTIVE.equals(decommissioningList().getOriginArchivisticStatus())) {
 			switch (decommissioningList().getDecommissioningListType()) {
 			case FOLDERS_TO_DEPOSIT:
 				return SearchType.semiActiveToDeposit;
