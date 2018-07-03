@@ -293,7 +293,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
-			actionsComponent.navigate().to().listObjectAccessAuthorizations(documentVO.getId());
+			actionsComponent.navigate().to().listObjectAccessAndRoleAuthorizations(documentVO.getId());
 		}
 	}
 

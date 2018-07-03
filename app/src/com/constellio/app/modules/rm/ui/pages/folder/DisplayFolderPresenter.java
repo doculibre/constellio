@@ -653,7 +653,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addAuthorizationButtonClicked() {
-		navigate().to().listObjectAccessAuthorizations(folderVO.getId());
+		navigate().to().listObjectAccessAndRoleAuthorizations(folderVO.getId());
 	}
 
 	public void shareFolderButtonClicked() {
