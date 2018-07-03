@@ -282,6 +282,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		return addView;
 	}
 
+	public boolean isNewFileAtStart() {
+		return newFileAtStart;
+	}
+
 	public void cancelButtonClicked() {
 		if (userDocumentId != null) {
 			view.navigate().to(RMViews.class).listUserDocuments();
@@ -486,6 +490,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				newFile = false;
 			}
 			contentField.setMajorVersionFieldVisible(!newFile);
+
+			if(newFileAtStart) {
+				contentField.setReadOnly(true);
+			}
 		}
 	}
 
