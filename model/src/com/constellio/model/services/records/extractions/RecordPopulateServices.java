@@ -81,7 +81,7 @@ public class RecordPopulateServices {
 						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
 							if(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && shouldRemoveExtension(originalRecord, metadata, contentMetadatas, populator)) {
                                 record.set(metadata, FilenameUtils.removeExtension((String) currentPopulatedValue));
-							} else {
+							} else if(!(!Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && currentPopulatedValue == null)){
 								record.set(metadata, currentPopulatedValue);
 							}
 						}
@@ -137,6 +137,10 @@ public class RecordPopulateServices {
 				String value = record.get(metadata);
 				return record.get(metadata) == null || isValueWritenBySystem(record, metadata, value, contentMetadatas);
 			}
+		}
+
+		if(Boolean.TRUE.equals(metadata.getPopulateConfigs().isAddOnly())) {
+			return false;
 		}
 
 		Object previousValue = originalRecord.get(metadata);
