@@ -676,6 +676,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			} else {
 				if (currentValue != null) {
 					folderVO.setCopyStatusEntered(null);
+					copyStatusEnteredField.setFieldValue(null);
 				}
 				if (copyStatusEnteredField.isVisible()) {
 					setFieldVisible(copyStatusEnteredField, false, Folder.COPY_STATUS_ENTERED);

@@ -2,7 +2,9 @@ package com.constellio.app.modules.rm.model.calculators;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -10,10 +12,13 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import org.apache.commons.collections.CollectionUtils;
 
 public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<CopyType> {
 
@@ -38,6 +43,10 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 
 	ReferenceDependency<CopyType> parentCopyTypeParam = ReferenceDependency.toAnEnum(Folder.PARENT_FOLDER, Folder.COPY_STATUS);
 
+	ConfigDependency<Boolean> openHolderParam = RMConfigs.OPEN_HOLDER.dependency();
+
+
+
 	@Override
 	public CopyType calculate(CalculatorParameters parameters) {
 		CopyType folderCopyTypeManual = parameters.get(folderCopyTypeManualParam);
@@ -47,6 +56,7 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 		Boolean ruleResponsibleUnits = parameters.get(ruleResponsibleUnitsParam);
 		boolean documentRule = RetentionRuleScope.DOCUMENTS == parameters.get(ruleScopeParam);
 		List<CopyRetentionRule> ruleCopyRules = parameters.get(ruleCopyRulesParam);
+		Boolean openHolder = parameters.get(openHolderParam);
 
 		if (ruleCopyRules.isEmpty() && !documentRule) {
 			return null;
@@ -82,6 +92,11 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 			return CopyType.SECONDARY;
 		}
 
+		if (openHolder && Boolean.TRUE.equals(ruleResponsibleUnits) && ruleUnits != null
+				&& ruleUnits.contains(folderUnit)) {
+			return CopyType.PRINCIPAL;
+		}
+
 		return null;
 	}
 
@@ -103,6 +118,6 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return Arrays.asList(folderCopyTypeManualParam, folderUnitParam, folderUnitAncestorsParam, ruleUnitsParam,
-				ruleResponsibleUnitsParam, ruleCopyRulesParam, parentCopyTypeParam, ruleScopeParam);
+				ruleResponsibleUnitsParam, ruleCopyRulesParam, parentCopyTypeParam, ruleScopeParam, openHolderParam);
 	}
 }
