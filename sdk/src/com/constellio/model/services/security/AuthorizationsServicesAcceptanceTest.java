@@ -3606,11 +3606,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	//FINISHED
 	public void givenUserHasGlobalAccessOrNoAccessThenNegativeAuthorizationsDoesNotAffectTheirAccesses() {
+
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
-		auth2 = add(authorizationForUser(alice).on(FOLDER1).givingNegativeReadWriteAccess());
-		auth3 = add(authorizationForUser(alice).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth2 = add(authorizationForUser(chuckNorris).on(FOLDER1).givingNegativeReadWriteAccess());
+		auth3 = add(authorizationForGroups(legends).on(FOLDER2).givingNegativeReadWriteDeleteAccess());
 
 		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
 			verifyRecord.usersWithReadAccess().containsOnly(alice, chuck);
@@ -3621,7 +3621,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	//FINISHED
 	public void givenUserHasNoAccessesWhenReceivingNegativeAuthorizationsThenStillHasNoAccesses() {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
@@ -3636,7 +3635,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	//FINISHED
 	public void givenUserIsInheritingAccessesFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirAccesses() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3661,83 +3659,304 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void givenUserHasNegativeAccessesFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
+	public void givenUserIsInheritingNegativeAccessesFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativeAccesses() {
 
-		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
-		auth2 = add(authorizationForUser(charles).on(FOLDER1).givingNegativeReadWriteAccess());
-		auth3 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadDeleteAccess());
-		auth4 = add(authorizationForUser(legends).on(FOLDER4).givingNegativeReadWriteAccess());
+		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegativeReadDeleteAccess());
 
-		auth5 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
-		auth6 = add(authorizationForUser(heroes).on(FOLDER2).givingReadDeleteAccess());
+		auth3 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth4 = add(authorizationForUser(charles).on(FOLDER1).givingReadWriteAccess());
+		auth5 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER1_DOC1, FOLDER4)) {
-	 		verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, charles, alice, chuck);
-			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, charles, chuck);
-			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, charles, chuck);
+			verifyRecord.usersWithReadAccess().contains(charles);
+			verifyRecord.usersWithWriteAccess().contains(charles);
+			verifyRecord.usersWithDeleteAccess().contains(charles);
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER2, FOLDER2_1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, alice, chuck);
-			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, chuck);
-			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck);
+			verifyRecord.usersWithReadAccess().doesNotContain(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
 		}
-		throw new RuntimeException("TODO");
 	}
 
 	@Test
-	public void givenUserIsInheritingNegativeAccessesFromItsGroupThenPositiveAuthorizationsOnTheRecordItself() {
-		throw new RuntimeException("TODO");
+	public void givenUserIsInheritingNegativeAndPositiveAccessesFromItsGroupThenNegativeAlwaysWins() {
+
+		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth3 = add(authorizationForUser(heroes).on(FOLDER1).givingNegativeReadDeleteAccess());
+
+		auth4 = add(authorizationForUser(legends).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth5 = add(authorizationForUser(legends).on(FOLDER1).givingReadWriteAccess());
+		auth6 = add(authorizationForUser(legends).on(FOLDER2_1).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithReadAccess().contains(gandalf);
+			verifyRecord.usersWithWriteAccess().contains(gandalf);
+			verifyRecord.usersWithDeleteAccess().contains(gandalf);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(gandalf);
+			verifyRecord.usersWithWriteAccess().doesNotContain(gandalf);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(gandalf);
+		}
 	}
 
 	@Test
-	public void givenUserHasAccessesFromTheRecordInheritanceThenNegativeAuthorizationsDoesRestrictTheirAccesses() {
-		throw new RuntimeException("TODO");
+	public void givenUserHasNegativeAndPositiveAccessesThenNegativeAlwaysWins() {
+
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegativeReadDeleteAccess());
+
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth5 = add(authorizationForUser(charles).on(FOLDER1).givingReadWriteAccess());
+		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithReadAccess().contains(charles);
+			verifyRecord.usersWithWriteAccess().contains(charles);
+			verifyRecord.usersWithDeleteAccess().contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
+		}
 	}
 
 	@Test
-	public void givenUserHasPositiveAndNegativeAccessOnTheSameRecordThenDoesNotReceivePositiveAccesses() {
-		throw new RuntimeException("TODO");
+	public void givenUserHasNegativeAccessesFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
+
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegativeReadDeleteAccess());
+
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
+		auth5 = add(authorizationForUser(charles).on(FOLDER1_DOC1).givingReadWriteAccess());
+		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1,
+				TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
+		}
+
+		detach(FOLDER1_DOC1);
+		detach(FOLDER2);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1,
+				TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
+		}
 	}
 
 	@Test
-	public void givenARecordInheritingNegativeAuthorizationsIsDetachedThenKeepsItsAccessesRestrictionsFromNegativeAuthorization() {
-		throw new RuntimeException("TODO");
+	public void givenUserHasPositiveAccessesFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLooseAccess() {
+
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingReadDeleteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingReadDeleteAccess());
+
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
+		auth5 = add(authorizationForUser(charles).on(FOLDER1_DOC1).givingNegativeReadWriteAccess());
+		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingNegativeReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
+			verifyRecord.usersWithReadAccess().contains(charles);
+			verifyRecord.usersWithWriteAccess().contains(charles);
+			verifyRecord.usersWithDeleteAccess().contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
+		}
+
+		detach(FOLDER1_DOC1);
+		detach(FOLDER2);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
+			verifyRecord.usersWithReadAccess().contains(charles);
+			verifyRecord.usersWithWriteAccess().contains(charles);
+			verifyRecord.usersWithDeleteAccess().contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
+		}
+
+	}
+
+	@Test
+	public void givenUserHasGlobalAccessOrNoPermissionsThenNegativeAuthorizationsDoesNotAffectTheirPermissions() {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(chuckNorris).on(FOLDER1).givingNegative(ROLE1));
+		auth3 = add(authorizationForGroups(legends).on(FOLDER2).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(alice, chuck);
+		}
+
 	}
 
 	@Test
 	public void givenUserHasNoPermissionsWhenReceivingNegativeAuthorizationsThenStillHasNoPermissions() {
-		throw new RuntimeException("TODO");
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(bob).on(FOLDER1).givingNegative(ROLE1));
+		auth3 = add(authorizationForUser(bob).on(FOLDER2).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(alice, chuck);
+		}
 	}
 
 	@Test
 	public void givenUserIsInheritingPermissionsFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirPermissions() {
-		throw new RuntimeException("TODO");
+
+		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(heroes).on(FOLDER1).givingNegative(ROLE1));
+		auth3 = add(authorizationForUser(heroes).on(FOLDER2).givingNegative(ROLE1));
+
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth5 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER1_DOC1, FOLDER4)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(dakota, gandalf, charles, alice, chuck);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(dakota, gandalf, alice, chuck);
+		}
+
+	}
+
+	@Test
+	public void givenUserIsInheritingNegativePermissionsFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativePermissions() {
+
+		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegative(ROLE1));
+
+		auth3 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth4 = add(authorizationForUser(charles).on(FOLDER1).givingNegative(ROLE1));
+		auth5 = add(authorizationForUser(charles).on(FOLDER2_1).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER1_DOC1, FOLDER4)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
+		}
+	}
+
+	@Test
+	public void givenUserIsInheritingNegativeAndPositivePermissionsFromItsGroupThenNegativeAlwaysWins() {
+
+		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegative(ROLE1));
+		auth3 = add(authorizationForUser(heroes).on(FOLDER1).givingNegative(ROLE1));
+
+		auth4 = add(authorizationForUser(legends).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth5 = add(authorizationForUser(legends).on(FOLDER1).givingNegative(ROLE1));
+		auth6 = add(authorizationForUser(legends).on(FOLDER2_1).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(gandalf);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(gandalf);
+		}
+	}
+
+	@Test
+	public void givenUserHasNegativeAndPositivePermissionsThenNegativeAlwaysWins() {
+
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
+		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegative(ROLE1));
+
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth5 = add(authorizationForUser(charles).on(FOLDER1).givingNegative(ROLE1));
+		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
+		}
 	}
 
 	@Test
 	public void givenUserHasNegativePermissionsFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
-		throw new RuntimeException("TODO");
+
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
+		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegative(ROLE1));
+
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth5 = add(authorizationForUser(charles).on(FOLDER1_DOC1).givingNegative(ROLE1));
+		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingNegative(ROLE1));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1,
+				TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
+		}
+
+		detach(FOLDER1_DOC1);
+		detach(FOLDER2);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1,
+				TAXO1_CATEGORY2, FOLDER4)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
+		}
 	}
 
 	@Test
-	public void givenUserIsInheritingNegativePermissionsFromItsGroupThenPositiveAuthorizationsOnTheRecordItself() {
-		throw new RuntimeException("TODO");
-	}
+	public void givenUserHasPositivePermissionsFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLoosePermissions() {
 
-	@Test
-	public void givenUserHasPermissionsFromTheRecordInheritanceThenNegativeAuthorizationsDoesRestrictTheirPermissions() {
-		throw new RuntimeException("TODO");
-	}
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
+		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegative(ROLE1));
 
-	@Test
-	public void givenUserHasPositiveAndNegativePermissionOnTheSameRecordThenDoesNotReceivePositivePermissions() {
-		throw new RuntimeException("TODO");
-	}
+		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth5 = add(authorizationForUser(charles).on(FOLDER1_DOC1).givingNegative(ROLE1));
+		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingNegative(ROLE1));
 
-	@Test
-	public void givenARecordInheritingNegativeAuthorizationsIsDetachedThenKeepsItsPermissionsRestrictionsFromNegativeAuthorization() {
-		throw new RuntimeException("TODO");
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
+		}
+
+		detach(FOLDER1_DOC1);
+		detach(FOLDER2);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
+		}
+
 	}
 
 }
