@@ -115,7 +115,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void emailPreparationRequested() {
-		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart());
+		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart(), getCurrentUser());
 		String filename = emailMessage.getFilename();
     	InputStream stream = emailMessage.getInputStream();
 		view.startDownload(stream, filename);
@@ -384,25 +384,26 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public List<String> getNotDeletedRecordsIds(String schemaType) {
+		User currentUser = getCurrentUser();
 		switch (schemaType) {
 		case Folder.SCHEMA_TYPE:
 			List<String> folders = cart().getFolders();
-			return getNonDeletedRecordsIds(rm.getFolders(folders));
+			return getNonDeletedRecordsIds(rm.getFolders(folders), currentUser);
 		case Document.SCHEMA_TYPE:
 			List<String> documents = cart().getDocuments();
-			return getNonDeletedRecordsIds(rm.getDocuments(documents));
+			return getNonDeletedRecordsIds(rm.getDocuments(documents), currentUser);
 		case ContainerRecord.SCHEMA_TYPE:
 			List<String> containers = cart().getContainers();
-			return getNonDeletedRecordsIds(rm.getContainerRecords(containers));
+			return getNonDeletedRecordsIds(rm.getContainerRecords(containers), currentUser);
 		default:
 			throw new RuntimeException("Unsupported type : " + schemaType);
 		}
 	}
 
-	private List<String> getNonDeletedRecordsIds(List<? extends RecordWrapper> records) {
+	private List<String> getNonDeletedRecordsIds(List<? extends RecordWrapper> records, User currentUser) {
 		ArrayList<String> ids = new ArrayList<>();
 		for(RecordWrapper record: records) {
-			if(!record.isLogicallyDeletedStatus()) {
+			if(!record.isLogicallyDeletedStatus() && currentUser.hasReadAccess().on(record)) {
 				ids.add(record.getId());
 			}
 		}
