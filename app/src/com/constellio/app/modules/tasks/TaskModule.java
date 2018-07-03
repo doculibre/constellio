@@ -57,8 +57,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 				new TasksMigrationTo7_6_6_1(),
 				new TasksMigrationTo7_7(),
 				new TasksMigrationTo7_7_3(),
-				new TasksMigrationTo7_7_4(),
-				new TasksMigrationTo7_7_5()
+				new TasksMigrationTo7_7_4()
 		);
 	}
 
