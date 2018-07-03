@@ -2,8 +2,8 @@ package com.constellio.data.dao.services.contents;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,21 +28,20 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class FileSystemContentDao implements StatefulService, ContentDao {
 
-	public static final String RECOVERY_FILE = "recoveryfile.bac";
+	public static final String RECOVERY_FOLDER = "vaultrecoveryfolder";
 	private static final String COPY_RECEIVED_STREAM_TO_FILE = "FileSystemContentDao-CopyReceivedStreamToFile";
-	public static final String FILE_SYSTEM_CONTENT_DAO_FILE_STREAM_NAME = "fileSystemContentDaoFileStream";
 
 	IOServices ioServices;
 
     @VisibleForTesting
 	File rootFolder;
 
-    File vaultRecoveryFile;
+    File vaultRecoveryFolder;
 
     @VisibleForTesting
     File replicatedRootFolder;
 
-	File replicatedRootRecoveryFile = null;
+	File replicatedRootRecoveryFolder = null;
 
 	DataLayerConfiguration configuration;
 
@@ -53,40 +52,24 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		this.configuration = configuration;
 
 		rootFolder = configuration.getContentDaoFileSystemFolder();
-		vaultRecoveryFile = new File(rootFolder, RECOVERY_FILE);
+		vaultRecoveryFolder = new File(rootFolder, RECOVERY_FOLDER);
 
-		if(!vaultRecoveryFile.exists()) {
-			try {
-				if(!vaultRecoveryFile.createNewFile()) {
-					throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateVaultRecoveryFile(vaultRecoveryFile);
-				}
-			} catch (IOException e) {
-				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateVaultRecoveryFile(vaultRecoveryFile);
-			}
-		}
+		createVaultRecoveryDirectory();
 
 		String replicatedVaultMountPoint = configuration.getContentDaoReplicatedVaultMountPoint();
         if (StringUtils.isNotBlank(replicatedVaultMountPoint)) {
             replicatedRootFolder = new File(replicatedVaultMountPoint);
-			replicatedRootRecoveryFile = new File(replicatedRootFolder, RECOVERY_FILE);
-			if(!replicatedRootRecoveryFile.exists()) {
-				try {
-					if(!replicatedRootRecoveryFile.createNewFile()) {
-						throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateReplicationRecoveryFile(replicatedRootRecoveryFile);
-					}
-				} catch (IOException e) {
-					throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateReplicationRecoveryFile(replicatedRootRecoveryFile);
-				}
-			}
-        }
+			replicatedRootRecoveryFolder = new File(replicatedRootFolder, RECOVERY_FOLDER);
+			createRootRecoveryDirectory();
+		}
 	}
 
-	File getVaultRootRecoveryFile() {
-		return vaultRecoveryFile;
+	File getVaultRootRecoveryFolder() {
+		return vaultRecoveryFolder;
 	}
 
-	File getReplicationRootRecoveryFile() {
-		return replicatedRootRecoveryFile;
+	File getReplicationRootRecoveryFolder() {
+		return replicatedRootRecoveryFolder;
 	}
 
 	boolean fileCopy(File fileToCopy, String filePath) {
@@ -199,18 +182,40 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	public void addFileNotMovedInTheVault(String id) {
+		createRootRecoveryDirectory();
+
 		try {
-			Files.write(Paths.get(replicatedRootRecoveryFile.getPath()), (id + "\n").getBytes(), StandardOpenOption.APPEND);
+			Path path =Paths.get(replicatedRootRecoveryFolder.getPath() + File.separator + id);
+			Files.createFile(path);
 		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInReplicationRecoveryFile(id);
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile(id);
+		}
+	}
+
+	private void createRootRecoveryDirectory() {
+		if(!replicatedRootRecoveryFolder.exists()) {
+			if(!replicatedRootRecoveryFolder.mkdir()) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateReplicationRecoveryFile(replicatedRootRecoveryFolder);
+			}
 		}
 	}
 
 	public void addFileNotReplicated(String id) {
+
+		createVaultRecoveryDirectory();
 		try {
-			Files.write(Paths.get(vaultRecoveryFile.getPath()), (id + "\n").getBytes(), StandardOpenOption.APPEND);
+			Path path =Paths.get(vaultRecoveryFolder.getPath() + File.separator + id);
+			Files.createFile(path);
 		} catch (IOException e) {
 			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile(id);
+		}
+	}
+
+	private void createVaultRecoveryDirectory() {
+		if(!vaultRecoveryFolder.exists()) {
+			if(!vaultRecoveryFolder.mkdirs()) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateVaultRecoveryFile(vaultRecoveryFolder);
+			}
 		}
 	}
 
@@ -220,92 +225,75 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	private void repairVaultFiles() {
-		BufferedReader b = null;
-
-		if(replicatedRootRecoveryFile == null || !replicatedRootRecoveryFile.exists()){
+		if(replicatedRootRecoveryFolder == null || !replicatedRootRecoveryFolder.exists()){
 			return;
 		}
 
+		File[] fileList = replicatedRootRecoveryFolder.listFiles();
 
-		try {
-			b = ioServices.newBufferedFileReader(replicatedRootRecoveryFile, FILE_SYSTEM_CONTENT_DAO_FILE_STREAM_NAME);
-			String lineRead;
-			boolean didCopySucced;
+		boolean didCopySucced;
 
+		for(int i = 0; i < fileList.length; i++) {
+			File recoveryFile = fileList[i];
+			File currentFile = getFileOf(recoveryFile.getName());
 
-			while((lineRead = b.readLine()) != null) {
-				File file = getFileOf(lineRead);
-				File replicatedVaultFile = getReplicatedVaultFile(file);
-				if(!replicatedVaultFile.exists()) {
-					// file got deleted.
-					continue;
-				}
-				didCopySucced = fileCopy(replicatedVaultFile, file.getAbsolutePath());
-
-				if(!didCopySucced) {
-					throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(replicatedVaultFile);
-				}
+			File replicatedVaultFile = getReplicatedVaultFile(currentFile);
+			if(!replicatedVaultFile.exists()) {
+				deleteReplicationRecoveryFile(recoveryFile);
+				// file got deleted.
+				continue;
 			}
-		} catch (FileNotFoundException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringVaultFiles(e);
-		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileRestauringVaultFiles(e);
-		} finally {
-			ioServices.closeQuietly(b);
-		}
 
-		if(!replicatedRootRecoveryFile.delete()) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile();
-		}
-		try {
-			if(!replicatedRootRecoveryFile.createNewFile()) {
-				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile();
+			didCopySucced = fileCopy(replicatedVaultFile, currentFile.getAbsolutePath());
+
+			if(!didCopySucced) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault(replicatedVaultFile);
+			} else {
+				deleteReplicationRecoveryFile(recoveryFile);
 			}
-		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingReplicationRecoveryFile(e);
 		}
 	}
 
+	private void deleteReplicationRecoveryFile(File recoveryFile) {
+		if(!recoveryFile.delete()) {
+            throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile();
+        }
+	}
+
 	private void repairReplicationFiles() {
-		BufferedReader b = null;
-		try {
-			b = ioServices.newBufferedFileReader(vaultRecoveryFile, FILE_SYSTEM_CONTENT_DAO_FILE_STREAM_NAME);
-			String lineRead;
-			boolean didCopySucced;
-			while((lineRead = b.readLine()) != null) {
-				File file = getFileOf(lineRead);
+		if(vaultRecoveryFolder == null || !vaultRecoveryFolder.exists()){
+			return;
+		}
 
-				if(!file.exists()) {
-					// file got deleted.
-					continue;
-				}
+		File[] fileList = vaultRecoveryFolder.listFiles();
+		boolean didCopySucced;
 
-				didCopySucced = fileCopy(file, getReplicatedVaultFile(file).getAbsolutePath());
+		for(int i = 0; i < fileList.length; i++) {
+			File recoveryFile = fileList[i];
+			File file = getFileOf(recoveryFile.getName());
 
-				if(!didCopySucced) {
-					throw new FileSystemContentDaoRuntimeException
-							.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault(file.getAbsoluteFile());
-				}
+			if(!file.exists()) {
+				// file got deleted.
+				vaultRecoveryFileDelete(recoveryFile);
+				continue;
 			}
-		} catch (FileNotFoundException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FileNotFoundWhileRestauringReplicationVault(e);
-		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileRestauringReplicationVault(e);
-		} finally {
-			ioServices.closeQuietly(b);
-		}
 
-		if(!vaultRecoveryFile.delete()) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile();
-		}
+			didCopySucced = fileCopy(file, getReplicatedVaultFile(file).getAbsolutePath());
 
-		try {
-			if(!vaultRecoveryFile.createNewFile()) {
-				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile();
+			if(!didCopySucced) {
+				throw new FileSystemContentDaoRuntimeException
+						.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(file.getAbsoluteFile());
 			}
-		} catch (IOException e) {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_IOErrorWhileCreatingVaultRecoveryFile(e);
+			else {
+				vaultRecoveryFileDelete(recoveryFile);
+			}
 		}
+	}
+
+	private void vaultRecoveryFileDelete(File recoveryFile) {
+		if(!recoveryFile.delete()) {
+            throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile();
+        }
 	}
 
 	public File getReplicatedVaultFile(File file) {
