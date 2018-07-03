@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
@@ -43,6 +44,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 
 import java.util.*;
 
@@ -931,5 +933,21 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean hasAccessToSIPGeneration() {
 		return getCurrentUser().has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
+	}
+
+	public void denyApproval(String commentString) {
+		if(commentString != null) {
+			Comment comment = new Comment();
+			comment.setMessage(commentString);
+			comment.setUser(getCurrentUser());
+			comment.setDateTime(LocalDateTime.now());
+
+			List<Comment> comments = decommissioningList.getComments();
+			comments.add(comment);
+			decommissioningList.setComments(comments);
+		}
+
+		decommissioningList.setApprovalRequest((User) null);
+		decommissioningList.setApprovalRequestDate(null);
 	}
 }

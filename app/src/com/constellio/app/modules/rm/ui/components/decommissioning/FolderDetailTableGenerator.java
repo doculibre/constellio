@@ -93,7 +93,8 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		List<String> visibleColumns = new ArrayList<>();
 		boolean inValidationStatus = presenter.isInValidation();
 
-		if (!(presenter.isInApprobation() || presenter.isApproved() || presenter.isProcessed())) {
+		boolean askedForApprobation = presenter.isInApprobation() && !presenter.canApprove();
+		if (!(askedForApprobation || presenter.isApproved() || presenter.isProcessed())) {
 			table.addGeneratedColumn(CHECKBOX, this);
 			table.setColumnHeader(CHECKBOX, "");
 			table.setColumnAlignment(CHECKBOX, Align.CENTER);
@@ -272,7 +273,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		return field;
 	}
 
-	private Component buildValidationColumn(final FolderDetailVO detail) {
+	private Component  buildValidationColumn(final FolderDetailVO detail) {
 		final BooleanOptionGroup included = new BooleanOptionGroup();
 		included.setValue(detail.isFolderIncluded());
 		included.addValueChangeListener(new ValueChangeListener() {
