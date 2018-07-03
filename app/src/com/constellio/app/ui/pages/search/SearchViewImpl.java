@@ -292,10 +292,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		spellCheckerSuggestions = new VerticalLayout();
 		spellCheckerSuggestions.addStyleName("spell-checker");
 		spellCheckerSuggestions.setWidth("100%");
+		spellCheckerSuggestions.setVisible(false);
 		
 		thesaurusDisambiguation = new VerticalLayout();
 		thesaurusDisambiguation.setWidth("100%");
 		thesaurusDisambiguation.addStyleName("thesaurus-disambiguation");
+		thesaurusDisambiguation.setVisible(false);
 
 		summary = new VerticalLayout();
 		summary.addStyleName("search-result-summary");
