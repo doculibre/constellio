@@ -51,6 +51,16 @@ public class MaskedMetadataValidator implements Validator<Record> {
 				LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
 				addValidationErrors(validationErrors, (String) value, metadata);
 			}
+		} else if(value != null && value instanceof List) {
+			for(Object valueInList: (List) value) {
+				if(valueInList != null && valueInList instanceof String) {
+					String strValue = (String) valueInList;
+					if (!MaskUtils.isValid(metadata.getInputMask(), strValue)) {
+						LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
+						addValidationErrors(validationErrors, (String) valueInList, metadata);
+					}
+				}
+			}
 		}
 	}
 
