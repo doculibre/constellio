@@ -32,6 +32,16 @@ public class RMListSchemaExtention extends ListSchemaExtention {
                     listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderSummaryColumn(params);
                 }
             }, $("ListSchemaViewImpl.menu.resumeConfiguration"), new ThemeResource("images/icons/config/display-config-summary-column.png")));
+
+            listSchemaExtraCommandParams1.add(new ListSchemaExtraCommandReturnParams(new MenuBar.Command() {
+                @Override
+                public void menuSelected(MenuBar.MenuItem selectedItem) {
+                    Map<String, String> parameters = new HashMap<>();
+                    parameters.put("schemaCode", listSchemaExtraCommandParams.getSchemaVO().getCode());
+                    String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);
+                    listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderUnicityConfigurator(params);
+                }
+            }, $("ListSchemaViewImpl.menu.unicityConfiguration"), null));
         }
 
         return listSchemaExtraCommandParams1;

@@ -1,33 +1,26 @@
 package com.constellio.app.entities.calculators;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.calculators.dependencies.*;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 import com.google.common.base.Strings;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class SummaryColumnCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
 	DynamicLocalDependency dynamicMetadatasDependency = new DynamicMetadatasDependency();
@@ -177,15 +170,26 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		String returnValue = "";
 		if (value != null) {
 			switch (metadata.getType()) {
-			case DATE:
-				returnValue = SimpleDateFormatSingleton
-						.getSimpleDateFormat(parameters.get(dateformat)).format(value);
-				break;
-			case DATE_TIME:
-				returnValue = SimpleDateFormatSingleton
-						.getSimpleDateFormat(parameters.get(dateTimeformat)).format(value);
-				break;
-			case STRING:
+				case DATE:
+					if(value instanceof LocalDate) {
+						LocalDate localDateJoda = (LocalDate) value;
+						value = localDateJoda.toDateTimeAtStartOfDay().toDate();
+					}
+
+					returnValue = SimpleDateFormatSingleton
+							.getSimpleDateFormat(parameters.get
+									(dateformat)).format(value);
+					break;
+				case DATE_TIME:
+					if(value instanceof LocalDate) {
+						LocalDate localDateJoda = (LocalDate) value;
+						value = localDateJoda.toDate();
+					}
+
+					returnValue = SimpleDateFormatSingleton
+							.getSimpleDateFormat(parameters.get(dateTimeformat)).format(value);
+					break;
+				case STRING:
 				returnValue = value.toString();
 				break;
 			case TEXT:

@@ -21,7 +21,7 @@ public class TypeConvertionUtil {
 
     public static String getFormatedType(Object object) {
         if(object == null) {
-            throw new TypeRuntimeException.CannotGetTypeFromNullValueRunTimeException("object");
+            return null;
         }
 
         if(object instanceof List) {
@@ -189,6 +189,11 @@ public class TypeConvertionUtil {
     public static Element getElement(String mapKey, Object value) {
         String type = TypeConvertionUtil.getFormatedType(value);
         Element element = null;
+
+        if(type == null) {
+            return null;
+        }
+
         if(TypeConvertionUtil.canObjectValueBeRepresentedInAString(value)) {
             if(value != null) {
                 element = new Element(type);
