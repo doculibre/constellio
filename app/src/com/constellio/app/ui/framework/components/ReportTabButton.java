@@ -22,6 +22,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.event.FieldEvents;
@@ -37,18 +38,14 @@ public class ReportTabButton extends WindowButton {
     private VerticalLayout mainLayout, PDFTabLayout;
     private TabSheet tabSheet;
     private BaseView view;
-    private List<RecordVO> recordVOList;
-    private List<PrintableReport> printableReportList;
     private ComboBox reportComboBox, customElementSelected, defaultElementSelected;
     private PrintableReportListPossibleType selectedReporType;
     private MetadataSchemaVO selectedSchema;
-    private boolean noExcelButton = false, noPDFButton = false, removePrintableTab = false, removeExcelTab = false;
+    private boolean noExcelButton = false, noPDFButton = false;
     private AppLayerFactory factory;
     private String collection;
-    private TextField numberOfCopies;
     private TabSheet.Tab excelTab, pdfTab, errorTab;
     private NewReportPresenter viewPresenter;
-    private List<PrintableReportTemplate> printableReportTemplateList;
     private ReportTabButtonPresenter buttonPresenter;
     private SessionContext sessionContext;
 
@@ -106,15 +103,15 @@ public class ReportTabButton extends WindowButton {
 
     @Override
     public void afterOpenModal() {
-        if(buttonPresenter.isNeedToRemovePDFTab() || reportComboBox.getContainerDataSource().size() == 0) {
+        if(pdfTab != null && (buttonPresenter.isNeedToRemovePDFTab() || (reportComboBox == null || reportComboBox.getContainerDataSource().size() == 0))) {
             pdfTab.setVisible(false);
         }
 
-        if(buttonPresenter.isNeedToRemoveExcelTab()) {
+        if(excelTab != null && buttonPresenter.isNeedToRemoveExcelTab()) {
             excelTab.setVisible(false);
         }
 
-        if(!pdfTab.isVisible() && !excelTab.isVisible()){
+        if(errorTab != null && (pdfTab == null || !pdfTab.isVisible()) && (excelTab == null || !excelTab.isVisible())){
             errorTab.setVisible(true);
         } else {
             errorTab.setVisible(false);
@@ -155,9 +152,10 @@ public class ReportTabButton extends WindowButton {
         try {
             NewReportPresenter newReportPresenter;
             if(viewPresenter == null) {
-                AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
-                Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
-                newReportPresenter = Advancedpresenter;
+//                AdvancedSearchPresenter Advancedpresenter = new AdvancedSearchPresenter((AdvancedSearchView) view);
+//                Advancedpresenter.setSchemaType(((AdvancedSearchView) view).getSchemaType());
+//                newReportPresenter = Advancedpresenter;
+                newReportPresenter = ((AdvancedSearchView) view).getPresenter();
             } else {
                 newReportPresenter = this.viewPresenter;
             }
@@ -263,7 +261,7 @@ public class ReportTabButton extends WindowButton {
     }
 
     private Button createButtonLayout() {
-        Button button = new Button($("LabelsButton.generate"));
+        final Button button = new Button($("LabelsButton.generate"));
         button.addStyleName(WindowButton.STYLE_NAME);
         button.addClickListener(new ClickListener() {
             @Override
@@ -271,7 +269,8 @@ public class ReportTabButton extends WindowButton {
                 RecordVO recordVO = (RecordVO) reportComboBox.getValue();
 
                 PrintableReportTemplate template = new PrintableReportTemplate(recordVO.getId(), recordVO.getTitle(), buttonPresenter.getReportContent(recordVO));
-                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchema)));
+                getWindow().setContent(ReportGeneratorUtils.saveButtonClick(factory, collection, selectedSchema.getTypeCode(),
+                        template, 1, buttonPresenter.getRecordVOIdFilteredList(selectedSchema), getLogicalSearchQuery(selectedSchema.getCode())));
             }
         });
         return button;
@@ -291,8 +290,12 @@ public class ReportTabButton extends WindowButton {
                 customElementSelected.addItem(metadataSchemaVO);
                 customElementSelected.setItemCaption(metadataSchemaVO, metadataSchemaVO.getLabel());
             }
-            if(!allCustomSchemaForCurrentGeneralSchema.isEmpty()) {
-                customElementSelected.setValue(allCustomSchemaForCurrentGeneralSchema.get(0));
+
+            for(MetadataSchemaVO metadataSchemaVO : allCustomSchemaForCurrentGeneralSchema) {
+                if(!buttonPresenter.getAllAvailableReport(metadataSchemaVO).isEmpty()) {
+                    customElementSelected.setValue(metadataSchemaVO);
+                    break;
+                }
             }
         }
     }
@@ -320,10 +323,7 @@ public class ReportTabButton extends WindowButton {
         }
     }
 
-
-
-
-
-
-
+    protected LogicalSearchQuery getLogicalSearchQuery(String selectedSchemaFilter) {
+        return null;
+    }
 }

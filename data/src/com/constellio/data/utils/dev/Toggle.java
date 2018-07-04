@@ -48,6 +48,10 @@ public class Toggle {
 	public static AvailableToggle ALL_CONNECTORS_DISABLED = newToggle(false);
 	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(true);
 	public static AvailableToggle LOG_CONNECTOR_INFOS_WARNINGS_ERRORS_IN_CONSOLE = newToggle(true);
+	public static AvailableToggle LOG_CONVERSION_FILENAME_AND_SIZE = newToggle(false);
+
+	public static AvailableToggle EVENT_BUS_RECORDS_CACHE = newToggle(true);
+
 
 	// ------------------------------------------------
 

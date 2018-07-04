@@ -12,6 +12,8 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotDownloadDocument;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotParseDocument;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent;
@@ -24,6 +26,8 @@ import com.constellio.app.modules.es.connectors.http.utils.HtmlPageParser.HtmlPa
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
+import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.extensions.api.OnHttpDocumentFetchedParams;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -108,7 +112,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	}
 
 	private void handleFetchException(ConnectorHttpDocument httpDocument, URLFetchingServiceRuntimeException e) {
-
+		e.printStackTrace();
 		httpDocument.setFetched(true);
 		httpDocument.setStatus(ConnectorDocumentStatus.ERROR);
 		if (!e.getErrorCode().equals(httpDocument.getErrorCode())) {
@@ -164,6 +168,14 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.setTitle(extractFilename(httpDocument.getURL()));
 					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
+
+					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+							.forCollection(connectorHttp.getEs().collection.code().getCollection());
+					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+
+					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+							.setConnectorHttpDocument(httpDocument)
+							.setModelLayerFactory(this.es.getModelLayerFactory()));
 				}
 			} catch (FileParserException e) {
 				//TODO Test!
@@ -215,7 +227,8 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		String title = results.getTitle() == null ? extractFilename(httpDocument.getURL()) : results.getTitle();
 
 		httpDocument.setManualTokens(Record.PUBLIC_TOKEN);
-		savedDocuments.add(httpDocument
+
+		httpDocument
 				.setTitle(title)
 				.setErrorCode(null)
 				.setErrorMessage(null)
@@ -227,7 +240,16 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				//.setOutlinks(urls)
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
-				.addStringProperty("charset", page.getWebResponse().getContentCharset()));
+				.addStringProperty("charset", page.getWebResponse().getContentCharset());
+
+		savedDocuments.add(httpDocument);
+
+		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+				.forCollection(connectorHttp.getEs().collection.code().getCollection());
+		ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+		esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+				.setConnectorHttpDocument(httpDocument)
+				.setModelLayerFactory(this.es.getModelLayerFactory()));
 
 		saveDocumentDigestAndDetectCopy(httpDocument);
 		connectorHttp.getEventObserver().push(savedDocuments);
@@ -265,7 +287,6 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				context.addDocumentDigest(httpDocument.getDigest(), httpDocument.getURL());
 			}
 		}
-
 	}
 
 }

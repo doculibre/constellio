@@ -30,6 +30,8 @@ import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
+import com.constellio.data.dao.services.cache.InsertionReason;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
@@ -39,7 +41,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
 	private Ignite igniteClient;
 	private boolean initialized = false;
-	
+
 	private static ThreadLocal<Map<ConstellioIgniteCache, Map<String, Object>>> putTransaction = new ThreadLocal<>();
 
 	public ConstellioIgniteCacheManager(String cacheUrl, String constellioVersion) {
@@ -53,17 +55,17 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	}
 
 	private void initializeIfNecessary() {
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-                    IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
-                    igniteClient = Ignition.getOrStart(igniteConfiguration);
-                    addListener();
-                    initialized = true;
-                }
-            }
-        }
-    }
+		if (!initialized) {
+			synchronized (this) {
+				if (!initialized) {
+					IgniteConfiguration igniteConfiguration = getConfiguration(cacheUrl);
+					igniteClient = Ignition.getOrStart(igniteConfiguration);
+					addListener();
+					initialized = true;
+				}
+			}
+		}
+	}
 
 	@Override
 	public void close() {
@@ -114,7 +116,6 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		}
 	}
 
-
 	private String versionedCacheName(String name) {
 		String versionedCacheName;
 		String prefix = constellioVersion + "_";
@@ -135,10 +136,29 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 			synchronized (this) {
 				if (cache == null) {
 					IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(name);
-					cache = new ConstellioIgniteCache(name, igniteCache, igniteClient);
+					cache = new ConstellioIgniteCache(name, igniteCache, igniteClient, new ConstellioCacheOptions());
 					caches.put(name, cache);
 				}
 			}
+		}
+		return cache;
+	}
+
+	@Override
+	public ConstellioCache createCache(String name, ConstellioCacheOptions options) {
+		initializeIfNecessary();
+		name = versionedCacheName(name);
+		ConstellioIgniteCache cache = caches.get(name);
+		if (cache == null) {
+			synchronized (this) {
+				if (cache == null) {
+					IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(name);
+					cache = new ConstellioIgniteCache(name, igniteCache, igniteClient, new ConstellioCacheOptions());
+					caches.put(name, cache);
+				}
+			}
+		} else {
+			//throw new ConstellioCacheManagerRuntimeException_CacheAlreadyExist(name);
 		}
 		return cache;
 	}
@@ -151,34 +171,41 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 		cacheConfiguration.setName(name);
 		ConstellioIgniteCache cache = caches.get(name);
 		if (cache == null) {
-			synchronized (this) {
-				if (cache == null) {
-					final IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(cacheConfiguration);
-					cache = new ConstellioIgniteCache(name, igniteCache, igniteClient) {
-						@Override
-						public <T extends Serializable> void put(String key, T value) {
-							Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = putTransaction.get();
-							if (transactionMap != null) {
-								super.put(key, value, true);
-								Map<String, Object> transactionObjects = transactionMap.get(this);
-								if (transactionObjects == null) {
-									transactionObjects = new TreeMap<>();
-									transactionMap.put(this, transactionObjects);
-								}
-								transactionObjects.put(key, value);
-							} else {
-								super.put(key, value);
-		//						Map<String, Object> keyValue = new TreeMap<>();
-		//						keyValue.put(key, value);
-		//						igniteCache.putAll(keyValue);
-							}
-						}
-					};
-					caches.put(name, cache);
-				}
-			}
-		}	
+			createNewCache(cacheConfiguration, name, new ConstellioCacheOptions());
+		}
 		return cache;
+	}
+
+	private ConstellioCache createNewCache(CacheConfiguration<String, Object> cacheConfiguration, String name,
+			ConstellioCacheOptions options) {
+		synchronized (this) {
+			ConstellioIgniteCache cache = caches.get(name);
+			if (cache == null) {
+				final IgniteCache<String, Object> igniteCache = igniteClient.getOrCreateCache(cacheConfiguration);
+				cache = new ConstellioIgniteCache(name, igniteCache, igniteClient, new ConstellioCacheOptions()) {
+					@Override
+					public <T extends Serializable> void put(String key, T value, InsertionReason insertionReason) {
+						Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = putTransaction.get();
+						if (transactionMap != null) {
+							super.put(key, value, true);
+							Map<String, Object> transactionObjects = transactionMap.get(this);
+							if (transactionObjects == null) {
+								transactionObjects = new TreeMap<>();
+								transactionMap.put(this, transactionObjects);
+							}
+							transactionObjects.put(key, value);
+						} else {
+							super.put(key, value, insertionReason);
+							//						Map<String, Object> keyValue = new TreeMap<>();
+							//						keyValue.put(key, value);
+							//						igniteCache.putAll(keyValue);
+						}
+					}
+				};
+				caches.put(name, cache);
+			}
+			return cache;
+		}
 	}
 
 	private void addListener() {
@@ -240,23 +267,23 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 					}
 				});
 	}
-	
+
 	public void beginPutTransaction() {
-		putTransaction.set(new HashMap<ConstellioIgniteCache, Map<String,Object>>());
+		putTransaction.set(new HashMap<ConstellioIgniteCache, Map<String, Object>>());
 	}
-	
+
 	public void commitPutTransaction() {
 		Map<ConstellioIgniteCache, Map<String, Object>> transactionMap = putTransaction.get();
 		if (transactionMap != null) {
-			for (Iterator<ConstellioIgniteCache> it = transactionMap.keySet().iterator(); it.hasNext();) {
+			for (Iterator<ConstellioIgniteCache> it = transactionMap.keySet().iterator(); it.hasNext(); ) {
 				ConstellioIgniteCache cache = it.next();
 				Map<String, Object> transactionObjects = transactionMap.get(cache);
 				if (transactionObjects != null) {
-//					cache.getIgniteCache().putAll(transactionObjects);
+					//					cache.getIgniteCache().putAll(transactionObjects);
 					IgniteFuture<?> result = cache.getIgniteStreamer().addData(transactionObjects);
 					cache.getIgniteStreamer().flush();
 					result.get();
-				}	
+				}
 				it.remove();
 			}
 		}

@@ -4,10 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.LocalDateTime;
@@ -183,7 +180,9 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			if(extensionComponentForCriterion != null) {
 				return extensionComponentForCriterion;
 			}
-
+			if(criterion.getMetadataCode().contains("_default_schema")){
+				return  buildMultipleValuesComponent(criterion);
+			}
 			switch (criterion.getMetadataType()) {
 			case STRING:
 			case TEXT:
@@ -252,6 +251,51 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 			return field;
+		}
+
+		private Component buildMultipleValuesComponent(final Criterion criterion) {
+			final ComboBox value = new BaseComboBox();
+			Map<String,String> metadataSchemas = presenter.getMetadataSchemasList(criterion.getSchemaType());
+			for(String code : metadataSchemas.keySet()){
+				value.addItem(code);
+				value.setItemCaption(code, metadataSchemas.get(code));
+			}
+			value.setWidth("100%");
+			value.setNullSelectionAllowed(false);
+			value.setValue(criterion.getValue());
+			value.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					criterion.setValue(value.getValue());
+				}
+			});
+
+			final SearchOperator searchOperator = criterion.getSearchOperator();
+			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
+			operator.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					SearchOperator newOperator = (SearchOperator) operator.getValue();
+					if (newOperator != null) {
+						criterion.setSearchOperator(newOperator);
+						boolean visible = !newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL);
+						value.setVisible(visible);
+						if (!visible) {
+							criterion.setValue(null);
+						}
+					} else {
+						criterion.setSearchOperator(searchOperator);
+						value.setVisible(true);
+					}
+				}
+			});
+			I18NHorizontalLayout component = new I18NHorizontalLayout(operator, value);
+			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
+			component.setExpandRatio(value, 1);
+			component.setWidth("100%");
+			component.setSpacing(true);
+
+			return component;
 		}
 
 		private Component buildStringValueComponent(final Criterion criterion) {
@@ -333,7 +377,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			operator.setItemCaption(SearchOperator.IS_TRUE, $("AdvancedSearchView.isTrue"));
 			operator.addItem(SearchOperator.IS_FALSE);
 			operator.setItemCaption(SearchOperator.IS_FALSE, $("AdvancedSearchView.isFalse"));
-			addIsEmptyIsNotEmpty(criterion, operator);
+//			addIsEmptyIsNotEmpty(criterion, operator);
 			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			operator.setNullSelectionAllowed(false);
 			operator.setValue(criterion.getSearchOperator());
@@ -773,6 +817,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		void addCriterionRequested();
 
 		List<MetadataVO> getMetadataAllowedInCriteria();
+
+		Map<String,String> getMetadataSchemasList(String schemaTypeCode);
 
 		MetadataVO getMetadataVO(String metadataCode);
 

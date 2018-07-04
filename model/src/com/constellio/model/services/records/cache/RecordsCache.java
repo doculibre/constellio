@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import java.util.Collection;
 import java.util.List;
 
+import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -16,7 +17,7 @@ public interface RecordsCache {
 
 	boolean isCached(String id);
 
-	void insert(List<Record> record);
+	List<CacheInsertionStatus> insert(List<Record> record, InsertionReason insertionReason);
 
 	void insertQueryResults(LogicalSearchQuery query, List<Record> records);
 
@@ -30,9 +31,9 @@ public interface RecordsCache {
 
 	List<String> getQueryResultIds(LogicalSearchQuery query);
 
-	CacheInsertionStatus insert(Record record);
+	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	CacheInsertionStatus forceInsert(Record record);
+	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
 
 	void invalidateRecordsOfType(String recordType);
 
@@ -69,4 +70,5 @@ public interface RecordsCache {
 	boolean isFullyLoaded(String schemaType);
 
 	void markAsFullyLoaded(String schemaType);
+
 }

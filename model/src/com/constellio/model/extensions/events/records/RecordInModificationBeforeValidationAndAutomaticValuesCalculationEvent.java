@@ -2,6 +2,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -12,10 +13,13 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 
 	Record record;
 
+	ValidationErrors validationErrors;
+
 	public RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(Record record,
-			MetadataList modifiedMetadatas) {
+			MetadataList modifiedMetadatas, ValidationErrors validationErrors) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
+		this.validationErrors = validationErrors;
 	}
 
 	public Record getRecord() {
@@ -43,6 +47,10 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 			}
 		}
 		return false;
+	}
+
+	public ValidationErrors getValidationErrors() {
+		return validationErrors;
 	}
 
 	public boolean isSchemaType(String schemaType) {

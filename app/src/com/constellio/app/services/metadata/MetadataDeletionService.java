@@ -74,7 +74,7 @@ public class MetadataDeletionService {
 		} else {
 			localCode = codeOrLocalCode;
 		}
-		return localCode.startsWith("USR") || localCode.startsWith("MAP");
+		return localCode.startsWith("USR") || localCode.startsWith("MAP") || localCode.endsWith("Ref");
 	}
 
 	DeletionProhibitionReason canDeleteMetadata(String code) {
@@ -234,7 +234,6 @@ public class MetadataDeletionService {
 				throw new RuntimeException("Unsupported reason " + reason);
 			}
 		}
-
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(collection);
 		MetadataSchemaBuilder schemaBuilder = typesBuilder
 				.getSchema(metadata.getSchemaCode());

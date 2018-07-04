@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -118,7 +119,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		for (Record record : records) {
 			assertThat(record.isFullyLoaded()).isFalse();
-			recordsCaches.insert(record);
+			recordsCaches.insert(record, WAS_MODIFIED);
 		}
 
 		assertThatRecords("1", "2", "3", "18", "42").areNotInCache();
@@ -127,7 +128,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 				fromAllSchemasIn(zeCollection).returnAll()));
 		for (Record record : records) {
 			assertThat(record.isFullyLoaded()).isTrue();
-			recordsCaches.insert(record);
+			recordsCaches.insert(record, WAS_MODIFIED);
 		}
 
 		assertThatRecords("2", "3", "18", "42").areInCache();
@@ -144,7 +145,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
@@ -183,7 +184,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");
@@ -211,7 +212,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.invalidateAll();
 
-		recordsCaches.getCache(record.getCollection()).insert(record);
+		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");

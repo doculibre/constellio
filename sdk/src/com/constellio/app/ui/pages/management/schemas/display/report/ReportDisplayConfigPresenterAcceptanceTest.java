@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -21,6 +20,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.Metadata;
@@ -153,7 +153,7 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenGetReportMetadataThenMultivalueMetadatasAreAvailable() {
-		assertThat(presenter.getDataProvider().listMetadataVO()).extracting("code").contains("folder_employe_" + Folder.KEYWORDS);
+		assertThat(presenter.getDataProvider().listMetadataVO()).extracting("code").contains("folder_default_" + Folder.KEYWORDS);
 	}
 
 	@Test

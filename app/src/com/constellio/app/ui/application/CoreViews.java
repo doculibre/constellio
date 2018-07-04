@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vaadin.ui.UI;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
@@ -47,6 +48,14 @@ public class CoreViews {
 
 	public void serviceMonitoring() {
 		navigator.getUI().getPage().setLocation("/constellio/serviceMonitoring");
+	}
+
+	public void navigateTo(String homePageUrl, String ulrFragment, boolean isToOpenInNewTab) {
+		if(isToOpenInNewTab) {
+			UI.getCurrent().getPage().open(homePageUrl + "#!" + ulrFragment, "_blank");
+		} else {
+			navigator.navigateTo(ulrFragment);
+		}
 	}
 
 	public void home() {
@@ -151,8 +160,12 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.COLLECTION_GROUP_ROLES + "/" + entityId);
 	}
 
-	public void deleteExclusionsImpl() {
+	public void deleteExclusions() {
 		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
+	}
+
+	public void thesaurusConfiguration(){
+		navigator.navigateTo(NavigatorConfigurationService.THESAURUS_CONFIGURATION);
 	}
 
 	public void permissionManagement() {

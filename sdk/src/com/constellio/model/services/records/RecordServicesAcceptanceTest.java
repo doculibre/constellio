@@ -402,7 +402,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test()
 	public void givenSchemaWithFixedSequenceMetadataWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {
-
 		//TODO AFTER-TEST-VALIDATION-SEQ
 		givenDisabledAfterTestValidations();
 
@@ -453,6 +452,116 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test()
+	public void givenSchemaWithDynamicSequenceMetadataReferencingAnotherSchemaThenSetValidSequenceValue()
+			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+
+		// prepare test
+		givenDisabledAfterTestValidations();
+		defineSchemasManager().using(schemas);
+		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
+		// defines metadatas
+		final String DYNAMIC_SEQUENCE_METADATA = "dynamicSequenceMetadata"; // seq : 1
+		final String REFERENCED_CODE_METADATA = "referencedCodeMetadata"; // schemaType
+		final String REFERENCED_CODE_METADATA_CODE = REFERENCED_CODE_METADATA + ".code"; // schemaType => specificSchema.metadata
+
+		final String UNIT_CODE_METADATA = "code";
+
+		// creates metadatas in schemas
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder schemaBuilderAccessor) {
+
+				final MetadataSchemaBuilder DEFAULT_FOLDER_SCHEMA = schemaBuilderAccessor.getSchema(zeSchema.code());
+				final MetadataSchemaBuilder DEFAULT_UNIT_SCHEMA = schemaBuilderAccessor.getSchema(anotherSchema.code());
+
+				DEFAULT_UNIT_SCHEMA.create(UNIT_CODE_METADATA).setType(MetadataValueType.STRING);
+				DEFAULT_FOLDER_SCHEMA.create(REFERENCED_CODE_METADATA).setType(MetadataValueType.REFERENCE).defineReferencesTo(schemaBuilderAccessor.getSchemaType(anotherSchema.typeCode())); // .typeCode to be more generally available (not specific to schema_default but to all schema with same type
+				DEFAULT_FOLDER_SCHEMA.create(DYNAMIC_SEQUENCE_METADATA).setType(MetadataValueType.STRING).defineDataEntry().asSequenceDefinedByMetadata(REFERENCED_CODE_METADATA_CODE);
+			}
+		});
+
+		// whenNoReferenceThenNoSequentialNumber
+
+		Record anotherSchemaRecord = recordServices.newRecordWithSchema(anotherSchema.instance());
+		Record zeSchemaRecord = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		try {
+			recordServices.add(anotherSchemaRecord);
+			recordServices.add(zeSchemaRecord);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(zeSchemaRecord.get(zeSchema.metadata(REFERENCED_CODE_METADATA))).isNull();
+		assertThat(zeSchemaRecord.get(zeSchema.metadata(DYNAMIC_SEQUENCE_METADATA))).isNull();
+
+		// whenFirstReferenceThenSequentialNumber
+
+		String DEFAULT_REFEREE_CODE = "defaultRefereeCode";
+
+		anotherSchemaRecord.set(anotherSchema.metadata(UNIT_CODE_METADATA), DEFAULT_REFEREE_CODE);
+		zeSchemaRecord.set(zeSchema.metadata(REFERENCED_CODE_METADATA), anotherSchemaRecord.getId());
+
+		recordServices.update(anotherSchemaRecord);
+		recordServices.update(zeSchemaRecord);
+
+		assertThat(anotherSchemaRecord.get(anotherSchema.metadata(UNIT_CODE_METADATA))).isEqualTo(DEFAULT_REFEREE_CODE);
+		assertThat(zeSchemaRecord.get(zeSchema.metadata(REFERENCED_CODE_METADATA))).isEqualTo(anotherSchemaRecord.getId());
+		assertThat(zeSchemaRecord.get(zeSchema.metadata(DYNAMIC_SEQUENCE_METADATA))).isEqualTo("1");
+
+		// whenSecondReferenceThenIncrementedSequentialNumber
+
+		Record zeSchemaRecord2 = recordServices.newRecordWithSchema(zeSchema.instance());
+		zeSchemaRecord2.set(zeSchema.metadata(REFERENCED_CODE_METADATA), anotherSchemaRecord.getId());
+
+		try {
+			recordServices.add(zeSchemaRecord2);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(zeSchemaRecord2.get(zeSchema.metadata(REFERENCED_CODE_METADATA))).isEqualTo(anotherSchemaRecord.getId());
+		assertThat(zeSchemaRecord2.get(zeSchema.metadata(DYNAMIC_SEQUENCE_METADATA))).isEqualTo("2");
+
+		// whenNewReferralThenResettedSequentialNumber
+
+		String DEFAULT_REFEREE_CODE_2 = "defaultRefereeCode2";
+
+		Record anotherSchemaRecord2 = recordServices.newRecordWithSchema(anotherSchema.instance());
+		anotherSchemaRecord2.set(anotherSchema.metadata(UNIT_CODE_METADATA), DEFAULT_REFEREE_CODE_2);
+
+		try {
+			recordServices.add(anotherSchemaRecord2);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		zeSchemaRecord2.set(zeSchema.metadata(REFERENCED_CODE_METADATA), anotherSchemaRecord2.getId());
+
+		recordServices.update(zeSchemaRecord2);
+
+		assertThat(anotherSchemaRecord2.get(anotherSchema.metadata(UNIT_CODE_METADATA))).isEqualTo(DEFAULT_REFEREE_CODE_2);
+		assertThat(zeSchemaRecord2.get(zeSchema.metadata(REFERENCED_CODE_METADATA))).isEqualTo(anotherSchemaRecord2.getId());
+		assertThat(zeSchemaRecord2.get(zeSchema.metadata(DYNAMIC_SEQUENCE_METADATA))).isEqualTo("1");
+
+		// whenOldReferralThenIncrementedSequentialNumber
+
+		zeSchemaRecord2.set(zeSchema.metadata(REFERENCED_CODE_METADATA), anotherSchemaRecord.getId());
+		recordServices.update(zeSchemaRecord2);
+
+		assertThat(zeSchemaRecord2.get(zeSchema.metadata(REFERENCED_CODE_METADATA))).isEqualTo(anotherSchemaRecord.getId());
+		assertThat(zeSchemaRecord2.get(zeSchema.metadata(DYNAMIC_SEQUENCE_METADATA))).isEqualTo("3");
+
+		// whenOperationsDoneOnSequentialTablesThenGoodIncrementations
+
+		assertThat(sequencesManager.getLastSequenceValue(DEFAULT_REFEREE_CODE)).isEqualTo(3);
+		assertThat(sequencesManager.getLastSequenceValue(DEFAULT_REFEREE_CODE_2)).isEqualTo(1);
+
+	}
+
+		@Test()
 	public void givenSchemaWithFixedSequenceMetadataWithPatternWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {
 

@@ -38,8 +38,10 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -1099,7 +1101,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void givenNoCacheAndPlethoraOfChildCategoriesThenValidGetRootResponse()
 			throws Exception {
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
+		invalidateCachesOfRMSchemas();
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
@@ -1121,7 +1123,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
 				options.setStartRow(0).setRows(20).setFastContinueInfos(null))
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1924,6 +1925,14 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				return true;
 			}
 		};
+	}
+
+	private void invalidateCachesOfRMSchemas() {
+		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
+			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
+				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
+			}
+		}
 	}
 
 }

@@ -40,7 +40,7 @@ import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 public class RecordMigrationsManager implements StatefulService,
 												OneXMLConfigPerCollectionManagerListener<SchemaTypesRecordMigration> {
 
-	private static final String SCHEMAS_CONFIG_PATH = "/recordMigrations.xml";
+	public static final String CONFIG_PATH = "/recordMigrations.xml";
 
 	Map<String, Map<String, RecordMigrationScript>> scripts = new HashMap<>();
 
@@ -51,6 +51,7 @@ public class RecordMigrationsManager implements StatefulService,
 	CollectionsListManager collectionsListManager;
 	ConstellioCacheManager cacheManager;
 	BackgroundThreadsManager backgroundThreadsManager;
+	ModelLayerFactory modelLayerFactory;
 
 	public RecordMigrationsManager(ModelLayerFactory modelLayerFactory) {
 		batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -59,14 +60,15 @@ public class RecordMigrationsManager implements StatefulService,
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
 		searchServices = modelLayerFactory.newSearchServices();
+		this.modelLayerFactory = modelLayerFactory;
 
-		ConstellioCache cache = cacheManager.getCache(getClass().getName());
-		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(
-				modelLayerFactory.getDataLayerFactory().getConfigManager(), modelLayerFactory.getCollectionsListManager(),
-				SCHEMAS_CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration(), cache);
 	}
 
 	public void initialize() {
+		ConstellioCache cache = cacheManager.getCache(getClass().getName());
+		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(
+				modelLayerFactory.getDataLayerFactory().getConfigManager(), modelLayerFactory.getCollectionsListManager(),
+				CONFIG_PATH, new RecordMigrationReader(), this, new NewSchemaTypesRecordMigrationAlteration(), cache);
 
 		Runnable finishedRecordMigrationsAction = new Runnable() {
 			@Override

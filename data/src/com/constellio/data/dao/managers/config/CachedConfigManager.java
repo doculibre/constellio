@@ -10,14 +10,17 @@ import java.util.Set;
 import org.jdom2.Document;
 
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.InsertionReason;
 
-public class CachedConfigManager implements ConfigManager {
+public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventListener, ConfigDeletedEventListener {
 
 	Set<String> cachedPaths = new HashSet<>();
 	ConstellioCache constellioCache;
@@ -41,7 +44,7 @@ public class CachedConfigManager implements ConfigManager {
 
 		if (xmlConfiguration == null) {
 			xmlConfiguration = configManager.getXML(path);
-			constellioCache.put(path, xmlConfiguration);
+			constellioCache.put(path, xmlConfiguration, InsertionReason.WAS_OBTAINED);
 		}
 
 		return xmlConfiguration;
@@ -53,7 +56,7 @@ public class CachedConfigManager implements ConfigManager {
 
 		if (textConfiguration == null) {
 			textConfiguration = configManager.getText(path);
-			constellioCache.put(path, textConfiguration);
+			constellioCache.put(path, textConfiguration, InsertionReason.WAS_OBTAINED);
 		}
 
 		return textConfiguration;
@@ -65,7 +68,7 @@ public class CachedConfigManager implements ConfigManager {
 
 		if (propertiesConfiguration == null) {
 			propertiesConfiguration = configManager.getProperties(path);
-			constellioCache.put(path, propertiesConfiguration);
+			constellioCache.put(path, propertiesConfiguration, InsertionReason.WAS_OBTAINED);
 		}
 
 		return propertiesConfiguration;
@@ -90,6 +93,7 @@ public class CachedConfigManager implements ConfigManager {
 	public void delete(String path) {
 		try {
 			configManager.delete(path);
+
 		} finally {
 			removeFromCache(path);
 		}
@@ -146,21 +150,13 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void update(String path, String hash, Document newDocument)
 			throws OptimisticLockingConfiguration {
-		try {
-			configManager.update(path, hash, newDocument);
-		} finally {
-			removeFromCache(path);
-		}
+		configManager.update(path, hash, newDocument);
 	}
 
 	@Override
 	public void update(String path, String hash, Map<String, String> newProperties)
 			throws OptimisticLockingConfiguration {
-		try {
-			configManager.update(path, hash, newProperties);
-		} finally {
-			removeFromCache(path);
-		}
+		configManager.update(path, hash, newProperties);
 	}
 
 	@Override
@@ -170,6 +166,11 @@ public class CachedConfigManager implements ConfigManager {
 		} finally {
 			constellioCache.clear();
 		}
+	}
+
+	@Override
+	public void registerTopPriorityListener(String path, ConfigEventListener listener) {
+		configManager.registerTopPriorityListener(path, listener);
 	}
 
 	@Override
@@ -220,7 +221,13 @@ public class CachedConfigManager implements ConfigManager {
 
 	@Override
 	public void keepInCache(String path) {
+		configManager.registerTopPriorityListener(path, this);
 		cachedPaths.add(path);
+	}
+
+	@Override
+	public void notifyChanged(String path) {
+		this.configManager.notifyChanged(path);
 	}
 
 	private <T> T getFromCache(String path) {
@@ -255,5 +262,23 @@ public class CachedConfigManager implements ConfigManager {
 	@Override
 	public void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration) {
 		configManagerHelper.createPropertiesDocumentIfInexistent(path, propertiesAlteration);
+	}
+
+	public void clearCache() {
+		constellioCache.clear();
+	}
+
+	@Override
+	public void onConfigUpdated(String configPath) {
+		removeFromCache(configPath);
+	}
+
+	public ConfigManager getNestedConfigManager() {
+		return configManager;
+	}
+
+	@Override
+	public void onConfigDeleted(String configPath) {
+		removeFromCache(configPath);
 	}
 }

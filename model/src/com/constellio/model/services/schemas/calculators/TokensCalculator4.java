@@ -1,5 +1,6 @@
 package com.constellio.model.services.schemas.calculators;
 
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
@@ -17,11 +18,13 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
+import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
@@ -41,6 +44,9 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	SpecialDependency<AllPrincipalsAuthsDependencyValue> allPrincipalsAuthsParam = SpecialDependencies.ALL_PRINCIPALS;
 
+	ConfigDependency<GroupAuthorizationsInheritance> groupAuthorizationsInheritanceParam = GROUP_AUTHORIZATIONS_INHERITANCE
+			.dependency();
+
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> tokens = new HashSet<>();
@@ -50,8 +56,8 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		SortedMap<String, List<String>> authorizationsRoles = parameters.get(authorizationsRolesParam);
 
-		KeyListMap<String, String> principalsTokens = principalsAuthorizations
-				.getPrincipalIdsWithAnyAuthorization(authorizationsRoles);
+		KeyListMap<String, String> principalsTokens = principalsAuthorizations.getPrincipalIdsWithAnyAuthorization(
+				authorizationsRoles, parameters.get(groupAuthorizationsInheritanceParam));
 
 		String typeSmallCode = parameters.getSchemaType().getSmallCode();
 		if (typeSmallCode == null) {
@@ -70,6 +76,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 					tokens.add("w" + typeSmallCode + "_" + entry.getKey());
 
 				} else if (Role.DELETE.equals(access)) {
+					tokens.add("r_" + entry.getKey());
 					tokens.add("r" + typeSmallCode + "_" + entry.getKey());
 
 				} else {
@@ -103,6 +110,6 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return Arrays.asList(allPrincipalsAuthsParam, authorizationsRolesParam, manualTokensParam, logicallyDeletedParam,
-				visibleInTreesParam);
+				visibleInTreesParam, groupAuthorizationsInheritanceParam);
 	}
 }

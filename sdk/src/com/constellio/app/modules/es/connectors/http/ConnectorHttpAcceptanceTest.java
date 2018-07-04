@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jetty.server.Server;
 import org.joda.time.DateTimeConstants;
@@ -45,7 +46,6 @@ import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ConnectorHttpAcceptanceTest extends ConstellioTest {
-
 	Server server;
 
 	String htmlMimetype = "text/html";
@@ -73,6 +73,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 	CommitCounter commitCounter;
 
+	AtomicInteger counter;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -86,6 +88,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		connectorManager.setCrawler(ConnectorCrawler.runningJobsSequentially(es, eventObserver).withoutSleeps());
 		givenTimeIs(TIME1);
 		commitCounter = new CommitCounter(getDataLayerFactory());
+		counter = new AtomicInteger();
 	}
 
 	@Test

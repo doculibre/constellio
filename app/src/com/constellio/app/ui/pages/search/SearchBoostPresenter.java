@@ -60,12 +60,12 @@ public abstract class SearchBoostPresenter extends BasePresenter<SearchBoostView
 	abstract String getSearchBoostType();
 
 	public void backButtonClicked() {
-		view.navigate().to().adminModule();
+		view.navigate().to().searchConfiguration();
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
+		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SEARCH_BOOST);
 	}
 
 	public void deleteButtonClicked(SearchBoostVO searchBoostVO) {

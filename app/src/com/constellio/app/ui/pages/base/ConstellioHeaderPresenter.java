@@ -2,6 +2,8 @@ package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -17,15 +19,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchResultsViewMode;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.services.records.RecordImpl;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.search.*;
+import com.constellio.model.entities.schemas.*;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -34,6 +30,8 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -67,15 +65,13 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -121,14 +117,14 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public void searchRequested(String expression, String schemaTypeCode) {
 		if (StringUtils.isNotBlank(schemaTypeCode)) {
 			SavedSearch temporarySearch = buildAdvancedTemporarySearch(null, expression);
-			if(temporarySearch != null) {
+			if (temporarySearch != null) {
 				header.hideAdvancedSearchPopup().navigateTo().advancedSearchReplay(temporarySearch.getId());
 			} else {
 				header.hideAdvancedSearchPopup().navigateTo().advancedSearch();
 			}
 		} else if (StringUtils.isNotBlank(expression)) {
 			SavedSearch temporarySearch = buildSimpleTemporarySearch(null, expression);
-			if(temporarySearch != null) {
+			if (temporarySearch != null) {
 				header.hideAdvancedSearchPopup().navigateTo().simpleSearchReplay(temporarySearch.getId());
 			} else {
 				header.hideAdvancedSearchPopup().navigateTo().simpleSearch(expression);
@@ -137,8 +133,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private SavedSearch buildTemporarySearch(Record tmpSearchRecord, String expression, String searchType) {
-		if(tmpSearchRecord == null) {
-			tmpSearchRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = modelLayerFactory.newRecordServices()
+					.newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		}
 		SortParameters sortParameters = buildSortParameters();
 
@@ -154,11 +151,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.setResultsViewMode(SearchResultsViewMode.DETAILED)
 				.setPageLength(0);
 
-		if(StringUtils.isNotBlank(expression)) {
+		if (StringUtils.isNotBlank(expression)) {
 			search.setFreeTextSearch(expression);
 		}
 
-		if(AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
+		if (AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
 			search.setSchemaFilter(schemaTypeCode).setAdvancedSearch(header.getAdvancedSearchCriteria())
 					.setTitle($("SearchView.savedSearch.temporaryAdvance"));
 		} else {
@@ -167,7 +164,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-			modelLayerFactory.getRecordsCaches().getCache(header.getCollection()).forceInsert(search.getWrappedRecord());
+			modelLayerFactory.getRecordsCaches().getCache(header.getCollection())
+					.forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
 			return search;
 
 		} catch (Exception e) {
@@ -189,44 +187,44 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		String sortCriterion;
 		SearchPresenter.SortOrder sortOrder;
 		switch (searchSortType) {
-			case RELEVENCE:
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				sortCriterion = null;
-				break;
-			case PATH_ASC:
-				sortCriterion = Schemas.PATH.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case PATH_DES:
-				sortCriterion = Schemas.PATH.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			case ID_ASC:
-				sortCriterion = Schemas.IDENTIFIER.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case ID_DES:
-				sortCriterion = Schemas.IDENTIFIER.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			case CREATION_DATE_ASC:
-				sortCriterion = Schemas.CREATED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case CREATION_DATE_DES:
-				sortCriterion = Schemas.CREATED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			case MODIFICATION_DATE_ASC:
-				sortCriterion = Schemas.MODIFIED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.ASCENDING;
-				break;
-			case MODIFICATION_DATE_DES:
-				sortCriterion = Schemas.MODIFIED_ON.getCode();
-				sortOrder = SearchPresenter.SortOrder.DESCENDING;
-				break;
-			default:
-				throw new RuntimeException("Unsupported type " + searchSortType);
+		case RELEVENCE:
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			sortCriterion = null;
+			break;
+		case PATH_ASC:
+			sortCriterion = Schemas.PATH.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case PATH_DES:
+			sortCriterion = Schemas.PATH.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		case ID_ASC:
+			sortCriterion = Schemas.IDENTIFIER.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case ID_DES:
+			sortCriterion = Schemas.IDENTIFIER.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		case CREATION_DATE_ASC:
+			sortCriterion = Schemas.CREATED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case CREATION_DATE_DES:
+			sortCriterion = Schemas.CREATED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		case MODIFICATION_DATE_ASC:
+			sortCriterion = Schemas.MODIFIED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.ASCENDING;
+			break;
+		case MODIFICATION_DATE_DES:
+			sortCriterion = Schemas.MODIFIED_ON.getCode();
+			sortOrder = SearchPresenter.SortOrder.DESCENDING;
+			break;
+		default:
+			throw new RuntimeException("Unsupported type " + searchSortType);
 		}
 
 		return new SortParameters(sortCriterion, sortOrder);
@@ -261,6 +259,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	public void schemaTypeSelected(String schemaTypeCode) {
 		this.schemaTypeCode = schemaTypeCode;
 		header.setAdvancedSearchSchemaType(schemaTypeCode);
+	}
+
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode){
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	public List<MetadataSchemaTypeVO> getSchemaTypes() {
@@ -339,20 +343,25 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
+		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() &&
-						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
-						(!isTextOrString || (isTextOrString && metadata.isSearchable()) ||
-								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
-					result.add(builder.build(metadata, header.getSessionContext()));
+				Boolean visibleForUserAndInAdvancedSearch = config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser());
+				Boolean condition = !isTextOrString ||
+						(isTextOrString && metadata.isSearchable()) ||
+						Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+						ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+						ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
+				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())){
+					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
+					if(SCHEMA.getLocalCode().equals(metadata.getLocalCode())){
+						metadataVO.setLabel(Locale.FRENCH,"Schéma de métadonnée");
+					}
+					result.add(metadataVO);
 				}
 			}
 		}
@@ -403,7 +412,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		} else {
 			return null;
 		}
-
 	}
 
 	@Override
@@ -521,7 +529,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private Locale getLocale(String languageCode) {
-		i18n.getSupportedLanguages();
 		for (Language language : Language.values()) {
 			if (language.getCode().equals(languageCode)) {
 				return new Locale(languageCode);

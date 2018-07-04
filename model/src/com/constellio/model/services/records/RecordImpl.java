@@ -2,7 +2,6 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -448,7 +447,7 @@ public class RecordImpl implements Record {
 			if (metadata.isMultivalue()) {
 				return (List<T>) value;
 			} else {
-				List<T> values = asList((T) value);
+				List<T> values = Collections.singletonList((T) value);
 				return values;
 			}
 		}
@@ -923,6 +922,11 @@ public class RecordImpl implements Record {
 	public String getIdTitle() {
 		String title = getTitle();
 		return id + (title == null ? "" : (":" + title));
+	}
+
+	@Override
+	public String getSchemaIdTitle() {
+		return "(" + getSchemaCode() + ") " + getTitle();
 	}
 
 	@Override

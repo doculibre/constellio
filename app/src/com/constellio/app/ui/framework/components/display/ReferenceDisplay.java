@@ -27,6 +27,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.data.util.converter.Converter;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -38,6 +39,7 @@ public class ReferenceDisplay extends Button {
 	private RecordVO recordVO;
 	private String recordId;
 	private RecordContextMenu contextMenu;
+	private boolean openLinkInNewTab = false;
 
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
@@ -59,8 +61,12 @@ public class ReferenceDisplay extends Button {
 	}
 
 	public ReferenceDisplay(String recordId, boolean link) {
+		this(recordId, link, new RecordIdToCaptionConverter());
+	}
+
+	public ReferenceDisplay(String recordId, boolean link, Converter<String, String> captionConverter) {
 		this.recordId = recordId;
-		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, getLocale());
+		String caption = captionConverter.convertToPresentation(recordId, String.class, getLocale());
 		if (recordId != null) {
 			Resource icon = FileIconUtils.getIconForRecordId(recordId);
 			if (icon != null) {
@@ -186,5 +192,14 @@ public class ReferenceDisplay extends Button {
 
 	public String getRecordId() {
 		return recordId;
+	}
+
+	public ReferenceDisplay withOpenLinkInNewTab(boolean openLinkInNewTab) {
+		this.openLinkInNewTab = openLinkInNewTab;
+		return this;
+	}
+
+	public boolean isOpenLinkInNewTab() {
+		return openLinkInNewTab;
 	}
 }

@@ -97,7 +97,7 @@ public class SkipTestsRule implements TestRule {
 			this.skipInDevelopment = skipAllTests || "true".equals(properties.get("skip.indevelopment")) || "true"
 					.equals(properties.get("skip.indevelopmenttests"));
 			this.skipDriver = skipAllTests || "true".equals(properties.get("skip.drivertests"));
-			this.skipTestsWithGradle = skipAllTests || "true".equals(properties.get("skip.testsWithGradle"));
+			this.skipTestsWithGradle = skipAllTests || !("false".equals(properties.get("skip.testsWithGradle")));
 			this.runPerformance = "true".equals(properties.get("run.performancetests"));
 			this.skipUI = skipAllTests || "true".equals(properties.get("skip.uitests"));
 			this.whiteList = getFilterList("tests.whitelist", properties);
@@ -121,6 +121,10 @@ public class SkipTestsRule implements TestRule {
 			//			System.out.println("blackList:" + blackList);
 			//			System.out.println("skipCloud:" + skipCloud);
 			//			System.out.println("skipIgnite:" + skipIgnite);
+
+		} else if (sdkPropertiesLoader != null) {
+			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
+			this.skipTestsWithGradle = !("false".equals(properties.get("skip.testsWithGradle")));
 
 		}
 	}
@@ -146,6 +150,11 @@ public class SkipTestsRule implements TestRule {
 	}
 
 	public boolean evaluateIfSkipped(Class<?> testClass, Description description) {
+
+		if (skipTestsWithGradle && isRunnedByGradle()) {
+			System.out.println("Ignore 1");
+			return true;
+		}
 
 		currentTestClass = (Class) testClass;
 		currentTestName = description.getMethodName();
@@ -178,11 +187,6 @@ public class SkipTestsRule implements TestRule {
 		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
 		inDevelopmentTest = inDevelopmentTestAnnotation != null || description.getAnnotation(InDevelopmentTest.class) != null;
 		mainTest = mainTestAnnotation != null;
-
-		if (skipTestsWithGradle && isRunnedByGradle()) {
-			System.out.println("Ignore 1");
-			return true;
-		}
 
 		if (isTestDirectlyTargetted(testClass, currentTestName)) {
 			//No matter which parameters are defined, the test is runned
@@ -279,7 +283,7 @@ public class SkipTestsRule implements TestRule {
 	}
 
 	private boolean isRunnedByGradle() {
-		return sunJavaCommand.toLowerCase().contains("gradle");
+		return sunJavaCommand != null && sunJavaCommand.toLowerCase().contains("gradle");
 	}
 
 	private boolean hasMainTestOnlyOneStarter(Class<?> testClass) {

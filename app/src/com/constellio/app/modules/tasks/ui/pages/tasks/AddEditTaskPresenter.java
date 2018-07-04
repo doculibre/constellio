@@ -75,6 +75,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
 
+	String originalAssigner;
+	String originalAssignedTo;
+
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
@@ -173,15 +176,38 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (completeMode && tasksSchemas.isRequestTask(task)) {
 				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
-			if (task.getAssignee() == null) {
-				task.setAssignationDate(null);
-				task.setAssigner(null);
-			} else {
-				if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+
+			if(task.getAssigner() == null) {
+
+				if ((task.getAssigneeUsersCandidates() != null && task.getAssigneeUsersCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
+						|| task.getAssigneeGroupsCandidates() != null && task.getAssigneeGroupsCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
+						|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
+
 					Field<?> field = getAssignerField();
-					if(field != null && field.getValue() != null) {
+					if(originalAssigner == null && field != null && field.getValue() != null ||
+							field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+						task.setAssigner((String) field.getValue());
+					}
+				}
+			} else {
+				if (task.getAssignee() == null
+						&& (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().size() == 0)
+						&&  (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().size() == 0)) {
+					task.setAssignationDate(null);
+					task.setAssigner(null);
+				} else {
+					if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+						task.setAssignationDate(TimeProvider.getLocalDate());
+						task.setAssigner(getCurrentUser().getId());
+						Field<?> field = getAssignerField();
+						 if (originalAssigner == null && field != null && field.getValue() != null
+								 || field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+							task.setAssigner((String) field.getValue());
+						}
+					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
+						Field<?> field = getAssignerField();
 						task.setAssigner((String) field.getValue());
 					}
 				}
@@ -253,6 +279,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
+
+		originalAssignedTo = taskVO.getAssignee();
+		originalAssigner = taskVO.get(Task.ASSIGNER);
 	}
 
 	public String getViewTitle() {
@@ -324,7 +353,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if(assignerField != null) {
+		if(assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
@@ -350,8 +379,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					isInclusiveDecision = false;
 				}
 
-
-				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision) {
+				Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
+				if (!task.hasDecisions() || task.getModelTask() == null || isInclusiveDecision || DisplayTaskPresenter.containsExpressionLanguage(decisions)) {
 					field.setVisible(false);
 					return;
 				} else {

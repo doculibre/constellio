@@ -102,6 +102,14 @@ public class AuthorizationAddRequest {
 		return withRoles(asList(Role.READ, Role.DELETE));
 	}
 
+	public AuthorizationAddRequest givingDeleteAccess() {
+		return withRoles(asList(Role.DELETE));
+	}
+
+	public AuthorizationAddRequest givingWriteAccess() {
+		return withRoles(asList(Role.WRITE));
+	}
+
 	public AuthorizationAddRequest givingReadAccess() {
 		return withRoles(asList(Role.READ));
 	}

@@ -20,6 +20,9 @@ import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.AccentApostropheCleaner;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -281,5 +284,22 @@ public class SchemaDisplayUtils {
 
 		return new SchemaDisplayConfig(types.getCollection(), schemaCode, displayMetadataCodes, formMetadataCodes,
 				searchMetadatasCodes, tableMetadatasCodes);
+	}
+
+	public static Comparator<Metadata> getMetadataLabelComparator(final SessionContext sessionContext) {
+		return new Comparator<Metadata>() {
+			@Override
+			public int compare(Metadata o1, Metadata o2) {
+
+				Language language = Language.withLocale(sessionContext.getCurrentLocale());
+				String firstValue = o1.getLabel(language).toLowerCase();
+				String secondValue = o2.getLabel(language).toLowerCase();
+
+				String firstValueWithoutAccents = AccentApostropheCleaner.removeAccents(firstValue);
+				String secondValueWithoutAccents = AccentApostropheCleaner.removeAccents(secondValue);
+
+				return firstValueWithoutAccents.compareTo(secondValueWithoutAccents);
+			}
+		};
 	}
 }

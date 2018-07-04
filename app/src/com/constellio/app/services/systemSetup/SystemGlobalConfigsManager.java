@@ -9,7 +9,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 
 public class SystemGlobalConfigsManager implements StatefulService {
 
-	final static String SYSTEM_GLOBAL_PROPERTIES = "/globalProperties";
+	public final static String SYSTEM_GLOBAL_PROPERTIES = "/globalProperties";
 	final static String MARKED_FOR_REINDEXING = "markedForReindexing";
 	final static String REINDEXING_REQUIRED = "reindexingRequired";
 	final static String RESTART_REQUIRED = "restartRequired";

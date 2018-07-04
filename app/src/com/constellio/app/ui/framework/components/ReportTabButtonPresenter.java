@@ -3,7 +3,9 @@ package com.constellio.app.ui.framework.components;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Printable;
@@ -15,13 +17,17 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -33,6 +39,7 @@ class ReportTabButtonPresenter  {
     List<PrintableReportListPossibleType> generalSchemaList;
     List<MetadataSchemaVO> specificsSchemaList;
     List<RecordVO> reportList;
+    private LogicalSearchQuery logicalSearchQuery;
 
     public ReportTabButtonPresenter(ReportTabButton view) {
         recordVOList = new ArrayList<>();
@@ -79,25 +86,48 @@ class ReportTabButtonPresenter  {
     }
 
     public List<PrintableReportListPossibleType> getAllGeneralSchema(){
-        List<PrintableReportListPossibleType> currentPossibleGeneralSchema = new ArrayList<>();
-        for(RecordVO recordVO : recordVOList ) {
-            PrintableReportListPossibleType currentGeneralSchema = PrintableReportListPossibleType.getValueFromSchemaType(recordVO.getSchema().getTypeCode());
-            if(!currentPossibleGeneralSchema.contains(currentGeneralSchema)) {
+        Set<PrintableReportListPossibleType> currentPossibleGeneralSchema = new HashSet<>();
+        LogicalSearchQuery query = view.getLogicalSearchQuery(null);
+        if(query != null) {
+            SPEQueryResponse response = view.getFactory().getModelLayerFactory().newSearchServices().query(query.setNumberOfRows(0).addFieldFacet(Schemas.SCHEMA.getDataStoreCode()));
+            List<FacetValue> fieldFacetValues = response.getFieldFacetValues(Schemas.SCHEMA.getDataStoreCode());
+            for(FacetValue schema: fieldFacetValues) {
+                if(schema.getQuantity() > 0) {
+                    currentPossibleGeneralSchema.add(PrintableReportListPossibleType.getValueFromSchemaType(SchemaUtils.getSchemaTypeCode(schema.getValue())));
+                }
+            }
+        } else {
+            for(RecordVO recordVO : recordVOList ) {
+                PrintableReportListPossibleType currentGeneralSchema = PrintableReportListPossibleType.getValueFromSchemaType(recordVO.getSchema().getTypeCode());
                 currentPossibleGeneralSchema.add(currentGeneralSchema);
             }
         }
-        return currentPossibleGeneralSchema;
+
+        return new ArrayList<>(currentPossibleGeneralSchema);
     }
 
     public List<MetadataSchemaVO> getAllCustomSchema(PrintableReportListPossibleType generalSchema){
-        List<MetadataSchemaVO> currentPossibleCustomSchema = new ArrayList<>();
-        for(RecordVO recordVO : recordVOList ) {
-            MetadataSchemaVO currentCustomSchema = recordVO.getSchema();
-            if(!currentPossibleCustomSchema.contains(currentCustomSchema) && PrintableReportListPossibleType.getValueFromSchemaType(currentCustomSchema.getTypeCode()).equals(generalSchema)) {
-                currentPossibleCustomSchema.add(currentCustomSchema);
+        Set<MetadataSchemaVO> currentPossibleCustomSchema = new HashSet<>();
+        MetadataSchemaToVOBuilder metadataSchemaToVOBuilder = new MetadataSchemaToVOBuilder();
+        MetadataSchemaTypes schemaTypes = view.getFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(view.getCollection());
+        LogicalSearchQuery query = view.getLogicalSearchQuery(null);
+        if(query != null) {
+            SPEQueryResponse response = view.getFactory().getModelLayerFactory().newSearchServices().query(query.setNumberOfRows(0).addFieldFacet(Schemas.SCHEMA.getDataStoreCode()));
+            List<FacetValue> fieldFacetValues = response.getFieldFacetValues(Schemas.SCHEMA.getDataStoreCode());
+            for(FacetValue schema: fieldFacetValues) {
+                if(schema.getQuantity() > 0 && schema.getValue().startsWith(generalSchema.getSchemaType() + "_")) {
+                    currentPossibleCustomSchema.add(metadataSchemaToVOBuilder.build(schemaTypes.getSchema(schema.getValue()), RecordVO.VIEW_MODE.DISPLAY));
+                }
+            }
+        } else {
+            for(RecordVO recordVO : recordVOList ) {
+                MetadataSchemaVO currentCustomSchema = recordVO.getSchema();
+                if(PrintableReportListPossibleType.getValueFromSchemaType(currentCustomSchema.getTypeCode()).equals(generalSchema)) {
+                    currentPossibleCustomSchema.add(currentCustomSchema);
+                }
             }
         }
-        return currentPossibleCustomSchema;
+        return new ArrayList<>(currentPossibleCustomSchema);
     }
 
     public List<RecordVO> getAllAvailableReport(MetadataSchemaVO currentCustomSchema) {

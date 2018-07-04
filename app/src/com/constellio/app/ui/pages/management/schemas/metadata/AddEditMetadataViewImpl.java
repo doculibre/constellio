@@ -230,6 +230,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				sortableField.setEnabled(false);
 			}
 			multivalueType.setEnabled(true);
+			autocomplete.setValue(false);
+			autocomplete.setEnabled(false);
+			searchableField.setValue(false);
+			searchableField.setEnabled(false);
 			refType.setEnabled(true);
 			refType.setRequired(!editMode);
 			break;

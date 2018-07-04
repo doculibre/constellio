@@ -1,5 +1,7 @@
 package com.constellio.app.modules.complementary.esRmRobots.actions;
 
+import static com.constellio.app.ui.i18n.i18n.asListOfMessages;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,15 +15,15 @@ import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConn
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
-import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 
 public abstract class ClassifyConnectorFolderBaseActionExecutor implements ActionExecutor {
 
@@ -49,12 +51,21 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 		for (Record record : records) {
 
 			try {
-				new ClassifyConnectorRecordInTaxonomyExecutor(record, params, appLayerFactory, user, robotId, processedRecords, dryRun)
+				new ClassifyConnectorRecordInTaxonomyExecutor(record, params, appLayerFactory, user, robotId, processedRecords,
+						dryRun)
 						.execute();
 				processedRecords.add(record);
+
+			} catch (ValidationRuntimeException e) {
+				LOGGER.warn("Cannot classify record", e);
+				ValidationErrors errors = e.getValidationErrors();
+				errors.addPrefix(record.get(Schemas.URL) + " - ");
+				for (String message : asListOfMessages(errors)) {
+					transaction.add(logguerMessage(robotId, robots, message));
+				}
+
 			} catch (Throwable e) {
 				LOGGER.warn("Cannot classify record", e);
-				
 				transaction.add(logguerMessage(robotId, robots, ExceptionUtils.getStackTrace(e)));
 			}
 		}

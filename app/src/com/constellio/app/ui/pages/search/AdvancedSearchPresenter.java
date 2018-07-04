@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.InputStream;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -298,11 +300,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		List<String> supportedReports = super.getSupportedReports();
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		List<ReportWithCaptionVO> supportedReports = super.getSupportedReports();
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getSchemaType());
-		supportedReports.addAll(userReports);
+		if(userReports != null) {
+			for(String reportTitle: userReports) {
+				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
+			}
+		}
 		return supportedReports;
 	}
 
@@ -446,7 +452,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageLength(selectedPageLength);
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord());
+			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
 
 			//recordServices().update(search);
 			updateUIContext(search);
@@ -549,12 +555,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		case "Reports.FolderLinearMeasureStats":
 			return super.getReportParameters(report);
 		}
+
 		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
-				collection, report, getCurrentUser(), getSearchQuery());
+				collection, report, getCurrentUser(), buildReportLogicalSearchQuery());
 	}
 
 	public boolean hasCurrentUserPermissionToUseCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	}
+
+	public LogicalSearchQuery buildReportLogicalSearchQuery() {
+		return buildBatchProcessLogicalSearchQuery().filteredWithUser(getUser());
 	}
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {

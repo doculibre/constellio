@@ -1,6 +1,7 @@
 package com.constellio.model.services.trash;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -212,7 +213,8 @@ public class TrashServices {
 
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			try {
-				recordServices().add(recordToDelete.set(Schemas.ERROR_ON_PHYSICAL_DELETION, true));
+				recordServices().update(recordToDelete.set(Schemas.ERROR_ON_PHYSICAL_DELETION, true),
+						RecordUpdateOptions.userModificationsSafeOptions().setValidationsEnabled(false));
 			} catch (RecordServicesException e2) {
 				throw new RuntimeException(e2);
 			}

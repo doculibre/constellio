@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -541,6 +542,11 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.MLT, "true");
 			params.add(MoreLikeThisParams.MIN_DOC_FREQ, "0");
 			params.add(MoreLikeThisParams.MIN_TERM_FREQ, "0");
+
+			if (params.get("rows") == null || Integer.parseInt(params.get("rows")) > 5) {
+				params.set("rows", 5);
+			}
+
 			List<String> moreLikeThisFields = query.getMoreLikeThisFields();
 			if (moreLikeThisFields.isEmpty()) {
 				moreLikeThisFields.addAll(Arrays.asList("content_txt_fr", "content_txt_en", "content_txt_ar"));
@@ -613,7 +619,7 @@ public class SearchServices {
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
 		if (!records.isEmpty() && Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled() && query.getReturnedMetadatas().isFullyLoaded()) {
 			for (Map.Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
-				getConnectedRecordsCache().insert(entry.getKey(), entry.getValue());
+				getConnectedRecordsCache().insert(entry.getKey(), entry.getValue(), WAS_OBTAINED);
 			}
 
 		}
@@ -713,7 +719,7 @@ public class SearchServices {
 							loadUsingMultithreading(cache, records);
 
 						} else {
-							cache.insert(records);
+							cache.insert(records, WAS_OBTAINED);
 						}
 					}
 					cache.markAsFullyLoaded(schemaType.getCode());
@@ -728,7 +734,7 @@ public class SearchServices {
 		} else {
 			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
 			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-				cache.insert(records);
+				cache.insert(records, WAS_OBTAINED);
 			}
 			return records;
 		}
@@ -752,7 +758,7 @@ public class SearchServices {
 							loadUsingMultithreading(cache, records);
 
 						} else {
-							cache.insert(records);
+							cache.insert(records, WAS_OBTAINED);
 						}
 					}
 					cache.markAsFullyLoaded(schemaType.getCode());
@@ -772,7 +778,7 @@ public class SearchServices {
 		} else {
 			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
 			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-				cache.insert(records);
+				cache.insert(records, WAS_OBTAINED);
 			}
 			return records;
 		}
@@ -795,7 +801,7 @@ public class SearchServices {
 							records = recordIterator.hasNext() ? recordIterator.next() : null;
 						}
 						if (records != null) {
-							cache.insert(records);
+							cache.insert(records, WAS_OBTAINED);
 						} else {
 							hasMoreRecords = false;
 						}

@@ -55,9 +55,9 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 	private static final String TEMP_UNZIP_FOLDER = "ConstellioSetupPresenter-TempUnzipFolder";
 
 	private static final Logger LOGGER = LogManager.getLogger(ConstellioSetupPresenter.class);
-	
+
 	private String setupLocaleCode;
-	
+
 	private boolean loadSaveState;
 
 	private ConstellioSetupView view;
@@ -78,7 +78,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			}
 		}
 
-		List<String> localeCodes = i18n.getSupportedLanguages();
+		List<String> localeCodes = factories.getAppLayerConfiguration().getSupportedLanguageCodes();
 
 		List<String> moduleIds = new ArrayList<>();
 		for (Module installedModule : installedModules) {
@@ -103,15 +103,15 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		}
 		return linkTarget;
 	}
-	
+
 	boolean isLoadSaveState() {
 		return loadSaveState;
 	}
-	
+
 	String getSetupLocaleCode() {
 		return setupLocaleCode;
 	}
-	
+
 	void languageButtonClicked(String localeCode) {
 		loadSaveState = false;
 		setupLocaleCode = localeCode;
@@ -120,7 +120,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		view.setLocale(setupLocale);
 		view.reloadForm();
 	}
-	
+
 	void loadSaveStateButtonClicked() {
 		loadSaveState = true;
 		view.reloadForm();

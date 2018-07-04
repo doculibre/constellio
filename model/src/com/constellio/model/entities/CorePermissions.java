@@ -40,7 +40,6 @@ public class CorePermissions {
 	public static final String MANAGE_CONNECTORS = permission(COLLECTION_MANAGEMENT, "manageConnectors");
 	//public static final String MANAGE_SEARCHENGINE = permission(COLLECTION_MANAGEMENT, "manageSearchEngine");
 	public static final String MANAGE_TRASH = permission(COLLECTION_MANAGEMENT, "manageTrash");
-	public static final String MANAGE_SEARCH_REPORTS = permission(COLLECTION_MANAGEMENT, "manageSearchReports");
 	public static final String MANAGE_EMAIL_SERVER = permission(COLLECTION_MANAGEMENT, "manageEmailServer");
 	public static final String MANAGE_EXCEL_REPORT = permission(COLLECTION_MANAGEMENT, "manageExcelReport");
 	//public static final String MANAGE_SEARCH_CONFIG = permission(COLLECTION_MANAGEMENT, "manageSearchConfiguration");
@@ -63,6 +62,7 @@ public class CorePermissions {
 	public static final String MANAGE_PRINTABLE_REPORT = permission(SYSTEM_MANAGEMENT, "managePrintableReport");
 	public static final String VIEW_SYSTEM_BATCH_PROCESSES = permission(SYSTEM_MANAGEMENT, "viewSystemBatchProcesses");
 	public static final String MANAGE_SYNONYMS = permission(SYSTEM_MANAGEMENT, "manageSynonyms", Toggle.ADVANCED_SEARCH_CONFIGS);
+	public static final String DELETE_CORRECTION_SUGGESTION = permission(SYSTEM_MANAGEMENT, "deleteCorrectorSuggestion", Toggle.ADVANCED_SEARCH_CONFIGS);
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
 

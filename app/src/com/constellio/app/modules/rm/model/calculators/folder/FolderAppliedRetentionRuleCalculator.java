@@ -28,7 +28,6 @@ public class FolderAppliedRetentionRuleCalculator implements MetadataValueCalcul
 		} else {
 			return enteredRetentionRule;
 		}
-
 	}
 
 	@Override

@@ -22,6 +22,7 @@ public class OldStatesRMMigrationsAcceptanceTest extends RMMigrationsAcceptanceT
 	public void testAllOldVersions()
 			throws Exception {
 		setUp(true);
+
 		validateZeCollectionState();
 	}
 

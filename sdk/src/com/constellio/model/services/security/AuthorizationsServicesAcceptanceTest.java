@@ -1,5 +1,6 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
 import static com.constellio.model.entities.records.wrappers.Event.TYPE;
@@ -17,6 +18,7 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -61,7 +63,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -70,7 +71,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.search.SearchServices;
@@ -511,9 +513,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER1).givingRoles(ROLE2).forPrincipals(sasquatch)
 		);
 
-		//TODO Should be inherited in child groups : Robin would have ROLE1
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf, robin);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(admin, bob, charles, dakota, gandalf, robin);
 			verifyRecord.usersWithRole(ROLE2).isEmpty();
 			verifyRecord.usersWithRole(ROLE3).isEmpty();
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
@@ -521,7 +523,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf, robin);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1)
+					.containsOnly(admin, bob, alice, charles, dakota, gandalf, robin);
 			verifyRecord.usersWithRole(ROLE2).isEmpty();
 			verifyRecord.usersWithRole(ROLE3).isEmpty();
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
@@ -547,7 +551,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).containsOnly(sasquatch, admin);
 		}
 
-		givenConfig(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE, GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT);
+		givenConfig(GROUP_AUTHORIZATIONS_INHERITANCE, FROM_CHILD_TO_PARENT);
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2)) {
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(gandalf, admin, alice, edouard);
@@ -574,11 +578,10 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE1, ROLE3).forPrincipals(heroes)
 		);
 
-		//TODO Should be inherited in child groups : Robin should have ROLE1 and ROLE3
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3_DOC1, FOLDER4_1_DOC1, FOLDER4_2)) {
-			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf, robin);
 			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
-			verifyRecord.usersWithRole(ROLE3).containsOnly(bob, charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE3).containsOnly(bob, charles, dakota, gandalf, robin);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
@@ -613,6 +616,88 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		for (RecordVerifier verifyRecord : $(FOLDER1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, chuck);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+	}
+
+	@Test
+	public void givenWriteOnlyAccessAuthorizationsThenReadAndWriteAccessReceived()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingWriteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingWriteAccess());
+		auth3 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingWriteAccess());
+		auth4 = add(authorizationForUser(sasquatch).on(FOLDER1).givingWriteAccess());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingWrite().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingWrite().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingWrite().forPrincipals(alice),
+				authOnRecord(FOLDER1).givingWrite().forPrincipals(sasquatch)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1,
+				TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1, FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+	}
+
+	@Test
+	public void givenDeleteOnlyAccessAuthorizationsThenReadAndDeleteAccessReceived()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingDeleteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingDeleteAccess());
+		auth3 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingDeleteAccess());
+		auth4 = add(authorizationForUser(sasquatch).on(FOLDER1).givingDeleteAccess());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingDelete().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingDelete().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingDelete().forPrincipals(alice),
+				authOnRecord(FOLDER1).givingDelete().forPrincipals(sasquatch)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.usersWithReadAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1,
+				TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1, FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 		}
 
 	}
@@ -803,15 +888,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, gandalf, chuck, robin);
-			//TODO Should be inherited in child groups : Robin would be expected
-			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf, robin);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithDeleteAccess().containsOnly(charles, dakota, gandalf, chuck, robin);
-
-			//TODO Should be inherited in child groups : Robin would be expected
-			verifyRecord.usersWithRole(ROLE2).containsOnly(charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE2).containsOnly(charles, dakota, gandalf, robin);
 		}
 
 		givenUser(charles).isRemovedFromGroup(heroes);
@@ -824,15 +906,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
-			//TODO Should be inherited in child groups : Edouard would be expected
-			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf, edouard);
 		}
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithDeleteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
 
-			//TODO Should be inherited in child groups : Edouard would expected
-			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf, edouard);
 		}
 
 	}
@@ -2171,32 +2251,796 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER3_DOC1).usersWithReadAccess().containsOnly(bob, charles, dakota, chuck);
 	}
 
-	//@Test
+	@Test
 	@SlowTest
-	public void givenAGroupHasALotOfUsersThenBAtchProcessUsedWhenGivingAuth()
+	public void givenAGroupHasALotOfUsersThenNoBAtchProcessRequired()
 			throws Exception {
 
-		createDummyUsersInLegendsGroup(1000);
+		createDummyUsersInLegendsGroup(100);
 		getModelLayerFactory().getBatchProcessesController().close();
-
 		try {
 			auth1 = services.add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).givingReadWriteAccess());
-			verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
-		} finally {
-			getModelLayerFactory().getBatchProcessesController().initialize();
-		}
-		waitForBatchProcess();
-		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1005);
+			verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(105);
 
-		getModelLayerFactory().getBatchProcessesController().close();
-		try {
 			services.execute(authorizationDeleteRequest(auth1, zeCollection));
 			verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
+
 		} finally {
 			getModelLayerFactory().getBatchProcessesController().initialize();
 		}
-		waitForBatchProcess();
-		verifyRecord(TAXO1_CATEGORY1).usersWithReadAccess().hasSize(1);
+	}
+
+	@Test
+	public void givenAccessAuthForAUserWhenTheUserIsDisabledThenHeStillHasTheAuthButIsNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(sasquatch).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(sasquatch).on(FOLDER4).givingReadAccess());
+		auth3 = add(authorizationForUser(sasquatch).on(FOLDER3).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().contains(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().contains(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().contains(sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(sasquatch),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(sasquatch),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(sasquatch)
+		);
+
+		userServices.addUpdateUserCredential(users.sasquatch().withStatus(UserCredentialStatus.SUSPENDED));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(sasquatch),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(sasquatch),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(sasquatch)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(sasquatch);
+		}
+
+	}
+
+	@Test
+	public void givenARoleAuthForAUserWhenTheUserIsDisabledThenHeStillHasTheAuthButIsNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(sasquatch).on(TAXO1_CATEGORY1).giving(ROLE1));
+		auth2 = add(authorizationForUser(sasquatch).on(FOLDER4).giving(ROLE1));
+		auth2 = add(authorizationForUser(sasquatch).on(FOLDER3).giving(ROLE2));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).contains(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).contains(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(sasquatch),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(sasquatch),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(sasquatch)
+		);
+
+		userServices.addUpdateUserCredential(users.sasquatch().withStatus(UserCredentialStatus.SUSPENDED));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(sasquatch),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(sasquatch),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(sasquatch)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch);
+		}
+
+	}
+
+	@Test
+	public void givenAccessAuthForAGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForGroup(legends).on(FOLDER4).givingReadAccess());
+		auth3 = add(authorizationForGroup(legends).on(FOLDER3).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().contains(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().contains(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().contains(edouard, sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(legends),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(legends)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(legends),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(legends)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(sasquatch).contains(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(sasquatch).contains(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(sasquatch).contains(edouard);
+		}
+
+	}
+
+	@Test
+	public void givenARoleAuthForAGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(legends).on(FOLDER4).giving(ROLE1));
+		auth3 = add(authorizationForGroup(legends).on(FOLDER3).giving(ROLE2));
+
+		assertThat(schemas.getAllUsersInGroup(users.legendsIn(zeCollection), true, true))
+				.extracting("username").contains("edouard", "sasquatch");
+
+		assertThat(schemas.getAllUsersInGroup(users.rumorsIn(zeCollection), true, true))
+				.extracting("username").contains("sasquatch").doesNotContain("edouard");
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).contains(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).contains(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard, sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(legends)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		assertThat(schemas.getAllUsersInGroup(users.legendsIn(zeCollection), true, true))
+				.extracting("username").doesNotContain("edouard", "sasquatch");
+
+		assertThat(schemas.getAllUsersInGroup(users.rumorsIn(zeCollection), true, true))
+				.extracting("username").doesNotContain("sasquatch", "edouard");
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(legends)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).describedAs(verifyRecord.recordId).contains(edouard).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).contains(edouard).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+		}
+
+	}
+
+	private void reenableLegends() {
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
+		userServices.addUpdateUserCredential(users.edouardLechat().withNewGlobalGroup("legends"));
+		userServices.addUpdateUserCredential(users.alice().withNewGlobalGroup("legends"));
+		userServices.addUpdateUserCredential(users.gandalfLeblanc().withNewGlobalGroup("legends"));
+	}
+
+	@Test
+	public void givenAccessAuthForASubGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		auth1 = add(authorizationForGroup(rumors).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForGroup(rumors).on(FOLDER4).givingReadAccess());
+		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().contains(sasquatch).doesNotContain(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().contains(sasquatch).doesNotContain(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().contains(sasquatch).doesNotContain(edouard);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(rumors)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(rumors)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
+		}
+	}
+
+	@Test
+	public void givenARoleAuthForASubGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		auth1 = add(authorizationForGroup(rumors).on(TAXO1_CATEGORY1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(rumors).on(FOLDER4).giving(ROLE1));
+		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).giving(ROLE2));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(sasquatch).doesNotContain(edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch).doesNotContain(edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch).doesNotContain(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).contains(sasquatch).doesNotContain(edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch).doesNotContain(edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch).doesNotContain(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(sasquatch).doesNotContain(edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(sasquatch).doesNotContain(edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch).doesNotContain(edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch).doesNotContain(edouard);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+	}
+
+	@Test
+	public void givenGroupInheritanceFromChildrenAndAccessAuthForAGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		givenConfig(GROUP_AUTHORIZATIONS_INHERITANCE, FROM_CHILD_TO_PARENT);
+
+		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForGroup(legends).on(FOLDER4).givingReadAccess());
+		auth3 = add(authorizationForGroup(legends).on(FOLDER3).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().contains(edouard).doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().contains(edouard).doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().contains(edouard).doesNotContain(sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(legends),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(legends)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(legends),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(legends)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(sasquatch).contains(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(sasquatch).contains(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(sasquatch).contains(edouard);
+		}
+
+	}
+
+	@Test
+	public void givenGroupInheritanceFromChildrenAndARoleAuthForAGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		givenConfig(GROUP_AUTHORIZATIONS_INHERITANCE, FROM_CHILD_TO_PARENT);
+
+		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(legends).on(FOLDER4).giving(ROLE1));
+		auth3 = add(authorizationForGroup(legends).on(FOLDER3).giving(ROLE2));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(edouard).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).contains(edouard).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(edouard).doesNotContain(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(edouard).doesNotContain(sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(legends)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(legends),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(legends)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(edouard, sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(edouard, sasquatch);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch).contains(edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(sasquatch).contains(edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch).contains(edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch).contains(edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(sasquatch).contains(edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(sasquatch).contains(edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch).contains(edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch).contains(edouard);
+		}
+
+	}
+
+	@Test
+	public void givenGroupInheritanceFromChildrenAndAccessAuthForASubGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		givenConfig(GROUP_AUTHORIZATIONS_INHERITANCE, FROM_CHILD_TO_PARENT);
+
+		auth1 = add(authorizationForGroup(rumors).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		auth2 = add(authorizationForGroup(rumors).on(FOLDER4).givingReadAccess());
+		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).givingReadDeleteAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().contains(sasquatch, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().contains(sasquatch, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().contains(sasquatch, edouard);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(rumors)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingReadWrite().forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRead().forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(rumors)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//TODO Should not be required
+		reindex();
+
+		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2)) {
+			verifyRecord.usersWithWriteAccess().doesNotContain(edouard, sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().doesNotContain(edouard, sasquatch);
+		}
+	}
+
+	@Test
+	public void givenGroupInheritanceFromChildrenAndARoleAuthForASubGroupWhenTheGroupIsDisabledThenUsersStillHasTheAuthsButTheyNoLongerReceivingItsBenefits()
+			throws Exception {
+
+		givenConfig(GROUP_AUTHORIZATIONS_INHERITANCE, FROM_CHILD_TO_PARENT);
+
+		auth1 = add(authorizationForGroup(rumors).on(TAXO1_CATEGORY1).giving(ROLE1));
+		auth2 = add(authorizationForGroup(rumors).on(FOLDER4).giving(ROLE1));
+		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).giving(ROLE2));
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).contains(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).contains(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).contains(sasquatch);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(sasquatch);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").contains(sasquatch);
+		}
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
+		);
+
+		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+
+		reenableLegends();
+		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+
+		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY1).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER4).givingRoles(ROLE1).forPrincipals(rumors),
+				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
+			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE1, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE2).doesNotContain(sasquatch, edouard);
+			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE2).doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithRoleForRecord(ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+			assertThat(services.getUsersWithPermissionOnRecord(PERMISSION_OF_ROLE2, record(verifyRecord.recordId)))
+					.extracting("username").doesNotContain(sasquatch, edouard);
+		}
 	}
 
 	@Test

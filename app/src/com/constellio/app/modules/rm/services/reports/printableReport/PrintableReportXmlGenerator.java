@@ -2,12 +2,11 @@ package com.constellio.app.modules.rm.services.reports.printableReport;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -46,10 +45,17 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		xmlDocument.setRootElement(xmlRoot);
 		XmlReportGeneratorParameters parameters = getXmlGeneratorParameters();
 		for (int i = 0; i < parameters.getNumberOfCopies(); i++) {
-			Record[] recordsElement = parameters.isParametersUsingIds() ?
-					getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
-					parameters.getRecordsElements();
-			for (Record recordElement : recordsElement) {
+			Iterator<Record> recordIterator;
+			if(parameters.getQuery() == null) {
+				recordIterator = asList(parameters.isParametersUsingIds() ?
+						getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
+						parameters.getRecordsElements()).iterator();
+			} else {
+				recordIterator = getFactory().getModelLayerFactory().newSearchServices().recordsIterator(parameters.getQuery(), 200);
+			}
+
+			while (recordIterator.hasNext()) {
+				Record recordElement = recordIterator.next();
 				Element xmlSingularElement = new Element(XML_EACH_RECORD_ELEMENTS);
 				xmlSingularElement.setAttribute("schemaCode", recordElement.getSchemaCode());
 
