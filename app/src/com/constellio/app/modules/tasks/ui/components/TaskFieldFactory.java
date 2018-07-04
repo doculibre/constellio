@@ -39,7 +39,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 		super(isViewOnly);
 		this.unavailablesTaskTypes = unavailablesTaskTypes;
 	}
-//assigneeGroupsCandidates assigneeUsersCandidates escalationAssignee assignationModes
+
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
