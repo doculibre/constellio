@@ -116,6 +116,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 
+	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -177,6 +179,8 @@ public class ConstellioEIMConfigs {
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
+
+		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
 
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
@@ -267,6 +271,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isTableDynamicConfiguration() {
 		return manager.getValue(TABLE_DYNAMIC_CONFIGURATION);
+	}
+
+	public Boolean areInactifSchemasEnabledInSearch() {
+		return manager.getValue(ENABLE_INACTIF_SCHEMAS_IN_SEARCH);
 	}
 
 	public Boolean isCleanDuringInstall() {
