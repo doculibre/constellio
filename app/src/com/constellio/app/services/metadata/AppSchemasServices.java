@@ -296,25 +296,21 @@ public class AppSchemasServices {
 	}
 
 	public void disableSchema(String collection, String schemaCode) {
-		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
-		MetadataSchemaBuilder builder = types.getSchema(schemaCode);
-		builder.setActive(false);
-		try {
-			schemasManager.saveUpdateSchemaTypes(types);
-		} catch (MetadataSchemasManagerException.OptimisticLocking optimistickLocking) {
-			throw new RuntimeException(optimistickLocking);
-		}
+		changeSchemaState(collection, schemaCode, false);
 	}
 
 	public void enableSchema(String collection, String schemaCode) {
-		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
-		MetadataSchemaBuilder builder = types.getSchema(schemaCode);
-		builder.setActive(true);
-		try {
-			schemasManager.saveUpdateSchemaTypes(types);
-		} catch (MetadataSchemasManagerException.OptimisticLocking optimistickLocking) {
-			throw new RuntimeException(optimistickLocking);
-		}
+		changeSchemaState(collection, schemaCode, true);
+	}
+
+	public void changeSchemaState(String collection, final String schemaCode, final boolean active){
+		schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder builder = types.getSchema(schemaCode);
+				builder.setActive(active);
+			}
+		});
 	}
 
 }

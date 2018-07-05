@@ -158,67 +158,37 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-		appSchemasServices.disableSchema(collection,schemaCode);
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
 		List<String> recordsWithErrors = new ArrayList<>();
+
 		for(Record record : records) {
-			try{
-				recordServices.logicallyDelete(record, User.GOD);
-			}catch(RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord e){
+			if (recordServices.isLogicallyDeletableAndIsSkipValidation(record, User.GOD)) {
 				recordsWithErrors.add(record.getTitle());
 			}
 		}
 
-		if(!recordsWithErrors.isEmpty()){
-			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", recordsWithErrors).replace("[","").replace("]",""));
+		if (recordsWithErrors.isEmpty()){
+			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+			appSchemasServices.disableSchema(collection,schemaCode);
+			for(Record record : records) {
+				recordServices.logicallyDelete(record, User.GOD);
+			}
+		}else{
+			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", elementsSeparatedByComma(recordsWithErrors)));
 		}
 		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 	}
 
 	public void enableButtonClick(String schemaCode){
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
 		appSchemasServices.enableSchema(collection,schemaCode);
-		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
-				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
-		List<String> recordsThatHasOtherActiveRecordWithSameCode = new ArrayList<>();
-		List<String> recordsWithErrors = new ArrayList<>();
-		for(Record record : records) {
-			if(hasOtherActiveRecordWithSameCode(record)){
-				recordsThatHasOtherActiveRecordWithSameCode.add(record.getTitle());
-			}else{
-				try{
-					recordServices.restore(record, User.GOD);
-				}catch(RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord e){
-					recordsWithErrors.add(record.getTitle());
-				}
-			}
-		}
 
-		if(!recordsThatHasOtherActiveRecordWithSameCode.isEmpty() && !recordsWithErrors.isEmpty()){
-			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordsHasSameCode", recordsThatHasOtherActiveRecordWithSameCode).replace("[","").replace("]","")
-			+ "\n" +$("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", recordsWithErrors).replace("[","").replace("]",""));
-		}else if(!recordsThatHasOtherActiveRecordWithSameCode.isEmpty()){
-			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordsHasSameCode", recordsThatHasOtherActiveRecordWithSameCode).replace("[","").replace("]",""));
-		}else if(!recordsWithErrors.isEmpty()){
-			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", recordsWithErrors).replace("[","").replace("]",""));
-		}
 		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 	}
 
-	private boolean hasOtherActiveRecordWithSameCode(Record record) {
-		String code = record.get(Schemas.CODE);
-
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		MetadataSchemaType type = types().getSchemaType(record.getTypeCode());
-		query.filteredByStatus(StatusFilter.ACTIVES);
-		query.setCondition(
-				from(type).where(Schemas.CODE).isEqualTo(code).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId()));
-
-		return searchServices().hasResults(query);
+	public String elementsSeparatedByComma(List<String> listOfElements){
+		return listOfElements.toString().replace("[","").replace("]","");
 	}
 
 }
