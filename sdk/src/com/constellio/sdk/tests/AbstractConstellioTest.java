@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.client.WebTarget;
 
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
@@ -1226,6 +1227,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.modules.contains(ConstellioRobotsModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withRobotsModule();
 				}
+				if (preparator.modules.contains(ConstellioRestApiModule.ID)) {
+					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRestApiModule();
+				}
 
 				ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 				if (preparator.allTestUsers) {
@@ -1338,6 +1342,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		public CollectionPreparator withRobotsModule() {
 			modules.add(ConstellioRobotsModule.ID);
+			Collections.sort(modules);
+			return this;
+		}
+
+		public CollectionPreparator withConstellioRestApiModule() {
+			modules.add(ConstellioRestApiModule.ID);
 			Collections.sort(modules);
 			return this;
 		}
