@@ -101,7 +101,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
     public File getReplicatedVaultFile(File file) {
-        return new File(file.getAbsolutePath().replace(rootFolder.getAbsolutePath(), replicatedRootFolder.getAbsolutePath()));
+		String filePath = file.getAbsolutePath();
+		String replicatedPath = StringUtils.replaceOnce(filePath, rootFolder.getAbsolutePath(), replicatedRootFolder.getAbsolutePath());
+        return new File(replicatedPath);
     }
 
 	@Override
