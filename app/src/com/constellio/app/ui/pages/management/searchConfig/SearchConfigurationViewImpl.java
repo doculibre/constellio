@@ -55,7 +55,9 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 			if (presenter.canManageCorrectorExclusions()) {
 				collectionSectionLayout.addComponent(createSpellCheckerExclusionsManagementButton());
 			}
-			collectionSectionLayout.addComponent(createThesaurusConfigurationButton());
+			if (presenter.isThesaurusConfigurationButtonVisible()) {
+				collectionSectionLayout.addComponent(createThesaurusConfigurationButton());
+			}
 			collectionSectionLayout.addComponents(createSynonymsManagementButton());
 			collectionSectionLayout.addComponents(createElevationManagementButton());
 		}

@@ -79,7 +79,9 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	}
 
 	public boolean isThesaurusConfigurationButtonVisible() {
-		return true;
+		User user = getCurrentUser();
+		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& user.has(CorePermissions.MANAGE_THESAURUS).globally();
 	}
 
 	public boolean isSpellCheckerExclusionsManagementButtonVisible() {

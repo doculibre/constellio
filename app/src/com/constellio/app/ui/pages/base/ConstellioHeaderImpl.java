@@ -79,18 +79,12 @@ import com.vaadin.ui.PopupView.PopupVisibilityListener;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
-
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteQuery;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestion;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestionProvider;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteTextField;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
@@ -155,6 +149,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public int getBufferSize() {
 				return presenter.getAutocompleteBufferSize();
+			}
+
+			@Override
+			public Class<String> getModelType() {
+				return String.class;
 			}
 		});
 		searchField.setMinChars(3);

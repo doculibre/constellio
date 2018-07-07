@@ -42,9 +42,12 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 	private int prefixSize = 0; // Default value
 	
 	private Map<String, T> lastSuggestions = new HashMap<>();
+	
+	private Class<T> modelType;
 
 	public BaseAutocompleteField(final AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		super();
+		this.modelType = suggestionsProvider.getModelType();
 		this.suggestionsProvider = suggestionsProvider;
 		
 		setMinChars(1);
@@ -72,11 +75,14 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 		setNullRepresentation("");
 //		setPageLength(suggestionsProvider.getBufferSize());
 		setConverter(new Converter<String, T>() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public T convertToModel(String value, Class<? extends T> targetType, Locale locale)
 					throws ConversionException {
 				T result;
-				if (value != null) {
+				if (String.class.isAssignableFrom(targetType)) {
+					result = (T) value;
+				} else if (value != null) {
 					result = lastSuggestions.get(value);
 
 					if(result == null && getModelType().isAssignableFrom(String.class)) {
@@ -100,10 +106,9 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 				return result;
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Class<T> getModelType() {
-				return (Class<T>) Object.class;
+				return modelType;
 			}
 
 			@Override
@@ -173,6 +178,8 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 	public interface AutocompleteSuggestionsProvider<T> extends Serializable {
 
 		List<T> suggest(String text);
+
+		Class<T> getModelType();
 
 		int getBufferSize();
 

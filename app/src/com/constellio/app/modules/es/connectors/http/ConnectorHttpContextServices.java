@@ -13,9 +13,8 @@ import org.apache.commons.io.FileUtils;
 
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 
 public class ConnectorHttpContextServices {
 
@@ -41,22 +40,24 @@ public class ConnectorHttpContextServices {
 		File tempFile = es.getIOServices().newTemporaryFile(URLS_TEMP_FILE_WRITING_RESOURCE);
 		InputStream tempFileInputStream = null;
 		try {
-			ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
+			ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
 			saveTo(context, tempFile);
 
+			String vaultFilePath = "connectors/" + context.getConnectorId() + "/fetchedUrls.txt";
+
 			tempFileInputStream = es.getIOServices().newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
-			String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
-			if (add) {
-				configManager.add(path, tempFileInputStream);
-			} else {
-				String hash = configManager.getBinary(path).getHash();
-				configManager.update(path, hash, tempFileInputStream);
-			}
+			//String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
+			contentDao.add(vaultFilePath, tempFileInputStream);
+			//			if (add) {
+			//				configManager.add(path, tempFileInputStream);
+			//			} else {
+			//				String hash = configManager.getBinary(path).getHash();
+			//				configManager.update(path, hash, tempFileInputStream);
+			//			}
 
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
+
 		} finally {
 			es.getIOServices().closeQuietly(tempFileInputStream);
 			es.getIOServices().deleteQuietly(tempFile);
@@ -86,19 +87,22 @@ public class ConnectorHttpContextServices {
 
 	public ConnectorHttpContext loadContext(String connectorId) {
 
-		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		String path = "/connectors/http/" + connectorId + "/fetchedUrls.txt";
-		BinaryConfiguration binaryConfiguration = configManager.getBinary(path);
-		ObjectInputStream binaryConfigurationInputStream = null;
+		ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
 
+		String vaultFilePath = "connectors/" + connectorId + "/fetchedUrls.txt";
+
+		ObjectInputStream binaryConfigurationInputStream = null;
 		try {
-			binaryConfigurationInputStream = new ObjectInputStream(new BufferedInputStream(
-					binaryConfiguration.getInputStreamFactory().create(URLS_CONFIG_INPUTSTREAM_RESOURCE)));
+			InputStream contextInputStream = contentDao.getContentInputStream(vaultFilePath, URLS_CONFIG_INPUTSTREAM_RESOURCE);
+			binaryConfigurationInputStream = null;
+			binaryConfigurationInputStream = new ObjectInputStream(new BufferedInputStream(contextInputStream));
 			return (ConnectorHttpContext) binaryConfigurationInputStream.readObject();
 
 		} catch (IOException | ClassNotFoundException e) {
 			throw new RuntimeException(e);
 
+		} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
+			throw new RuntimeException(contentDaoException_noSuchContent);
 		} finally {
 			es.getIOServices().closeQuietly(binaryConfigurationInputStream);
 
