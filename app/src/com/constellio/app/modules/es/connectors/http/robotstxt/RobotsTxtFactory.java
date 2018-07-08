@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownServiceException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RobotsTxtFactory {
@@ -27,7 +28,7 @@ public class RobotsTxtFactory {
                     try (InputStream robotsTxtStream = new URL(base, ROBOT_TXT_FILE).openStream()) {
                         robotsTxt = RobotsTxt.read(robotsTxtStream);
                         this.robotsTxt.put(baseUrl, robotsTxt);
-                    } catch (FileNotFoundException e) {
+                    } catch (FileNotFoundException | UnknownServiceException e) {
                         robotsTxt = RobotsTxt.read(new ByteArrayInputStream(new byte[0]));
                         this.robotsTxt.put(baseUrl, robotsTxt);
                     }
