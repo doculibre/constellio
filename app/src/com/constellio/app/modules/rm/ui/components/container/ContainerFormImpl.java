@@ -20,6 +20,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 /**
  * Created by Constellio on 2017-01-11.
@@ -58,6 +59,7 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 							getWindow().close();
 						}
 					});
+					newLayoutSaveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 					Button newLayoutCancelButton = new Button(cancelButton.getCaption());
 					newLayoutCancelButton.addClickListener(new ClickListener() {
 						@Override
@@ -65,12 +67,13 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 							getWindow().close();
 						}
 					});
-					buttonLayout.addComponents(newLayoutCancelButton, newLayoutSaveButton);
+					buttonLayout.addComponents(newLayoutSaveButton, newLayoutCancelButton);
 
 					mainLayout.addComponents(integerField, buttonLayout);
 					return mainLayout;
 				}
 			};
+			newSaveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			buttonsLayout.replaceComponent(saveButton, newSaveButton);
 		}
 	}

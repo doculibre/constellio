@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.constellio.app.modules.es.constants.ESTaxonomies;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.sis.internal.jdk7.StandardCharsets;
@@ -142,19 +143,23 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		}
 	}
 
-	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, String unitId) {
+	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, List<String> unitIds) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
 		options.setExportedSchemaTypes(
 				asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
 						DecommissioningList.SCHEMA_TYPE));
-		String path = (String) ((List) recordServices().getDocumentById(unitId).get(Schemas.PATH)).get(0);
+		List<String> paths = new ArrayList<>();
+		for(String unit: unitIds) {
+			paths.add((String) ((List) recordServices().getDocumentById(unit).get(Schemas.PATH)).get(0));
+		}
+
 		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
 		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(
-				LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithText(path)
+				LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithTextFromAny(paths)
 						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT))
-						.isEqualTo(unitId));
+						.isIn(unitIds));
 
 		exportToXML(options, recordsIterator);
 	}
@@ -162,7 +167,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	public void exportToolsToXMLButtonClicked(boolean isSameCollection) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
-		List<Taxonomy> enabledTaxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
+		List<Taxonomy> enabledTaxonomies = new ArrayList<>(modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection));
+		removeUnwantedTaxonomiesForExportation(enabledTaxonomies);
 		List<String> exportedSchemaTypes = new ArrayList<>(
 				asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
 						StorageSpace.SCHEMA_TYPE));
@@ -177,6 +183,18 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		options.setExportedSchemaTypes(exportedSchemaTypes);
 		options.setExportValueLists(true);
 		exportToXML(options);
+	}
+
+	private void removeUnwantedTaxonomiesForExportation(List<Taxonomy> taxonomies) {
+		if(taxonomies != null) {
+			List<String> unwantedTaxonomies = appCollectionExtentions.getUnwantedTaxonomiesForExportation();
+			Iterator<Taxonomy> iterator = taxonomies.iterator();
+			while (iterator.hasNext()) {
+				if(unwantedTaxonomies.contains(iterator.next().getCode())) {
+					iterator.remove();
+				}
+			}
+		}
 	}
 
 	private void exportToXML(RecordExportOptions options, Iterator<Record> recordsToExport) {

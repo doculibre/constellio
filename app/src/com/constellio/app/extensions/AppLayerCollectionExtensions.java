@@ -3,11 +3,7 @@ package com.constellio.app.extensions;
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
@@ -638,4 +634,15 @@ public class AppLayerCollectionExtensions {
 	public Component getDefaultDisplayForReference(String id) {
 		return new ReferenceDisplay(id);
 	}
+
+    public List<String> getUnwantedTaxonomiesForExportation() {
+		Set<String> unwantedTaxonomies = new HashSet<>();
+		for(RecordExportExtension extension: recordExportExtensions) {
+			List<String> unwantedTaxonomiesFromExtension = extension.getUnwantedTaxonomiesForExportation();
+			if(unwantedTaxonomiesFromExtension != null) {
+				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
+			}
+		}
+        return new ArrayList<>(unwantedTaxonomies);
+    }
 }

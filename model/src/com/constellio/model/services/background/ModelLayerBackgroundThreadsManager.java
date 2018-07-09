@@ -27,8 +27,6 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
 	FlushRecordsBackgroundAction flushRecordsBackgroundAction;
 
-	EventService eventService;
-
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.backgroundThreadsManager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
