@@ -117,6 +117,12 @@ public abstract class Decommissioner {
 		execute(false);
 	}
 
+	public void denyApproval(DecommissioningList decommissioningList) {
+		prepare(decommissioningList, user, processingDate);
+		removeApprovalRequest();
+		execute(false);
+	}
+
 	protected void approveFolders() {
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
@@ -131,6 +137,10 @@ public abstract class Decommissioner {
 
 	private void markApproved() {
 		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
+	}
+
+	private void removeApprovalRequest() {
+		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequest((User) null));
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {

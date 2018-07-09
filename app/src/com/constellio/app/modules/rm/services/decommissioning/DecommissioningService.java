@@ -278,6 +278,10 @@ public class DecommissioningService {
 		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
+	public void denyApprovalOnList(DecommissioningList decommissioningList) {
+		decommissioner(decommissioningList).denyApproval(decommissioningList);
+	}
+
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();

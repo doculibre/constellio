@@ -28,6 +28,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -440,7 +441,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildDenyApprovalButton() {
-		denyApproval = new WindowButton($("DecommissioningListView.denyApproval"), $("DecommissioningListView.denyApproval")) {
+		denyApproval = new WindowButton($("DecommissioningListView.denyApprovalButton"), $("DecommissioningListView.denyApproval")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();

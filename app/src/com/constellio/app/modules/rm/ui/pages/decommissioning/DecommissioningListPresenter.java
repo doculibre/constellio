@@ -942,12 +942,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			comment.setUser(getCurrentUser());
 			comment.setDateTime(LocalDateTime.now());
 
-			List<Comment> comments = decommissioningList.getComments();
+			List<Comment> comments = new ArrayList<>(decommissioningList.getComments());
 			comments.add(comment);
 			decommissioningList.setComments(comments);
 		}
 
-		decommissioningList.setApprovalRequest((User) null);
-		decommissioningList.setApprovalRequestDate(null);
+		decommissioningService().denyApprovalOnList(decommissioningList);
 	}
 }
