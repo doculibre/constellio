@@ -15,7 +15,7 @@ public class IsEqualCriterion extends LogicalSearchValueCondition {
 		this.value = value;
 	}
 
-	public Object getIndex() {
+	public Object getValue() {
 		return value;
 	}
 

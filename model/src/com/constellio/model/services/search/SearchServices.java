@@ -87,6 +87,7 @@ public class SearchServices {
 	String mainDataLanguage;
 	ConstellioEIMConfigs systemConfigs;
 	ModelLayerFactory modelLayerFactory;
+	InMemorySearchServices inMemorySearchServices;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
@@ -105,6 +106,7 @@ public class SearchServices {
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
+		this.inMemorySearchServices = new InMemorySearchServices(modelLayerFactory);
 	}
 
 	public RecordsCaches getConnectedRecordsCache() {
@@ -613,12 +615,29 @@ public class SearchServices {
 	}
 
 	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
+
+		if (Toggle.QUERY_EXECUTION_IN_CACHE.isEnabled() && inMemorySearchServices.isExecutableInCache(query)) {
+			SPEQueryResponse cacheResponse = inMemorySearchServices.executeInCache(query);
+
+			if (Toggle.VALIDATE_QUERY_EXECUTION_IN_CACHE.isEnabled()) {
+				SPEQueryResponse solrResponse = executeQueryInSolr(params, query);
+				SPEQueryResponseUtils.ensureSameResponse(solrResponse, cacheResponse);
+			}
+
+			return cacheResponse;
+		} else {
+
+			return executeQueryInSolr(params, query);
+		}
+	}
+
+	private SPEQueryResponse executeQueryInSolr(ModifiableSolrParams params, LogicalSearchQuery query) {
 		QueryResponseDTO queryResponseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
 		if (!records.isEmpty() && Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled() && query.getReturnedMetadatas().isFullyLoaded()) {
-			for (Map.Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
+			for (Entry<String, List<Record>> entry : splitByCollection(records).entrySet()) {
 				getConnectedRecordsCache().insert(entry.getKey(), entry.getValue(), WAS_OBTAINED);
 			}
 

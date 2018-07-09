@@ -54,6 +54,8 @@ public class Toggle {
 
 	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
 
+	public static AvailableToggle QUERY_EXECUTION_IN_CACHE = newToggle(false);
+	public static AvailableToggle VALIDATE_QUERY_EXECUTION_IN_CACHE = newToggle(true);
 
 	// ------------------------------------------------
 
