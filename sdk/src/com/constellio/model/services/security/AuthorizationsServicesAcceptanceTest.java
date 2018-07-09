@@ -3605,7 +3605,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasGlobalAccessOrNoAccessThenNegativeAuthorizationsDoesNotAffectTheirAccesses() {
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
@@ -3620,7 +3620,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasNoAccessesWhenReceivingNegativeAuthorizationsThenStillHasNoAccesses() {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
@@ -3634,7 +3634,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserIsInheritingAccessesFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirAccesses() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3658,7 +3658,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserIsInheritingNegativeAccessesFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativeAccesses() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
@@ -3681,7 +3681,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserIsInheritingNegativeAndPositiveAccessesFromItsGroupThenNegativeAlwaysWins() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
@@ -3705,7 +3705,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasNegativeAndPositiveAccessesThenNegativeAlwaysWins() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
@@ -3729,7 +3729,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasNegativeAccessesFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
@@ -3758,7 +3758,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasPositiveAccessesFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLooseAccess() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3798,7 +3798,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasGlobalAccessOrNoPermissionsThenNegativeAuthorizationsDoesNotAffectTheirPermissions() {
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
@@ -3811,7 +3811,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasNoPermissionsWhenReceivingNegativeAuthorizationsThenStillHasNoPermissions() {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
@@ -3823,7 +3823,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserIsInheritingPermissionsFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirPermissions() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
@@ -3843,7 +3843,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserIsInheritingNegativePermissionsFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativePermissions() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
@@ -3862,7 +3862,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserIsInheritingNegativeAndPositivePermissionsFromItsGroupThenNegativeAlwaysWins() {
 
 		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
@@ -3882,7 +3882,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasNegativeAndPositivePermissionsThenNegativeAlwaysWins() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
@@ -3902,7 +3902,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasNegativePermissionsFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
@@ -3927,7 +3927,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//TODO Negative @Test
 	public void givenUserHasPositivePermissionsFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLoosePermissions() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
