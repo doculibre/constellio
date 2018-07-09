@@ -1,40 +1,39 @@
 package com.constellio.app.extensions.api.scripts;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.data.dao.services.contents.ContentDao;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.records.*;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.contents.ContentImpl;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.Duration;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
-import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.ActionExecutorInBatch;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 public class ResetRMModificationDatesFromEventsScript {
 
@@ -67,7 +66,7 @@ public class ResetRMModificationDatesFromEventsScript {
                     tempFile.createNewFile();
                 }
             }
-            IOUtils.closeQuietly();
+//            IOUtils.closeQuietly();
             writer = new BufferedWriter(new FileWriter(tempFile, true));
 
             final Duration isEqualRange = Duration.standardMinutes(5);
