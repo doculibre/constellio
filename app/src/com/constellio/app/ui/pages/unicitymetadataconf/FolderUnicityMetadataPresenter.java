@@ -196,7 +196,7 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
         });
     }
 
-    protected Map<String, Object> copyUnModifiableMapToModifiableMap(Map<String, Object> map) {
+    protected static Map<String, Object> copyUnModifiableMapToModifiableMap(Map<String, Object> map) {
 
         Map<String, Object> newModifiableMap = new HashMap<>();
 
@@ -209,7 +209,7 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
         return newModifiableMap;
     }
 
-    protected Object getModifiableValue(Object object) {
+    protected static Object getModifiableValue(Object object) {
         if(object instanceof List) {
            List<Object> newList = new ArrayList<>();
            for(Object itemInList : ((List) object)) {

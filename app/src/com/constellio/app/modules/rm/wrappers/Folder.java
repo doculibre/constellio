@@ -821,6 +821,15 @@ public class Folder extends RMObject {
 		return getList(DOCUMENTS_TOKENS);
 	}
 
+	public String getUnicity() {
+		return get(UNICITY);
+	}
+
+	public Folder setUnicity(String unicity) {
+		set(UNICITY, unicity);
+		return this;
+	}
+
 	public boolean hasExpectedDates() {
 		return !(getExpectedTransferDate() == null && getExpectedDepositDate() == null && getExpectedDestructionDate() == null);
 	}

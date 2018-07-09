@@ -1165,4 +1165,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
 
+
+	public List<Folder> getFolderByUnicity(String unicity) {
+		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
+				from(folder.schemaType()).where(folder.unicity()).isEqualTo(unicity))));
+
+		return resultListFolder;
+	}
 }

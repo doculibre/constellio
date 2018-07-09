@@ -52,6 +52,8 @@ public class MetadataUniqueValidator implements Validator<Record> {
 						addValidationErrors(validationErrors, value.toString(), NON_UNIQUE_METADATA, metadata);
 					}
 				}
+
+				
 			}
 		}
 	}
