@@ -94,10 +94,17 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	protected final void delete(Record record, String reason, boolean physically) {
+		delete(record, reason, physically, false);
+	}
+
+	protected final void delete(Record record, String reason, boolean physically, boolean throwException) {
 		try {
 			schemaPresenterUtils.delete(record, reason, physically);
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
+			if (throwException) {
+				throw exception;
+			}
 		}
 	}
 
