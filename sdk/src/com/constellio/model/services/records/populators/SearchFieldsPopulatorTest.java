@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
@@ -63,12 +64,13 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 	@Mock ParsedContentProvider parsedContentProvider;
 	@Mock MetadataSchemaTypes types;
 	@Mock ConstellioEIMConfigs configs;
+	@Mock ModelLayerExtensions extensions;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		populator = new SearchFieldsPopulator(types, false, parsedContentProvider, collectionLanguages, configs);
+		populator = new SearchFieldsPopulator(types, false, parsedContentProvider, collectionLanguages, configs, extensions);
 
 		when(languageDectionServices.tryDetectLanguage(oldElvishText)).thenReturn("elvish");
 		when(languageDectionServices.tryDetectLanguage(oldElvishText2)).thenReturn("elvish");
