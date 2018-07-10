@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -50,14 +54,19 @@ import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParam
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
+import com.constellio.model.entities.security.TransactionSecurityModel;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.roles.Roles;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RecordAutomaticMetadataServices {
@@ -369,16 +378,68 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	private SecurityModel toSecurityModel(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider) {
+	private SecurityModel toSecurityModel(TransactionExecutionContext context, RecordImpl calculatedRecord,
+			RecordProvider recordProvider) {
 
-		//TODO Put in a singleton
-		SecurityModel singletonSecurityModel = new SingletonSecurityModel();
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
+		if (type.hasSecurity() && recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)
+				&& recordsCache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
+			//TODO Put in singleton
+			SecurityModel singletonSecurityModel = buildSingletonSecurityModel(calculatedRecord, types);
 
-		return null;
+			if (recordProvider.transaction != null) {
+				return new TransactionSecurityModel(singletonSecurityModel, recordProvider.transaction);
+			} else {
+				return singletonSecurityModel;
+			}
+		} else {
+			return SingletonSecurityModel.EMPTY;
+		}
+
 	}
 
-	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
+	@NotNull
+	private SecurityModel buildSingletonSecurityModel(RecordImpl calculatedRecord, MetadataSchemaTypes types) {
+		RolesManager rolesManager = modelLayerFactory.getRolesManager();
+		Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+
+		List<Group> groups = new ArrayList<>();
+		List<User> users = new ArrayList<>();
+		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+
+		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+			if (record != null) {
+				groups.add(Group.wrapNullable(record, types));
+			} else {
+				LOGGER.warn("Null record returned while getting all groups");
+			}
+		}
+
+		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
+			if (record != null) {
+				users.add(User.wrapNullable(record, types, roles));
+			} else {
+				LOGGER.warn("Null record returned while getting all users");
+			}
+		}
+
+		for (Record record : searchServices
+				.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
+			if (record != null) {
+				authorizationDetails.add(SolrAuthorizationDetails.wrapNullable(record, types));
+			} else {
+				LOGGER.warn("Null record returned while getting all users");
+			}
+		}
+
+		return new SingletonSecurityModel(authorizationDetails, users, groups);
+	}
+
+	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider
+			recordProvider, Map<Dependency, Object> values,
 			Dependency dependency, RecordUpdateOptions options) {
 		ReferenceDependency<?> referenceDependency = (ReferenceDependency<?>) dependency;
 		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency);
@@ -549,7 +610,8 @@ public class RecordAutomaticMetadataServices {
 	//				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
 	//	}
 
-	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
+	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider
+			recordProvider, Map<Dependency, Object> values,
 			Dependency dependency) {
 
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -569,7 +631,8 @@ public class RecordAutomaticMetadataServices {
 				paths.addAll(parentPaths);
 				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
-				inheritedNonTaxonomyAuthorizations.addAll(referencedRecord.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS));
+				inheritedNonTaxonomyAuthorizations
+						.addAll(referencedRecord.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS));
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -607,7 +670,8 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean addMultivalueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
+	private boolean addMultivalueReference(RecordImpl record, RecordProvider
+			recordProvider, Map<Dependency, Object> values,
 			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata, RecordUpdateOptions options) {
 		List<String> referencesValues = record.<String>getList(referenceMetadata);
 		List<Record> referencedRecords = new ArrayList<>();
@@ -654,7 +718,8 @@ public class RecordAutomaticMetadataServices {
 		return true;
 	}
 
-	private boolean addSingleValueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
+	private boolean addSingleValueReference(RecordImpl record, RecordProvider
+			recordProvider, Map<Dependency, Object> values,
 			ReferenceDependency<?> dependency, Metadata referenceMetadata, RecordUpdateOptions options) {
 		String referenceValue = (String) record.get(referenceMetadata);
 		Record referencedRecord;
@@ -730,7 +795,8 @@ public class RecordAutomaticMetadataServices {
 			if (referencedRecordId == null) {
 				record.updateAutomaticValue(metadataWithCopyDataEntry, null);
 			} else {
-				copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata, referencedRecordId,
+				copyReferenceValueInRecord(record, metadataWithCopyDataEntry, recordProvider, copiedMetadata,
+						referencedRecordId,
 						referenceMetadata, options);
 			}
 		}
@@ -758,7 +824,8 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata copiedMetadata, List<String> referencedRecordIds, Metadata referenceMetadata, RecordUpdateOptions options) {
+			Metadata copiedMetadata, List<String> referencedRecordIds, Metadata referenceMetadata, RecordUpdateOptions
+			options) {
 		List<Object> values = new ArrayList<>();
 		for (String referencedRecordId : referencedRecordIds) {
 			if (referencedRecordId != null) {
@@ -788,7 +855,8 @@ public class RecordAutomaticMetadataServices {
 		record.updateAutomaticValue(metadataWithCopyDataEntry, values);
 	}
 
-	public List<Metadata> sortMetadatasUsingLocalDependencies(Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
+	public List<Metadata> sortMetadatasUsingLocalDependencies
+			(Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
 		List<Metadata> sortedMetadatas = new ArrayList<>();
 		Map<Metadata, Set<String>> metadatas = copyInModifiableMap(metadatasWithLocalCodeDependencies);
 		while (!metadatas.isEmpty()) {
@@ -830,8 +898,9 @@ public class RecordAutomaticMetadataServices {
 
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
-		boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
-				&& !record.getLazyTransientValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
+		boolean lazyTransientMetadataToLoad =
+				metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
+						&& !record.getLazyTransientValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
 
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
 				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
