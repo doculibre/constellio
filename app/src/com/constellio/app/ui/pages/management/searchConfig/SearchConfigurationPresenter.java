@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
+import java.util.List;
+
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -76,7 +79,9 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	}
 
 	public boolean isThesaurusConfigurationButtonVisible() {
-		return true;
+		User user = getCurrentUser();
+		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+				&& user.has(CorePermissions.MANAGE_THESAURUS).globally();
 	}
 
 	public boolean isSpellCheckerExclusionsManagementButtonVisible() {
@@ -126,6 +131,14 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	public void statisticsButtonClicked() {
 		view.navigate().to().statistics();
 		
+	}
+
+	public List<NavigationItem> getCollectionItems() {
+		return navigationConfig().getNavigation(SearchConfigurationView.COLLECTION_SECTION);
+	}
+
+	public List<NavigationItem> getSystemItems() {
+		return navigationConfig().getNavigation(SearchConfigurationView.SYSTEM_SECTION);
 	}
 
 }

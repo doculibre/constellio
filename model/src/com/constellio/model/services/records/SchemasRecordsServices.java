@@ -500,4 +500,27 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
 		return modelLayerFactory.newUserServices().getAllUsersInGroup(group, includeGroupInheritance, onlyActiveUsersAndGroups);
 	}
+
+	//Value list item
+
+	public ValueListItem getValueListItemByLegacyId(String valueListCode, String valueListItemCode) {
+		return wrapValueListItem(getByLegacyId(getTypes().getSchemaType(valueListCode), valueListItemCode));
+	}
+
+	public ValueListItem wrapValueListItem(Record record) {
+		return record == null ? null : new ValueListItem(record, getTypes(), record.getSchemaCode());
+	}
+
+	public List<ValueListItem> wrapValueListItems(List<Record> records) {
+		List<ValueListItem> valueListItems = new ArrayList<>();
+		for (Record record : records) {
+			valueListItems.add(wrapValueListItem(record));
+		}
+		return valueListItems;
+	}
+
+	public ValueListItem newValueListItem(String schemaCode) {
+		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+	}
+	
 }

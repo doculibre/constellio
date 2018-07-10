@@ -64,6 +64,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
+	
 	public static final String STYLE_NAME = "lookup";
 	public static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
 	public static final String AUTOCOMPLETE_FIELD_STYLE_NAME = STYLE_NAME + "-autocomplete-field";
@@ -72,6 +73,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public static final String LOOKUP_WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
 	private static final String CAPTION_PROPERTY_ID = "caption";
+	
 	private TextInputDataProvider<T> suggestInputDataProvider;
 	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<>();
 	private BaseAutocompleteField<T> autoCompleteField;
@@ -143,6 +145,13 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 				return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
+			}
+
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public Class<T> getModelType() {
+				return (Class<T>) LookupField.this.getType();
 			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
@@ -490,7 +499,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
-
+	
 	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
 
 		TextInputDataProvider<T> search();

@@ -2,9 +2,11 @@ package com.constellio.app.modules.es.extensions;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.ui.components.SmbSearchResultDisplay;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.HttpDocSearchResultDisplayImpl;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 
 public class ESSearchPageExtension extends SearchPageExtension {
@@ -18,8 +20,9 @@ public class ESSearchPageExtension extends SearchPageExtension {
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
-
 			return new SmbSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery());
+		} else if (param.getSchemaType().equals(ConnectorHttpDocument.SCHEMA_TYPE)) {
+			return new HttpDocSearchResultDisplayImpl(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery());
 		}
 		return super.getCustomResultDisplayFor(param);
 	}

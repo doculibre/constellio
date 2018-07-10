@@ -304,39 +304,11 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
 		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms, " "));
-		List<Capsule> returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
-		assertThat(returnedCapsule).hasSize(1);
-		Capsule onlyCapsule = returnedCapsule.get(0);
-		assertThat(onlyCapsule.getCode()).isEqualTo(code);
-		assertThat(onlyCapsule.getHTML()).isEqualTo(html);
-		assertThat(onlyCapsule.getKeywords()).containsOnly(keywords.toArray(new String[0]));
-	}
-
-	@Test
-	public void testSearchCapsuleWithMultipleKeywordsAndMultipleCapsule()
-			throws Exception {
-		List<String> searchTerms = asList("super", "mega", "capsule1keyword3", "capsule2keyword1", "yea", "yea");
-
-		String capsule1HTML = "<h1>Capsule1</h1>";
-		List<String> capsule1Keywords = asList("capsule1keyword1", "capsule1keyword2", "capsule1keyword3");
-		String capsule1Code = "capsule1Code";
-		Capsule capsule1 = schemasRecordsServices.newCapsule().setCode(capsule1Code).setHTML(capsule1HTML)
-				.setKeywords(capsule1Keywords);
-
-		String capsule2HTML = "<h1>Capsule2</h1>";
-		List<String> capsule2Keywords = asList("capsule2keyword1", "capsule2keyword2", "capsule2keyword3");
-		String capsule2Code = "capsule2Code";
-		Capsule capsule2 = schemasRecordsServices.newCapsule().setCode(capsule2Code).setHTML(capsule2HTML)
-				.setKeywords(capsule2Keywords);
-
-		Transaction t = new Transaction();
-		t.addAll(capsule1, capsule2);
-		getModelLayerFactory().newRecordServices().execute(t);
-
-		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms.toArray(new String[0]), " "));
-		List<Capsule> returnedCapsules = simpleSearchPresenter.getCapsuleForCurrentSearch();
-		assertThat(returnedCapsules).hasSize(2);
-		assertThat(returnedCapsules).contains(capsule1, capsule2);
+		Capsule returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
+		assertThat(returnedCapsule).isNotNull();
+		assertThat(returnedCapsule.getCode()).isEqualTo(code);
+		assertThat(returnedCapsule.getHTML()).isEqualTo(html);
+		assertThat(returnedCapsule.getKeywords()).containsOnly(keywords.toArray(new String[0]));
 	}
 
 	private List<String> getRecordsIds(List<SearchResultVO> records) {

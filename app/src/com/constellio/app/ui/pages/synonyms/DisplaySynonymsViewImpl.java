@@ -48,6 +48,7 @@ public class DisplaySynonymsViewImpl extends BaseViewImpl implements EditSynonym
         this.textArea.setWidth("95%");
 
         textArea.setEnabled(false);
+        textArea.setStyleName("force-higher-opacity");
         verticalLayout.setSpacing(true);
         verticalLayout.setHeight("100%");
         verticalLayout.setSizeFull();

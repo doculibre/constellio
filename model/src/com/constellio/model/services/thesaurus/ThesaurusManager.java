@@ -110,7 +110,7 @@ public class ThesaurusManager implements StatefulService {
 		try {
 			thesaurusFile = modelLayerFactory.getContentManager().getContentDao()
 					.getContentInputStream(thesaurusConfig.getContent().getCurrentVersion().getHash(), FILE_INPUT_STREAM_NAME);
-		} catch (ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
+		} catch (NullPointerException | ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
 			// La voute ne contient pas le fichier.
 			thesaurusFile = IOUtils.toInputStream("");
 			thesaurusConfig.setContent(null);

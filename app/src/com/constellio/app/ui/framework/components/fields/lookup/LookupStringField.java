@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import java.io.Serializable;
-
 /**
  * Created by constellios on 2017-07-19.
  */

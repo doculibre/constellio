@@ -150,7 +150,7 @@ public class ThesaurusService implements Serializable {
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
-		if(StringUtils.isNotBlank(input) && !input.startsWith("*")) {
+		if (StringUtils.isNotBlank(input) && !input.startsWith("*")) {
 			String parsedInput = parseForSearch(input);
 			Pattern p = Pattern.compile(parsedInput + ".*\\(.*\\)"); // search for "generalSearchedWord (specification)"
 
@@ -164,7 +164,7 @@ public class ThesaurusService implements Serializable {
 
 					String parsedLabelValue = parseForSearch(thesaurusLabel.getValue(locale));
 
-					if (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue).find()) {
+					if (parsedLabelValue != null && (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue).find())) {
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -544,12 +544,12 @@ public class ThesaurusService implements Serializable {
 		return !deniedTerms.contains(term.toLowerCase());
 	}
 
-	public List<String> suggestSimpleSearch(String input, Locale locale) {
+	public List<String> suggestSimpleSearch(String input, Locale locale, int minInputLength, int maxResults) {
 
 		// ordered Set to prioritize results found first (since last results are often found as last resort)
 		List<String> suggestions = new ArrayList<>();
 
-		if (StringUtils.isNotEmpty(input) && input.length() >= MIN_INPUT_LENGTH) {
+		if (StringUtils.isNotEmpty(input) && input.length() >= minInputLength) {
 
 				// get related pref labels that contains input
 
@@ -565,7 +565,7 @@ public class ThesaurusService implements Serializable {
 
 				// if not enough results, get related alt labels
 
-				if(suggestions.size() <= MAX_AUTOCOMPLETE_RESULTS) {
+				if(suggestions.size() <= maxResults) {
 					Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
 
 					for (SkosConcept suggestion : altLabelSuggestions) {
@@ -592,7 +592,7 @@ public class ThesaurusService implements Serializable {
 
 	private void addToSuggestions(List<String> suggestions, String suggestion) {
 		if(suggestions.size()<MAX_AUTOCOMPLETE_RESULTS) {
-			suggestions.add(suggestion.toLowerCase());
+			suggestions.add(StringUtils.capitalize(suggestion.toLowerCase()));
 		}
 	}
 
@@ -605,7 +605,9 @@ public class ThesaurusService implements Serializable {
 	private boolean isValidAutocompleteSuggestion(String input, String suggestion) {
 		boolean valid = false;
 
-		if (isNotExcludedByUser(suggestion) && suggestion.startsWith(parseForSearch(input))) {
+		String normalizedInput = parseForSearch(input);
+		String normalizedSuggestion = parseForSearch(suggestion);
+		if (isNotExcludedByUser(suggestion) && normalizedSuggestion.startsWith(normalizedInput)) {
 			valid = true;
 		}
 

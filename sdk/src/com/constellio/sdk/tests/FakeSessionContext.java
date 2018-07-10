@@ -234,17 +234,6 @@ public class FakeSessionContext extends BaseSessionContext {
 		return userPrincipal;
 	}
 
-	@Override
-	public SessionContext setCurrentSearchEventRecord(Record searchEventId) {
-		this.searchEvent = searchEvent;
-		return this;
-	}
-
-	@Override
-	public Record getCurrentSearchEventRecord() {
-		return searchEvent;
-	}
-
 	public void setUserPrincipal(Principal userPrincipal) {
 		this.userPrincipal = userPrincipal;
 	}

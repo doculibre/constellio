@@ -30,6 +30,7 @@ import com.constellio.app.ui.framework.components.converters.CollectionCodeToLab
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -78,7 +79,6 @@ import com.vaadin.ui.PopupView.PopupVisibilityListener;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -97,7 +97,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private final ConstellioHeaderPresenter presenter;
 
-	private TextField searchField;
+	private BaseAutocompleteField<String> searchField;
 	private WindowButton selectionButton;
 
 	private BasePopupView popupView;
@@ -140,7 +140,23 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			}
 		});
 
-		searchField = new BaseTextField();
+		searchField = new BaseAutocompleteField<String>(new BaseAutocompleteField.AutocompleteSuggestionsProvider<String>() {
+			@Override
+			public List<String> suggest(String text) {
+				return presenter.getAutocompleteSuggestions(text);
+			}
+
+			@Override
+			public int getBufferSize() {
+				return presenter.getAutocompleteBufferSize();
+			}
+
+			@Override
+			public Class<String> getModelType() {
+				return String.class;
+			}
+		});
+		searchField.setMinChars(3);
 		searchField.addStyleName("header-search");
 		searchField.addFocusListener(new FocusListener() {
 			@Override
@@ -169,7 +185,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public void buttonClick(ClickEvent event) {
 				presenter.searchRequested(searchField.getValue(), getAdvancedSearchSchemaType());
-			}
+			} 
 		});
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {

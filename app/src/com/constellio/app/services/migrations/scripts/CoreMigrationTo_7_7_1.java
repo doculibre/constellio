@@ -74,6 +74,7 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 				searchEvent.createMetadata(SearchEvent.ORIGINAL_QUERY).setType(STRING);
 				searchEvent.createMetadata(SearchEvent.NUM_FOUND).setType(NUMBER);
 				searchEvent.createMetadata(SearchEvent.Q_TIME).setType(NUMBER);
+				searchEvent.createMetadata(SearchEvent.DWELL_TIME).setType(NUMBER).setDefaultValue(0);
 			}
 		}
 	}

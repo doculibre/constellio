@@ -3,13 +3,12 @@ package com.constellio.app.ui.pages.elevations;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -30,55 +29,39 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
     }
 
     public List<String> getAllQuery() {
-        return searchConfigurationsManager.getAllQuery();
+        return searchConfigurationsManager.getAllQuery(collection);
     }
 
     public List<Elevations.QueryElevation.DocElevation> getElevations(String query) {
-        List<Elevations.QueryElevation.DocElevation> docElevations = searchConfigurationsManager.getDocElevation(query);
-        List<Elevations.QueryElevation.DocElevation> docElevationExcluded = new ArrayList<>();
-
-        for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext();) {
-            Elevations.QueryElevation.DocElevation docElevation = iterator.next();
-            if(!docElevation.isExclude()) {
-                docElevationExcluded.add(docElevation);
-            }
-        }
-
-        return docElevationExcluded;
+        return searchConfigurationsManager.getDocElevations(collection, query);
     }
 
-
-    public List<Elevations.QueryElevation.DocElevation> getExclusions(String query) {
-        List<Elevations.QueryElevation.DocElevation> docElevations = searchConfigurationsManager.getDocElevation(query);
-        List<Elevations.QueryElevation.DocElevation> docElevationExcluded = new ArrayList<>();
-
-        for(Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext();) {
-            Elevations.QueryElevation.DocElevation docElevation = iterator.next();
-            if(docElevation.isExclude()) {
-                docElevationExcluded.add(docElevation);
-            }
-        }
-
-        return docElevationExcluded;
+    public List<String> getExclusions() {
+        return searchConfigurationsManager.getDocExlusions(collection);
     }
 
-    public void cancelQueryElevationAndExclusionButtonClicked(String query) {
-        searchConfigurationsManager.removeQuery(query);
+    public void cancelAllElevationButtonClicked() {
+        searchConfigurationsManager.removeAllElevation(collection);
         view.navigate().to().editElevation();
     }
 
-    public void cancelQueryExclusionButtonClicked(String query) {
-        searchConfigurationsManager.removeAllExclusion(query);
+    public void cancelAllExclusionButtonClicked() {
+        searchConfigurationsManager.removeAllExclusion(collection);
+        view.navigate().to().editElevation();
+    }
+
+    public void cancelDocExclusionButtonClicked(String id) {
+        searchConfigurationsManager.removeExclusion(collection, id);
         view.navigate().to().editElevation();
     }
 
     public void cancelQueryElevationButtonClicked(String query) {
-        searchConfigurationsManager.removeAllElevation(query);
+        searchConfigurationsManager.removeQueryElevation(collection, query);
         view.navigate().to().editElevation();
     }
 
     public void cancelDocElevationButtonClicked(Elevations.QueryElevation.DocElevation docElevation) {
-        searchConfigurationsManager.removeElevated(docElevation.getQuery(), docElevation.getId());
+        searchConfigurationsManager.removeElevated(collection, docElevation.getQuery(), docElevation.getId());
         view.navigate().to().editElevation();
     }
 
@@ -88,6 +71,11 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
         try {
             record = schemasRecordsServices.get(id);
             title = record.getTitle();
+
+            Object url = record.get(Schemas.URL);
+            if(url != null) {
+                title = url.toString();
+            }
         } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
             title = id + " " + $("EditElevationView.notARecord");
         }

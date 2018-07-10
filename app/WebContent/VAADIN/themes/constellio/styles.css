@@ -1591,69 +1591,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 }
 
-.constellio .v-context-menu {
-	float: left;
-	font-family: Arial;
-	font-size: 12px;
-	background-color: #f0f0f0;
-	box-shadow: 5px 5px 10px #999;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	float: left;
-	clear: left;
-	height: 26px;
-	color: #222;
-	cursor: pointer;
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
-	border-bottom: 1px solid #d0d0d0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
-	background-color: #e0e0e0;
-	outline: none;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
-	opacity: 0.3;
-	filter: alpha(opacity = 30);
-	zoom: 1;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
-	float: left;
-	width: 26px;
-	height: 26px;
-	margin-right: 5px;
-	border-right: 1px solid #d0d0d0;
-	text-align: center;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
-	float: left;
-	width: 16px;
-	height: 16px;
-	padding: 5px;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-text {
-	float: left;
-	height: 26px;
-	line-height: 26px;
-	padding: 0 20px 0 10px;
-}
-
 .constellio.v-app, .constellio.v-app-loading {
 	font: 300 16px/1.55 "JF Flat", "Open Sans", sans-serif, FontAwesome;
 	color: #464646;
@@ -12928,9 +12865,27 @@ div.v-layout.v-horizontal.v-widget {
 	opacity: 0.5;
 }
 
+.constellio .information-capsule {
+	min-height: 38px;
+	position: relative;
+	border-radius: 10px;
+	padding: 10px 10px 10px 10px;
+	margin: 0 0 0 0px;
+	box-shadow: inset 0px 5px 15px -12px black;
+	background-color: #ebebeb;
+	background-image: url('images/icons/suggestion.png');
+	background-repeat: no-repeat;
+	background-position: left center;
+}
+
+.constellio .information-capsule .information-capsule-title {
+	font-weight: bold;
+	padding-left: 50px;
+}
+
 .constellio .information-capsule .information-capsule-content {
-	padding-left: 10px;
-	padding-right: 10px;
+	padding-bottom: 15px;
+	padding-left: 60px;
 }
 
 .constellio .thesaurus-disambiguation, .constellio .spell-checker {
@@ -13313,6 +13268,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 }
 
+.constellio .force-higher-opacity.v-textarea-force-higher-opacity {
+	opacity: 2 !important;
+}
+
 .constellio .base-form .v-slot-base-form-field .v-has-caption {
 	width: 100%;
 }
@@ -13668,6 +13627,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
+	padding-top: 8px;
 	font-size: 18px;
 	text-align: left;
 }
@@ -13696,9 +13656,11 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: bold;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-slot-search-result-elevation-buttons {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-elevation-buttons {
 	border: 1px solid #197de1;
 	border-radius: 4px;
+	margin-left: 10px;
+	margin-top: 3px;
 	padding-left: 5px;
 	padding-right: 5px;
 }
@@ -13988,6 +13950,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .v-table .v-scrollable {
 	overflow-x: hidden;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .stats-table-layout .v-table .v-scrollable {
+	overflow-x: auto;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .stats-table-layout .v-table .v-scrollable {
+	overflow-x: auto;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .batch-processes .v-table .v-scrollable {

@@ -789,6 +789,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("clickCount");
 		}
 
+		public Metadata clicks() {
+			return metadata("clicks");
+		}
+
 		public Metadata numFound() {
 			return metadata("numFound");
 		}
@@ -809,12 +813,20 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("qTime");
 		}
 
+		public Metadata dwellTime() {
+			return metadata("dwellTime");
+		}
+
 		public Metadata query() {
 			return metadata("query");
 		}
 
 		public Metadata username() {
 			return metadata("username");
+		}
+
+		public Metadata capsule() {
+			return metadata("capsule");
 		}
 	}
 	public TemporaryRecord wrapTemporaryRecord(Record record) {

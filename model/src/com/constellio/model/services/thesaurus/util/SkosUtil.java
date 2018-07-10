@@ -23,7 +23,7 @@ public class SkosUtil {
      * @return true if parsed strings are equal
      */
     public static boolean equalsWithParsing(String s1, String s2){
-        return parseForSearch(s1).equals(parseForSearch(s2));
+        return s1 != null && s2 != null ? parseForSearch(s1).equals(parseForSearch(s2)) : false;
     }
 
     /**
@@ -33,7 +33,7 @@ public class SkosUtil {
      * @return true if parsed strings are equal
      */
     public static boolean containsWithParsing(String container, String content){
-        return parseForSearch(container).contains(parseForSearch(content));
+        return container != null && content != null ? parseForSearch(container).contains(parseForSearch(content)) : false;
     }
 
     /**
@@ -42,7 +42,7 @@ public class SkosUtil {
      * @return the parsed input
      */
     public static String parseForSearch(String input) {
-        return AccentApostropheCleaner.removeAccents(input.trim().toLowerCase());
+        return input != null ? AccentApostropheCleaner.removeAccents(input.trim().toLowerCase()) : null;
     }
 
     /**

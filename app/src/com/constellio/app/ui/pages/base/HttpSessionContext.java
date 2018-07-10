@@ -18,9 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.model.entities.records.Record;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class HttpSessionContext extends BaseSessionContext {
 	
@@ -84,16 +81,6 @@ public class HttpSessionContext extends BaseSessionContext {
 	@Override
 	public Principal getUserPrincipal() {
 		return (Principal) getAttribute(USER_PRINCIPAL_ATTRIBUTE);
-	}
-
-	@Override
-	public SessionContext setCurrentSearchEventRecord(Record searchEvent) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public Record getCurrentSearchEventRecord() {
-		throw new NotImplementedException();
 	}
 
 	@Override

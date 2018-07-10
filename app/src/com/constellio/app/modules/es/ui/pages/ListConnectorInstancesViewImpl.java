@@ -135,7 +135,7 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 		table.setColumnHeader(ConnectorInstance.LAST_TRAVERSAL_ON, $("lastTraversalOn"));
 		table.setColumnHeader("documentsCount", $("documentsCount"));
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 200);
-		table.setColumnWidth("buttons", 200);
+		table.setColumnWidth("buttons", 120);
 		table.setPageLength(table.getItemIds().size());
 		table.setCaption(table.getPageLength() + " " + table.getCaption());
 

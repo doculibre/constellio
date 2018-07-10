@@ -63,14 +63,20 @@ subprojects {
         compile "org.apache.pdfbox:pdfbox:2.0.8"
         compile "org.apache.pdfbox:pdfbox-debugger:2.0.8"
         compile "org.apache.pdfbox:pdfbox-tools:2.0.8"
+        compile "org.apache.solr:solr-ltr:6.5.0"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
         compile name: 'mets-api'
+        
+		compile "com.j256.ormlite:ormlite-core:5.1"
+		compile "com.j256.ormlite:ormlite-jdbc:5.1"
+		compile "mysql:mysql-connector-java:5.1.20"
     }
 
     configurations {
         compile.exclude module: "asm-debug-all"
         compile.exclude module: "org.objectweb.asm"
+        compile.exclude group: 'asm', module: 'asm'
         compile.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
         runtime.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
 

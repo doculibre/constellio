@@ -54,6 +54,11 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 			return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 		}
 
+		@Override
+		public Class<String> getModelType() {
+			return String.class;
+		}
+
 	}
 
 }
