@@ -20,8 +20,7 @@ public class FolderUnicityMetadataParams {
         return metadataVO;
     }
 
-    public FolderUnicityMetadataParams setMetadataVO(MetadataVO metadata) {
+    public void setMetadataVO(MetadataVO metadata) {
         this.metadataVO = metadata;
-        return this;
     }
 }

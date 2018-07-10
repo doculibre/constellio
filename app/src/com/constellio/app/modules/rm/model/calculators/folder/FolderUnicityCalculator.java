@@ -130,16 +130,31 @@ public class FolderUnicityCalculator implements MetadataValueCalculator<String> 
 
     public static class DynamicMetadatasDependency extends DynamicLocalDependency {
 
+        private boolean isMultiValue;
+        private boolean isRequired;
+        private String localMetadataCode;
+
         @Override
         public boolean isDependentOf(Metadata metadata, Metadata aCalculatedMetadata) {
             Map modifiableMap = aCalculatedMetadata.getCustomParameter();
-
+            Metadata metadataDependedOn = null;
             List list = (List) modifiableMap.get(UNICITY_CONFIG);
 
             if (list != null) {
                 for (Map listItem : (List<Map>) list) {
-                    if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE)).equals(metadata.getLocalCode()) || metadata.getLocalCode()
+                    if(TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE)).equals(metadata.getLocalCode())) {
+                        metadataDependedOn = metadata;
+                    }
+
+                    if(metadata == null && metadata.getLocalCode()
                             .equals(Schemas.TITLE.getLocalCode())) {
+                        metadataDependedOn = metadata;
+                    }
+
+                    if (metadataDependedOn != null) {
+                        isMultiValue = metadataDependedOn.isMultivalue();
+                        isRequired = metadataDependedOn.isDefaultRequirement();
+                        localMetadataCode = metadataDependedOn.getLocalCode();
                         return true;
                     }
                 }
@@ -153,5 +168,19 @@ public class FolderUnicityCalculator implements MetadataValueCalculator<String> 
             return true;
         }
 
+        @Override
+        public boolean isMultivalue() {
+            return isMultiValue;
+        }
+
+        @Override
+        public boolean isRequired() {
+            return isRequired;
+        }
+
+        @Override
+        public String getLocalMetadataCode() {
+            return localMetadataCode;
+        }
     }
 }
