@@ -676,6 +676,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 												reindexationOptionForThisRecord, types, transaction);
 							}
 						} catch (RuntimeException e) {
+							e.printStackTrace();
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
 						}
 						validationServices.validateAccess(record, transaction);

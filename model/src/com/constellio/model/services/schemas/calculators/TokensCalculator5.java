@@ -18,9 +18,9 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 
 public class TokensCalculator5 implements MetadataValueCalculator<List<String>> {
 
@@ -37,15 +37,15 @@ public class TokensCalculator5 implements MetadataValueCalculator<List<String>> 
 		Set<String> tokens = new HashSet<>();
 		SecurityModel securityModel = parameters.get(securityModelSpecialDependency);
 		List<String> manualTokens = parameters.get(manualTokensParam);
-		List<Authorization> authorizations = securityModel.getAuthorizationsOnTarget(parameters.getId());
+		List<SecurityModelAuthorization> authorizations = securityModel.getAuthorizationsOnTarget(parameters.getId());
 
 		String typeSmallCode = parameters.getSchemaType().getSmallCode();
 		if (typeSmallCode == null) {
 			typeSmallCode = parameters.getSchemaType().getCode();
 		}
-		for (Authorization authorization : authorizations) {
-			for (String access : authorization.getDetail().getRoles()) {
-				for (String principalId : authorization.getGrantedToPrincipals()) {
+		for (SecurityModelAuthorization authorization : authorizations) {
+			for (String access : authorization.getDetails().getRoles()) {
+				for (String principalId : authorization.getPrincipalIds()) {
 					if (Role.READ.equals(access)) {
 						tokens.add("r_" + principalId);
 						tokens.add("r" + typeSmallCode + "_" + principalId);

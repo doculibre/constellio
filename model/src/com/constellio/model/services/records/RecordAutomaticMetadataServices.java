@@ -387,11 +387,15 @@ public class RecordAutomaticMetadataServices {
 		if (type.hasSecurity() && recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)
 				&& recordsCache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
+			RolesManager rolesManager = modelLayerFactory.getRolesManager();
+			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+
 			//TODO Put in singleton
-			SecurityModel singletonSecurityModel = buildSingletonSecurityModel(calculatedRecord, types);
+			SecurityModel singletonSecurityModel = buildSingletonSecurityModel(calculatedRecord, roles, types);
 
 			if (recordProvider.transaction != null) {
-				return new TransactionSecurityModel(singletonSecurityModel, recordProvider.transaction);
+				return new TransactionSecurityModel(types, roles, singletonSecurityModel, recordProvider.transaction);
+
 			} else {
 				return singletonSecurityModel;
 			}
@@ -402,9 +406,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	@NotNull
-	private SecurityModel buildSingletonSecurityModel(RecordImpl calculatedRecord, MetadataSchemaTypes types) {
-		RolesManager rolesManager = modelLayerFactory.getRolesManager();
-		Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+	private SecurityModel buildSingletonSecurityModel(RecordImpl calculatedRecord, Roles roles, MetadataSchemaTypes types) {
 
 		List<Group> groups = new ArrayList<>();
 		List<User> users = new ArrayList<>();

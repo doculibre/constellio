@@ -21,6 +21,12 @@ public class SecurityModelAuthorization {
 		this.details = details;
 	}
 
+	public SecurityModelAuthorization(SecurityModelAuthorization cloned) {
+		this.users = new ArrayList<>(cloned.users);
+		this.groups = new ArrayList<>(cloned.groups);
+		this.details = cloned.details;
+	}
+
 	public void addUser(User user) {
 		users.add(user);
 	}
@@ -33,11 +39,42 @@ public class SecurityModelAuthorization {
 		return users;
 	}
 
+	public List<String> getPrincipalIds() {
+		List<String> principalIds = new ArrayList<>();
+		for (User user : users) {
+			principalIds.add(user.getId());
+		}
+
+		for (Group group : groups) {
+			principalIds.add(group.getId());
+		}
+
+		return principalIds;
+	}
+
 	public List<Group> getGroups() {
 		return groups;
 	}
 
 	public AuthorizationDetails getDetails() {
 		return details;
+	}
+
+	public void removeUser(User user) {
+		for (int i = 0; i < users.size(); i++) {
+			if (users.get(i).getUsername().equals(user.getUsername())) {
+				users.remove(i);
+				break;
+			}
+		}
+	}
+
+	public void removeGroup(Group group) {
+		for (int i = 0; i < groups.size(); i++) {
+			if (groups.get(i).getCode().equals(group.getCode())) {
+				groups.remove(i);
+				break;
+			}
+		}
 	}
 }
