@@ -20,8 +20,10 @@
 package com.constellio.model.services.thesaurus;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings("serial")
@@ -48,6 +50,7 @@ public class SkosConcept implements Serializable {
 	public String getRdfAbout() {
 		return rdfAbout;
 	}
+
 
 	public void setRdfAbout(String rdfAbout) {
 		this.rdfAbout = rdfAbout;
@@ -116,18 +119,43 @@ public class SkosConcept implements Serializable {
 	public Set<ThesaurusLabel> getPrefLabels() {
 		return getLabels();
 	}
-	
+
 	public String getPrefLabel(Locale locale) {
 		return getLabel(PREF_LABEL, locale, false);
 	}
-	
+
+	Map<String, String> prefLabelWithoutParenthesesCache = new HashMap<>();
+
 	public String getPrefLabelWithoutParentheses(Locale locale) {
-		return getLabel(PREF_LABEL, locale, true);
+
+		String prefLabelWithoutParentheses = prefLabelWithoutParenthesesCache.get(locale.getLanguage());
+
+		if (prefLabelWithoutParentheses == null) {
+			prefLabelWithoutParentheses = getLabel(PREF_LABEL, locale, true);
+			prefLabelWithoutParenthesesCache.put(locale.getLanguage(), prefLabelWithoutParentheses);
+		}
+		return prefLabelWithoutParentheses;
+	}
+
+	Map<String, String> uppercasedPrefLabelWithoutParenthesesCache = new HashMap<>();
+
+	public String getUppercasedPrefLabelWithoutParentheses(Locale locale) {
+
+		String prefLabelWithoutParentheses = uppercasedPrefLabelWithoutParenthesesCache.get(locale.getLanguage());
+
+		if (prefLabelWithoutParentheses == null) {
+			prefLabelWithoutParentheses = getPrefLabelWithoutParentheses(locale);
+			if (prefLabelWithoutParentheses != null) {
+				prefLabelWithoutParentheses = prefLabelWithoutParentheses.toUpperCase();
+			}
+			uppercasedPrefLabelWithoutParenthesesCache.put(locale.getLanguage(), prefLabelWithoutParentheses);
+		}
+		return prefLabelWithoutParentheses;
 	}
 
 	private String getLabel(String prefLabel, Locale locale, boolean removeParentheses) {
 		String labelStr;
-	    ThesaurusLabel matchingLabel = null;
+		ThesaurusLabel matchingLabel = null;
 		for (ThesaurusLabel label : getLabels()) {
 			if (label.getKey().equals(prefLabel)) {
 				matchingLabel = label;
@@ -135,9 +163,9 @@ public class SkosConcept implements Serializable {
 			}
 		}
 		if (matchingLabel != null) {
-		    labelStr = matchingLabel.getValue(new Locale(locale.getLanguage()));
+			labelStr = matchingLabel.getValue(new Locale(locale.getLanguage()));
 		} else {
-		    labelStr = null;
+			labelStr = null;
 		}
 		if (labelStr != null && removeParentheses) {
 			labelStr = labelStr.replaceAll("[(][^)]*[)]", "").trim();
