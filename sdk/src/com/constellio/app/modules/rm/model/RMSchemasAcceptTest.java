@@ -12,6 +12,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -71,4 +73,19 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 				StorageSpace.SCHEMA_TYPE
 		);
 	}
+
+	@Test
+	public void givenASchemaTypeThenAccurateunr() {
+		MetadataSchemasManager schemaManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes schemaTypes = schemaManager.getSchemaTypes(zeCollection);
+
+		for (MetadataSchemaType schemaType : schemaTypes.getSchemaTypes()) {
+			for (Metadata metadata : schemaType.getDefaultSchema().getMetadatas().onlyWithType(MetadataValueType.REFERENCE)) {
+				System.out.println(metadata.getCode() + " : " + metadata.isDependencyOfAutomaticMetadata());
+			}
+		}
+	}
+
+
+
 }

@@ -538,8 +538,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesBuilder.build(typesFactory, modelLayerFactory);
 	}
 
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
-	public void givenThatTwoSchemasHasMutualDependenciesWithReferencesThenCannotBuild()
+	@Test
+	public void givenThatTwoSchemasHasMutualDependenciesWithReferencesNotUsedByAutomaticMetadataThenCannotBuild()
 			throws Exception {
 
 		MetadataBuilder zeSchemaMetadata = givenZeDefaultSchemaMetadata(REFERENCE);
@@ -552,7 +552,21 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
-	public void givenThatThreeSchemasHasMutualDependenciesToTypesWithReferencesThenCannotBuild()
+	public void givenThatTwoSchemasHasMutualDependenciesWithReferencesUsedByAutomaticMetadataThenCannotBuild()
+			throws Exception {
+
+		MetadataBuilder zeSchemaMetadata = givenZeDefaultSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder anotherSchemaMetadata = givenAnotherDefaultSchemaMetadata(REFERENCE)
+				.markAsDependencyOfAutomaticMetadata();
+
+		zeSchemaMetadata.defineReferences().set(anotherType);
+		anotherSchemaMetadata.defineReferences().set(zeType);
+
+		typesBuilder.build(typesFactory, modelLayerFactory);
+	}
+
+	@Test
+	public void givenThatThreeSchemasHasMutualDependenciesToTypesWithReferencesNotUsedByAutomaticMetadataThenCannotBuild()
 			throws Exception {
 
 		MetadataBuilder zeSchemaMetadata = givenZeDefaultSchemaMetadata(REFERENCE);
@@ -567,7 +581,23 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
-	public void givenThatThreeSchemasHasMutualDependenciesToSchemasWithReferencesThenCannotBuild()
+	public void givenThatThreeSchemasHasMutualDependenciesToTypesWithReferencesUsedByAutomaticMetadataThenCannotBuild()
+			throws Exception {
+
+		MetadataBuilder zeSchemaMetadata = givenZeDefaultSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder secondSchemaMetadata = givenAnotherDefaultSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder thirdSchemaMetadata = givenThirdTypeDefaultSchemaMetadata(REFERENCE)
+				.markAsDependencyOfAutomaticMetadata();
+
+		zeSchemaMetadata.defineReferences().set(anotherType);
+		secondSchemaMetadata.defineReferences().set(aThirdType);
+		thirdSchemaMetadata.defineReferences().set(zeType);
+
+		typesBuilder.build(typesFactory, modelLayerFactory);
+	}
+
+	@Test
+	public void givenThatThreeSchemasHasMutualDependenciesToSchemasNotUsedByAutomaticMetadataWithReferencesThenCannotBuild()
 			throws Exception {
 
 		MetadataBuilder zeSchemaMetadata = givenZeDefaultSchemaMetadata(REFERENCE);
@@ -582,12 +612,44 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
-	public void givenThatCustomSchemasHasMutualDependenciesToSchemasWithReferencesThenCannotBuild()
+	public void givenThatThreeSchemasHasMutualDependenciesToSchemasUsedByAutomaticMetadataWithReferencesThenCannotBuild()
+			throws Exception {
+
+		MetadataBuilder zeSchemaMetadata = givenZeDefaultSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder secondSchemaMetadata = givenAnotherDefaultSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder thirdSchemaMetadata = givenThirdTypeDefaultSchemaMetadata(REFERENCE)
+				.markAsDependencyOfAutomaticMetadata();
+
+		zeSchemaMetadata.defineReferences().add(anotherTypeDefaultSchema);
+		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
+		thirdSchemaMetadata.defineReferences().add(zeTypeCustomSchema);
+
+		typesBuilder.build(typesFactory, modelLayerFactory);
+	}
+
+	@Test
+	public void givenThatCustomSchemasHasMutualDependenciesToSchemasNotUsedByAutomaticMetadataWithReferencesThenCanBuild()
 			throws Exception {
 
 		MetadataBuilder zeSchemaMetadata = givenZeCustomSchemaMetadata(REFERENCE);
 		MetadataBuilder secondSchemaMetadata = givenAnotherCustomSchemaMetadata(REFERENCE);
 		MetadataBuilder thirdSchemaMetadata = givenThirdTypeDefaultSchemaMetadata(REFERENCE);
+
+		zeSchemaMetadata.defineReferences().add(anotherTypeDefaultSchema);
+		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
+		thirdSchemaMetadata.defineReferences().add(zeTypeCustomSchema);
+
+		typesBuilder.build(typesFactory, modelLayerFactory);
+	}
+
+	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas.class)
+	public void givenThatCustomSchemasHasMutualDependenciesToSchemasUsedByAutomaticMetadataWithReferencesThenCannotBuild()
+			throws Exception {
+
+		MetadataBuilder zeSchemaMetadata = givenZeCustomSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder secondSchemaMetadata = givenAnotherCustomSchemaMetadata(REFERENCE).markAsDependencyOfAutomaticMetadata();
+		MetadataBuilder thirdSchemaMetadata = givenThirdTypeDefaultSchemaMetadata(REFERENCE)
+				.markAsDependencyOfAutomaticMetadata();
 
 		zeSchemaMetadata.defineReferences().add(anotherTypeDefaultSchema);
 		secondSchemaMetadata.defineReferences().add(aThirdTypeCustomSchema);
