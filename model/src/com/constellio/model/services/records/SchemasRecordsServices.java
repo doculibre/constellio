@@ -10,6 +10,20 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -503,5 +517,9 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
 		return modelLayerFactory.newUserServices().getAllUsersInGroup(group, includeGroupInheritance, onlyActiveUsersAndGroups);
+	}
+
+	public ValueListItem newValueListItem(String schemaCode) {
+		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
 	}
 }
