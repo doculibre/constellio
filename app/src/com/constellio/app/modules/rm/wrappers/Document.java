@@ -29,6 +29,7 @@ public class Document extends RMObject {
 	public static final String COMMENTS = "comments";
 	public static final String FOLDER_BORROWED = Folder.BORROWED;
 	public static final String FOLDER_CATEGORY = Folder.CATEGORY;
+	public static final String FOLDER_CATEGORY_CODE = Folder.CATEGORY_CODE;
 	public static final String FOLDER_ADMINISTRATIVE_UNIT = Folder.ADMINISTRATIVE_UNIT;
 	public static final String FOLDER_FILING_SPACE = Folder.FILING_SPACE;
 	public static final String FOLDER_RETENTION_RULE = Folder.RETENTION_RULE;
