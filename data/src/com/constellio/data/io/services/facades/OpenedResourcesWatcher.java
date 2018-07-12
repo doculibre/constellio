@@ -34,7 +34,7 @@ public class OpenedResourcesWatcher {
 
 	public static synchronized <T> T onOpen(T resource) {
 		if (openedResources.containsKey(resource.toString())) {
-			throw new ImpossibleRuntimeException("Resource named " + resource.toString() + " is alredy opened");
+			throw new ImpossibleRuntimeException("Resource named " + resource.toString() + " is already opened");
 		}
 		openedResources.put(resource.toString(), resource);
 
