@@ -1,6 +1,7 @@
 package com.constellio.app.entities.calculators;
 
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -14,6 +15,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 import com.google.common.base.Strings;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -181,13 +183,10 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 									(dateformat)).format(value);
 					break;
 				case DATE_TIME:
-					if(value instanceof LocalDate) {
-						LocalDate localDateJoda = (LocalDate) value;
-						value = localDateJoda.toDate();
+					if(value instanceof LocalDateTime) {
+						LocalDateTime localDateTimeJoda = (LocalDateTime) value;
+						returnValue = DateFormatUtils.format(localDateTimeJoda);
 					}
-
-					returnValue = SimpleDateFormatSingleton
-							.getSimpleDateFormat(parameters.get(dateTimeformat)).format(value);
 					break;
 				case STRING:
 				returnValue = value.toString();

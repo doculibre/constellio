@@ -1,18 +1,5 @@
 package com.constellio.app.entities.calculators;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Locale;
-
-import com.constellio.model.services.records.RecordServicesException;
-import org.jetbrains.annotations.NotNull;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -23,9 +10,22 @@ import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnPresenter;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnView;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.jetbrains.annotations.NotNull;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Locale;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
@@ -211,7 +211,31 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 		assertThat(summary).isEqualTo("prefix1 : keyword1, keyword2, keyword3, prefix2 : 11B");
 	}
 
+	@Test
+	public void givenDateTimeInSummaryColumnThenFormatCorrectly() throws RecordServicesException {
+		SummaryColumnParams summaryColumnParams1 = new SummaryColumnParams();
+
+		summaryColumnParams1.setMetadataVO(findMetadata(Folder.BORROW_DATE));
+		summaryColumnParams1.setPrefix("prefix1 :");
+		summaryColumnParams1.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+
+		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams1);
+
+		Folder folder = createFolder();
+
+		folder.setBorrowDate(new LocalDateTime(2016, 11, 4, 10, 10));
+
+		recordServices.add(folder);
+
+		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
+
+		String summary = resultFolder.get(Folder.SUMMARY);
+
+		assertThat(summary).isEqualTo("prefix1 : 2016-11-04 10:10:00");
+	}
+
 	private MetadataVO findMetadata(String localCode) {
+
 		for (MetadataVO metadataVO : summaryColumnPresenter.getMetadatas()) {
 			if (metadataVO.getLocalCode().equalsIgnoreCase(localCode)) {
 				return metadataVO;
