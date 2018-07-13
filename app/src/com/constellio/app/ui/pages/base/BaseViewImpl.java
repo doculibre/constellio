@@ -315,21 +315,31 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		VerticalLayout actionMenuLayout;
 		actionMenuButtons = buildActionMenuButtons(event);
+
+		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+		}
+
 		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
 			actionMenuLayout = null;
 		} else {
 			actionMenuLayout = new VerticalLayout();
 			actionMenuLayout.setSizeUndefined();
-			
-			for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
-				actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
-			}
-			
+
+			int visibleButtons = 0;
 			for (Button actionMenuButton : actionMenuButtons) {
-				actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-				actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
-				actionMenuButton.addStyleName("action-menu-button");
-				actionMenuLayout.addComponent(actionMenuButton);
+				if (actionMenuButton.isVisible()) {
+					actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+					actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
+					actionMenuButton.addStyleName("action-menu-button");
+					actionMenuLayout.addComponent(actionMenuButton);
+
+					visibleButtons++;
+				}
+			}
+
+			if (visibleButtons == 0) {
+				actionMenuLayout = null;
 			}
 		}
 
