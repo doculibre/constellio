@@ -219,7 +219,13 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
 							//                            } else {
 							//                                return (int) ((start / rows) + 1);
 							//                            }
-							return getRecord().get(SearchEvent.LAST_PAGE_NAVIGATION);
+							Number value = getRecord().get(SearchEvent.LAST_PAGE_NAVIGATION);
+
+							if (value != null) {
+								return value.intValue();
+							} else {
+								return 1;
+							}
 						}
 					};
 				} else if (SOUS_COLLECTION.equals(id)) {
