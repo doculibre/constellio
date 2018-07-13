@@ -202,13 +202,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<String> result = new ArrayList<>();
 
 		ThesaurusService thesaurusService;
-		if((thesaurusService = thesaurusManager.get(collection)) != null) {
+		if ((thesaurusService = thesaurusManager.get(collection)) != null) {
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 
 			ResponseSkosConcept responseSkosConcept = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
 					language);
 
-			if(responseSkosConcept.getSuggestions() != null
+			if (responseSkosConcept.getSuggestions() != null
 					&& responseSkosConcept.getSuggestions().size() > 0) {
 
 				result = responseSkosConcept.getSuggestions().get(language.getLocale());
@@ -226,15 +226,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<String> result = new ArrayList<>();
 
 		ThesaurusService thesaurusService;
-		if((thesaurusService = thesaurusManager.get(collection)) != null) {
+		if ((thesaurusService = thesaurusManager.get(collection)) != null) {
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 
 			ResponseSkosConcept responseSkosConcept = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
 					language);
-			if(responseSkosConcept.getDisambiguations() != null
+			if (responseSkosConcept.getDisambiguations() != null
 					&& responseSkosConcept.getDisambiguations().size() > 0) {
 				result = responseSkosConcept.getDisambiguations().get(language.getLocale());
-				if(result.size() > 10) {
+				if (result.size() > 10) {
 					result = result.subList(0, 10);
 				}
 			}
@@ -330,13 +330,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		Capsule match = null;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			match = CapsuleUtils.findCapsule(collection, currentLocale.getLanguage(), getUserSearchExpression(), getSearchQuery());
+			match = CapsuleUtils
+					.findCapsule(collection, currentLocale.getLanguage(), getUserSearchExpression(), getSearchQuery());
 		}
 
 		return match;
 	}
 
-	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {
+	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider,
+			List<String> disambiguationSuggestions) {
 		if (dataProvider.size() != 0 || !disambiguationSuggestions.isEmpty()) {
 			return false;
 		}
@@ -439,7 +441,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		searchEvent.setClickCount(0);
 
 		Capsule capsule = getCapsuleForCurrentSearch();
-		if(capsule != null) {
+		if (capsule != null) {
 			searchEvent.setCapsule(capsule);
 		}
 
@@ -487,7 +489,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private void checkAndUpdateDwellTime(SearchEvent searchEvent) {
 		Long start = view.getUIContext().clearAttribute(SEARCH_EVENT_DWELL_TIME);
-		if(!ObjectUtils.allNotNull(searchEvent, start)) {
+		if (!ObjectUtils.allNotNull(searchEvent, start)) {
 			return;
 		}
 
@@ -512,13 +514,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 
 		for (String param : searchEvenFromSessionContext.getParams()) {
-			if (!searchEvent.getParams().contains(param)) {
+			if (!searchEvent.getParams().contains(param) && !param.startsWith("start=")) {
 				return false;
 			}
 		}
 
 		for (String param : searchEvent.getParams()) {
-			if (!searchEvenFromSessionContext.getParams().contains(param)) {
+			if (!searchEvenFromSessionContext.getParams().contains(param) && !param.startsWith("start=")) {
 				return false;
 			}
 		}
@@ -577,7 +579,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public List<ReportWithCaptionVO> getSupportedReports() {
 		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
 		if (view.computeStatistics()) {
-			supportedReports.add(new ReportWithCaptionVO("Reports.FolderLinearMeasureStats", $("Reports.FolderLinearMeasureStats")));
+			supportedReports
+					.add(new ReportWithCaptionVO("Reports.FolderLinearMeasureStats", $("Reports.FolderLinearMeasureStats")));
 		}
 		return supportedReports;
 	}
@@ -933,19 +936,20 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		List<String> params = new ArrayList<>(searchEvent.getParams());
 
+		int pageNumber = getPageNumber();
 		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
-		int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+		int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
 
 		ListIterator<String> listIterator = params.listIterator();
-		while(listIterator.hasNext()) {
+		while (listIterator.hasNext()) {
 			String param = listIterator.next();
 
-			if(StringUtils.startsWith(param, "start=")) {
-				listIterator.set("start="+start);
+			if (StringUtils.startsWith(param, "start=")) {
+				listIterator.set("start=" + start);
 			}
 
-			if(StringUtils.startsWith(param, "rows=")) {
-				listIterator.set("rows="+rows);
+			if (StringUtils.startsWith(param, "rows=")) {
+				listIterator.set("rows=" + rows);
 			}
 		}
 
@@ -962,6 +966,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
 			ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
 			searchEventServices.save(newSearchEvent);
+		} else {
+			searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 		}
 	}
 

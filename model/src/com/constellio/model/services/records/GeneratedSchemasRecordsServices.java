@@ -25,9 +25,8 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
+
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-
-
 
 	public SolrAuthorizationDetails wrapSolrAuthorizationDetails(Record record) {
 		return record == null ? null : new SolrAuthorizationDetails(record, getTypes());
@@ -53,15 +52,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
-		return wrapSolrAuthorizationDetails(get(authorizationDetails.schemaType(),id));
+		return wrapSolrAuthorizationDetails(get(authorizationDetails.schemaType(), id));
 	}
 
 	public List<SolrAuthorizationDetails> getSolrAuthorizationDetailss(List<String> ids) {
-		return wrapSolrAuthorizationDetailss(get(authorizationDetails.schemaType(),ids));
+		return wrapSolrAuthorizationDetailss(get(authorizationDetails.schemaType(), ids));
 	}
 
 	public SolrAuthorizationDetails getSolrAuthorizationDetailsWithLegacyId(String legacyId) {
-		return wrapSolrAuthorizationDetails(getByLegacyId(authorizationDetails.schemaType(),  legacyId));
+		return wrapSolrAuthorizationDetails(getByLegacyId(authorizationDetails.schemaType(), legacyId));
 	}
 
 	public SolrAuthorizationDetails newSolrAuthorizationDetails() {
@@ -74,6 +73,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_authorizationDetails_default authorizationDetails
 			= new SchemaTypeShortcuts_authorizationDetails_default("authorizationDetails_default");
+
 	public class SchemaTypeShortcuts_authorizationDetails_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_authorizationDetails_default(String schemaCode) {
 			super(schemaCode);
@@ -111,6 +111,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("targetSchemaType");
 		}
 	}
+
 	public Capsule wrapCapsule(Record record) {
 		return record == null ? null : new Capsule(record, getTypes());
 	}
@@ -135,11 +136,11 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Capsule getCapsule(String id) {
-		return wrapCapsule(get(capsule.schemaType(),id));
+		return wrapCapsule(get(capsule.schemaType(), id));
 	}
 
 	public List<Capsule> getCapsules(List<String> ids) {
-		return wrapCapsules(get(capsule.schemaType(),ids));
+		return wrapCapsules(get(capsule.schemaType(), ids));
 	}
 
 	public Capsule getCapsuleWithCode(String code) {
@@ -147,7 +148,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Capsule getCapsuleWithLegacyId(String legacyId) {
-		return wrapCapsule(getByLegacyId(capsule.schemaType(),  legacyId));
+		return wrapCapsule(getByLegacyId(capsule.schemaType(), legacyId));
 	}
 
 	public Capsule newCapsule() {
@@ -160,6 +161,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_capsule_default capsule
 			= new SchemaTypeShortcuts_capsule_default("capsule_default");
+
 	public class SchemaTypeShortcuts_capsule_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_capsule_default(String schemaCode) {
 			super(schemaCode);
@@ -177,6 +179,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("keywords");
 		}
 	}
+
 	public Collection wrapCollection(Record record) {
 		return record == null ? null : new Collection(record, getTypes());
 	}
@@ -201,11 +204,11 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Collection getCollection(String id) {
-		return wrapCollection(get(collection.schemaType(),id));
+		return wrapCollection(get(collection.schemaType(), id));
 	}
 
 	public List<Collection> getCollections(List<String> ids) {
-		return wrapCollections(get(collection.schemaType(),ids));
+		return wrapCollections(get(collection.schemaType(), ids));
 	}
 
 	public Collection getCollectionWithCode(String code) {
@@ -213,7 +216,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Collection getCollectionWithLegacyId(String legacyId) {
-		return wrapCollection(getByLegacyId(collection.schemaType(),  legacyId));
+		return wrapCollection(getByLegacyId(collection.schemaType(), legacyId));
 	}
 
 	public Collection newCollection() {
@@ -226,6 +229,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_collection_default collection
 			= new SchemaTypeShortcuts_collection_default("collection_default");
+
 	public class SchemaTypeShortcuts_collection_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_collection_default(String schemaCode) {
 			super(schemaCode);
@@ -251,6 +255,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("organizationNumber");
 		}
 	}
+
 	public EmailToSend wrapEmailToSend(Record record) {
 		return record == null ? null : new EmailToSend(record, getTypes());
 	}
@@ -275,15 +280,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public EmailToSend getEmailToSend(String id) {
-		return wrapEmailToSend(get(emailToSend.schemaType(),id));
+		return wrapEmailToSend(get(emailToSend.schemaType(), id));
 	}
 
 	public List<EmailToSend> getEmailToSends(List<String> ids) {
-		return wrapEmailToSends(get(emailToSend.schemaType(),ids));
+		return wrapEmailToSends(get(emailToSend.schemaType(), ids));
 	}
 
 	public EmailToSend getEmailToSendWithLegacyId(String legacyId) {
-		return wrapEmailToSend(getByLegacyId(emailToSend.schemaType(),  legacyId));
+		return wrapEmailToSend(getByLegacyId(emailToSend.schemaType(), legacyId));
 	}
 
 	public EmailToSend newEmailToSend() {
@@ -296,6 +301,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_emailToSend_default emailToSend
 			= new SchemaTypeShortcuts_emailToSend_default("emailToSend_default");
+
 	public class SchemaTypeShortcuts_emailToSend_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_emailToSend_default(String schemaCode) {
 			super(schemaCode);
@@ -341,6 +347,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("tryingCount");
 		}
 	}
+
 	public Event wrapEvent(Record record) {
 		return record == null ? null : new Event(record, getTypes());
 	}
@@ -365,15 +372,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Event getEvent(String id) {
-		return wrapEvent(get(event.schemaType(),id));
+		return wrapEvent(get(event.schemaType(), id));
 	}
 
 	public List<Event> getEvents(List<String> ids) {
-		return wrapEvents(get(event.schemaType(),ids));
+		return wrapEvents(get(event.schemaType(), ids));
 	}
 
 	public Event getEventWithLegacyId(String legacyId) {
-		return wrapEvent(getByLegacyId(event.schemaType(),  legacyId));
+		return wrapEvent(getByLegacyId(event.schemaType(), legacyId));
 	}
 
 	public Event newEvent() {
@@ -386,6 +393,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_event_default event
 			= new SchemaTypeShortcuts_event_default("event_default");
+
 	public class SchemaTypeShortcuts_event_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_event_default(String schemaCode) {
 			super(schemaCode);
@@ -439,6 +447,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("username");
 		}
 	}
+
 	public Facet wrapFacet(Record record) {
 		return record == null ? null : new Facet(record, getTypes());
 	}
@@ -463,15 +472,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Facet getFacet(String id) {
-		return wrapFacet(get(facet.schemaType(),id));
+		return wrapFacet(get(facet.schemaType(), id));
 	}
 
 	public List<Facet> getFacets(List<String> ids) {
-		return wrapFacets(get(facet.schemaType(),ids));
+		return wrapFacets(get(facet.schemaType(), ids));
 	}
 
 	public Facet getFacetWithLegacyId(String legacyId) {
-		return wrapFacet(getByLegacyId(facet.schemaType(),  legacyId));
+		return wrapFacet(getByLegacyId(facet.schemaType(), legacyId));
 	}
 
 	public Facet newFacet() {
@@ -484,6 +493,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_facet_default facet
 			= new SchemaTypeShortcuts_facet_default("facet_default");
+
 	public class SchemaTypeShortcuts_facet_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_facet_default(String schemaCode) {
 			super(schemaCode);
@@ -525,6 +535,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("usedByModule");
 		}
 	}
+
 	public Group wrapGroup(Record record) {
 		return record == null ? null : new Group(record, getTypes());
 	}
@@ -549,11 +560,11 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Group getGroup(String id) {
-		return wrapGroup(get(group.schemaType(),id));
+		return wrapGroup(get(group.schemaType(), id));
 	}
 
 	public List<Group> getGroups(List<String> ids) {
-		return wrapGroups(get(group.schemaType(),ids));
+		return wrapGroups(get(group.schemaType(), ids));
 	}
 
 	public Group getGroupWithCode(String code) {
@@ -561,7 +572,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Group getGroupWithLegacyId(String legacyId) {
-		return wrapGroup(getByLegacyId(group.schemaType(),  legacyId));
+		return wrapGroup(getByLegacyId(group.schemaType(), legacyId));
 	}
 
 	public Group newGroup() {
@@ -574,6 +585,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_group_default group
 			= new SchemaTypeShortcuts_group_default("group_default");
+
 	public class SchemaTypeShortcuts_group_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_group_default(String schemaCode) {
 			super(schemaCode);
@@ -603,6 +615,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("title");
 		}
 	}
+
 	public Printable wrapPrintable(Record record) {
 		return record == null ? null : new Printable(record, getTypes());
 	}
@@ -627,15 +640,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Printable getPrintable(String id) {
-		return wrapPrintable(get(printable.schemaType(),id));
+		return wrapPrintable(get(printable.schemaType(), id));
 	}
 
 	public List<Printable> getPrintables(List<String> ids) {
-		return wrapPrintables(get(printable.schemaType(),ids));
+		return wrapPrintables(get(printable.schemaType(), ids));
 	}
 
 	public Printable getPrintableWithLegacyId(String legacyId) {
-		return wrapPrintable(getByLegacyId(printable.schemaType(),  legacyId));
+		return wrapPrintable(getByLegacyId(printable.schemaType(), legacyId));
 	}
 
 	public Printable newPrintable() {
@@ -648,6 +661,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_printable_default printable
 			= new SchemaTypeShortcuts_printable_default("printable_default");
+
 	public class SchemaTypeShortcuts_printable_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_printable_default(String schemaCode) {
 			super(schemaCode);
@@ -661,6 +675,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("jasperfile");
 		}
 	}
+
 	public Report wrapReport(Record record) {
 		return record == null ? null : new Report(record, getTypes());
 	}
@@ -685,15 +700,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public Report getReport(String id) {
-		return wrapReport(get(report.schemaType(),id));
+		return wrapReport(get(report.schemaType(), id));
 	}
 
 	public List<Report> getReports(List<String> ids) {
-		return wrapReports(get(report.schemaType(),ids));
+		return wrapReports(get(report.schemaType(), ids));
 	}
 
 	public Report getReportWithLegacyId(String legacyId) {
-		return wrapReport(getByLegacyId(report.schemaType(),  legacyId));
+		return wrapReport(getByLegacyId(report.schemaType(), legacyId));
 	}
 
 	public Report newReport() {
@@ -706,6 +721,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_report_default report
 			= new SchemaTypeShortcuts_report_default("report_default");
+
 	public class SchemaTypeShortcuts_report_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_report_default(String schemaCode) {
 			super(schemaCode);
@@ -735,6 +751,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("username");
 		}
 	}
+
 	public SearchEvent wrapSearchEvent(Record record) {
 		return record == null ? null : new SearchEvent(record, getTypes());
 	}
@@ -759,15 +776,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public SearchEvent getSearchEvent(String id) {
-		return wrapSearchEvent(get(searchEvent.schemaType(),id));
+		return wrapSearchEvent(get(searchEvent.schemaType(), id));
 	}
 
 	public List<SearchEvent> getSearchEvents(List<String> ids) {
-		return wrapSearchEvents(get(searchEvent.schemaType(),ids));
+		return wrapSearchEvents(get(searchEvent.schemaType(), ids));
 	}
 
 	public SearchEvent getSearchEventWithLegacyId(String legacyId) {
-		return wrapSearchEvent(getByLegacyId(searchEvent.schemaType(),  legacyId));
+		return wrapSearchEvent(getByLegacyId(searchEvent.schemaType(), legacyId));
 	}
 
 	public SearchEvent newSearchEvent() {
@@ -780,6 +797,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_searchEvent_default searchEvent
 			= new SchemaTypeShortcuts_searchEvent_default("searchEvent_default");
+
 	public class SchemaTypeShortcuts_searchEvent_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_searchEvent_default(String schemaCode) {
 			super(schemaCode);
@@ -803,6 +821,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 		public Metadata pageNavigationCount() {
 			return metadata("pageNavigationCount");
+		}
+
+		public Metadata lastPageNavigation() {
+			return metadata("lastPageNavigation");
 		}
 
 		public Metadata params() {
@@ -829,6 +851,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("capsule");
 		}
 	}
+
 	public TemporaryRecord wrapTemporaryRecord(Record record) {
 		return record == null ? null : new TemporaryRecord(record, getTypes());
 	}
@@ -853,15 +876,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public TemporaryRecord getTemporaryRecord(String id) {
-		return wrapTemporaryRecord(get(temporaryRecord.schemaType(),id));
+		return wrapTemporaryRecord(get(temporaryRecord.schemaType(), id));
 	}
 
 	public List<TemporaryRecord> getTemporaryRecords(List<String> ids) {
-		return wrapTemporaryRecords(get(temporaryRecord.schemaType(),ids));
+		return wrapTemporaryRecords(get(temporaryRecord.schemaType(), ids));
 	}
 
 	public TemporaryRecord getTemporaryRecordWithLegacyId(String legacyId) {
-		return wrapTemporaryRecord(getByLegacyId(temporaryRecord.schemaType(),  legacyId));
+		return wrapTemporaryRecord(getByLegacyId(temporaryRecord.schemaType(), legacyId));
 	}
 
 	public TemporaryRecord newTemporaryRecord() {
@@ -874,6 +897,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_temporaryRecord_default temporaryRecord
 			= new SchemaTypeShortcuts_temporaryRecord_default("temporaryRecord_default");
+
 	public class SchemaTypeShortcuts_temporaryRecord_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_temporaryRecord_default(String schemaCode) {
 			super(schemaCode);
@@ -895,6 +919,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("title");
 		}
 	}
+
 	public ThesaurusConfig wrapThesaurusConfig(Record record) {
 		return record == null ? null : new ThesaurusConfig(record, getTypes());
 	}
@@ -919,15 +944,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public ThesaurusConfig getThesaurusConfig(String id) {
-		return wrapThesaurusConfig(get(thesaurusConfig.schemaType(),id));
+		return wrapThesaurusConfig(get(thesaurusConfig.schemaType(), id));
 	}
 
 	public List<ThesaurusConfig> getThesaurusConfigs(List<String> ids) {
-		return wrapThesaurusConfigs(get(thesaurusConfig.schemaType(),ids));
+		return wrapThesaurusConfigs(get(thesaurusConfig.schemaType(), ids));
 	}
 
 	public ThesaurusConfig getThesaurusConfigWithLegacyId(String legacyId) {
-		return wrapThesaurusConfig(getByLegacyId(thesaurusConfig.schemaType(),  legacyId));
+		return wrapThesaurusConfig(getByLegacyId(thesaurusConfig.schemaType(), legacyId));
 	}
 
 	public ThesaurusConfig newThesaurusConfig() {
@@ -940,6 +965,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_thesaurusConfig_default thesaurusConfig
 			= new SchemaTypeShortcuts_thesaurusConfig_default("thesaurusConfig_default");
+
 	public class SchemaTypeShortcuts_thesaurusConfig_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_thesaurusConfig_default(String schemaCode) {
 			super(schemaCode);
@@ -953,8 +979,11 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("deniedWord");
 		}
 	}
+
 	public abstract User wrapUser(Record record);
+
 	public abstract List<User> wrapUsers(List<Record> records);
+
 	public List<User> searchUsers(LogicalSearchQuery query) {
 		return wrapUsers(modelLayerFactory.newSearchServices().search(query));
 	}
@@ -966,15 +995,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public User getUser(String id) {
-		return wrapUser(get(user.schemaType(),id));
+		return wrapUser(get(user.schemaType(), id));
 	}
 
 	public List<User> getUsers(List<String> ids) {
-		return wrapUsers(get(user.schemaType(),ids));
+		return wrapUsers(get(user.schemaType(), ids));
 	}
 
 	public User getUserWithLegacyId(String legacyId) {
-		return wrapUser(getByLegacyId(user.schemaType(),  legacyId));
+		return wrapUser(getByLegacyId(user.schemaType(), legacyId));
 	}
 
 	public User newUser() {
@@ -987,6 +1016,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_user_default user
 			= new SchemaTypeShortcuts_user_default("user_default");
+
 	public class SchemaTypeShortcuts_user_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_user_default(String schemaCode) {
 			super(schemaCode);
@@ -1104,6 +1134,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("visibleTableColumns");
 		}
 	}
+
 	public UserDocument wrapUserDocument(Record record) {
 		return record == null ? null : new UserDocument(record, getTypes());
 	}
@@ -1128,15 +1159,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public UserDocument getUserDocument(String id) {
-		return wrapUserDocument(get(userDocument.schemaType(),id));
+		return wrapUserDocument(get(userDocument.schemaType(), id));
 	}
 
 	public List<UserDocument> getUserDocuments(List<String> ids) {
-		return wrapUserDocuments(get(userDocument.schemaType(),ids));
+		return wrapUserDocuments(get(userDocument.schemaType(), ids));
 	}
 
 	public UserDocument getUserDocumentWithLegacyId(String legacyId) {
-		return wrapUserDocument(getByLegacyId(userDocument.schemaType(),  legacyId));
+		return wrapUserDocument(getByLegacyId(userDocument.schemaType(), legacyId));
 	}
 
 	public UserDocument newUserDocument() {
@@ -1149,6 +1180,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_userDocument_default userDocument
 			= new SchemaTypeShortcuts_userDocument_default("userDocument_default");
+
 	public class SchemaTypeShortcuts_userDocument_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userDocument_default(String schemaCode) {
 			super(schemaCode);
@@ -1174,6 +1206,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("userFolder");
 		}
 	}
+
 	public UserFolder wrapUserFolder(Record record) {
 		return record == null ? null : new UserFolder(record, getTypes());
 	}
@@ -1198,15 +1231,15 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	}
 
 	public UserFolder getUserFolder(String id) {
-		return wrapUserFolder(get(userFolder.schemaType(),id));
+		return wrapUserFolder(get(userFolder.schemaType(), id));
 	}
 
 	public List<UserFolder> getUserFolders(List<String> ids) {
-		return wrapUserFolders(get(userFolder.schemaType(),ids));
+		return wrapUserFolders(get(userFolder.schemaType(), ids));
 	}
 
 	public UserFolder getUserFolderWithLegacyId(String legacyId) {
-		return wrapUserFolder(getByLegacyId(userFolder.schemaType(),  legacyId));
+		return wrapUserFolder(getByLegacyId(userFolder.schemaType(), legacyId));
 	}
 
 	public UserFolder newUserFolder() {
@@ -1219,6 +1252,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 	public final SchemaTypeShortcuts_userFolder_default userFolder
 			= new SchemaTypeShortcuts_userFolder_default("userFolder_default");
+
 	public class SchemaTypeShortcuts_userFolder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userFolder_default(String schemaCode) {
 			super(schemaCode);
@@ -1240,9 +1274,8 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("user");
 		}
 	}
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
 }

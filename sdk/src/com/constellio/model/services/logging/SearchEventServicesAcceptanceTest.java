@@ -91,14 +91,17 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
 		for (int i = 0; i < 5000; i++) {
 			searchEventServices.incrementClickCounter("search1");
+			searchEventServices.setLastPageNavigation("search1", 5000 / 2);
 		}
 		for (int i = 0; i < 500; i++) {
 			searchEventServices.incrementClickCounter("search2");
 			searchEventServices.incrementPageNavigationCounter("search2");
+			searchEventServices.setLastPageNavigation("search2", 505 - i);
 		}
 		for (int i = 0; i < 2500; i++) {
 			searchEventServices.incrementClickCounter("search3");
 			searchEventServices.incrementPageNavigationCounter("search3");
+			searchEventServices.setLastPageNavigation("search3", 42);
 		}
 
 		long timeStampAfter = new Date().getTime();
@@ -114,10 +117,13 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 		assertThat(event1.getPageNavigationCount()).isEqualTo(0);
 		assertThat(event1.getNumFound()).isEqualTo(3000);
 		assertThat(event1.getQTime()).isEqualTo(100);
+		assertThat(event1.getLastPageNavigation()).isEqualTo(2500);
 		assertThat(event2.getClickCount()).isEqualTo(500);
 		assertThat(event2.getPageNavigationCount()).isEqualTo(500);
+		assertThat(event2.getLastPageNavigation()).isEqualTo(6);
 		assertThat(event3.getClickCount()).isEqualTo(2500);
 		assertThat(event3.getPageNavigationCount()).isEqualTo(2500);
+		assertThat(event3.getLastPageNavigation()).isEqualTo(42);
 
 	}
 
