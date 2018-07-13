@@ -41,7 +41,7 @@ public class RMListSchemaExtention extends ListSchemaExtention {
                     String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);
                     listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderUnicityConfigurator(params);
                 }
-            }, $("ListSchemaViewImpl.menu.unicityConfiguration"), null));
+            }, $("ListSchemaViewImpl.menu.unicityConfiguration"), new ThemeResource("images/icons/config/display-config-unicity-column.png")));
         }
 
         return listSchemaExtraCommandParams1;
