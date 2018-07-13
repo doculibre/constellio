@@ -305,6 +305,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			if (presenter.isSequenceTable(currentConcept)) {
 				actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
 			}
+		}
 
 		return actionMenuButtons;
 	}
