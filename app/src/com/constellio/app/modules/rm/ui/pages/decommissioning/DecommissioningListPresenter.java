@@ -240,10 +240,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return;
 		}
 //TODO show error message if exception is thrown
-		try {		decommissioningService().decommission(decommissioningList(), getCurrentUser());
-		view.showMessage($(mayContainAnalogicalMedia() ?
-				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
-		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);} catch (RecordServicesWrapperRuntimeException e) {
+		try {
+			decommissioningService().decommission(decommissioningList(), getCurrentUser());
+			view.showMessage($(mayContainAnalogicalMedia() ?
+					"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
+			view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+		} catch (RecordServicesWrapperRuntimeException e) {
 			RecordServicesException wrappedException = e.getWrappedException();
 			if(wrappedException instanceof RecordServicesException.ValidationException) {
 				view.showErrorMessage($(((RecordServicesException.ValidationException) wrappedException).getErrors()));
@@ -947,6 +949,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			decommissioningList.setComments(comments);
 		}
 
-		decommissioningService().denyApprovalOnList(decommissioningList);
+		decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
 	}
 }

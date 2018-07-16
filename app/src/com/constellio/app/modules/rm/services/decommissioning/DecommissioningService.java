@@ -278,8 +278,8 @@ public class DecommissioningService {
 		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
-	public void denyApprovalOnList(DecommissioningList decommissioningList) {
-		decommissioner(decommissioningList).denyApproval(decommissioningList);
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment) {
+		decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
 	}
 
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)

@@ -458,6 +458,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					protected void buttonClick(ClickEvent event) {
 						String value = comments.getValue();
 						presenter.denyApproval(value);
+						getWindow().close();
+						navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 					}
 				};
 				sendButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
