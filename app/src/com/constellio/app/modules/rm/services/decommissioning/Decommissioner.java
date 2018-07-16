@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -7,8 +8,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -41,8 +53,12 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class Decommissioner {
+	private final static Logger LOGGER = LoggerFactory.getLogger(Decommissioner.class);
 	protected final DecommissioningService decommissioningService;
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
@@ -117,6 +133,77 @@ public abstract class Decommissioner {
 		execute(false);
 	}
 
+	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment) {
+		prepare(decommissioningList, user, processingDate);
+		String approvalRequester = decommissioningList.getApprovalRequest();
+		removeApprovalRequest();
+		execute(false);
+		alertDenyApproval(decommissioningList, approvalRequester, denier, comment);
+	}
+
+	private void alertDenyApproval(DecommissioningList decommissioningList, String approvalRequester, User denier, String comment) {
+		try {
+			String displayURL = "";
+			if(decommissioningList.getDecommissioningListType() != null) {
+				switch (decommissioningList.getDecommissioningListType()) {
+					case FOLDERS_TO_TRANSFER:
+					case FOLDERS_TO_DESTROY:
+					case FOLDERS_TO_DEPOSIT:
+					case FOLDERS_TO_CLOSE:
+						displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
+						break;
+					default:
+						displayURL = RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY;
+						break;
+				}
+			}
+
+			Transaction transaction = new Transaction();
+			String collection = decommissioningList.getCollection();
+			EmailToSend emailToSend = newEmailToSend(collection);
+			List<EmailAddress> emailAddresses = new ArrayList<>();
+
+			User requester = rm.getUser(approvalRequester);
+			emailAddresses.add(new EmailAddress(requester.getTitle(), requester.getEmail()));
+			LocalDateTime creationDate = TimeProvider.getLocalDateTime();
+			emailToSend.setTo(emailAddresses);
+			emailToSend.setSendOn(creationDate);
+			final String subject = $("RMObject.denyApproval", decommissioningList.getTitle());
+			emailToSend.setSubject(subject);
+			emailToSend.setTemplate(RMEmailTemplateConstants.APPROVAL_REQUEST_DENIED_TEMPLATE_ID);
+			List<String> parameters = new ArrayList<>();
+			parameters.add("denyDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
+			parameters.add("denier" + EmailToSend.PARAMETER_SEPARATOR + denier.getFirstName() + " " + denier.getLastName() +
+					" (" + denier.getUsername() + ")");
+			parameters.add("comment" + EmailToSend.PARAMETER_SEPARATOR + StringUtils.defaultIfBlank(comment, ""));
+			String rmObjectTitle = decommissioningList.getTitle();
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+			String constellioUrl = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory()).getConstellioUrl();
+			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + decommissioningList.getId());
+			emailToSend.setParameters(parameters);
+			transaction.add(emailToSend);
+
+			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			LOGGER.error("Cannot alert users", e);
+		}
+	}
+
+	private String formatDateToParameter(LocalDateTime datetime) {
+		if(datetime == null) {
+			return "";
+		}
+		return datetime.toString("yyyy-MM-dd  HH:mm:ss");
+	}
+
+	private EmailToSend newEmailToSend(String collection) {
+		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		MetadataSchema schema = types.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
+		Record emailToSendRecord = appLayerFactory.getModelLayerFactory().newRecordServices().newRecordWithSchema(schema);
+		return new EmailToSend(emailToSendRecord, types);
+	}
+
 	protected void approveFolders() {
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
 			if (detail.isFolderExcluded()) {
@@ -131,6 +218,10 @@ public abstract class Decommissioner {
 
 	private void markApproved() {
 		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
+	}
+
+	private void removeApprovalRequest() {
+		add(decommissioningList.setApprovalRequestDate(null).setApprovalRequest((User) null));
 	}
 
 	protected void removeManualArchivisticStatus(Folder folder) {
