@@ -134,6 +134,9 @@ public class MetadataBuilder {
 
 	MetadataBuilder markAsDependencyOfAutomaticMetadata() {
 		dependencyOfAutomaticMetadata = true;
+		if (this.inheritance != null) {
+			this.inheritance.dependencyOfAutomaticMetadata = true;
+		}
 		return this;
 	}
 

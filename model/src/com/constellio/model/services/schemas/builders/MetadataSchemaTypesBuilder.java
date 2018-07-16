@@ -77,8 +77,8 @@ public class MetadataSchemaTypesBuilder {
 
 	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 
-		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 		validateAutomaticMetadatas();
+		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
@@ -273,11 +273,16 @@ public class MetadataSchemaTypesBuilder {
 		for (MetadataSchemaTypeBuilder metadataSchemaType : schemaTypes) {
 			Set<String> types = new HashSet<>();
 			for (MetadataBuilder metadata : metadataSchemaType.getAllMetadatas()) {
-				if (metadata.getType() == REFERENCE && (metadata.isDependencyOfAutomaticMetadata() || metadata
-						.isChildOfRelationship() || metadata.isTaxonomyRelationship())) {
+
+				if (metadata.getType() == REFERENCE) {
 					if (metadata.allowedReferencesBuilder == null) {
 						throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(metadata.getCode());
 					}
+				}
+
+				if (metadata.getType() == REFERENCE && (metadata.isDependencyOfAutomaticMetadata() || metadata
+						.isChildOfRelationship() || metadata.isTaxonomyRelationship())) {
+
 					types.add(metadata.allowedReferencesBuilder.getSchemaType());
 					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
 						types.add(newSchemaUtils().getSchemaTypeCode(schema));
@@ -368,6 +373,7 @@ public class MetadataSchemaTypesBuilder {
 							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 				}
 
+				metadataBuilder.markAsDependencyOfAutomaticMetadata();
 				try {
 					validateDependenciesTypes(metadataBuilder, dependencies);
 				} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
