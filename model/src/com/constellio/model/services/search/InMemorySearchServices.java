@@ -3,6 +3,7 @@ package com.constellio.model.services.search;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -12,15 +13,20 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.memoryConditions.CompositeMemoryCondition;
+import com.constellio.model.services.search.memoryConditions.ContainMemoryCondition;
 import com.constellio.model.services.search.memoryConditions.EqualMemoryCondition;
 import com.constellio.model.services.search.memoryConditions.InMemoryCondition;
+import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
-import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.*;
+import com.constellio.model.services.search.query.logical.criteria.IsContainingElementsCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+
+import static com.constellio.model.services.search.query.logical.LogicalOperator.AND;
 
 public class InMemorySearchServices {
 
@@ -32,6 +38,8 @@ public class InMemorySearchServices {
 		this.caches = modelLayerFactory.getRecordsCaches();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	}
+
+
 
 	public boolean isExecutableInCache(LogicalSearchQuery query) {
 
@@ -85,29 +93,58 @@ public class InMemorySearchServices {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(type.getCollection());
 		LogicalSearchCondition condition = query.getCondition();
 
+
 		InMemoryCondition builtInMemoryCondition;
 		if (condition instanceof DataStoreFieldLogicalSearchCondition) {
 			DataStoreFieldLogicalSearchCondition fieldCondition = (DataStoreFieldLogicalSearchCondition) condition;
-
-			DataStoreField field = fieldCondition.getDataStoreFields().get(0);
 			//TODO Support multiple metadatas
 
 			LogicalSearchValueCondition valueCondition = fieldCondition.getValueCondition();
+			LogicalOperator operator = ((DataStoreFieldLogicalSearchCondition) condition).getMetadataLogicalOperator();
 
-			if (valueCondition instanceof IsEqualCriterion) {
+			InMemoryCondition composite = null;
+			for (DataStoreField field : fieldCondition.getDataStoreFields()) {
 
-				builtInMemoryCondition = new EqualMemoryCondition(types, field, ((IsEqualCriterion) valueCondition).getValue());
+				if (valueCondition instanceof IsEqualCriterion) {
 
-			} else {
-				throw new ImpossibleRuntimeException("Unsupported query");
+					builtInMemoryCondition = new EqualMemoryCondition(types, field, ((IsEqualCriterion) valueCondition).getValue());
+					composite = new CompositeMemoryCondition(operator);
+					((CompositeMemoryCondition) composite).addconditions(builtInMemoryCondition);
+
+
+				} else {
+                    if (valueCondition instanceof IsContainingElementsCriterion) {
+
+                        builtInMemoryCondition = new ContainMemoryCondition(((IsContainingElementsCriterion) valueCondition).getElements(), field, condition);
+                        composite = new CompositeMemoryCondition(operator);
+                        ((CompositeMemoryCondition) composite).addconditions(builtInMemoryCondition);
+
+
+                    }
+                    throw new ImpossibleRuntimeException("Unsupported query");
+				}
+			}
+			return composite;
+		} else {
+            InMemoryCondition composite = null;
+			if(condition instanceof CompositeLogicalSearchCondition){
+
+				LogicalOperator operator = ((CompositeLogicalSearchCondition) condition).getLogicalOperator();
+				for (LogicalSearchCondition conditionone : ((CompositeLogicalSearchCondition) condition).getNestedSearchConditions()) {
+					composite = new CompositeMemoryCondition(operator);
+					((CompositeMemoryCondition) composite).addconditions((InMemoryCondition) conditionone);
+				}
+                return composite;
+
+            }else {
+					throw new ImpossibleRuntimeException("Unsupported query");
+				}
+
 			}
 
-		} else {
-			throw new ImpossibleRuntimeException("Unsupported query");
-		}
 
-		return builtInMemoryCondition;
-
+        
+       
 	}
 
 	private MetadataSchemaType getSchemaTypeOfQuery(LogicalSearchQuery query) {
