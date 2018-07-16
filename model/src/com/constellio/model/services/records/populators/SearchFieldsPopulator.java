@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -41,13 +43,17 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	ConstellioEIMConfigs systemConf;
 
+	ModelLayerExtensions extensions;
+
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
+								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf,
+								 ModelLayerExtensions extensions) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
 		this.systemConf = systemConf;
+		this.extensions = extensions;
 	}
 
 	@Override
@@ -103,7 +109,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				return populateCopyFieldsOfMultivalueSearchableNumberMetadata(values, metadata.getLocalCode());
 
 			} else if (!metadata.isMultivalue() && metadata.getType().isStringOrText()) {
-				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, copiedMetadataCodePrefix, metadata);
 
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.DATE)) {
 				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, copiedMetadataCodePrefix);
@@ -181,7 +187,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value,
-			String copiedMetadataCodePrefix) {
+																					  String copiedMetadataCodePrefix, Metadata metadata) {
 
 		String valueLanguage = collectionLanguages.get(0);
 
@@ -189,7 +195,9 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		for (String collectionLanguage : collectionLanguages) {
 			String fieldCode = copiedMetadataCodePrefix + collectionLanguage;
 			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				copyfields.put(fieldCode, value);
+				SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value);
+				Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
+				copyfields.put(fieldCode, finalValue);
 			} else {
 				copyfields.put(fieldCode, "");
 			}

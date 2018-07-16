@@ -148,7 +148,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
 		this.collectionsManager = add(
-				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
+				new CollectionsManager(this, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
 			newMigrationServices().migrate(null, false);

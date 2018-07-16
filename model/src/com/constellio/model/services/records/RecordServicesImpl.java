@@ -1043,7 +1043,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages, systemConfigs));
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages, systemConfigs, modelLayerFactory.getExtensions()));
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory));
 
 			Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {

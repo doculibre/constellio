@@ -1,5 +1,6 @@
 package com.constellio.model.extensions;
 
+import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -300,4 +301,14 @@ public class ModelLayerCollectionExtensions {
 
 		return new ArrayList<>(allowedMetadatas);
     }
+
+	public Object populateSearchField(final SearchFieldPopulatorParams params) {
+		for (SchemaExtension extension : schemaExtensions) {
+			Object populateResult = extension.populateSearchField(params);
+			if(!ExtensionBooleanResult.NOT_APPLICABLE.equals(populateResult)) {
+				params.setValue(populateResult);
+			}
+		}
+		return params.getValue();
+	}
 }
