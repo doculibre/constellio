@@ -3,9 +3,7 @@ package com.constellio.data.dao.services.contents;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,10 +13,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -124,10 +118,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         assertThat(fileOf3Vault.exists()).isTrue();
         assertThat(fileOf3Replicate.exists()).isFalse();
 
-        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
                 .getAbsolutePath(), fileHash1);
         assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
-                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash2, fileHash3);
+                .getVaultRootRecoveryFolder().getAbsolutePath(), fileHash2, fileHash3);
 
         fileSystemContentDao.readLogsAndRepairs();
 
@@ -187,10 +181,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         assertThat(fileOf3Vault.exists()).isTrue();
         assertThat(fileOf3Replicate.exists()).isFalse();
 
-        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
                 .getAbsolutePath(), fileHash1);
         assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
-                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash2, fileHash3);
+                .getVaultRootRecoveryFolder().getAbsolutePath(), fileHash2, fileHash3);
 
         fileSystemContentDao.readLogsAndRepairs();
 
@@ -230,10 +224,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         // delete
         assertThat(fileOf2Vault.delete()).isTrue();
 
-        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
                 .getAbsolutePath(), fileHash1);
         assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
-                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash2, fileHash3);
+                .getVaultRootRecoveryFolder().getAbsolutePath(), fileHash2, fileHash3);
 
         fileSystemContentDao.readLogsAndRepairs();
 
@@ -269,10 +263,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         assertThat(fileOf3Vault.exists()).isTrue();
         assertThat(fileOf3Replicate.exists()).isFalse();
 
-        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFile()
+        assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
                 .getAbsolutePath(), fileHash1, fileHash2);
         assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
-                .getVaultRootRecoveryFile().getAbsolutePath(), fileHash3);
+                .getVaultRootRecoveryFolder().getAbsolutePath(), fileHash3);
 
 
         assertThat(fileOf1Replicate.delete()).isTrue();
@@ -315,37 +309,37 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
         }
     }
 
-    private int getNumberOfNonEmptyLines(String filePath) throws IOException {
-        List<String> lineList = Files.readAllLines(
-                Paths.get(filePath)
-                , StandardCharsets.UTF_8);
-
-        int numberOfNonEmptyLine = 0;
-        for(String line : lineList) {
-            if(Strings.isNullOrEmpty(line)){
-                numberOfNonEmptyLine++;
-            }
-        }
-
-        return numberOfNonEmptyLine;
+    private int getNumberOfNonEmptyLines(String folderPath) throws IOException {
+        File folder = new File(folderPath);
+        return folder.listFiles().length;
     }
 
     private void assertThatRecoveryFileAreEmpty() throws IOException {
-        assertThat(getNumberOfNonEmptyLines(fileSystemContentDao.getReplicationRootRecoveryFile()
+        assertThat(getNumberOfNonEmptyLines(fileSystemContentDao.getReplicationRootRecoveryFolder()
                 .getAbsolutePath())).isEqualTo(0);
 
-        assertThat(getNumberOfNonEmptyLines(fileSystemContentDao.getVaultRootRecoveryFile()
+        assertThat(getNumberOfNonEmptyLines(fileSystemContentDao.getVaultRootRecoveryFolder()
                 .getAbsolutePath())).isEqualTo(0);
     }
 
-    private void assertThatRecoveryFilesHaveCertainValues(String filePath, String ... hashInTheSameOrder ) throws IOException {
-        List<String> lineListOfReplicationRootRevoveryFile = Files.readAllLines(
-                Paths.get(filePath), StandardCharsets.UTF_8);
+    private void assertThatRecoveryFilesHaveCertainValues(String filePath, String ... hashList) throws IOException {
+        File file = new File(filePath);
+        File[] fileList = file.listFiles();
 
-        for(int i = 0; i < lineListOfReplicationRootRevoveryFile.size(); i++) {
-            assertThat(lineListOfReplicationRootRevoveryFile.get(i)).isEqualTo(hashInTheSameOrder[i]);
+        for(int i = 0; i < fileList.length; i++) {
+            assertThat(isHashPresent(fileList[i].getName(), hashList)).isTrue();
         }
 
-        assertThat(lineListOfReplicationRootRevoveryFile.size()).isEqualTo(hashInTheSameOrder.length);
+        assertThat(fileList.length).isEqualTo(hashList.length);
+    }
+
+    private boolean isHashPresent(String hash, String[] hashList) {
+        for(String currentHash : hashList) {
+            if(currentHash.equals(hash)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
