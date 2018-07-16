@@ -12027,6 +12027,18 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-docm {
+	background-image: url('images/icons/ext/mantis/docm.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-docm .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-eml {
 	background-image: url('images/icons/ext/mantis/eml.gif');
 	background-repeat: no-repeat;
@@ -12454,6 +12466,18 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-xlsx .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsm {
+	background-image: url('images/icons/ext/mantis/xlsm.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsm .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
