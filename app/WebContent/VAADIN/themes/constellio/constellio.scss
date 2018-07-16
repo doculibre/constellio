@@ -1292,6 +1292,64 @@ $popup-view-z-index: 3;
 		color: red;
 	}
 	
+	.v-slot-button-toggle-facets {
+		height: 100%;
+		line-height: 100%;
+		
+		.button-toggle-facets {
+			height: 100%;
+			line-height: 100%;
+		}
+	}
+	
+	.collapsible-horizontal-splitpanel {
+		padding-bottom: 2px;
+		
+		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
+			width: 20px;
+			
+		    text-align: center;
+		    white-space: nowrap;
+		    outline: medium none;
+		    cursor: pointer;
+		    color: rgb(25, 25, 25);
+		    font-weight: 400;
+		    border-radius: 4px 4px 4px 4px;
+		    border-width: 1px 1px 2px 1px;
+		    border-style: solid;
+		    border-right: 1px solid rgb(197, 197, 197);
+		    border-left: 1px solid rgb(197, 197, 197);
+		    -moz-border-top-colors: none;
+		    -moz-border-right-colors: none;
+		    -moz-border-bottom-colors: none;
+		    -moz-border-left-colors: none;
+		    border-image: none;
+		    border-color: rgb(197, 197, 197) rgb(197, 197, 197) rgb(188, 188, 188);
+		    background-color: rgb(250, 250, 250);
+		    background-image: linear-gradient(to bottom, rgb(250, 250, 250) 2%, rgb(239, 239, 239) 98%);
+		    /* box-shadow: 0px 1px 0px white inset, 0px -1px 0px rgb(231, 231, 231) inset, 0px 2px 3px rgba(0, 0, 0, 0.05); */
+		    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05);
+		}
+		
+		.v-splitpanel-second-container-collapsible-horizontal-splitpanel {
+			padding-left: 30px;
+		}
+		
+		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
+	    	position: absolute;
+			top: 50%;
+	     	margin-left: -4px;
+		}
+		
+		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-visible:before {
+		    content: "\f101";
+		}
+		
+		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
+		    content: "\f100";
+		}
+	}
+	
     .constellio-layout {
 
 	    .sidebar {
@@ -1491,17 +1549,21 @@ $popup-view-z-index: 3;
 
 							.search-result-table {
 								* {
-									border: none;
+									// border: none;
 								}
 
 								.v-table-table {
-									box-shadow: none;
+									// box-shadow: none;
 
 									.v-table-cell-content {
 										vertical-align: top;
 
 										.v-checkbox {
 											margin-top: 13px;
+										}
+										
+										.v-spacing {
+											height: 5px;
 										}
 									}
 								}
@@ -1522,7 +1584,7 @@ $popup-view-z-index: 3;
 										font-style: normal;
 									}
 
-									margin-bottom: 10px;
+									// margin-bottom: 10px;
 									white-space: normal;
 									display: inline-block;
 									line-height: normal;
@@ -1554,7 +1616,7 @@ $popup-view-z-index: 3;
 								}
 
 								.v-table-row-odd {
-									background-color: #fff;
+									// background-color: #fff;
 								}
 							}
 					    }
