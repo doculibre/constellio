@@ -1272,6 +1272,8 @@ public class DecommissioningService {
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")");
 				parameters.add("extensionDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(LocalDate.now()));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			}

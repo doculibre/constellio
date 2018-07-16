@@ -851,7 +851,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			EmailToSend emailToSend = newEmailToSend();
 			String constellioUrl = eimConfigs.getConstellioUrl();
-			User borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
+			User borrower = null;
+			if(folderVO.getBorrowUserEnteredId() != null) {
+				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserEnteredId());
+			} else {
+				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
+			}
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
