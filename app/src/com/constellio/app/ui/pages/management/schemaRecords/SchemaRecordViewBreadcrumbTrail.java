@@ -27,7 +27,7 @@ public abstract class SchemaRecordViewBreadcrumbTrail extends TitleBreadcrumbTra
 	}
 	
 	@Override
-	public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+	public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 		RecordServices recordServices = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices();
 		List<IntermediateBreadCrumbTailItem> items = new ArrayList<>();
 		items.add(new ListValueDomainsBreadcrumbItem());

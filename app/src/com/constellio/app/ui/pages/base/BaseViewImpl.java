@@ -8,7 +8,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,17 +23,23 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
@@ -301,6 +306,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return false;
 	}
+	
+	protected boolean isActionMenuBar() {
+		return true;
+	}
 
 	protected String getTitle() {
 		return getClass().getSimpleName();
@@ -313,27 +322,47 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 * @return
 	 */
 	protected Component buildActionMenu(ViewChangeEvent event) {
-		VerticalLayout actionMenuLayout;
+		Component result;
 		actionMenuButtons = buildActionMenuButtons(event);
 		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
-			actionMenuLayout = null;
+			result = null;
 		} else {
-			actionMenuLayout = new VerticalLayout();
-			actionMenuLayout.setSizeUndefined();
-			
 			for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
 				actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
 			}
-			
-			for (Button actionMenuButton : actionMenuButtons) {
-				actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-				actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
-				actionMenuButton.addStyleName("action-menu-button");
-				actionMenuLayout.addComponent(actionMenuButton);
-			}
-		}
+			if (isActionMenuBar()) {
+				MenuBar menuBar = new MenuBar();
+				menuBar.setAutoOpen(true);
+				menuBar.setIcon(FontAwesome.ELLIPSIS_H);
+				result = menuBar;
 
-		return actionMenuLayout;
+				MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+				rootItem.setIcon(FontAwesome.ELLIPSIS_H);
+				
+				for (final Button actionMenuButton : actionMenuButtons) {
+					Resource icon = actionMenuButton.getIcon();
+					String caption = actionMenuButton.getCaption();
+					rootItem.addItem(caption, icon, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							actionMenuButton.click();
+						}
+					});
+				}
+			} else {
+				VerticalLayout actionMenuLayout = new VerticalLayout();
+				actionMenuLayout.setSizeUndefined();
+				
+				for (Button actionMenuButton : actionMenuButtons) {
+					actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+					actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
+					actionMenuButton.addStyleName("action-menu-button");
+					actionMenuLayout.addComponent(actionMenuButton);
+				}
+				result = actionMenuLayout;
+			}	
+		}
+		return result;
 	}
 
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {

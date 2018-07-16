@@ -4,21 +4,22 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.data.DataProvider;
-import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.MultiFileUpload;
 
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.upload.BaseMultiFileUpload;
+import com.constellio.app.ui.framework.components.search.FacetedViewableSearchResultsPanel;
 import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
@@ -40,6 +41,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
 	
@@ -89,6 +91,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		mainLayout = new VerticalLayout();
 		mainLayout.addStyleName(STYLE_LAYOUT);
 		mainLayout.setSpacing(true);
+		
+		mainLayout.addComponent(new FacetedViewableSearchResultsPanel());
 
 		multiFileUpload = new BaseMultiFileUpload() {
 			@Override

@@ -1,13 +1,16 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
@@ -43,6 +46,8 @@ public class RecordDisplay extends BaseDisplay {
 		for (MetadataValueVO metadataValue : recordVO.getDisplayMetadataValues()) {
 			Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
 			if (displayComponent != null) {
+				MetadataVO metadataVO = metadataValue.getMetadata();
+				String tabCaption = getTabCaption(metadataVO.isRequired());
 				MetadataVO metadata = metadataValue.getMetadata();
 				String caption = metadata.getLabel(locale);
 				Label captionLabel = new Label(caption);
@@ -56,10 +61,14 @@ public class RecordDisplay extends BaseDisplay {
 				displayComponent.setId(valueId);
 				displayComponent.addStyleName(valueId);
 
-				captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent));
+				captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption));
 			}
 		}
 		return captionsAndComponents;
+	}
+	
+	private static String getTabCaption(boolean required) {
+		return required ? $("RecordDisplay.requiredMetadata") : $("RecordDisplay.facultativeMetadata");
 	}
 
 	public final RecordVO getRecordVO() {
@@ -71,21 +80,32 @@ public class RecordDisplay extends BaseDisplay {
 	}
 
 	@Override
-	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
+	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if ((displayComponent instanceof RecordCommentsEditorImpl) || (displayComponent instanceof RecordCommentsDisplayImpl)) {
 			VerticalLayout verticalLayout = new VerticalLayout(displayComponent);
 			verticalLayout.addStyleName("record-comments-layout");
 			verticalLayout.setWidth("100%");
 			verticalLayout.setSpacing(true);
 			verticalLayout.addStyleName("record-comments-editor");
-			mainLayout.addComponent(verticalLayout);
+			layout.addComponent(verticalLayout);
 		} else {
-			super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
+			super.addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
 		}
 	}
 
 	public void refresh() {
 		setCaptionsAndComponents(toCaptionsAndComponents(this.recordVO, metadataDisplayFactory));
+	}
+
+	@Override
+	protected void addTab(TabSheet tabSheet, Component tabComponent, String caption, Resource icon) {
+		boolean required = getTabCaption(true).equals(caption);
+		if (required) {
+			tabSheet.addTab(tabComponent, caption, icon, 0);
+			tabSheet.setSelectedTab(tabComponent);
+		} else {
+			super.addTab(tabSheet, tabComponent, caption, icon);
+		}
 	}
 
 }

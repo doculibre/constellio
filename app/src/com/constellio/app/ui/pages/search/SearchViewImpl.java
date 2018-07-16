@@ -1,8 +1,16 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
-import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -15,10 +23,10 @@ import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.search.FacetsPanel;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -31,28 +39,23 @@ import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
-import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.jetbrains.annotations.Nullable;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 	
@@ -66,8 +69,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout thesaurusDisambiguation;
 	private VerticalLayout spellCheckerSuggestions;
 	private VerticalLayout summary;
+	private CollapsibleHorizontalSplitPanel resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
-	private VerticalLayout facetsArea;
+	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
@@ -250,8 +254,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void refreshFacets(SearchResultVODataProvider dataProvider) {
-		facetsArea.removeAllComponents();
-		addFacetComponents(facetsArea, dataProvider);
+		List<FacetVO> facets = presenter.getFacets(dataProvider);
+		KeySetMap<String, String> facetSelections = presenter.getFacetSelections();
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
+		SortOrder sortOrder = presenter.getSortOrder();
+		facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 		presenter.setPageNumber(1);
 	}
 
@@ -294,22 +302,59 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
-		facetsArea = new VerticalLayout();
+		facetsArea = new FacetsPanel() {
+			@Override
+			protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
+				presenter.sortCriterionSelected(sortCriterion, sortOrder);
+			}
+
+			@Override
+			protected void facetDeselected(String id) {
+				presenter.facetDeselected(id);
+			}
+
+			@Override
+			protected void facetValueSelected(String facetId, String value) {
+				presenter.facetValueSelected(facetId, value);
+			}
+
+			@Override
+			protected void facetValueDeselected(String facetId, String value) {
+				presenter.facetValueDeselected(facetId, value);
+			}
+
+			@Override
+			protected void facetOpened(String id) {
+				presenter.facetOpened(id);
+			}
+
+			@Override
+			protected void facetClosed(String id) {
+				presenter.facetClosed(id);
+			}
+			
+		};
 		facetsArea.addStyleName("search-result-facets");
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
+		
+		resultsAndFacetsPanel = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
+		resultsAndFacetsPanel.addStyleName("search-result-and-facets-container");
+		resultsAndFacetsPanel.setSecondComponentWidth(300, Unit.PIXELS);
+		resultsAndFacetsPanel.setFirstComponent(resultsArea);
+		resultsAndFacetsPanel.setSecondComponent(facetsArea);
 
-		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
-		body.addStyleName("search-result-and-facets-container");
-		body.setWidth("100%");
-		body.setExpandRatio(resultsArea, 1);
-		body.setSpacing(true);
+//		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
+//		body.addStyleName("search-result-and-facets-container");
+//		body.setWidth("100%");
+//		body.setExpandRatio(resultsArea, 1);
+//		body.setSpacing(true);
 
 		refreshCapsule();
 
 		VerticalLayout main = new VerticalLayout(thesaurusDisambiguation, spellCheckerSuggestions, summary, capsuleArea);
 
-		main.addComponent(body);
+		main.addComponent(resultsAndFacetsPanel);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
 		main.setSpacing(true);
@@ -319,7 +364,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Nullable
 	private void refreshCapsule() {
-		if(capsuleArea == null) {
+		if (capsuleArea == null) {
 			capsuleArea = new VerticalLayout();
 		} else {
 			capsuleArea.removeAllComponents();
@@ -523,153 +568,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			spellCheckerSuggestions.setVisible(false);
 		}
-	}
-
-	private Component buildSortComponent() {
-		Label sortBy = new Label($("SearchView.sortBy"));
-		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
-		sortBy.addStyleName(SORT_TITLE_STYLE);
-
-		final ComboBox criterion = new BaseComboBox();
-		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-		criterion.setWidth("100%");
-
-		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
-		for (MetadataVO metadata : sortableMetadata) {
-			criterion.addItem(metadata.getCode());
-			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
-		}
-		//		criterion.setPageLength(criterion.size());
-		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
-
-		final OptionGroup order = new OptionGroup();
-		order.addItem(SortOrder.ASCENDING);
-		order.setItemCaption(SortOrder.ASCENDING, $("SearchView.sortAsc"));
-		order.addItem(SortOrder.DESCENDING);
-		order.setItemCaption(SortOrder.DESCENDING, $("SearchView.sortDesc"));
-		order.setValue(presenter.getSortOrder());
-
-		ValueChangeListener listener = new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				String sortCriterion = (String) criterion.getValue();
-				SortOrder sortOrder = (SortOrder) order.getValue();
-				presenter.sortCriterionSelected(sortCriterion, sortOrder);
-			}
-		};
-
-		criterion.addValueChangeListener(listener);
-		order.addValueChangeListener(listener);
-
-		VerticalLayout inner = new VerticalLayout(criterion, order);
-		inner.setWidth("100%");
-		inner.addStyleName("sort-box-content");
-
-		VerticalLayout layout = new VerticalLayout(sortBy, inner);
-		layout.setWidth("95%");
-		layout.addStyleName(SORT_BOX_STYLE);
-
-		return layout;
-	}
-
-	private void addFacetComponents(ComponentContainer container, SearchResultVODataProvider dataProvider) {
-		container.addComponent(buildSortComponent());
-
-		List<FacetVO> facets = presenter.getFacets(dataProvider);
-		KeySetMap<String, String> facetSelections = presenter.getFacetSelections();
-		for (FacetVO facet : facets) {
-			container.addComponent(buildFacetComponent(facet, facetSelections.get(facet.getId())));
-		}
-
-	}
-
-	private Component buildFacetComponent(final FacetVO facet, Set<String> selectedFacetValues) {
-		CheckBox deselect = new CheckBox();
-		deselect.setValue(!selectedFacetValues.isEmpty());
-		deselect.setEnabled(!selectedFacetValues.isEmpty());
-		deselect.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				presenter.facetDeselected(facet.getId());
-			}
-		});
-
-		Label title = new Label(facet.getLabel());
-		title.addStyleName(ValoTheme.LABEL_BOLD);
-
-		final Button toggle = new Button(facet.isOpen() ? "—" : "+");
-		toggle.addStyleName(ValoTheme.BUTTON_TINY);
-		toggle.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-
-		I18NHorizontalLayout captionBar = new I18NHorizontalLayout(deselect, title, toggle);
-		captionBar.setComponentAlignment(deselect, Alignment.MIDDLE_LEFT);
-		captionBar.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
-		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
-		captionBar.setExpandRatio(title, 1);
-		captionBar.setWidth("100%");
-		captionBar.addStyleName(FACET_TITLE_STYLE);
-
-		VerticalLayout layout = new VerticalLayout(captionBar);
-		layout.setWidth("95%");
-
-		final Table table = new BaseTable("facet-" + facet.getId());
-		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		table.addContainerProperty("value", Component.class, null);
-		table.setWidth("100%");
-
-		List<FacetValueVO> values = facet.getValues();
-		for (final FacetValueVO facetValue : values) {
-			final CheckBox checkBox = new CheckBox();
-			checkBox.addStyleName("facet-value");
-			if (selectedFacetValues.contains(facetValue.getValue())) {
-				checkBox.setValue(true);
-			}
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					if (checkBox.getValue()) {
-						presenter.facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
-					} else {
-						presenter.facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
-					}
-				}
-			});
-
-			String caption = facetValue.getLabel();
-			if (isRightToLeft()) {
-				caption = "(" + facetValue.getCount() + ") " + caption;
-			} else {
-				caption += " (" + facetValue.getCount() + ")";
-			}
-			checkBox.setCaption(caption);
-
-			@SuppressWarnings("unchecked")
-			Property<Component> value = (Property<Component>) table.addItem(checkBox).getItemProperty("value");
-			value.setValue(checkBox);
-		}
-
-		table.setPageLength(Math.min(facet.getValuesPerPage(), values.size()));
-		table.setVisible(facet.isOpen());
-
-		toggle.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				if (toggle.getCaption().equals("+")) {
-					toggle.setCaption("—");
-					table.setVisible(true);
-					presenter.facetOpened(facet.getId());
-				} else {
-					toggle.setCaption("+");
-					table.setVisible(false);
-					presenter.facetClosed(facet.getId());
-				}
-			}
-		});
-
-		layout.addComponent(table);
-		layout.setVisible(!facet.getValues().isEmpty());
-		layout.addStyleName(FACET_BOX_STYLE);
-		return layout;
 	}
 
 	protected Button buildSelectAllButton() {
