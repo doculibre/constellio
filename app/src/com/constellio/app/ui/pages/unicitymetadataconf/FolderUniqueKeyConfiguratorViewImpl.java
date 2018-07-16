@@ -1,12 +1,13 @@
 package com.constellio.app.ui.pages.unicitymetadataconf;
 
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FolderUnicityVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.containers.FolderUnicityMetadataContainer;
-import com.constellio.app.ui.framework.data.FolderUnicityDataProvider;
+import com.constellio.app.ui.framework.containers.FolderUniqueKeyContainer;
+import com.constellio.app.ui.framework.data.FolderUniqueKeyDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -19,42 +20,38 @@ import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements FolderUnicityMetadataView {
+public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView {
 
-    private FolderUnicityMetadataPresenter presenter;
+    private FolderUniqueKeyConfiguratorPresenter presenter;
 
     @PropertyId("metadataVO")
     private ComboBox metadataComboBox;
+    private String schemaCode;
 
-    private FolderUnicityDataProvider summaryColumnDataProvider;
+    private FolderUniqueKeyDataProvider folderUniqueKeyDataProvider;
 
     private Table table;
-    private FolderUnicityMetadataContainer folderUnicityMetadataContainer;
+    private FolderUniqueKeyContainer folderUniqueKeyContainer;
 
-    public FolderUnicityMetadataViewImpl() {
-        presenter = new FolderUnicityMetadataPresenter(this);
+    public FolderUniqueKeyConfiguratorViewImpl() {
+        presenter = new FolderUniqueKeyConfiguratorPresenter(this);
     }
 
     @Override
     protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-        Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
-        presenter.setSchemaCode(params.get("schemaCode"));
-        presenter.setParameters(params);
+        Map<String,String> params = ParamUtils.getParamsMap(event.getParameters());
+        schemaCode = params.get("schemaCode");
+        presenter.setSchemaCode(schemaCode);
     }
 
     @Override
     public String getTitle() {
-        return $("SummaryColumnViewImpl.title");
-    }
-
-    @Override
-    public FolderUnicityMetadataPresenter getSummaryColumnPresenter() {
-        return presenter;
+        return $("FolderUniqueKeyMetadataConfiguratorViewImpl.title");
     }
 
     @Override
     protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        metadataComboBox = new BaseComboBox($("SummaryColumnViewImpl.metadata"));
+        metadataComboBox = new BaseComboBox($("FolderUniqueKeyMetadataConfiguratorViewImpl.metadata"));
 
         List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
 
@@ -66,23 +63,22 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
 
         table = new BaseTable(getClass().getName());
 
-        summaryColumnDataProvider = new FolderUnicityDataProvider(summaryColumnVOList);
-        folderUnicityMetadataContainer = new FolderUnicityMetadataContainer(summaryColumnDataProvider, this);
+        folderUniqueKeyDataProvider = new FolderUniqueKeyDataProvider(summaryColumnVOList);
+        folderUniqueKeyContainer = new FolderUniqueKeyContainer(folderUniqueKeyDataProvider, this);
 
-        table.setContainerDataSource(folderUnicityMetadataContainer);
-        table.setColumnHeader(FolderUnicityMetadataContainer.UP, "");
-        table.setColumnHeader(FolderUnicityMetadataContainer.DOWN, "");
-        table.setColumnHeader(FolderUnicityMetadataContainer.METADATA_VO, $("SummaryColumnViewImpl.metadataHeader"));
-        table.setColumnHeader(FolderUnicityMetadataContainer.DELETE, "");
+        table.setContainerDataSource(folderUniqueKeyContainer);
+        table.setColumnHeader(FolderUniqueKeyContainer.METADATA_VO, $("FolderUniqueKeyMetadataConfiguratorViewImpl.metadataHeader"));
+        table.setColumnHeader(FolderUniqueKeyContainer.DELETE, "");
+        table.setColumnExpandRatio(FolderUniqueKeyContainer.METADATA_VO, 1);
 
-        BaseForm<FolderUnicityMetadataParams> baseForm = new BaseForm<FolderUnicityMetadataParams>(new FolderUnicityMetadataParams(), this, metadataComboBox) {
+        BaseForm<FolderUniqueKeyParams> baseForm = new BaseForm<FolderUniqueKeyParams>(new FolderUniqueKeyParams(), this, metadataComboBox) {
             @Override
-            protected void saveButtonClick(final FolderUnicityMetadataParams viewObject) {
+            protected void saveButtonClick(final FolderUniqueKeyParams viewObject) {
                 if(!presenter.isReindextionFlag()) {
                     ConfirmDialog.show(
                             UI.getCurrent(),
-                            $("SummaryColumnViewImpl.save.title"),
-                            $("SummaryColumnViewImpl.save.message"),
+                            $("FolderUniqueKeyMetadataConfiguratorViewImpl.save.title"),
+                            $("FolderUniqueKeyMetadataConfiguratorViewImpl.save.message"),
                             $("Ok"),
                             $("cancel"),
                             new ConfirmDialog.Listener() {
@@ -90,6 +86,7 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
                                 public void onClose(ConfirmDialog dialog) {
                                     if (dialog.isConfirmed()) {
                                         addConfiguration(viewObject);
+                                        updateUI();
                                     }
                                 }
                             });
@@ -100,7 +97,7 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
             }
 
             @Override
-            protected void cancelButtonClick(FolderUnicityMetadataParams viewObject) {
+            protected void cancelButtonClick(FolderUniqueKeyParams viewObject) {
                 // button not visible so no action here.
             }
 
@@ -122,17 +119,16 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
         return verticalLayout;
     }
 
-    private void addConfiguration(FolderUnicityMetadataParams viewObject) {
+    private void addConfiguration(FolderUniqueKeyParams viewObject) {
         FolderUnicityVO folderUnicityVO = summaryColumnParamsToSummaryVO(viewObject);
 
         presenter.addMetadaForUnicity(viewObject);
-        summaryColumnDataProvider.addFolderUnicityVO(folderUnicityVO);
+        folderUniqueKeyDataProvider.addFolderUnicityVO(folderUnicityVO);
 
-        summaryColumnDataProvider.fireDataRefreshEvent();
+        folderUniqueKeyDataProvider.fireDataRefreshEvent();
         clearFields();
         removeMetadataFromPossibleSelection();
     }
-
 
     private void clearFields() {
         this.metadataComboBox.setValue(null);
@@ -161,9 +157,9 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
     }
 
 
-    private FolderUnicityVO summaryColumnParamsToSummaryVO(FolderUnicityMetadataParams folderUnicityMetadataParams) {
+    private FolderUnicityVO summaryColumnParamsToSummaryVO(FolderUniqueKeyParams folderUniqueKeyParams) {
         FolderUnicityVO summaryColumnVO = new FolderUnicityVO();
-        summaryColumnVO.setMetadataVO(folderUnicityMetadataParams.getMetadataVO());
+        summaryColumnVO.setMetadataVO(folderUniqueKeyParams.getMetadataVO());
 
         return summaryColumnVO;
     }
@@ -180,23 +176,22 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
 
     public void deleteSummaryMetadata(FolderUnicityVO summaryColumnVO) {
         this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
-        this.summaryColumnDataProvider.removeFolderUnicityVO(summaryColumnVO);
+        this.folderUniqueKeyDataProvider.removeFolderUnicityVO(summaryColumnVO);
         refreshMetadataCombox();
-        this.summaryColumnDataProvider.fireDataRefreshEvent();
+        this.folderUniqueKeyDataProvider.fireDataRefreshEvent();
     }
 
     public void deleteRow(final FolderUnicityVO columnVO) {
 
-        String message = $("SummaryColumnViewImpl.deleteConfirmationMesssage");
+        String message = $("FolderUniqueKeyMetadataConfiguratorViewImpl.deleteConfirmationMesssage");
         if(!presenter.isReindextionFlag()) {
-            message = $("SummaryColumnViewImpl.save.message") + " " + message;
+            message = $("FolderUniqueKeyMetadataConfiguratorViewImpl.save.message") + " " + message;
         }
-
 
 
         ConfirmDialog.show(
                 UI.getCurrent(),
-                $("SummaryColumnViewImpl.deleteConfirmation"),
+                $("FolderUniqueKeyMetadataConfiguratorViewImpl.deleteConfirmation"),
                 message,
                 $("Ok"),
                 $("cancel"),
@@ -204,27 +199,13 @@ public class FolderUnicityMetadataViewImpl extends BaseViewImpl implements Folde
                     @Override
                     public void onClose(ConfirmDialog dialog) {
                         if(dialog.isConfirmed()) {
+                            boolean isReindextionFlag = presenter.isReindextionFlag();
                             deleteSummaryMetadata(columnVO);
+                            if(!isReindextionFlag) {
+                                updateUI();
+                            }
                         }
                     }
                 });
-    }
-
-
-    @Override
-    public boolean showReindexationWarningIfRequired(ConfirmDialog.Listener confirmDialogListener) {
-        if(presenter.isReindextionFlag()) {
-            ConfirmDialog.show(
-                    UI.getCurrent(),
-                    $("SummaryColumnViewImpl.save.title"),
-                    $("SummaryColumnViewImpl.save.message"),
-                    $("Ok"),
-                    $("cancel"),
-                    confirmDialogListener);
-            return true;
-        } else {
-            return false;
-        }
-
     }
 }

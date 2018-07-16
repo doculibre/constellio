@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnPresenter;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
@@ -24,14 +23,14 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class FolderUnicityMetadataPresenterAcceptanceTest extends ConstellioTest {
+public class FolderUniqueKeyConfiguratiorPresenterAcceptanceTest extends ConstellioTest {
     @Mock
-    FolderUnicityMetadataView view;
+    FolderUniqueKeyConfiguratorView view;
     MockedNavigation navigator;
     @Mock
     SessionContext sessionContext;
 
-    FolderUnicityMetadataPresenter folderUnicityMetadataPresenter;
+    FolderUniqueKeyConfiguratorPresenter folderUniqueKeyConfiguratorPresenter;
     Users users;
     RMTestRecords records = new RMTestRecords(zeCollection);
     RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -49,7 +48,7 @@ public class FolderUnicityMetadataPresenterAcceptanceTest extends ConstellioTest
         when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
         when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
-        folderUnicityMetadataPresenter = new FolderUnicityMetadataPresenter(view, Folder.DEFAULT_SCHEMA);
+        folderUniqueKeyConfiguratorPresenter = new FolderUniqueKeyConfiguratorPresenter(view, Folder.DEFAULT_SCHEMA);
 
         rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
     }
@@ -58,40 +57,40 @@ public class FolderUnicityMetadataPresenterAcceptanceTest extends ConstellioTest
     public void givenOneMetatSummaryThenMetadataHaveMetadataSummy() {
 
         MetadataToVOBuilder builder = new MetadataToVOBuilder();
-        folderUnicityMetadataPresenter.getMetadatas();
-        FolderUnicityMetadataParams folderUnicityMetadataParams = new FolderUnicityMetadataParams();
-        folderUnicityMetadataParams.setMetadataVO(builder.build(Schemas.TITLE, FakeSessionContext.adminInCollection(zeCollection)));
+        folderUniqueKeyConfiguratorPresenter.getMetadatas();
+        FolderUniqueKeyParams folderUniqueKeyParams = new FolderUniqueKeyParams();
+        folderUniqueKeyParams.setMetadataVO(builder.build(Schemas.TITLE, FakeSessionContext.adminInCollection(zeCollection)));
 
-        folderUnicityMetadataPresenter.addMetadaForUnicity(folderUnicityMetadataParams);
+        folderUniqueKeyConfiguratorPresenter.addMetadaForUnicity(folderUniqueKeyParams);
 
-        Metadata metadata = folderUnicityMetadataPresenter.getFolderUnicityMetadata();
+        Metadata metadata = folderUniqueKeyConfiguratorPresenter.getFolderUnicityMetadata();
 
-        List summaryComlomnList = (List) metadata.getCustomParameter().get(FolderUnicityMetadataPresenter.UNICITY_CONFIG);
+        List summaryComlomnList = (List) metadata.getCustomParameter().get(FolderUniqueKeyConfiguratorPresenter.UNIQUE_KEY_CONFIG);
 
         assertThat(summaryComlomnList).isNotNull();
         assertThat(summaryComlomnList.size()).isEqualTo(1);
-        assertThat(folderUnicityMetadataParams.getMetadataVO().getCode()).isEqualTo(Schemas.TITLE.getCode());
+        assertThat(folderUniqueKeyParams.getMetadataVO().getCode()).isEqualTo(Schemas.TITLE.getCode());
     }
 
     @Test
     public void givenOneMetatSummaryInFolderEmployeThenMetadataHaveMetadataSummy() {
-        FolderUnicityMetadataPresenter folderUnicityMetadataParams = new FolderUnicityMetadataPresenter(view, "folder_employe");
+        FolderUniqueKeyConfiguratorPresenter folderUnicityMetadataParams = new FolderUniqueKeyConfiguratorPresenter(view, "folder_employe");
 
         MetadataToVOBuilder builder = new MetadataToVOBuilder();
-        FolderUnicityMetadataParams folderUnicityMetadataParams1 = new FolderUnicityMetadataParams();
-        folderUnicityMetadataParams1.setMetadataVO(builder.build(rmSchemasRecordsServices.folder.description(), FakeSessionContext.adminInCollection(zeCollection)));
+        FolderUniqueKeyParams folderUniqueKeyParams1 = new FolderUniqueKeyParams();
+        folderUniqueKeyParams1.setMetadataVO(builder.build(rmSchemasRecordsServices.folder.description(), FakeSessionContext.adminInCollection(zeCollection)));
 
-        folderUnicityMetadataPresenter.addMetadaForUnicity(folderUnicityMetadataParams1);
+        folderUniqueKeyConfiguratorPresenter.addMetadaForUnicity(folderUniqueKeyParams1);
 
         folderUnicityMetadataParams.getMetadatas();
-        FolderUnicityMetadataParams folderUnicityMetadataParams2 = new FolderUnicityMetadataParams();
-        folderUnicityMetadataParams2.setMetadataVO(builder.build(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"), FakeSessionContext.adminInCollection(zeCollection)));
+        FolderUniqueKeyParams folderUniqueKeyParams2 = new FolderUniqueKeyParams();
+        folderUniqueKeyParams2.setMetadataVO(builder.build(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"), FakeSessionContext.adminInCollection(zeCollection)));
 
-        folderUnicityMetadataParams.addMetadaForUnicity(folderUnicityMetadataParams2);
+        folderUnicityMetadataParams.addMetadaForUnicity(folderUniqueKeyParams2);
 
         Metadata metadata = folderUnicityMetadataParams.getFolderUnicityMetadata();
 
-        List summaryColomnList = (List) metadata.getCustomParameter().get(FolderUnicityMetadataPresenter.UNICITY_CONFIG);
+        List summaryColomnList = (List) metadata.getCustomParameter().get(FolderUniqueKeyConfiguratorPresenter.UNIQUE_KEY_CONFIG);
 
         Map<String,Object> summarymap = (Map<String, Object>) summaryColomnList.get(0);
 

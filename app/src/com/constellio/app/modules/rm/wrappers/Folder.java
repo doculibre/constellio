@@ -114,7 +114,7 @@ public class Folder extends RMObject {
 
 	public static final String SUB_FOLDERS_TOKENS = "subFoldersTokens";
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
-	public static final String UNICITY = "unicity";
+	public static final String UNIQUE_KEY = "uniqueKey";
 	public static final String SUMMARY = "summary";
 
 	public Folder(Record record,
@@ -821,12 +821,12 @@ public class Folder extends RMObject {
 		return getList(DOCUMENTS_TOKENS);
 	}
 
-	public String getUnicity() {
-		return get(UNICITY);
+	public String getUniqueKey() {
+		return get(UNIQUE_KEY);
 	}
 
-	public Folder setUnicity(String unicity) {
-		set(UNICITY, unicity);
+	public Folder setUniqueKey(String unicity) {
+		set(UNIQUE_KEY, unicity);
 		return this;
 	}
 

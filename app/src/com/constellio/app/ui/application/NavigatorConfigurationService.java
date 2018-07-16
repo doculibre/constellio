@@ -101,7 +101,7 @@ import com.constellio.app.ui.pages.summarycolumn.SummaryColumnViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
-import com.constellio.app.ui.pages.unicitymetadataconf.FolderUnicityMetadataViewImpl;
+import com.constellio.app.ui.pages.unicitymetadataconf.FolderUniqueKeyConfiguratorViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
@@ -225,7 +225,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
     public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
 	public static final String SUMMARY_CONFIGURATOR = "summaryConfigurator";
-	public static final String FOLDER_UNICITY_CONFIGURATOR = "FolderUnicityConfigurator";
+	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 
     private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -354,7 +354,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteSpellCheckerExclusionsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryColumnViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNICITY_CONFIGURATOR, FolderUnicityMetadataViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, FolderUniqueKeyConfiguratorViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

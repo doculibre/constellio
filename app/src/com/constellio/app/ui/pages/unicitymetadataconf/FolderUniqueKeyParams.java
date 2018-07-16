@@ -6,12 +6,12 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 
-public class FolderUnicityMetadataParams {
+public class FolderUniqueKeyParams {
 
 
     private MetadataVO metadataVO;
 
-    public FolderUnicityMetadataParams(){
+    public FolderUniqueKeyParams(){
 
     }
 

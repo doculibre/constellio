@@ -688,7 +688,7 @@ public class CoreViews {
 	}
 
 	public void folderUnicityConfigurator(String param) {
-		navigator.navigateTo(NavigatorConfigurationService.FOLDER_UNICITY_CONFIGURATOR + "/" + param);
+		navigator.navigateTo(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR + "/" + param);
 	}
 
     public void propertiesAnalyser() {

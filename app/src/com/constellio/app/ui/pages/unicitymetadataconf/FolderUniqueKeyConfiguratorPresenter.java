@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.unicitymetadataconf;
 
+import com.constellio.app.modules.rm.model.calculators.folder.FolderUniqueKeyCalculator;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.FolderUnicityVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -9,6 +10,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.exception.TypeRuntimeException;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -18,33 +20,31 @@ import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 
 import java.util.*;
 
-public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<FolderUnicityMetadataView> {
+public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresenter<FolderUniqueKeyConfiguratorView> {
 
     private static final String SCHEMA_CODE = "schemaCode";
     public static final String PREFIX = "prefix";
     public static final String METADATA_CODE = "metadataCode";
+    public static final String UNIQUE_KEY_CONFIG = FolderUniqueKeyCalculator.UNIQUE_KEY_CONFIG;
 
-    private String schemaCode;
-    private Map<String, String> parameters;
-    public static final String UNICITY_CONFIG = "unicityConfig";
 
     List<Map<String,Object>> originalCustomParametersSummaryColumn;
 
-    public FolderUnicityMetadataPresenter(FolderUnicityMetadataView view) {
+    public FolderUniqueKeyConfiguratorPresenter(FolderUniqueKeyConfiguratorView view) {
         super(view);
     }
 
-    public FolderUnicityMetadataPresenter(FolderUnicityMetadataView view, String schemaCode) {
+    public FolderUniqueKeyConfiguratorPresenter(FolderUniqueKeyConfiguratorView view, String schemaCode) {
         super(view, schemaCode);
     }
 
 
     public void forParams(String params) {
         Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-        this.schemaCode = paramsMap.get(SCHEMA_CODE);
+        this.setSchemaCode(paramsMap.get(SCHEMA_CODE));
 
         if(getFolderUnicityMetadata().getCustomParameter() != null) {
-            originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getFolderUnicityMetadata().getCustomParameter().get(UNICITY_CONFIG);
+            originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getFolderUnicityMetadata().getCustomParameter().get(UNIQUE_KEY_CONFIG);
         } else {
             originalCustomParametersSummaryColumn = null;
         }
@@ -57,7 +57,7 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
         List<MetadataVO> metadataVOs = new ArrayList<>();
         MetadataToVOBuilder builder = new MetadataToVOBuilder();
         for (Metadata metadata : list) {
-            if (metadata.isEnabled() && !metadata.isSystemReserved()) {
+            if (metadata.isEnabled() && !metadata.isSystemReserved() && metadata.getType() != MetadataValueType.STRUCTURE) {
                 metadataVOs
                         .add(builder.build(metadata, view.getSessionContext()));
             }
@@ -68,7 +68,7 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
 
     public List<FolderUnicityVO> folderUnicityVOList() {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-        Object objectList = getFolderUnicityMetadata().getCustomParameter().get(UNICITY_CONFIG);
+        Object objectList = getFolderUnicityMetadata().getCustomParameter().get(UNIQUE_KEY_CONFIG);
         List<FolderUnicityVO> lSummaryColumnVOList = new ArrayList<>();
 
         if (objectList instanceof List) {
@@ -77,7 +77,8 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
 
                 FolderUnicityVO folderUnicityVO = new FolderUnicityVO();
                 String metadataCode = (String) mapObject.get("metadataCode");
-                Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(TypeConvertionUtil.getSchemaCode(metadataCode)).getMetadatas().getMetadataWithLocalCode(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
+                Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(TypeConvertionUtil.getSchemaCode(metadataCode))
+                        .getMetadatas().getMetadataWithLocalCode(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
                 MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
                 MetadataVO metadataVO = metadataToVOBuilder.build(metadata, view.getSessionContext());
 
@@ -93,7 +94,7 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
     public void deleteMetadataForSummaryColumn(FolderUnicityVO summaryColumnParams) {
         Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap( getFolderUnicityMetadata().getCustomParameter());
 
-        List<Map<String,Object>> list = (List) modifiableMap.get(UNICITY_CONFIG);
+        List<Map<String,Object>> list = (List) modifiableMap.get(UNIQUE_KEY_CONFIG);
 
         Map<String,Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
 
@@ -115,83 +116,33 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
         return null;
     }
 
-    public int findMetadataInMapList(List<Map<String,Object>> mapList, String metadataCode) {
-        int index = -1;
-
-        if(mapList == null) {
-            return index;
-        }
-
-
-        for(int i = 0; i < mapList.size(); i++) {
-            if(metadataCode.equalsIgnoreCase((String) mapList.get(i).get(METADATA_CODE))) {
-                index = i;
-                break;
-            }
-        }
-
-        return index;
-    }
-
-    public void moveMetadataDown(String metadataCode) {
-        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getFolderUnicityMetadata().getCustomParameter());
-        List<Map<String,Object>> list = (List) modifiableMap.get(UNICITY_CONFIG);
-
-        int index = findMetadataInMapList(list, metadataCode);
-
-        if(index >= list.size() - 1) {
-            return;
-        }
-
-        Collections.swap(list, index, index+1);
-
-        modifiableMap.put(UNICITY_CONFIG, list);
-        saveMetadata(modifiableMap);
-    }
-
-    public void moveMetadataUp(String metadataCode) {
-        Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getFolderUnicityMetadata().getCustomParameter());
-        List<Map<String,Object>> list = (List) modifiableMap.get(UNICITY_CONFIG);
-
-        int index = findMetadataInMapList(list, metadataCode);
-
-        if(index <= 0) {
-            return;
-        }
-
-        Collections.swap(list, index, index-1);
-
-        modifiableMap.put(UNICITY_CONFIG, list);
-        saveMetadata(modifiableMap);
-    }
-
-    public void addMetadaForUnicity(FolderUnicityMetadataParams folderUnicityMetadataParams) {
+    public void addMetadaForUnicity(FolderUniqueKeyParams folderUniqueKeyParams) {
         Map<String,Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getFolderUnicityMetadata().getCustomParameter());
 
-        List<Map<String,Object>> list = (List) modifiableMap.get(UNICITY_CONFIG);
+        List<Map<String,Object>> list = (List) modifiableMap.get(UNIQUE_KEY_CONFIG);
 
         if(list == null) {
             list = new ArrayList();
         }
 
         Map folderUnicityMap = new HashMap();
-        folderUnicityMap.put(METADATA_CODE, folderUnicityMetadataParams.getMetadataVO().getCode());
+        folderUnicityMap.put(METADATA_CODE, folderUniqueKeyParams.getMetadataVO().getCode());
         list.add(folderUnicityMap);
 
-        modifiableMap.put(UNICITY_CONFIG, list);
+        modifiableMap.put(UNIQUE_KEY_CONFIG, list);
         saveMetadata(modifiableMap);
     }
 
     public void saveMetadata(final Map<String, Object> customParameter) {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-        if(!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(UNICITY_CONFIG))
+        if(!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(UNIQUE_KEY_CONFIG))
                 && !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
             appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
         }
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
-                types.getSchema(getSchemaCode()).get(Folder.UNICITY).setCustomParameter(customParameter);
+                types.getSchema(getSchemaCode()).get(Folder.UNIQUE_KEY).setCustomParameter(customParameter);
             }
         });
     }
@@ -233,13 +184,8 @@ public class FolderUnicityMetadataPresenter extends SingleSchemaBasePresenter<Fo
 
     public Metadata getFolderUnicityMetadata() {
         MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-        Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(Folder.UNICITY);
+        Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(Folder.UNIQUE_KEY);
         return metadata;
-    }
-
-
-    public void setParameters(Map<String, String> params) {
-        this.parameters = params;
     }
 
     @Override

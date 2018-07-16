@@ -1538,8 +1538,8 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 
-		public Metadata unicity() {
-			return metadata("unicity");
+		public Metadata uniqueKey() {
+			return metadata("uniqueKey");
 		}
 
 		public Metadata uniformSubdivision() {

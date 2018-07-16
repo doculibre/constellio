@@ -1166,7 +1166,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public List<Folder> getFolderByUnicity(String unicity) {
 		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
-				from(folder.schemaType()).where(folder.unicity()).isEqualTo(unicity))));
+				from(folder.schemaType()).where(folder.uniqueKey()).isEqualTo(unicity))));
 
 		return resultListFolder;
 	}

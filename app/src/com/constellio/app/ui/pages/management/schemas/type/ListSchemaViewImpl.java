@@ -185,12 +185,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		table.setColumnHeader("title", $("ListSchemaView.caption"));
 		table.setColumnHeader(OPTIONS_COL, "");
 		table.setColumnExpandRatio("title", 1);
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				presenter.editButtonClicked((MetadataSchemaVO) event.getItemId());
-			}
-		});
+
 
 		return table;
 	}

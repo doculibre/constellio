@@ -28,7 +28,7 @@ public class RMListSchemaExtention extends ListSchemaExtention {
                 public void menuSelected(MenuBar.MenuItem selectedItem) {
                     Map<String, String> parameters = new HashMap<>();
                     parameters.put("schemaCode", listSchemaExtraCommandParams.getSchemaVO().getCode());
-                    String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);
+                    String params = ParamUtils.addParams(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, parameters);
                     listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderSummaryColumn(params);
                 }
             }, $("ListSchemaViewImpl.menu.resumeConfiguration"), new ThemeResource("images/icons/config/display-config-summary-column.png")));
@@ -38,10 +38,10 @@ public class RMListSchemaExtention extends ListSchemaExtention {
                 public void menuSelected(MenuBar.MenuItem selectedItem) {
                     Map<String, String> parameters = new HashMap<>();
                     parameters.put("schemaCode", listSchemaExtraCommandParams.getSchemaVO().getCode());
-                    String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);
+                    String params = ParamUtils.addParams(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, parameters);
                     listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderUnicityConfigurator(params);
                 }
-            }, $("ListSchemaViewImpl.menu.unicityConfiguration"), new ThemeResource("images/icons/config/display-config-unicity-column.png")));
+            }, $("ListSchemaViewImpl.menu.uniquekeyConfiguration"), new ThemeResource("images/icons/config/display-config-unicity-column.png")));
         }
 
         return listSchemaExtraCommandParams1;

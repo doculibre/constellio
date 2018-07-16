@@ -5,11 +5,11 @@ import com.constellio.app.ui.entities.FolderUnicityVO;
 import java.util.Collections;
 import java.util.List;
 
-public class FolderUnicityDataProvider extends AbstractDataProvider {
+public class FolderUniqueKeyDataProvider extends AbstractDataProvider {
 
     private List<FolderUnicityVO> folderUnicityVOs;
 
-    public FolderUnicityDataProvider(List<FolderUnicityVO> folderUnicityVOs) {
+    public FolderUniqueKeyDataProvider(List<FolderUnicityVO> folderUnicityVOs) {
         this.folderUnicityVOs = folderUnicityVOs;
     }
 

@@ -20,9 +20,9 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class FolderUnicityCalculator implements MetadataValueCalculator<String> {
-    public static final String UNICITY_CONFIG = "unicityConfig";
+public class FolderUniqueKeyCalculator implements MetadataValueCalculator<String> {
     public static final String METADATA_CODE = "metadataCode";
+    public static final String UNIQUE_KEY_CONFIG = "uniqueKeyConfig";
 
     DynamicLocalDependency dynamicMetadatasDependency = new DynamicMetadatasDependency();
 
@@ -31,7 +31,7 @@ public class FolderUnicityCalculator implements MetadataValueCalculator<String> 
         StringBuilder unicityValueBuilder = new StringBuilder();
 
         DynamicDependencyValues values = parameters.get(dynamicMetadatasDependency);
-        List<Map> listMap = (List<Map>) parameters.getMetadata().getCustomParameter().get(UNICITY_CONFIG);
+        List<Map> listMap = (List<Map>) parameters.getMetadata().getCustomParameter().get(UNIQUE_KEY_CONFIG);
 
         if (listMap != null) {
             for(Map<String, Object> currentMap : listMap) {
@@ -138,7 +138,7 @@ public class FolderUnicityCalculator implements MetadataValueCalculator<String> 
         public boolean isDependentOf(Metadata metadata, Metadata aCalculatedMetadata) {
             Map modifiableMap = aCalculatedMetadata.getCustomParameter();
             Metadata metadataDependedOn = null;
-            List list = (List) modifiableMap.get(UNICITY_CONFIG);
+            List list = (List) modifiableMap.get(UNIQUE_KEY_CONFIG);
 
             if (list != null) {
                 for (Map listItem : (List<Map>) list) {
