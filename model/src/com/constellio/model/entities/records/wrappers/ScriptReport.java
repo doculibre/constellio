@@ -1,4 +1,4 @@
-package com.constellio.model.entities.records.wrappers.structure;
+package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;

@@ -720,9 +720,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return valueListItems;
 	}
 
-	public ValueListItem newValueListItem(String schemaCode) {
-		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-	}
+
 
 	// Variable retention period
 

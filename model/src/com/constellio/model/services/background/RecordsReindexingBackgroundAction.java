@@ -64,7 +64,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		try {
 			recordServices.executeHandlingImpactsAsync(transaction);
 		} catch (RecordServicesException e) {
-			LOGGER.info("Optimistic locking while reindexing recods", e);
+			LOGGER.info("Optimistic locking while reindexing records", e);
+			recordServices.flush();
 		}
 	}
 }
