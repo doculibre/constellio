@@ -35,7 +35,6 @@ import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.FacetsLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.data.utils.dev.Toggle;
@@ -65,57 +64,57 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, Serializable {
-    private static Logger LOGGER = LoggerFactory.getLogger(StatisticsViewImpl.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(StatisticsViewImpl.class);
 
-    public static final Integer DEFAULT_LINE_NUMBER = 15;
+	public static final Integer DEFAULT_LINE_NUMBER = 15;
 
-    private final StatisticsPresenter presenter;
+	private final StatisticsPresenter presenter;
 
-    private FormBean formBean = new FormBean();
-    
-    @PropertyId("excludedRequest")
-    private TextArea excludedRequestField;
-    @PropertyId("statisticType")
-    private ComboBox statisticTypeField;
-    @PropertyId("startDate")
-    private DateField startDateField;
-    @PropertyId("endDate")
-    private DateField endDateField;
-    @PropertyId("lines")
-    private TextField linesField;
-    @PropertyId("filter")
-    private TextField filterField;
-    @PropertyId("showParams")
-    private CheckBox showParamsField;
-    @PropertyId("capsuleId")
-    private ComboBox capsuleIdField;
+	private FormBean formBean = new FormBean();
 
-    private Table resultTable;
-    private VerticalLayout tableLayout;
+	@PropertyId("excludedRequest")
+	private TextArea excludedRequestField;
+	@PropertyId("statisticType")
+	private ComboBox statisticTypeField;
+	@PropertyId("startDate")
+	private DateField startDateField;
+	@PropertyId("endDate")
+	private DateField endDateField;
+	@PropertyId("lines")
+	private TextField linesField;
+	@PropertyId("filter")
+	private TextField filterField;
+	@PropertyId("showParams")
+	private CheckBox showParamsField;
+	@PropertyId("capsuleId")
+	private ComboBox capsuleIdField;
 
-    public StatisticsViewImpl() {
-        presenter = new StatisticsPresenter(this);
-    }
+	private Table resultTable;
+	private VerticalLayout tableLayout;
 
-    @Override
-    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setSpacing(true);
-        verticalLayout.setSizeFull();
-        
-        tableLayout = new VerticalLayout();
-        tableLayout.setHeight("100%");
-        tableLayout.setWidth("95%");
-        tableLayout.addStyleName("stats-table-layout");
+	public StatisticsViewImpl() {
+		presenter = new StatisticsPresenter(this);
+	}
 
-        verticalLayout.addComponent(buildSearchForm());
-        //verticalLayout.addComponent(buildApplyFilterButton());
-        verticalLayout.addComponent(buildResultTable());
+	@Override
+	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		VerticalLayout verticalLayout = new VerticalLayout();
+		verticalLayout.setSpacing(true);
+		verticalLayout.setSizeFull();
 
-        return verticalLayout;
-    }
+		tableLayout = new VerticalLayout();
+		tableLayout.setHeight("100%");
+		tableLayout.setWidth("95%");
+		tableLayout.addStyleName("stats-table-layout");
 
-    @Override
+		verticalLayout.addComponent(buildSearchForm());
+		//verticalLayout.addComponent(buildApplyFilterButton());
+		verticalLayout.addComponent(buildResultTable());
+
+		return verticalLayout;
+	}
+
+	@Override
 	protected String getTitle() {
 		return $("StatisticsView.viewTitle");
 	}
@@ -125,10 +124,10 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 		return true;
 	}
 
-    @Override
-    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
-    }
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
@@ -141,483 +140,501 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 	}
 
 	@NotNull
-    private Layout buildApplyFilterButton() {
-        Button button = new Button($("StatisticsView.applyFilter"));
-        button.addClickListener(new ClickListener() {
-            private String statisticType;
+	private Layout buildApplyFilterButton() {
+		Button button = new Button($("StatisticsView.applyFilter"));
+		button.addClickListener(new ClickListener() {
+			private String statisticType;
 
-            @Override
-            public void buttonClick(ClickEvent event) {
-                String newStatisticType = ((CBItem) statisticTypeField.getValue()).code;
+			@Override
+			public void buttonClick(ClickEvent event) {
+				String newStatisticType = ((CBItem) statisticTypeField.getValue()).code;
 
-                presenter.applyFilter(excludedRequestField.getValue(),
-                        newStatisticType,
-                        startDateField.getValue(),
-                        endDateField.getValue(),
-                        filterField.getValue(),
-                        (String) capsuleIdField.getValue());
+				presenter.applyFilter(excludedRequestField.getValue(),
+						newStatisticType,
+						startDateField.getValue(),
+						endDateField.getValue(),
+						filterField.getValue(),
+						(String) capsuleIdField.getValue());
 
-                if (Objects.equals(statisticType, newStatisticType)) {
-                    resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
-                } else {
-                    buildResultTable();
-                }
-            }
-        });
+				if (Objects.equals(statisticType, newStatisticType)) {
+					resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
+				} else {
+					buildResultTable();
+				}
+			}
+		});
 
-        HorizontalLayout hl = new HorizontalLayout();
-        hl.setWidth("100%");
-        hl.addComponent(button);
-        hl.setComponentAlignment(button, Alignment.MIDDLE_CENTER);
+		HorizontalLayout hl = new HorizontalLayout();
+		hl.setWidth("100%");
+		hl.addComponent(button);
+		hl.setComponentAlignment(button, Alignment.MIDDLE_CENTER);
 
-        return hl;
-    }
+		return hl;
+	}
 
-    private Component buildSearchForm() {
-        excludedRequestField = new BaseTextArea($("StatisticsView.excludedRequest"));
-        excludedRequestField.setId("excludedRequest");
+	private Component buildSearchForm() {
+		excludedRequestField = new BaseTextArea($("StatisticsView.excludedRequest"));
+		excludedRequestField.setId("excludedRequest");
 
-        statisticTypeField = new BaseComboBox($("StatisticsView.statisticType"));
-        statisticTypeField.setNullSelectionAllowed(false);
-        statisticTypeField.setId("statisticType");
+		statisticTypeField = new BaseComboBox($("StatisticsView.statisticType"));
+		statisticTypeField.setNullSelectionAllowed(false);
+		statisticTypeField.setId("statisticType");
 
-        CBItem item = new CBItem(null, $("StatisticsView.journalRequest"));
-        statisticTypeField.addItem(item);
+		CBItem item = new CBItem(null, $("StatisticsView.journalRequest"));
+		statisticTypeField.addItem(item);
 
-        statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST, $("StatisticsView.famousRequest")));
-        statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT, $("StatisticsView.famousRequestWithResult")));
-        statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT, $("StatisticsView.famousRequestWithoutResult")));
-        statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK, $("StatisticsView.famousRequestWithClick")));
-        statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK, $("StatisticsView.famousRequestWithoutClick")));
+		statisticTypeField.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST, $("StatisticsView.famousRequest")));
+		statisticTypeField
+				.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT, $("StatisticsView.famousRequestWithResult")));
+		statisticTypeField.addItem(
+				new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT, $("StatisticsView.famousRequestWithoutResult")));
+		statisticTypeField
+				.addItem(new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK, $("StatisticsView.famousRequestWithClick")));
+		statisticTypeField.addItem(
+				new CBItem(StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK, $("StatisticsView.famousRequestWithoutClick")));
 
-        startDateField = new DateField($("StatisticsView.startDate"));
-        startDateField.setId("startDateField");
-        startDateField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                endDateField.setRangeStart(startDateField.getValue());
-            }
-        });
+		startDateField = new DateField($("StatisticsView.startDate"));
+		startDateField.setId("startDateField");
+		startDateField.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				endDateField.setRangeStart(startDateField.getValue());
+			}
+		});
 
-        endDateField = new DateField($("StatisticsView.endDate"));
-        endDateField.setId("endDateField");
-        endDateField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                startDateField.setRangeEnd(endDateField.getValue());
-            }
-        });
+		endDateField = new DateField($("StatisticsView.endDate"));
+		endDateField.setId("endDateField");
+		endDateField.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				startDateField.setRangeEnd(endDateField.getValue());
+			}
+		});
 
-        linesField = new BaseTextField($("StatisticsView.lines"));
-        linesField.setId("lines");
-        linesField.setConverter(Long.class);
-        linesField.setConversionError($("StatisticsView.lines.conversionError"));
-        linesField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                buildResultTable();
-            }
-        });
+		linesField = new BaseTextField($("StatisticsView.lines"));
+		linesField.setId("lines");
+		linesField.setConverter(Long.class);
+		linesField.setConversionError($("StatisticsView.lines.conversionError"));
+		linesField.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				buildResultTable();
+			}
+		});
 
-        filterField = new BaseTextField($("StatisticsView.filter"));
-        filterField.setId("filter");
+		filterField = new BaseTextField($("StatisticsView.filter"));
+		filterField.setId("filter");
 
-        showParamsField = new CheckBox($("StatisticsView.showParams"));
-        showParamsField.setId("showParams");
-        showParamsField.setValue(false);
-        showParamsField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                buildResultTable();
-            }
-        });
+		showParamsField = new CheckBox($("StatisticsView.showParams"));
+		showParamsField.setId("showParams");
+		showParamsField.setValue(false);
+		showParamsField.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				buildResultTable();
+			}
+		});
 
 		capsuleIdField = new RecordComboBox(Capsule.DEFAULT_SCHEMA);
 		capsuleIdField.setCaption($("StatisticsView.capsuleField"));
 
 		List<Field<?>> formFields = new ArrayList<>();
-		formFields.addAll(Arrays.asList(excludedRequestField, statisticTypeField, startDateField, endDateField, filterField, showParamsField, linesField));
+		formFields.addAll(Arrays
+				.asList(excludedRequestField, statisticTypeField, startDateField, endDateField, filterField, showParamsField,
+						linesField));
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			formFields.add(5, capsuleIdField);
-		}	
-        
+		}
+
 		BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this,
 				formFields.toArray(new Field[0])) {
-            private String statisticType;
+			private String statisticType;
 
-            @Override
-            protected String getSaveButtonCaption() {
-                return $("StatisticsView.applyFilter");
-            }
+			@Override
+			protected String getSaveButtonCaption() {
+				return $("StatisticsView.applyFilter");
+			}
 
-            @Override
-            protected void saveButtonClick(FormBean viewObject) throws ValidationException {
-                CBItem cbItem = (CBItem) statisticTypeField.getValue();
-                String newStatisticType = null;
-                if (cbItem != null) {
-                    newStatisticType = cbItem.code;
-                }
+			@Override
+			protected void saveButtonClick(FormBean viewObject)
+					throws ValidationException {
+				CBItem cbItem = (CBItem) statisticTypeField.getValue();
+				String newStatisticType = null;
+				if (cbItem != null) {
+					newStatisticType = cbItem.code;
+				}
 
-                presenter.applyFilter(excludedRequestField.getValue(),
-                        newStatisticType,
-                        startDateField.getValue(),
-                        endDateField.getValue(),
-                        filterField.getValue(),
-                        (String) capsuleIdField.getValue());
+				presenter.applyFilter(excludedRequestField.getValue(),
+						newStatisticType,
+						startDateField.getValue(),
+						endDateField.getValue(),
+						filterField.getValue(),
+						(String) capsuleIdField.getValue());
 
-                buildResultTable();
+				buildResultTable();
 
-                statisticType = newStatisticType;
-            }
+				statisticType = newStatisticType;
+			}
 
-            @Override
-            protected void cancelButtonClick(FormBean viewObject) {
-            }
+			@Override
+			protected void cancelButtonClick(FormBean viewObject) {
+			}
 
-            @Override
-            protected boolean isCancelButtonVisible() {
-                return false;
-            }
-        };
+			@Override
+			protected boolean isCancelButtonVisible() {
+				return false;
+			}
+		};
 
-        statisticTypeField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                showParamsField.setVisible(!isStatisticTypeChoice());
-            }
-        });
-        statisticTypeField.select(item);
+		statisticTypeField.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				showParamsField.setVisible(!isStatisticTypeChoice());
+			}
+		});
+		statisticTypeField.select(item);
 
-        return baseForm;
-    }
+		return baseForm;
+	}
 
-    private Layout buildResultTable() {
-        List<String> columnsHeader = initColumnsHeader();
-        LazyQueryContainer container = getContainer(columnsHeader);
+	private Layout buildResultTable() {
+		List<String> columnsHeader = initColumnsHeader();
+		LazyQueryContainer container = getContainer(columnsHeader);
 
-        resultTable = new BaseTable(getClass().getName() + System.currentTimeMillis(), "", container);
-        resultTable.setWidth("100%");
-        resultTable.setPageLength(Math.min(container.size(), DEFAULT_LINE_NUMBER));
+		resultTable = new BaseTable(getClass().getName() + System.currentTimeMillis(), "", container);
+		resultTable.setWidth("100%");
+		resultTable.setPageLength(Math.min(container.size(), DEFAULT_LINE_NUMBER));
 
-        for (String property: columnsHeader) {
-            resultTable.setColumnHeader(property, getColumnHeader(property));
-        }
+		for (String property : columnsHeader) {
+			resultTable.setColumnHeader(property, getColumnHeader(property));
+		}
 
-        if (columnsHeader.contains(SearchEventVOLazyContainer.PARAMS)) {
-            resultTable.addGeneratedColumn(SearchEventVOLazyContainer.PARAMS, new Table.ColumnGenerator() {
-                @Override
-                public Object generateCell(Table source, Object itemId, Object columnId) {
-                    Property property = source.getContainerProperty(itemId, SearchEventVOLazyContainer.PARAMS);
+		if (columnsHeader.contains(SearchEventVOLazyContainer.PARAMS)) {
+			resultTable.addGeneratedColumn(SearchEventVOLazyContainer.PARAMS, new Table.ColumnGenerator() {
+				@Override
+				public Object generateCell(Table source, Object itemId, Object columnId) {
+					Property property = source.getContainerProperty(itemId, SearchEventVOLazyContainer.PARAMS);
 
-                    Label label = new Label(property.getValue().toString());
-                    label.setContentMode(ContentMode.HTML);
+					Label label = new Label(property.getValue().toString());
+					label.setContentMode(ContentMode.HTML);
 
-                    return label;
-                }
-            });
-        }
+					return label;
+				}
+			});
+		}
 
-        List<String> visibleColumns = initVisibleColumns();
-        resultTable.setVisibleColumns(visibleColumns.toArray(new String[0]));
+		List<String> visibleColumns = initVisibleColumns();
+		resultTable.setVisibleColumns(visibleColumns.toArray(new String[0]));
 
-        tableLayout.removeAllComponents();
+		tableLayout.removeAllComponents();
 
-        tableLayout.addComponent(createOtherComponents(container));
-        tableLayout.addComponent(resultTable);
-        tableLayout.setExpandRatio(resultTable, 1);
+		tableLayout.addComponent(createOtherComponents(container));
+		tableLayout.addComponent(resultTable);
+		tableLayout.setExpandRatio(resultTable, 1);
 
-        return tableLayout;
-    }
+		return tableLayout;
+	}
 
-    protected Layout createOtherComponents(LazyQueryContainer container) {
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.setSizeFull();
-//        layout.setSpacing(true);
+	protected Layout createOtherComponents(LazyQueryContainer container) {
+		HorizontalLayout layout = new HorizontalLayout();
+		layout.setSizeFull();
+		//        layout.setSpacing(true);
 
-        Label label = new Label($("StatisticsView.numberOfResults") + " : " + container.size());
-        label.setContentMode(ContentMode.HTML);
+		Label label = new Label($("StatisticsView.numberOfResults") + " : " + container.size());
+		label.setContentMode(ContentMode.HTML);
 
-        layout.addComponent(label);
-        layout.setExpandRatio(label, 1);
+		layout.addComponent(label);
+		layout.setExpandRatio(label, 1);
 
-        DownloadLink downloadLink = new DownloadLink(getCsvDocumentResource(), $("StatisticsView.downloadCsv"));
+		DownloadLink downloadLink = new DownloadLink(getCsvDocumentResource(), $("StatisticsView.downloadCsv"));
 
-        layout.addComponent(downloadLink);
-        layout.setComponentAlignment(downloadLink, Alignment.TOP_RIGHT);
+		layout.addComponent(downloadLink);
+		layout.setComponentAlignment(downloadLink, Alignment.TOP_RIGHT);
 
-        downloadLink.setVisible(container.size() > 0);
+		downloadLink.setVisible(container.size() > 0);
 
-        return layout;
-    }
+		return layout;
+	}
 
-    private Resource getCsvDocumentResource() {
-        StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
-            @Override
-            public InputStream getStream() {
-                try {
-                    return new FileInputStream(getCSVProducer().produceCSVFile());
-                } catch (IOException e) {
-                    LOGGER.error("Error during CSV generation", e);
-                    return null;
-                }
-            }
-        }, composeCsvName());
-        resource.setCacheTime(0);
+	private Resource getCsvDocumentResource() {
+		StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				try {
+					return new FileInputStream(getCSVProducer().produceCSVFile());
+				} catch (IOException e) {
+					LOGGER.error("Error during CSV generation", e);
+					return null;
+				}
+			}
+		}, composeCsvName());
+		resource.setCacheTime(0);
 
-        return resource;
-    }
+		return resource;
+	}
 
-    protected String composeCsvName() {
-        StringBuilder sb = new StringBuilder(StringUtils.replaceChars(((CBItem) statisticTypeField.getValue()).toString(), ' ', '_'));
-        sb.append("_"+getCollection());
+	protected String composeCsvName() {
+		StringBuilder sb = new StringBuilder(
+				StringUtils.replaceChars(((CBItem) statisticTypeField.getValue()).toString(), ' ', '_'));
+		sb.append("_" + getCollection());
 
-        String filter = filterField.getValue();
-        if(StringUtils.isNotBlank(filter)) {
-            sb.append("_"+StringUtils.replaceChars(filter, ' ', '_'));
-        }
+		String filter = filterField.getValue();
+		if (StringUtils.isNotBlank(filter)) {
+			sb.append("_" + StringUtils.replaceChars(filter, ' ', '_'));
+		}
 
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
-        Date startDate = startDateField.getValue();
-        if(startDate != null) {
-            sb.append("_"+sdf.format(startDate));
-        }
+		SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
+		Date startDate = startDateField.getValue();
+		if (startDate != null) {
+			sb.append("_" + sdf.format(startDate));
+		}
 
-        Date endDate = endDateField.getValue();
-        if(endDate != null) {
-            sb.append("_");
-            if(startDate != null) {
-                sb.append("au_");
-            } else {
-                sb.append("jusqu_au_");
-            }
-            sb.append(sdf.format(endDate));
-        }
+		Date endDate = endDateField.getValue();
+		if (endDate != null) {
+			sb.append("_");
+			if (startDate != null) {
+				sb.append("au_");
+			} else {
+				sb.append("jusqu_au_");
+			}
+			sb.append(sdf.format(endDate));
+		}
 
-        return sb.toString() + ".csv";
-    }
+		return sb.toString() + ".csv";
+	}
 
-    @NotNull
-    private AbstractCSVProducer getCSVProducer() {
-        AbstractCSVProducer csvProducer;
-        if(isStatisticTypeChoice()) {
-            csvProducer = new FacetsCSVProducer(resultTable, (Long)linesField.getConvertedValue(), presenter.getStatisticsFacetsDataProvider(), initColumnsHeader());
-        } else {
-            csvProducer = new SearchEventCSVProducer(resultTable, (Long)linesField.getConvertedValue(), presenter.getStatisticsDataProvider());
-        }
+	@NotNull
+	private AbstractCSVProducer getCSVProducer() {
+		AbstractCSVProducer csvProducer;
+		if (isStatisticTypeChoice()) {
+			csvProducer = new FacetsCSVProducer(resultTable, (Long) linesField.getConvertedValue(),
+					presenter.getStatisticsFacetsDataProvider(), initColumnsHeader());
+		} else {
+			csvProducer = new SearchEventCSVProducer(resultTable, (Long) linesField.getConvertedValue(),
+					presenter.getStatisticsDataProvider());
+		}
 
-        return csvProducer;
-    }
+		return csvProducer;
+	}
 
-    @NotNull
-    private LazyQueryContainer getContainer(List<String> properties) {
-        if (isStatisticTypeChoice()) {
-            return FacetsLazyContainer.defaultInstance(presenter.getStatisticsFacetsDataProvider(), properties);
-        } else {
-            return SearchEventVOLazyContainer.defaultInstance(presenter.getStatisticsDataProvider(), properties);
-        }
-    }
+	@NotNull
+	private LazyQueryContainer getContainer(List<String> properties) {
+		if (isStatisticTypeChoice()) {
+			return FacetsLazyContainer.defaultInstance(presenter.getStatisticsFacetsDataProvider(), properties);
+		} else {
+			return SearchEventVOLazyContainer.defaultInstance(presenter.getStatisticsDataProvider(), properties);
+		}
+	}
 
 	private boolean isStatisticTypeChoice() {
-        switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
-            case StatisticsPresenter.FAMOUS_REQUEST:
-            case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
-            case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-            case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
-            case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-                return true;
-            default:
-                return false;
-        }
-    }
+		switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
+		case StatisticsPresenter.FAMOUS_REQUEST:
+		case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
+		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
+		case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
+		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
+			return true;
+		default:
+			return false;
+		}
+	}
 
-    private String getColumnHeader(String property) {
-        switch (property) {
-            case FacetsLazyContainer.CLICK_COUNT:
-            case SearchEventVOLazyContainer.CLICK_COUNT:
-                return $("StatisticsView.clickCount");
+	private String getColumnHeader(String property) {
+		switch (property) {
+		case FacetsLazyContainer.CLICK_COUNT:
+		case SearchEventVOLazyContainer.CLICK_COUNT:
+			return $("StatisticsView.clickCount");
 
-            case FacetsLazyContainer.ORIGINAL_QUERY:
-            case SearchEventVOLazyContainer.ORIGINAL_QUERY:
-                return $("StatisticsView.originalQuery");
+		case FacetsLazyContainer.ORIGINAL_QUERY:
+		case SearchEventVOLazyContainer.ORIGINAL_QUERY:
+			return $("StatisticsView.originalQuery");
 
-            case SearchEventVOLazyContainer.PAGE_NAVIGATION_COUNT:
-                return $("StatisticsView.pageNavigationCount");
+		case SearchEventVOLazyContainer.LAST_PAGE_NAVIGATION:
+			return $("StatisticsView.lastPageNavigation");
 
-            case SearchEventVOLazyContainer.PARAMS:
-                return $("StatisticsView.params");
+		case SearchEventVOLazyContainer.PARAMS:
+			return $("StatisticsView.params");
 
-            case SearchEventVOLazyContainer.Q_TIME:
-                return $("StatisticsView.qTime");
+		case SearchEventVOLazyContainer.Q_TIME:
+			return $("StatisticsView.qTime");
 
-            case SearchEventVOLazyContainer.NUM_FOUND:
-                return $("StatisticsView.numFound");
+		case SearchEventVOLazyContainer.NUM_FOUND:
+			return $("StatisticsView.numFound");
 
-            case SearchEventVOLazyContainer.QUERY:
-                return $("StatisticsView.query");
+		case SearchEventVOLazyContainer.QUERY:
+			return $("StatisticsView.query");
 
-            case SearchEventVOLazyContainer.USER:
-                return $("StatisticsView.user");
+		case SearchEventVOLazyContainer.USER:
+			return $("StatisticsView.user");
 
-            case SearchEventVOLazyContainer.CREATION_DATE:
-                return $("StatisticsView.creationDate");
+		case SearchEventVOLazyContainer.CREATION_DATE:
+			return $("StatisticsView.creationDate");
 
-            case FacetsLazyContainer.FREQUENCY:
-                return $("StatisticsView.frequency");
+		case FacetsLazyContainer.FREQUENCY:
+			return $("StatisticsView.frequency");
 
-            case SearchEventVOLazyContainer.NUM_PAGE:
-                return $("StatisticsView.numPage");
+		case SearchEventVOLazyContainer.NUM_PAGE:
+			return $("StatisticsView.numPage");
 
-            case SearchEventVOLazyContainer.SOUS_COLLECTION:
-                return $("StatisticsView.sousCollection");
+		case SearchEventVOLazyContainer.SOUS_COLLECTION:
+			return $("StatisticsView.sousCollection");
 
-            case SearchEventVOLazyContainer.LANGUE:
-                return $("StatisticsView.langue");
+		case SearchEventVOLazyContainer.LANGUE:
+			return $("StatisticsView.langue");
 
-            case SearchEventVOLazyContainer.TYPE_RECHERCHE:
-                return $("StatisticsView.typeRecherche");
+		case SearchEventVOLazyContainer.TYPE_RECHERCHE:
+			return $("StatisticsView.typeRecherche");
 
-            case SearchEventVOLazyContainer.CAPSULE:
-                return $("StatisticsView.capsule");
+		case SearchEventVOLazyContainer.CAPSULE:
+			return $("StatisticsView.capsule");
 
-            case FacetsLazyContainer.CLICKS:
-            case SearchEventVOLazyContainer.CLICKS:
-                return $("StatisticsView.clicks");
+		case FacetsLazyContainer.CLICKS:
+		case SearchEventVOLazyContainer.CLICKS:
+			return $("StatisticsView.clicks");
 
-            case SearchEventVOLazyContainer.ID:
-                return $("StatisticsView.id");
+		case SearchEventVOLazyContainer.ID:
+			return $("StatisticsView.id");
 
-            default:
-                return property;
-        }
-    }
+		default:
+			return property;
+		}
+	}
 
-    private List<String> initColumnsHeader() {
-        List<String> properties;
+	private List<String> initColumnsHeader() {
+		List<String> properties;
 
-        switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
-            case StatisticsPresenter.FAMOUS_REQUEST:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
-                break;
-            case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
-                break;
-            case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
-                break;
-            case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT, FacetsLazyContainer.CLICKS);
-                break;
-            case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-                properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
-                break;
-            default:
-                MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
-                properties = new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
-        }
+		switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
+		case StatisticsPresenter.FAMOUS_REQUEST:
+			properties = Arrays
+					.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
+							FacetsLazyContainer.CLICKS);
+			break;
+		case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
+			properties = Arrays
+					.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
+							FacetsLazyContainer.CLICKS);
+			break;
+		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
+			properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
+			break;
+		case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
+			properties = Arrays
+					.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
+							FacetsLazyContainer.CLICKS);
+			break;
+		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
+			properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
+			break;
+		default:
+			MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
+			properties = new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
+		}
 
-        return properties;
-    }
+		return properties;
+	}
 
-    private List<String> initVisibleColumns() {
-        if(isStatisticTypeChoice()) {
-            return initColumnsHeader();
-        } else {
-            MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
-            return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
-        }
-    }
+	private List<String> initVisibleColumns() {
+		if (isStatisticTypeChoice()) {
+			return initColumnsHeader();
+		} else {
+			MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
+			return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
+		}
+	}
 
-    private boolean isParamsShowed() {
-        if(showParamsField == null) {
-            return false;
-        } else {
-            return BooleanUtils.isTrue(showParamsField.getValue());
-        }
-    }
+	private boolean isParamsShowed() {
+		if (showParamsField == null) {
+			return false;
+		} else {
+			return BooleanUtils.isTrue(showParamsField.getValue());
+		}
+	}
 
-    @Nullable
-    private String getChoosenStatisticTypeCode() {
-        String code = null;
+	@Nullable
+	private String getChoosenStatisticTypeCode() {
+		String code = null;
 
-        CBItem cbItem = (CBItem) statisticTypeField.getValue();
-        if(cbItem != null) {
-            code = cbItem.code;
-        }
-        return code;
-    }
+		CBItem cbItem = (CBItem) statisticTypeField.getValue();
+		if (cbItem != null) {
+			code = cbItem.code;
+		}
+		return code;
+	}
 
-    private class CBItem {
-        private final String code;
-        private final String label;
+	private class CBItem {
+		private final String code;
+		private final String label;
 
-        public CBItem(String code, String label) {
-            this.code = code;
-            this.label = label;
-        }
+		public CBItem(String code, String label) {
+			this.code = code;
+			this.label = label;
+		}
 
-        @Override
-        public String toString() {
-            return label;
-        }
+		@Override
+		public String toString() {
+			return label;
+		}
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
 
-            CBItem cbItem = (CBItem) o;
+			CBItem cbItem = (CBItem) o;
 
-            return code == cbItem.code;
-        }
-    }
+			return code == cbItem.code;
+		}
+	}
 
-    public class FormBean {
-        private String excludedRequest;
-        private CBItem statisticType;
-        private Date startDate;
-        private Date endDate;
-        private String filter;
-        private String capsuleId;
+	public class FormBean {
+		private String excludedRequest;
+		private CBItem statisticType;
+		private Date startDate;
+		private Date endDate;
+		private String filter;
+		private String capsuleId;
 
-        public String getExcludedRequest() {
-            return excludedRequest;
-        }
+		public String getExcludedRequest() {
+			return excludedRequest;
+		}
 
-        public void setExcludedRequest(String excludedRequest) {
-            this.excludedRequest = excludedRequest;
-        }
+		public void setExcludedRequest(String excludedRequest) {
+			this.excludedRequest = excludedRequest;
+		}
 
-        public CBItem getStatisticType() {
-            return statisticType;
-        }
+		public CBItem getStatisticType() {
+			return statisticType;
+		}
 
-        public void setStatisticType(CBItem statisticType) {
-            this.statisticType = statisticType;
-        }
+		public void setStatisticType(CBItem statisticType) {
+			this.statisticType = statisticType;
+		}
 
-        public Date getStartDate() {
-            return startDate;
-        }
+		public Date getStartDate() {
+			return startDate;
+		}
 
-        public void setStartDate(Date startDate) {
-            this.startDate = startDate;
-        }
+		public void setStartDate(Date startDate) {
+			this.startDate = startDate;
+		}
 
-        public Date getEndDate() {
-            return endDate;
-        }
+		public Date getEndDate() {
+			return endDate;
+		}
 
-        public void setEndDate(Date endDate) {
-            this.endDate = endDate;
-        }
+		public void setEndDate(Date endDate) {
+			this.endDate = endDate;
+		}
 
-        public String getFilter() {
-            return filter;
-        }
+		public String getFilter() {
+			return filter;
+		}
 
-        public void setFilter(String filter) {
-            this.filter = filter;
-        }
+		public void setFilter(String filter) {
+			this.filter = filter;
+		}
 
 		public String getCapsuleId() {
 			return capsuleId;
@@ -626,5 +643,5 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 		public void setCapsuleId(String capsuleId) {
 			this.capsuleId = capsuleId;
 		}
-    }
+	}
 }

@@ -76,6 +76,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 						.getSchemaType(ConnectorInstance.SCHEMA_TYPE);
 				LogicalSearchQuery query = new LogicalSearchQuery(
 						from(connectorInstanceSchemaType).returnAll())
+						.sortAsc(Schemas.TITLE)
 						.sortDesc(Schemas.MODIFIED_ON);
 				return query;
 			}

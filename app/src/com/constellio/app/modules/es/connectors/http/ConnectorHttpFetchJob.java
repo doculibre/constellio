@@ -53,7 +53,8 @@ import static java.util.Arrays.asList;
 class ConnectorHttpFetchJob extends ConnectorJob {
 
     public static final String PATH_TO_NOINDEX_HTML = "com/constellio/app/modules/es/connectors/http/noindex.html";
-    public static final String PROTOCOL = "file://";
+    public static final String PROTOCOL = "file:";
+    public static final String PROTOCOL_SEP = "//";
     private final ConnectorHttp connectorHttp;
 
     private final ConnectorHttpContext context;
@@ -97,7 +98,12 @@ class ConnectorHttpFetchJob extends ConnectorJob {
                 String url = httpDocument.getURL();
 
                 if (!robotsTxtFactory.isAuthorizedPath(url)) {
-                    url = PROTOCOL + getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
+                    String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
+                    if(StringUtils.startsWith(path, PROTOCOL)) {
+                        url = path;
+                    } else {
+                        url = PROTOCOL + PROTOCOL_SEP + path;
+                    }
                 }
 
                 Page page = null;

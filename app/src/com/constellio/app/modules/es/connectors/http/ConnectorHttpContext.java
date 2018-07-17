@@ -19,24 +19,28 @@ public class ConnectorHttpContext implements Serializable {
 	}
 
 	public synchronized void markAsFetched(String url) {
+		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		fetchedUrls.add(url);
 	}
 
 	public synchronized void markAsNoMoreFetched(String url) {
+		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		fetchedUrls.remove(url);
 	}
 
-	public  String getDocumentUrlWithDigest(String digest) {
+	public String getDocumentUrlWithDigest(String digest) {
 		return documentUrlsClassifiedByDigests.get(digest);
 	}
 
 	public synchronized void removeDocumentDigest(String digest, String url) {
 		if (url.equals(documentUrlsClassifiedByDigests.get(digest))) {
+			ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 			documentUrlsClassifiedByDigests.remove(digest);
 		}
 	}
 
 	public synchronized void addDocumentDigest(String digest, String url) {
+		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		documentUrlsClassifiedByDigests.put(digest, url);
 	}
 
@@ -47,4 +51,5 @@ public class ConnectorHttpContext implements Serializable {
 	public String getConnectorId() {
 		return connectorId;
 	}
+
 }

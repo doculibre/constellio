@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.ui.pages.base.BaseView;
-import com.vaadin.ui.Button;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -63,6 +61,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.trash.TrashServices;
+import com.vaadin.ui.Button;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
 
@@ -393,7 +392,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		updateAndRefresh(presenterUtils.publishButtonClicked());
 	}
 
-	public boolean isLogicallyDeleted(){
+	public boolean isLogicallyDeleted() {
 		return document == null || document.isLogicallyDeletedStatus();
 	}
 
@@ -466,7 +465,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void refreshEvents() {
-		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		//modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
 	}
 
@@ -494,8 +493,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		dataProvider.fireDataRefreshEvent();
 	}
 
-	public List<Button> getButtonsFromExtension(){
-		return appLayerFactory.getExtensions().forCollection(collection).getDocumentViewButtonExtension(this.record, getCurrentUser());
+	public List<Button> getButtonsFromExtension() {
+		return appLayerFactory.getExtensions().forCollection(collection)
+				.getDocumentViewButtonExtension(this.record, getCurrentUser());
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {
