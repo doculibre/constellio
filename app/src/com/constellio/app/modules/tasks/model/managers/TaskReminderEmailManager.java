@@ -4,10 +4,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -155,6 +152,8 @@ public class TaskReminderEmailManager implements StatefulService {
 			parentTaskTitle = parentTask.getTitle();
 		}
 		String status = taskSchemas.getTaskStatus(task.getStatus()).getTitle();
+		String status_fr = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.FRENCH);
+		String status_en = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
 		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));
 		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(parentTaskTitle)));
@@ -167,6 +166,9 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
 
 		newParameters.add(TASK_STATUS + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status)));
+		newParameters.add(TASK_STATUS_FR + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_fr)));
+		newParameters.add(TASK_STATUS_EN + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_en)));
+
 		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getDescription())));
 		String constellioURL = eimConfigs.getConstellioUrl();
 
