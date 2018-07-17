@@ -77,8 +77,8 @@ public class MetadataSchemaTypesBuilder {
 
 	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 
-		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 		validateAutomaticMetadatas();
+		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
@@ -273,10 +273,16 @@ public class MetadataSchemaTypesBuilder {
 		for (MetadataSchemaTypeBuilder metadataSchemaType : schemaTypes) {
 			Set<String> types = new HashSet<>();
 			for (MetadataBuilder metadata : metadataSchemaType.getAllMetadatas()) {
+
 				if (metadata.getType() == REFERENCE) {
 					if (metadata.allowedReferencesBuilder == null) {
 						throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(metadata.getCode());
 					}
+				}
+
+				if (metadata.getType() == REFERENCE && (metadata.isDependencyOfAutomaticMetadata() || metadata
+						.isChildOfRelationship() || metadata.isTaxonomyRelationship())) {
+
 					types.add(metadata.allowedReferencesBuilder.getSchemaType());
 					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
 						types.add(newSchemaUtils().getSchemaTypeCode(schema));
@@ -340,6 +346,10 @@ public class MetadataSchemaTypesBuilder {
 			MetadataBuilder referenceMetadata = getMetadata(referenceMetadataCode);
 			String copiedMetadataCode = copiedDataEntry.getCopiedMetadata();
 			MetadataBuilder copiedMetadata = getMetadata(copiedMetadataCode);
+
+			referenceMetadata.markAsDependencyOfAutomaticMetadata();
+			copiedMetadata.markAsDependencyOfAutomaticMetadata();
+
 			validateCopiedMetadataMultiValues(metadataBuilder, referenceMetadataCode, referenceMetadata, copiedMetadataCode,
 					copiedMetadata);
 			validateCopiedMetadataType(metadataBuilder, copiedMetadata);
@@ -363,6 +373,7 @@ public class MetadataSchemaTypesBuilder {
 							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 				}
 
+				metadataBuilder.markAsDependencyOfAutomaticMetadata();
 				try {
 					validateDependenciesTypes(metadataBuilder, dependencies);
 				} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
@@ -400,6 +411,7 @@ public class MetadataSchemaTypesBuilder {
 
 		if (!((LocalDependency) dependency).isMetadataCreatedLater()) {
 			MetadataBuilder dependencyMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+			dependencyMetadataBuilder.markAsDependencyOfAutomaticMetadata();
 			if (dependencyMetadataBuilder.getType() != localDependency.getReturnType()) {
 				throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
 						calculatedMetadataBuilder.getCode(), dependencyMetadataBuilder.getCode(),
@@ -418,12 +430,14 @@ public class MetadataSchemaTypesBuilder {
 		if (!((ReferenceDependency) dependency).isMetadataCreatedLater()) {
 			MetadataBuilder dependencyRefMetadataBuilder = getMetadata(
 					schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+			dependencyRefMetadataBuilder.markAsDependencyOfAutomaticMetadata();
 			if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
 				String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
 						.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
 				MetadataBuilder dependencyMetadata;
 				try {
 					dependencyMetadata = getMetadata(dependencyMetaCompleteCode);
+					dependencyMetadata.markAsDependencyOfAutomaticMetadata();
 				} catch (MetadataSchemaBuilderRuntimeException e) {
 					throw new MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata(dependencyMetaCompleteCode, e);
 				}
@@ -455,6 +469,7 @@ public class MetadataSchemaTypesBuilder {
 
 	private void validateCopiedMetadataMultiValues(MetadataBuilder metadataBuilder, String referenceMetadataCode,
 			MetadataBuilder referenceMetadata, String copiedMetadataCode, MetadataBuilder copiedMetadata) {
+
 		if (!metadataBuilder.isMultivalue() && (referenceMetadata.isMultivalue() || copiedMetadata.isMultivalue())) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyMultiValueInSingleValueMetadata(
 					metadataBuilder.getCode(), referenceMetadataCode, copiedMetadataCode);

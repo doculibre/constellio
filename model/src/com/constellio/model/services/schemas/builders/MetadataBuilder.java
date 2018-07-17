@@ -88,6 +88,7 @@ public class MetadataBuilder {
 	private Boolean duplicable;
 	private Set<String> customAttributes;
 	private MetadataSchemaBuilder schemaBuilder;
+	private boolean dependencyOfAutomaticMetadata;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;
@@ -129,6 +130,14 @@ public class MetadataBuilder {
 		builder.multiLingual = defaultMetadata.multiLingual;
 		builder.customAttributes = defaultMetadata.customAttributes;
 		return builder;
+	}
+
+	MetadataBuilder markAsDependencyOfAutomaticMetadata() {
+		dependencyOfAutomaticMetadata = true;
+		if (this.inheritance != null) {
+			this.inheritance.dependencyOfAutomaticMetadata = true;
+		}
+		return this;
 	}
 
 	private static Object copy(Object value) {
@@ -755,7 +764,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, relationshipProvidingSecurity, transiency);
+				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -1073,5 +1082,9 @@ public class MetadataBuilder {
 			return modelLayerFactoryFactory.get().newEncryptionServices();
 		}
 
+	}
+
+	public boolean isDependencyOfAutomaticMetadata() {
+		return dependencyOfAutomaticMetadata;
 	}
 }

@@ -71,4 +71,18 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 				StorageSpace.SCHEMA_TYPE
 		);
 	}
+
+	@Test
+	public void givenASchemaTypeThenAccurateunr() {
+		MetadataSchemasManager schemaManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes schemaTypes = schemaManager.getSchemaTypes(zeCollection);
+
+		System.out.println(schemaTypes.getSchemaTypesSortedByDependency());
+		//		for (MetadataSchemaType schemaType : schemaTypes.getSchemaTypes()) {
+		//			for (Metadata metadata : schemaType.getDefaultSchema().getMetadatas().onlyWithType(MetadataValueType.REFERENCE)) {
+		//				System.out.println(metadata.getCode() + " : " + metadata.isDependencyOfAutomaticMetadata());
+		//			}
+		//		}
+	}
+
 }

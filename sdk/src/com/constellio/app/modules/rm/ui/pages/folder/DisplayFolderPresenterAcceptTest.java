@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
@@ -36,6 +37,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -46,7 +48,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -206,7 +210,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	//FIXME Ugly sleep
 	public void givenBorrowFolderWhenReturnItThenOk()
 			throws Exception {
 		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
@@ -220,7 +223,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams("C30");
 		presenter.returnFolder(nowDate.minusDays(1), borrowingLocalDate);
 		recordServices.flush();
-		//		Thread.sleep(1000);
 
 		Folder folderC30 = rmRecords.getFolder_C30();
 		assertThat(folderC30.getBorrowed()).isNull();
@@ -697,6 +699,43 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(rmRecords.folder_A48);
 		assertThat(presenter.getBorrowButtonState(rmRecords.getAdmin(), rmRecords.getFolder_A48()))
 				.isEqualTo(ComponentState.ENABLED);
+	}
+
+	@Test
+	public void givenFolderWithChildDocumentsAndReferencingOtherDocumentsThenAllReturnedByQuery()
+			throws Exception {
+
+		metadataSchemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("refToDocument")
+						.defineReferencesTo(types.getSchemaType(Document.SCHEMA_TYPE));
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("refToDocuments")
+						.defineReferencesTo(types.getSchemaType(Document.SCHEMA_TYPE)).setMultivalue(true);
+			}
+		});
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newDocumentWithId("documentInA48").setTitle("Document in folder A48").setFolder(rmRecords.folder_A48));
+		tx.add(rm.newDocumentWithId("documentInA49").setTitle("Document in folder A49").setFolder(rmRecords.folder_A49));
+		tx.add(rm.newDocumentWithId("documentInA51").setTitle("Document in folder A51").setFolder(rmRecords.folder_A51));
+		tx.add(rm.newDocumentWithId("documentInA52").setTitle("Document in folder A52").setFolder(rmRecords.folder_A52));
+		tx.add(rm.newDocumentWithId("documentInA53").setTitle("Document in folder A53").setFolder(rmRecords.folder_A53));
+		tx.add(rm.newDocumentWithId("documentInA54").setTitle("Document in folder A54").setFolder(rmRecords.folder_A54));
+		tx.add(rm.newDocumentWithId("documentInA55").setTitle("Document in folder A55").setFolder(rmRecords.folder_A55));
+		tx.add(rmRecords.getFolder_A49().set("refToDocument", "documentInA51")
+				.set("refToDocuments", asList("documentInA53", "documentInA54")));
+		recordServices.execute(tx);
+
+		presenter.forParams(rmRecords.folder_A49);
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id").contains(
+				"documentInA49", "documentInA51", "documentInA53", "documentInA54").hasSize(7);
+
+		presenter.forParams(rmRecords.folder_A51);
+		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id").contains(
+				"documentInA51").hasSize(3);
+
 	}
 
 	//
