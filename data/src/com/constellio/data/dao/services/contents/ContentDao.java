@@ -33,6 +33,7 @@ public interface ContentDao {
 	CloseableStreamFactory<InputStream> getContentInputStreamFactory(String id)
 			throws ContentDaoException_NoSuchContent;
 
+
 	File getFileOf(String contentId);
 
 	void readLogsAndRepairs();

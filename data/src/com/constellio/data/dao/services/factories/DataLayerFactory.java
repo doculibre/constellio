@@ -111,9 +111,11 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static DataLayerFactory lastCreatedInstance;
 	private final LeaderElectionManager leaderElectionManager;
 
+	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
+
 	private Ignite igniteClient;
 	private CuratorFramework curatorFramework;
-	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
+
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
