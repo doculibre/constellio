@@ -14,6 +14,7 @@ public class SearchEvent extends RecordWrapper {
 	public static final String QUERY = "query";
 	public static final String CLICK_COUNT = "clickCount";
 	public static final String PAGE_NAVIGATION_COUNT = "pageNavigationCount";
+	public static final String LAST_PAGE_NAVIGATION = "lastPageNavigation";
 	public static final String PARAMS = "params";
 	public static final String ORIGINAL_QUERY = "originalQuery";
 	public static final String NUM_FOUND = "numFound";
@@ -93,6 +94,11 @@ public class SearchEvent extends RecordWrapper {
 	public long getQTime() {
 		Number value = get(Q_TIME);
 		return value == null ? 0 : value.longValue();
+	}
+
+	public int getLastPageNavigation() {
+		Number value = get(LAST_PAGE_NAVIGATION);
+		return value == null ? 0 : value.intValue();
 	}
 
 	public SearchEvent setQTime(long qTime) {
