@@ -13,7 +13,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.AdvancedSearchPresenterExtension;
+import com.constellio.app.modules.rm.extensions.api.AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,11 +99,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private Boolean hasAnyReport;
 
 	private transient LogicalSearchCondition condition;
-
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
+	private transient ModelLayerCollectionExtensions modelLayerExtensions;
+	private transient RMModuleExtensions rmModuleExtensions;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
+
+		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
+		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 	}
 
 	public void setSchemaType(String schemaType) {
@@ -185,7 +196,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return searchExpression;
 	}
 
-	public void batchEditRequested(String code, Object value, String schemaType) {
+	public boolean batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
@@ -195,6 +206,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		BatchProcess process = manager.addBatchProcessInStandby(query, action, username, "userBatchProcess");
 		manager.markAsPending(process);
+		return true;
 	}
 
 	@Override
@@ -484,16 +496,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService()
-				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
+		batchProcessingPresenterService().execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
 		if (searchID != null) {
 			view.navigate().to().advancedSearchReplay(searchID);
 		} else {
 			view.navigate().to().advancedSearch();
 		}
-
+		return true;
 	}
 
 	@Override
@@ -565,11 +576,18 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildReportLogicalSearchQuery() {
-		return buildBatchProcessLogicalSearchQuery().filteredWithUser(getUser());
+		return buildLogicalSearchQuery().filteredWithUser(getUser());
 	}
 
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
-		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
+		LogicalSearchQuery query = buildLogicalSearchQuery();
+		for (AdvancedSearchPresenterExtension extension : rmModuleExtensions.getAdvancedSearchPresenterExtensions()) {
+			query = extension.addAdditionalSearchQueryFilters(new AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
+		}
+		return query;
+	}
+
+	private LogicalSearchQuery buildLogicalSearchQuery() {
 		List<String> selectedRecordIds = view.getSelectedRecordIds();
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			if (!batchProcessOnAllSearchResults) {
@@ -762,5 +780,18 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public boolean isStatisticReportEnabled() {
 		return new ConstellioEIMConfigs(modelLayerFactory).isStatisticReportEnabled();
+	}
+
+	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
+		List<Record> records = modelLayerFactory.newRecordServices().getRecordsById(collection, recordIds);
+		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+			for (Record record : records) {
+				if (!extension.isCreatePDFAActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(record))) {
+					view.showErrorMessage(i18n.$("AdvancedSearchView.actionBlockedByExtension"));
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }

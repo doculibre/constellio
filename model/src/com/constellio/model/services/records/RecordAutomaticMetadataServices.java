@@ -189,7 +189,7 @@ public class RecordAutomaticMetadataServices {
 					record, metadata, aggregatedDataEntry, types);
 			List<Object> values = new ArrayList<>();
 			//TODO Populate based on transaction values
-			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(metadata, values) {
+			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(record.getId(),metadata, values) {
 
 				@Override
 				public List<AggregatedValuesEntry> getEntries() {

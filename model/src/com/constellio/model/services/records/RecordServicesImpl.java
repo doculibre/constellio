@@ -814,8 +814,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeSave(
-							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, singleRecordTransaction,
-									recordErrors), options);
+							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, transaction.getUser(),
+									singleRecordTransaction, recordErrors), options);
 				} else {
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
 							record, transaction.getUser(), singleRecordTransaction, recordErrors) {

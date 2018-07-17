@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -127,7 +128,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (downloadDocumentButtonVisible) {
-			MenuItem downloadDocumentItem = rootItem.addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD, null);
+			MenuItem downloadDocumentItem = rootItem
+					.addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD, null);
 			downloadDocumentItem.setCommand(new Command() {
 				@SuppressWarnings("deprecation")
 				@Override
@@ -191,7 +193,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (shareDocumentButtonVisible) {
-			MenuItem shareDocumentItem = rootItem.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, null);
+			MenuItem shareDocumentItem = rootItem
+					.addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O, null);
 			shareDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -221,7 +224,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (alertWhenAvailableButtonVisible) {
-			MenuItem alertWhenAvailableItem = rootItem.addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, null);
+			MenuItem alertWhenAvailableItem = rootItem
+					.addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, null);
 			alertWhenAvailableItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
@@ -256,8 +260,9 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			});
 		}
 
-		if(presenter.hasMetadataReport()) {
-		MenuItem metadataReportGenerator = rootItem.addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"), FontAwesome.LIST_ALT, null);
+		if (presenter.hasMetadataReport()) {
+			MenuItem metadataReportGenerator = rootItem
+					.addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"), FontAwesome.LIST_ALT, null);
 			metadataReportGenerator.setCommand(new Command() {
 
 				@Override
@@ -270,6 +275,9 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 				}
 			});
 		}
+
+		BaseViewImpl parentView = (BaseViewImpl) ConstellioUI.getCurrent().getCurrentView();
+		presenter.addItemsFromExtensions(rootItem, parentView);
 	}
 
 	@Override
@@ -337,6 +345,11 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	public void openUploadWindow(boolean checkingIn) {
 		initUploadWindow();
 		updateWindow.open(checkingIn);
+	}
+
+	@Override
+	public void setCopyDocumentButtonState(ComponentState state) {
+
 	}
 
 	@Override
@@ -415,8 +428,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setFinalizeButtonVisible(boolean visible) {
-		finalizeButtonVisible = visible;
+	public void setFinalizeButtonState(ComponentState state) {
+		finalizeButtonVisible = state.isVisible();
 	}
 
 	@Override

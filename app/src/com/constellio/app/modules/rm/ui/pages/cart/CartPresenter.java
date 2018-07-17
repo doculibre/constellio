@@ -13,7 +13,13 @@ import java.util.*;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -46,6 +52,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -62,6 +69,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
@@ -78,9 +86,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private String batchProcessSchemaType;
 
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
+	private transient ModelLayerCollectionExtensions modelLayerExtensions;
+	private transient RMModuleExtensions rmModuleExtensions;
 
 	public CartPresenter(CartView view) {
 		super(view, Cart.DEFAULT_SCHEMA);
+
+		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
+		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 	}
 
 	public void itemRemovalRequested(RecordVO record) {
@@ -130,9 +143,18 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			view.showErrorMessage($("CartView.cannotDuplicate"));
 			return;
 		}
+		List<Folder> folders = getCartFolders();
+		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+			for (Folder folder : folders) {
+				if (!extension.isCopyActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord())))
+					view.showErrorMessage($("CartView.actionBlockedByExtension"));
+				return;
+			}
+		}
+
 		try {
 			DecommissioningService service = new DecommissioningService(view.getCollection(), appLayerFactory);
-			for (Folder folder : getCartFolders()) {
+			for (Folder folder : folders) {
 				if(!folder.isLogicallyDeletedStatus()) {
 					service.duplicateStructureAndSave(folder, getCurrentUser());
 				}
@@ -156,6 +178,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return;
 		}
 		for (Record record : recordServices().getRecordsById(view.getCollection(), cart().getAllItems())) {
+			if (modelLayerExtensions.isDeleteBlocked(record, getCurrentUser())) {
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+				return;
+			}
+		}
+
+ 		for (Record record : recordServices().getRecordsById(view.getCollection(), cart().getAllItems())) {
 			delete(record, reason);
 		}
 		cartEmptyingRequested();
@@ -442,16 +471,24 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
+		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
 	}
 
-	public void processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	private boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
 			throws RecordServicesException {
+		for (Record record : recordServices().getRecordsById(view.getCollection(), records)) {
+			if (modelLayerExtensions.isModifyBlocked(record, getCurrentUser())) {
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+				return false;
+			}
+		}
+
 		batchProcessingPresenterService()
 				.execute(selectedType, records, viewObject, getCurrentUser());
 		view.navigate().to(RMViews.class).cart(cartId);
+		return true;
 	}
 
 	@Override
@@ -519,15 +556,32 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean isBatchProcessingButtonVisible(String schemaType) {
-		boolean hasRightToProcessSchemaType = true;
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType) && !getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS)
 				.onSomething()) {
-			hasRightToProcessSchemaType = false;
+			return false;
 		}
-		return getNotDeletedRecordsIds(schemaType).size() != 0 && hasRightToProcessSchemaType;
+		return getNotDeletedRecordsIds(schemaType).size() != 0;
 	}
 
 	public void shareWithUsersRequested(List<String> userids) {
+		List<Folder> folders = getCartFolders();
+		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+			for (Folder folder : folders) {
+				if (!extension.isShareActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
+					view.showErrorMessage($("CartView.actionBlockedByExtension"));
+					return;
+				}
+			}
+		}
+		List<Document> documents = getCartDocuments();
+		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+			for (Document document : documents) {
+				if (!extension.isShareActionPossible(new DocumentExtensionActionPossibleParams(document.getWrappedRecord()))) {
+					view.showErrorMessage($("CartView.actionBlockedByExtension"));
+					return;
+				}
+			}
+		}
 		cart().setSharedWithUsers(userids);
 		addOrUpdate(cart().getWrappedRecord());
 	}
@@ -765,7 +819,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 						.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
 	}
 
-	public void batchEditRequested(String code, Object value, String schemaType) {
+	public boolean batchEditRequested(String code, Object value, String schemaType) {
+		List<String> recordIds = schemaType.equals(Folder.SCHEMA_TYPE) ? cart().getFolders() : cart().getDocuments();
+		for (Record record : recordServices().getRecordsById(view.getCollection(), recordIds)) {
+			if (modelLayerExtensions.isModifyBlocked(record, getCurrentUser())) {
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+				return false;
+			}
+		}
+
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
@@ -775,6 +837,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getNotDeletedRecordsIds(schemaType));
 		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
 		manager.markAsPending(process);
+		return true;
 	}
 
 	public List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType) {
@@ -810,5 +873,31 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public boolean canCurrentUserBuildDecommissioningList() {
 		return getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
 				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
+	}
+
+	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
+		List<Record> records = rm().get(recordIds);
+		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+			for (Record record : records) {
+				if (!extension.isCreatePDFAActionPossible(new DocumentExtensionActionPossibleParams(record))) {
+					view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public boolean isDecommissioningActionPossible() {
+		List<Record> records = rm().get(cart().getFolders());
+		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+			for (Record record : records) {
+				if (!extension.isDecommissioningActionPossible(new FolderExtensionActionPossibleParams(record))) {
+					view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }

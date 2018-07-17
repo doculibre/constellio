@@ -204,14 +204,14 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public boolean isModifyBlocked(Record record, User user) {
-		boolean deleteBlocked = false;
+		boolean modifyBlocked = false;
 		for (RecordExtension extension : recordExtensions) {
-			deleteBlocked = extension.isModifyBlocked(record, user);
-			if (deleteBlocked) {
+			modifyBlocked = extension.isModifyBlocked(record, user);
+			if (modifyBlocked) {
 				break;
 			}
 		}
-		return deleteBlocked;
+		return modifyBlocked;
 	}
 
 	public boolean isDeleteBlocked(Record record, User user) {

@@ -530,7 +530,7 @@ public class ReindexingServices {
 			values.addAll(aggregatedValuesTempStorage.getAllValues(record.getId(), metadata.getLocalCode()));
 		}
 
-		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(aggregatingMetadata, values) {
+		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(record.getId(), aggregatingMetadata, values) {
 
 			@Override
 			public List<AggregatedValuesEntry> getEntries() {

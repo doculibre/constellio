@@ -10,11 +10,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.server.Resource;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -53,6 +64,9 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -70,6 +84,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient DecommissioningLoggingService decommissioningLoggingService;
 	private transient ModelLayerCollectionExtensions extensions;
+    private transient RMModuleExtensions rmModuleExtensions;
 	private transient LoggingServices loggingServices;
 
 	public DocumentActionsPresenterUtils(T actionsComponent) {
@@ -96,6 +111,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		voBuilder = new DocumentToVOBuilder(presenterUtils.modelLayerFactory());
 		decommissioningLoggingService = new DecommissioningLoggingService(presenterUtils.modelLayerFactory());
 		extensions = presenterUtils.modelLayerFactory().getExtensions().forCollection(presenterUtils.getCollection());
+        rmModuleExtensions = presenterUtils.appLayerFactory().getExtensions().forCollection(presenterUtils.getCollection())
+                .forModule(ConstellioRMModule.ID);
 	}
 
 	public DocumentVO getDocumentVO() {
@@ -156,7 +173,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void copyContentButtonClicked() {
-		actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+		if (isCopyDocumentPossible()) {
+			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+		}
 	}
 
 	protected boolean isDeleteDocumentPossible() {
@@ -258,47 +277,77 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.visibleIf(isCreateDocumentPossible());
 	}
 
-	protected boolean isShareDocumentPossible() {
-		return getCurrentUser().has(RMPermissionsTo.SHARE_DOCUMENT).on(currentDocument());
-	}
+	private ComponentState getCopyDocumentState() {
+	    return ComponentState.visibleIf(isCopyDocumentPossible());
+    }
+
+    protected boolean isCopyDocumentPossible() {
+        for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+            if (!extension.isCopyActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(currentDocument))) {
+				return false;
+            }
+        }
+        return true;
+    }
 
 	public ComponentState getCreatePDFAState() {
-		if (isCheckOutPossible() && getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
-			if (getContent() != null) {
-				return ComponentState.ENABLED;
-			}
-		}
-		return ComponentState.INVISIBLE;
+        return ComponentState.visibleIf(isCreatePDFAPossible());
 	}
+
+	protected boolean isCreatePDFAPossible() {
+        if (!isCheckOutPossible() || !getAuthorizationServices().canWrite(getCurrentUser(), currentDocument()) ||
+                getContent() == null) {
+            return false;
+        }
+
+       for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+            if (!extension.isCreatePDFAActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(currentDocument()))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 	private ComponentState getShareDocumentState() {
-		FolderStatus archivisticStatus = rmSchemasRecordsServices.wrapDocument(currentDocument()).getArchivisticStatus();
-		if (isShareDocumentPossible() && archivisticStatus != null) {
-			if (archivisticStatus.isInactive()) {
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_INACTIVE_DOCUMENT).on(currentDocument()));
-			}
-			if (archivisticStatus.isSemiActive()) {
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
-			}
-			if (isNotBlank((String) currentDocument().get(LEGACY_ID))) {
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument()));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
+        return ComponentState.visibleIf(isShareDocumentPossible());
 	}
 
-	public void addAuthorizationButtonClicked() {
+    protected boolean isShareDocumentPossible() {
+        FolderStatus archivisticStatus = rmSchemasRecordsServices.wrapDocument(currentDocument()).getArchivisticStatus();
+
+        if (!getCurrentUser().has(RMPermissionsTo.SHARE_DOCUMENT).on(currentDocument())) return false;
+        if (archivisticStatus == null) return false;
+        if (archivisticStatus.isInactive() &&
+                !getCurrentUser().has(RMPermissionsTo.SHARE_A_INACTIVE_DOCUMENT).on(currentDocument())) {
+            return false;
+        }
+        if (archivisticStatus.isSemiActive() &&
+                !getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument())) {
+            return false;
+        }
+        if (isNotBlank((String) currentDocument().get(LEGACY_ID)) &&
+                !getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument())) {
+            return false;
+        }
+
+        for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+            if (!extension.isShareActionPossible(new DocumentExtensionActionPossibleParams(currentDocument()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
 			actionsComponent.navigate().to().listObjectAccessAndRoleAuthorizations(documentVO.getId());
 		}
 	}
 
 	public void shareDocumentButtonClicked() {
-		actionsComponent.navigate().to().shareContent(documentVO.getId());
+		if (isShareDocumentPossible()) {
+			actionsComponent.navigate().to().shareContent(documentVO.getId());
+		}
 	}
 
 	public void updateWindowClosed() {
@@ -372,6 +421,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public synchronized void createPDFA() {
+		if (!isCreatePDFAPossible()) return;
+
 		if (!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
@@ -587,15 +638,41 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return !email && (getContent() != null && isContentCheckedOut());
 	}
 
-	protected boolean isFinalizePossible() {
+    private ComponentState getFinalizeButtonState() {
+	    return ComponentState.visibleIf(isFinalizePossible());
+    }
+
+    protected boolean isFinalizePossible() {
 		boolean borrowed = isContentCheckedOut();
 		boolean minorVersion;
 		Content content = getContent();
 		minorVersion = content != null && content.getCurrentVersion().getMinor() != 0;
-		return !borrowed && minorVersion && extensions.isRecordModifiableBy(currentDocument(), getCurrentUser());
+		if (borrowed || !minorVersion || !extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())) {
+		    return false;
+        }
+
+        for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+            if (!extension.isFinalizeActionPossible(new DocumentExtensionActionPossibleParams(currentDocument()))) {
+                return false;
+            }
+        }
+        return true;
 	}
 
-	public void updateActionsComponent() {
+    private ComponentState getPublishButtonState() {
+        return ComponentState.visibleIf(isPublishPossible());
+    }
+
+    protected boolean isPublishPossible() {
+        for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+            if (!extension.isPublishActionPossible(new DocumentExtensionActionPossibleParams(currentDocument()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void updateActionsComponent() {
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
@@ -613,11 +690,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.setCheckInButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCheckOutButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAlertWhenAvailableButtonState(ComponentState.INVISIBLE);
-			actionsComponent.setFinalizeButtonVisible(false);
+			actionsComponent.setFinalizeButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setStartWorkflowButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCartButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddToOrRemoveFromSelectionButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setPublishButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setCopyDocumentButtonState(ComponentState.INVISIBLE);
 			return;
 		}
 
@@ -633,11 +711,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setCheckInButtonState(getCheckInState());
 		actionsComponent.setCheckOutButtonState(getCheckOutState());
 		actionsComponent.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState());
-		actionsComponent.setFinalizeButtonVisible(isFinalizePossible());
+		actionsComponent.setFinalizeButtonState(getFinalizeButtonState());
 		actionsComponent.setStartWorkflowButtonState(ComponentState.visibleIf(configs.areWorkflowsEnabled()));
+		actionsComponent.setCopyDocumentButtonState(getCopyDocumentState());
+		actionsComponent.setPublishButtonState(getPublishButtonState());
 	}
 
-	protected void updateBorrowedMessage() {
+    protected void updateBorrowedMessage() {
 		if (isContentCheckedOut()) {
 			Content content = getContent();
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
@@ -714,6 +794,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public Document publishButtonClicked() {
+		if (!isPublishPossible()) return null;
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		return new Document(record, presenterUtils.types()).setPublished(true);
 	}
@@ -734,5 +815,92 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void logOpenDocument(RecordVO recordVO) {
 		loggingServices.openDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
+	}
+
+	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
+
+		final String collection = presenterUtils.getCollection();
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		final Record record = currentDocument();
+
+		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
+			@Override
+			public Document getDocument() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				return rm.wrapDocument(record);
+			}
+
+			@Override
+			public RecordVO getRecordVO() {
+				return documentVO;
+			}
+
+			@Override
+			public BaseViewImpl getView() {
+				return view;
+			}
+
+			@Override
+			public User getUser() { return currentUser; }
+
+			@Override
+			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
+				MenuItem item = rootItem.addItem(caption, icon, null);
+				item.setCommand(new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						runnable.run();
+					}
+				});
+			}
+		});
+	}
+
+	public void addItemsFromExtensions(final BaseContextMenu menu, final BaseViewImpl view) {
+
+		final String collection = presenterUtils.getCollection();
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		final Record record = currentDocument();
+
+		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
+			@Override
+			public Document getDocument() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				return rm.wrapDocument(record);
+			}
+
+			@Override
+			public RecordVO getRecordVO() {
+				return documentVO;
+			}
+
+			@Override
+			public BaseViewImpl getView() {
+				return view;
+			}
+
+			@Override
+			public User getUser() { return currentUser; }
+
+			@Override
+			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
+				ContextMenuItem item = menu.addItem(caption, icon);
+				item.addItemClickListener(new ContextMenuItemClickListener() {
+					@Override
+					public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
+						runnable.run();
+					}
+				});
+			}
+		});
+
 	}
 }
