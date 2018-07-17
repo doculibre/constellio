@@ -23,7 +23,14 @@ public class FolderConfidentialCalculator implements MetadataValueCalculator<Boo
 
 		//CopyRetentionRule mainCopyRule = parameters.get(mainCopyRuleParam);
 		Boolean retentionRuleConfidential = parameters.get(retentionRuleConfidentialParam);
-		return Boolean.TRUE.equals(retentionRuleConfidential);
+
+		boolean isRetentionRuleConfidentiel = Boolean.TRUE.equals(retentionRuleConfidential);
+
+		if(isRetentionRuleConfidentiel) {
+			return true;
+		} else {
+			return null;
+		}
 	}
 
 	@Override
