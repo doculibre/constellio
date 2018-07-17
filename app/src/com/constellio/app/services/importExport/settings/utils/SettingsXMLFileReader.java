@@ -6,12 +6,10 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.*;
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -37,13 +35,8 @@ import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.constellio.model.entities.Language;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -118,7 +111,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		List<String> language = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collectionCode);
-		if(language == null || language.size() == 0) {
+		if (language == null || language.size() == 0) {
 			language = new ArrayList<>();
 			language.add(modelLayerFactory.getCollectionsListManager().getMainDataLanguage());
 		}
@@ -367,7 +360,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		Map<Language, String> languageTitleMap = getLanguageStringMap(child, languageList, title);
 
-		if(languageTitleMap.size() > 0) {
+		if (languageTitleMap.size() > 0) {
 			taxonomy.setTitle(languageTitleMap);
 		}
 
@@ -397,8 +390,9 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		List<Attribute> attributeList = child.getAttributes();
 
-		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(SettingsXMLFileReader.TITLE) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
+		for (Attribute currentAttribute : attributeList) {
+			if (currentAttribute.getName().startsWith(SettingsXMLFileReader.TITLE)
+					&& currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
 				String languageCode = currentAttribute.getName().replace(SettingsXMLFileReader.TITLE, "");
 				Language language = Language.withCode(languageCode);
 				languageTitleMap.put(language, currentAttribute.getValue());
@@ -406,8 +400,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			}
 		}
 
-		if(numberOfLang == 0 && title != null) {
-			for(String languageCollection : languageList) {
+		if (numberOfLang == 0 && title != null) {
+			for (String languageCollection : languageList) {
 				Language language = Language.withCode(languageCollection);
 				languageTitleMap.put(language, title);
 			}
@@ -518,7 +512,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setValue(childElement.getAttributeValue("value"));
 	}
 
-	public static ImportedSettings readFromFile(File file) {
+	public static ImportedSettings readFromFile(File file, ModelLayerFactory modelLayerFactory) {
 
 		SAXBuilder builder = new SAXBuilder();
 		Document document;
@@ -530,7 +524,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
 		}
 
-		SettingsXMLFileReader reader = new SettingsXMLFileReader(document);
+		SettingsXMLFileReader reader = new SettingsXMLFileReader(document, modelLayerFactory);
 
 		return reader.read();
 
