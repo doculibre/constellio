@@ -308,7 +308,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected boolean isActionMenuBar() {
-		return true;
+		return false;
 	}
 
 	protected String getTitle() {
