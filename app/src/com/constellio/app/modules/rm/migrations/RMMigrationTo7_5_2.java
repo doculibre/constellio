@@ -61,9 +61,11 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 					.setType(MetadataValueType.STRING).setDefaultRequirement(true).setInputMask(MaskUtils.MM_DD);
 
 			MetadataSchemaBuilder retentionRuleSchema = typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE).getDefaultSchema();
+
 			MetadataBuilder dateTypes = retentionRuleSchema.create(RetentionRule.YEAR_TYPES)
 					.defineReferencesTo(dateTypeSchemaType).setMultivalue(true)
 					.defineDataEntry().asCalculated(RuleYearTypesCalculator.class);
+
 			retentionRuleSchema.create(RetentionRule.YEAR_TYPES_YEAR_END).setType(MetadataValueType.STRING).setMultivalue(true)
 					.defineDataEntry().asCopied(dateTypes, yearEnd);
 
