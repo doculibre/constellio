@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.facet;
 
+import java.util.Locale;
+
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationPresenter;
@@ -24,7 +26,7 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata) {
+	public Field<?> build(MetadataVO metadata, Locale locale) {
 		Field<?> field;
 		String metadataCode = metadata.getCode();
 		if (metadataCode.endsWith(Facet.FIELD_DATA_STORE_CODE)) {
@@ -39,7 +41,7 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 				.endsWith(Facet.LIST_QUERIES)) {
 			field = new ValuesLabelFieldImpl(presenter);
 		} else {
-			field = super.build(metadata);
+			field = super.build(metadata, locale);
 		}
 		return field;
 	}

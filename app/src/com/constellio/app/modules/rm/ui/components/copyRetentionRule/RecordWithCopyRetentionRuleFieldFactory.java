@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		implements RecordWithCopyRetentionRuleParametersFields {
@@ -55,7 +56,7 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	}
 
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
 		String code = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
 		if (schemaType.equals(Folder.SCHEMA_TYPE) &&
@@ -67,7 +68,7 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 			field = buildDocumentSpecificFields(recordVO, metadataVO);
 			super.postBuild(field, recordVO, metadataVO);
 		} else {
-			field = super.build(recordVO, metadataVO);
+			field = super.build(recordVO, metadataVO, locale);
 		}
 		return field;
 	}

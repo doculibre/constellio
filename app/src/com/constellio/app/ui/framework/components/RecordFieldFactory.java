@@ -26,7 +26,7 @@ public class RecordFieldFactory implements Serializable {
 		this.metadataFieldFactory = metadataFieldFactory;
 	}
 	
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public final Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
 		return build(recordVO, metadataVO, null);
 	}
 	

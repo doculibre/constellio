@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
+import java.util.Locale;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.components.RMRecordFieldFactory;
 import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
@@ -23,7 +25,7 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
 		switch (metadataVO.getLocalCode()) {
 			case ContainerRecord.STORAGE_SPACE:
@@ -34,11 +36,11 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 						field.setEnabled(false);
 					}
 				} else {
-					field = super.build(recordVO, metadataVO);
+					field = super.build(recordVO, metadataVO, locale);
 				}
 				break;
 			default:
-				field = super.build(recordVO, metadataVO);
+				field = super.build(recordVO, metadataVO, locale);
 		}
 
 		if (field instanceof CustomFolderField) {

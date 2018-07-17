@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -182,14 +183,14 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 
     class LabelRecordFieldFactory extends RecordFieldFactory {
         @Override
-        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
             Field<?> field;
             switch (metadataVO.getCode()) {
                 case PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.TYPE_LABEL:
                     field = createComboBox(metadataVO);
                     break;
                 default:
-                    field = new MetadataFieldFactory().build(metadataVO);
+                    field = new MetadataFieldFactory().build(metadataVO, locale);
                     if(metadataVO.codeMatches(Printable.JASPERFILE)) {
                         field.addValidator(new Validator() {
                             @Override

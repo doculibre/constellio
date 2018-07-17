@@ -4,12 +4,10 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,19 +152,24 @@ public class TaskReminderEmailManager implements StatefulService {
 			parentTaskTitle = parentTask.getTitle();
 		}
 		String status = taskSchemas.getTaskStatus(task.getStatus()).getTitle();
+		String status_fr = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.FRENCH);
+		String status_en = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
-		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(task.getTitle()));
-		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(parentTaskTitle));
-		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(assignerFullName));
+		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));
+		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(parentTaskTitle)));
+		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
-		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
+		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
 		if(task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
 
-		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
-		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
+		newParameters.add(TASK_STATUS + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status)));
+		newParameters.add(TASK_STATUS_FR + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_fr)));
+		newParameters.add(TASK_STATUS_EN + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_en)));
+
+		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getDescription())));
 		String constellioURL = eimConfigs.getConstellioUrl();
 
 		newParameters

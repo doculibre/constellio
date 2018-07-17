@@ -7,6 +7,7 @@ import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.ui.components.RMRecordFieldFactory;
@@ -35,7 +36,7 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
 		switch (metadataVO.getLocalCode()) {
 		case TYPE:
@@ -51,7 +52,7 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 			field = new DocumentCopyRuleFieldImpl(copyRules);
 			break;
 		default:
-			field = super.build(recordVO, metadataVO);
+			field = super.build(recordVO, metadataVO, locale);
 		}
 		if (field instanceof CustomDocumentField) {
 			postBuild(field, recordVO, metadataVO);

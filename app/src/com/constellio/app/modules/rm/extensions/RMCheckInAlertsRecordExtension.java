@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,18 +99,18 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					LocalDateTime returnDate = TimeProvider.getLocalDateTime();
 					emailToSend.setTo(toAddress);
 					emailToSend.setSendOn(returnDate);
-                    final String subject = $("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle();
+                    final String subject = StringEscapeUtils.escapeHtml4($("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle());
 					emailToSend.setSubject(subject);
 					emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 					List<String> parameters = new ArrayList<>();
 					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 					String rmObjectTitle = rmObject.getTitle();
-					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
 					String constellioUrl = eimConfigs.getConstellioUrl();
 					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase());
+					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4($("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()));
 					emailToSend.setParameters(parameters);
 					transaction.add(emailToSend);
 				}

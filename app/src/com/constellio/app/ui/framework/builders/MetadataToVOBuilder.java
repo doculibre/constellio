@@ -141,13 +141,23 @@ public class MetadataToVOBuilder implements Serializable {
 		}
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
+
+		//TODO FIXME Vincent est-ce necessaire?
+		for(Language keyset : metadata.getLabels().keySet()) {
+			labels.put(keyset.getLocale(), metadata.getLabels().get(keyset));
+		}
+
+
+
+		//labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
+		//		Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
 		Locale currentLocale = sessionContext.getCurrentLocale();
 		String metadataLabel = metadata.getLabel(Language.withCode(currentLocale.getLanguage()));
 		if (isMultiLingual && locale != null) {
 			metadataLabel += " (" + locale.getLanguage().toUpperCase() + ")";
 		}
 		labels.put(currentLocale, metadataLabel);
-		
+
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 

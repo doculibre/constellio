@@ -71,7 +71,7 @@ public class MetadataFieldFactory implements Serializable {
 		this.isViewOnly = isViewOnly;
 	}
 
-	public Field<?> build(MetadataVO metadata) {
+	public final Field<?> build(MetadataVO metadata) {
 		return build(metadata, null);
 	}
 

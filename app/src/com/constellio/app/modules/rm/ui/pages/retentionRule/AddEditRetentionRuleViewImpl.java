@@ -20,6 +20,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -129,12 +130,12 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 		}
 
 		@Override
-		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 			Field<?> field;
 			switch (metadataVO.getLocalCode()) {
 			case RetentionRule.COPY_RETENTION_RULES:
 				if (presenter.isFoldersCopyRetentionRulesVisible()) {
-					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter) {
+					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter, getSessionContext().getCurrentLocale()) {
 						@Override
 						protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
 							presenter.disposalTypeChanged(copyRetentionRule);
@@ -218,14 +219,14 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 				postBuild(field, recordVO, metadataVO);
 				break;
 			default:
-				field = super.build(recordVO, metadataVO);
+				field = super.build(recordVO, metadataVO, locale);
 				break;
 			}
 			return field;
 		}
 
 		private Field<?> buildCategoriesField(RecordVO recordVO, MetadataVO metadataVO) {
-			ListAddRemoveRecordLookupField field = (ListAddRemoveRecordLookupField) super.build(recordVO, metadataVO);
+			ListAddRemoveRecordLookupField field = (ListAddRemoveRecordLookupField) super.build(recordVO, metadataVO, null);
 			if (field != null) {
 				field.setIgnoreLinkability(true);
 			}

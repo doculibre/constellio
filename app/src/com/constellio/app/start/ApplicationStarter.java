@@ -133,7 +133,7 @@ public class ApplicationStarter {
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
-		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello");
+		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello", "TLSv1", "TLSv1.1");
 
 		sslContextFactory.setExcludeCipherSuites(
 				"SSL_RSA_WITH_DES_CBC_SHA",
@@ -151,7 +151,16 @@ public class ApplicationStarter {
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA"
+				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+				"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+				"TLS_RSA_WITH_AES_128_CBC_SHA256",
+				"TLS_RSA_WITH_AES_128_GCM_SHA256",
+				"TLS_RSA_WITH_AES_256_CBC_SHA",
+				"TLS_RSA_WITH_AES_256_CBC_SHA256",
+				"TLS_RSA_WITH_AES_256_GCM_SHA384",
+				"TLS_RSA_WITH_AES_128_CBC_SHA",
+				"TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+				"TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA"
 		);
 
 		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);

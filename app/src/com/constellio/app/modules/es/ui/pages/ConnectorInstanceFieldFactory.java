@@ -1,5 +1,7 @@
 package com.constellio.app.modules.es.ui.pages;
 
+import java.util.Locale;
+
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.ui.components.TraversalSchedulesComponent;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -9,7 +11,7 @@ import com.vaadin.ui.Field;
 
 public class ConnectorInstanceFieldFactory extends RecordFieldFactory {
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadata) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadata, Locale locale) {
 		if (metadata.getCode().contains(ConnectorInstance.CONNECTOR_TYPE)) {
 			Field<?> field = super.build(recordVO, metadata);
 			if (field != null) {
@@ -25,7 +27,7 @@ public class ConnectorInstanceFieldFactory extends RecordFieldFactory {
 			postBuild(field, recordVO, metadata);
 			return field;
 		} else {
-			return super.build(recordVO, metadata);
+			return super.build(recordVO, metadata, locale);
 		}
 	}
 }
