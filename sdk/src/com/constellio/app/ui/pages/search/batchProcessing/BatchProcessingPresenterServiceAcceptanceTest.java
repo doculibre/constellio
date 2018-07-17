@@ -371,7 +371,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
-				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
+				tuple("document_default_categoryCode", "X110", "Z112")
 		);
 	}
 
@@ -401,7 +402,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
-				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
+				tuple("document_default_categoryCode", "X110", "Z112")
 
 		);
 	}

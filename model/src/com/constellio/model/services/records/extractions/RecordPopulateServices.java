@@ -3,6 +3,7 @@ package com.constellio.model.services.records.extractions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.FilenameUtils;
@@ -81,7 +82,8 @@ public class RecordPopulateServices {
 						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
 							if(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && shouldRemoveExtension(originalRecord, metadata, contentMetadatas, populator)) {
                                 record.set(metadata, FilenameUtils.removeExtension((String) currentPopulatedValue));
-							} else if(!(!Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && currentPopulatedValue == null)){
+							} else if(!(!Schemas.TITLE_CODE.equals(metadata.getLocalCode())
+									&& currentPopulatedValue == null && Objects.equals(record.get(metadata), metadata.getDefaultValue()))){
 								record.set(metadata, currentPopulatedValue);
 							}
 						}
