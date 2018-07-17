@@ -92,7 +92,8 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual, false, new HashSet<String>(), false, false, PERSISTED);
+				false, false, false, false, false, false, multiLingual, false, new HashSet<String>(), false, false, PERSISTED,
+				false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -375,6 +376,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isIncreasedDependencyLevel() {
 		return getInheritedMetadataBehaviors().isReverseDependency();
+	}
+
+	public boolean isDependencyOfAutomaticMetadata() {
+		return getInheritedMetadataBehaviors().isDependencyOfAutomaticMetadata();
 	}
 
 	public StringSortFieldNormalizer getSortFieldNormalizer() {

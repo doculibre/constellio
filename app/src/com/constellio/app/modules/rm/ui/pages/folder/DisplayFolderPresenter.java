@@ -216,15 +216,23 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		computeAllItemsSelected();
 	}
 
-	private LogicalSearchQuery getDocumentsQuery() {
+	LogicalSearchQuery getDocumentsQuery() {
 		Record record = getRecord(folderVO.getId());
-		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
-		MetadataSchema documentsSchema = getDocumentsSchema();
-		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
-		LogicalSearchQuery query = new LogicalSearchQuery();
 
-		LogicalSearchCondition condition = from(documentsSchemaType).where(folderMetadata).is(record);
-		query.setCondition(condition);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Folder folder = rm.wrapFolder(record);
+		List<String> referencedDocuments = new ArrayList<>();
+		for (Metadata folderMetadata : folder.getSchema().getMetadatas().onlyReferencesToType(Document.SCHEMA_TYPE)) {
+			referencedDocuments.addAll(record.<String>getValues(folderMetadata));
+		}
+
+		LogicalSearchCondition condition = from(rm.document.schemaType()).where(rm.document.folder()).is(record);
+
+		if (!referencedDocuments.isEmpty()) {
+			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
+		}
+
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.filteredWithUser(getCurrentUser());
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);

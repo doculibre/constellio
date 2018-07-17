@@ -177,4 +177,5 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 		Collections.sort(multilingualMetadatas);
 		return multilingualMetadatas;
 	}
+
 }

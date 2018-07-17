@@ -27,6 +27,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 	final boolean markedForDeletion;
 	final boolean reverseDependency;
 	final boolean relationshipProvidingSecurity;
+	final boolean dependencyOfAutomaticMetadata;
 	final MetadataTransiency volatility;
 	final Set<String> customAttributes;
 
@@ -34,7 +35,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
 			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean encrypted, boolean essentialInSummary,
 			boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes, boolean reverseDependency,
-			boolean relationshipProvidingSecurity, MetadataTransiency volatility) {
+			boolean relationshipProvidingSecurity, MetadataTransiency volatility, boolean dependencyOfAutomaticMetadata) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -54,6 +55,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.reverseDependency = reverseDependency;
 		this.relationshipProvidingSecurity = relationshipProvidingSecurity;
 		this.volatility = volatility == null ? MetadataTransiency.PERSISTED : volatility;
+		this.dependencyOfAutomaticMetadata = dependencyOfAutomaticMetadata;
 	}
 
 	public boolean isReverseDependency() {
@@ -136,6 +138,10 @@ public class InheritedMetadataBehaviors implements Serializable {
 
 	public boolean isRelationshipProvidingSecurity() {
 		return relationshipProvidingSecurity;
+	}
+
+	public boolean isDependencyOfAutomaticMetadata() {
+		return dependencyOfAutomaticMetadata;
 	}
 
 	public Set<String> getCustomAttributes() {
