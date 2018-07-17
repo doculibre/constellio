@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -35,19 +36,22 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 
 	BatchProcessReport report;
 
+	ModelLayerFactory modelLayerFactory;
+
 	public CreateSubTaskModificationImpactHandler(SearchServices searchServices, RecordServices recordServices,
-			MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user) {
-		this(searchServices, recordServices, metadataSchemaTypes, taskList, user, null);
+												  MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user, ModelLayerFactory modelLayerFactory) {
+		this(searchServices, recordServices, metadataSchemaTypes, taskList, user, null, modelLayerFactory);
 	}
 
 	public CreateSubTaskModificationImpactHandler(SearchServices searchServices, RecordServices recordServices,
-												  MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user, BatchProcessReport report) {
+												  MetadataSchemaTypes metadataSchemaTypes, TaskList taskList, User user, BatchProcessReport report, ModelLayerFactory modelLayerFactory) {
 		this.searchServices = searchServices;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;
 		this.taskList = taskList;
 		this.user = user;
 		this.report = report;
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	@Override
@@ -76,7 +80,7 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 	void createSubTask(List<Record> subRecords, List<String> metadatas) {
 		BatchProcessAction action = new ReindexMetadatasBatchProcessAction(metadatas);
 		BatchProcessTask task = new BatchProcessTask(taskList, subRecords, action, recordServices,
-				metadataSchemaTypes, searchServices, user, report);
+				metadataSchemaTypes, searchServices, user, report, modelLayerFactory);
 		taskList.addSubTask(task);
 	}
 

@@ -24,7 +24,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class BatchProcessTasksFactoryTest extends ConstellioTest {
+public class BatchProcessTasksFactoryAcceptanceTest extends ConstellioTest {
 
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock MetadataSchemasManager schemasManager;
@@ -68,7 +68,7 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 
-		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList));
+		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList, getModelLayerFactory()));
 		records.add(record1);
 		records.add(record2);
 		tasks.add(aTask);

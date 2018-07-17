@@ -21,7 +21,7 @@ import java.util.List;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
+public class CreateSubTaskModificationImpactHandlerAcceptanceTest extends ConstellioTest {
 
 	@Mock SearchServices searchServices;
 	@Mock RecordServices recordServices;
@@ -45,7 +45,7 @@ public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		handler = spy(new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user));
+		handler = spy(new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user, getModelLayerFactory()));
 
 		doReturn(schemaUtils).when(handler).newSchemaUtils();
 		when(schemaUtils.toMetadataCodes(reindexedMetadatas)).thenReturn(reindexedMetadatasCodes);

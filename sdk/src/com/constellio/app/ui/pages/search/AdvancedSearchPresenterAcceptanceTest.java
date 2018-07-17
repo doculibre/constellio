@@ -238,9 +238,10 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		presenter.batchEditRequested("folder_default_description", "new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException", Folder.SCHEMA_TYPE);
 		waitForBatchProcess();
 		assertThat(rmRecords.getFolder_A01().getDescription()).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException");
+		assertThat(rmRecords.getFolder_A02().getDescription()).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException");
 		assertThat(searchServices.getResultsCount(
 				LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.DESCRIPTION_TEXT).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException"))
-		).isEqualTo(1);
+		).isEqualTo(2);
 	}
 
 	private void connectWithAlice() {

@@ -152,6 +152,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 						if (typeId.equals(copyRetentionRule.getTypeId())
 								&& copyRetentionRule.getCopyType() == uniformCopyType
+								|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
 								&& !ids.contains(copyRetentionRule.getId())) {
 							ids.add(copyRetentionRule.getId());
 							options.add(copyRetentionRule);
@@ -162,6 +163,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 						for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 							if (copyRetentionRule.getTypeId() == null
 									&& copyRetentionRule.getCopyType() == uniformCopyType
+									|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
 									&& !ids.contains(copyRetentionRule.getId())) {
 								ids.add(copyRetentionRule.getId());
 								options.add(copyRetentionRule);
@@ -184,14 +186,16 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
 				options = new ArrayList<>();
 				Set<String> ids = new HashSet<>();
-				for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
-					if (copyRetentionRule.getTypeId() == null
-							&& copyRetentionRule.getCopyType() == uniformCopyType
-							&& !ids.contains(copyRetentionRule.getId())) {
-						ids.add(copyRetentionRule.getId());
-						options.add(copyRetentionRule);
-					}
-				}
+
+                for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+                    if (copyRetentionRule.getTypeId() == null
+                            && copyRetentionRule.getCopyType() == uniformCopyType
+							|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
+                            && !ids.contains(copyRetentionRule.getId())) {
+                        ids.add(copyRetentionRule.getId());
+                        options.add(copyRetentionRule);
+                    }
+                }
 			} else if(request.getQuery() != null) {
 				options = getOptionsWithQuery(request);
 			} else {
@@ -324,7 +328,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 				locale);
 
 		SchemaUtils schemaUtils = new SchemaUtils();
-		Transaction transaction = presenterService.prepareTransaction(request, false);
+		Transaction transaction = presenterService.prepareTransactionWithIds(request, false);
 		for (Record record : transaction.getRecords()) {
 			String schemaCode = record.getSchemaCode();
 			String schemaTypeCode = schemaUtils.getSchemaTypeCode(schemaCode);
