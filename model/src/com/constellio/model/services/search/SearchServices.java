@@ -6,6 +6,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -402,6 +403,29 @@ public class SearchServices {
 		}
 	}
 
+	public List<MetadataSchemaType> getSearchedTypes(LogicalSearchQuery query, MetadataSchemaTypes types) {
+		if (types == null) {
+			return Collections.emptyList();
+		}
+
+		List<MetadataSchemaType> metadataSchemaTypes = new ArrayList<>();
+		if (query.getCondition() != null) {
+			List<String> schemaTypesCodes = query.getCondition().getFilterSchemaTypesCodes();
+			if (schemaTypesCodes != null) {
+				for (String schemaTypeCode : schemaTypesCodes) {
+					metadataSchemaTypes.add(types.getSchemaType(schemaTypeCode));
+				}
+			}
+		}
+
+		String collection = getCollection(query);
+		if (metadataSchemaTypes.isEmpty() && collection != null) {
+			metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes();
+		}
+
+		return metadataSchemaTypes;
+	}
+
 	public String getLanguageCode(String collection) {
 		String language;
 		try {
@@ -425,6 +449,8 @@ public class SearchServices {
 			types = metadataSchemasManager.getSchemaTypes(collection);
 		}
 
+		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
+
 		String language = getLanguage(query);
 		params.add(CommonParams.FQ, "" + query.getQuery(language, types));
 
@@ -438,7 +464,7 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(query.getCondition().getCollection(), language, query.getFieldBoosts());
+			String qf = getQfFor(language, query.getFieldBoosts(), searchedSchemaTypes);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -685,36 +711,41 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(String collection, String language, List<SearchBoost> boosts) {
+	private String getQfFor(String language, List<SearchBoost> boosts,
+			List<MetadataSchemaType> searchedSchemaTypes) {
 		StringBuilder sb = new StringBuilder();
 
-		Set<String> fieldsWithBoosts = new HashSet<>();
+		Set<String> fields = new HashSet<>();
 
 		for (SearchBoost boost : boosts) {
 			sb.append(boost.getKey());
 			sb.append("^");
 			sb.append(boost.getValue());
 			sb.append(" ");
-			fieldsWithBoosts.add(boost.getKey());
+			fields.add(boost.getKey());
 		}
-		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSearchableMetadatas()) {
-			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
-				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
-				sb.append("^20 ");
-			}
 
-			String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
-					.getDataStoreCode();
-			if (!fieldsWithBoosts.contains(analyzedField)) {
-				sb.append(analyzedField + " ");
+		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
+			for (Metadata metadata : schemaType.getAllMetadatas()) {
+				if (metadata.isSearchable()) {
+					if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
+						sb.append("^20 ");
+					} else {
+						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
+								.getDataStoreCode();
+						if (!fields.contains(analyzedField)) {
+							sb.append(analyzedField + " ");
+						}
+					}
+				}
 			}
 		}
 
 		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
-		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
+		if (!fields.contains(idAnalyzedField)) {
 			sb.append(idAnalyzedField + " ");
 		}
-		System.out.println(sb.toString());
 		return sb.toString();
 	}
 

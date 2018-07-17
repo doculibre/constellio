@@ -322,7 +322,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Map<Language, String> labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "zora");
 
-		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", labelTitle, options ,true);
+		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", labelTitle, options);
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();
@@ -346,7 +346,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		options.setCreateMetadatasAsMultivalued(false);
 		options.typesWithReferenceMetadata = asList("administrativeUnit");
 
-		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", labelTitle, options, true);
+		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", labelTitle, options);
 
 		recordServices
 				.add(recordServices.newRecordWithSchema(zoraDomain.getDefaultSchema()).set(TITLE, "test")

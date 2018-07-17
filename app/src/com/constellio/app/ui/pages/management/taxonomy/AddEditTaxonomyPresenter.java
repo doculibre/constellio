@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.management.taxonomy;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -39,6 +38,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	private transient TaxonomiesManager taxonomiesManager;
 	private transient MetadataSchemasManager schemasManager;
 
+	private List<String> collectionLanguage;
+
 	public AddEditTaxonomyPresenter(AddEditTaxonomyView view) {
 		super(view);
 		init();
@@ -54,6 +55,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		userServices = modelLayerFactory.newUserServices();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		collectionLanguage = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 	}
 
 	private boolean isTitleChanged(Map<Language, String> mapLang, Map<Language, String> mapLang2) {
@@ -65,12 +67,25 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		return false;
 	}
 
-	public void saveButtonClicked(TaxonomyVO taxonomyVO) {
+	public List<String> getCollectionLanguage() {
+		return collectionLanguage;
+	}
+
+	public List<Language> saveButtonClicked(TaxonomyVO taxonomyVO, boolean isMultiLingual) {
+		List<Language> languageInError = new ArrayList<>();
+
 		if (isActionEdit()) {
 			Taxonomy taxonomy = fetchTaxonomy(taxonomyVO.getCode());
-			boolean wasTitleChanged = isTitleChanged(taxonomy.getTitle(), taxonomyVO.getTitle());
+			boolean wasTitleChanged = isTitleChanged(taxonomy.getTitle(), taxonomyVO.getTitleMap());
+			if(wasTitleChanged) {
+				languageInError = canAlterOrCreateLabels(taxonomyVO.getTitleMap(), taxonomy.getTitle());
 
-			taxonomy = taxonomy.withTitle(taxonomyVO.getTitle())
+				if (languageInError.size() > 0) {
+					return languageInError;
+				}
+			}
+
+			taxonomy = taxonomy.withTitle(taxonomyVO.getTitleMap())
 					.withUserIds(taxonomyVO.getUserIds())
 					.withGroupIds(taxonomyVO.getGroupIds())
 					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
@@ -81,23 +96,46 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			taxonomiesManager.editTaxonomy(taxonomy);
 			view.navigate().to().listTaxonomies();
 		} else {
-			boolean canCreate = canCreate(taxonomyVO.getTitle());
-			if (canCreate) {
-				List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
-				boolean isMultiLingual = language.size() > 1;
+			languageInError = canAlterOrCreateLabels(taxonomyVO.getTitleMap(), null);
+
+			if(languageInError.size() > 0) {
+				return languageInError;
+			}
+
+			Taxonomy taxonomy = valueListServices()
+					.createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
+							taxonomyVO.isVisibleInHomePage(), isMultiLingual);
+			createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), true);
+			view.navigate().to().listTaxonomies();
+			titles.add(taxonomyVO.getTitleMap());
+		}
+
+		return languageInError;
+	}
 
 
-				Taxonomy taxonomy = valueListServices()
-						.createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
-								taxonomyVO.isVisibleInHomePage(), isMultiLingual);
-				createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects(), true);
-				view.navigate().to().listTaxonomies();
-				titles.add(taxonomyVO.getTitle());
-			} else {
-				view.showErrorMessage("Taxonomny already exists!");
-				return;
+
+	public List<Language> canAlterOrCreateLabels(Map<Language, String> newMapTitle, Map<Language,String> oldValues) {
+		List<Language> listUnvalidValueForLanguage = new ArrayList<>();
+
+		if (titles == null || titles.size() == 0) {
+			getTaxonomies();
+		}
+
+		for(Language language : newMapTitle.keySet()) {
+			String newCurrentTitle = newMapTitle.get(language);
+			if(Strings.isBlank(newCurrentTitle)){
+				listUnvalidValueForLanguage.add(language);
+			}
+			for(Map<Language, String> existingTitleMap : titles) {
+				String existingTitleInCurrentLanguage = existingTitleMap.get(language);
+				if(Strings.isNotBlank(existingTitleInCurrentLanguage) && existingTitleInCurrentLanguage.equals(newCurrentTitle)
+						&& (oldValues == null ||  oldValues != null && !existingTitleInCurrentLanguage.equals(oldValues.get(language)))) {
+					listUnvalidValueForLanguage.add(language);
+				}
 			}
 		}
+		return listUnvalidValueForLanguage;
 	}
 
 	void renameTaxonomyType(Taxonomy taxonomy, boolean wasTitleChanged) {

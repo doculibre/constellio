@@ -44,6 +44,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -367,7 +368,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		advancedSearchSchemaTypeField = new BaseComboBox();
 		for (MetadataSchemaTypeVO schemaType : presenter.getSchemaTypes()) {
 			advancedSearchSchemaTypeField.addItem(schemaType.getCode());
-			String itemCaption = schemaType.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+			String itemCaption = schemaType.getLabel(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
 			advancedSearchSchemaTypeField.setItemCaption(schemaType.getCode(), itemCaption);
 		}
 		advancedSearchSchemaTypeField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);

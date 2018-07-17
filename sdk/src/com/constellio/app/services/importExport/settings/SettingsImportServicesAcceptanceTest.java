@@ -10,6 +10,7 @@ import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
@@ -111,6 +112,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	static final String CODE_SCHEMA_1 = "USRschema1";
 	static final String CODE_SCHEMA_2 = "USRschema2";
 	static final String CODE_DEFAULT_SCHEMA = "default";
+	private static final String LABEL_FR = "Label en français";
+	private static final String LABEL_EN = "Label en anglais";
 	List<String> metadataCodes;
 	Users users = new Users();
 
@@ -360,7 +363,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingUnknownConfigsThenConfigsAreNotSet()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
@@ -393,7 +396,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void givenEnglishLocalewhenImportingBadIntegerConfigValueThenValidationExceptionThrown()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
 				.setValue("helloInteger"));
@@ -412,7 +415,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void giveEnglishLocaleWhenImportingNullValueConfigsThenNullValueExceptionIsRaised()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue(null));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
@@ -505,7 +508,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void givenEnglishLocalizationWhenImportSequencesWithNonNumericalValueThenEnglishErrorMessage()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("a"));
 
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
@@ -617,7 +620,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-
 	public void whenImportingValueListsThenSet()
 			throws Exception {
 
@@ -715,6 +717,137 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		//newWebDriver();
 		//waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void whenImportingMultiligualMetadatasThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English,LABEL_EN);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMetadataWithOnlyFrenchLabelThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.French, LABEL_FR);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().keySet()).doesNotContain(English);
+	}
+
+	@Test
+	public void whenImportingMetadataWithOnlyEnglishLableThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	private void importMetadata(ImportedMetadata metadata) throws ValidationException {
+		ImportedCollectionSettings collectionSettings = settings.newCollectionSettings(zeCollection);
+		ImportedType folderSchemaType = collectionSettings.newType(Folder.SCHEMA_TYPE);
+		ImportedMetadataSchema defaultFoldersSchema = folderSchemaType.newDefaultSchema();
+
+		defaultFoldersSchema.addMetadata(metadata);
+		settings.add(collectionSettings);
+		importSettings();
+	}
+
+	@Test
+	public void whenImportingMultiligualCustomSchemasThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English,LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema importedMetadataSchema = folderType.newSchema("custom").setLabels(labelMap);
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getCustomSchema("custom").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(schemaType.getCustomSchema("custom").getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMultiligualSchemaTypeThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English,LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabels(labelMap);
+		ImportedMetadataSchema importedMetadataSchema = folderType.newSchema("custom");
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(schemaType.getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMultiligualDefaultSchemasThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English,LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabels(labelMap);
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getDefaultSchema().getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(schemaType.getDefaultSchema().getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMultiligualDefaultSchemasWithOnlyEnglishThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.English,LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabels(labelMap);
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getDefaultSchema().getLabels().get(English)).isEqualTo(LABEL_EN);
 	}
 
 	@Test
@@ -3476,6 +3609,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users), withCollection("anotherCollection"));
+//		givenCollection("anotherCollection");
 		services = new SettingsImportServices(getAppLayerFactory());
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();

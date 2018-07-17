@@ -16,16 +16,18 @@ public class MetadataSchemaTypeToVOBuilder implements Serializable {
 
 	public MetadataSchemaTypeVO build(MetadataSchemaType type) {
 		Map<Locale, String> labels = new HashMap<>();
-		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		Language language = Language.withCode(locale.getLanguage());
-		labels.put(ConstellioUI.getCurrentSessionContext().getCurrentLocale(), type.getLabel(language));
-		return new MetadataSchemaTypeVO(type.getCode(), labels);
+
+		for(Language currentLanguage : type.getLabels().keySet()) {
+			labels.put(Locale.forLanguageTag(currentLanguage.getCode()), type.getLabel(currentLanguage));
+		}
+
+		return new MetadataSchemaTypeVO(type.getCode(), type.getLabels());
 	}
 
 	public MetadataSchemaTypeVO build(MetadataSchemaType type, SessionContext sessionContext) {
 		Map<Locale, String> labels = new HashMap<>();
 		labels.put(sessionContext.getCurrentLocale(),
 				type.getLabel(Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
-		return new MetadataSchemaTypeVO(type.getCode(), labels);
+		return new MetadataSchemaTypeVO(type.getCode(), type.getLabels());
 	}
 }

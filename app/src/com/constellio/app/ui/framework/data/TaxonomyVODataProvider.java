@@ -89,7 +89,7 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 	public ArrayList<Map<Language, String>> getTaxonomyVOsTitles() {
 		ArrayList<Map<Language, String>> titles = new ArrayList<Map<Language, String>>();
 		for (TaxonomyVO taxonomyVO : taxonomyVOs) {
-			titles.add(taxonomyVO.getTitle());
+			titles.add(taxonomyVO.getTitleMap());
 		}
 		return titles;
 	}

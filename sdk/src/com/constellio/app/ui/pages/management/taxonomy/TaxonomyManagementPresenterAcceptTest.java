@@ -74,8 +74,8 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(presenter.conceptId).isNull();
 		assertThat(presenter.taxonomy.getCode()).isEqualTo(RMTaxonomies.CLASSIFICATION_PLAN);
-		presenter.getTaxonomy().getTitle().get(Language.French).equals("Plan de classification");
-		presenter.getTaxonomy().getTitle().get(Language.English).equals("File plan");
+		presenter.getTaxonomy().getTitle(Language.French).equals("Plan de classification");
+		presenter.getTaxonomy().getTitle(Language.English).equals("File plan");
 	}
 
 	@Test
@@ -90,8 +90,8 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.conceptId).isEqualTo(records.categoryId_X);
 		assertThat(presenter.taxonomy.getCode()).isEqualTo(RMTaxonomies.CLASSIFICATION_PLAN);
 
-		presenter.getTaxonomy().getTitle().get(Language.French).equals("Plan de classification");
-		presenter.getTaxonomy().getTitle().get(Language.English).equals("File plan");
+		presenter.getTaxonomy().getTitle(Language.French).equals("Plan de classification");
+		presenter.getTaxonomy().getTitle(Language.English).equals("File plan");
 	}
 
 	@Test

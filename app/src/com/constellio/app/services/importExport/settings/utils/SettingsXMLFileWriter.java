@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.join;
 
@@ -132,9 +133,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addImportedType(Element typesElem, ImportedType importedType) {
 		Element typeItem = new Element(TYPE);
 		typeItem.setAttribute(CODE, importedType.getCode());
-		if (StringUtils.isNotBlank(importedType.getLabel())) {
-			typeItem.setAttribute(LABEL, importedType.getLabel());
-		}
+		setLabelsAttribute(typeItem,importedType.getLabels());
 		typesElem.addContent(typeItem);
 
 		addTabs(importedType, typeItem);
@@ -156,18 +155,22 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addSchemaItem(Element schemasElement, ImportedMetadataSchema customSchema) {
 		Element schemaElement = new Element(SCHEMA);
 		schemaElement.setAttribute(CODE, customSchema.getCode());
-		if (StringUtils.isNotBlank(customSchema.getLabel())) {
-			schemaElement.setAttribute(LABEL, customSchema.getLabel());
-		}
+		setLabelsAttribute(schemaElement, customSchema.getLabels());
 		schemasElement.addContent(schemaElement);
 
 		writeSchema(customSchema, schemaElement);
 	}
 
-	private void writeSchema(ImportedMetadataSchema metadataSchema, Element schemaElement) {
-		if (metadataSchema.getLabel() != null) {
-			schemaElement.setAttribute("label", metadataSchema.getLabel());
+	private void setLabelsAttribute(Element element, Map<Language,String> labels){
+		if (labels != null && labels.keySet() != null) {
+			for(Language language : labels.keySet()) {
+				element.setAttribute(LABEL + language.getCode(), labels.get(language));
+			}
 		}
+	}
+
+	private void writeSchema(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+		setLabelsAttribute(schemaElement, metadataSchema.getLabels());
 		if (metadataSchema.getTableMetadatas() != null && !metadataSchema.getFormMetadatas().isEmpty()) {
 			schemaElement.setAttribute("formMetadatas", join(metadataSchema.getFormMetadatas(), ","));
 		}
@@ -213,10 +216,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	}
 
 	private void addMetadatum(Element defaultSchemaElem, ImportedMetadata importedMetadata) {
-
 		Element metadataElem = new Element(METADATA);
 		metadataElem.setAttribute(CODE, importedMetadata.getCode());
-
+		setLabelsAttribute(metadataElem, importedMetadata.getLabels() );
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
 			metadataElem.setAttribute(TITLE, importedMetadata.getLabel());
 		}

@@ -74,7 +74,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		doReturn(valueListServices).when(presenter).valueListServices();
 
 
-		presenter.valueDomainCreationRequested(mapLangueTitle);
+		presenter.valueDomainCreationRequested(mapLangueTitle, true);
 
 		verify(valueListServices).createValueDomain(mapLangueTitle, true);
 		verify(view).refreshTable();
@@ -91,7 +91,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(presenter.newMetadataSchemaTypeToVOBuilder()).thenReturn(metadataSchemaTypeToVOBuilder);
 		when(metadataSchemaTypeToVOBuilder.build(valueDomainType1)).thenReturn(metadataSchemaTypeVO);
 
-		presenter.valueDomainCreationRequested(mapLangueTitle);
+		presenter.valueDomainCreationRequested(mapLangueTitle, true);
 
 		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
@@ -101,7 +101,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 	public void givenEmptyTitleWhenTaxonomyCreationRequestedThenDoNotCreateIt()
 			throws Exception {
 
-		presenter.valueDomainCreationRequested(new HashMap<Language, String>());
+		presenter.valueDomainCreationRequested(new HashMap<Language, String>(), false);
 
 		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
@@ -121,7 +121,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		Map<Language, String> labelTitle1 = new HashMap<>();
 		labelTitle1.put(Language.French, "taxo");
 
-		presenter.valueDomainCreationRequested(mapLangueTitle);
+		presenter.valueDomainCreationRequested(mapLangueTitle, true);
 
 		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();

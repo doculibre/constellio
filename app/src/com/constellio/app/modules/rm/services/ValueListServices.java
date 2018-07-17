@@ -73,7 +73,9 @@ public class ValueListServices {
 	}
 
 	public MetadataSchemaType createValueDomain(String code, Map<Language, String> titleMap, boolean isMultiLingual) {
-		return createValueDomain(code, titleMap, new CreateValueListOptions(), isMultiLingual);
+		CreateValueListOptions createValueListOptions = new CreateValueListOptions();
+		createValueListOptions.setMultilingual(isMultiLingual);
+		return createValueDomain(code, titleMap, createValueListOptions);
 	}
 
 	public static class CreateValueListOptions {
@@ -124,15 +126,14 @@ public class ValueListServices {
 		}
 	}
 
-	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options,
-			boolean isMultiLingual) {
+	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options) {
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
 		}
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 
-		createValueDomain(code, title, options, types, isMultiLingual);
+		createValueDomain(code, title, options, types);
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
@@ -142,7 +143,7 @@ public class ValueListServices {
 	}
 
 	public MetadataSchemaTypeBuilder createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options,
-			MetadataSchemaTypesBuilder types, boolean isMultiLingual) {
+			MetadataSchemaTypesBuilder types) {
 
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
