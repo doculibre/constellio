@@ -60,7 +60,7 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
                         TaxonomyManagementViewImpl taxonomyView = (TaxonomyManagementViewImpl) view;
                         RecordVO currentConcept = taxonomyView.getCurrentConcept();
                         User currentUser = getCurrentUser(view);
-                        if(AdministrativeUnit.SCHEMA_TYPE.equals(currentConcept.getSchema().getTypeCode())) {
+                        if (currentConcept != null && AdministrativeUnit.SCHEMA_TYPE.equals(currentConcept.getSchema().getTypeCode())) {
                             actionMenuButtons.add(buildNewMenuButton(currentConcept, currentUser));
                         }
                     }

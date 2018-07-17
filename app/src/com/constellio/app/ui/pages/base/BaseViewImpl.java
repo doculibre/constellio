@@ -306,7 +306,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return false;
 	}
-	
+
 	protected boolean isActionMenuBar() {
 		return true;
 	}
@@ -321,49 +321,59 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 * @param event
 	 * @return
 	 */
-	protected Component buildActionMenu(ViewChangeEvent event) {
-		Component result;
-		actionMenuButtons = buildActionMenuButtons(event);
-		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
-			result = null;
-		} else {
-			for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
-				actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
-			}
-			if (isActionMenuBar()) {
-				MenuBar menuBar = new MenuBar();
-				menuBar.setAutoOpen(true);
-				menuBar.setIcon(FontAwesome.ELLIPSIS_H);
-				result = menuBar;
+    protected Component buildActionMenu(ViewChangeEvent event) {
+        Component result;
+        actionMenuButtons = buildActionMenuButtons(event);
+        for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+            actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+        }
 
-				MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
-				rootItem.setIcon(FontAwesome.ELLIPSIS_H);
-				
-				for (final Button actionMenuButton : actionMenuButtons) {
-					Resource icon = actionMenuButton.getIcon();
-					String caption = actionMenuButton.getCaption();
-					rootItem.addItem(caption, icon, new Command() {
-						@Override
-						public void menuSelected(MenuItem selectedItem) {
-							actionMenuButton.click();
-						}
-					});
-				}
-			} else {
-				VerticalLayout actionMenuLayout = new VerticalLayout();
-				actionMenuLayout.setSizeUndefined();
-				
-				for (Button actionMenuButton : actionMenuButtons) {
-					actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-					actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
-					actionMenuButton.addStyleName("action-menu-button");
-					actionMenuLayout.addComponent(actionMenuButton);
-				}
-				result = actionMenuLayout;
-			}	
-		}
-		return result;
-	}
+        if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
+            result = null;
+        } else {
+            if (isActionMenuBar()) {
+                MenuBar menuBar = new MenuBar();
+                menuBar.setAutoOpen(true);
+                menuBar.setIcon(FontAwesome.ELLIPSIS_H);
+                result = menuBar;
+
+                MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+                rootItem.setIcon(FontAwesome.ELLIPSIS_H);
+
+                for (final Button actionMenuButton : actionMenuButtons) {
+                    Resource icon = actionMenuButton.getIcon();
+                    String caption = actionMenuButton.getCaption();
+                    rootItem.addItem(caption, icon, new Command() {
+                        @Override
+                        public void menuSelected(MenuItem selectedItem) {
+                            actionMenuButton.click();
+                        }
+                    });
+                }
+            } else {
+                VerticalLayout actionMenuLayout = new VerticalLayout();
+                actionMenuLayout.setSizeUndefined();
+
+                int visibleButtons = 0;
+                for (Button actionMenuButton : actionMenuButtons) {
+                    if (actionMenuButton.isVisible()) {
+                        actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+                        actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
+                        actionMenuButton.addStyleName("action-menu-button");
+                        actionMenuLayout.addComponent(actionMenuButton);
+
+                        visibleButtons++;
+                    }
+                }
+
+                if (visibleButtons == 0) {
+                    actionMenuLayout = null;
+                }
+                result = actionMenuLayout;
+            }
+        }
+            return result;
+    }
 
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();
