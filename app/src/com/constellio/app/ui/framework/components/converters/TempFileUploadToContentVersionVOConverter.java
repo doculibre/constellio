@@ -91,7 +91,7 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 			};
 			boolean hasFoundDuplicate = uploadResponse.hasFoundDuplicate();
 			return tempFileUpload != null ?
-					new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
+					new ContentVersionVO(null, shouldSetHashForTemporaryFiles()? hash: null, fileName, mimeType, length, null, null, null, null, null, null,
 							inputStreamProvider).setHasFoundDuplicate(hasFoundDuplicate).setDuplicatedHash(hasFoundDuplicate? hash:null) :
 					null;
 		} catch (IOException e) {
@@ -101,4 +101,7 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		}
 	}
 
+	protected boolean shouldSetHashForTemporaryFiles() {
+		return false;
+	}
 }
