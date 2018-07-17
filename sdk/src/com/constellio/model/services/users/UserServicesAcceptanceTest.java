@@ -876,6 +876,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
+		userServices.addUserToCollection(admin, collection1);
 		userServices.removeGroupFromCollections(admin, "group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
@@ -901,6 +902,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
+		userServices.addUserToCollection(admin, collection1);
 		userServices.logicallyRemoveGroupHierarchy(admin, group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
@@ -939,6 +941,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1);
 		userServices.addUpdateGlobalGroup(group1_1_1);
 		UserCredential admin = userServices.getUserCredential("admin");
+		userServices.addUserToCollection(admin, collection1);
 		userServices.logicallyRemoveGroupHierarchy(admin, group1);
 
 		userServices.activateGlobalGroupHierarchy(admin, group1);

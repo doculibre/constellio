@@ -294,6 +294,14 @@ public class FolderVO extends RecordVO {
 		return get(BORROW_USER);
 	}
 
+	public void setBorrowUserEnteredId(String borrowUserId) {
+		set(BORROW_USER_ENTERED, borrowUserId);
+	}
+
+	public String getBorrowUserEnteredId() {
+		return get(BORROW_USER_ENTERED);
+	}
+
 	public void setLinearSize(Double linearSize) {
 		set(LINEAR_SIZE, linearSize);
 	}

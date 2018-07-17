@@ -298,6 +298,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);
 	}
 
+	public void listObjectAccessAndRoleAuthorizations(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS + "/" + entityId);
+	}
+
 	public void listObjectAccessAuthorizations(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/" + entityId);
 	}

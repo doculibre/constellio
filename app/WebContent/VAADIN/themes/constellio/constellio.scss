@@ -197,6 +197,10 @@ $popup-view-z-index: 3;
 		@include file-icon(unquote("docx.gif"));
 	}
 
+	.v-table-cell-content-file-icon-docm {
+		@include file-icon(unquote("docm.gif"));
+	}
+
 	.v-table-cell-content-file-icon-eml {
 		@include file-icon(unquote("eml.gif"));
 	}
@@ -297,6 +301,14 @@ $popup-view-z-index: 3;
 		@include file-icon(unquote("text.gif"));
 	}
 
+	.v-table-cell-content-file-icon-tif {
+		@include file-icon(unquote("tif.gif"));
+	}
+
+	.v-table-cell-content-file-icon-tiff {
+		@include file-icon(unquote("tiff.gif"));
+	}
+
 	.v-table-cell-content-file-icon-unknown {
 		@include file-icon(unquote("unknown.gif"));
 	}
@@ -331,6 +343,10 @@ $popup-view-z-index: 3;
 
 	.v-table-cell-content-file-icon-xlsx {
 		@include file-icon(unquote("xlsx.gif"));
+	}
+
+	.v-table-cell-content-file-icon-xlsm {
+		@include file-icon(unquote("xlsm.gif"));
 	}
 
 	.v-table-cell-content-file-icon-xlt {

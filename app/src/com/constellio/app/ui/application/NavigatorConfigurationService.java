@@ -38,10 +38,7 @@ import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewI
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.TemporaryRecord.ListTemporaryRecordViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
-import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.*;
 import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
@@ -138,6 +135,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS = "principalAccessAuthorizations";
 	public static final String LIST_OBJECT_ACCESS_AUTHORIZATIONS = "objectAccessAuthorizations";
 	public static final String LIST_OBJECT_ROLE_AUTHORIZATIONS = "objectRoleAuthorizations";
+	public static final String LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS = "objectAccessAndRoleAuthorizations";
 	public static final String SHARE_CONTENT = "shareContent";
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String TRASH = "trash";
@@ -226,7 +224,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
     public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
 
-    private List<ViewProvider> viewProviders = new ArrayList<>();
+	private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
 		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
@@ -263,6 +261,8 @@ public class NavigatorConfigurationService implements Serializable {
 				ListContentAccessAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ROLE_AUTHORIZATIONS,
 				ListContentRoleAuthorizationsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS,
+				ListContentAccessAndRoleAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));

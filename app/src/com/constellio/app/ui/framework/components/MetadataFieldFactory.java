@@ -377,7 +377,10 @@ public class MetadataFieldFactory implements Serializable {
 				field = new ListAddRemoveDoubleField();
 				break;
 			case STRING:
-				field = new ListAddRemoveTextField();
+				ListAddRemoveTextField addRemoveField = new ListAddRemoveTextField();
+				String inputMask = metadata.getInputMask();
+				addRemoveField.setInputMask(inputMask);
+				field = addRemoveField;
 				break;
 			case CONTENT:
 				switch (metadataInputType) {

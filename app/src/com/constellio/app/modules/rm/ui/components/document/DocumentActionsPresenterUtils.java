@@ -140,11 +140,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), getModelLayerFactory());
 			boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
 			if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
-				if (isManualEntry) {
+				if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE).getPopulateConfigs().isAddOnly()) {
 					document.setTitle(newName);
 				}
 			} else if(FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename()).equals(document.getTitle())) {
-				if (isManualEntry) {
+				if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE).getPopulateConfigs().isAddOnly()) {
 					document.setTitle(FilenameUtils.removeExtension(newName));
 				}
 			}
@@ -293,7 +293,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
-			actionsComponent.navigate().to().listObjectAccessAuthorizations(documentVO.getId());
+			actionsComponent.navigate().to().listObjectAccessAndRoleAuthorizations(documentVO.getId());
 		}
 	}
 

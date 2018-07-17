@@ -278,6 +278,10 @@ public class DecommissioningService {
 		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment) {
+		decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
+	}
+
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
@@ -1272,6 +1276,8 @@ public class DecommissioningService {
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")");
 				parameters.add("extensionDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(LocalDate.now()));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			}

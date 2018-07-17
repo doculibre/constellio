@@ -128,9 +128,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 						regexConfig.getRegexConfigType() == RegexConfigType.TRANSFORMATION, regexConfig.getValue()),
 				new MetadataToText(regexConfig.getInputMetadata()));
 		MetadataPopulateConfigs o = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig),
-				asList(metadataPopulator));
+				asList(metadataPopulator), null);
 		MetadataPopulateConfigs o2 = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig),
-				asList(metadataPopulator));
+				asList(metadataPopulator), null);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 	}
 

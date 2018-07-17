@@ -1591,69 +1591,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 }
 
-.constellio .v-context-menu {
-	float: left;
-	font-family: Arial;
-	font-size: 12px;
-	background-color: #f0f0f0;
-	box-shadow: 5px 5px 10px #999;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	float: left;
-	clear: left;
-	height: 26px;
-	color: #222;
-	cursor: pointer;
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
-	border-bottom: 1px solid #d0d0d0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
-	background-color: #e0e0e0;
-	outline: none;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
-	opacity: 0.3;
-	filter: alpha(opacity = 30);
-	zoom: 1;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
-	float: left;
-	width: 26px;
-	height: 26px;
-	margin-right: 5px;
-	border-right: 1px solid #d0d0d0;
-	text-align: center;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
-	float: left;
-	width: 16px;
-	height: 16px;
-	padding: 5px;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-text {
-	float: left;
-	height: 26px;
-	line-height: 26px;
-	padding: 0 20px 0 10px;
-}
-
 .constellio.v-app, .constellio.v-app-loading {
 	font: 300 16px/1.55 "JF Flat", "Open Sans", sans-serif, FontAwesome;
 	color: #464646;
@@ -12090,6 +12027,18 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-docm {
+	background-image: url('images/icons/ext/mantis/docm.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-docm .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-eml {
 	background-image: url('images/icons/ext/mantis/eml.gif');
 	background-repeat: no-repeat;
@@ -12390,6 +12339,30 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-tif {
+	background-image: url('images/icons/ext/mantis/tif.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-tif .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-tiff {
+	background-image: url('images/icons/ext/mantis/tiff.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-tiff .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-unknown {
 	background-image: url('images/icons/ext/mantis/unknown.gif');
 	background-repeat: no-repeat;
@@ -12493,6 +12466,18 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-xlsx .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsm {
+	background-image: url('images/icons/ext/mantis/xlsm.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsm .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
