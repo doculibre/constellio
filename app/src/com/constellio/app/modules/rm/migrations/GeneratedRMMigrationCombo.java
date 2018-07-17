@@ -6679,10 +6679,13 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getMetadata(collection, "userTask_default_linkedContainers")
 				.withMetadataGroup("init.userTask.details").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_linkedDocuments").withMetadataGroup(" Fichiers")
+		transaction.add(manager.getMetadata(collection, "userTask_default_linkedDocuments")
+				.withMetadataGroup("init.userTask.details")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_linkedFolders").withMetadataGroup(" Fichiers")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction
+				.add(manager.getMetadata(collection, "userTask_default_linkedFolders").withMetadataGroup("init.userTask.details")
+						.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "userTask_default_reason").withMetadataGroup("")
 				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		manager.execute(transaction.build());

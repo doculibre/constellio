@@ -37,7 +37,7 @@ public class GroupIdToCaptionConverter implements Converter<String, String> {
 		if (StringUtils.isNotBlank(value)) {
 			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 			Record record = modelLayerFactory.newRecordServices().getDocumentById(value);
-			caption = SchemaCaptionUtils.getCaptionForRecord(record);
+			caption = SchemaCaptionUtils.getCaptionForRecord(record, locale);
 
 			SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
 			Group group = schemas.wrapGroup(record);

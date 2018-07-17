@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.Language;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

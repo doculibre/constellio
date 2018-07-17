@@ -20,25 +20,6 @@ import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -53,13 +34,6 @@ import com.constellio.app.services.importExport.settings.model.ImportedDataEntry
 import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
@@ -77,11 +51,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -185,9 +154,12 @@ public class SettingsImportServices {
 
 		final MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collectionCode);
 
-		importCollectionsValueLists(collectionSettings, collectionCode, schemaTypes);
+		List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collectionCode);
+		boolean isMultiLingual = language.size() > 1;
 
-		importCollectionTaxonomies(collectionSettings, collectionCode, schemaTypes);
+		importCollectionsValueLists(collectionSettings, collectionCode, schemaTypes, isMultiLingual);
+
+		importCollectionTaxonomies(collectionSettings, collectionCode, schemaTypes, isMultiLingual);
 
 		importCollectionTypes(collectionSettings, collectionCode, schemaTypes);
 
@@ -714,7 +686,7 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionTaxonomies(final ImportedCollectionSettings settings,
-			final String collectionCode, final MetadataSchemaTypes schemaTypes) {
+			final String collectionCode, final MetadataSchemaTypes schemaTypes, final boolean isMultiLingual) {
 
 		final Map<Taxonomy, ImportedTaxonomy> taxonomies = new HashMap<>();
 		valueListServices = new ValueListServices(appLayerFactory, collectionCode);
@@ -727,13 +699,13 @@ public class SettingsImportServices {
 					String typeCode = importedTaxonomy.getCode();
 					//					String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
 					String taxoCode = StringUtils.substringAfter(typeCode, TAXO);
-					String title = null;
-					if (StringUtils.isNotBlank(importedTaxonomy.getTitle())) {
+					Map<Language, String> title = null;
+					if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitle().size() > 0) {
 						title = importedTaxonomy.getTitle();
 					}
 
 					if (!schemaTypes.hasType(importedTaxonomy.getCode() + "Type")) {
-						Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
+						Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, isMultiLingual);
 
 						if (importedTaxonomy.getVisibleOnHomePage() != null) {
 							taxonomy = taxonomy.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
@@ -748,7 +720,7 @@ public class SettingsImportServices {
 					} else {
 						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy);
 
-						if (StringUtils.isNotBlank(importedTaxonomy.getTitle())) {
+						if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitle().size() > 0) {
 							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle());
 						}
 
@@ -817,7 +789,7 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionsValueLists(final ImportedCollectionSettings collectionSettings,
-			final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes) {
+			final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes, final boolean isMultiLingual) {
 		schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder schemaTypesBuilder) {
@@ -839,26 +811,25 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-						;
+						// TODO Francis ajustement
 
 						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
 									importedValueList.getTitle(),
-									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode)
+											.setMultilingual(isMultiLingual));
 						} else {
-							builder.createHierarchicalValueListItemSchema(code,
-									importedValueList.getTitle(),
-									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
+							builder.createHierarchicalValueListItemSchema(code, importedValueList.getTitle(),
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode)
+											.setMultilingual(isMultiLingual));
 						}
 
 					} else {
 						MetadataSchemaTypeBuilder builder = schemaTypesBuilder.getSchemaType(importedValueList.getCode());
 
-						if (StringUtils.isNotBlank(importedValueList.getTitle())) {
-							Map<Language, String> labels = new HashMap<>();
-							labels.put(Language.French, importedValueList.getTitle());
-							builder.setLabels(labels);
+						if (importedValueList != null && importedValueList.getTitle().size() > 0) {
+							builder.setLabels(importedValueList.getTitle());
 						}
 
 						if (StringUtils.isNotBlank(codeModeText)) {

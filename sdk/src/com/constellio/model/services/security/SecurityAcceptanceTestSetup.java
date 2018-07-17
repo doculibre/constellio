@@ -2,12 +2,10 @@ package com.constellio.model.services.security;
 
 import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataFacultative;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -99,12 +97,15 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 	@Override
 	public void setUp() {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo");
+
 		MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaType("documentFond");
 		MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaType("category");
 		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
 		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
 		MetadataSchemaTypeBuilder folderTypeType = new ValueListItemSchemaTypeBuilder(typesBuilder)
-				.createValueListItemSchema("folderType", "Folder type", codeMetadataFacultative());
+				.createValueListItemSchema("folderType", labelTitle1, codeMetadataFacultative());
 		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
 
 		setupTaxonomy1(documentFondType, categoryType);
@@ -113,8 +114,15 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		setupFolderType(folderType, categoryType, administrativeUnitType, folderTypeType);
 		setupDocumentType(documentType, folderType);
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", collection, Arrays.asList("documentFond", "category"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", collection, Arrays.asList("administrativeUnit"));
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "taxo1");
+
+		Map<Language, String> labelTitle3 = new HashMap<>();
+		labelTitle3.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy
+				.createPublic("taxo1", labelTitle2, collection, Arrays.asList("documentFond", "category"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", labelTitle3, collection, Arrays.asList("administrativeUnit"));
 
 		taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 	}

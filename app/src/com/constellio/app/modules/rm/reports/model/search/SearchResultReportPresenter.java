@@ -124,7 +124,7 @@ public class SearchResultReportPresenter {
 	private List<Object> getRecordLine(Record record, List<Metadata> orderedEnabledReportedMetadataList) {
 		List<Object> returnList = new ArrayList<>();
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
-			Object metadataValue = record.get(metadata);
+			Object metadataValue = record.get(metadata, locale);
 			if (metadataValue == null) {
 				returnList.add(null);
 			} else {

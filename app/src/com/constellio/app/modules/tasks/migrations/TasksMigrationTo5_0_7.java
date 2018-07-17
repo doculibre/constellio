@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -271,6 +272,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
 			MetadataSchemaBuilder taskType = createTaskTypeSchemaType(typesBuilder);
 			createTaskSchemaType(typesBuilder, taskType);
 		}

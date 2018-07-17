@@ -11,10 +11,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Strings;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -34,7 +35,7 @@ public class MetadataSchemaTypeBuilder {
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
 	private String code;
 	private String smallCode;
-	private String collection;
+	private CollectionInfo collectionInfo;
 	private Map<Language, String> labels;
 	private boolean security = true;
 	private boolean inTransactionLog = true;
@@ -49,17 +50,17 @@ public class MetadataSchemaTypeBuilder {
 	MetadataSchemaTypeBuilder() {
 	}
 
-	static MetadataSchemaTypeBuilder createNewSchemaType(String collection, String code,
+	static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
 			MetadataSchemaTypesBuilder typesBuilder) {
-		return createNewSchemaType(collection, code, typesBuilder, true);
+		return createNewSchemaType(collectionInfo, code, typesBuilder, true);
 	}
 
-	static MetadataSchemaTypeBuilder createNewSchemaType(String collection, String code,
+	static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
 			MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
 		builder.classProvider = typesBuilder.getClassProvider();
 		builder.code = code;
-		builder.collection = collection;
+		builder.collectionInfo = collectionInfo;
 		builder.setLabels(configureLabels(code, typesBuilder));
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = "records";
@@ -82,7 +83,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
 		builder.smallCode = schemaType.getSmallCode();
-		builder.collection = schemaType.getCollection();
+		builder.collectionInfo = schemaType.getCollectionInfo();
 		builder.setLabels(schemaType.getLabels());
 		builder.undeletable = schemaType.isUndeletable();
 		builder.defaultSchema = MetadataSchemaBuilder.modifyDefaultSchema(schemaType.getDefaultSchema(), builder);
@@ -90,7 +91,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = schemaType.getDataStore();
-		for (MetadataSchema schema : schemaType.getSchemas()) {
+		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
 		return builder;
@@ -101,7 +102,11 @@ public class MetadataSchemaTypeBuilder {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	public Map<Language, String> getLabels() {
@@ -178,7 +183,7 @@ public class MetadataSchemaTypeBuilder {
 
 		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode, true);
 		customSchema.setLocalCode(localCode);
-		customSchema.setCollection(collection);
+		customSchema.setCollectionInfo(collectionInfo);
 		customSchema.setCode(code + UNDERSCORE + localCode);
 		customSchemas.add(customSchema);
 		return customSchema;
@@ -193,7 +198,7 @@ public class MetadataSchemaTypeBuilder {
 
 		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode, true);
 		customSchema.setLocalCode(localCode);
-		customSchema.setCollection(collection);
+		customSchema.setCollectionInfo(collectionInfo);
 		customSchema.setCode(code + UNDERSCORE + localCode);
 		Map<Language, String> newLabels = configureLabels(labels);
 		customSchema.setLabels(newLabels);
@@ -213,14 +218,14 @@ public class MetadataSchemaTypeBuilder {
 			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
-				if (StringUtils.isBlank(entry.getValue())) {
+				if (Strings.isNullOrEmpty(entry.getValue())) {
 					throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
 				}
 			}
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, smallCode, collection, labels, schemas, defaultSchema, undeletable, security,
+		return new MetadataSchemaType(code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
 				inTransactionLog,
 				readOnlyLocked, dataStore);
 	}
@@ -366,7 +371,7 @@ public class MetadataSchemaTypeBuilder {
 
 		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode, false);
 		customSchema.setLocalCode(localCode);
-		customSchema.setCollection(collection);
+		customSchema.setCollectionInfo(collectionInfo);
 		customSchema.setCode(code + UNDERSCORE + localCode);
 		customSchema.setLabels(new HashMap<Language, String>(copiedSchemaBuilder.getLabels()));
 		customSchemas.add(customSchema);

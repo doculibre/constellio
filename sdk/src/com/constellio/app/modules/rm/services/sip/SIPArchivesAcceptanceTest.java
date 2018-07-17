@@ -8,10 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -85,7 +82,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 				filter, new ProgressInfo());
 		if (!metsObjectsProvider.list().isEmpty()) {
 			ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false,
-					getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo());
+					getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH);
 			constellioSIP.build(outFile);
 		}
 
@@ -166,7 +163,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 
 		SIPBuildAsyncTask task = new SIPBuildAsyncTask("testSIPFile", asList("test1", "test2"),
 				Collections.singletonList(email.getId()), Collections.<String>emptyList(), false,
-				records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion());
+				records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
 		getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(
 				new AsyncTaskCreationRequest(task, zeCollection,
 						"SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPBuildAsyncTaskAcceptanceTest"));

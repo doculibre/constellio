@@ -19,6 +19,7 @@ import org.jdom2.Element;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -66,14 +67,14 @@ public class MetadataSchemaXMLReader3 {
 		this.classProvider = classProvider;
 	}
 
-	public MetadataSchemaTypesBuilder read(String collection, Document document, DataStoreTypesFactory typesFactory,
+	public MetadataSchemaTypesBuilder read(CollectionInfo collectionInfo, Document document, DataStoreTypesFactory typesFactory,
 			ModelLayerFactory modelLayerFactory) {
 
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		List<Language> languages = getLanguages(rootElement);
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider, languages);
+				.createWithVersion(collectionInfo, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
@@ -387,6 +388,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setMultivalue(globalMetadataInCollectionSchema.isMultivalue());
 		} else {
 			metadataBuilder.setMultivalue(readBooleanWithDefaultValue(multivalueStringValue, false));
+		}
+
+		String multilingualStringValue = metadataElement.getAttributeValue("multilingual");
+		if (inheriteGlobalMetadata && multilingualStringValue == null) {
+			metadataBuilder.setMultiLingual(globalMetadataInCollectionSchema.isMultiLingual());
+		} else {
+			metadataBuilder.setMultiLingual(readBooleanWithDefaultValue(multilingualStringValue, false));
 		}
 
 		//}

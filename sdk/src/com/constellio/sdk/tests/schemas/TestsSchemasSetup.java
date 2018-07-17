@@ -236,6 +236,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+
+	public static MetadataBuilderConfigurator whichIsMultilingual = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMultiLingual(true);
+		}
+
+	};
 	public static MetadataBuilderConfigurator whichIsUnique = new MetadataBuilderConfigurator() {
 
 		@Override

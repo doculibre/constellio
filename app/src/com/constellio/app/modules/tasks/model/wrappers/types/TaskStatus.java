@@ -1,6 +1,9 @@
 package com.constellio.app.modules.tasks.model.wrappers.types;
 
+import java.util.Map;
+
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -23,6 +26,11 @@ public class TaskStatus extends ValueListItem {
 	public TaskStatus setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public TaskStatus setTitles(Map<Language, String> titles) {
+		return (TaskStatus) super.setTitles(titles);
 	}
 
 	public TaskStatus setCode(String code) {

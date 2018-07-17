@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -59,7 +60,7 @@ public class MetadataSchemaBuilder {
 
 	private String localCode;
 
-	private String collection;
+	private CollectionInfo collectionInfo;
 
 	private String code;
 
@@ -86,7 +87,7 @@ public class MetadataSchemaBuilder {
 		builder.setDefaultSchema(schemaType.getDefaultSchema());
 		builder.setSchemaTypeBuilder(schemaType);
 		builder.setLocalCode(schema.getLocalCode());
-		builder.setCollection(schema.getCollection());
+		builder.setCollectionInfo(schema.getCollectionInfo());
 		builder.setCode(schema.getCode());
 		builder.setUndeletable(schema.isUndeletable());
 		builder.setLabels(schema.getLabels());
@@ -122,7 +123,7 @@ public class MetadataSchemaBuilder {
 		builder.setLabels(defaultSchema.getLabels());
 		builder.setLocalCode(defaultSchema.getLocalCode());
 		builder.setCode(defaultSchema.getCode());
-		builder.setCollection(defaultSchema.getCollection());
+		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
 		builder.setUndeletable(defaultSchema.isUndeletable());
 		builder.setSchemaTypeBuilder(typeBuilder);
 		builder.metadatas = new ArrayList<>();
@@ -139,7 +140,7 @@ public class MetadataSchemaBuilder {
 		builder.classProvider = defaultSchema.classProvider;
 		builder.setDefaultSchema(defaultSchema);
 		builder.metadatas = new ArrayList<>();
-		builder.setCollection(defaultSchema.getCollection());
+		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
 		builder.setLocalCode(localCode);
 		builder.setLabels(configureLabels(localCode, defaultSchema));
 		builder.setCode(defaultSchema.getSchemaTypeBuilder().getCode() + UNDERSCORE + localCode);
@@ -159,7 +160,7 @@ public class MetadataSchemaBuilder {
 	private static Map<Language, String> configureLabels(String code, MetadataSchemaBuilder typesBuilder,
 			Map<Language, String> labels) {
 		for (Language language : typesBuilder.getLabels().keySet()) {
-			if (StringUtils.isBlank(labels.get(language)))
+			if (labels.get(language) == null || StringUtils.isBlank(labels.get(language)))
 				labels.put(language, code);
 		}
 		return labels;
@@ -171,7 +172,7 @@ public class MetadataSchemaBuilder {
 		builder.classProvider = schemaTypeBuilder.getClassProvider();
 		builder.setSchemaTypeBuilder(schemaTypeBuilder);
 		builder.setLocalCode(DEFAULT);
-		builder.setCollection(schemaTypeBuilder.getCollection());
+		builder.setCollectionInfo(schemaTypeBuilder.getCollectionInfo());
 		builder.setLabels(schemaTypeBuilder.getLabels());
 		builder.setCode(schemaTypeBuilder.getCode() + UNDERSCORE + DEFAULT);
 		builder.setUndeletable(true);
@@ -184,11 +185,15 @@ public class MetadataSchemaBuilder {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
 	}
 
-	MetadataSchemaBuilder setCollection(String collection) {
-		this.collection = collection;
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
+	}
+
+	MetadataSchemaBuilder setCollectionInfo(CollectionInfo collectionInfo) {
+		this.collectionInfo = collectionInfo;
 		return this;
 	}
 
@@ -358,7 +363,8 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
+		return new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
 				schemaTypeBuilder.getDataStore());
 	}
@@ -571,7 +577,7 @@ public class MetadataSchemaBuilder {
 		final Set<RecordValidator> recordValidators = this.schemaValidators.build(defaultSchema.getValidators());
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas,
+		return new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
 				, schemaTypeBuilder.getDataStore());
 	}

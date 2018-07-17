@@ -180,7 +180,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
-				null, null, false,true, new HashSet<String>(), view.getSessionContext());
+				null, null, false,true, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, false);
 
@@ -209,7 +209,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
-				null, null, false, false, new HashSet<String>(), view.getSessionContext());
+				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, false);
 
@@ -238,7 +238,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				newLabels, false, false, true, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false,
 				true, "default",
-				null, null, false, false, new HashSet<String>(), view.getSessionContext());
+				null, null, false, false, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 
@@ -268,7 +268,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.HORIZONTAL, false,
 				false, true, "default",
-				null, null, false, true, new HashSet<String>(), view.getSessionContext());
+				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 
@@ -314,7 +314,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 				null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false,
 				true, "default",
-				null, "AAAA-AAAA", false, true, new HashSet<String>(), view.getSessionContext());
+				null, "AAAA-AAAA", false, true, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 
@@ -335,7 +335,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.HORIZONTAL,
 				false, false, true, "default",
-				null, null, false, true,  new HashSet<String>(), view.getSessionContext());
+				null, null, false, true,  new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 
@@ -350,7 +350,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
-				null, null, false, true, new HashSet<String>(), view.getSessionContext());
+				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 

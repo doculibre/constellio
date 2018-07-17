@@ -125,13 +125,13 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.administrativeUnit")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.category")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.archivisticStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
 		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
-				.setTitle(migrationResourcesProvider.get("init.facet.copyStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
 		recordServices.execute(transaction);
 	}
 
@@ -198,11 +198,11 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		manager.saveMetadata(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.STORAGE_SPACE)
 				.withInputType(MetadataInputType.LOOKUP));
 
-		String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
+		//String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		manager.saveMetadata(manager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_FOLDERS)
-				.withMetadataGroup(detailsTab));
+				.withMetadataGroup("init.userTask.details"));
 		manager.saveMetadata(manager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_DOCUMENTS)
-				.withMetadataGroup(detailsTab));
+				.withMetadataGroup("init.userTask.details"));
 
 		transactionBuilder.in(RetentionRule.SCHEMA_TYPE)
 				.addToSearchResult(RetentionRule.CODE)

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Record;
@@ -24,18 +25,35 @@ public class AdministrativeUnit extends RecordWrapper {
 	public static final String DECOMMISSIONING_MONTH = "decommissioningMonth";
 	public static final String ANCESTORS = "unitAncestors";
 
+	@Deprecated
 	public AdministrativeUnit(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
+	@Deprecated
 	protected AdministrativeUnit(Record record,
 			MetadataSchemaTypes types, String schemaCode) {
 		super(record, types, schemaCode);
 	}
 
+	public AdministrativeUnit(Record record,
+			MetadataSchemaTypes types, Locale locale) {
+		super(record, types, SCHEMA_TYPE, locale);
+	}
+
+	protected AdministrativeUnit(Record record,
+			MetadataSchemaTypes types, String schemaCode, Locale locale) {
+		super(record, types, schemaCode, locale);
+	}
+
 	public AdministrativeUnit setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	public AdministrativeUnit setTitle(Locale locale, String title) {
+		super.setTitle(locale, title);
 		return this;
 	}
 
@@ -58,11 +76,16 @@ public class AdministrativeUnit extends RecordWrapper {
 	}
 
 	public String getDescription() {
-		return get(DESCRIPTION);
+		return get(DESCRIPTION, locale);
 	}
 
 	public AdministrativeUnit setDescription(String description) {
 		set(DESCRIPTION, description);
+		return this;
+	}
+
+	public AdministrativeUnit setDescription(Locale locale, String description){
+		set(DESCRIPTION, locale, description);
 		return this;
 	}
 

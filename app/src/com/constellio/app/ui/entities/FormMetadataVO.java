@@ -39,13 +39,14 @@ public class FormMetadataVO implements Serializable {
 	Set<String> customAttributes;
 	FormMetadataVO inheritance;
 	boolean uniqueValue;
+	boolean isMultiLingual;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
 			boolean facet,
 			MetadataInputType input, MetadataDisplayType displayType, boolean highlight, boolean autocomplete, boolean enabled,
 			String metadataGroup,
-			Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue, Set<String> customAttributes, SessionContext sessionContext) {
+			Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue, Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
@@ -75,6 +76,7 @@ public class FormMetadataVO implements Serializable {
 		this.customAttributes = new HashSet<>(customAttributes);
 		this.inheritance = null;
 		this.uniqueValue = uniqueValue;
+		this.isMultiLingual = isMultiLingual;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -102,6 +104,7 @@ public class FormMetadataVO implements Serializable {
 		this.duplicable = false;
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
+		this.isMultiLingual = false;
 	}
 
 	public boolean isUniqueValue() {
@@ -300,6 +303,14 @@ public class FormMetadataVO implements Serializable {
 	public FormMetadataVO setCustomAttributes(Set<String> customAttributes) {
 		this.customAttributes = customAttributes;
 		return this;
+	}
+
+	public boolean isMultiLingual() {
+		return isMultiLingual;
+	}
+
+	public void setMultiLingual(boolean multiLangual) {
+        isMultiLingual = multiLangual;
 	}
 
 	public void addCustomAttribute(String attribute) {

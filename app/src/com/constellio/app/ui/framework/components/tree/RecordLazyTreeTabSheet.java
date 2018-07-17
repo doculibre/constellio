@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.tree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -92,6 +93,15 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		if (tabComponent.getComponentCount() == 0) {
 			tabComponent.setCompositionRoot(newLazyTree(dataProviders.get(position), bufferSize));
 		}
+	}
+
+	@Override
+	public Locale getLocale() {
+		Locale locale = super.getLocale();
+		if (locale == null) {
+			locale = ConstellioUI.getCurrent().getLocale();
+		}
+		return locale;
 	}
 
 	@Override

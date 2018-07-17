@@ -67,10 +67,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -203,7 +202,10 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		documentInA81 = recordIdWithTitleInCollection("Moineau - Livre de recettes", zeCollection);
 		rolesManager = getModelLayerFactory().getRolesManager();
 
-		customTaxonomyCode = new ValueListServices(getAppLayerFactory(), zeCollection).createTaxonomy("Ze taxo!").getCode();
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "Ze taxo!");
+
+		customTaxonomyCode = new ValueListServices(getAppLayerFactory(), zeCollection).createTaxonomy(labelTitle1, true).getCode();
 
 		rolesManager.addRole(new Role(zeCollection, "roleDeAlice", "Role de Alice", new ArrayList<String>()));
 

@@ -19,6 +19,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -165,7 +166,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 				}
 			}
 			if (selectedTaxonomy != null) {
-				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle()));
+				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle(Language.withCode(breadcrumbTrail.getSessionContext().getCurrentLocale().getLanguage()))));
 			}
 		} else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));

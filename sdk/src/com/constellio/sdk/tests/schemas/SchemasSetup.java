@@ -1,10 +1,12 @@
 package com.constellio.sdk.tests.schemas;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataNetwork;
@@ -29,7 +31,7 @@ public abstract class SchemasSetup {
 	private boolean wasSetUp;
 
 	protected SchemasSetup(String collection) {
-		this(collection, Arrays.asList("fr"));
+		this(collection, asList("fr"));
 	}
 
 	protected SchemasSetup(String collection, List<String> languages) {
@@ -51,10 +53,17 @@ public abstract class SchemasSetup {
 			}
 
 			if (!setup.wasSetUp) {
+
+				CollectionInfo collectionInfo;
+				if (collectionsManager == null) {
+					collectionInfo = new CollectionInfo(setup.collection, "fr", asList("fr"));
+				} else {
+					collectionInfo = collectionsManager.getCollectionInfo(setup.collection);
+				}
 				MetadataSchemaTypes types = manager.getSchemaTypes(setup.collection);
 				if (collectionsManager == null && types == null) {
-					types = new MetadataSchemaTypes(setup.collection, 0, new ArrayList<MetadataSchemaType>(),
-							new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French),
+					types = new MetadataSchemaTypes(collectionInfo, 0, new ArrayList<MetadataSchemaType>(),
+							new ArrayList<String>(), new ArrayList<String>(), asList(Language.French),
 							MetadataNetwork.EMPTY());
 				}
 
@@ -132,6 +141,5 @@ public abstract class SchemasSetup {
 	public void refresh() {
 		types = manager.getSchemaTypes(collection);
 	}
-
 
 }

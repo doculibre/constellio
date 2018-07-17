@@ -15,7 +15,12 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE_CODE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
@@ -72,7 +77,6 @@ import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.model.validators.RetentionRuleValidator;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -93,9 +97,11 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
@@ -126,7 +132,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
 	}
 
-
 	private static void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
@@ -141,8 +146,10 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
-		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, migrationResourcesProvider.getDefaultLanguageString(
-				"init.rm.containers"), collection,
+		Map<Language, String> mapMultiLanguageString = getMultiLanguageString(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.rm.containers");
+
+		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, mapMultiLanguageString, collection,
 				StorageSpace.SCHEMA_TYPE);
 		taxonomiesManager.addTaxonomy(storagesTaxonomy, metadataSchemasManager);
 
@@ -154,8 +161,11 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
+		Map<Language, String> mapMultiLanguageString = getMultiLanguageString(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.rm.admUnits");
+
 		Taxonomy unitTaxonomy = Taxonomy.createPublic(
-				ADMINISTRATIVE_UNITS, migrationResourcesProvider.getDefaultLanguageString("init.rm.admUnits"), collection,
+				ADMINISTRATIVE_UNITS, mapMultiLanguageString, collection,
 				AdministrativeUnit.SCHEMA_TYPE);
 		taxonomiesManager.addTaxonomy(unitTaxonomy, metadataSchemasManager);
 
@@ -168,11 +178,27 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
+		Map<Language, String> mapLangageTitre = getMultiLanguageString(collection, modelLayerFactory, migrationResourcesProvider,
+				"init.rm.plan");
+
 		taxonomiesManager
-				.addTaxonomy(Taxonomy.createPublic(CLASSIFICATION_PLAN, migrationResourcesProvider.getDefaultLanguageString(
-						"init.rm.plan"), collection,
+				.addTaxonomy(Taxonomy.createPublic(CLASSIFICATION_PLAN, mapLangageTitre, collection,
 						Category.SCHEMA_TYPE), metadataSchemasManager);
 
+	}
+
+	@NotNull
+	private static Map<Language, String> getMultiLanguageString(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider, String key) {
+		List<String> languageList = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
+
+		Map<Language, String> mapLangageTitre = new HashMap<>();
+
+		for (String language : languageList) {
+			Locale locale = new Locale(language);
+			mapLangageTitre.put(Language.withLocale(locale), migrationResourcesProvider.getString(key, locale));
+		}
+		return mapLangageTitre;
 	}
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory) {
@@ -660,8 +686,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupMediumTypeSchema() {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.ddvMediumType");
+
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(MediumType.SCHEMA_TYPE, "Type de support", ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
+				.createValueListItemSchema(MediumType.SCHEMA_TYPE, mapLanguage,
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(MediumType.ANALOGICAL).setType(BOOLEAN).setDefaultRequirement(true);
@@ -670,8 +701,12 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupDocumentTypeSchema() {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.ddvDocumentType");
+
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(DocumentType.SCHEMA_TYPE, "Type de document",
+				.createValueListItemSchema(DocumentType.SCHEMA_TYPE, mapLanguage,
 						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
@@ -681,8 +716,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupFolderTypeSchema() {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.ddvFolderType");
+
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(FolderType.SCHEMA_TYPE, "Type de dossier", ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
+				.createValueListItemSchema(FolderType.SCHEMA_TYPE, mapLanguage,
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(FolderType.LINKED_SCHEMA).setType(STRING);
@@ -691,8 +731,12 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupContainerTypeSchema() {
+
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.ddvContainerRecordType");
+
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(ContainerRecordType.SCHEMA_TYPE, "Type de contenant",
+				.createValueListItemSchema(ContainerRecordType.SCHEMA_TYPE, mapLanguage,
 						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
@@ -702,8 +746,11 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema() {
+		Map<Language, String> mapLanguage = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.ddvStorageSpaceType");
+
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(StorageSpaceType.SCHEMA_TYPE, "Type d'emplacement",
+				.createValueListItemSchema(StorageSpaceType.SCHEMA_TYPE, mapLanguage,
 						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
@@ -735,13 +782,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(RetentionRule.ADMINISTRATIVE_UNITS).setMultivalue(true)
 				.defineReferencesTo(administrativeUnitSchemaType);
 
-		defaultSchema.createUndeletable(RetentionRule.DESCRIPTION).setType(TEXT);
+		defaultSchema.createUndeletable(RetentionRule.DESCRIPTION).setType(TEXT).setMultiLingual(true);
 
-		defaultSchema.createUndeletable(RetentionRule.JURIDIC_REFERENCE).setType(TEXT);
+		defaultSchema.createUndeletable(RetentionRule.JURIDIC_REFERENCE).setType(TEXT).setMultiLingual(true);
 
-		defaultSchema.createUndeletable(RetentionRule.GENERAL_COMMENT).setType(TEXT);
+		defaultSchema.createUndeletable(RetentionRule.GENERAL_COMMENT).setType(TEXT).setMultiLingual(true);
 
-		defaultSchema.createUndeletable(RetentionRule.KEYWORDS).setType(STRING).setMultivalue(true);
+		defaultSchema.createUndeletable(RetentionRule.KEYWORDS).setType(STRING).setMultivalue(true).setMultiLingual(true);
 
 		defaultSchema.createUndeletable(RetentionRule.HISTORY).setType(TEXT);
 
@@ -758,7 +805,8 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 				.defineReferencesTo(documentType)
 				.defineDataEntry().asCalculated(RuleDocumentTypesCalculator.class);
 
-		defaultSchema.createUndeletable(RetentionRule.COPY_RULES_COMMENT).setType(TEXT).setMultivalue(true);
+		defaultSchema.createUndeletable(RetentionRule.COPY_RULES_COMMENT).setType(TEXT).setMultivalue(true).setMultiLingual(true);
+		defaultSchema.get(RetentionRule.TITLE).setMultiLingual(true);
 
 		return schemaType;
 	}
@@ -768,11 +816,12 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
 		defaultSchema.createUndeletable(UniformSubdivision.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(true);
-		defaultSchema.createUndeletable(UniformSubdivision.DESCRIPTION).setType(STRING).setSearchable(true);
+		defaultSchema.createUndeletable(UniformSubdivision.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(UniformSubdivision.COMMENTS).setMultivalue(true)
 				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 		defaultSchema.createUndeletable(UniformSubdivision.RETENTION_RULE).setMultivalue(true)
 				.defineReferencesTo(retentionRuleSchemaType);
+		defaultSchema.get(UniformSubdivision.TITLE).setMultiLingual(true);
 
 		return schemaType;
 	}
@@ -783,8 +832,8 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 		defaultSchema.createUndeletable(AdministrativeUnit.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(
 				true).setSchemaAutocomplete(true);
-		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
-		defaultSchema.createUndeletable(AdministrativeUnit.DESCRIPTION).setType(STRING).setSearchable(true);
+		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true).setMultiLingual(true);
+		defaultSchema.createUndeletable(AdministrativeUnit.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(AdministrativeUnit.PARENT).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(AdministrativeUnit.FILING_SPACES).setMultivalue(true)
 				.defineReferencesTo(filingSpaceSchemaType);
@@ -874,16 +923,17 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
 		defaultSchema.createUndeletable(Category.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(
 				true).setSchemaAutocomplete(true);
-		defaultSchema.createUndeletable(Category.DESCRIPTION).setType(STRING).setSearchable(true);
+		defaultSchema.createUndeletable(Category.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(Category.PARENT).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(Category.KEYWORDS).setType(STRING).setMultivalue(true).setSearchable(true)
-				.setSchemaAutocomplete(true);
+				.setSchemaAutocomplete(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(Category.COMMENTS).setMultivalue(true)
 				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 		defaultSchema.createUndeletable(Category.RETENTION_RULES).setDefaultRequirement(false).setMultivalue(true)
 				.defineReferencesTo(retentionRuleSchemaType);
 		defaultSchema.createUndeletable(Schemas.LINKABLE.getLocalCode()).setType(BOOLEAN).defineDataEntry().asCalculated(
 				CategoryIsLinkableCalculator.class);
+		defaultSchema.get(Category.TITLE).setMultiLingual(true);
 
 		return schemaType;
 	}

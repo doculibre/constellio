@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -51,8 +52,8 @@ public class MetadataSchemaXMLWriter3 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
-	public void writeEmptyDocument(String collection, Document document) {
-		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
+	public void writeEmptyDocument(CollectionInfo collectionInfo, Document document) {
+		writeSchemaTypes(new MetadataSchemaTypes(collectionInfo, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
 				new ArrayList<String>(), Arrays.asList(Language.French, Language.English), MetadataNetwork.EMPTY()), document);
 	}
 
@@ -65,7 +66,7 @@ public class MetadataSchemaXMLWriter3 {
 
 	private void writeCustomSchemas(MetadataSchemaType schemaType, Element schemaTypeElement, MetadataSchema collectionSchema) {
 		Element customSchemasElement = new Element("customSchemas");
-		for (MetadataSchema schema : schemaType.getSchemas()) {
+		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			Element schemaElement = toXMLElement(schema, collectionSchema);
 			customSchemasElement.addContent(schemaElement);
 		}
@@ -232,6 +233,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isMultivalue()) {
 			metadataElement.setAttribute("multivalue", writeBoolean(metadata.isMultivalue()));
 		}
+		if (metadata.isMultiLingual()) {
+			metadataElement.setAttribute("multilingual", writeBoolean(metadata.isMultiLingual()));
+		}
 		if (metadata.isSearchable()) {
 			metadataElement.setAttribute("searchable", writeBoolean(metadata.isSearchable()));
 		}
@@ -343,6 +347,10 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (globalMetadataInCollection.isMultivalue() != metadata.isMultivalue()) {
 			metadataElement.setAttribute("multivalue", writeBoolean(metadata.isMultivalue()));
+			different = true;
+		}
+		if (globalMetadataInCollection.isMultiLingual() != metadata.isMultiLingual()) {
+			metadataElement.setAttribute("multilingual", writeBoolean(metadata.isMultiLingual()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isSearchable() != metadata.isSearchable()) {

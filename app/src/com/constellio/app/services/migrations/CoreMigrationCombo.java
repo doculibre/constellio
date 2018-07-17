@@ -53,6 +53,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_5;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_8_8;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
@@ -111,6 +112,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_7_6());
 		scripts.add(new CoreMigrationTo_7_6_2());
 		scripts.add(new CoreMigrationTo_7_6_2_1());
+		scripts.add(new CoreMigrationTo_8_8_8());
 
 		return scripts;
 	}
@@ -196,13 +198,14 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
-		transaction.add(rm.newFacetField().setOrder(0).setTitle(migrationResourcesProvider.get("init.facet.type"))
+		transaction.add(rm.newFacetField().setOrder(0)
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
 				.setActive(true)
 				.setOpenByDefault(true)
 				.setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
 
 		transaction.add(rm.newFacetQuery().setOrder(1)
-				.setTitle(migrationResourcesProvider.get("init.facet.createModification"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
 				.setActive(false)
 				.setOpenByDefault(true)
 				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
@@ -229,6 +232,11 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
 
 			}
+
+			for (String metadata : asList("facet_default_title", "report_default_title", "printable_default_title")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
+
 			//
 			//
 			//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.ADDRESS).addLabel(Language.French, "Adresse");

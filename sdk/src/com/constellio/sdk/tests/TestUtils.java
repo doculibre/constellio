@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static junit.framework.Assert.fail;
@@ -38,6 +39,7 @@ import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.mockito.invocation.InvocationOnMock;
@@ -50,6 +52,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.SDKEventBusSendingService;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -57,6 +60,7 @@ import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -675,13 +679,24 @@ public class TestUtils {
 					.getSchema(((Record) record).getSchemaCode());
 			Metadata metadata = schema.getMetadata(metadataLocalCode);
 			if (metadata.isMultivalue()) {
-				return record.getList(metadata);
+				return record.getList(metadata, locale, mode);
 			} else {
-				return record.get(metadata);
+				if (metadata.hasSameCode(Schemas.IDENTIFIER) || metadata.hasSameCode(Schemas.LEGACY_ID)) {
+					return record.get(metadata, locale, PREFERRING);
+				} else {
+					return record.get(metadata, locale, mode);
+				}
 			}
 		}
 
 		public ListAssert<Tuple> extractingMetadatas(String... metadatas) {
+			List<Tuple> values = getTuples(metadatas);
+
+			return assertThat(values);
+		}
+
+		@NotNull
+		protected List<Tuple> getTuples(String[] metadatas) {
 			List<Tuple> values = new ArrayList<>();
 
 			for (Object record : actual) {
@@ -713,7 +728,7 @@ public class TestUtils {
 							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
 						}
 
-						objects[i] = ((RecordWrapper) record).get(metadata);
+						objects[i] = ((RecordWrapper) record).get(metadata, locale, mode);
 
 						if (refMetadata != null && objects[i] != null) {
 							if (objects[i] instanceof String) {
@@ -740,8 +755,33 @@ public class TestUtils {
 				}
 				values.add(new Tuple(objects));
 			}
+			return values;
+		}
 
-			return assertThat(values);
+		public <T> ListAssert<T> extractingMetadata(String metadata) {
+			List<Tuple> tuples = getTuples(new String[] { metadata });
+
+			List<T> untupledValues = new ArrayList<>();
+			for (Tuple tuple : tuples) {
+				untupledValues.add((T) tuple.toArray()[0]);
+			}
+
+			return assertThat(untupledValues);
+		}
+
+		LocalisedRecordMetadataRetrieval mode;
+		Locale locale;
+
+		public RecordsAssert preferring(Locale locale) {
+			this.mode = PREFERRING;
+			this.locale = locale;
+			return this;
+		}
+
+		public RecordsAssert strictlyUsing(Locale locale) {
+			this.mode = LocalisedRecordMetadataRetrieval.STRICT;
+			this.locale = locale;
+			return this;
 		}
 	}
 
@@ -1070,7 +1110,6 @@ public class TestUtils {
 
 		SDKEventBusSendingService sendingService1 = new SDKEventBusSendingService();
 		SDKEventBusSendingService sendingService2 = new SDKEventBusSendingService();
-
 
 		eventBusManager1.setEventBusSendingService(sendingService1);
 		eventBusManager2.setEventBusSendingService(sendingService2);

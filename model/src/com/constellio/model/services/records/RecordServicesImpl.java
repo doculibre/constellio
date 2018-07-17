@@ -42,6 +42,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -425,7 +426,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record toRecord(RecordDTO recordDTO, boolean allFields) {
-		Record record = new RecordImpl(recordDTO, allFields);
+		String collection = (String) recordDTO.getFields().get("collection_s");
+		CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+		Record record = new RecordImpl(recordDTO, collectionInfo, allFields);
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
@@ -472,7 +475,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record getById(String dataStore, String id) {
 		try {
-			Record record = new RecordImpl(dao(dataStore).get(id), true);
+			RecordDTO recordDTO = dao(dataStore).get(id);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+			Record record = new RecordImpl(recordDTO, collectionInfo, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -490,7 +496,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record realtimeGetById(String dataStore, String id) {
 		try {
-			Record record = new RecordImpl(dao(dataStore).realGet(id), true);
+			RecordDTO recordDTO = dao(dataStore).realGet(id);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			Record record = new RecordImpl(recordDTO, collectionInfo, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -519,10 +529,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public List<Record> realtimeGetRecordById(List<String> ids) {
-
+		String mainDataLanguage = modelLayerFactory.getCollectionsListManager().getMainDataLanguage();
 		List<Record> records = new ArrayList<>();
 		for (RecordDTO recordDTO : recordDao.realGet(ids)) {
-			Record record = new RecordImpl(recordDTO, true);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			Record record = new RecordImpl(recordDTO, collectionInfo, true);
 			newAutomaticMetadataServices()
 					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 							new Transaction(new RecordUpdateOptions()));
@@ -707,14 +720,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 								if (dataEntry.getMetadataProvidingSequenceCode().contains(".")) {
 									String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 									metadataProvidingReference = schema.getMetadata(splittedCode[0]);
-									metadataProvidingSequenceCode = types.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType()).getMetadata(splittedCode[1]);
+									metadataProvidingSequenceCode = types
+											.getDefaultSchema(metadataProvidingReference.getReferencedSchemaType())
+											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
-									if(metadataProvidingReferenceValue!=null){
-										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
+									if (metadataProvidingReferenceValue != null) {
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue)
+												.get(metadataProvidingSequenceCode);
 									}
-								}
-								else{
+								} else {
 									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
 									metadataProvidingSequenceCode = metadataProvidingReference;
 									sequenceCode = record.get(metadataProvidingSequenceCode);
@@ -1043,8 +1058,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages, systemConfigs, modelLayerFactory.getExtensions()));
-			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory));
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages,
+							systemConfigs, modelLayerFactory.getExtensions()));
+
+			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory,
+					newRecordProvider(transaction)));
 
 			Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 				@Override
@@ -1101,7 +1119,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {
-		Record record = new RecordImpl(schema.getCode(), schema.getCollection(), id);
+		Record record = new RecordImpl(schema, id);
 
 		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
 

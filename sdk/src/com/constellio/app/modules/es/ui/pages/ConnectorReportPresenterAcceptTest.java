@@ -137,7 +137,7 @@
 //
 //		RecordVOWithDistinctSchemasDataProvider dataProvider = presenter.getDataProvider();
 //
-//		MetadataSchemaVO schemaVO = dataProvider.getSchemas().get(0);
+//		MetadataSchemaVO schemaVO = dataProvider.getCustomSchemas().get(0);
 //		Object[] sortPropertyIds = new Object[1];
 //		sortPropertyIds[0] = "url";
 //		List<MetadataVO> sortMetadatas = new ArrayList<MetadataVO>();

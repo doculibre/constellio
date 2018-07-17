@@ -68,7 +68,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-									   String schemaTypeCode, String schemaCode, boolean writeAccess, boolean includeDeactivated, boolean onlyLinkables) {
+			String schemaTypeCode, String schemaCode, boolean writeAccess, boolean includeDeactivated, boolean onlyLinkables) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -220,6 +220,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				query.filteredWithUser(user);
 			}
 		}
+		query.setLanguage(sessionContext.getCurrentLocale());
 		return query;
 	}
 

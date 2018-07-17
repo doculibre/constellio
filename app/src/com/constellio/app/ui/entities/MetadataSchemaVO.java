@@ -81,8 +81,8 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			formMetadatas = new ArrayList<>();
 			for (String formMetadataCode : formMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(formMetadataCode);
-				formMetadatas.add(metadataVO);
+				List<MetadataVO> metadataVOs = getMetadatas(formMetadataCode);
+				formMetadatas.addAll(metadataVOs);
 			}
 		}
 		return formMetadatas;
@@ -96,8 +96,8 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			displayMetadatas = new ArrayList<>();
 			for (String displayMetadataCode : displayMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(displayMetadataCode);
-				displayMetadatas.add(metadataVO);
+				List<MetadataVO> metadataVOs = getMetadatas(displayMetadataCode);
+				displayMetadatas.addAll(metadataVOs);
 			}
 		}
 		return displayMetadatas;
@@ -111,12 +111,8 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			tableMetadatas = new ArrayList<>();
 			for (String tableMetadataCode : tableMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(tableMetadataCode);
-				if (metadataVO == null) {
-					LOGGER.warn("No such metadata '" + tableMetadataCode + "'");
-				} else {
-					tableMetadatas.add(metadataVO);
-				}
+				List<MetadataVO> metadataVOs = getMetadatas(tableMetadataCode);
+				tableMetadatas.addAll(metadataVOs);
 			}
 		}
 		return tableMetadatas;
@@ -130,29 +126,29 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			searchMetadatas = new ArrayList<>();
 			for (String searchMetadataCode : searchMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(searchMetadataCode);
-				if (metadataVO == null) {
-					LOGGER.warn("No such metadata '" + searchMetadataCode + "'");
-				} else {
-					searchMetadatas.add(metadataVO);
-				}
+				List<MetadataVO> metadataVOs = getMetadatas(searchMetadataCode);
+				searchMetadatas.addAll(metadataVOs);
 			}
 		}
 		return searchMetadatas;
 	}
 
-	public MetadataVO getMetadata(String metadataCode) {
-		MetadataVO match = null;
+	public List<MetadataVO> getMetadatas(String metadataCode) {
+		List<MetadataVO> matches = new ArrayList<>();
 		String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 		for (MetadataVO schemaMetadata : metadatas) {
 			String schemaMetadataCode = schemaMetadata.getCode();
 			String schemaMetadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(schemaMetadataCode);
 			if (schemaMetadataCodeWithoutPrefix.equals(metadataCodeWithoutPrefix)) {
-				match = schemaMetadata;
-				break;
+				matches.add(schemaMetadata);
 			}
 		}
-		return match;
+		return matches;
+	}
+
+	public MetadataVO getMetadata(String metadataCode) {
+		List<MetadataVO> matches = getMetadatas(metadataCode);
+		return !matches.isEmpty() ? matches.get(0) : null;
 	}
 
 	public Map<Locale, String> getLabels() {

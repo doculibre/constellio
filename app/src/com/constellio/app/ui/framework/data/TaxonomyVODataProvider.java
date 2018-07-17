@@ -1,14 +1,12 @@
 package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -88,8 +86,8 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 		return codes;
 	}
 
-	public List<String> getTaxonomyVOsTitles() {
-		List<String> titles = new ArrayList<>();
+	public ArrayList<Map<Language, String>> getTaxonomyVOsTitles() {
+		ArrayList<Map<Language, String>> titles = new ArrayList<Map<Language, String>>();
 		for (TaxonomyVO taxonomyVO : taxonomyVOs) {
 			titles.add(taxonomyVO.getTitle());
 		}

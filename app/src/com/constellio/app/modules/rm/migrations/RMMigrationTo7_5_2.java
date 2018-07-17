@@ -1,15 +1,18 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.calculators.rule.RuleYearTypesCalculator;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -51,10 +54,12 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			java.util.Map<Language, String> labels = MigrationUtil
+					.getLabelsByLanguage(collection, modelLayerFactory, migrationResourcesProvider,
+							"init.retentionRule.default.yearTypes");
 
 			MetadataSchemaTypeBuilder dateTypeSchemaType = new ValueListItemSchemaTypeBuilder(types())
-					.createValueListItemSchema(YearType.SCHEMA_TYPE, (String) null,
-							ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
+					.createValueListItemSchema(YearType.SCHEMA_TYPE, labels, codeMetadataDisabled())
 					.setSecurity(false);
 
 			MetadataBuilder yearEnd = dateTypeSchemaType.getDefaultSchema().create(YearType.YEAR_END)
@@ -68,6 +73,5 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 					.defineDataEntry().asCopied(dateTypes, yearEnd);
 
 		}
-
 	}
 }

@@ -43,7 +43,8 @@ public class RecentItemProvider implements Serializable {
 	private final String schemaType;
 	private final int quantity;
 
-	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType, int quantity) {
+	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType,
+			int quantity) {
 		init(modelLayerFactory, sessionContext);
 		this.schemaType = schemaType;
 		this.quantity = quantity;
@@ -58,7 +59,7 @@ public class RecentItemProvider implements Serializable {
 		ArrayList<RecentItem> items = new ArrayList<>();
 		for (Record record : getRecentEvents()) {
 			RecordVO vo = builder.build(record, VIEW_MODE.TABLE, sessionContext);
-			String caption = SchemaCaptionUtils.getCaptionForRecord(record);
+			String caption = SchemaCaptionUtils.getCaptionForRecord(record, sessionContext.getCurrentLocale());
 			items.add(new RecentItem(vo, caption));
 		}
 		return items;
@@ -105,7 +106,6 @@ public class RecentItemProvider implements Serializable {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(user.getCollection());
 		searchServices = modelLayerFactory.newSearchServices();
 	}
-
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {

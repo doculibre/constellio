@@ -148,10 +148,28 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	private DataStoreField getSearchedField(SolrQueryBuilderParams params, DataStoreField dataStoreField) {
-		if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
-			return dataStoreField.getAnalyzedField(params.getLanguageCode());
+
+		boolean useSecondaryLanguageField = false;
+
+		if ((filters instanceof SchemaFilters) && params.isSecondaryLanguage()) {
+			if (((SchemaFilters) filters).getSchemaType() != null) {
+				useSecondaryLanguageField = params.isMultilingual(((SchemaFilters) filters).getSchemaType(), dataStoreField);
+			}
+		}
+
+		if (useSecondaryLanguageField) {
+			if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
+				return dataStoreField.getAnalyzedField(params.getLanguageCode())
+						.getSecondaryLanguageField(params.getLanguageCode());
+			} else {
+				return dataStoreField.getSecondaryLanguageField(params.getLanguageCode());
+			}
 		} else {
-			return dataStoreField;
+			if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
+				return dataStoreField.getAnalyzedField(params.getLanguageCode());
+			} else {
+				return dataStoreField;
+			}
 		}
 	}
 

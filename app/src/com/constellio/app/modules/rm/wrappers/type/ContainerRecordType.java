@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
+import java.util.Map;
+
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -17,6 +20,11 @@ public class ContainerRecordType extends ValueListItem implements SchemaLinkingT
 	public ContainerRecordType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public ContainerRecordType setTitles(Map<Language, String> titles) {
+		return (ContainerRecordType) super.setTitles(titles);
 	}
 
 	public ContainerRecordType setCode(String code) {

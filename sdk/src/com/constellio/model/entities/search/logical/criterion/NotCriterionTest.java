@@ -32,7 +32,7 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 	private java.util.List<LogicalSearchCondition> firstConditions;
 	private java.util.List<LogicalSearchCondition> secondConditions;
 
-	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
+	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 
 	@org.junit.Before
 	public void setUp() {

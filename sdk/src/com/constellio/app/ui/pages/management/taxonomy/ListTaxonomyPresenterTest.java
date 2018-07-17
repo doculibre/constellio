@@ -1,22 +1,21 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.ui.entities.TaxonomyVO;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.entities.TaxonomyVO;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedFactories;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.Mockito.*;
 
 public class ListTaxonomyPresenterTest extends ConstellioTest {
 
@@ -26,7 +25,6 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	@Mock Taxonomy taxonomy1;
 	@Mock TaxonomyVO taxonomyVO;
 	ListTaxonomyPresenter presenter;
-	String newTaxonomyTitle;
 	MockedFactories mockedFactories = new MockedFactories();
 
 	@Before
@@ -39,8 +37,10 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
 		when(view.navigate()).thenReturn(navigator);
 
-		newTaxonomyTitle = "taxonomy 1";
-		when(taxonomy1.getTitle()).thenReturn(newTaxonomyTitle);
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxonomy 1");
+
+		when(taxonomy1.getTitle()).thenReturn(labelTitle);
 
 		presenter = spy(new ListTaxonomyPresenter(view));
 

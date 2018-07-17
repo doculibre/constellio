@@ -8,6 +8,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.imports.ImportFilePresenterInterface;
 import com.constellio.app.ui.pages.imports.ImportFileView;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
@@ -63,7 +64,7 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 			try {
 				if (upload.getFileName().endsWith(".xml")) {
 					Document settingsDocument = getDocumentFromFile(file); //jdom document
-					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, view.getCollection()).read();
+					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, modelLayerFactory).read();
 					try {
 						settingsImportServices.importSettings(settings);
 						view.showImportCompleteMessage();

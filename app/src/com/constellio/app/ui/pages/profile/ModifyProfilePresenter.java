@@ -13,6 +13,7 @@ import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.home.HomeView;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -45,10 +46,12 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
     private String username;
     private String parameters;
+    private Language language;
 
     public ModifyProfilePresenter(ModifyProfileView view) {
         super(view);
         init();
+        language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
     }
 
     public List<String> getAvailableHomepageTabs() {

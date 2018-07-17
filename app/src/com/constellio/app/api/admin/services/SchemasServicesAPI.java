@@ -59,10 +59,10 @@ public class SchemasServicesAPI {
 	}
 
 	@GET
-	@Path("getSchemas")
+	@Path("getCustomSchemas")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getSchemas(@QueryParam("collection") String collection, @QueryParam("schemaType") String schemaType) {
-		logServiceCall("getSchemas", collection, schemaType);
+		logServiceCall("getCustomSchemas", collection, schemaType);
 		List<String> schemas = new ArrayList<>();
 		for (MetadataSchema schema : types(collection).getSchemaType(schemaType).getAllSchemas()) {
 			schemas.add(schema.getCode());
@@ -282,7 +282,10 @@ public class SchemasServicesAPI {
 	public String createTaxonomy(@QueryParam("collection") String collection, @QueryParam("code") String code,
 			List<String> schemaTypes) {
 		logServiceCall("createTaxonomy", collection, code, schemaTypes);
-		Taxonomy taxonomy = Taxonomy.createPublic(code, code, collection, schemaTypes);
+
+		Map<Language, String> mapLang = new HashMap<>();
+		mapLang.put(Language.French, code);
+		Taxonomy taxonomy = Taxonomy.createPublic(code, mapLang, collection, schemaTypes);
 		taxonomyManager().addTaxonomy(taxonomy, metadataSchemasManager());
 
 		Map<String, String> queryParams = new HashMap<>();

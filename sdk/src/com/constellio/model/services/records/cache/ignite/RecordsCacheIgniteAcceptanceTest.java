@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.assertj.core.api.ListAssert;
@@ -32,6 +33,8 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -1544,9 +1547,33 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
+		@Override
+		public Record set(Metadata metadata, Locale locale, Object value) {
+			metadatas.put(metadata.getCode(), value);
+			return this;
+		}
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T get(Metadata metadata) {
+			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
+				return (T) logicallyDeleted;
+			}
+			return (T) metadatas.get(metadata.getCode());
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T get(Metadata metadata, Locale locale) {
+			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
+				return (T) logicallyDeleted;
+			}
+			return (T) metadatas.get(metadata.getCode());
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
 			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
 				return (T) logicallyDeleted;
 			}
@@ -1564,6 +1591,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+			return null;
+		}
+
+		@Override
 		public MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes) {
 			return null;
 		}
@@ -1575,6 +1607,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public String getCollection() {
+			return null;
+		}
+
+		@Override
+		public CollectionInfo getCollectionInfo() {
 			return null;
 		}
 
@@ -1674,6 +1711,20 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		public <T> List<T> getValues(Metadata metadata) {
 			Object value = get(metadata);
+			if (value == null) {
+				return Collections.emptyList();
+			} else {
+				if (metadata.isMultivalue()) {
+					return (List<T>) value;
+				} else {
+					List<T> values = asList((T) value);
+					return values;
+				}
+			}
+		}
+
+		public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+			Object value = get(metadata, locale);
 			if (value == null) {
 				return Collections.emptyList();
 			} else {

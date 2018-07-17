@@ -88,6 +88,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -136,6 +137,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
+	protected CollectionInfo zeCollectionInfo = new CollectionInfo("zeCollection", "fr", asList("fr"));
 	protected String zeCollection = "zeCollection";
 	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";
@@ -1221,7 +1223,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			stateFolder.mkdirs();
 			for (CollectionPreparator preparator : preparators) {
-				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection);
+				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection,
+						preparator.languages);
 				modulesAndMigrationsTestFeatures.withMockedAvailableModules(false);
 				if (preparator.modules.contains(ConstellioRMModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRMModule();
@@ -1323,8 +1326,17 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
 
+		List<String> languages = new ArrayList<>();
+
 		public CollectionPreparator(String collection) {
 			this.collection = collection;
+			languages.add("fr");
+			languages.add("en");
+		}
+
+		public CollectionPreparator withLanguages(List<String> languages) {
+			this.languages = languages;
+			return this;
 		}
 
 		public CollectionPreparator withConstellioRMModule() {
@@ -1414,6 +1426,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			CollectionPreparator that = (CollectionPreparator) o;
 
+			if (languages != that.languages) {
+				return false;
+			}
 			if (allTestUsers != that.allTestUsers) {
 				return false;
 			}
@@ -1461,6 +1476,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			result = 31 * result + collection.hashCode();
 			result = 31 * result + modules.hashCode();
 			result = 31 * result + plugins.hashCode();
+			result = 31 * result + (languages == null ? 0 : languages.hashCode());
 			return result;
 		}
 	}

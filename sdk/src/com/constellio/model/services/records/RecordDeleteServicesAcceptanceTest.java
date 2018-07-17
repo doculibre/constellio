@@ -4,8 +4,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.entities.Language;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -122,7 +125,10 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		ValueListServices valueListServices = new ValueListServices(getAppLayerFactory(), zeCollection);
 
-		Taxonomy taxonomy = valueListServices.createTaxonomy("Ze taxonomy");
+		Map<Language, String> mapLangueTitle = new HashMap<>();
+		mapLangueTitle.put(Language.French, "Ze taxonomy");
+
+		Taxonomy taxonomy = valueListServices.createTaxonomy(mapLangueTitle, true);
 		Metadata metadata = valueListServices.createAMultivalueClassificationMetadataInGroup(
 				taxonomy, Document.SCHEMA_TYPE, "Ze taxonomy", "Ze taxonomy tab label");
 

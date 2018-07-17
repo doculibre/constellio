@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -56,6 +57,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 	String thirdHash = "thirdHash";
 	String fourthHash = "fourthHash";
 	String fifthHash = "fifthHash";
+
+	CollectionInfo collectionInfo = new CollectionInfo(zeCollection, "fr", asList("fr"));
 
 	@Before
 	public void setUp()
@@ -318,7 +321,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		params.put("collection_s", zeCollection);
 		RecordDTO recordDTO = new RecordDTO("zeId", 3L, null, params);
 
-		return new TestRecord(recordDTO);
+		return new TestRecord(recordDTO, collectionInfo);
 	}
 
 	private ContentImpl createMajor(String id, User user, String filename, ContentVersionDataSummary newVersion) {

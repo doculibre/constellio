@@ -5,10 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -131,8 +130,14 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 		givenReferenceToSchemas(anotherSchemaTaxos, types, "anotherSchema_default_anotherSchemaTaxos", normalRelation,
 				"type2_custom");
 
-		taxonomies.add(Taxonomy.createPublic("anotherTaxo", "anotherTaxo", "zeCollection", new ArrayList<String>()));
-		taxonomies.add(Taxonomy.createPublic("zeTaxo", "zeTaxo", "zeCollection", Arrays.asList("type1", "type2", "type3")));
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "anotherTaxo");
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle1.put(Language.French, "zeTaxo");
+
+		taxonomies.add(Taxonomy.createPublic("anotherTaxo", labelTitle1, "zeCollection", new ArrayList<String>()));
+		taxonomies.add(Taxonomy.createPublic("zeTaxo", labelTitle2, "zeCollection", Arrays.asList("type1", "type2", "type3")));
 
 		configureMetadataWithHierarchyDependency(automaticMetaInType1UsingTaxos, types,
 				"type1_default_allRemovedAuths");

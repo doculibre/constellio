@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.management.schemas.metadata;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +73,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	@PropertyId("uniqueValue")
 	private CheckBox uniqueField;
+
+	@PropertyId("multiLingual")
+	private CheckBox multiLingualField;
 
 	private List<CheckBox> customAttributesField = new ArrayList<>();
 
@@ -459,8 +461,15 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		uniqueField.setRequired(false);
 		uniqueField.setId("unique");
 
+		multiLingualField = new CheckBox();
+		multiLingualField.setCaption($("AddEditMetadataView.multiLingual"));
+		multiLingualField.setRequired(false);
+		multiLingualField.setId("multiLingual");
+		multiLingualField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING
+				|| formMetadataVO.getValueType() == MetadataValueType.TEXT);
 
-		customAttributesField = new ArrayList<>();
+
+				customAttributesField = new ArrayList<>();
 		for (String attribute : presenter.getAvailableExtraAttributes()) {
 			CheckBox attributeField = new CheckBox();
 			attributeField.setCaption($("CustomMetadataAttribute." + attribute));
@@ -509,7 +518,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, uniqueField));
+				advancedSearchField, highlight, autocomplete, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
 			fields.add(customAttributeField);

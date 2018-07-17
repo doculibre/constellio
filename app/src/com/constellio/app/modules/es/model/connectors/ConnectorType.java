@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -48,6 +49,11 @@ public class ConnectorType extends RecordWrapper implements SchemaLinkingType {
 	public ConnectorType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public ConnectorType setTitles(Map<Language, String> titles) {
+		return (ConnectorType) super.setTitles(titles);
 	}
 
 	public String getConnectorClassName() {

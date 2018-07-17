@@ -3,11 +3,8 @@ package com.constellio.app.services.collections;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -35,6 +32,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -73,8 +71,6 @@ public class CollectionsManager implements StatefulService {
 	private final DataLayerFactory dataLayerFactory;
 
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
-
-	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
 
 	private List<String> newDisabledCollections = new ArrayList<>();
 
@@ -196,7 +192,8 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public void createCollectionConfigs(String code) {
-		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(code);
+		CollectionInfo collectionInfo = getCollectionInfo(code);
+		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(collectionInfo);
 		modelLayerFactory.getTaxonomiesManager().createCollectionTaxonomies(code);
 		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
@@ -280,23 +277,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public List<String> getCollectionLanguages(final String collection) {
-
-		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
-			return asList(modelLayerFactory.getConfiguration().getMainDataLanguage());
-		}
-
-		List<String> collectionLanguages = collectionLanguagesCache.get(collection);
-
-		if (collectionLanguages == null) {
-			try {
-				collectionLanguages = getCollection(collection).getLanguages();
-				collectionLanguagesCache.put(collection, collectionLanguages);
-			} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
-				LOGGER.debug("Collection '" + collection + "' not found.", e);
-				return Collections.emptyList();
-			}
-		}
-		return collectionLanguages;
+		return getCollectionInfo(collection).getCollectionLanguesCodes();
 	}
 
 	@Override
@@ -351,7 +332,7 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 
-		collectionLanguagesCache.put(code, languages);
+		collectionsListManager.registerPendingCollectionInfo(code, mainDataLanguage, languages);
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages);
 		Set<String> returnList = new HashSet<>();
@@ -417,5 +398,17 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 		ConstellioEIM.start(appLayerFactory, collection);
+	}
+
+	public CollectionInfo getCollectionInfo(String collectionCode) {
+		try {
+			return collectionsListManager.getCollectionInfo(collectionCode);
+
+		} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
+			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			LOGGER.debug("Collection '" + collectionCode + "' not found.", e);
+			return new CollectionInfo(collectionCode, mainDataLanguage, new ArrayList<String>());
+		}
+
 	}
 }

@@ -56,6 +56,7 @@ import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldFactory;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -401,6 +402,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			MetadataSchemaTypeBuilder connectorTypeSchemaType = types.createNewSchemaType(ConnectorType.SCHEMA_TYPE);
 			connectorTypeSchema = connectorTypeSchemaType.getDefaultSchema();
 			connectorTypeSchema.createUniqueCodeMetadata();
+			connectorTypeSchema.get(Schemas.TITLE_CODE).setMultiLingual(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.LINKED_SCHEMA).setType(STRING)
 					.setDefaultRequirement(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.CONNECTOR_CLASS_NAME).setType(STRING)
@@ -411,7 +413,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			//-
 			//Create Connector schema type
 			connectorSchema = types.createNewSchemaType(ConnectorInstance.SCHEMA_TYPE).getDefaultSchema();
-			connectorSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true);
+			connectorSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true).setMultiLingual(true);
 			connectorSchema.createUniqueCodeMetadata();
 			connectorSchema.createUndeletable(ConnectorInstance.CONNECTOR_TYPE)
 					.setType(MetadataValueType.REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorTypeSchemaType);
@@ -526,7 +528,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		Facet mimetypeFacet = es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.mimetype"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
 		addAllMimetypeLabels(mimetypeFacet);
 		recordServices.add(mimetypeFacet);
 
@@ -534,7 +536,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.language"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
 				.withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
 				.withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
 				.withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
@@ -542,17 +544,17 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.extension")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
 
-//		recordServices.add(es.newFacetField()
-//				.setUsedByModule(ConstellioESModule.ID)
-//				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
-//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
+		//		recordServices.add(es.newFacetField()
+		//				.setUsedByModule(ConstellioESModule.ID)
+		//				.setFieldDataStoreCode(es.connectorSmbDocument.parent().getDataStoreCode())
+		//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
 
 		recordServices.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.ldapUserEnabled"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
 				//FIXME
 				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
 				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
@@ -625,8 +627,13 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
-		String title = migrationResourcesProvider.getDefaultLanguageString("init.taxoSmbFolders");
-		Taxonomy taxonomy = Taxonomy.createPublic(ESTaxonomies.SMB_FOLDERS, title, collection, ConnectorSmbFolder.SCHEMA_TYPE);
+
+		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
+				migrationResourcesProvider, "init.taxoSmbFolders");
+
+		Taxonomy taxonomy = Taxonomy
+				.createPublic(ESTaxonomies.SMB_FOLDERS, mapLangageTitre, collection, ConnectorSmbFolder.SCHEMA_TYPE);
+
 		try {
 			modelLayerFactory.getTaxonomiesManager().addTaxonomy(taxonomy, modelLayerFactory.getMetadataSchemasManager());
 		} catch (TaxonomyAlreadyExists e) {
@@ -637,7 +644,6 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	private void configureConnectorsInstancesAndDocumentsDisplay(String collection, AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
-
 		configureConnectorInstanceDisplayAndSearchDisplay(transaction, manager, collection);
 
 		configureHttpConnectorDisplay(transaction, manager, collection);

@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -93,7 +94,11 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
+
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo");
+
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle, zeCollection, asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 

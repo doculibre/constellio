@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.entities.Language;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.enums.Action;
@@ -78,7 +79,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		if (collection.equals(folderId)) {
 			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
 			for (Taxonomy taxonomy : taxonomies) {
-				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo);
+				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo,Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage()));
 				children.getObjects().add(new ObjectInFolderDataImpl(object));
 			}
 		} else if (folderId.startsWith("taxo_")) {

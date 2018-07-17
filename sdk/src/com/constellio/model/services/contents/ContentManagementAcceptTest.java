@@ -15,12 +15,10 @@ import static org.mockito.Mockito.spy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.constellio.model.entities.Language;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -138,7 +136,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 					MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 					TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-					Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
+
+					Map<Language, String> labelTitle1 = new HashMap<>();
+					labelTitle1.put(Language.French, "taxo");
+
+					Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle1, zeCollection, asList("zeSchemaType"));
 					taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
 					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 

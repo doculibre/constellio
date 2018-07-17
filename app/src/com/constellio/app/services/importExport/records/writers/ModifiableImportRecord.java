@@ -3,6 +3,7 @@ package com.constellio.app.services.importExport.records.writers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -72,7 +73,8 @@ public class ModifiableImportRecord {
 		return addField(metadataName, value);
 	}
 
-	public ModifiableImportRecord addField(String metadataName, Object value) {
+	public ModifiableImportRecord addField(String metadataName, Object value, Locale locale) {
+
 		if (metadataName == null) {
 			throw new RuntimeException("Metadata name is required");
 		}
@@ -94,6 +96,10 @@ public class ModifiableImportRecord {
 		}
 
 		return this;
+	}
+
+	public ModifiableImportRecord addField(String metadataName, Object value) {
+		return addField(metadataName, value, null);
 	}
 
 	public String getCollection() {

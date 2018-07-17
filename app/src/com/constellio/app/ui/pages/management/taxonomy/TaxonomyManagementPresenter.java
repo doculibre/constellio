@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.RecordUtils.parentPaths;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childNodesQuery;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
@@ -31,6 +22,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -38,12 +30,22 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childNodesQuery;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
 
@@ -54,11 +56,15 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	TaxonomyVO taxonomy;
 	String conceptId;
 	String taxonomyCode;
+	SchemasRecordsServices schemasRecordsServices;
+	Language language;
 
 	private transient SequenceServices sequenceServices;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
+
 		super(view);
+		language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		initTransientObjects();
 	}
 
@@ -72,6 +78,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		ConstellioFactories constellioFactories = view.getConstellioFactories();
 		SessionContext sessionContext = view.getSessionContext();
 		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
+		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	public TaxonomyManagementPresenter forParams(String parameters) {
@@ -173,6 +180,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	Taxonomy fetchTaxonomy(String taxonomyCode) {
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		return taxonomiesManager.getEnabledTaxonomyWithCode(view.getCollection(), taxonomyCode);
+	}
+
+	public String getMultiLangualTitle(){
+		if(conceptId == null) {
+			return null;
+		}
+		MetadataSchema metadataSchema = schemasRecordsServices.schema(getCurrentConcept().getRecord().getSchemaCode());
+		Metadata metadata = metadataSchema.getMetadata(Schemas.TITLE_CODE);
+
+		return getCurrentConcept().getRecord().get(metadata, view.getSessionContext().getCurrentLocale());
 	}
 
 	public TaxonomyVO getTaxonomy() {

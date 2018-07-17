@@ -27,10 +27,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -46,17 +43,19 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 	protected transient ModelLayerFactory modelLayerFactory;
 	protected transient AppLayerCollectionExtensions appCollectionExtentions;
 	protected transient AppLayerSystemExtensions appSystemExtentions;
+	private Locale locale;
 
-	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory) {
-		this(collection, appLayerFactory, true);
+	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		this(collection, appLayerFactory, true, locale);
 	}
 
-	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, boolean withUsers) {
+	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, boolean withUsers, Locale locale) {
 		this.collection = collection;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
 		this.appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 		this.withUsers = withUsers;
+		this.locale = locale;
 	}
 
 	public AdministrativeUnitReportModel build() {
@@ -89,7 +88,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 			if (taxonomySearchRecord != null) {
 				Record administrativeUnitRecord = taxonomySearchRecord.getRecord();
 				if (administrativeUnitRecord != null) {
-					AdministrativeUnit administrativeUnit = new AdministrativeUnit(administrativeUnitRecord, types);
+					AdministrativeUnit administrativeUnit = new AdministrativeUnit(administrativeUnitRecord, types, locale);
 
 					if (administrativeUnit != null) {
 						AdministrativeUnitReportModel_AdministrativeUnit modelAdministrativeUnit = new AdministrativeUnitReportModel_AdministrativeUnit();
@@ -130,7 +129,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 						Record administrativeUnitRecord = childTaxonomySearchRecord.getRecord();
 						if (administrativeUnitRecord != null) {
 							AdministrativeUnit administrativeUnit = new AdministrativeUnit(administrativeUnitRecord,
-									types);
+									types, locale);
 
 							AdministrativeUnitReportModel_AdministrativeUnit modelAdministrativeUnit = new AdministrativeUnitReportModel_AdministrativeUnit();
 
@@ -193,7 +192,7 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all()).setRows(1000);
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 

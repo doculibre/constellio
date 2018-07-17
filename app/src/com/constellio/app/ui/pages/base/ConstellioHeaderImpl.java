@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -120,10 +121,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private MenuItem collectionSubMenu;
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 	private HashMap<String, MenuItem> collectionButtons = new HashMap<>();
+	private Locale locale;
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
-
 		Resource resource = presenter.getUserLogoResource();
 		Image logo = new Image("", resource != null ? resource : new ThemeResource("images/logo_eim_406x60.png"));
 		logo.setHeight("30px");

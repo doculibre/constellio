@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.containers;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;

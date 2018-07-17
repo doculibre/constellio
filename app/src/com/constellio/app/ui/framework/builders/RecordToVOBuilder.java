@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -50,8 +51,13 @@ public class RecordToVOBuilder implements Serializable {
 		for (MetadataVO metadataVO : metadatas) {
 			String metadataCode = metadataVO.getCode();
 			Metadata metadata = schema.getMetadata(metadataCode);
+			Object recordVOValue;
+			if (metadata.isMultiLingual() && metadataVO.getLocale() != null) {
+				recordVOValue = record.get(metadata, metadataVO.getLocale());
+			} else {
+				recordVOValue = record.get(metadata, sessionContext.getCurrentLocale());
+			}
 
-			Object recordVOValue = getValue(record, metadata);
 			if (recordVOValue instanceof Content) {
 				recordVOValue = contentVersionVOBuilder.build((Content) recordVOValue, sessionContext);
 			} else if (recordVOValue instanceof List) {

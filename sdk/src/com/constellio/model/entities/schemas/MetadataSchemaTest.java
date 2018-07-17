@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.data.dao.services.records.DataStore;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
@@ -60,17 +61,23 @@ public class MetadataSchemaTest extends ConstellioTest {
 		when(secondTypeParentRelationToThirdType.getAllowedReferences())
 				.thenReturn(new AllowedReferences(null, asSet("third_custom1")));
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("first", "second"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("third"));
+		Map<Language, String> mapLangueTitle1 = new HashMap<>();
+		mapLangueTitle1.put(Language.French, "taxo1");
+		Map<Language, String> mapLangueTitle2 = new HashMap<>();
+		mapLangueTitle2.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle1, "zeCollection", Arrays.asList("first", "second"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle2, "zeCollection", Arrays.asList("third"));
 
 		List<Metadata> metadatas = Arrays.asList(secondTypeParentRelationToFirstType, secondTypeParentRelationToSecondType,
 				secondTypeParentRelationToThirdType, secondTypeRelationToSecondType);
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
-		MetadataSchema schema = new MetadataSchema("default", "second_default", "zeCollection", labels, metadatas, false,
+		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema("default", "second_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
 
-		MetadataSchemaType schemaType = new MetadataSchemaType("second", null, "zeCollection", asMap(Language.French, "titre"),
+		MetadataSchemaType schemaType = new MetadataSchemaType("second", null, zeCollectionInfo, asMap(Language.French, "titre"),
 				new ArrayList<MetadataSchema>(), schema, true, true, true, false, "records");
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
@@ -82,8 +89,13 @@ public class MetadataSchemaTest extends ConstellioTest {
 	public void whenGetTaxonomyReferencesThenReturnCorrectReferences()
 			throws Exception {
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("t1", "t2"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", "zeCollection", Arrays.asList("t3", "t4"));
+		Map<Language, String> mapLangueTitle1 = new HashMap<>();
+		mapLangueTitle1.put(Language.French, "taxo1");
+		Map<Language, String> mapLangueTitle2 = new HashMap<>();
+		mapLangueTitle2.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle1, "zeCollection", Arrays.asList("t1", "t2"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", mapLangueTitle2, "zeCollection", Arrays.asList("t3", "t4"));
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		Metadata taxonomyRelationToT4 = mockTaxonomyRefMetadata("t5_default_taxoRelationToT4", "t4");
@@ -96,7 +108,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata);
 
-		MetadataSchema schema = new MetadataSchema("default", "zeType_default", "zeCollection", labels, metadatas, false,
+		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema("default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
@@ -108,8 +121,13 @@ public class MetadataSchemaTest extends ConstellioTest {
 	public void whenGetTaxonomyReferencesOfSchemaPartOfAnotherTaxonomiesThenOnlyReturnTaxonomiesForWhichTheSchemaIsntPartsOf()
 			throws Exception {
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", "zeCollection", Arrays.asList("t1", "t2"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", "zeCollection", Arrays.asList("t3", "t4"));
+		Map<Language, String> mapLangueTitle1 = new HashMap<>();
+		mapLangueTitle1.put(Language.French, "taxo1");
+		Map<Language, String> mapLangueTitle2 = new HashMap<>();
+		mapLangueTitle2.put(Language.French, "taxo2");
+
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", mapLangueTitle1, "zeCollection", Arrays.asList("t1", "t2"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", mapLangueTitle2, "zeCollection", Arrays.asList("t3", "t4"));
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		Metadata relationToT4 = mockRefMetadata("t2_default_relationToT4", "t4");
@@ -123,8 +141,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
-
-		MetadataSchema schema = new MetadataSchema("default", "t2_default", "zeCollection", labels, metadatas, false,
+		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema("default", "t2_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);

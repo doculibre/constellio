@@ -5,10 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -66,6 +63,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	private String consolidatedId;
 	private String consolidatedTitle;
 	private String username;
+	private Locale locale;
 	
 	
 	public static final String GLOBAL_ERROR_KEY = "PdfGeneratorAsyncTask.globalError";
@@ -86,13 +84,14 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	
 	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
 			String consolidatedName, String consolidatedTitle,
-			String username, Boolean withMetadata) {
+			String username, Boolean withMetadata, Locale locale) {
 		this.documentIdList = documentIdList;
 		this.consolidatedId = consolidatedId;
 		this.consolidatedName = consolidatedName;
 		this.consolidatedTitle = consolidatedTitle;
 		this.withMetadata = withMetadata;
 		this.username = username;
+		this.locale = locale;
 	}
 	
 	private PDDocument getMetadataReport(Document document, ValidationErrors errors, AsyncTaskExecutionParams params) throws ValidationException {
@@ -105,7 +104,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 			
 			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(1);
 
-			XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(appLayerFactory, collection, xmlGeneratorParameters);
+			XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(appLayerFactory, collection, xmlGeneratorParameters, locale);
 
 			ArrayList<String> documentIdAsString = new ArrayList<>();
 			documentIdAsString.add(documentId);

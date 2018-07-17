@@ -338,7 +338,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		taxonomyField.setRequired(false);
 		for (TaxonomyVO value : presenter.getEnabledTaxonomies()) {
 			taxonomyField.addItem(value.getCode());
-			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
+			taxonomyField.setItemCaption(value.getCode(), value.getTitle().get(getSessionContext().getCurrentLocale().getLanguage()));
 		}
 
 

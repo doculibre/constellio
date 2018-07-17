@@ -45,26 +45,30 @@ public class MetadataVO implements Serializable {
 	final Object defaultValue;
 	final String inputMask;
 	final Set<String> customAttributes;
+	final boolean multiLingual;
+	final Locale locale;
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 			boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
 			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
 			MetadataInputType metadataInputType,
 			MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
-			String metadataGroup, Object defaultValue, Set<String> customAttributes) {
+			String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual, Locale locale) {
 		this(code, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
-				defaultValue, null, customAttributes);
+				defaultValue, null, customAttributes, multiLingual, locale);
 	}
 
+
+
 	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
-			Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-			String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
-			AllowedReferences allowedReferences,
-			boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-			String inputMask, Set<String> customAttributes) {
+					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
+					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+					  String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
+					  AllowedReferences allowedReferences,
+					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale) {
 		super();
 		this.code = code;
 		this.datastoreCode = datastoreCode;
@@ -88,6 +92,8 @@ public class MetadataVO implements Serializable {
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
 		this.customAttributes = customAttributes;
+		this.multiLingual = multiLingual;
+		this.locale = locale;
 
 		if (schema != null && !schema.getMetadatas().contains(this)) {
 			schema.getMetadatas().add(this);
@@ -100,11 +106,11 @@ public class MetadataVO implements Serializable {
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
 			MetadataDisplayType metadataDisplayType,
 			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue, boolean isWriteNullValues,
-			Set<String> customAttributes) {
+			Set<String> customAttributes, boolean multiLingual, Locale locale) {
 
 		this(code, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale);
 	}
 
 	public MetadataVO() {
@@ -131,6 +137,8 @@ public class MetadataVO implements Serializable {
 		this.defaultValue = null;
 		this.inputMask = null;
 		this.customAttributes = new HashSet<>();
+		this.multiLingual = false;
+		this.locale = null;
 	}
 
 	public String getCode() {
@@ -301,6 +309,7 @@ public class MetadataVO implements Serializable {
 		int result = 1;
 		result = prime * result + ((code == null) ? 0 : code.hashCode());
 		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
+		result = prime * result + ((locale == null) ? 0 : locale.hashCode());
 		return result;
 	}
 
@@ -326,6 +335,12 @@ public class MetadataVO implements Serializable {
 				}
 				//			} else if (!schema.equals(other.schema)) {
 				//				return false;
+			} else if (locale == null) {
+				if (other.locale != null) {
+					return false;
+				}
+			} else if (!locale.equals(other.locale)) {
+				return false;
 			}
 		}
 		return true;
@@ -368,4 +383,13 @@ public class MetadataVO implements Serializable {
 	public boolean hasCustomAttributes(String customAttribute) {
 		return customAttributes.contains(customAttribute);
 	}
+
+	public boolean isMultiLingual() {
+		return multiLingual;
+	}
+
+	public Locale getLocale() {
+		return locale;
+	}
+	
 }

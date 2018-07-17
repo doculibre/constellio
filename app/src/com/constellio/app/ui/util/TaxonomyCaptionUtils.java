@@ -1,27 +1,26 @@
 package com.constellio.app.ui.util;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.Serializable;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaxonomyCaptionUtils implements Serializable {
 
-	public static String getCaptionForTaxonomyCode(String collection, String taxonomyCode) {
+	public static String getCaptionForTaxonomyCode(String collection, String taxonomyCode, Language language) {
 		String caption;
 		if (StringUtils.isNotBlank(taxonomyCode)) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 			Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-			String taxonomyTitle = taxonomy.getTitle();
+			String taxonomyTitle = taxonomy.getTitle(language);
 			
 			String captionPrefixKey = "Taxonomy." + taxonomyCode + ".caption";
 			String captionPrefix = $(captionPrefixKey);

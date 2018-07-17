@@ -1,5 +1,7 @@
 package com.constellio.app.modules.robots.ui.components.breadcrumb;
 
+import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecord;
+
 import java.io.Serializable;
 
 import com.constellio.app.modules.robots.model.services.RobotsService;
@@ -7,7 +9,6 @@ import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 
 public class RobotBreadcrumbTrailPresenter implements Serializable {
 	private final BreadcrumbTrail trail;
@@ -21,11 +22,11 @@ public class RobotBreadcrumbTrailPresenter implements Serializable {
 	public RobotBreadcrumbTrailPresenter createItems() {
 		for (Robot robot : service().loadAncestors(robotId)) {
 			String id = robot.getId();
-			String caption = SchemaCaptionUtils.getCaptionForRecord(robot.getWrappedRecord());
+			String caption = getCaptionForRecord(robot.getWrappedRecord(), trail.getSessionContext().getCurrentLocale());
 			boolean current = robotId.equals(id);
 			trail.addItem(new RobotBreadcrumbItem(id, caption, !current));
 		}
-		
+
 		return this;
 	}
 

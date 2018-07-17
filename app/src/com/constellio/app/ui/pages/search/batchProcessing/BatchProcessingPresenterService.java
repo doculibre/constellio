@@ -201,12 +201,12 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
-							for (Locale locale : labels.keySet()) {
-								labels.put(locale, customizedLabel);
+							for (Locale labelLocale : labels.keySet()) {
+								labels.put(labelLocale, customizedLabel);
 							}
 						}
 						// Default value is always null
@@ -219,7 +219,7 @@ public class BatchProcessingPresenterService {
 										unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 										metadataDisplayType,
 										allowedReferences,
-										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes) :
+										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale) :
 								null;
 					}
 				};
@@ -307,12 +307,12 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
-							for (Locale locale : labels.keySet()) {
-								labels.put(locale, customizedLabel);
+							for (Locale labelLocale : labels.keySet()) {
+								labels.put(labelLocale, customizedLabel);
 							}
 						}
 						// Default value is always null
@@ -339,7 +339,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale);
 					}
 				};
 			}

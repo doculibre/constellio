@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
@@ -15,6 +16,7 @@ import org.junit.Before;
 
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -50,11 +52,12 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		File inputFile = new File(inputFilePath);
 		File outputFile = new File(outputFilePath);
 
+		CollectionInfo collectionInfo = new CollectionInfo("collection", "fr", Arrays.asList("fr"));
 		Document originalDocument = getDocumentFromFile(inputFile);
 		long fileLength = inputFile.length();
 		System.out.println("fileLength before " + fileLength);
 		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaXMLReader1(new DefaultClassProvider())
-				.read("collection", originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory());
+				.read(collectionInfo, originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory());
 		MetadataSchemaTypes types = typesBuilder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
 
 		Document trimmedDocument = new MetadataSchemaXMLWriter3().write(types);
@@ -68,7 +71,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		System.out.println(fileLength / newFileLength);
 
 		MetadataSchemaTypesBuilder types2Builder = new MetadataSchemaXMLReader2(new DefaultClassProvider())
-				.read("collection", getDocumentFromFile(outputFile), new SolrDataStoreTypesFactory(), getModelLayerFactory());
+				.read(collectionInfo, getDocumentFromFile(outputFile), new SolrDataStoreTypesFactory(), getModelLayerFactory());
 		MetadataSchemaTypes types2 = types2Builder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
 
 		for (MetadataSchemaType type1 : types.getSchemaTypes()) {

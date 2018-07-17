@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.display;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
@@ -77,6 +78,15 @@ public class ReferenceDisplay extends Button {
 		init(recordId, link);
 	}
 
+	@Override
+	public Locale getLocale() {
+		Locale locale = super.getLocale();
+		if (locale == null) {
+			locale = ConstellioUI.getCurrent().getLocale();
+		}
+		return locale;
+	}
+
 	private void init(RecordVO recordVO, boolean link) {
 		setSizeFull();
 		addStyleName(STYLE_NAME);
@@ -124,7 +134,7 @@ public class ReferenceDisplay extends Button {
 		String description = null;
 		if (schema.hasMetadataWithCode("description")) {
 			Metadata descriptionMetadata = schema.getMetadata("description");
-			description = record.get(descriptionMetadata);
+			description = record.get(descriptionMetadata, getLocale());
 		}
 		return description;
 	}

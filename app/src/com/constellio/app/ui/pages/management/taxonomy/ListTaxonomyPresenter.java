@@ -8,19 +8,17 @@ import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
-
-	private List<String> titles;
 
 	public ListTaxonomyPresenter(ListTaxonomyView view) {
 		super(view);
 	}
 
 	public List<TaxonomyVO> getTaxonomies() {
-		titles = new ArrayList<>();
 		TaxonomyToVOBuilder builder = new TaxonomyToVOBuilder();
 		User user = getCurrentUser();
 		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
@@ -29,7 +27,6 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 			if (presentersService.canManage(taxonomy.getCode(), user) && presentersService.displayTaxonomy(taxonomy.getCode(),
 					user)) {
 				result.add(builder.build(taxonomy));
-				titles.add(taxonomy.getTitle());
 			}
 		}
 		return result;

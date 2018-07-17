@@ -3,6 +3,8 @@ package com.constellio.model.services.taxonomies;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.Language;
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -48,7 +50,18 @@ public class TaxonomiesWriter {
 			Element schemaTypeElement = new Element(SCHEMA_TYPE).setText(schemaType);
 			schemaTypesElements.addContent(schemaTypeElement);
 		}
-		Element title = new Element(TITLE).setText(taxonomy.getTitle());
+		Element title = new Element(TITLE);
+
+		for(Language currentLanguage : taxonomy.getTitleLanguage()) {
+			String currentTitle = taxonomy.getTitle(currentLanguage);
+			if(!Strings.isNullOrEmpty(currentTitle)) {
+				if(currentTitle == null) {
+					currentTitle = "";
+				}
+				title.setAttribute("title" + currentLanguage.getCode(), currentTitle);
+			}
+		}
+
 		Element collection = new Element(COLLECTION).setText(taxonomy.getCollection());
 		Element taxonomyElement = new Element(TAXONOMY).setAttribute(CODE, taxonomy.getCode());
 		Element visibleInHomePageElement = new Element(VISIBLE_IN_HOME_PAGE).setText(

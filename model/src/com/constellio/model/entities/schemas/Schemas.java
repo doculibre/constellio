@@ -133,6 +133,11 @@ Schemas {
 		return new Metadata(dataStoreCode, metadata.getType(), false);
 	}
 
+	public static Metadata dummy(Metadata metadata) {
+		String dataStoreCode = metadata.getDataStoreCode();
+		return new Metadata(dataStoreCode, metadata.getType(), metadata.isMultivalue());
+	}
+
 	public static Metadata getSortMetadata(Metadata metadata) {
 
 		String dataStoreCode = metadata.getDataStoreCode().replace("_s", "_sort_s");
@@ -168,12 +173,29 @@ Schemas {
 				metadata.isMultiLingual());
 	}
 
-	private static String replaceLast(String string, String expressionToReplace, String replacement)	{
+	public static Metadata getSecondaryLanguageMetadata(Metadata metadata, String language) {
+
+		String dataStoreCode = getSecondaryLanguageDataStoreCode(metadata.getDataStoreCode(), language);
+
+		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
+		return new Metadata(schemaCode, dataStoreCode, TEXT, metadata.isMultivalue(),
+				metadata.isMultiLingual());
+	}
+
+	public static String getSecondaryLanguageDataStoreCode(String dataStoreCode, String language) {
+
+		String beforeUnderscore = StringUtils.substringBefore(dataStoreCode, "_");
+		String afterUnderscore = StringUtils.substringAfter(dataStoreCode, "_");
+
+		return beforeUnderscore + "." + language + "_" + afterUnderscore;
+	}
+
+	private static String replaceLast(String string, String expressionToReplace, String replacement) {
 		int index = string.lastIndexOf(expressionToReplace);
 		if (index == -1) {
 			return string;
 		}
-		return string.substring(0, index) + replacement + string.substring(index+expressionToReplace.length());
+		return string.substring(0, index) + replacement + string.substring(index + expressionToReplace.length());
 	}
 
 	public static boolean isGlobalMetadata(String metadata) {

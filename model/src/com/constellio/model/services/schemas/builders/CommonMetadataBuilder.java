@@ -461,7 +461,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
-						.setMultivalue(true).setEssential(true)
+						.setMultivalue(true).setEssential(true).setMultiLingual(true)
 						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());

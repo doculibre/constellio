@@ -84,8 +84,14 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(initialValueLists).isNotEmpty();
 
-		services.createValueDomain("Domain 1");
-		services.createValueDomain("Zé domaine de valeur 2!");
+		Map<Language, String> title1 = new HashMap<>();
+		title1.put(Language.French, "Domain 1");
+
+		Map<Language, String> title2 = new HashMap<>();
+		title2.put(Language.French, "Zé domaine de valeur 2!");
+
+		services.createValueDomain(title1, false);
+		services.createValueDomain(title2, false);
 
 		List<MetadataSchemaType> newDomainTypes = new ArrayList<>();
 		for (MetadataSchemaType type : services.getValueDomainTypes()) {
@@ -123,23 +129,29 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(initialValueLists).isNotEmpty();
 
-		Taxonomy taxonomy1 = services.createTaxonomy("My ultimate taxonomy!");
-		Taxonomy taxonomy2 = services.createTaxonomy("Another taxonomy!");
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.English, "My ultimate taxonomy!");
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.English, "Another taxonomy!");
+
+		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle1, true);
+		Taxonomy taxonomy2 = services.createTaxonomy(labelTitle2, true);
 
 		taxonomy1 = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, taxonomy1.getCode());
 		taxonomy2 = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, taxonomy2.getCode());
 
-		assertThat(taxonomy1.getTitle()).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxonomy1.getTitle().get(Language.English)).isEqualTo("My ultimate taxonomy!");
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");
-		assertThat(taxonomy2.getTitle()).isEqualTo("Another taxonomy!");
+		assertThat(taxonomy2.getTitle().get(Language.English)).isEqualTo("Another taxonomy!");
 		assertThat(taxonomy2.getSchemaTypes()).containsOnlyOnce(taxonomy2.getCode() + "Type");
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		MetadataSchemaType taxo1Type = types.getSchemaType(taxonomy1.getSchemaTypes().get(0));
 		MetadataSchemaType taxo2Type = types.getSchemaType(taxonomy2.getSchemaTypes().get(0));
 
-		assertThat(taxo1Type.getLabel(Language.French)).isEqualTo("My ultimate taxonomy!");
-		assertThat(taxo2Type.getLabel(Language.French)).isEqualTo("Another taxonomy!");
+		assertThat(taxo1Type.getLabel(Language.English)).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxo2Type.getLabel(Language.English)).isEqualTo("Another taxonomy!");
 
 		Metadata code = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.CODE);
 		Metadata description = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.DESCRIPTION);
@@ -171,9 +183,13 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		groupIds.add("legends");
 		String title = "Taxo1";
 
-		Taxonomy taxonomy1 = services.createTaxonomy(title, userIds, groupIds, true);
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "Taxo1");
 
-		assertThat(taxonomy1.getTitle()).isEqualTo(title);
+
+		Taxonomy taxonomy1 = services.createTaxonomy(labelTitle, userIds, groupIds, true, true);
+
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(title);
 		assertThat(taxonomy1.getUserIds()).isEqualTo(userIds);
 		assertThat(taxonomy1.getGroupIds()).isEqualTo(groupIds);
 		assertThat(taxonomy1.getSchemaTypes()).containsOnlyOnce(taxonomy1.getCode() + "Type");
@@ -211,8 +227,11 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTaxonomyWithMetadataWhenDeletedThenTypeTaxonomyAndMetadataAreDeleted()
 			throws ValidationException {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "Ze ultimate taxo!");
+
 		Taxonomy zeTaxo = services
-				.createTaxonomy("zeTaxo", "Ze ultimate taxo!", new ArrayList<String>(), new ArrayList<String>(), true);
+				.createTaxonomy("zeTaxo", labelTitle, new ArrayList<String>(), new ArrayList<String>(), true, true);
 
 		Metadata referenceMetadata = services
 				.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup", "Ze Magic Group");
@@ -243,8 +262,10 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private String createMetadataAndValidate() {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "Ze ultimate taxo!");
 
-		Taxonomy zeTaxo = services.createTaxonomy("Ze ultimate taxo!", new ArrayList<String>(), new ArrayList<String>(), true);
+		Taxonomy zeTaxo = services.createTaxonomy(labelTitle, new ArrayList<String>(), new ArrayList<String>(), true, true);
 
 		services.createAMultivalueClassificationMetadataInGroup(zeTaxo, Folder.SCHEMA_TYPE, "ZeMagicGroup", "Ze Magic Group");
 
@@ -276,8 +297,10 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingAMetadataWithoutUsingTheServiceThenTypeIsConsideredAClassificedSchemaType()
 			throws Exception {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "Ze ultimate taxo!");
 
-		Taxonomy zeTaxo = services.createTaxonomy("Ze ultimate taxo!", new ArrayList<String>(), new ArrayList<String>(), true);
+		Taxonomy zeTaxo = services.createTaxonomy(labelTitle, new ArrayList<String>(), new ArrayList<String>(), true, true);
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(zeCollection);
 		MetadataSchemaTypeBuilder zeTaxoSchemaType = types.getSchemaType(zeTaxo.getSchemaTypes().get(0));
@@ -296,7 +319,10 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		options.setCreateMetadatasAsMultivalued(true);
 		options.typesWithReferenceMetadata = asList("administrativeUnit");
 
-		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", "zora", options);
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "zora");
+
+		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", labelTitle, options ,true);
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();
@@ -313,11 +339,14 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 	public void givenAValueListWithRecordsWhenDeletingItThenSchemaTypeAndMetadatasUsingItAreRemoved()
 			throws Exception {
 
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "zora");
+
 		CreateValueListOptions options = new CreateValueListOptions();
 		options.setCreateMetadatasAsMultivalued(false);
 		options.typesWithReferenceMetadata = asList("administrativeUnit");
 
-		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", "zora", options);
+		MetadataSchemaType zoraDomain = services.createValueDomain("ddvUSRZora", labelTitle, options, true);
 
 		recordServices
 				.add(recordServices.newRecordWithSchema(zoraDomain.getDefaultSchema()).set(TITLE, "test")

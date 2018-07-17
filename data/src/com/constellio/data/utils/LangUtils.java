@@ -472,4 +472,8 @@ public class LangUtils {
 			}
 		};
 	}
+
+	public static boolean isNullOrEmptyCollection(Object value) {
+		return value == null || ((value instanceof Collection) && ((Collection) value).isEmpty());
+	}
 }

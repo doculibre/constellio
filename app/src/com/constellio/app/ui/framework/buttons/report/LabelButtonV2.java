@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
 import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -295,7 +296,7 @@ public class LabelButtonV2 extends WindowButton {
         private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
             VerticalLayout layout = null;
             if (validateInputs(selectedTemplate)) {
-                LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory).setStartingPosition((Integer) startPositionField.getValue())
+                LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale()).setStartingPosition((Integer) startPositionField.getValue())
                         .setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
                 PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
                 JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);

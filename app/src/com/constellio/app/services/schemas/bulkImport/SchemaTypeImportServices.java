@@ -16,7 +16,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
@@ -160,6 +159,8 @@ public class SchemaTypeImportServices implements ImportServices {
 			final String schemaLocalCode = StringUtils.substringAfter(schemaTypeCode_schemaCode, "_");
 			Map<String, Object> fields = new HashMap<>(toImport.getFields());
 			final String title = (String) fields.get(DESCRIPTION);
+			Map<Language, String> mapLabel = new HashMap<>();
+			mapLabel.put(Language.French, title);
 
 			Object metadataListFields = fields.get(METADATA_LIST);
 			List<Map<String, String>> metadataListFieldsMap = new ArrayList<>();
@@ -173,7 +174,7 @@ public class SchemaTypeImportServices implements ImportServices {
 			} else {
 				metadataList = new ArrayList<>();
 			}
-			createTaxonomyOrValueDomain(taxonomies, typesBuilder, schemaTypeCode, title);
+			createTaxonomyOrValueDomain(taxonomies, typesBuilder, schemaTypeCode, mapLabel);
 
 			addMetadataList(typesBuilder, schemaTypeCode, schemaLocalCode, title, metadataList);
 			return 0;
@@ -265,7 +266,8 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void createTaxonomyOrValueDomain(List<Taxonomy> taxonomies, MetadataSchemaTypesBuilder typesBuilder, String typeCode,
-			String title) {
+			Map<Language, String> title) {
+
 		try {
 			metadataSchemasManager.getSchemaTypes(collection).getSchemaType(typeCode);
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
@@ -279,7 +281,7 @@ public class SchemaTypeImportServices implements ImportServices {
 				if (StringUtils.isBlank(taxoCode)) {
 					throw new TaxonomiesManagerRuntimeException.InvalidTaxonomyCode(typeCode);
 				}
-				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title));
+				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, true));
 			}
 		}
 	}

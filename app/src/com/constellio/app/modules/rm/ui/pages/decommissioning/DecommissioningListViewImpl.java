@@ -537,7 +537,6 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		BaseTable table = new BaseTable("DecommissioningListView.validationTable", $("DecommissioningListView.validations", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
-
 		return new ValidationsGenerator(presenter).attachTo(table);
 	}
 

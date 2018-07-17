@@ -2,10 +2,9 @@ package com.constellio.sdk.tests.setups;
 
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -82,9 +81,15 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 		setupFolderType(folderType, taxo1Type2, taxo2Type);
 		setupDocumentType(documentType, folderType);
 
-		taxo1 = Taxonomy.createPublic("taxo1", "taxo1", collection,
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo1");
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "taxo2");
+
+		taxo1 = Taxonomy.createPublic("taxo1", labelTitle1, collection,
 				Arrays.asList("taxo1Type1", "taxo1Type2"));
-		taxo2 = Taxonomy.createPublic("taxo2", "taxo2", collection, Arrays.asList("taxo2Type"));
+		taxo2 = Taxonomy.createPublic("taxo2", labelTitle2, collection, Arrays.asList("taxo2Type"));
 
 		taxonomies = Arrays.asList(taxo1, taxo2);
 	}

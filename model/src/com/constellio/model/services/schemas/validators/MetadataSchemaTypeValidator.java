@@ -3,7 +3,6 @@ package com.constellio.model.services.schemas.validators;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -22,7 +21,7 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 	@Override
 	public void validate(MetadataSchemaType schemaType, ValidationErrors validationErrors) {
 		validateDefaultSchema(schemaType.getDefaultSchema(), validationErrors);
-		for (MetadataSchema customSchema : schemaType.getSchemas()) {
+		for (MetadataSchema customSchema : schemaType.getCustomSchemas()) {
 			validateCustomSchema(customSchema, validationErrors);
 		}
 	}

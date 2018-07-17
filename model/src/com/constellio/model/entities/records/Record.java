@@ -2,7 +2,9 @@ package com.constellio.model.entities.records;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -11,35 +13,45 @@ import com.constellio.model.services.schemas.MetadataList;
 
 public interface Record extends Serializable, CollectionObject {
 
-	public static final String PUBLIC_TOKEN = "__public__";
+	String PUBLIC_TOKEN = "__public__";
 
-	public String getId();
+	String getId();
 
 	String getTitle();
 
-	public long getVersion();
+	long getVersion();
 
-	public long getDataMigrationVersion();
+	long getDataMigrationVersion();
 
-	public String getSchemaCode();
+	String getSchemaCode();
 
 	String getTypeCode();
 
-	public boolean isDirty();
+	boolean isDirty();
 
-	public boolean isFullyLoaded();
+	boolean isFullyLoaded();
 
 	boolean isModified(Metadata metadata);
 
 	Record set(Metadata metadata, Object value);
 
+	Record set(Metadata metadata, Locale locale, Object value);
+
 	<T> T get(Metadata metadata);
+
+	<T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+
+	<T> T get(Metadata metadata, Locale locale);
 
 	<T> T getNonNullValueIn(List<Metadata> metadatas);
 
 	<T> List<T> getList(Metadata metadata);
 
+	<T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
+
 	<T> List<T> getValues(Metadata metadata);
+
+	<T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode);
 
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
@@ -48,6 +60,8 @@ public interface Record extends Serializable, CollectionObject {
 	boolean isSaved();
 
 	String getCollection();
+
+	CollectionInfo getCollectionInfo();
 
 	String getParentId();
 

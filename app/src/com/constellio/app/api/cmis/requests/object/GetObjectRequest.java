@@ -2,6 +2,7 @@ package com.constellio.app.api.cmis.requests.object;
 
 import java.util.Set;
 
+import com.constellio.model.entities.Language;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
@@ -69,7 +70,7 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 		} else if (objectId.startsWith("taxo_")) {
 			Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, objectId.split("_")[1]);
-			return newTaxonomyObjectBuilder().build(taxonomy, objectInfos);
+			return newTaxonomyObjectBuilder().build(taxonomy, objectInfos, Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage()));
 
 		} else if (objectId.startsWith("content_")) {
 			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types());

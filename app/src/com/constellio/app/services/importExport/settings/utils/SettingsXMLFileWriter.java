@@ -1,13 +1,7 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static org.apache.commons.lang3.StringUtils.join;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-
+import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.model.entities.Language;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -17,20 +11,13 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataPopulateConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.join;
 
 public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
@@ -38,6 +25,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private Element settingsElement;
 
 	public SettingsXMLFileWriter() {
+
 		this.document = new Document();
 		settingsElement = new Element(SETTINGS);
 		document.setRootElement(settingsElement);
@@ -428,8 +416,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addTaxonomy(Element taxonomiesElem, ImportedTaxonomy importedTaxonomy) {
 		Element listElem = new Element(TAXONOMY);
 		listElem.setAttribute(CODE, importedTaxonomy.getCode());
-		if (importedTaxonomy.getTitle() != null) {
-			listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
+		if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitleLanguage() != null) {
+			for(Language language : importedTaxonomy.getTitleLanguage()) {
+				listElem.setAttribute(TITLE + language.getCode(), importedTaxonomy.getTitle(language));
+			}
 		}
 		if (importedTaxonomy.getVisibleOnHomePage() != null) {
 			listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
@@ -452,7 +442,13 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addValueListItem(Element valueListsElem, ImportedValueList valueList) {
 		Element listElem = new Element(VALUE_LIST);
 		listElem.setAttribute(CODE, valueList.getCode());
-		listElem.setAttribute(TITLE, valueList.getTitle());
+
+
+		if (valueList.getTitle() != null && valueList.getTitle().keySet() != null) {
+			for(Language language : valueList.getTitle().keySet()) {
+				listElem.setAttribute(TITLE + language.getCode(), valueList.getTitle().get(language));
+			}
+		}
 
 		if (!valueList.getClassifiedTypes().isEmpty()) {
 			listElem.setAttribute(CLASSIFIED_TYPES, join(valueList.getClassifiedTypes(), ','));
@@ -483,7 +479,6 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		} finally {
 			IOUtils.closeQuietly(fos);
 		}
-
 	}
 
 }

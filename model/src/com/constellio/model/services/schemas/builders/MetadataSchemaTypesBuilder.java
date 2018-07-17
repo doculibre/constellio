@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -49,20 +50,21 @@ public class MetadataSchemaTypesBuilder {
 	private static final String DEFAULT = "default";
 	private int version;
 	private final List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
-	private final String collection;
+	private final CollectionInfo collectionInfo;
 	private ClassProvider classProvider;
 	private List<Language> languages = new ArrayList<>();
 
-	private MetadataSchemaTypesBuilder(String collection, int version, ClassProvider classProvider, List<Language> languages) {
+	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
+			List<Language> languages) {
 		super();
-		this.collection = collection;
+		this.collectionInfo = collectionInfo;
 		this.version = version;
 		this.classProvider = classProvider;
 		this.languages = Collections.unmodifiableList(languages);
 	}
 
 	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ClassProvider classProvider) {
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollection(), types.getVersion(),
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), types.getVersion(),
 				classProvider, types.getLanguages());
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
 			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type, classProvider));
@@ -70,9 +72,10 @@ public class MetadataSchemaTypesBuilder {
 		return typesBuilder;
 	}
 
-	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version, ClassProvider classProvider,
+	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo, int version,
+			ClassProvider classProvider,
 			List<Language> languages) {
-		return new MetadataSchemaTypesBuilder(collection, version, classProvider, languages);
+		return new MetadataSchemaTypesBuilder(collectionInfo, version, classProvider, languages);
 	}
 
 	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
@@ -99,7 +102,7 @@ public class MetadataSchemaTypesBuilder {
 
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		MetadataSchemaTypes tempTypes = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+		MetadataSchemaTypes tempTypes = new MetadataSchemaTypes(collectionInfo, version + 1, buildedSchemaTypes, dependencies,
 				referenceDefaultValues, languages, MetadataNetwork.EMPTY());
 
 		for (MetadataSchemaType type : tempTypes.getSchemaTypes()) {
@@ -113,7 +116,7 @@ public class MetadataSchemaTypesBuilder {
 				}
 			}
 		}
-		MetadataSchemaTypes types = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+		MetadataSchemaTypes types = new MetadataSchemaTypes(collectionInfo, version + 1, buildedSchemaTypes, dependencies,
 				referenceDefaultValues, languages, MetadataNetworkBuilder.buildFrom(buildedSchemaTypes));
 
 		return types;
@@ -129,7 +132,7 @@ public class MetadataSchemaTypesBuilder {
 			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
 		}
 
-		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collection, code, this, initialize);
+		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collectionInfo, code, this, initialize);
 
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
@@ -476,7 +479,7 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
 	}
 
 	public void deleteSchemaType(MetadataSchemaType type, SearchServices searchServices) {
