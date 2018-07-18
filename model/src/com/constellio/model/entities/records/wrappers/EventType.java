@@ -62,6 +62,8 @@ public class EventType {
 
 	public static final String BORROW_EXTENSION_REQUEST_FOLDER = "borrow_extension_request_folder";
 
+	public static final String SHARE_FOLDER = "share_folder";
+
 	public static final String CREATE_DOCUMENT = "create_document";
 
 	public static final String MODIFY_DOCUMENT = "modify_document";

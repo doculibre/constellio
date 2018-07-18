@@ -1,0 +1,19 @@
+INFO:Starting execution of VaultVerificationScript
+==========BEGIN REPORT==========
+
+
+
+
+Current documents with missing files :
+No missing elements.
+
+
+
+Historical documents with missing files :
+No missing elements.
+
+
+
+==========END REPORT==========
+
+INFO:Execution of VaultVerificationScript finished successfully

@@ -4,11 +4,14 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 
 public interface NewReportPresenter extends Serializable {
-	List<String> getSupportedReports();
+	List<ReportWithCaptionVO> getSupportedReports();
 
 	NewReportWriterFactory getReport(String report);
 
 	Object getReportParameters(String report);
+
+
 }

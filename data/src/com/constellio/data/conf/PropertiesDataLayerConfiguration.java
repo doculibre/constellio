@@ -274,7 +274,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public int getSecondTransactionLogBackupCount() {
-		return getInt("secondTransactionLog.backupCount", 2);
+		return getInt("secondTransactionLog.backupCount", 1);
 	}
 
 	@Override

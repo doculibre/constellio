@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension.AddAdditionalSearchFiltersParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +58,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
+
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	SearchType searchType;
 	String adminUnitId;
@@ -295,6 +301,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	protected LogicalSearchCondition buildSearchCondition()
 			throws ConditionException {
 		List<Criterion> criteria = view.getSearchCriteria();
+
 		if (criteria.isEmpty()) {
 			condition = selectByDecommissioningStatus();
 		} else {
@@ -310,6 +317,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);
 			}
 		}
+
+		for (DecommissioningBuilderPresenterExtension extension : rmModuleExtensions.getDecommissioningBuilderPresenterExtensions()) {
+			condition = extension.addAdditionalSearchFilters(new AddAdditionalSearchFiltersParams(searchType, condition));
+		}
+
 		return condition;
 	}
 

@@ -53,7 +53,7 @@ public class RMRequestTaskApprovedExtension extends RecordExtension {
 
     @Override
     public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
-        if(event.isSchemaType(Task.SCHEMA_TYPE)) {
+        if(!event.isConsumed() && event.isSchemaType(Task.SCHEMA_TYPE)) {
             RMTask task = rmSchemas.wrapRMTask(event.getRecord());
             List<String> acceptedSchemas = new ArrayList<>(asList(BorrowRequest.FULL_SCHEMA_NAME, ReturnRequest.FULL_SCHEMA_NAME,
                     ReactivationRequest.FULL_SCHEMA_NAME, ExtensionRequest.FULL_SCHEMA_NAME));

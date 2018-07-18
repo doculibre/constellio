@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -392,7 +393,20 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		ContentDao contentDao = getDataLayerFactory().getContentsDao();
 		StringBuilder stringBuilder = new StringBuilder();
 
-		String folderId = "tlogs_bck/" + dateTime.toString("yyyy-MM-dd-HH-mm-ss");
+		File exportFolder = contentDao.getFileOf("tlogs_bck_export/");
+		String folderId = "tlogs_bck_export/" + dateTime.toString("yyyy-MM-dd-HH-mm-ss");
+		String zipId = "tlogs_bck/" + dateTime.toString("yyyy-MM-dd-HH-mm-ss") + ".zip";
+		File folderFile = contentDao.getFileOf(folderId);
+		if(exportFolder.exists()) {
+			FileUtils.deleteDirectory(exportFolder);
+		}
+		File zipFile = contentDao.getFileOf(zipId);
+
+		if(zipFile.exists()) {
+			folderFile.mkdir();
+			getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newZipService().unzip(zipFile, folderFile);
+		}
+
 		if (contentDao.isFolderExisting(folderId)) {
 			List<String> transactionLogs = contentDao.getFolderContents(folderId);
 

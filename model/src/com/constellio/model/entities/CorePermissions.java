@@ -40,7 +40,6 @@ public class CorePermissions {
 	public static final String MANAGE_CONNECTORS = permission(COLLECTION_MANAGEMENT, "manageConnectors");
 	//public static final String MANAGE_SEARCHENGINE = permission(COLLECTION_MANAGEMENT, "manageSearchEngine");
 	public static final String MANAGE_TRASH = permission(COLLECTION_MANAGEMENT, "manageTrash");
-	public static final String MANAGE_SEARCH_REPORTS = permission(COLLECTION_MANAGEMENT, "manageSearchReports");
 	public static final String MANAGE_EMAIL_SERVER = permission(COLLECTION_MANAGEMENT, "manageEmailServer");
 	public static final String MANAGE_EXCEL_REPORT = permission(COLLECTION_MANAGEMENT, "manageExcelReport");
 	//public static final String MANAGE_SEARCH_CONFIG = permission(COLLECTION_MANAGEMENT, "manageSearchConfiguration");

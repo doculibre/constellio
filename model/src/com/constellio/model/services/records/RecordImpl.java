@@ -4,6 +4,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 
@@ -540,7 +541,7 @@ public class RecordImpl implements Record {
 			if (metadata.isMultivalue()) {
 				return (List<T>) value;
 			} else {
-				List<T> values = asList((T) value);
+				List<T> values = Collections.singletonList((T) value);
 				return values;
 			}
 		}

@@ -4,6 +4,10 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class SchemaExtension {
 	public ExtensionBooleanResult isPutInTrashBeforePhysicalDelete(SchemaEvent event) {
 		//TODO
@@ -13,5 +17,9 @@ public class SchemaExtension {
 	public LogicalSearchCondition getPhysicallyDeletableRecordsForSchemaType(SchemaEvent event) {
 		//TODO
 		return null;
+	}
+
+	public List<String> getAllowedSystemReservedMetadatasForExcelReport(String schemaTypeCode) {
+		return new ArrayList<>();
 	}
 }

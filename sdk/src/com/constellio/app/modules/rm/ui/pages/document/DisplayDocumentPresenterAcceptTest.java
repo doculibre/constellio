@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.model.entities.records.wrappers.User;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -154,6 +155,14 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isFalse();
+	}
+
+	@Test
+	public void givenDeletedDocumentThenIsLogicallyDeletedTrue() {
+		recordServices.logicallyDelete(rmRecords.getDocumentWithContent_A19().getWrappedRecord(), User.GOD);
+
+		presenter.forParams(rmRecords.document_A19);
+		assertThat(presenter.isLogicallyDeleted()).isTrue();
 	}
 
 	@Test

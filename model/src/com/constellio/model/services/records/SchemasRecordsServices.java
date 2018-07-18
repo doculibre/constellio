@@ -264,6 +264,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return new BatchProcessReport(create(getTypes().getSchema(BatchProcessReport.FULL_SCHEMA)), getTypes());
 	}
 
+	public VaultScanReport newVaultScanReport() {
+		return new VaultScanReport(create(getTypes().getSchema(VaultScanReport.FULL_SCHEMA)), getTypes());
+	}
+
 	//Groups
 
 	public MetadataSchema groupSchema() {

@@ -80,6 +80,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownContentVersionNumber;
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
+	private Document document;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
@@ -113,6 +114,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 		this.record = getRecord(id);
 
+		Record record = getRecord(id);
+		document = rm.wrapDocument(record);
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
@@ -388,6 +391,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void publishButtonClicked() {
 		updateAndRefresh(presenterUtils.publishButtonClicked());
+	}
+
+	public boolean isLogicallyDeleted(){
+		return document == null || document.isLogicallyDeletedStatus();
 	}
 
 	public void unpublishButtonClicked() {

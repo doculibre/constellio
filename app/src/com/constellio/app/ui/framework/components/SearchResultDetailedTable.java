@@ -3,11 +3,7 @@ package com.constellio.app.ui.framework.components;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
@@ -45,8 +41,8 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		super("SearchResultDetailedTable", container);
 
 		listeners = new HashSet<>();
-		selected = new HashSet<>();
-		deselected = new HashSet<>();
+		selected = new LinkedHashSet<>();
+		deselected = new LinkedHashSet<>();
 		this.withCheckBoxes = withCheckBoxes;
 		if (withCheckBoxes) {
 			addGeneratedColumn(CHECKBOX_PROPERTY, new ColumnGenerator() {

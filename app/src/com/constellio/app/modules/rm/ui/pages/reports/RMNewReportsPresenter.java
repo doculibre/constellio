@@ -10,11 +10,14 @@ import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecor
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implements NewReportPresenter {
 
@@ -26,17 +29,17 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
     }
 
     @Override
-    public List<String> getSupportedReports() {
-        return Arrays.asList("Reports.ClassificationPlan",
-                "Reports.DetailedClassificationPlan",
-                "Reports.ClassificationPlanByAdministrativeUnit",
-                "Reports.ConservationRulesList",
-                "Reports.ConservationRulesListByAdministrativeUnit",
-                "Reports.AdministrativeUnits",
-                "Reports.AdministrativeUnitsAndUsers",
-                "Reports.Users",
-                "Reports.AvailableSpaceReport",
-                "Reports.AvailableSpaceReportAll");
+    public List<ReportWithCaptionVO> getSupportedReports() {
+        return Arrays.asList(new ReportWithCaptionVO("Reports.ClassificationPlan", $("Reports.ClassificationPlan")),
+                new ReportWithCaptionVO("Reports.DetailedClassificationPlan", $("Reports.DetailedClassificationPlan")),
+                new ReportWithCaptionVO("Reports.ClassificationPlanByAdministrativeUnit", $("Reports.ClassificationPlanByAdministrativeUnit")),
+                new ReportWithCaptionVO("Reports.ConservationRulesList", $("Reports.ConservationRulesList")),
+                new ReportWithCaptionVO("Reports.ConservationRulesListByAdministrativeUnit", $("Reports.ConservationRulesListByAdministrativeUnit")),
+                new ReportWithCaptionVO("Reports.AdministrativeUnits", $("Reports.AdministrativeUnits")),
+                new ReportWithCaptionVO("Reports.AdministrativeUnitsAndUsers", $("Reports.AdministrativeUnitsAndUsers")),
+                new ReportWithCaptionVO("Reports.Users", $("Reports.Users")),
+                new ReportWithCaptionVO("Reports.AvailableSpaceReport", $("Reports.AvailableSpaceReport")),
+                new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")));
     }
 
     public NewReportWriterFactory getReport(String report) {
@@ -138,6 +141,6 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
     @Override
     protected boolean hasPageAccess(String params, User user) {
-        return user.has(RMPermissionsTo.MANAGE_REPORTS).globally();
+        return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
     }
 }

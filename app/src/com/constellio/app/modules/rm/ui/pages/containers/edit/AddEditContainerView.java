@@ -12,6 +12,4 @@ public interface AddEditContainerView extends BaseView, ArchivesManagementViewGr
 	void setType(String type);
 
 	RecordVO getUpdatedContainer();
-
-	Component buildMultipleModeWindowContent();
 }

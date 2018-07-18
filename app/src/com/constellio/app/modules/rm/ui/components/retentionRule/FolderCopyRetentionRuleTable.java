@@ -523,7 +523,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							break;
 						}
 					}
-					if (activeRetentionPeriod && retentionPeriod.getRetentionType() == RetentionType.OPEN) {
+					if (activeRetentionPeriod &&
+							(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
+							retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
 						yearsField.setEnabled(true);
 					} else {
@@ -546,7 +548,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							}
 							yearsField.setValue(null);
 							yearsField.setEnabled(activeRetentionPeriod &&
-									newRetentionPeriod.getRetentionType() == RetentionType.OPEN);
+									(newRetentionPeriod.getRetentionType() == RetentionType.OPEN ||
+									newRetentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
 						} else {
 							yearsField.setEnabled(true);
 						}
@@ -562,7 +565,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							RetentionPeriod period = activeRetentionPeriod ?
 									copyRetentionRule.getActiveRetentionPeriod() :
 									copyRetentionRule.getSemiActiveRetentionPeriod();
-							if (activeRetentionPeriod && period.getRetentionType() == RetentionType.OPEN) {
+							if (activeRetentionPeriod &&
+									(period.getRetentionType() == RetentionType.OPEN ||
+									period.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 								copyRetentionRule.setOpenActiveRetentionPeriod(newValue);
 							} else if (newValue != null) {
 								openRetentionPeriodDDVField.setValue(null);

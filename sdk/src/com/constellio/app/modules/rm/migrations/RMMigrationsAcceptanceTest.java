@@ -297,7 +297,6 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT);
 		assertThat(userRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
 		assertThat(userRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
-		assertThat(userRole.getOperationPermissions()).doesNotContain(CorePermissions.MANAGE_SEARCH_REPORTS);
 
 		assertThat(managerRole.getOperationPermissions()).containsAll(userRole.getOperationPermissions());
 		assertThat(managerRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
@@ -309,7 +308,6 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_CONTAINERS);
 
-		assertThat(rgdRole.getOperationPermissions()).contains(CorePermissions.MANAGE_SEARCH_REPORTS);
 		//assertThat(rgdRole.getOperationPermissions()).containsAll(RMPermissionsTo.PERMISSIONS.getAll());
 		//assertThat(rgdRole.getOperationPermissions()).containsAll(CorePermissions.PERMISSIONS.getAll());
 		assertThat(rgdRole.getOperationPermissions()).has(noDuplicates());

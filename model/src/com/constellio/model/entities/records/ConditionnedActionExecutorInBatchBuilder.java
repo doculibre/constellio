@@ -27,7 +27,8 @@ public class ConditionnedActionExecutorInBatchBuilder {
 		this.options = new RecordUpdateOptions()
 				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
 				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkipUSRMetadatasRequirementValidations(true)
-				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
+				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true)
+				.setOverwriteModificationDateAndUser(false);
 	}
 
 	public RecordUpdateOptions getOptions() {
