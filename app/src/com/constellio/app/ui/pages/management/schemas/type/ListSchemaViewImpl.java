@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Map;
+
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -11,18 +15,18 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, ClickListener {
 	ListSchemaPresenter presenter;
@@ -85,7 +89,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-
 		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), EditButton.ICON_RESOURCE, editListener);
 
 		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
@@ -95,7 +98,8 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
 				}
 			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"), deleteListener);
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
+					deleteListener);
 		}
 
 		final MenuBar.Command formOrderListener = new MenuBar.Command() {
@@ -105,7 +109,8 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.formConfiguration"), new ThemeResource("images/icons/config/display-config-form.png"), formOrderListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.formConfiguration"),
+				new ThemeResource("images/icons/config/display-config-form.png"), formOrderListener);
 
 		final MenuBar.Command formListener = new MenuBar.Command() {
 			@Override
@@ -114,9 +119,8 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.display"), new ThemeResource("images/icons/config/display-config-display.png"), formListener);
-
-
+		rootItem.addItem($("ListSchemaViewImpl.menu.display"),
+				new ThemeResource("images/icons/config/display-config-display.png"), formListener);
 
 		final MenuBar.Command searchListener = new MenuBar.Command() {
 			@Override
@@ -125,21 +129,25 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"), new ThemeResource("images/icons/config/display-config-search.png"), searchListener);
+		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"),
+				new ThemeResource("images/icons/config/display-config-search.png"), searchListener);
 
-
-		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode().endsWith("default"))) {
+		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode()
+				.endsWith("default"))) {
 			final MenuBar.Command tableListener = new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuBar.MenuItem selectedItem) {
 					presenter.tableButtonClicked();
 				}
 			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.table"),new ThemeResource("images/icons/config/display-config-table.png"), tableListener);
+			rootItem.addItem($("ListSchemaViewImpl.menu.table"),
+					new ThemeResource("images/icons/config/display-config-table.png"), tableListener);
 		}
 
-		for(ListSchemaExtraCommandReturnParams schemaExtraCommandReturnParams : presenter.getExtensionMenuBar(metadataSchemaVO)) {
-			rootItem.addItem($(schemaExtraCommandReturnParams.getCaption()), schemaExtraCommandReturnParams.getRessource(), schemaExtraCommandReturnParams.getCommand());
+		for (ListSchemaExtraCommandReturnParams schemaExtraCommandReturnParams : presenter
+				.getExtensionMenuBar(metadataSchemaVO)) {
+			rootItem.addItem($(schemaExtraCommandReturnParams.getCaption()), schemaExtraCommandReturnParams.getRessource(),
+					schemaExtraCommandReturnParams.getCommand());
 		}
 
 		HorizontalLayout buttonVerticalLayout = new HorizontalLayout();
@@ -150,18 +158,11 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			public void buttonClick(ClickEvent event) {
 				presenter.editMetadataButtonClicked(metadataSchemaVO);
 			}
-
-			@Override
-			public boolean isVisible() {
-				Integer index = (Integer) itemId;
-				MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-				return super.isVisible() ;
 		});
 
 		buttonVerticalLayout.addComponent(metadataButton);
 		buttonVerticalLayout.addComponent(menuBar);
 		buttonVerticalLayout.setSpacing(true);
-
 
 		indexedContainer.addItem(metadataSchemaVO);
 
@@ -178,7 +179,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		indexContainer.addContainerProperty("title", String.class, "");
 		indexContainer.addContainerProperty(OPTIONS_COL, HorizontalLayout.class, null);
 
-		for(Integer integer: dataProvider.list()) {
+		for (Integer integer : dataProvider.list()) {
 			MetadataSchemaVO metadataSchemaVO = dataProvider.getSchemaVO(integer);
 			addSchemaToTable(metadataSchemaVO, indexContainer);
 		}
@@ -191,7 +192,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		table.setColumnHeader("title", $("ListSchemaView.caption"));
 		table.setColumnHeader(OPTIONS_COL, "");
 		table.setColumnExpandRatio("title", 1);
-
 
 		return table;
 	}

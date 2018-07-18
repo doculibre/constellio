@@ -13,10 +13,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.constellio.data.dao.dto.records.FacetValue;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -36,6 +32,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
@@ -61,6 +58,9 @@ import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeExce
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.UI;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
@@ -122,7 +122,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 	}
 
-	public Metadata getMetadataInheritance(String metadataCode)  {
+	public Metadata getMetadataInheritance(String metadataCode) {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		try {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
@@ -190,15 +190,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public boolean isShowUniqueComboBox() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode)).returnAll();
+		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode))
+				.returnAll();
 		Metadata metadata = types.getMetadata(metadataCode);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
 		logicalSearchQuery.setNumberOfRows(0);
 		logicalSearchQuery.addFieldFacet(metadata.getDataStoreCode());
 
-		List<FacetValue> response = modelLayerFactory.newSearchServices().query(logicalSearchQuery).getFieldFacetValues(metadata.getDataStoreCode());
-		for(FacetValue facetValue : response) {
-			if(facetValue.getQuantity() > 1 ) {
+		List<FacetValue> response = modelLayerFactory.newSearchServices().query(logicalSearchQuery)
+				.getFieldFacetValues(metadata.getDataStoreCode());
+		for (FacetValue facetValue : response) {
+			if (facetValue.getQuantity() > 1) {
 				return false;
 			}
 		}
@@ -214,7 +216,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		boolean isSaveButtonClicked = false;
 		MetadataBuilder builderDefaultSchema;
 		final MetadataBuilder builder;
-		if (!editMode){
+		if (!editMode) {
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
 
 			builder.setMultivalue(formMetadataVO.isMultivalue());
@@ -249,8 +251,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
 
 				if (reindexRequired) {
-					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE?
-							$("AddEditMetadataPresenter.saveButton.sortableReference"):$("AddEditMetadataPresenter.saveButton.sortable");
+					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE ?
+							$("AddEditMetadataPresenter.saveButton.sortableReference") :
+							$("AddEditMetadataPresenter.saveButton.sortable");
 
 					if (builder.isSearchable() != formMetadataVO.isSearchable()) {
 						confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.searchable");
@@ -301,11 +304,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		MetadataBuilder builderDefaultSchema;
 
-		if(schemaCode.endsWith("_default")) {
+		if (schemaCode.endsWith("_default")) {
 			builderDefaultSchema = builder;
 		} else {
 			builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
-			if(builderDefaultSchema == null) {
+			if (builderDefaultSchema == null) {
 				builderDefaultSchema = builder;
 			}
 		}
@@ -561,7 +564,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
 					new HashMap<Locale, String>(), null, new String[] {}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
-					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(), formMetadataVO.isMultiLingual(), new HashMap<String,Object>());
+					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>());
 			return metadataVO;
 		} catch (Exception ex) {
 			return null;

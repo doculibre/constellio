@@ -30,8 +30,9 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 					Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
 					MetadataInputType metadataInputType,
 					MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
-					StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale,
-					Map<String,Object> customParameters) {
+					StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask,
+					Set<String> customAttributes, boolean isMultiLingual, Locale locale,
+					Map<String, Object> customParameters) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -46,14 +47,16 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
-									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameter);
+									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
+									isMultiLingual, locale, customParameters);
 				} else {
 					metadataVO = super
 							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
-									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameter);
+									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
+									isMultiLingual, locale, customParameters);
 				}
 				return metadataVO;
 			}
