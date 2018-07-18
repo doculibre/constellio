@@ -292,7 +292,7 @@ public class SchemaUtils {
 			DynamicLocalDependency dependency) {
 		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
 				&& (dependency.isIncludingGlobalMetadatas() || !otherMetadata.isGlobal())
-				&& dependency.isDependentOf(otherMetadata);
+				&& dependency.isDependentOf(otherMetadata, calculatedMetadata);
 	}
 
 	public static String getMetadataLocalCodeWithoutPrefix(Metadata metadata) {

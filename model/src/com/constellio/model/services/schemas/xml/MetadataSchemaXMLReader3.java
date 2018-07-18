@@ -150,9 +150,7 @@ public class MetadataSchemaXMLReader3 {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);
 		} else {
 			parseMetadataWithoutInheritance(metadataElement, metadataBuilder, collectionSchema);
-
 		}
-
 	}
 
 	private void parseMetadataWithInheritance(Element metadataElement, MetadataBuilder metadataBuilder) {
@@ -189,6 +187,11 @@ public class MetadataSchemaXMLReader3 {
 		}
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
+
+		Map<String, Object> customParameter = TypeConvertionUtil.getCustomParameterMap(metadataElement);
+		if(customParameter != null) {
+			metadataBuilder.setCustomParameter(customParameter);
+		}
 	}
 
 	private void parseMetadataWithoutInheritance(Element metadataElement, MetadataBuilder metadataBuilder,
@@ -419,6 +422,13 @@ public class MetadataSchemaXMLReader3 {
 		}
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
+
+		Map<String, Object> customParameters = TypeConvertionUtil.getCustomParameterMap(metadataElement);
+		if(inheriteGlobalMetadata && taxonomyRelationshipStringValue == null) {
+			metadataBuilder.setCustomParameter(globalMetadataInCollectionSchema.getCustomParameter());
+		} else {
+			metadataBuilder.setCustomParameter(customParameters);
+		}
 
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
 	}
@@ -666,6 +676,8 @@ public class MetadataSchemaXMLReader3 {
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);
 		}
+
+
 		List<String> validatorsClassNames = parseValidators(defaultSchemaElement, null);
 		for (String validatorsClassName : validatorsClassNames) {
 			defaultSchemaBuilder.defineValidators().add(getValidatorClass(validatorsClassName));
@@ -743,4 +755,8 @@ public class MetadataSchemaXMLReader3 {
 		}
 		return labels;
 	}
+
+
+
+
 }

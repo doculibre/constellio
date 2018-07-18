@@ -47,9 +47,12 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -477,6 +480,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsDisabled));
 
 		assertThat(zeSchema.stringMetadata().isEnabled()).isFalse();
+	}
+
+	@Test
+	public void whenHavingCustomParameterValueInTemporaryRecordEmployeThenIsSavedWithValue() {
+		final Map<String, Object> customParameter = new HashMap();
+
+		customParameter.put("key", "value");
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaTypeBuilder temporaryFolderSchemaType = types.getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+				temporaryFolderSchemaType.createCustomSchema("employe").getMetadata("title").setCustomParameter(customParameter);
+			}
+		});
+
+		Map<String, Object> customParameterFromMetadata = schemasManager.getSchemaTypes(zeCollection).getSchemaType(TemporaryRecord.SCHEMA_TYPE).getSchema("employe").getMetadata("title").getCustomParameter();
+
+		assertThat(customParameterFromMetadata.get("key")).isEqualTo("value");
+		assertThat(customParameterFromMetadata.size()).isEqualTo(1);
 	}
 
 	@Test

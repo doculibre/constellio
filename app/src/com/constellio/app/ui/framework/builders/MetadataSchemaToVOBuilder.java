@@ -49,6 +49,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			SessionContext sessionContext, boolean addMetadataCodes) {
 		String code = schema.getCode();
 		String collection = schema.getCollection();
+		String localCode = schema.getLocalCode();
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
 		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
@@ -117,7 +118,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		}
 
 		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
-		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, formMetadataCodes, displayMetadataCodes,
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
 				tableMetadataCodes, searchMetadataCodes, labels);
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {

@@ -27,7 +27,7 @@ public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDepend
 	);
 
 	@Override
-	public boolean isDependentOf(Metadata metadata) {
+	public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 		return isMetadataUsableByCopyRetentionRules(metadata);
 	}
 

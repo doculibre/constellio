@@ -701,6 +701,14 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
+	public void folderSummaryColumn(String param) {
+		navigator.navigateTo(NavigatorConfigurationService.SUMMARY_CONFIGURATOR + "/" + param);
+	}
+
+	public void folderUnicityConfigurator(String param) {
+		navigator.navigateTo(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR + "/" + param);
+	}
+
     public void propertiesAnalyser() {
 		navigator.navigateTo(NavigatorConfigurationService.PROPERTIES_ANALYSER);
     }

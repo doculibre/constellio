@@ -109,6 +109,9 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
+
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -594,6 +597,15 @@ public class AppLayerCollectionExtensions {
 			buttons.addAll(extension.addButton(new DocumentViewButtonExtensionParam(record, user)));
 		}
 		return buttons;
+	}
+
+	public List<ListSchemaExtraCommandReturnParams> getListSchemaExtraCommandExtensions(ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
+		List<ListSchemaExtraCommandReturnParams> listSchemaParams = new ArrayList<>();
+		for(ListSchemaExtention listSchemaCommandExtention : listSchemaCommandExtensions) {
+			listSchemaParams.addAll(listSchemaCommandExtention.getExtraCommands(listSchemaExtraCommandParams));
+		}
+
+		return listSchemaParams;
 	}
 
 	public Component getDefaultDisplayForReference(String id) {

@@ -202,7 +202,7 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale, Map<String,Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -220,7 +220,7 @@ public class BatchProcessingPresenterService {
 										unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 										metadataDisplayType,
 										allowedReferences,
-										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale) :
+										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters) :
 								null;
 					}
 				};
@@ -308,7 +308,7 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale, Map<String,Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -340,7 +340,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters);
 					}
 				};
 			}

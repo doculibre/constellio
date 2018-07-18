@@ -1,11 +1,11 @@
 package com.constellio.model.entities.schemas;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class InheritedMetadataBehaviors implements Serializable {
 
@@ -147,4 +147,5 @@ public class InheritedMetadataBehaviors implements Serializable {
 	public Set<String> getCustomAttributes() {
 		return customAttributes;
 	}
+
 }

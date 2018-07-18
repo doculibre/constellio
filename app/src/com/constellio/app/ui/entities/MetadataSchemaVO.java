@@ -24,12 +24,17 @@ public class MetadataSchemaVO implements Serializable {
 	final List<String> displayMetadataCodes;
 	final List<String> searchMetadataCodes;
 	final List<String> tableMetadataCodes;
+	final String localCode;
 
 	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels) {
-		this(code, collection, null, null, null, null, labels);
+		this(code, collection, null, null, null, null, null, labels);
 	}
 
-	public MetadataSchemaVO(String code, String collection, List<String> formMetadataCodes, List<String> displayMetadataCodes,
+	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels) {
+		this(code, collection, localCode, null, null, null, null, labels);
+	}
+
+	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes, List<String> displayMetadataCodes,
 			List<String> tableMetadataCodes, List<String> searchMetadataCodes, Map<Locale, String> labels) {
 		super();
 		this.code = code;
@@ -39,6 +44,11 @@ public class MetadataSchemaVO implements Serializable {
 		this.searchMetadataCodes = searchMetadataCodes;
 		this.tableMetadataCodes = tableMetadataCodes;
 		this.labels = labels;
+		this.localCode = localCode;
+	}
+
+	public String getLocalCode() {
+		return localCode;
 	}
 
 	public String getCode() {

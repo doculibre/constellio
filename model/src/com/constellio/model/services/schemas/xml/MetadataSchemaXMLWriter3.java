@@ -1,9 +1,6 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -80,6 +77,15 @@ public class MetadataSchemaXMLWriter3 {
 
 		writeLabels(defaultSchemaElement, defaultSchema.getLabels());
 		//		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
+		addAllMetadataToSchema(collectionSchema, defaultSchema, defaultSchemaElement);
+		if (!defaultSchema.getValidators().isEmpty()) {
+			defaultSchemaElement.addContent(writeSchemaValidators(defaultSchema));
+		}
+		schemaTypeElement.addContent(defaultSchemaElement);
+	}
+
+	private void addAllMetadataToSchema(MetadataSchema collectionSchema, MetadataSchema defaultSchema,
+			Element defaultSchemaElement) {
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
@@ -89,10 +95,6 @@ public class MetadataSchemaXMLWriter3 {
 
 			addMetadataToSchema(defaultSchemaElement, metadata, metadataInCollectionSchema);
 		}
-		if (!defaultSchema.getValidators().isEmpty()) {
-			defaultSchemaElement.addContent(writeSchemaValidators(defaultSchema));
-		}
-		schemaTypeElement.addContent(defaultSchemaElement);
 	}
 
 	private Element writeSchemaValidators(MetadataSchema defaultSchema) {
@@ -166,15 +168,7 @@ public class MetadataSchemaXMLWriter3 {
 		schemaElement.setAttribute("code", schema.getLocalCode());
 		writeLabels(schemaElement, schema.getLabels());
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
-		for (Metadata metadata : schema.getMetadatas()) {
-			Metadata globalMetadataInCollectionSchema = null;
-			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode()) && collectionSchema
-					.hasMetadataWithCode(metadata.getLocalCode())) {
-				globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadata.getLocalCode());
-			}
-
-			addMetadataToSchema(schemaElement, metadata, globalMetadataInCollectionSchema);
-		}
+		addAllMetadataToSchema(collectionSchema, schema, schemaElement);
 		if (!schema.getValidators().isEmpty()) {
 			schemaElement.addContent(writeSchemaValidators(schema));
 		}
@@ -315,6 +309,11 @@ public class MetadataSchemaXMLWriter3 {
 		if (!metadata.getValidators().isEmpty()) {
 			metadataElement.addContent(writeRecordMetadataValidators(metadata));
 		}
+
+		if (metadata.getCustomParameter() != null && !metadata.getCustomParameter().isEmpty()) {
+			metadataElement.addContent(toCustomParameterElement(metadata));
+		}
+
 		if (!metadata.getPopulateConfigs().isEmpty()) {
 			metadataElement.addContent(toPopulateConfigsElement(metadata.getPopulateConfigs()));
 		}
@@ -514,6 +513,12 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("duplicable", writeBoolean(metadata.isDuplicable()));
 			differentFromInheritance = true;
 		}
+
+		if (metadata.getCustomParameter() != null && metadata.getCustomParameter().size() > 0) {
+			metadataElement.addContent(toCustomParameterElement(metadata));
+			differentFromInheritance = true;
+		}
+
 		return differentFromInheritance;
 	}
 
@@ -523,6 +528,23 @@ public class MetadataSchemaXMLWriter3 {
 
 	private String writeEnum(EnumWithSmallCode value) {
 		return value.getCode();
+	}
+
+	private Element toCustomParameterElement(Metadata metadata) {
+
+		Element customElement = new Element("customParameter");
+		for (String keyToCustomParameter : metadata.getCustomParameter().keySet()) {
+			Map<String, Object> customParameter = metadata.getCustomParameter();
+
+			Object value = customParameter.get(keyToCustomParameter);
+
+			Element element = TypeConvertionUtil.getElement(keyToCustomParameter, value);
+			if (element != null) {
+				customElement.addContent(element);
+			}
+		}
+
+		return customElement;
 	}
 
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {

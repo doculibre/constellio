@@ -41,7 +41,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 		return false;
 	}
 
-	public abstract boolean isDependentOf(Metadata metadata);
+	public abstract boolean isDependentOf(Metadata metadata, Metadata caclulatedMetadata);
 
 	/*
 	public LocalDate getDate(String metadata, DynamicDependencyValues values) {

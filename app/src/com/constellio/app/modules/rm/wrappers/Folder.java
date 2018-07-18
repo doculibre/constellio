@@ -114,6 +114,8 @@ public class Folder extends RMObject {
 
 	public static final String SUB_FOLDERS_TOKENS = "subFoldersTokens";
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
+	public static final String UNIQUE_KEY = "uniqueKey";
+	public static final String SUMMARY = "summary";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -817,6 +819,15 @@ public class Folder extends RMObject {
 
 	public List<String> getDocumentsTokens() {
 		return getList(DOCUMENTS_TOKENS);
+	}
+
+	public String getUniqueKey() {
+		return get(UNIQUE_KEY);
+	}
+
+	public Folder setUniqueKey(String unicity) {
+		set(UNIQUE_KEY, unicity);
+		return this;
 	}
 
 	public boolean hasExpectedDates() {

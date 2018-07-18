@@ -1,31 +1,34 @@
 package com.constellio.app.modules.rm.migrations;
 
+import com.constellio.app.entities.calculators.SummaryColumnCalculator;
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderUniqueKeyCalculator;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.managers.config.ConfigManagerException;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScript {
-	@Override
-	public String getVersion() {
-		return "8.0.3";
-	}
 
-	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
-			throws Exception {
+    @Override
+    public String getVersion() {
+        return "8.0.3";
+    }
+
+    @Override
+    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
+        new RMMigrationTo8_0_3.RMSchemaAlterationFor_8_0_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
-	}
+    }
 
 	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
-											MigrationResourcesProvider migrationResourcesProvider,
-											String collection) {
+			MigrationResourcesProvider migrationResourcesProvider,
+			String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("fr")) {
 			reloadEmailTemplate("approvalRequestDeniedForDecomListTemplate.html",
@@ -39,8 +42,8 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 	}
 
 	private static void reloadEmailTemplate(final String templateFileName, final String templateId,
-											AppLayerFactory appLayerFactory,
-											MigrationResourcesProvider migrationResourcesProvider, String collection) {
+			AppLayerFactory appLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -52,4 +55,17 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 			IOUtils.closeQuietly(templateInputStream);
 		}
 	}
+
+    class RMSchemaAlterationFor_8_0_3 extends MetadataSchemasAlterationHelper {
+
+        protected RMSchemaAlterationFor_8_0_3(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+            super(collection, migrationResourcesProvider, appLayerFactory);
+        }
+
+        @Override
+        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+            MetadataSchemaBuilder defaultSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
+            defaultSchema.createUndeletable(Folder.UNIQUE_KEY).setType(MetadataValueType.STRING).setSystemReserved(true).setUniqueValue(true).defineDataEntry().asCalculated(FolderUniqueKeyCalculator.class);
+        }
+    }
 }
