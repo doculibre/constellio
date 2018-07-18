@@ -61,12 +61,15 @@ public class ParametrizedInstanceUtils {
 	private Constructor getConstructor(Class parentClass, List<Class<?>> parameter) {
 
 		for (Constructor constructor : parentClass.getConstructors()) {
-			boolean sameParameter = true;
+
 			Class[] parameterClass = constructor.getParameterTypes();
-			for (int i = 0; i < parameterClass.length; i++) {
-				if (parameter.get(i) != null && !parameter.get(i).equals(parameterClass[i])) {
-					sameParameter = false;
-					break;
+			boolean sameParameter = parameterClass.length == parameter.size();
+			if (sameParameter) {
+				for (int i = 0; i < parameterClass.length; i++) {
+					if (parameter.get(i) != null && !parameter.get(i).equals(parameterClass[i])) {
+						sameParameter = false;
+						break;
+					}
 				}
 			}
 
