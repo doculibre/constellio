@@ -8,6 +8,7 @@ import com.constellio.model.entities.calculators.dependencies.DynamicLocalDepend
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class CalculatorParameters {
@@ -18,9 +19,10 @@ public class CalculatorParameters {
 	final String id;
 	final String legacyId;
 	final boolean principalTaxonomyConcept;
+	final Metadata metadata;
 
 	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, MetadataSchemaType schemaType,
-			String collection, boolean principalTaxonomyConcept) {
+			String collection, boolean principalTaxonomyConcept, Metadata metadata) {
 		super();
 		this.values = values;
 		this.id = id;
@@ -28,6 +30,7 @@ public class CalculatorParameters {
 		this.legacyId = legacyId;
 		this.collection = collection;
 		this.principalTaxonomyConcept = principalTaxonomyConcept;
+		this.metadata = metadata;
 	}
 
 	public boolean isPrincipalTaxonomyConcept() {
@@ -73,5 +76,9 @@ public class CalculatorParameters {
 
 	public String getLegacyId() {
 		return legacyId;
+	}
+
+	public Metadata getMetadata() {
+		return metadata;
 	}
 }

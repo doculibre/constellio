@@ -10,7 +10,6 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class Toggle {
 
-	public static AvailableToggle DEMO_FEATURES = newToggle();
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
@@ -48,8 +47,11 @@ public class Toggle {
 	public static AvailableToggle ALL_CONNECTORS_DISABLED = newToggle(false);
 	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(true);
 	public static AvailableToggle LOG_CONNECTOR_INFOS_WARNINGS_ERRORS_IN_CONSOLE = newToggle(true);
+	public static AvailableToggle LOG_CONVERSION_FILENAME_AND_SIZE = newToggle(false);
 
 	public static AvailableToggle EVENT_BUS_RECORDS_CACHE = newToggle(true);
+
+	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
 
 	public static AvailableToggle MULTI_LINGUAL = newToggle(true);
 

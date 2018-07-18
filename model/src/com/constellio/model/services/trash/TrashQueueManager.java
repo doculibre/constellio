@@ -44,7 +44,7 @@ public class TrashQueueManager implements StatefulService {
 				try {
 					deleteTrashRecords();
 				} catch (Throwable e) {
-					LOGGER.error("Exception when sending emails ", e);
+					LOGGER.error("Exception when deleting records ", e);
 				}
 			}
 		};
@@ -56,7 +56,7 @@ public class TrashQueueManager implements StatefulService {
 				.between(new LocalTime(21, 0, 0), new LocalTime(4, 0, 0)));
 	}
 
-	void deleteTrashRecords() {
+	public void deleteTrashRecords() {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		Integer keepLogicalRecordsDurationInDays = modelLayerfactory.getSystemConfigs().getTrashPurgeDelai();
 		LocalDateTime recordsToDeleteLogicallDeleteStartDate = now.minusDays(keepLogicalRecordsDurationInDays);
@@ -69,8 +69,12 @@ public class TrashQueueManager implements StatefulService {
 			LOGGER.info("Remaining " + searchServices.getResultsCount(query) + " records to delete in collection " + collection);
 			SearchResponseIterator<Record> it = searchServices.recordsIterator(query);
 			while (it.hasNext()) {
-				Record recordToDelete = it.next();
-				trashServices.handleRecordPhysicalDelete(recordToDelete, null);
+				try {
+					Record recordToDelete = it.next();
+					trashServices.handleRecordPhysicalDelete(recordToDelete, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

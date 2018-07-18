@@ -13,6 +13,7 @@ import com.constellio.app.modules.robots.services.RobotsManager;
 import com.constellio.app.modules.robots.ui.components.actionParameters.DynamicParametersField.DynamicParametersPresenter;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -25,6 +26,7 @@ import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.params.ParamUtils;
@@ -66,6 +68,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	private static final String SCHEMA_FILTER = Robot.DEFAULT_SCHEMA + "_" + Robot.SCHEMA_FILTER;
 
 	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
+	private SearchCriteriaPresenterUtils searchCriteriaPresenterUtils;
 	private RecordVO robot;
 	private RecordVO actionParameters;
 	private String schemaFilter;
@@ -90,6 +93,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	private void init() {
 		searchPresenterService = new SearchPresenterService(collection, modelLayerFactory);
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
 	}
 
 	public AddEditRobotPresenter forParams(String parameters) {
@@ -230,6 +234,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {

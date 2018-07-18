@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.ignite.Ignite;
+import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -110,8 +111,11 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static DataLayerFactory lastCreatedInstance;
 	private final LeaderElectionManager leaderElectionManager;
 
+	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
+
 	private Ignite igniteClient;
 	private CuratorFramework curatorFramework;
+
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
@@ -244,6 +248,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		conversionManager = add(new ConversionManager(ioServices, dataLayerConfiguration.getConversionProcesses(),
 				dataLayerConfiguration.getOnlineConversionUrl(), this.getExtensions().getSystemWideExtensions()));
 		lastCreatedInstance = this;
+
+		dataLayerBackgroundThreadsManager = new DataLayerBackgroundThreadsManager(this);
+
+		add(dataLayerBackgroundThreadsManager);
 	}
 
 	public static DataLayerFactory getLastCreatedInstance() {

@@ -131,7 +131,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		if (schemaCode != null) {
 			MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
-			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, view.getSessionContext());
+			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, schema.getLocalCode(), view.getSessionContext(), null, true);
 		}
 
 		return schemaVO;

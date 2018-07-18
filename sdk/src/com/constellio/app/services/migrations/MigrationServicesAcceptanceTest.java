@@ -120,7 +120,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		CollectionsManager collectionsManager = spy(
-				new CollectionsManager(getModelLayerFactory(), moduleManager, new Delayed<>(migrationServices),
+				new CollectionsManager(getAppLayerFactory(), moduleManager, new Delayed<>(migrationServices),
 						systemGlobalConfigsManager));
 		collectionsManager.createCollectionConfigs("collection1");
 		collectionsListManager.addCollection("collection1", Arrays.asList("fr"));

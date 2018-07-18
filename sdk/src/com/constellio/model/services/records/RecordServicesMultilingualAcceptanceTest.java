@@ -9,6 +9,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.dummy;
 import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
@@ -870,6 +871,140 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenMetadataSometimeHasMultilingualAndSometimeNotThenAlwaysIncludeDataStoreLanguage1()
+			throws Exception {
+
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(multilingualCollectionSchemas
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchema("zeSchemaType_default").get("title").setMultiLingual(true).setSearchable(true);
+						schemaTypes.getSchema("anotherSchemaType_default").get("title").setSearchable(true);
+					}
+				}));
+
+		setupServices();
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(multilingualSchema, "r1")
+				.set(Schemas.TITLE, Locale.FRENCH, "Pomme")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Apple"));
+
+		tx.add(new TestRecord(multilingualSchema, "r2")
+				.set(Schemas.TITLE, Locale.FRENCH, "Pêche")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Pear"));
+
+		tx.add(new TestRecord(multilingualSchema, "r3")
+				.set(Schemas.TITLE, Locale.FRENCH, "Fraise")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Strawberry"));
+
+		tx.add(new TestRecord(multilingualSchema, "r4")
+				.set(Schemas.TITLE, Locale.FRENCH, "Banane")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Banana"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "r5")
+				.set(Schemas.TITLE, "Pomme de terre"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "r6")
+				.set(Schemas.TITLE, "Apple computer"));
+
+		recordServices.execute(tx);
+
+		assertThatEveryTypesSearch(Locale.FRENCH, "pomme").containsOnly("r1", "r5");
+		assertThatEveryTypesSearch(Locale.ENGLISH, "pomme").containsOnly("r1", "r5");
+		assertThatEveryTypesSearch(Locale.FRENCH, "fraise").containsOnly("r3");
+		assertThatEveryTypesSearch(Locale.ENGLISH, "fraise").containsOnly("r3");
+		assertThatEveryTypesSearch(Locale.FRENCH, "apple").containsOnly("r6");
+		assertThatEveryTypesSearch(Locale.ENGLISH, "apple").containsOnly("r1", "r6");
+		assertThatEveryTypesSearch(Locale.FRENCH, "pear").isEmpty();
+		assertThatEveryTypesSearch(Locale.ENGLISH, "pear").containsOnly("r2");
+
+		assertThatTypeSearch(multilingualSchema.type(), Locale.FRENCH, "pomme").containsOnly("r1");
+		assertThatTypeSearch(multilingualSchema.type(), Locale.ENGLISH, "pomme").isEmpty();
+		assertThatTypeSearch(multilingualSchema.type(), Locale.FRENCH, "fraise").containsOnly("r3");
+		assertThatTypeSearch(multilingualSchema.type(), Locale.ENGLISH, "fraise").isEmpty();
+		assertThatTypeSearch(multilingualSchema.type(), Locale.FRENCH, "apple").isEmpty();
+		assertThatTypeSearch(multilingualSchema.type(), Locale.ENGLISH, "apple").containsOnly("r1");
+		assertThatTypeSearch(multilingualSchema.type(), Locale.FRENCH, "pear").isEmpty();
+		assertThatTypeSearch(multilingualSchema.type(), Locale.ENGLISH, "pear").containsOnly("r2");
+
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.FRENCH, "pomme").containsOnly("r5");
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.ENGLISH, "pomme").containsOnly("r5");
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.FRENCH, "apple").containsOnly("r6");
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.ENGLISH, "apple").containsOnly("r6");
+
+	}
+
+	@Test
+	public void givenMetadataSometimeHasMultilingualAndSometimeNotThenAlwaysIncludeDataStoreLanguage2()
+			throws Exception {
+
+		givenSystemLanguageIs("fr");
+		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
+		defineSchemasManager().using(multilingualCollectionSchemas
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchema("anotherSchemaType_default").get("title").setMultiLingual(true).setSearchable(true);
+						schemaTypes.getSchema("zeSchemaType_default").get("title").setSearchable(true);
+					}
+				}));
+
+		setupServices();
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "r1")
+				.set(Schemas.TITLE, Locale.FRENCH, "Pomme")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Apple"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "r2")
+				.set(Schemas.TITLE, Locale.FRENCH, "Pêche")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Pear"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "r3")
+				.set(Schemas.TITLE, Locale.FRENCH, "Fraise")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Strawberry"));
+
+		tx.add(new TestRecord(referencingMultilingualSchema, "r4")
+				.set(Schemas.TITLE, Locale.FRENCH, "Banane")
+				.set(Schemas.TITLE, Locale.ENGLISH, "Banana"));
+
+		tx.add(new TestRecord(multilingualSchema, "r5")
+				.set(Schemas.TITLE, "Pomme de terre"));
+
+		tx.add(new TestRecord(multilingualSchema, "r6")
+				.set(Schemas.TITLE, "Apple computer"));
+
+		recordServices.execute(tx);
+
+		assertThatEveryTypesSearch(Locale.FRENCH, "pomme").containsOnly("r1", "r5");
+		assertThatEveryTypesSearch(Locale.ENGLISH, "pomme").containsOnly("r1", "r5");
+		assertThatEveryTypesSearch(Locale.FRENCH, "fraise").containsOnly("r3");
+		assertThatEveryTypesSearch(Locale.ENGLISH, "fraise").containsOnly("r3");
+		assertThatEveryTypesSearch(Locale.FRENCH, "apple").containsOnly("r6");
+		assertThatEveryTypesSearch(Locale.ENGLISH, "apple").containsOnly("r1", "r6");
+		assertThatEveryTypesSearch(Locale.FRENCH, "pear").isEmpty();
+		assertThatEveryTypesSearch(Locale.ENGLISH, "pear").containsOnly("r2");
+
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.FRENCH, "pomme").containsOnly("r1");
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.ENGLISH, "pomme").isEmpty();
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.FRENCH, "fraise").containsOnly("r3");
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.ENGLISH, "fraise").isEmpty();
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.FRENCH, "apple").isEmpty();
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.ENGLISH, "apple").containsOnly("r1");
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.FRENCH, "pear").isEmpty();
+		assertThatTypeSearch(referencingMultilingualSchema.type(), Locale.ENGLISH, "pear").containsOnly("r2");
+
+		assertThatTypeSearch(multilingualSchema.type(), Locale.FRENCH, "pomme").containsOnly("r5");
+		assertThatTypeSearch(multilingualSchema.type(), Locale.ENGLISH, "pomme").containsOnly("r5");
+		assertThatTypeSearch(multilingualSchema.type(), Locale.FRENCH, "apple").containsOnly("r6");
+		assertThatTypeSearch(multilingualSchema.type(), Locale.ENGLISH, "apple").containsOnly("r6");
+
+	}
+
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(Locale locale, String text) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
@@ -881,6 +1016,20 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 	private org.assertj.core.api.ListAssert<String> assertThatSearch(Locale locale, String text) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).returnAll());
+		query.setFreeTextQuery(text);
+		query.setLanguage(locale);
+		return assertThat(searchServices.searchRecordIds(query));
+	}
+
+	private org.assertj.core.api.ListAssert<String> assertThatEveryTypesSearch(Locale locale, String text) {
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(fromAllSchemasIn("multilingual").returnAll());
+		query.setFreeTextQuery(text);
+		query.setLanguage(locale);
+		return assertThat(searchServices.searchRecordIds(query));
+	}
+
+	private org.assertj.core.api.ListAssert<String> assertThatTypeSearch(MetadataSchemaType type, Locale locale, String text) {
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).returnAll());
 		query.setFreeTextQuery(text);
 		query.setLanguage(locale);

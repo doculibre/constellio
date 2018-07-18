@@ -1,11 +1,7 @@
 package com.constellio.app.extensions;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import com.constellio.app.api.extensions.*;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
@@ -44,7 +40,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -59,6 +54,8 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
@@ -111,6 +108,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
+
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -598,7 +599,29 @@ public class AppLayerCollectionExtensions {
 		return buttons;
 	}
 
+	public List<ListSchemaExtraCommandReturnParams> getListSchemaExtraCommandExtensions(ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
+		List<ListSchemaExtraCommandReturnParams> listSchemaParams = new ArrayList<>();
+		for(ListSchemaExtention listSchemaCommandExtention : listSchemaCommandExtensions) {
+			listSchemaParams.addAll(listSchemaCommandExtention.getExtraCommands(listSchemaExtraCommandParams));
+		}
+
+		return listSchemaParams;
+	}
+
 	public Component getDefaultDisplayForReference(String id) {
 		return new ReferenceDisplay(id);
 	}
+
+    public List<String> getUnwantedTaxonomiesForExportation() {
+		Set<String> unwantedTaxonomies = new HashSet<>();
+		for(RecordExportExtension extension: recordExportExtensions) {
+			List<String> unwantedTaxonomiesFromExtension = extension.getUnwantedTaxonomiesForExportation();
+			if(unwantedTaxonomiesFromExtension != null) {
+				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
+			}
+		}
+        return new ArrayList<>(unwantedTaxonomies);
+    }
+
+
 }

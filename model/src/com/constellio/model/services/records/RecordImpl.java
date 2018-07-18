@@ -540,7 +540,7 @@ public class RecordImpl implements Record {
 			if (metadata.isMultivalue()) {
 				return (List<T>) value;
 			} else {
-				List<T> values = asList((T) value);
+				List<T> values = Collections.singletonList((T) value);
 				return values;
 			}
 		}

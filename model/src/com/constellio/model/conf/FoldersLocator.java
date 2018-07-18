@@ -109,6 +109,18 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getReindexingFolder() {
+		return new File(getWorkFolder(), "reindexing");
+	}
+
+	public File getReindexingAggregatedValuesFolder() {
+		return new File(getReindexingFolder(), "aggregatedValues");
+	}
+
+	public File getReindexationLock() {
+		return new File(getReindexingFolder(), "reindexation.lock");
+	}
+
 	public File getVAADINFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getConstellioWebappFolder(), "VAADIN");
@@ -377,6 +389,10 @@ public class FoldersLocator {
 
 	public File getSDKProject() {
 		return new File(getConstellioProject(), "sdk");
+	}
+
+	public File getSDKResourcesProject() {
+		return new File(getSDKProject(), "sdk-resources");
 	}
 
 	public File getPluginsRepository() {

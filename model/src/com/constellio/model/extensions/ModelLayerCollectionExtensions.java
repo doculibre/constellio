@@ -1,5 +1,8 @@
 package com.constellio.model.extensions;
 
+import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
+import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +37,8 @@ import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.*;
+
 public class ModelLayerCollectionExtensions {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModelLayerCollectionExtensions.class);
@@ -45,6 +50,8 @@ public class ModelLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<BatchProcessingSpecialCaseExtension> batchProcessingSpecialCaseExtensions = new VaultBehaviorsList<>();
 
 	//----------------- Callers ---------------
 
@@ -197,14 +204,14 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public boolean isModifyBlocked(Record record, User user) {
-		boolean deleteBlocked = false;
+		boolean modifyBlocked = false;
 		for (RecordExtension extension : recordExtensions) {
-			deleteBlocked = extension.isModifyBlocked(record, user);
-			if (deleteBlocked) {
+			modifyBlocked = extension.isModifyBlocked(record, user);
+			if (modifyBlocked) {
 				break;
 			}
 		}
-		return deleteBlocked;
+		return modifyBlocked;
 	}
 
 	public boolean isDeleteBlocked(Record record, User user) {
@@ -288,4 +295,32 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
+    public Collection<? extends String> getAllowedSystemReservedMetadatasForExcelReport(String schemaTypeCode) {
+		Set<String> allowedMetadatas = new HashSet<>();
+		for (SchemaExtension extension : schemaExtensions) {
+			allowedMetadatas.addAll(extension.getAllowedSystemReservedMetadatasForExcelReport(schemaTypeCode));
+		}
+
+		return new ArrayList<>(allowedMetadatas);
+    }
+
+	public Object populateSearchField(final SearchFieldPopulatorParams params) {
+		for (SchemaExtension extension : schemaExtensions) {
+			Object populateResult = extension.populateSearchField(params);
+			if(!ExtensionBooleanResult.NOT_APPLICABLE.equals(populateResult)) {
+				params.setValue(populateResult);
+			}
+		}
+		return params.getValue();
+	}
+
+
+	public java.util.Map<String, Object> batchProcessingSpecialCaseExtensions(BatchProcessingSpecialCaseParams batchProcessingSpecialCaseParams) {
+		java.util.Map<String, Object> metadataChangeOnRecord = new HashMap<>();
+		for(BatchProcessingSpecialCaseExtension batchProcessingSpecialCaseExtension : batchProcessingSpecialCaseExtensions) {
+			metadataChangeOnRecord.putAll(batchProcessingSpecialCaseExtension.processSpecialCase(batchProcessingSpecialCaseParams));
+		}
+
+		return metadataChangeOnRecord;
+	}
 }

@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.ConstellioEIM;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,8 @@ public class CollectionsManager implements StatefulService {
 
 	private final ConstellioModulesManagerImpl constellioModulesManager;
 
+	private final AppLayerFactory appLayerFactory;
+
 	private final ModelLayerFactory modelLayerFactory;
 
 	private final DataLayerFactory dataLayerFactory;
@@ -70,9 +74,10 @@ public class CollectionsManager implements StatefulService {
 
 	private List<String> newDisabledCollections = new ArrayList<>();
 
-	public CollectionsManager(ModelLayerFactory modelLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
+	public CollectionsManager(AppLayerFactory appLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
 			Delayed<MigrationServices> migrationServicesDelayed, SystemGlobalConfigsManager systemGlobalConfigsManager) {
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.constellioModulesManager = constellioModulesManager;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
@@ -294,10 +299,10 @@ public class CollectionsManager implements StatefulService {
 
 	public Record createCollectionInVersion(String code, String name, List<String> languages, String version) {
 		prepareCollectionCreationAndGetInvalidModules(code, name, languages, version);
-		return crateCollectionAfterPrepare(code, name, languages);
+		return createCollectionAfterPrepare(code, name, languages);
 	}
 
-	private Record crateCollectionAfterPrepare(String code, String name, List<String> languages) {
+	private Record createCollectionAfterPrepare(String code, String name, List<String> languages) {
 		Record collectionRecord = createCollectionRecordWithCode(code, name, languages);
 		if (!code.equals(Collection.SYSTEM_COLLECTION)) {
 			addGlobalGroupsInCollection(code);
@@ -392,6 +397,7 @@ public class CollectionsManager implements StatefulService {
 				cache.configureCache(CacheConfig.permanentCache(types.getSchemaType(schemaType)));
 			}
 		}
+		ConstellioEIM.start(appLayerFactory, collection);
 	}
 
 	public CollectionInfo getCollectionInfo(String collectionCode) {

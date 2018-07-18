@@ -19,8 +19,15 @@ import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 
 public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 	
+	private BaseView view;
+	
+	private String viewTitle;
+	
 	@SuppressWarnings("unchecked")
 	public TitleBreadcrumbTrail(final BaseView view, final String viewTitle) {
+		this.view = view;
+		this.viewTitle = viewTitle;
+		
 		String collectionCode = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		if (StringUtils.isNotBlank(collectionCode)) {
 			addItem(new CollectionBreadcrumbItem(collectionCode)); 
@@ -56,6 +63,14 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		if (StringUtils.isNotBlank(viewTitle) && (StringUtils.isBlank(viewGroupLabel) || !viewGroupLabel.equals(viewTitle))) {
 			addItem(new CurrentViewItem(viewTitle)); 
 		}
+	}
+
+	public BaseView getView() {
+		return view;
+	}
+
+	public String getViewTitle() {
+		return viewTitle;
 	}
 
 	public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems(){

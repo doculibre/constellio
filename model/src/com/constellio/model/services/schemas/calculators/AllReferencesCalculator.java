@@ -20,7 +20,7 @@ public class AllReferencesCalculator implements MetadataValueCalculator<List<Str
 
 	DynamicLocalDependency dependency = new DynamicLocalDependency() {
 		@Override
-		public boolean isDependentOf(Metadata metadata) {
+		public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 			return metadata.getType() == REFERENCE;
 		}
 	};

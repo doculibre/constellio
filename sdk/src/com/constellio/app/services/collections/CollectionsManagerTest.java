@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +59,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock SearchBoostManager searchBoostManager;
 	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock AppLayerFactory appLayerFactory;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
 
 	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
@@ -86,6 +88,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		when(appLayerFactory.getModelLayerFactory()).thenReturn(modelLayerFactory);
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(modelLayerFactory.getAuthorizationDetailsManager()).thenReturn(authorizationDetailsManager);
@@ -100,7 +103,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 
 		collectionsManager = spy(new com.constellio.app.services.collections.CollectionsManager(
-				modelLayerFactory, modulesManager, new Delayed<>(migrationServices), systemGlobalConfigsManager));
+				appLayerFactory, modulesManager, new Delayed<>(migrationServices), systemGlobalConfigsManager));
 	}
 
 	@Test

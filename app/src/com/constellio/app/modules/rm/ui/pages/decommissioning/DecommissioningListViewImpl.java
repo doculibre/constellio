@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -17,6 +18,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
@@ -26,6 +28,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -75,6 +78,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private Button validation;
 	private Button approval;
 	private Button approvalRequest;
+	private Button denyApproval;
 	private Button removeFolders;
 	private Button addFolders;
 
@@ -177,6 +181,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		buttons.add(buildProcessButton());
 		buttons.add(buildApprovalRequestButton());
 		buttons.add(buildApprovalButton());
+		buttons.add(buildDenyApprovalButton());
 		buttons.add(buildPrintButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
@@ -357,7 +362,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				return !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
-		removeFolders.setEnabled(!presenter.isApproved() && !presenter.isProcessed());
+		removeFolders.setEnabled(!(presenter.isInApprobation() && !presenter.canApprove()) && !presenter.isApproved() && !presenter.isProcessed());
 		return removeFolders;
 	}
 
@@ -373,7 +378,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				return !presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed();
 			}
 		};
-		addFolders.setEnabled(!presenter.isInValidation() && !presenter.isApproved() && !presenter.isProcessed());
+		addFolders.setEnabled(!presenter.isInValidation() && !(presenter.isInApprobation() && !presenter.canApprove()) && !presenter.isApproved() && !presenter.isProcessed() && presenter.calculateSearchType() != null);
 		return addFolders;
 	}
 
@@ -435,8 +440,50 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return approval;
 	}
 
+	private Button buildDenyApprovalButton() {
+		denyApproval = new WindowButton($("DecommissioningListView.denyApprovalButton"), $("DecommissioningListView.denyApproval")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.setSpacing(true);
+				Label message = new Label($("DecommissioningListView.denyApprovalMessage"));
+				final TextArea comments = new TextArea($("DecomAskForValidationWindowButton.commentsCaption"));
+				comments.setSizeFull();
+				comments.setImmediate(true);
+
+				HorizontalLayout buttonLayout = new HorizontalLayout();
+				buttonLayout.setSpacing(true);
+				BaseButton sendButton = new BaseButton($("DecomAskForValidationWindowButton.okButton")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String value = comments.getValue();
+						presenter.denyApproval(value);
+						getWindow().close();
+						navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
+					}
+				};
+				sendButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				buttonLayout.addComponents(sendButton, cancelButton);
+
+				mainLayout.addComponents(message, comments, buttonLayout);
+				mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_RIGHT);
+				return mainLayout;
+			}
+		};
+
+		denyApproval.setVisible(presenter.canApprove());
+		denyApproval.addStyleName(APPROVAL_BUTTON);
+		return denyApproval;
+	}
+
 	private Button buildPrintButton() {
-		ReportButton button = new ReportButton("Reports.DecommissioningList", presenter);
+		ReportButton button = new ReportButton(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")), presenter);
 		button.setCaption($("DecommissioningListView.print"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;
@@ -606,6 +653,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				super.buttonClick(event);
 			}
 		};
+		button.setVisible(presenter.hasAccessToSIPGeneration());
 
 		return button;
 	}

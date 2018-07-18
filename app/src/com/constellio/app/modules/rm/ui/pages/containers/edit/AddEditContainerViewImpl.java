@@ -125,8 +125,4 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			}
 		};
 	}
-
-	public Component buildMultipleModeWindowContent() {
-		return new VerticalLayout();
-	}
 }

@@ -1,12 +1,17 @@
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LINKED_SCHEMA;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.users.UserServices;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -46,6 +51,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 	AppSchemasServices appSchemasServices;
 	MetadataSchemasManager schemasManager;
 	SchemasDisplayManager schemasDisplayManager;
+	UserServices userServices;
 
 	public void setUpWithoutRecords()
 			throws Exception {
@@ -54,6 +60,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		userServices=getModelLayerFactory().newUserServices();
 
 		schemasDisplayManager.saveSchema(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom")
 				.withDisplayMetadataCodes(asList("zeSchemaType_custom_title")));
@@ -202,7 +209,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		setUpWithoutRecords();
 
 		//This is a behavior supported by the backend, but not by the UI. So, it is a very rare case!
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isTrue();
+		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isNull();
 
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -213,7 +220,8 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		});
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
 				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isFalse();
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par la métadonnée zeProblematicReference du schéma aThirdSchemaType du type aThirdSchemaType.");
 
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
@@ -308,9 +316,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		setUpWithRecords();
 
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isFalse();
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")).isFalse();
-
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
+				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
+				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par 2 enregistrement(s).");
 		try {
 			appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom");
 			fail("schema should not be deletable");
@@ -337,8 +346,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		setUpWithoutRecords();
 
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isTrue();
-		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")).isFalse();
+		assertThat(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")).isNull();
+		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_default")))
+				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
+
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
 				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
@@ -356,6 +367,53 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
+	}
+
+	@Test
+	public void givenTwoRecordsWhenGetVisibleRecordsWithOneRecordThenGetOneRecord() throws Exception {
+		setUpWithRecords();
+		userServices.addUserToCollection(userServices.getUserCredential(admin), zeCollection);
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+		User admin = userServices.getUserInCollection("admin", zeCollection);
+		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
+
+		assertThat(appSchemasServices.getVisibleRecords(zeCollection,"zeSchemaType_custom",admin,1)).hasSize(1);
+	}
+
+	@Test
+	public void givenTwoRecordsWhenGetVisibleRecordsWithThreeRecordThenGetTwoRecords() throws Exception {
+		setUpWithRecords();
+		userServices.addUserToCollection(userServices.getUserCredential(admin), zeCollection);
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+		User admin = userServices.getUserInCollection("admin", zeCollection);
+		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
+
+		assertThat(appSchemasServices.getVisibleRecords(zeCollection,"zeSchemaType_custom",admin,3)).hasSize(2);
+	}
+
+	@Test
+	public void givenTwoRecordsWithOneVisibleThenAreAllRecordsVisibleIsFalse() throws Exception {
+		setUpWithRecords();
+		userServices.addUserToCollection(userServices.getUserCredential(admin), zeCollection);
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+		User admin = userServices.getUserInCollection("admin", zeCollection);
+		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
+
+		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection,"zeSchemaType_custom",admin)).isFalse();
+	}
+
+	@Test
+	public void givenTwoVisibleRecordsThenAreAllRecordsVisibleIsFalse() throws Exception {
+		setUpWithRecords();
+		userServices.addUserToCollection(userServices.getUserCredential(admin), zeCollection);
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+		User admin = userServices.getUserInCollection("admin", zeCollection);
+		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
+
+		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection,"zeSchemaType_custom",admin)).isTrue();
 	}
 
 	long countRecordsInSchema(String schemaCode) {

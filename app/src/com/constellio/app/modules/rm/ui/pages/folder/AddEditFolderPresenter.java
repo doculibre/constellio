@@ -676,6 +676,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			} else {
 				if (currentValue != null) {
 					folderVO.setCopyStatusEntered(null);
+					copyStatusEnteredField.setFieldValue(null);
 				}
 				if (copyStatusEnteredField.isVisible()) {
 					setFieldVisible(copyStatusEnteredField, false, Folder.COPY_STATUS_ENTERED);
@@ -849,7 +850,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustOpeningDateField() {
 		UserPermissionsChecker userPermissionsChecker = getCurrentUser().has(RMPermissionsTo.MODIFY_OPENING_DATE_FOLDER);
-		boolean hasPermission = userPermissionsChecker.on(toRecord(folderVO));
+		Record folderRecord = toRecord(folderVO);
+		recordServices().recalculate(folderRecord);
+		boolean hasPermission = userPermissionsChecker.on(folderRecord);
 		if (!addView && !hasPermission) {
 			FolderOpeningDateField openingDateField = (FolderOpeningDateField) view.getForm()
 					.getCustomField(Folder.OPENING_DATE);

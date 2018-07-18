@@ -300,7 +300,7 @@ public class ValueListServices {
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
 		builder.createHierarchicalValueListItemSchema(code, title,
-				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().setMultilingual(isMultiLingual));
+				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false).setMultilingual(isMultiLingual));
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);

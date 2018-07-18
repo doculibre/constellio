@@ -1,5 +1,30 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -198,7 +223,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		return result;
 	}
-	
+
 	void thesaurusSemanticNetworkSuggestionClicked(String thesaurusSemanticNetworkSuggestion) {
 		view.navigate().to().simpleSearch(thesaurusSemanticNetworkSuggestion);
 	}
@@ -553,10 +578,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		List<String> supportedReports = new ArrayList<>();
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
 		if (view.computeStatistics()) {
-			supportedReports.add("Reports.FolderLinearMeasureStats");
+			supportedReports.add(new ReportWithCaptionVO("Reports.FolderLinearMeasureStats", $("Reports.FolderLinearMeasureStats")));
 		}
 		return supportedReports;
 	}
@@ -881,7 +906,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 		return allExclusionFormCollection;
 	}
-	
+
 	public boolean isSpellCheckerExcludeButtonVisible() {
 		return getCurrentUser().has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
 	}

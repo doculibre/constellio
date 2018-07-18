@@ -21,10 +21,12 @@ public class AddEditSchemaRecordViewImpl extends BaseViewImpl implements AddEdit
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		String[] splitParams = event.getParameters().split("/");
-		presenter.forSchema(splitParams[0]);
-		String id = splitParams.length == 2 ? splitParams[1] : null;
-		recordVO = presenter.getRecordVO(id);
+		presenter.forParams(event.getParameters());
+	}
+
+	@Override
+	public void setRecordVO(RecordVO recordVO) {
+		this.recordVO = recordVO;
 	}
 
 	@Override

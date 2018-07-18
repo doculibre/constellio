@@ -163,7 +163,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 
 		SIPBuildAsyncTask task = new SIPBuildAsyncTask("testSIPFile", asList("test1", "test2"),
 				Collections.singletonList(email.getId()), Collections.<String>emptyList(), false,
-				records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
+				records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion(), "fr");
 		getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(
 				new AsyncTaskCreationRequest(task, zeCollection,
 						"SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPBuildAsyncTaskAcceptanceTest"));

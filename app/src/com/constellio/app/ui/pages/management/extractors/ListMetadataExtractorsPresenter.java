@@ -107,4 +107,7 @@ public class ListMetadataExtractorsPresenter extends BasePresenter<ListMetadataE
 		view.navigate().to().adminModule();
 	}
 
+	public void propertiesAnalyserButtonClicked() {
+		view.navigate().to().propertiesAnalyser();
+	}
 }

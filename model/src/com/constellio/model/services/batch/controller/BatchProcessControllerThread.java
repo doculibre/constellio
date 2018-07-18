@@ -319,7 +319,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	}
 
 	BatchProcessTasksFactory newBatchProcessTasksFactory(TaskList taskList) {
-		return new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList);
+		return new BatchProcessTasksFactory(recordServices, searchServices, userServices, taskList, modelLayerFactory);
 	}
 
 	ForkJoinPool newForkJoinPool() {

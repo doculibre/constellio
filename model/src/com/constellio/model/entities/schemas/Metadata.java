@@ -1,23 +1,5 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
-import static com.constellio.model.entities.schemas.Schemas.CODE;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -26,6 +8,17 @@ import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.*;
+
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
 
 public class Metadata implements DataStoreField {
 
@@ -76,6 +69,8 @@ public class Metadata implements DataStoreField {
 
 	final boolean global;
 
+	final Map<String, Object> customParameter;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
 	}
@@ -91,8 +86,11 @@ public class Metadata implements DataStoreField {
 		this.collection = null;
 		this.type = type;
 		this.allowedReferences = null;
-		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual, false, new HashSet<String>(), false, false, PERSISTED);
+		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false,
+				multivalue, false, false, false, false, false,
+				false, false, false, false, false,
+				false, multiLingual, false, new HashSet<String>(), false,
+				false, PERSISTED, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -127,7 +125,7 @@ public class Metadata implements DataStoreField {
 		this.mainLanguageDataStoreCode = computeMainLanguageDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
-
+		this.customParameter = Collections.unmodifiableMap(new HashMap<String, Object>());
 	}
 
 	public final String computeInheritanceCode() {
@@ -169,7 +167,7 @@ public class Metadata implements DataStoreField {
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
 			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
 			Object defaultValue, String inputMask, MetadataPopulateConfigs populateConfigs,
-			Factory<EncryptionServices> encryptionServices, Boolean duplicatbale) {
+			Factory<EncryptionServices> encryptionServices, Boolean duplicatbale, Map<String, Object> customParameter) {
 		super();
 
 		this.inheritance = null;
@@ -196,11 +194,12 @@ public class Metadata implements DataStoreField {
 		this.mainLanguageDataStoreCode = computeMainLanguageDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
+		this.customParameter = Collections.unmodifiableMap(customParameter);
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
-			MetadataPopulateConfigs populateConfigs, boolean duplicable) {
+			MetadataPopulateConfigs populateConfigs, boolean duplicable, Map<String,Object> customParameter) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -227,6 +226,11 @@ public class Metadata implements DataStoreField {
 		this.mainLanguageDataStoreCode = computeMainLanguageDataStoreCode();
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
+		this.customParameter = Collections.unmodifiableMap(customParameter);
+	}
+
+	public Map<String, Object> getCustomParameter() {
+		return customParameter;
 	}
 
 	public String getCode() {
@@ -375,6 +379,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isIncreasedDependencyLevel() {
 		return getInheritedMetadataBehaviors().isReverseDependency();
+	}
+
+	public boolean isDependencyOfAutomaticMetadata() {
+		return getInheritedMetadataBehaviors().isDependencyOfAutomaticMetadata();
 	}
 
 	public StringSortFieldNormalizer getSortFieldNormalizer() {

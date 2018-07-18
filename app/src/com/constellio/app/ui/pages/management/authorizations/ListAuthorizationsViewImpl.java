@@ -62,7 +62,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	protected ListAuthorizationsPresenter presenter;
 	protected RecordVO record;
-	private VerticalLayout layout;
+	protected VerticalLayout layout;
 	private Table authorizations;
 	private Table authorizationsReceivedFromMetadatas;
 	private Button detach;

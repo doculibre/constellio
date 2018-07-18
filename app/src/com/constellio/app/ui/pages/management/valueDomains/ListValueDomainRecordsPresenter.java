@@ -20,7 +20,9 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.schemaRecords.SchemaRecordsPresentersServices;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -30,6 +32,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<ListValueDomainRecordsView> {
 
@@ -53,8 +56,12 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-
-				LogicalSearchQuery query = new LogicalSearchQuery(from(defaultSchema()).returnAll())
+				MetadataSchema schema = defaultSchema();
+				LogicalSearchCondition condition = from(schema).returnAll();
+				if (isHierarchical()) {
+					condition = condition.andWhere(schema.get(HierarchicalValueListItem.PARENT)).isNull();
+				}
+				LogicalSearchQuery query = new LogicalSearchQuery(condition)
 						.filteredByStatus(actives ? ACTIVES : DELETED).sortAsc(Schemas.TITLE);
 
 				if (StringUtils.isNotBlank(freeText)) {
@@ -65,6 +72,11 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 			}
 		};
 		return dataProvider;
+	}
+	
+	private boolean isHierarchical() {
+		MetadataSchema schema = schema(schemaCode);
+		return schema.hasMetadataWithCode(HierarchicalValueListItem.PARENT);
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {

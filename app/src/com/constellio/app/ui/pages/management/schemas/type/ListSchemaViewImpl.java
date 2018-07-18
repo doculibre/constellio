@@ -1,28 +1,36 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.containers.ButtonsContainer;
-import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
-import com.constellio.app.ui.framework.containers.SchemaVOLazyContainer;
-import com.constellio.app.ui.framework.data.SchemaVODataProvider;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.params.ParamUtils;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import org.vaadin.dialogs.ConfirmDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
+import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.data.SchemaVODataProvider;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.params.ParamUtils;
+import com.vaadin.data.Container;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, ClickListener {
 	ListSchemaPresenter presenter;
+	public static final String OPTIONS_COL = "options";
 
 	public ListSchemaViewImpl() {
 		this.presenter = new ListSchemaPresenter(this);
@@ -70,139 +78,120 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		return viewLayout;
 	}
 
+	public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, Container indexedContainer) {
+		MenuBar menuBar = new BaseMenuBar();
+		MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+
+		final MenuBar.Command editListener = new MenuBar.Command() {
+			@Override
+			public void menuSelected(MenuBar.MenuItem selectedItem) {
+				presenter.editButtonClicked(metadataSchemaVO);
+			}
+		};
+
+		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), EditButton.ICON_RESOURCE, editListener);
+
+		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
+			final MenuBar.Command deleteListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
+					deleteListener);
+		}
+
+		final MenuBar.Command formOrderListener = new MenuBar.Command() {
+			@Override
+			public void menuSelected(MenuBar.MenuItem selectedItem) {
+				presenter.formOrderButtonClicked(metadataSchemaVO);
+			}
+		};
+
+		rootItem.addItem($("ListSchemaViewImpl.menu.formConfiguration"),
+				new ThemeResource("images/icons/config/display-config-form.png"), formOrderListener);
+
+		final MenuBar.Command formListener = new MenuBar.Command() {
+			@Override
+			public void menuSelected(MenuBar.MenuItem selectedItem) {
+				presenter.formButtonClicked(metadataSchemaVO);
+			}
+		};
+
+		rootItem.addItem($("ListSchemaViewImpl.menu.display"),
+				new ThemeResource("images/icons/config/display-config-display.png"), formListener);
+
+		final MenuBar.Command searchListener = new MenuBar.Command() {
+			@Override
+			public void menuSelected(MenuBar.MenuItem selectedItem) {
+				presenter.searchButtonClicked(metadataSchemaVO);
+			}
+		};
+
+		rootItem.addItem($("ListSchemaViewImpl.menu.searchResult"),
+				new ThemeResource("images/icons/config/display-config-search.png"), searchListener);
+
+		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode()
+				.endsWith("default"))) {
+			final MenuBar.Command tableListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.tableButtonClicked();
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.table"),
+					new ThemeResource("images/icons/config/display-config-table.png"), tableListener);
+		}
+
+		for (ListSchemaExtraCommandReturnParams schemaExtraCommandReturnParams : presenter
+				.getExtensionMenuBar(metadataSchemaVO)) {
+			rootItem.addItem($(schemaExtraCommandReturnParams.getCaption()), schemaExtraCommandReturnParams.getRessource(),
+					schemaExtraCommandReturnParams.getCommand());
+		}
+
+		HorizontalLayout buttonVerticalLayout = new HorizontalLayout();
+
+		Button metadataButton = new Button($("ListSchemaView.button.metadata"));
+		metadataButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.editMetadataButtonClicked(metadataSchemaVO);
+			}
+		});
+
+		buttonVerticalLayout.addComponent(metadataButton);
+		buttonVerticalLayout.addComponent(menuBar);
+		buttonVerticalLayout.setSpacing(true);
+
+		indexedContainer.addItem(metadataSchemaVO);
+
+		indexedContainer.getContainerProperty(metadataSchemaVO, "title").setValue(metadataSchemaVO.getLabel());
+		indexedContainer.getContainerProperty(metadataSchemaVO, "localCode").setValue(metadataSchemaVO.getLocalCode());
+		indexedContainer.getContainerProperty(metadataSchemaVO, OPTIONS_COL).setValue(buttonVerticalLayout);
+	}
+
 	private Component buildTables() {
 		final SchemaVODataProvider dataProvider = presenter.getDataProvider();
-		SchemaVOLazyContainer schemaContainer = new SchemaVOLazyContainer(dataProvider);
-		ButtonsContainer<SchemaVOLazyContainer> buttonsContainer = new ButtonsContainer<>(schemaContainer, "buttons");
 
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						presenter.editButtonClicked(entity);
-					}
-				};
-			}
-		});
+		Container indexContainer = new IndexedContainer();
+		indexContainer.addContainerProperty("localCode", String.class, "");
+		indexContainer.addContainerProperty("title", String.class, "");
+		indexContainer.addContainerProperty(OPTIONS_COL, HorizontalLayout.class, null);
 
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new MetadataButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						presenter.editMetadataButtonClicked(entity);
-					}
-				};
-			}
-		});
+		for (Integer integer : dataProvider.list()) {
+			MetadataSchemaVO metadataSchemaVO = dataProvider.getSchemaVO(integer);
+			addSchemaToTable(metadataSchemaVO, indexContainer);
+		}
 
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new FormOrderButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						presenter.orderButtonClicked(entity);
-					}
-				};
-			}
-		});
-
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new FormDisplay() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						presenter.formButtonClicked(entity);
-					}
-				};
-			}
-		});
-
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				TableDisplayButton tableDisplayButton = new TableDisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.tableButtonClicked();
-					}
-
-					@Override
-					public boolean isVisible() {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						if(entity == null || entity.getCode() == null || !entity.getCode().endsWith("default")) {
-							return false;
-						}
-						return true;
-					}
-				};
-				return tableDisplayButton;
-			}
-		});
-
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new SearchDisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						presenter.searchButtonClicked(entity);
-					}
-				};
-			}
-		});
-
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						presenter.deleteButtonClicked(entity.getCode());
-					}
-
-					@Override
-					public boolean isVisible() {
-						Integer index = (Integer) itemId;
-						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						return super.isVisible() && presenter.isDeleteButtonVisible(entity.getCode());
-					}
-				};
-			}
-		});
-
-		Table table = new BaseTable(getClass().getName(), $("ListSchemaView.tableTitle", schemaContainer.size()), buttonsContainer);
+		Table table = new BaseTable(getClass().getName(), $("ListSchemaView.tableTitle", indexContainer.size()));
 		table.setSizeFull();
-		table.setPageLength(Math.min(15, schemaContainer.size()));
-		table.setColumnHeader("buttons", "");
-		table.setColumnHeader("caption", $("ListSchemaView.caption", schemaContainer.size()));
-		table.setColumnExpandRatio("caption", 1);
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Integer index = (Integer) event.getItemId();
-				MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-				presenter.editButtonClicked(entity);
-			}
-		});
+		table.setContainerDataSource(indexContainer);
+		table.setPageLength(Math.min(15, indexContainer.size()));
+		table.setColumnHeader("localCode", $("ListSchemaView.localCode"));
+		table.setColumnHeader("title", $("ListSchemaView.caption"));
+		table.setColumnHeader(OPTIONS_COL, "");
+		table.setColumnExpandRatio("title", 1);
 
 		return table;
 	}

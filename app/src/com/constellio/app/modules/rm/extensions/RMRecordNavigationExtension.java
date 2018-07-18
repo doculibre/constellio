@@ -25,8 +25,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMRecordNavigationExtension implements RecordNavigationExtension {
 
-	private AppLayerFactory appLayerFactory;
-	private String collection;
+	protected AppLayerFactory appLayerFactory;
+	protected String collection;
 
 	public RMRecordNavigationExtension(AppLayerFactory appLayerFactory, String collection) {
 		this.appLayerFactory = appLayerFactory;

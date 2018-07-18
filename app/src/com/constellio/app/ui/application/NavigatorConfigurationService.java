@@ -38,10 +38,7 @@ import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewI
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.TemporaryRecord.ListTemporaryRecordViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
-import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
-import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.*;
 import com.constellio.app.ui.pages.management.bagInfo.AddEditBagInfo.AddEditBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.DisplayBagInfo.DisplayBagInfoViewImpl;
 import com.constellio.app.ui.pages.management.bagInfo.ListBagInfo.ListBagInfoViewImpl;
@@ -54,10 +51,8 @@ import com.constellio.app.ui.pages.management.configs.ConfigManagementViewImpl;
 import com.constellio.app.ui.pages.management.email.EmailServerConfigViewImpl;
 import com.constellio.app.ui.pages.management.extractors.AddEditMetadataExtractorViewImpl;
 import com.constellio.app.ui.pages.management.extractors.ListMetadataExtractorsViewImpl;
-import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.facet.OrderFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.extractors.PropertiesAnalyserViewImpl;
+import com.constellio.app.ui.pages.management.facet.*;
 import com.constellio.app.ui.pages.management.labels.AddEditLabelViewImpl;
 import com.constellio.app.ui.pages.management.labels.LabelViewImpl;
 import com.constellio.app.ui.pages.management.labels.ListLabelViewImpl;
@@ -99,9 +94,11 @@ import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
 import com.constellio.app.ui.pages.spellchecker.DeleteSpellCheckerExclusionsViewImpl;
 import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
+import com.constellio.app.ui.pages.summarycolumn.SummaryColumnViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
+import com.constellio.app.ui.pages.unicitymetadataconf.FolderUniqueKeyConfiguratorViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
@@ -137,6 +134,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS = "principalAccessAuthorizations";
 	public static final String LIST_OBJECT_ACCESS_AUTHORIZATIONS = "objectAccessAuthorizations";
 	public static final String LIST_OBJECT_ROLE_AUTHORIZATIONS = "objectRoleAuthorizations";
+	public static final String LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS = "objectAccessAndRoleAuthorizations";
 	public static final String SHARE_CONTENT = "shareContent";
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String TRASH = "trash";
@@ -223,6 +221,9 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String STATISTICS = "statistics";
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
+    public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
+	public static final String SUMMARY_CONFIGURATOR = "summaryConfigurator";
+	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -261,6 +262,8 @@ public class NavigatorConfigurationService implements Serializable {
 				ListContentAccessAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ROLE_AUTHORIZATIONS,
 				ListContentRoleAuthorizationsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS,
+				ListContentAccessAndRoleAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));
@@ -314,6 +317,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_METADATA_EXTRACTORS, ListMetadataExtractorsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PROPERTIES_ANALYSER, PropertiesAnalyserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION,
@@ -349,6 +353,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteSpellCheckerExclusionsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryColumnViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, FolderUniqueKeyConfiguratorViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

@@ -124,6 +124,8 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.shareDocument");
 		} else if (eventType.equals(EventType.FINALIZE_DOCUMENT)) {
 			return $("ListEventsView.finalizeDocument");
+		} else if (eventType.equals(EventType.SHARE_FOLDER)) {
+			return $("ListEventsView.shareFolder");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}

@@ -384,7 +384,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
-			public boolean isDependentOf(Metadata metadata) {
+			public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 				return true;
 			}
 		};
@@ -429,7 +429,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
-			public boolean isDependentOf(Metadata metadata) {
+			public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 				return metadata.getLocalCode().equals(zeSchema.stringMetadata().getLocalCode())
 						|| metadata.getLocalCode().equals(zeSchema.booleanMetadata().getLocalCode());
 			}
@@ -470,7 +470,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
-			public boolean isDependentOf(Metadata metadata) {
+			public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 				return metadata.getLocalCode().equals(zeSchema.stringMetadata().getLocalCode());
 			}
 		};
@@ -510,7 +510,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
-			public boolean isDependentOf(Metadata metadata) {
+			public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 				return true;
 			}
 		};
@@ -553,7 +553,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
-			public boolean isDependentOf(Metadata metadata) {
+			public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 				return true;
 			}
 		};
@@ -597,7 +597,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		public Metadata4CalculatorDependingOnA_5() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
 				@Override
-				public boolean isDependentOf(Metadata metadata) {
+				public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 					return asList("metadataA", "calculated5").contains(metadata.getLocalCode());
 				}
 			};
@@ -610,7 +610,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		public Metadata2CalculatorDependingOnD_5() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
 				@Override
-				public boolean isDependentOf(Metadata metadata) {
+				public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 					return asList("metadataD", "calculated5").contains(metadata.getLocalCode());
 				}
 			};
@@ -623,7 +623,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		public Metadata3CalculatorDependingOn2_4() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
 				@Override
-				public boolean isDependentOf(Metadata metadata) {
+				public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 					return asList("calculated2", "calculated4").contains(metadata.getLocalCode());
 				}
 			};
@@ -636,7 +636,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		public Metadata1CalculatorDependingOn2_3_4() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
 				@Override
-				public boolean isDependentOf(Metadata metadata) {
+				public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 					return asList("calculated2", "calculated3", "calculated4").contains(metadata.getLocalCode());
 				}
 			};
@@ -649,7 +649,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		public Metadata5CalculatorDependingOnB_C() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
 				@Override
-				public boolean isDependentOf(Metadata metadata) {
+				public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 					return asList("metadataB", "metadataC").contains(metadata.getLocalCode());
 				}
 			};

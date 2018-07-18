@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
@@ -324,7 +325,7 @@ public class UserServices {
 	}
 
 	public void activateGlobalGroupHierarchy(UserCredential userCredential, GlobalGroup globalGroup) {
-		permissionValidateCredential(userCredential);
+		permissionValidateCredentialOnGroup(userCredential);
 		activateGlobalGroupHierarchyWithoutUserValidation(globalGroup);
 	}
 
@@ -391,7 +392,7 @@ public class UserServices {
 	}
 
 	public void logicallyRemoveGroupHierarchy(UserCredential userCredential, GlobalGroup globalGroup) {
-		permissionValidateCredential(userCredential);
+		permissionValidateCredentialOnGroup(userCredential);
 		logicallyRemoveGroupHierarchyWithoutUserValidation(globalGroup);
 
 	}
@@ -409,7 +410,7 @@ public class UserServices {
 	}
 
 	public void removeGroupFromCollections(UserCredential userCredential, String group, List<String> collections) {
-		permissionValidateCredential(userCredential);
+		permissionValidateCredentialOnGroup(userCredential);
 		removeGroupFromCollectionsWithoutUserValidation(group, collections);
 		//		removeChildren(group, collections);
 		//		removeFromBigVault(group, collections);
@@ -729,15 +730,17 @@ public class UserServices {
 		return false;
 	}
 
-	private void permissionValidateCredential(UserCredential userCredential) {
-		if (userCredential == null || !userCredential.isSystemAdmin()) {
-			String username = null;
-			if (userCredential != null) {
-				username = userCredential.getUsername();
-			}
-			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(username);
+	private void permissionValidateCredentialOnGroup(UserCredential userCredential) {
+		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS_ACTIVATION)) {
+			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
 		}
 	}
+
+//	private void permissionValidateCredentialOnUser(UserCredential userCredential) {
+//		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS_ACTIVATION)) {
+//			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
+//		}
+//	}
 
 	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
 		UserCredential user = getUser(username);

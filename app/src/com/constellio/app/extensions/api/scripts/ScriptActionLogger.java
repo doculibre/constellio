@@ -16,4 +16,6 @@ public interface ScriptActionLogger {
 
 	void error(String message);
 
+	void error(String message, Exception exception);
+
 }

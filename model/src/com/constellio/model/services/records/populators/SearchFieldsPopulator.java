@@ -24,8 +24,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ParsedContentProvider;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
@@ -42,13 +44,17 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	ConstellioEIMConfigs systemConf;
 
+	ModelLayerExtensions extensions;
+
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-			ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
+			ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf,
+			ModelLayerExtensions extensions) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
 		this.systemConf = systemConf;
+		this.extensions = extensions;
 	}
 
 	@Override
@@ -186,12 +192,22 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		}
 	}
 
-	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value,
-			Metadata metadata, Locale locale) {
+	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value, Metadata metadata,
+			Locale locale) {
+
+		String valueLanguage = collectionLanguages.get(0);
 
 		Map<String, Object> copyfields = new HashMap<>();
-		String fieldCode = getSearchFieldFor(metadata) + locale.getLanguage();
-		copyfields.put(fieldCode, value);
+		for (String collectionLanguage : collectionLanguages) {
+			String fieldCode = getSearchFieldFor(metadata) + collectionLanguage;
+			if (collectionLanguage.equals(valueLanguage) && value != null) {
+				SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value);
+				Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
+				copyfields.put(fieldCode, finalValue);
+			} else {
+				copyfields.put(fieldCode, "");
+			}
+		}
 
 		return copyfields;
 	}

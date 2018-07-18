@@ -259,11 +259,25 @@ public class CoreViews {
 	}
 
 	public void addSchemaRecord(String schema) {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD + "/" + schema);
+		Map<String, String> params = new HashMap<>();
+		params.put("schema", schema);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void addSchemaRecord(String schema, String parentRecordId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("schema", schema);
+		params.put("parentRecordId", parentRecordId);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void editSchemaRecord(String schemaName, String recordId) {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD + "/" + schemaName + "/" + recordId);
+		Map<String, String> params = new HashMap<>();
+		params.put("id", recordId);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void displaySchemaRecord(String recordId) {
@@ -296,6 +310,10 @@ public class CoreViews {
 
 	public void listPrincipalAccessAuthorizations(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);
+	}
+
+	public void listObjectAccessAndRoleAuthorizations(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS + "/" + entityId);
 	}
 
 	public void listObjectAccessAuthorizations(String entityId) {
@@ -683,4 +701,15 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
+	public void folderSummaryColumn(String param) {
+		navigator.navigateTo(NavigatorConfigurationService.SUMMARY_CONFIGURATOR + "/" + param);
+	}
+
+	public void folderUnicityConfigurator(String param) {
+		navigator.navigateTo(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR + "/" + param);
+	}
+
+    public void propertiesAnalyser() {
+		navigator.navigateTo(NavigatorConfigurationService.PROPERTIES_ANALYSER);
+    }
 }

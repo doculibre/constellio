@@ -248,8 +248,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
 		assertThat(frenchMessages(systemCheckResults.errors))
-				.containsOnly("Dans le type de schéma de métadonnées document, le schéma code email ne débute pas par USR",
-						"Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
+				.containsOnly("Dans le type de schéma de métadonnées document, le schéma code form ne débute pas par USR",
 						"Dans le type de schéma de métadonnées document, le schéma code report ne débute pas par USR",
 						"Dans le type de schéma de métadonnées folder, le schéma code employe ne débute pas par USR",
 						"Dans le type de schéma de métadonnées folder, le schéma code meetingFolder ne débute pas par USR");
@@ -643,15 +642,15 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(0);
 
 		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
@@ -716,7 +715,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
-		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).hasSize(5);
+		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).hasSize(4);
 	}
 
 	@Test
@@ -757,7 +756,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 	}
 
 	@Test
@@ -814,7 +813,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 	}
 
 	@Test
@@ -844,17 +843,17 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(3);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
 
 		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(5);
+		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
 		assertThat(systemCheckResults.getMetric("robots.unusedRobotActions")).isEqualTo(0);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(1);
 

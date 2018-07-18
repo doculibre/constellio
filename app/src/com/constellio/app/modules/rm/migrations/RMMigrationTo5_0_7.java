@@ -346,7 +346,9 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		Set<String> newRgdPermissions = new HashSet<>(rgdRole.getOperationPermissions());
 		newRgdPermissions.add(CorePermissions.MANAGE_FACETS);
-		newRgdPermissions.add(CorePermissions.MANAGE_SEARCH_REPORTS);
+		newRgdPermissions.add(CorePermissions.MANAGE_EXCEL_REPORT);
+		newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
+		newRgdPermissions.add(CorePermissions.MANAGE_PRINTABLE_REPORT);
 		newRgdPermissions.add(CorePermissions.MANAGE_EMAIL_SERVER);
 
 		modelLayerFactory.getRolesManager().updateRole(

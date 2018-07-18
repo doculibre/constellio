@@ -35,6 +35,10 @@
         <listener-class>org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener</listener-class>
     </listener>
 
+    <listener>
+        <listener-class>com.constellio.app.servlet.ConstellioWSServletContextListener</listener-class>
+    </listener>
+
     <!--
          A servlet filter that logs all requests in files. Useful for monitoring and debugging.
          Use it with care! It can generate a huge amount of files and will slow down performance

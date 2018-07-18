@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -29,123 +28,132 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.jsoup.Jsoup;
 
 public class SIPButtonPresenter {
-	
-    private SIPButtonImpl button;
-    private List<RecordVO> objectList;
-    private Locale locale;
 
-    public SIPButtonPresenter(SIPButtonImpl button, List<RecordVO> objectList, Locale locale) {
-        this.button = button;
-        this.objectList = objectList;
-        this.locale = locale;
+	private SIPButtonImpl button;
+	private List<RecordVO> objectList;
+	private Locale locale;
 
-        if (button.getView() != null) {
-        	SessionContext sessionContext = this.button.getView().getSessionContext();
-            AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
-            ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-            String username = sessionContext.getCurrentUser().getUsername();
-            
-            String collection = button.getView().getCollection();
-            User user = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
-            if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
-                button.setVisible(false);
-            }
-        }
-    }
+	public SIPButtonPresenter(SIPButtonImpl button, List<RecordVO> objectList, Locale locale) {
+		this.button = button;
+		this.objectList = objectList;
+		this.locale = locale;
 
-    protected List<String> getDocumentIDListFromObjectList() {
-        List<String> documents = new ArrayList<>();
-        for (RecordVO recordVO : this.objectList) {
-            if (recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE)) {
-                documents.add(recordVO.getId());
-            }
-        }
-        return documents;
-    }
+		if (button.getView() != null) {
+			SessionContext sessionContext = this.button.getView().getSessionContext();
+			AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+			String username = sessionContext.getCurrentUser().getUsername();
 
-    protected List<String> getFolderIDListFromObjectList() {
-        List<String> folders = new ArrayList<>();
-        for (RecordVO recordVO : this.objectList) {
-            if (recordVO.getSchema().getTypeCode().equals(Folder.SCHEMA_TYPE)) {
-                folders.add(recordVO.getId());
-            }
-        }
-        return folders;
-    }
+			String collection = button.getView().getCollection();
+			User user = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
+			if (!user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally()) {
+				button.setVisible(false);
+			}
+		}
+	}
 
-    protected boolean validateFolderHasDocument() {
-        AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
-        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-        SearchServices searchServices = modelLayerFactory.newSearchServices();
-        String collection = button.getView().getCollection();
-        
-        MetadataSchemaType documentSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
-        for (String folderId : getFolderIDListFromObjectList()) {
-            LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
-            if (searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
-                return true;
-            }
-        }
-        return !getDocumentIDListFromObjectList().isEmpty();
-    }
+	protected List<String> getDocumentIDListFromObjectList() {
+		List<String> documents = new ArrayList<>();
+		for (RecordVO recordVO : this.objectList) {
+			if (recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE)) {
+				documents.add(recordVO.getId());
+			}
+		}
+		return documents;
+	}
 
-    protected boolean validateBagInfoLine(BagInfoVO object) {
-        for (MetadataVO field : object.getFormMetadatas()) {
-        	Object metadataValue = object.get(field);
-            if (!"".equals(metadataValue) && metadataValue != null) {
-                return true;
-            }
-        }
-        return false;
-    }
+	protected List<String> getFolderIDListFromObjectList() {
+		List<String> folders = new ArrayList<>();
+		for (RecordVO recordVO : this.objectList) {
+			if (recordVO.getSchema().getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+				folders.add(recordVO.getId());
+			}
+		}
+		return folders;
+	}
 
-    protected void saveButtonClick(BagInfoVO viewObject) {
-        boolean formIsComplete = validateBagInfoLine(viewObject);
-        boolean folderHasDocument = validateFolderHasDocument();
-        if (formIsComplete && validateFolderHasDocument()) {
-        	SessionContext sessionContext = this.button.getView().getSessionContext();
-            AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
-            ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-            BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-            
-            String sipFolderName = (viewObject.getArchiveTitle() != null ? viewObject.getArchiveTitle() : "archive-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()))+ ".zip";
-            List<String> packageInfoLines = new ArrayList<>();
-            for(MetadataVO metadatavo : viewObject.getFormMetadatas()) {
-                Object value = viewObject.get(metadatavo);
-                if(metadatavo.getType().equals(MetadataValueType.REFERENCE)) {
-                    Record referencedRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(viewObject.<String>get(metadatavo));
-                    value = referencedRecord.getTitle();
-                }
-                if(value != null) {
-                    value = formatData(value.toString());
-                }
-                packageInfoLines.add(metadatavo.getLabel(this.button.getView().getSessionContext().getCurrentLocale()) + ":" +(value != null ? value : ""));
-            }
-            List<String> documentList = getDocumentIDListFromObjectList();
-            List<String> folderList = getFolderIDListFromObjectList();
-            boolean limitSize = viewObject.isLimitSize();
-            boolean deleteFiles = viewObject.isDeleteFiles();
-            String warVersion = appLayerFactory.newApplicationService().getWarVersion();
-            String username = sessionContext.getCurrentUser().getUsername();
-            String collection = button.getView().getCollection();
-            
-            SIPBuildAsyncTask task = new SIPBuildAsyncTask(sipFolderName, packageInfoLines, documentList, folderList, limitSize, username, deleteFiles, warVersion, locale);
-            AsyncTaskBatchProcess asyncTaskBatchProcess = batchProcessesManager.addAsyncTask(new AsyncTaskCreationRequest(task, collection, "SIPArchives").setUsername(username));
-            this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
-            this.button.closeAllWindows();
-            this.button.navigate().to().batchProcesses();
-        } else if(folderHasDocument){
-            this.button.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
-        } else {
-            this.button.showErrorMessage($("SIPButton.noDocumentToExport"));
-        }
-    }
+	protected boolean validateFolderHasDocument() {
+		AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		String collection = button.getView().getCollection();
 
-    private String formatData(String value) {
-        return value.replaceAll("(<(\\/?)p>|(&nbsp;))", "");
+		MetadataSchemaType documentSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(Document.SCHEMA_TYPE);
+		for (String folderId : getFolderIDListFromObjectList()) {
+			LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType)
+					.where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
+			if (searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
+				return true;
+			}
+		}
+		return !getDocumentIDListFromObjectList().isEmpty();
+	}
 
-    }
+	protected boolean validateBagInfoLine(BagInfoVO object) {
+		for (MetadataVO field : object.getFormMetadatas()) {
+			Object metadataValue = object.get(field);
+			if (!"".equals(metadataValue) && metadataValue != null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected void saveButtonClick(BagInfoVO viewObject) {
+		boolean formIsComplete = validateBagInfoLine(viewObject);
+		boolean folderHasDocument = validateFolderHasDocument();
+		if (formIsComplete && validateFolderHasDocument()) {
+			SessionContext sessionContext = this.button.getView().getSessionContext();
+			AppLayerFactory appLayerFactory = this.button.getView().getConstellioFactories().getAppLayerFactory();
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+			BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+
+			String sipFolderName = (viewObject.getArchiveTitle() != null ?
+					viewObject.getArchiveTitle() :
+					"archive-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date())) + ".zip";
+			List<String> packageInfoLines = new ArrayList<>();
+			for (MetadataVO metadatavo : viewObject.getFormMetadatas()) {
+				Object value = viewObject.get(metadatavo);
+				if (metadatavo.getType().equals(MetadataValueType.REFERENCE)) {
+					Record referencedRecord = appLayerFactory.getModelLayerFactory().newRecordServices()
+							.getDocumentById(viewObject.<String>get(metadatavo));
+					value = referencedRecord.getTitle();
+				}
+				if (value != null) {
+					value = formatData(value.toString());
+				}
+				packageInfoLines.add(metadatavo.getLabel(this.button.getView().getSessionContext().getCurrentLocale()) + ":" + (
+						value != null ?
+								value :
+								""));
+			}
+			List<String> documentList = getDocumentIDListFromObjectList();
+			List<String> folderList = getFolderIDListFromObjectList();
+			boolean limitSize = viewObject.isLimitSize();
+			boolean deleteFiles = viewObject.isDeleteFiles();
+			String warVersion = appLayerFactory.newApplicationService().getWarVersion();
+			String username = sessionContext.getCurrentUser().getUsername();
+			String collection = button.getView().getCollection();
+
+			SIPBuildAsyncTask task = new SIPBuildAsyncTask(sipFolderName, packageInfoLines, documentList, folderList, limitSize,
+					username, deleteFiles, warVersion, locale.getLanguage());
+			AsyncTaskBatchProcess asyncTaskBatchProcess = batchProcessesManager
+					.addAsyncTask(new AsyncTaskCreationRequest(task, collection, "SIPArchives").setUsername(username));
+			this.button.showMessage($("SIPButton.SIPArchivesAddedToBatchProcess"));
+			this.button.closeAllWindows();
+			this.button.navigate().to().batchProcesses();
+		} else if (folderHasDocument) {
+			this.button.showErrorMessage($("SIPButton.atLeastOneBagInfoLineMustBeThere"));
+		} else {
+			this.button.showErrorMessage($("SIPButton.noDocumentToExport"));
+		}
+	}
+
+	private String formatData(String value) {
+		return value.replaceAll("(<(\\/?)p>|(&nbsp;))", "");
+
+	}
 }

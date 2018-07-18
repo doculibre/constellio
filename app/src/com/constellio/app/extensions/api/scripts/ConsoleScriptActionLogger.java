@@ -39,4 +39,9 @@ public class ConsoleScriptActionLogger implements ScriptActionLogger {
 	public void error(String message) {
 		LOGGER.error(message);
 	}
+
+	@Override
+	public void error(String message, Exception exception) {
+		LOGGER.error(message, exception);
+	}
 }

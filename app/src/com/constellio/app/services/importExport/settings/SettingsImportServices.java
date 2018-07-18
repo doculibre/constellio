@@ -179,6 +179,7 @@ public class SettingsImportServices {
 					MetadataSchemaTypeBuilder typeBuilder;
 					if (!schemasManager.getSchemaTypes(collection).hasType(importedType.getCode())) {
 						typeBuilder = types.createNewSchemaType(importedType.getCode());
+						typeBuilder.setSecurity(false);
 					} else {
 						typeBuilder = types.getSchemaType(importedType.getCode());
 					}

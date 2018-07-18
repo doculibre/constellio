@@ -177,9 +177,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     			@Override
     			public void buttonClick(ClickEvent event) {
     				List<String> selectedDocumentIds = getSelectedRecordIds();
-    				AvailableActionsParam params = new AvailableActionsParam(selectedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-    				setParams(params);
-    				super.buttonClick(event);
+    				if (presenter.isPdfGenerationActionPossible(selectedDocumentIds)) {
+                        AvailableActionsParam params = new AvailableActionsParam(selectedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+                        setParams(params);
+                        super.buttonClick(event);
+                    }
     			}
     		};
     		consolidatedPdfButton.addStyleName(ValoTheme.BUTTON_LINK);

@@ -25,12 +25,14 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -54,7 +56,14 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private String containerId;
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
+		this(view, null, false);
+	}
+
+	public DisplayContainerPresenter(DisplayContainerView view, RecordVO recordVO, boolean popup) {
 		super(view);
+		if (recordVO != null) {
+			forContainerId(recordVO.getId());
+		}
 	}
 
 	String getBorrowMessageState(RecordVO containerRecord) {
@@ -78,17 +87,16 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return true;
 	}
 
-	@Override
-	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+	static public boolean hasRestrictedRecordAccess(RMSchemasRecordsServices rmRecordServices, User user, Record restrictedRecord) {
 		boolean access = false;
-		ContainerRecord containerRecord = rmRecordServices().wrapContainerRecord(restrictedRecord);
+		ContainerRecord containerRecord = rmRecordServices.wrapContainerRecord(restrictedRecord);
 		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
 		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
 			adminUnitIds.add(containerRecord.getAdministrativeUnit());
 		}
 		if (!adminUnitIds.isEmpty()) {
 			for (String adminUnitId : adminUnitIds) {
-				AdministrativeUnit adminUnit = rmRecordServices().getAdministrativeUnit(adminUnitId);
+				AdministrativeUnit adminUnit = rmRecordServices.getAdministrativeUnit(adminUnitId);
 				access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).on(adminUnit);
 				if (access) {
 					break;
@@ -98,6 +106,11 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			access = user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 		}
 		return access;
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		return hasRestrictedRecordAccess(rmRecordServices(), user, restrictedRecord);
 	}
 
 	@Override
@@ -158,8 +171,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		return asList($("Reports.ContainerRecordReport"));
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		return asList(new ReportWithCaptionVO("Reports.ContainerRecordReport", $("Reports.ContainerRecordReport")));
 	}
 
 	@Override
@@ -227,7 +240,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser());
+		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES);
 	}
 
 	private boolean isContainerRecyclingAllowed() {

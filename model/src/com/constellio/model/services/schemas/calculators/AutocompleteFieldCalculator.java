@@ -81,7 +81,7 @@ public class AutocompleteFieldCalculator implements MetadataValueCalculator<List
 	public static class LocalAutocompleteMetadatasDependency extends DynamicLocalDependency {
 
 		@Override
-		public boolean isDependentOf(Metadata metadata) {
+		public boolean isDependentOf(Metadata metadata, Metadata caclulatedMetadata) {
 			return metadata.isSchemaAutocomplete() && metadata.getType().isStringOrText();
 		}
 

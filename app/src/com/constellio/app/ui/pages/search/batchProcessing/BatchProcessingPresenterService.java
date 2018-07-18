@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -201,7 +202,7 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale, Map<String,Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -219,7 +220,7 @@ public class BatchProcessingPresenterService {
 										unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 										metadataDisplayType,
 										allowedReferences,
-										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale) :
+										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters) :
 								null;
 					}
 				};
@@ -249,13 +250,13 @@ public class BatchProcessingPresenterService {
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, List<String> records,
-			String username, String title)
+									   String username, String title)
 			throws RecordServicesException {
 
 		//		System.out.println("**************** EXECUTE ****************");
 		//		System.out.println("ACTION : ");
 		//		System.out.println(action);
-		Transaction transaction = prepareTransaction(request, true);
+		Transaction transaction = prepareTransactionWithIds(request, true);
 		recordServices.validateTransaction(transaction);
 
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -280,7 +281,7 @@ public class BatchProcessingPresenterService {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		Transaction transaction = prepareTransaction(request, true);
+		Transaction transaction = prepareTransactionWithIds(request, true);
 		recordServices.validateTransaction(transaction);
 		BatchProcessResults results = toBatchProcessResults(transaction);
 
@@ -307,7 +308,7 @@ public class BatchProcessingPresenterService {
 							String schemaTypeCode, MetadataInputType metadataInputType,
 							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
 							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale) {
+							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale, Map<String,Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -339,7 +340,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters);
 					}
 				};
 			}
@@ -365,13 +366,13 @@ public class BatchProcessingPresenterService {
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request, BatchProcessAction action, LogicalSearchQuery query,
-			String username, String title)
+									   String username, String title)
 			throws RecordServicesException {
 
 		//		System.out.println("**************** EXECUTE ****************");
 		//		System.out.println("ACTION : ");
 		//		System.out.println(action);
-		List<Transaction> transactionList = prepareTransactions(request, true);
+		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
 
 		for (Transaction transaction : transactionList) {
 			recordServices.validateTransaction(transaction);
@@ -394,7 +395,7 @@ public class BatchProcessingPresenterService {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		List<Transaction> transactionList = prepareTransactions(request, true);
+		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
 
 		for (Transaction transaction : transactionList) {
 			recordServices.validateTransaction(transaction);
@@ -548,51 +549,51 @@ public class BatchProcessingPresenterService {
 		}
 		switch (metadata.getType()) {
 
-		case DATE:
-			return DateFormatUtils.format((LocalDate) value);
+			case DATE:
+				return DateFormatUtils.format((LocalDate) value);
 
-		case DATE_TIME:
-			return DateFormatUtils.format((LocalDateTime) value);
+			case DATE_TIME:
+				return DateFormatUtils.format((LocalDateTime) value);
 
-		case STRING:
-		case TEXT:
-			return value.toString();
+			case STRING:
+			case TEXT:
+				return value.toString();
 
-		case INTEGER:
-		case NUMBER:
-			return value.toString();
+			case INTEGER:
+			case NUMBER:
+				return value.toString();
 
-		case BOOLEAN:
-			return $(value.toString(), locale);
+			case BOOLEAN:
+				return $(value.toString(), locale);
 
-		case REFERENCE:
-			Record record = recordServices.getDocumentById(value.toString());
-			String code = record.get(Schemas.CODE);
-			if (code == null) {
-				return record.getId() + " (" + record.getTitle() + ")";
-			} else {
-				return code + " (" + record.getTitle() + ")";
-			}
+			case REFERENCE:
+				Record record = recordServices.getDocumentById(value.toString());
+				String code = record.get(Schemas.CODE);
+				if (code == null) {
+					return record.getId() + " (" + record.getTitle() + ")";
+				} else {
+					return code + " (" + record.getTitle() + ")";
+				}
 
-		case CONTENT:
-			return ((Content) value).getCurrentVersion().getFilename();
+			case CONTENT:
+				return ((Content) value).getCurrentVersion().getFilename();
 
-		case STRUCTURE:
-			return value.toString();
+			case STRUCTURE:
+				return value.toString();
 
-		case ENUM:
-			return $(metadata.getEnumClass().getSimpleName() + "." + ((EnumWithSmallCode) value).getCode(), locale);
+			case ENUM:
+				return $(metadata.getEnumClass().getSimpleName() + "." + ((EnumWithSmallCode) value).getCode(), locale);
 		}
 
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	public List<Transaction> prepareTransactions(final BatchProcessRequest request, boolean recalculate) {
-
+	public List<Transaction> prepareTransactionWithQuery(final BatchProcessRequest request, boolean recalculate) {
 		final MetadataSchemaTypes types = schemas.getTypes();
 		final List<Transaction> transactionList = new ArrayList<>();
 		Transaction transaction = new Transaction();
 		int counter = 0;
+		Map<String, Map<String, Object>> specialCaseModificationByRecordId = new HashMap<>();
 
 		List<Record> recordList = searchServices.search(request.getQuery());
 		for (Record record : recordList) {
@@ -624,12 +625,24 @@ public class BatchProcessingPresenterService {
 				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
+
 					if (isNonEmptyValue(metadata, entry.getValue())) {
 						record.set(metadata, entry.getValue());
+
 					}
 				}
 			}
+
+
+			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
+					.forCollection(collection)
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
+			if(temporaryMetadataChangeHash.size() > 0) {
+				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+			}
 		}
+
+		request.setSpecialCaseModifiedMetadatas(specialCaseModificationByRecordId);
 		if (counter < 1000) {
 			transactionList.add(transaction);
 		}
@@ -637,8 +650,10 @@ public class BatchProcessingPresenterService {
 		return transactionList;
 	}
 
-	public Transaction prepareTransaction(BatchProcessRequest request, boolean recalculate) {
+	public Transaction prepareTransactionWithIds(BatchProcessRequest request, boolean recalculate) {
 		Transaction transaction = new Transaction();
+		Map<String, Map<String, Object>> specialCaseModificationByRecordId = new HashMap<>();
+
 		MetadataSchemaTypes types = schemas.getTypes();
 		for (String id : request.getIds()) {
 			Record record = recordServices.getDocumentById(id);
@@ -671,7 +686,15 @@ public class BatchProcessingPresenterService {
 				}
 			}
 
+			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
+					.forCollection(collection)
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
+			if(temporaryMetadataChangeHash.size() > 0) {
+				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+			}
 		}
+
+		request.setSpecialCaseModifiedMetadatas(specialCaseModificationByRecordId);
 
 		if (recalculate) {
 			for (Record record : transaction.getModifiedRecords()) {

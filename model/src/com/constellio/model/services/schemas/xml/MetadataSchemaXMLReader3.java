@@ -150,9 +150,7 @@ public class MetadataSchemaXMLReader3 {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);
 		} else {
 			parseMetadataWithoutInheritance(metadataElement, metadataBuilder, collectionSchema);
-
 		}
-
 	}
 
 	private void parseMetadataWithInheritance(Element metadataElement, MetadataBuilder metadataBuilder) {
@@ -189,6 +187,11 @@ public class MetadataSchemaXMLReader3 {
 		}
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
+
+		Map<String, Object> customParameter = TypeConvertionUtil.getCustomParameterMap(metadataElement);
+		if(customParameter != null) {
+			metadataBuilder.setCustomParameter(customParameter);
+		}
 	}
 
 	private void parseMetadataWithoutInheritance(Element metadataElement, MetadataBuilder metadataBuilder,
@@ -420,6 +423,13 @@ public class MetadataSchemaXMLReader3 {
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
 
+		Map<String, Object> customParameters = TypeConvertionUtil.getCustomParameterMap(metadataElement);
+		if(inheriteGlobalMetadata && taxonomyRelationshipStringValue == null) {
+			metadataBuilder.setCustomParameter(globalMetadataInCollectionSchema.getCustomParameter());
+		} else {
+			metadataBuilder.setCustomParameter(customParameters);
+		}
+
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
 	}
 
@@ -429,6 +439,7 @@ public class MetadataSchemaXMLReader3 {
 
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
 
+		Boolean isAddOnly = null;
 		List<String> styles = new ArrayList<>();
 		List<String> properties = new ArrayList<>();
 		List<RegexConfig> regexes = new ArrayList<>();
@@ -436,6 +447,9 @@ public class MetadataSchemaXMLReader3 {
 
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
+			if (populateConfigsElement.getAttributeValue("isAddOnly") != null) {
+				isAddOnly = true;
+			}
 			if (populateConfigsElement.getAttributeValue("styles") != null) {
 				styles.addAll(asList(populateConfigsElement.getAttributeValue("styles").split(",")));
 			}
@@ -456,6 +470,7 @@ public class MetadataSchemaXMLReader3 {
 		metadataPopulateConfigsBuilder.setProperties(properties);
 		metadataPopulateConfigsBuilder.setRegexes(regexes);
 		metadataPopulateConfigsBuilder.setMetadataPopulators(metadataPopulators);
+		metadataPopulateConfigsBuilder.setAddOnly(isAddOnly);
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
 	}
 
@@ -661,6 +676,8 @@ public class MetadataSchemaXMLReader3 {
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);
 		}
+
+
 		List<String> validatorsClassNames = parseValidators(defaultSchemaElement, null);
 		for (String validatorsClassName : validatorsClassNames) {
 			defaultSchemaBuilder.defineValidators().add(getValidatorClass(validatorsClassName));
@@ -738,4 +755,8 @@ public class MetadataSchemaXMLReader3 {
 		}
 		return labels;
 	}
+
+
+
+
 }

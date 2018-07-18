@@ -147,7 +147,7 @@ public class RobotsManager implements StatefulService {
 				RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robot.getId(), robot.getAction(),
 						robot.getActionParameters());
 				batchProcessAction.setDryRun(true);
-				batchProcessAction.execute(searchServices.search(query), schemaTypes, new RecordProvider(recordServices));
+				batchProcessAction.execute(searchServices.search(query), null, schemaTypes, new RecordProvider(recordServices), modelLayerFactory);
 
 				Iterator<Record> recordsIterator = batchProcessAction.getProcessedRecords().iterator();
 				while (recordsIterator.hasNext()) {

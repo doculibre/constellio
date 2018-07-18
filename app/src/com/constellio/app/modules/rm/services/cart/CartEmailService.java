@@ -43,10 +43,10 @@ public class CartEmailService {
 		this.contentManager = modelLayerFactory.getContentManager();
 	}
 
-	public EmailMessage createEmailForCart(Cart cart) {
+	public EmailMessage createEmailForCart(Cart cart, User requestUser) {
 		try {
 			newTempFolder = ioServices.newTemporaryFile(TMP_EML_FILE);
-			return createEmailForCart(cart, newTempFolder);
+			return createEmailForCart(cart, newTempFolder, requestUser);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -54,13 +54,13 @@ public class CartEmailService {
 		}
 	}
 
-	EmailMessage createEmailForCart(Cart cart, File messageFile) {
+	EmailMessage createEmailForCart(Cart cart, File messageFile, User requestUser) {
 		try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.out")) {
 			User user = rm.getUser(cart.getOwner());
 			String signature = getSignature(user);
 			String subject = "";
 			String from = user.getEmail();
-			List<MessageAttachment> attachments = getAttachments(cart);
+			List<MessageAttachment> attachments = getAttachments(cart, requestUser);
 			
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments);
@@ -90,22 +90,22 @@ public class CartEmailService {
 		}
 	}
 
-	List<MessageAttachment> getAttachments(Cart cart)
+	List<MessageAttachment> getAttachments(Cart cart, User requestUser)
 			throws IOException {
 		//FIXME current version get only cart documents attachments
 		List<MessageAttachment> returnList = new ArrayList<>();
-		returnList.addAll(getDocumentsAttachments(cart.getDocuments()));
+		returnList.addAll(getDocumentsAttachments(cart.getDocuments(), requestUser));
 		return returnList;
 	}
 
-	List<MessageAttachment> getDocumentsAttachments(List<String> documentsIds)
+	List<MessageAttachment> getDocumentsAttachments(List<String> documentsIds, User requestUser)
 			throws IOException {
 		List<MessageAttachment> returnList = new ArrayList<>();
 		if (documentsIds != null) {
 			for (String currentDocumentId : documentsIds) {
 				try {
 					Document document = rm.getDocument(currentDocumentId);
-					if (document.getContent() != null && !document.isLogicallyDeletedStatus()) {
+					if (document.getContent() != null && !document.isLogicallyDeletedStatus() && requestUser.hasReadAccess().on(document)) {
 						MessageAttachment contentFile = createAttachment(document.getContent());
 						returnList.add(contentFile);
 					}

@@ -27,7 +27,7 @@ public class TestRecord extends RecordImpl {
 	}
 
 	public TestRecord(SchemaShortcuts schema) {
-		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
+ 		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
 		this.schemaShortcuts = schema;
 	}
 
