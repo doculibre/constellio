@@ -98,6 +98,11 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 	@Test
 	public void testCreateArchiveWithAllPossibleFolder()
 			throws Exception {
+
+		if (true) {
+			throw new RuntimeException("This test is causing an infinite loop");
+		}
+
 		MetadataSchemaType folderMetadataSchemaType = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
 		List<String> allPossibleFolder = searchServices
