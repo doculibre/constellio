@@ -405,7 +405,6 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
 				"isAccepted:Oui",
-				"borrowerEntered:Chuck Norris (chuck)"
 				"isAccepted:Oui", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
@@ -444,7 +443,6 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
 				"isAccepted:Non",
-				"borrowerEntered:Chuck Norris (chuck)"
 				"isAccepted:Non", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
@@ -483,7 +481,6 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
 				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
 				"isAccepted:Oui",
-				"borrowerEntered:Chuck Norris (chuck)"
 				"isAccepted:Oui", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
@@ -522,7 +519,6 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
 				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
 				"isAccepted:Non",
-				"borrowerEntered:Chuck Norris (chuck)"
 				"isAccepted:Non", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
