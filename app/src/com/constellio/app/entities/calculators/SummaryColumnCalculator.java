@@ -162,7 +162,13 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		boolean isAlwaysShow = Boolean.TRUE.toString().equalsIgnoreCase(summarySettings.get(IS_ALWAYS_SHOWN).toString());
 
 		if (isAlwaysShow || !Strings.isNullOrEmpty(itemShown)) {
-			itemShown = summarySettings.get(PREFIX) + " " + itemShown;
+			String prefix = (String) summarySettings.get(PREFIX);
+
+			if(Strings.isNullOrEmpty(prefix)) {
+				prefix = "";
+			}
+
+			itemShown = prefix + " " + itemShown;
 		}
 
 		return itemShown;
