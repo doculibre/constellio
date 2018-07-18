@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
@@ -25,7 +26,7 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 	}
 
 	@Override
-	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
+	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
 		SchemaUtils utils = new SchemaUtils();
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 		for (Record record : batch) {
@@ -48,7 +49,7 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 				}
 			}
 			modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
-					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, user));
 		}
 		transaction.addUpdate(batch);
 		return transaction;

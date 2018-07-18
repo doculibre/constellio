@@ -19,38 +19,38 @@ public abstract class SIPMetadataObject {
 	public static final String CATEGORY_TYPE = "CATEGORY";
 
 	private Record record;
-	
+
 	private List<String> metadataIds = new ArrayList<String>();
-	
+
 	private Map<String, String> metadataLabelsMap = new LinkedHashMap<>();
-	
+
 	private Map<String, List<String>> metadataValuesMap = new LinkedHashMap<>();
 
 	private List<Metadata> schemaMetadata;
-	
+
 	public SIPMetadataObject(Record rmObject, List<Metadata> metadatasOfSchema) {
 		this.record = rmObject;
 		this.schemaMetadata = metadatasOfSchema;
 		if (rmObject == null) {
 			throw new NullPointerException("metadataSchema is null");
 		}
-		
+
 		for (Metadata metadata : metadatasOfSchema) {
 			String metadataId = metadata.getCode();
 			String metadataLabel = metadata.getLabel(Language.French);
 			Object metadataValue = rmObject.get(metadata);
-			if(metadataValue != null){
+			if (metadataValue != null) {
 				String displayValue = rmObject.get(metadata).toString();
-				List<String> metadataValues = StringUtils.isNotBlank(displayValue) ? Arrays.asList(displayValue) : new ArrayList<String>();
+				List<String> metadataValues = StringUtils.isNotBlank(displayValue) ?
+						Arrays.asList(displayValue) :
+						new ArrayList<String>();
 				metadataIds.add(metadataId);
 				metadataLabelsMap.put(metadataId, metadataLabel);
 				metadataValuesMap.put(metadataId, metadataValues);
-			} else {
-				System.out.println("Métadonnée " + metadataId + " nulle pour fiche " + rmObject.getSchemaCode() + " " + rmObject.getId());
 			}
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends Record> T getFicheMetadonnees() {
 		return (T) record;
@@ -77,11 +77,11 @@ public abstract class SIPMetadataObject {
 		return metadataValuesMap.get(metadataId);
 	}
 
-	protected Record getRecord(){
+	protected Record getRecord() {
 		return this.record;
 	}
 
-	protected List<Metadata> getSchemaMetadata(){
+	protected List<Metadata> getSchemaMetadata() {
 		return schemaMetadata;
 	}
 

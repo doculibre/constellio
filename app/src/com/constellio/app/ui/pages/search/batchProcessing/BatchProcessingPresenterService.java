@@ -636,7 +636,7 @@ public class BatchProcessingPresenterService {
 
 			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
 					.forCollection(collection)
-					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
 			if(temporaryMetadataChangeHash.size() > 0) {
 				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
 			}
@@ -688,7 +688,7 @@ public class BatchProcessingPresenterService {
 
 			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
 					.forCollection(collection)
-					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record));
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
 			if(temporaryMetadataChangeHash.size() > 0) {
 				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
 			}

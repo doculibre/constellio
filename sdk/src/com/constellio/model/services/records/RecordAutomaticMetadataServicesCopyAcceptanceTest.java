@@ -68,8 +68,6 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		zeSchema = schemas.new ZeSchemaMetadatas();
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 
-		record = new TestRecord(zeSchema);
-
 		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
 		recordServices = spy((CachedRecordServices) getModelLayerFactory().newRecordServices());
@@ -501,6 +499,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false));
 		defineAnotherSchemaRecordsWithSinglevalueMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	protected void givenSchemaWithTextAndDateCopiedEntryUsingMultivalueReferencesAndSomeRecordsInOtherSchema()
@@ -508,6 +507,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, true, false));
 		defineAnotherSchemaRecordsWithSinglevalueMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	protected void givenSchemaWithMultivalueTextAndDateCopiedEntryAndSomeRecordsInOtherSchema()
@@ -515,6 +515,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(true, false, false));
 		defineAnotherSchemaRecordsWithMultivaluesMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	protected void givenSchemaWithMultivalueTextAndDateCopiedEntryUsingMultivalueReferencesAndSomeRecordsInOtherSchema()
@@ -522,6 +523,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(true, true, false));
 		defineAnotherSchemaRecordsWithMultivaluesMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	private void defineAnotherSchemaRecordsWithSinglevalueMetadata()

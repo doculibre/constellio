@@ -59,7 +59,7 @@ public class ReindexMetadatasBatchProcessActionAcceptanceTest extends Constellio
 	public void whenExecutingThenCreateTransactionSetForcedReindexedFieldsOptionsAndAddRecords()
 			throws Exception {
 
-		Transaction transaction = action.execute(batch, schemaTypes, recordProvider, getModelLayerFactory());
+		Transaction transaction = action.execute(batch, null, schemaTypes, recordProvider, getModelLayerFactory());
 
 		assertThat(transaction.getRecordUpdateOptions().getTransactionRecordsReindexation())
 				.isEqualTo(new TransactionRecordsReindexation(reindexedMetadatas));

@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -61,7 +60,7 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 		String testfileName = "testFileName";
 		SIPBuildAsyncTask task = new SIPBuildAsyncTask(testfileName, Collections.singletonList("test"),
 				Collections.<String>emptyList(), getAllFolderFromRecordsAsString(), false, records.getAdmin().getUsername(),
-				false, getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
+				false, getAppLayerFactory().newApplicationService().getWarVersion(), "fr");
 		getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(
 				new AsyncTaskCreationRequest(task, zeCollection,
 						"SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPArchivesBuildingWithAlotOfData"));
@@ -99,10 +98,6 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 	public void testCreateArchiveWithAllPossibleFolder()
 			throws Exception {
 
-		if (true) {
-			throw new RuntimeException("This test is causing an infinite loop");
-		}
-
 		MetadataSchemaType folderMetadataSchemaType = getModelLayerFactory().getMetadataSchemasManager()
 				.getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
 		List<String> allPossibleFolder = searchServices
@@ -111,7 +106,7 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 		String testfileName = "testFileName";
 		SIPBuildAsyncTask task = new SIPBuildAsyncTask(testfileName, Collections.singletonList("test"),
 				Collections.<String>emptyList(), allPossibleFolder, false, records.getAdmin().getUsername(), false,
-				getAppLayerFactory().newApplicationService().getWarVersion(), Locale.FRENCH);
+				getAppLayerFactory().newApplicationService().getWarVersion(), "fr");
 		getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(
 				new AsyncTaskCreationRequest(task, zeCollection,
 						"SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPArchivesBuildingWithAlotOfData"));
