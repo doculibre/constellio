@@ -1,12 +1,24 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -15,12 +27,21 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ViewErrorDisplay;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
+import com.constellio.app.ui.pages.management.schemaRecords.SchemaRecordViewBreadcrumbTrail;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -333,5 +354,20 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 		table.setWidth("100%");
 
 		return table;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new SchemaRecordViewBreadcrumbTrail(this, getTitle()) {
+			@Override
+			protected MetadataSchemaVO getSchemaVO() {
+				return null;
+			}
+
+			@Override
+			protected RecordVO getCurrentRecordVO() {
+				return null;
+			}
+		};
 	}
 }

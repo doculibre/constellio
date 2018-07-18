@@ -259,11 +259,25 @@ public class CoreViews {
 	}
 
 	public void addSchemaRecord(String schema) {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD + "/" + schema);
+		Map<String, String> params = new HashMap<>();
+		params.put("schema", schema);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD, params);
+		navigator.navigateTo(viewPath);
+	}
+
+	public void addSchemaRecord(String schema, String parentRecordId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("schema", schema);
+		params.put("parentRecordId", parentRecordId);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void editSchemaRecord(String schemaName, String recordId) {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD + "/" + schemaName + "/" + recordId);
+		Map<String, String> params = new HashMap<>();
+		params.put("id", recordId);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD, params);
+		navigator.navigateTo(viewPath);
 	}
 
 	public void displaySchemaRecord(String recordId) {

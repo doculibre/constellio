@@ -58,7 +58,7 @@ public class MetadataVODataProvider implements Serializable {
 	}
 
 	public int size() {
-		return metadataVOs.size();
+		return metadataVOs != null ? metadataVOs.size() : 0;
 	}
 
 	public List<Integer> list() {

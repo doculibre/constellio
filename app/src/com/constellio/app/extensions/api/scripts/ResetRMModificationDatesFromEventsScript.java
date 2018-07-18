@@ -67,7 +67,7 @@ public class ResetRMModificationDatesFromEventsScript {
                     tempFile.createNewFile();
                 }
             }
-            IOUtils.closeQuietly();
+//            IOUtils.closeQuietly();
             writer = new BufferedWriter(new FileWriter(tempFile, true));
 
             final Duration isEqualRange = Duration.standardMinutes(5);
