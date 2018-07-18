@@ -3,7 +3,13 @@ package com.constellio.app.extensions;
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
@@ -13,6 +19,7 @@ import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
+import com.constellio.app.api.extensions.ListSchemaExtention;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
@@ -33,6 +40,8 @@ import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
@@ -86,8 +95,6 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
-import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
@@ -140,8 +147,6 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
-
-
 
 	//Key : schema type code
 	//Values : record's code
@@ -397,13 +402,13 @@ public class AppLayerCollectionExtensions {
 
 	public String getSchemaTypeDisplayGroup(final MetadataSchemaType schemaType) {
 		String schemaTypeDisplayGroup = null;
-		for(GenericRecordPageExtension extension: schemaTypeAccessExtensions) {
+		for (GenericRecordPageExtension extension : schemaTypeAccessExtensions) {
 			schemaTypeDisplayGroup = extension.getSchemaTypeDisplayGroup(schemaType);
-			if(schemaTypeDisplayGroup != null) {
+			if (schemaTypeDisplayGroup != null) {
 				break;
 			}
 		}
-		return schemaTypeDisplayGroup != null? schemaTypeDisplayGroup:OTHERS_TAB;
+		return schemaTypeDisplayGroup != null ? schemaTypeDisplayGroup : OTHERS_TAB;
 	}
 
 	public boolean canManageTaxonomy(boolean defaultValue, final User user, final Taxonomy taxonomy) {
@@ -571,7 +576,7 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
-	
+
 	public List<String> getDynamicFieldMetadatas(GetDynamicFieldMetadatasParams params) {
 		List<String> dynamicFieldMetadatas = new ArrayList<>();
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
@@ -591,9 +596,9 @@ public class AppLayerCollectionExtensions {
 
 	public File changeDownloadableTemplate() {
 		File file = null;
-		for(LabelTemplateExtension extension : labelTemplateExtensions) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			File temp = extension.changeDownloadableTemplate();
-			if(temp != null) {
+			if (temp != null) {
 				file = temp;
 			}
 		}
@@ -610,9 +615,9 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Component getComponentForCriterion(Criterion criterion) {
-		for(SearchCriterionExtension extension: searchCriterionExtensions) {
+		for (SearchCriterionExtension extension : searchCriterionExtensions) {
 			Component component = extension.getComponentForCriterion(criterion);
-			if(component != null) {
+			if (component != null) {
 				return component;
 			}
 		}
@@ -620,9 +625,9 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Component getDisplayForReference(AllowedReferences allowedReferences, String id) {
-		for(RecordDisplayFactoryExtension extension: recordDisplayFactoryExtensions) {
+		for (RecordDisplayFactoryExtension extension : recordDisplayFactoryExtensions) {
 			Component component = extension.getDisplayForReference(allowedReferences, id);
-			if(component != null) {
+			if (component != null) {
 				return component;
 			}
 		}
@@ -631,15 +636,16 @@ public class AppLayerCollectionExtensions {
 
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {
 		List<Button> buttons = new ArrayList<>();
-		for(DocumentViewButtonExtension extension : documentViewButtonExtension) {
+		for (DocumentViewButtonExtension extension : documentViewButtonExtension) {
 			buttons.addAll(extension.addButton(new DocumentViewButtonExtensionParam(record, user)));
 		}
 		return buttons;
 	}
 
-	public List<ListSchemaExtraCommandReturnParams> getListSchemaExtraCommandExtensions(ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
+	public List<ListSchemaExtraCommandReturnParams> getListSchemaExtraCommandExtensions(
+			ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
 		List<ListSchemaExtraCommandReturnParams> listSchemaParams = new ArrayList<>();
-		for(ListSchemaExtention listSchemaCommandExtention : listSchemaCommandExtensions) {
+		for (ListSchemaExtention listSchemaCommandExtention : listSchemaCommandExtensions) {
 			listSchemaParams.addAll(listSchemaCommandExtention.getExtraCommands(listSchemaExtraCommandParams));
 		}
 
@@ -650,16 +656,15 @@ public class AppLayerCollectionExtensions {
 		return new ReferenceDisplay(id);
 	}
 
-    public List<String> getUnwantedTaxonomiesForExportation() {
+	public List<String> getUnwantedTaxonomiesForExportation() {
 		Set<String> unwantedTaxonomies = new HashSet<>();
-		for(RecordExportExtension extension: recordExportExtensions) {
+		for (RecordExportExtension extension : recordExportExtensions) {
 			List<String> unwantedTaxonomiesFromExtension = extension.getUnwantedTaxonomiesForExportation();
-			if(unwantedTaxonomiesFromExtension != null) {
+			if (unwantedTaxonomiesFromExtension != null) {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-        return new ArrayList<>(unwantedTaxonomies);
-    }
-
+		return new ArrayList<>(unwantedTaxonomies);
+	}
 
 }

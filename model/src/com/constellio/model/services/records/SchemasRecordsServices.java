@@ -547,8 +547,4 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return valueListItems;
 	}
 
-	public ValueListItem newValueListItem(String schemaCode) {
-		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-	}
-
 }

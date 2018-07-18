@@ -1,48 +1,34 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import com.constellio.app.services.factories.ConstellioFactories;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.extractors.fields.ListAddRemoveRegexConfigField;
 import com.constellio.app.ui.pages.management.extractors.fields.PropertiesAnalyserView;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.parser.FileParser;
-import com.constellio.model.services.parser.ForkParsers;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
-import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import org.apache.tika.io.IOUtils;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 public class PropertiesAnalyserViewImpl extends BaseViewImpl implements PropertiesAnalyserView {
 
@@ -164,7 +150,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new TitleBreadcrumbTrail(this, getTitle()) {
 			@Override
-			public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 				return asList(new IntermediateBreadCrumbTailItem() {
 					@Override
 					public boolean isEnabled() {

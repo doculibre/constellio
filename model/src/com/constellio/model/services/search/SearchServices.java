@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -56,6 +55,7 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
@@ -625,32 +625,32 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.SIMILARITY_FIELDS, similarityFields.toString());
 		}
 
-		String collection = query.getCondition().getCollection();
 		if (collection != null) {
 			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
 			List<String> excludeIds = manager.getDocExlusions(collection);
 
 			List<String> elevateIds = new ArrayList<>();
 			List<DocElevation> docElevation = manager.getDocElevations(collection, query.getFreeTextQuery());
-			for (DocElevation doc:docElevation) {
+			for (DocElevation doc : docElevation) {
 				if (doc.getId() != null && !excludeIds.contains(doc.getId())) {
 					elevateIds.add(doc.getId());
 				}
 			}
 
-			if(!excludeIds.isEmpty()) {
+			if (!excludeIds.isEmpty()) {
 				params.add("excludeIds", StringUtils.join(excludeIds, ","));
 			}
 
-			if(!elevateIds.isEmpty()) {
+			if (!elevateIds.isEmpty()) {
 				params.add("elevateIds", StringUtils.join(elevateIds, ","));
 			}
 		}
 
 		if (query.isMoreLikeThis()) {
 			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
-		} else if(addSynonyms && collection != null && query.getFreeTextQuery() != null) {
-			params.add(CommonParams.Q, modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
+		} else if (addSynonyms && collection != null && query.getFreeTextQuery() != null) {
+			params.add(CommonParams.Q,
+					modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
 		} else {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}

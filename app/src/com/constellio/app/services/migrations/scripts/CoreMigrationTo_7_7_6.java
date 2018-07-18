@@ -1,21 +1,18 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
 import java.io.File;
 
-import com.constellio.app.api.admin.services.TLSConfigUtils;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class CoreMigrationTo_7_7_6 implements MigrationScript {
 	@Override
@@ -40,13 +37,15 @@ public class CoreMigrationTo_7_7_6 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 				File currentWrapper = appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperConf();
-				TLSConfigUtils.setAdditionalSettings(currentWrapper,
-						appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
+//				TLSConfigUtils.setAdditionalSettings(currentWrapper,
+				//						appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
 			}
 
 			MetadataSchemaBuilder searchEvent = typesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE).getDefaultSchema();
 			if (!searchEvent.hasMetadata(SearchEvent.CAPSULE)) {
-				searchEvent.create(SearchEvent.CAPSULE).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Capsule.SCHEMA_TYPE));
+				searchEvent.create(SearchEvent.CAPSULE).setType(REFERENCE).setMultivalue(true)
+						.defineReferencesTo(typesBuilder.getSchemaType(Capsule.SCHEMA_TYPE));
+			}
 		}
 	}
 }
