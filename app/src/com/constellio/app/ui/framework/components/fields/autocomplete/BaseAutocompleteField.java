@@ -80,12 +80,13 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 			public T convertToModel(String value, Class<? extends T> targetType, Locale locale)
 					throws ConversionException {
 				T result;
-				if (String.class.isAssignableFrom(targetType)) {
-					result = (T) value;
-				} else if (value != null) {
+				if (value != null) {
 					result = lastSuggestions.get(value);
 
-					if(result == null && getModelType().isAssignableFrom(String.class)) {
+					if (result == null && getModelType().isAssignableFrom(String.class)) {
+						result = (T) value;
+					}
+					if (result == null && String.class.isAssignableFrom(targetType)) {
 						result = (T) value;
 					}
 				} else {
