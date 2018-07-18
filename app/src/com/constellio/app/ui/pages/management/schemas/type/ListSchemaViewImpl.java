@@ -183,7 +183,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					public boolean isVisible() {
 						Integer index = (Integer) itemId;
 						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
-						return super.isVisible() && presenter.isDeleteButtonVisible(entity.getCode());
+						return super.isVisible() ;
 					}
 				};
 			}

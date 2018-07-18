@@ -115,13 +115,6 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 							MetadataVO entity = dataProvider.getMetadataVO(index);
 							presenter.deleteButtonClicked(entity);
 						}
-
-						@Override
-						public boolean isVisible() {
-							Integer index = (Integer) itemId;
-							MetadataVO entity = dataProvider.getMetadataVO(index);
-							return presenter.isMetadataDeletable(entity);
-						}
 					};
 				}
 			});

@@ -7,8 +7,11 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -176,6 +179,12 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		return getMetadataAllowedInAdvancedSearch(ContainerRecord.SCHEMA_TYPE);
+	}
+
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	@Override

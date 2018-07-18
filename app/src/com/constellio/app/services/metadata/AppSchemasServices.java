@@ -20,10 +20,10 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServices;
@@ -38,6 +38,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AppSchemasServices {
+
+	private static final String CANNOT_DELETE_DEFAULT_SCHEMA = "cannotDeleteDefaultSchema";
+	private static final String METADATA_REFERENCING_SCHEMA = "metadatasReferencingTheSchema";
+	private static final String EXISTING_RECORDS_WITH_SCHEMA = "existingRecordsWithSchema";
 
 	private final SchemasDisplayManager schemasDisplayManager;
 	private final AppLayerFactory appLayerFactory;
@@ -54,34 +58,50 @@ public class AppSchemasServices {
 
 	}
 
-	public boolean isSchemaDeletable(String collection, String schemaCode) {
-		if (schemaCode.endsWith("default")) {
-			return false;
-		} else {
-			List<String> references = getReferencesWithDirectAllowedReference(collection, schemaCode);
+	public ValidationErrors isSchemaDeletable(String collection, String schemaCode) {
+		ValidationErrors validationErrors = null;
+		List<String> references = getReferencesWithDirectAllowedReference(collection, schemaCode);
+		MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("schemaTitle", schema.	getLabels());
 
-			MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-			return references.isEmpty() && !searchServices.hasResults(from(schema).returnAll());
+		if (schemaCode.endsWith("default")) {
+			validationErrors = newValidationErrors(CANNOT_DELETE_DEFAULT_SCHEMA,parameters);
+		} else if (!references.isEmpty()) {
+			setParametersForMetadataReferencingSchemaError(parameters,collection, schemaCode);
+			validationErrors = newValidationErrors(METADATA_REFERENCING_SCHEMA,parameters);
+		} else if (searchServices.hasResults(from(schema).returnAll())){
+			setParametersForExistingRecordsWithSchemaError(parameters,schema);
+			validationErrors = newValidationErrors(EXISTING_RECORDS_WITH_SCHEMA,parameters);
+		}
+		return validationErrors;
+	}
+
+	public List<Record> getVisibleRecords(String collection, String schemaCode, User user, int numberOfRecords){
+		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUser(user, Role.READ);
+		List<Record> records = searchServices.search(logicalSearchQuery);
+		if(records.size() > numberOfRecords){
+			return records.subList(0,numberOfRecords);
+		}else {
+			return records;
 		}
 	}
 
-	private List<String> getReferencesWithDirectAllowedReference(String collection, String schemaCode) {
-		List<String> references = new ArrayList<>();
-
-		String schemaType = new SchemaUtils().getSchemaTypeCode(schemaCode);
-
-		for (Metadata metadata : schemasManager.getSchemaTypes(collection).getAllMetadatas().onlyReferencesToType(schemaType)) {
-			Set<String> allowedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
-			if (allowedSchemas != null && !allowedSchemas.isEmpty()) {
-				references.add(metadata.getCode());
-			}
+	public boolean areAllRecordsVisible(String collection, String schemaCode, User user){
+		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUser(user, Role.READ);
+		Long numberOfVisibleRecords = searchServices.getResultsCount(logicalSearchQuery);
+		Long numberOfRecords =searchServices.getResultsCount(from(metadataSchema).returnAll());
+		if( numberOfRecords> numberOfVisibleRecords ){
+			return false;
 		}
-
-		return references;
+		return true;
 	}
 
 	public void deleteSchemaCode(String collection, String schemaCode) {
-		if (!isSchemaDeletable(collection, schemaCode)) {
+		ValidationErrors validationErrors =isSchemaDeletable(collection, schemaCode );
+		if (validationErrors != null) {
 			throw new AppSchemasServicesRuntimeException_CannotDeleteSchema(schemaCode);
 		}
 		updateRecordsWithLinkedSchemas(collection, schemaCode, null);
@@ -231,5 +251,45 @@ public class AppSchemasServices {
 		if (fromCode.endsWith("_default") || toCode.endsWith("_default")) {
 			throw new AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeFromOrToDefault();
 		}
+	}
+
+	private Metadata getMetadata(String collection, String schemaCode){
+		String schemaType = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		return schemasManager.getSchemaTypes(collection).getAllMetadatas().onlyReferencesToType(schemaType).get(0);
+	}
+
+	private ValidationErrors newValidationErrors(String code,Map<String, Object> parameters){
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.add(AppSchemasServices.class, code, parameters);
+		return validationErrors;
+	}
+
+	private List<String> getReferencesWithDirectAllowedReference(String collection, String schemaCode) {
+		List<String> references = new ArrayList<>();
+
+		String schemaType = new SchemaUtils().getSchemaTypeCode(schemaCode);
+
+		for (Metadata metadata : schemasManager.getSchemaTypes(collection).getAllMetadatas().onlyReferencesToType(schemaType)) {
+			Set<String> allowedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
+			if (allowedSchemas != null && !allowedSchemas.isEmpty()) {
+				references.add(metadata.getCode());
+			}
+		}
+
+		return references;
+	}
+
+	private void setParametersForMetadataReferencingSchemaError(Map<String, Object> parameters, String collection, String schemaCode){
+		Metadata referenceMetadata = getMetadata(collection, schemaCode);
+		MetadataSchemaType metadataSchemaType = schemasManager.getSchemaTypes(collection).getSchemaType(referenceMetadata.getSchemaTypeCode());
+		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(referenceMetadata.getSchemaCode());
+		parameters.put("metadataTitle",referenceMetadata.getLabels());
+		parameters.put("metadataSchemaTypeTitle",metadataSchemaType.getLabels());
+		parameters.put("metadataSchemaTitle", metadataSchema.getLabels());
+	}
+
+	private void setParametersForExistingRecordsWithSchemaError(Map<String, Object> parameters, MetadataSchema schema){
+		Long numberOfRecords =searchServices.getResultsCount(from(schema).returnAll());
+		parameters.put("recordsCount",numberOfRecords);
 	}
 }

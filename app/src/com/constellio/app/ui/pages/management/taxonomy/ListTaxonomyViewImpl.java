@@ -2,8 +2,10 @@ package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.services.metadata.MetadataDeletionException;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -20,6 +22,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public class ListTaxonomyViewImpl extends BaseViewImpl implements ListTaxonomyView {
 	private final ListTaxonomyPresenter presenter;
@@ -72,7 +75,7 @@ public class ListTaxonomyViewImpl extends BaseViewImpl implements ListTaxonomyVi
 		table.setVisibleColumns("title", "buttons");
 		table.setColumnHeader("title", $("ListTaxonomyView.titleColumn"));
 		table.setColumnHeader("buttons", "");
-		table.setColumnWidth("buttons", 88);
+		table.setColumnWidth("buttons", 132);
 		table.setWidth("100%");
 
 		return table;
@@ -105,6 +108,24 @@ public class ListTaxonomyViewImpl extends BaseViewImpl implements ListTaxonomyVi
 				};
 			}
 		});
+
+		buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						return new DeleteButton() {
+							@Override
+							protected void confirmButtonClick(ConfirmDialog dialog) {
+								TaxonomyVO taxonomyVO = (TaxonomyVO) itemId;
+								String taxonomyCode = taxonomyVO.getCode();
+								try {
+									presenter.deleteButtonClicked(taxonomyCode);
+								} catch (MetadataDeletionException e) {
+									e.printStackTrace();
+								}
+							}
+						};
+					}
+				});
 	}
 
 	@Override

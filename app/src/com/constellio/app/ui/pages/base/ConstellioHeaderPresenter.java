@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -18,6 +19,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.search.*;
+import com.constellio.model.entities.schemas.*;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -54,10 +58,6 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchResultsViewMode;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -70,11 +70,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -266,6 +261,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		header.setAdvancedSearchSchemaType(schemaTypeCode);
 	}
 
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode){
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
+	}
+
 	public List<MetadataSchemaTypeVO> getSchemaTypes() {
 		MetadataSchemaTypeToVOBuilder builder = new MetadataSchemaTypeToVOBuilder();
 
@@ -349,13 +350,18 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() &&
-						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
-						(!isTextOrString || (isTextOrString && metadata.isSearchable()) ||
-								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
-					result.add(builder.build(metadata, header.getSessionContext()));
+				Boolean visibleForUserAndInAdvancedSearch = config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser());
+				Boolean condition = !isTextOrString ||
+						(isTextOrString && metadata.isSearchable()) ||
+						Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+						ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+						ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
+				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())){
+					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
+					if(SCHEMA.getLocalCode().equals(metadata.getLocalCode())){
+						metadataVO.setLabel(Locale.FRENCH,"Schéma de métadonnée");
+					}
+					result.add(metadataVO);
 				}
 			}
 		}
@@ -406,7 +412,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		} else {
 			return null;
 		}
-
 	}
 
 	@Override

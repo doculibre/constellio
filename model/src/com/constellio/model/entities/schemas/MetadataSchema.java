@@ -147,6 +147,10 @@ public class MetadataSchema implements Serializable {
 		}
 	}
 
+	public boolean metadataExists(String code) {
+		return indexByCode.get(code) != null;
+	}
+
 	public List<Metadata> getAutomaticMetadatas() {
 		return calculatedInfos.getAutomaticMetadatas();
 	}

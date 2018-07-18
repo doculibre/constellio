@@ -17,6 +17,8 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension.AddAdditionalSearchFiltersParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,6 +266,12 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		return getMetadataAllowedInAdvancedSearch(getSchemaType());
+	}
+
+	@Override
+	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	@Override
