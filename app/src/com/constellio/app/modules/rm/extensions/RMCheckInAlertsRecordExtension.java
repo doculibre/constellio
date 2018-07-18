@@ -99,11 +99,11 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					LocalDateTime returnDate = TimeProvider.getLocalDateTime();
 					emailToSend.setTo(toAddress);
 					emailToSend.setSendOn(returnDate);
-                    final String subject = StringEscapeUtils.escapeHtml4($("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle());
+                    final String subject = $("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle();
 					emailToSend.setSubject(subject);
 					emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 					List<String> parameters = new ArrayList<>();
-					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 					String rmObjectTitle = rmObject.getTitle();
 					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
