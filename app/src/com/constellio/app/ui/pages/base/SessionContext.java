@@ -60,8 +60,4 @@ public interface SessionContext extends Serializable {
 	void addSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
 	
 	void removeSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
-
-	SessionContext setCurrentSearchEventRecord(Record searchEventId);
-
-	Record getCurrentSearchEventRecord();
 }

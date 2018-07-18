@@ -192,7 +192,12 @@ public class FileParser {
 		} catch (Throwable t) {
 			throw new FileParserException_CannotExtractStyles(t, type);
 		}
-		return new ParsedContent(parsedContent, language, type, length, properties, styles);
+
+		ParsedContent content = new ParsedContent(parsedContent, language, type, length, properties, styles);
+		content.setDescription(metadata.get(Metadata.DESCRIPTION));
+		content.setTitle(metadata.get(Metadata.TITLE));
+
+		return content;
 
 	}
 

@@ -198,6 +198,8 @@ public class CollectionsManager implements StatefulService {
 		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
 		modelLayerFactory.getSearchBoostManager().createCollectionSearchBoost(code);
+		modelLayerFactory.getSearchConfigurationsManager().createCollectionElevations(code);
+		modelLayerFactory.getSynonymsConfigurationsManager().createCollectionSynonyms(code);
 	}
 
 	public Collection getCollection(String code) {

@@ -131,14 +131,16 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 						}
 					}
 				}
+
+				LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(condition);
 				if (StringUtils.isNotBlank(filterString)) {
 					for (Metadata fileterMetadata : fileterMetadatas) {
 						filterConditions.add(where(fileterMetadata).isContainingText(filterString));
 					}
-					return new LogicalSearchQuery(condition).setCondition(from(types)
+					return logicalSearchQuery.setCondition(from(types)
 							.whereAllConditions(condition, anyConditions(filterConditions)));
 				} else {
-					return new LogicalSearchQuery(condition).setCondition(from(types)
+					return logicalSearchQuery.setCondition(from(types)
 							.where(condition));
 				}
 			}

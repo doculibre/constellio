@@ -528,4 +528,27 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	public ValueListItem newValueListItem(String schemaCode) {
 		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
 	}
+
+	//Value list item
+
+	public ValueListItem getValueListItemByLegacyId(String valueListCode, String valueListItemCode) {
+		return wrapValueListItem(getByLegacyId(getTypes().getSchemaType(valueListCode), valueListItemCode));
+	}
+
+	public ValueListItem wrapValueListItem(Record record) {
+		return record == null ? null : new ValueListItem(record, getTypes(), record.getSchemaCode());
+	}
+
+	public List<ValueListItem> wrapValueListItems(List<Record> records) {
+		List<ValueListItem> valueListItems = new ArrayList<>();
+		for (Record record : records) {
+			valueListItems.add(wrapValueListItem(record));
+		}
+		return valueListItems;
+	}
+
+	public ValueListItem newValueListItem(String schemaCode) {
+		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+	}
+
 }

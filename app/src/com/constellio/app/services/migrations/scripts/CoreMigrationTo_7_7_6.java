@@ -10,6 +10,13 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
 public class CoreMigrationTo_7_7_6 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -36,6 +43,10 @@ public class CoreMigrationTo_7_7_6 implements MigrationScript {
 				TLSConfigUtils.setAdditionalSettings(currentWrapper,
 						appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
 			}
+
+			MetadataSchemaBuilder searchEvent = typesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE).getDefaultSchema();
+			if (!searchEvent.hasMetadata(SearchEvent.CAPSULE)) {
+				searchEvent.create(SearchEvent.CAPSULE).setType(REFERENCE).setMultivalue(true).defineReferencesTo(typesBuilder.getSchemaType(Capsule.SCHEMA_TYPE));
 		}
 	}
 }

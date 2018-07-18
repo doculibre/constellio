@@ -48,6 +48,7 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 
 	public void displayDocumentButtonClicked() {
 		menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		updateSearchResultClicked();
 	}
 
 	public boolean openForRequested(String recordId) {

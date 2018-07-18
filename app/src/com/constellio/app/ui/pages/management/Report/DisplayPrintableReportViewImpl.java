@@ -33,7 +33,7 @@ public class DisplayPrintableReportViewImpl extends BaseViewImpl implements Disp
     protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
         return new TitleBreadcrumbTrail(this, getTitle()) {
             @Override
-            public List<? extends IntermediateBreadCrumbTailItem> getIntermeiateItems() {
+            public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
                 return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
                     @Override
                     public boolean isEnabled() {

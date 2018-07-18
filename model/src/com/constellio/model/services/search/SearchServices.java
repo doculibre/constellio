@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.DisMaxParams;
@@ -437,6 +438,10 @@ public class SearchServices {
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
+		return addSolrModifiableParams(query, true);
+	}
+
+	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query, boolean addSynonyms) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 
 		for (String filterQuery : query.getFilterQueries()) {
@@ -498,12 +503,6 @@ public class SearchServices {
 		//			}
 		//			userCondition += ")";
 		//		}
-
-		if (query.isMoreLikeThis()) {
-			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
-		} else {
-			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
-		}
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
@@ -624,6 +623,36 @@ public class SearchServices {
 			}
 
 			params.add(MoreLikeThisParams.SIMILARITY_FIELDS, similarityFields.toString());
+		}
+
+		String collection = query.getCondition().getCollection();
+		if (collection != null) {
+			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
+			List<String> excludeIds = manager.getDocExlusions(collection);
+
+			List<String> elevateIds = new ArrayList<>();
+			List<DocElevation> docElevation = manager.getDocElevations(collection, query.getFreeTextQuery());
+			for (DocElevation doc:docElevation) {
+				if (doc.getId() != null && !excludeIds.contains(doc.getId())) {
+					elevateIds.add(doc.getId());
+				}
+			}
+
+			if(!excludeIds.isEmpty()) {
+				params.add("excludeIds", StringUtils.join(excludeIds, ","));
+			}
+
+			if(!elevateIds.isEmpty()) {
+				params.add("elevateIds", StringUtils.join(elevateIds, ","));
+			}
+		}
+
+		if (query.isMoreLikeThis()) {
+			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
+		} else if(addSynonyms && collection != null && query.getFreeTextQuery() != null) {
+			params.add(CommonParams.Q, modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
+		} else {
+			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
 		return params;

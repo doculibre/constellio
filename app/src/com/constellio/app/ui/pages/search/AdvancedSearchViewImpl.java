@@ -14,7 +14,6 @@ import java.util.Observer;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -29,6 +28,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
+import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -51,7 +52,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>

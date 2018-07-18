@@ -393,7 +393,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		updateAndRefresh(presenterUtils.publishButtonClicked());
 	}
 
-	public boolean isLogicallyDeleted(){
+	public boolean isLogicallyDeleted() {
 		return document == null || document.isLogicallyDeletedStatus();
 	}
 
@@ -466,7 +466,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void refreshEvents() {
-		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		//modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
 	}
 

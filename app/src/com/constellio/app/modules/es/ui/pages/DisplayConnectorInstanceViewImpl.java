@@ -9,11 +9,13 @@ import java.util.List;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -23,6 +25,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
 
 public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements DisplayConnectorInstanceView {
 	public static final String STYLE_NAME = "display-connectorInstance";
@@ -118,9 +121,20 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 		deleteDocumentsButton = new LinkButton($("DisplayConnectorInstanceView.deleteDocumentsButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.deleteDocumentsButtonClicked();
+				new ConfirmDialogContextMenuItemClickListener(ConfirmDialogButton.DialogMode.WARNING) {
+					@Override
+					protected String getConfirmDialogMessage() {
+						return $("ConfirmDialog.confirmDelete");
+					}
+
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteDocumentsButtonClicked();
+					}
+				}.buttonClick(event);
 			}
 		};
+
 		indexationReportButton = new LinkButton($("DisplayConnectorInstanceView.indexationReportButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {

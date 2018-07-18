@@ -6,16 +6,27 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveContentVersionField;
+import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 
 public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsuleView {
 
@@ -47,7 +58,7 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
             this.recordVO = presenter.newRecordVO();
         }
 
-        return new RecordForm(this.recordVO) {
+        return new RecordForm(this.recordVO, new CapsuleRecordFieldFactory()) {
             @Override
             protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
                 try{
@@ -59,8 +70,39 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 
             @Override
             protected void cancelButtonClick(RecordVO viewObject) {
-                navigateTo().previousView();
+                presenter.cancelButtonClicked();
             }
         };
+    }
+    
+    private class CapsuleRecordFieldFactory extends RecordFieldFactory {
+
+		@Override
+		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+			Field<?> field;
+			if (MetadataVO.getCodeWithoutPrefix(metadataVO.getCode()).equals(Capsule.IMAGES)) {
+				field = new ContentVersionUploadField(true, true, false) {
+					@Override
+					protected Component newItemCaption(Object itemId) {
+						ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
+						boolean majorVersionFieldVisible = false;
+						return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible) {
+							@Override
+							protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
+								String hash = presenter.getHash(contentVersionVO);
+								String filename = contentVersionVO.getFileName();
+								Resource resource = ConstellioResourceHandler.createResource(hash, filename);
+								return new DownloadLink(resource, filename);
+							}
+						};
+					}
+				};
+				((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
+			} else {
+				field = super.build(recordVO, metadataVO);
+			}
+			return field;
+		}
+    	
     }
 }

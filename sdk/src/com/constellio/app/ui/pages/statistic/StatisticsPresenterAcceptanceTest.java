@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.statistic;
 
+import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -8,6 +9,9 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,6 +132,24 @@ public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
 	public void givenUnknownStatisticTypeThenException() {
 		presenter.applyFilter(null, null, null, null, null, null);
 
-		presenter.getStatisticsFacetsDataProvider().getQueryResponse();
+		presenter.getStatisticsFacetsDataProvider().getQueryResponse(0, 15);
+	}
+
+	@Test
+	public void givenFixedNumberOfEventAddedThenSameFacetNumberFound() {
+		int nb = 10;
+		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb);
+
+		presenter.applyFilter(null, FAMOUS_REQUEST, null, null, null, null);
+
+		QueryResponse queryResponse = presenter.getStatisticsFacetsDataProvider().getQueryResponse(0, nb);
+
+		NamedList<Object> namedList = queryResponse.getResponse();
+
+		SimpleOrderedMap facets = (SimpleOrderedMap) namedList.get("facets");
+		SimpleOrderedMap queryS = (SimpleOrderedMap) facets.get("query_s");
+		ArrayList<SimpleOrderedMap> buckets = (ArrayList<SimpleOrderedMap>) queryS.get("buckets");
+
+		Assertions.assertThat(buckets).isNotNull().hasSize(searchEvents.size());
 	}
 }

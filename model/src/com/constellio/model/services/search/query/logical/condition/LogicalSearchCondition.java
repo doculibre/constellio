@@ -144,7 +144,7 @@ public abstract class LogicalSearchCondition {
 	}
 
 	public String getCollection() {
-		return filters.getCollection();
+		return filters!=null?filters.getCollection():null;
 	}
 
 }
