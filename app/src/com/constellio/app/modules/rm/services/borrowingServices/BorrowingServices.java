@@ -525,7 +525,7 @@ public class BorrowingServices {
 			Transaction transaction = new Transaction();
 			EmailToSend emailToSend = newEmailToSend();
 			EmailAddress toAddress = new EmailAddress();
-			subject = StringEscapeUtils.escapeHtml4(task.getTitle());
+			subject = task.getTitle();
 
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
@@ -544,6 +544,8 @@ public class BorrowingServices {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("extensionDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(LocalDate.now()));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+						" (" + borrowerEntered.getUsername() + ")"));
 			}
 
 			LocalDateTime sendDate = TimeProvider.getLocalDateTime();
@@ -554,7 +556,7 @@ public class BorrowingServices {
 					template + RMEmailTemplateConstants.ACCEPTED :
 					template + RMEmailTemplateConstants.DENIED;
 			emailToSend.setTemplate(fullTemplate);
-			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
 			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(currentUser.getFirstName() + " " + currentUser.getLastName() +

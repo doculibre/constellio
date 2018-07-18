@@ -169,13 +169,14 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.add(TASK_STATUS_FR + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_fr)));
 		newParameters.add(TASK_STATUS_EN + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_en)));
 
-		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getDescription())));
+		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
 		String constellioURL = eimConfigs.getConstellioUrl();
 
 		newParameters
 				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
 		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
 				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
+		newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
 
 		emailToSend.setParameters(newParameters);
 	}
