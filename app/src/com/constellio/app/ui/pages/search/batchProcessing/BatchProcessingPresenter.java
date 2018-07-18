@@ -18,7 +18,7 @@ public interface BatchProcessingPresenter {
 
 	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
 
-	void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
+	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
 
 	BatchProcessingMode getBatchProcessingMode();
 
@@ -40,7 +40,7 @@ public interface BatchProcessingPresenter {
 
 	boolean isSearchResultsSelectionForm();
 
-	void batchEditRequested(String code, Object convertedValue, String schemaType);
+	boolean batchEditRequested(String code, Object convertedValue, String schemaType);
 
 	List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType);
 }

@@ -28,7 +28,6 @@ public class FolderAppliedUniformSubdivisionCalculator implements MetadataValueC
 		} else {
 			return enteredUniformSubdivision;
 		}
-
 	}
 
 	@Override

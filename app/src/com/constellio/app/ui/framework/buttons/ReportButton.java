@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
@@ -20,13 +21,13 @@ public class ReportButton extends WindowButton {
 	private final ReportPresenter presenter;
 	private final NewReportPresenter newPresenter;
 
-	public ReportButton(String report, ReportPresenter presenter) {
-		super($(report), $(report), new WindowConfiguration(true, true, "75%", "90%"));
-		this.report = report;
+	public ReportButton(ReportWithCaptionVO report, ReportPresenter presenter) {
+		super(report.getCaption(), report.getCaption(), new WindowConfiguration(true, true, "75%", "90%"));
+		this.report = report.getTitle();
 		this.presenter = presenter;
 		this.newPresenter = null;
 
-		String iconPathKey = report + ".icon";
+		String iconPathKey = report.getTitle() + ".icon";
 		String iconPath = $(iconPathKey);
 		if (!iconPathKey.equals(iconPath)) {
 			setIcon(new ThemeResource(iconPath));
@@ -35,13 +36,13 @@ public class ReportButton extends WindowButton {
 		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 	}
 
-	public ReportButton(String report, NewReportPresenter presenter) {
-		super($(report), $(report), new WindowConfiguration(true, true, "75%", "90%"));
-		this.report = report;
+	public ReportButton(ReportWithCaptionVO report, NewReportPresenter presenter) {
+		super(report.getCaption(), report.getCaption(), new WindowConfiguration(true, true, "75%", "90%"));
+		this.report = report.getTitle();
 		this.presenter = null;
 		this.newPresenter = presenter;
 
-		String iconPathKey = report + ".icon";
+		String iconPathKey = report.getTitle() + ".icon";
 		String iconPath = $(iconPathKey);
 		if (!iconPathKey.equals(iconPath)) {
 			setIcon(new ThemeResource(iconPath));

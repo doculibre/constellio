@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
@@ -43,6 +44,7 @@ public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 		transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		transaction.setSkippingRequiredValuesValidation(true);
 		transaction.addUpdate(batch);
+		transaction.getRecordUpdateOptions().setOverwriteModificationDateAndUser(false);
 		return transaction;
 	}
 

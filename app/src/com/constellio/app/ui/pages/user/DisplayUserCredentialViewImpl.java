@@ -442,12 +442,8 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 										.generateToken(userCredentialVO.getUsername(), (String) unitTimeCombobox.getValue(),
 												durationValue);
 								tokenValue.setValue(token);
-								String baseurl =
-										getUI().getPage().getLocation().getHost() + ":" + getUI().getPage().getLocation()
-												.getPort()
-												+ getUI().getPage().getLocation().getPath();
-								String linkValue =
-										"http://" + baseurl + "select?token=" + token + "&serviceKey=" + serviceKey
+								String constellioUrl = presenter.getConstellioUrl();
+								String linkValue = constellioUrl + "select?token=" + token + "&serviceKey=" + serviceKey
 												+ "&fq=-type_s:index" + "&q=*:*";
 								linkTest.setResource(new ExternalResource(linkValue));
 

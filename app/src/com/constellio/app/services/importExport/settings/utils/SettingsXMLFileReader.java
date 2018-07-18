@@ -1,24 +1,44 @@
 package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -235,7 +255,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(RELATIONSHIP_PROVIDING_SECURITY) != null) {
-			importedMetadata.setRelationshipProvidingSecurity(Boolean.parseBoolean(element.getAttributeValue(RELATIONSHIP_PROVIDING_SECURITY)));
+			importedMetadata.setRelationshipProvidingSecurity(
+					Boolean.parseBoolean(element.getAttributeValue(RELATIONSHIP_PROVIDING_SECURITY)));
 		}
 
 		if (element.getAttribute(REFERENCED_TYPE) != null) {
@@ -500,4 +521,22 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setKey(childElement.getAttributeValue("key"))
 				.setValue(childElement.getAttributeValue("value"));
 	}
+
+	/* public static ImportedSettings readFromFile(File file) {
+
+		SAXBuilder builder = new SAXBuilder();
+		Document document;
+		try {
+			document = builder.build(file);
+		} catch (JDOMException e) {
+			throw new ConfigManagerRuntimeException("JDOM2 Exception", e);
+		} catch (IOException e) {
+			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
+		}
+
+		SettingsXMLFileReader reader = new SettingsXMLFileReader(document);
+
+		return reader.read();
+
+	}*/
 }

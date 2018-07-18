@@ -18,6 +18,14 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
@@ -99,11 +107,13 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
     String collection;
     IOServices ioServices;
+    private RMModuleExtensions rmModuleExtensions;
 
     public RMSelectionPanelExtension(AppLayerFactory appLayerFactory, String collection) {
         this.appLayerFactory = appLayerFactory;
         this.collection = collection;
         this.ioServices = this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
+        this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
     }
 
     @Override
@@ -124,7 +134,21 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addPdfButton(final AvailableActionsParam param) {
-        WindowButton pdfButton = new ConsolidatedPdfButton(param);
+        WindowButton pdfButton = new ConsolidatedPdfButton(param) {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                List<Record> records = recordServices().getRecordsById(collection, param.getIds());
+                for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+                    for (Record record : records) {
+                        if (!extension.isCreatePDFAActionPossible(new DocumentExtensionActionPossibleParams(record))) {
+                            showErrorMessage(i18n.$("ConstellioHeader.pdfGenerationBlockedByExtension"));
+                            return;
+                        }
+                    }
+                }
+                super.buttonClick(event);
+            }
+        };
         setStyles(pdfButton);
         pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
         pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
@@ -186,10 +210,11 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addDuplicateButton(final AvailableActionsParam param) {
         WindowButton duplicateButton = new WindowButton($("ConstellioHeader.selection.actions.duplicate"), $("ConstellioHeader.selection.actions.duplicate")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+                , WindowButton.WindowConfiguration.modalDialog("550px", "200px")) {
             @Override
             protected Component buildWindowContent() {
                 VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.setSizeFull();
                 verticalLayout.setSpacing(true);
                 final LookupFolderField field = new LookupFolderField(true);
                 field.focus();
@@ -217,7 +242,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 HorizontalLayout hLayout = new HorizontalLayout();
                 hLayout.setSizeFull();
                 hLayout.addComponent(saveButton);
-                hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_CENTER);
+                hLayout.setComponentAlignment(saveButton, Alignment.MIDDLE_CENTER);
                 verticalLayout.addComponent(hLayout);
                 return verticalLayout;
             }
@@ -230,7 +255,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
     public void addMetadataReportButton(final AvailableActionsParam param) {
         ReportTabButton tabButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"),
-                appLayerFactory, collection, true, param.getView().getSessionContext()) {
+                appLayerFactory, collection, param.getSchemaTypeCodes().size() != 1, false ,buildReportPresenter(param), param.getView().getSessionContext()) {
 
             @Override
             public void buttonClick(ClickEvent event) {
@@ -243,6 +268,20 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         tabButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         tabButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE)));
         ((VerticalLayout)param.getComponent()).addComponent(tabButton);
+    }
+
+    private RMSelectionPanelReportPresenter buildReportPresenter(final AvailableActionsParam param) {
+        return new RMSelectionPanelReportPresenter(appLayerFactory, collection, param.getUser()) {
+            @Override
+            public String getSelectedSchemaType() {
+                return param.getSchemaTypeCodes().get(0);
+            }
+
+            @Override
+            public List<String> getSelectedRecordIds() {
+                return param.getIds();
+            }
+        };
     }
 
     public void addSIPbutton(final AvailableActionsParam param) {
@@ -505,13 +544,33 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
             for(String id: recordIds) {
                 Record record = recordServices.getDocumentById(id);
+                boolean isMovePossible = true;
                 try {
                     switch (record.getTypeCode()) {
                         case Folder.SCHEMA_TYPE:
-                            recordServices.update(rmSchemas.getFolder(id).setParentFolder(parentId));
+                            Folder folder = rmSchemas.getFolder(id);
+                            for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+                                if (!extension.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
+                                    isMovePossible = false;
+                                    couldNotMove.add(record.getTitle());
+                                    break;
+                                }
+                            }
+                            if (isMovePossible) {
+                                recordServices.update(folder.setParentFolder(parentId));
+                            }
                             break;
                         case Document.SCHEMA_TYPE:
-                            recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
+                            for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+                                if (!extension.isMoveActionPossible(new DocumentExtensionActionPossibleParams(record))) {
+                                    isMovePossible = false;
+                                    couldNotMove.add(record.getTitle());
+                                    break;
+                                }
+                            }
+                            if (isMovePossible) {
+                                recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
+                            }
                             break;
                         default:
                             couldNotMove.add(record.getTitle());
@@ -538,15 +597,36 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
             RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
             RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
             for(String id: recordIds) {
+                boolean isCopyPossible = true;
                 Record record = recordServices.getDocumentById(id);
+
                 try {
                     switch (record.getTypeCode()) {
                         case Folder.SCHEMA_TYPE:
-                            Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(rmSchemas.wrapFolder(record), param.getUser(), false);
+                            for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+                                if (!extension.isCopyActionPossible(new FolderExtensionActionPossibleParams(record))) {
+                                    isCopyPossible = false;
+                                    couldNotDuplicate.add(record.getTitle());
+                                    break;
+                                }
+                            }
+                            if (!isCopyPossible) break;
+
+                            Folder oldFolder = rmSchemas.wrapFolder(record);
+                            Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(oldFolder, param.getUser(), false);
                             newFolder.setParentFolder(parentId);
                             recordServices.add(newFolder);
                             break;
                         case Document.SCHEMA_TYPE:
+                            for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
+                                if (!extension.isCopyActionPossible(new DocumentExtensionActionPossibleParams(record))) {
+                                    isCopyPossible = false;
+                                    couldNotDuplicate.add(record.getTitle());
+                                    break;
+                                }
+                            }
+                            if (!isCopyPossible) break;
+
                             Document oldDocument = rmSchemas.wrapDocument(record);
                             Document newDocument = rmSchemas.newDocumentWithType(oldDocument.getType());
                             for (Metadata metadata: oldDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {

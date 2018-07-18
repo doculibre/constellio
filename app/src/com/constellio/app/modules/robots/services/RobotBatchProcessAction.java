@@ -40,8 +40,7 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 		RobotSchemaRecordServices schemas = new RobotSchemaRecordServices(schemaTypes.getCollection(), appLayerFactory);
 		RobotsManager robotsManager = schemas.getRobotsManager();
 
-		ActionExecutor actionExecutor = robotsManager.getActionExecutorFor(action);
-		ActionParameters actionParameters = null;
+		ActionExecutor actionExecutor = robotsManager.getActionExecutorFor(action);ActionParameters actionParameters = null;
 		if (actionParametersId != null) {
 			actionParameters = schemas.getActionParameters(actionParametersId);
 		}

@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.internal.AssumptionViolatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,11 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 
 	@After
 	public void cleanup() {
-		syncSolrConfigurationFiles(getDataLayerFactory());
+		try {
+			syncSolrConfigurationFiles(getDataLayerFactory());
+		} catch (AssumptionViolatedException e) {
+			//OK
+		}
 	}
 
 	protected Record newRecordOfZeSchema() {

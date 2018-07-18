@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -278,7 +279,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					showErrorMessage($("CartView.aFolderIsBorrowed"));
 				} else if (presenter.isAnyFolderInDecommissioningList()) {
 					showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
-				} else {
+				} else if (presenter.isDecommissioningActionPossible()) {
 					super.buttonClick(event);
 				}
 			}
@@ -317,8 +318,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return layout;
 			}
 		};
-		windowButton.setEnabled(!presenter.getCartFolders().isEmpty());
-		windowButton.setVisible(!presenter.getCartFolders().isEmpty());
+		windowButton.setEnabled(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
+		windowButton.setVisible(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
 		return windowButton;
 	}
 
@@ -552,9 +553,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				for (DocumentVO documentVO : notDeletedDocumentVOs) {
 					notDeletedDocumentIds.add(documentVO.getId());
 				}
-				AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-				setParams(params);
-				super.buttonClick(event);
+				if (presenter.isPdfGenerationActionPossible(notDeletedDocumentIds)) {
+					AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+					setParams(params);
+					super.buttonClick(event);
+				}
 			}
 			
 		};

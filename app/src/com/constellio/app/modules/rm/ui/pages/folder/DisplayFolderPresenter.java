@@ -27,6 +27,8 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -119,6 +121,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient MetadataSchemasManager metadataSchemasManager;
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
+	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
 
 	Boolean allItemsSelected = false;
@@ -150,6 +153,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
+		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
@@ -434,17 +438,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private ComponentState getDuplicateFolderButtonState(User user, Folder folder) {
+		return ComponentState.visibleIf(isDuplicateFolderPossible(user, folder));
+	}
+
+	private boolean isDuplicateFolderPossible(User user, Folder folder) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		if (authorizationsServices.canWrite(user, folder.getWrappedRecord())) {
-			if (folder.getPermissionStatus().isInactive()) {
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder));
-			}
-			return ComponentState.ENABLED;
+		if (!authorizationsServices.canWrite(user, folder.getWrappedRecord())) return false;
+
+		if (folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
+			return false;
 		}
-		return ComponentState.INVISIBLE;
+		if (folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
+			return false;
+		}
+
+		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+			if (!extension.isCopyActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
@@ -452,19 +465,27 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getShareButtonState(User user, Folder folder) {
-		if (user.has(RMPermissionsTo.SHARE_FOLDER).on(folder)) {
-			if (folder.getPermissionStatus().isInactive()) {
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder));
-			}
-			if (isNotBlank(folder.getLegacyId())) {
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder));
-			}
-			return ComponentState.ENABLED;
+		return ComponentState.visibleIf(isShareFolderPossible(user, folder));
+	}
+
+	private boolean isShareFolderPossible(User user, Folder folder) {
+		if (!user.has(RMPermissionsTo.SHARE_FOLDER).on(folder)) return false;
+		if (folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) {
+			return false;
 		}
-		return ComponentState.INVISIBLE;
+		if (folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) {
+			return  false;
+		}
+		if (isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder)) {
+			return false;
+		}
+
+		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
+			if (!extension.isShareActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
@@ -633,8 +654,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void duplicateFolderButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
+	    Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
+	    if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
+			navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
+		}
 		if (!popup) {
 			view.closeAllWindows();
 		}
@@ -642,7 +665,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+        if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
+			navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+		}
 		if (!popup) {
 			view.closeAllWindows();
 		}
@@ -658,6 +683,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void shareFolderButtonClicked() {
+        Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
+	    if (!isShareFolderPossible(getCurrentUser(), folder)) return;
+
 		navigate().to().shareContent(folderVO.getId());
 	}
 

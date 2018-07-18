@@ -54,6 +54,7 @@ import com.constellio.app.ui.pages.management.configs.ConfigManagementViewImpl;
 import com.constellio.app.ui.pages.management.email.EmailServerConfigViewImpl;
 import com.constellio.app.ui.pages.management.extractors.AddEditMetadataExtractorViewImpl;
 import com.constellio.app.ui.pages.management.extractors.ListMetadataExtractorsViewImpl;
+import com.constellio.app.ui.pages.management.extractors.PropertiesAnalyserViewImpl;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
@@ -223,8 +224,9 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String STATISTICS = "statistics";
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
+    public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
 
-	private List<ViewProvider> viewProviders = new ArrayList<>();
+    private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
 		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
@@ -314,6 +316,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_METADATA_EXTRACTORS, ListMetadataExtractorsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PROPERTIES_ANALYSER, PropertiesAnalyserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION,

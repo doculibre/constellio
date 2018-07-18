@@ -34,6 +34,11 @@ import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 public class ModelLayerCollectionExtensions {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModelLayerCollectionExtensions.class);
@@ -197,14 +202,14 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public boolean isModifyBlocked(Record record, User user) {
-		boolean deleteBlocked = false;
+		boolean modifyBlocked = false;
 		for (RecordExtension extension : recordExtensions) {
-			deleteBlocked = extension.isModifyBlocked(record, user);
-			if (deleteBlocked) {
+			modifyBlocked = extension.isModifyBlocked(record, user);
+			if (modifyBlocked) {
 				break;
 			}
 		}
-		return deleteBlocked;
+		return modifyBlocked;
 	}
 
 	public boolean isDeleteBlocked(Record record, User user) {
@@ -288,4 +293,12 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
+    public Collection<? extends String> getAllowedSystemReservedMetadatasForExcelReport(String schemaTypeCode) {
+		Set<String> allowedMetadatas = new HashSet<>();
+		for (SchemaExtension extension : schemaExtensions) {
+			allowedMetadatas.addAll(extension.getAllowedSystemReservedMetadatasForExcelReport(schemaTypeCode));
+		}
+
+		return new ArrayList<>(allowedMetadatas);
+    }
 }

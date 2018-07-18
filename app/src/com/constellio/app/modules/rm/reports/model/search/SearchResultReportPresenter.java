@@ -9,6 +9,8 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -27,6 +29,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class SearchResultReportPresenter {
 	static int LIMIT = 10000;
@@ -175,6 +178,11 @@ public class SearchResultReportPresenter {
 				result = result.toString().replaceAll("\\<[^>]*>","");
 				return result;
 			}
+		}
+		else if(metadata.getType() == MetadataValueType.ENUM) {
+			EnumWithSmallCodeToCaptionConverter captionConverter =
+					new EnumWithSmallCodeToCaptionConverter((Class<? extends EnumWithSmallCode>) metadataValue.getClass());
+			return captionConverter.convertToPresentation(((EnumWithSmallCode) metadataValue).getCode(), String.class, locale);
 		}
 
 		return metadataValue;

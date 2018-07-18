@@ -243,7 +243,7 @@ public class ReindexingServices {
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
 				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false);
+				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -344,7 +344,7 @@ public class ReindexingServices {
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage;
 
 		if (new ConstellioEIMConfigs(modelLayerFactory).getMemoryConsumptionLevel().isPrioritizingMemoryConsumptionOrNormal()) {
-			File aggregatedValuesTempStorageFile = new File(new FoldersLocator().getWorkFolder(), "reindexing");
+			File aggregatedValuesTempStorageFile = new FoldersLocator().getReindexingAggregatedValuesFolder();
 			try {
 				FileUtils.deleteDirectory(aggregatedValuesTempStorageFile);
 			} catch (IOException e) {
@@ -530,7 +530,7 @@ public class ReindexingServices {
 			values.addAll(aggregatedValuesTempStorage.getAllValues(record.getId(), metadata.getLocalCode()));
 		}
 
-		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(aggregatingMetadata, values) {
+		InMemoryAggregatedValuesParams params = new InMemoryAggregatedValuesParams(record.getId(), aggregatingMetadata, values) {
 
 			@Override
 			public List<AggregatedValuesEntry> getEntries() {
@@ -574,4 +574,22 @@ public class ReindexingServices {
 		return null;
 	}
 
+	public boolean isLockFileExisting() {
+		return modelLayerFactory.getFoldersLocator().getReindexationLock().exists();
+	}
+
+	public void removeLockFile() {
+		File reindexationLock = modelLayerFactory.getFoldersLocator().getReindexationLock();
+		modelLayerFactory.getIOServicesFactory().newFileService().deleteQuietly(reindexationLock);
+	}
+
+	public void createLockFile() {
+		File reindexationLock = modelLayerFactory.getFoldersLocator().getReindexationLock();
+		reindexationLock.getParentFile().mkdirs();
+		try {
+			reindexationLock.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

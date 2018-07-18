@@ -275,7 +275,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty() && task.getDecision() == null)
+		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty() && task.getDecision() == null && !containsExpressionLanguage(decisions))
 				|| tasksSchemas.isRequestTask(task)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
@@ -283,6 +283,18 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
 			reloadCurrentTask();
 		}
+	}
+
+	public static boolean containsExpressionLanguage(Object decisions) {
+		if (decisions != null && decisions instanceof MapStringStringStructure) {
+			MapStringStringStructure decisionsStruct = (MapStringStringStructure) decisions;
+			for (String key : decisionsStruct.keySet()) {
+				if (Task.isExpressionLanguage(key)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override

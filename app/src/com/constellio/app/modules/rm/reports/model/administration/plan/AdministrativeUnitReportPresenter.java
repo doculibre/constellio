@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -204,8 +205,8 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 	}
 
 	@Override
-	public List<String> getSupportedReports() {
-		return asList($("Reports.AdministrativeUnits"));
+	public List<ReportWithCaptionVO> getSupportedReports() {
+		return asList(new ReportWithCaptionVO("Reports.AdministrativeUnits", $("Reports.AdministrativeUnits")));
 	}
 
 	@Override

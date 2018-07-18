@@ -5,6 +5,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.framework.components.TabWithTable;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.ObjectProperty;
+import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -33,15 +39,8 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 // After rename CollectionSecurityManagementViewImpl
@@ -57,7 +56,9 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 
 	private final ListCollectionUserPresenter presenter;
 	private Table usersTable;
-	private Table groupsTable;
+	private TabSheet groupTabs;
+	private TabWithTable activeGroupsTab;
+	private TabWithTable inactiveGroupsTab;
 	private VerticalLayout layout;
 	private ComboBox comboboxUserRoles;
 	private ComboBox comboboxGroupRoles;
@@ -80,13 +81,28 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		Label groupsCaption = new Label($("ListCollectionUserView.groupsCaption"));
 		groupsCaption.addStyleName(ValoTheme.LABEL_H2);
-		groupsTable = buildGroupsTable();
+		activeGroupsTab = new TabWithTable("activeGroupTab") {
+			@Override
+			public Table buildTable() {
+				return buildGroupsTable(false);
+			}
+		};
+
+		inactiveGroupsTab = new TabWithTable("inactiveGroupTab") {
+			@Override
+			public Table buildTable() {
+				return buildGroupsTable(true);
+			}
+		};
+		groupTabs = new TabSheet();
+		groupTabs.addTab(activeGroupsTab.getTabLayout(), $("ListCollectionUserView.activeGroupTab"));
+		groupTabs.addTab(inactiveGroupsTab.getTabLayout(), $("ListCollectionUserView.inactiveGroupTab"));
 
 		Label usersCaption = new Label($("ListCollectionUserView.usersCaption"));
 		usersCaption.addStyleName(ValoTheme.LABEL_H2);
 		usersTable = buildUserTable();
 
-		layout = new VerticalLayout(groupsCaption, buildGroupRolesAndAdder(), groupsTable, usersCaption, buildUserRolesAndAdder(),
+		layout = new VerticalLayout(groupsCaption, buildGroupRolesAndAdder(), groupTabs, new Label(""), usersCaption, buildUserRolesAndAdder(),
 				usersTable);
 		layout.setSpacing(true);
 
@@ -205,9 +221,15 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		return layout;
 	}
 
-	private Table buildGroupsTable() {
+	private Table buildGroupsTable(boolean showInactiveGroups) {
 		GlobalGroupVODataProvider globalGroupVODataProvider = presenter.getGlobalGroupVODataProvider();
-		List<GlobalGroupVO> globalGroupsVO = globalGroupVODataProvider.listActiveGlobalGroupVOsWithUsersInCollection(getCollection());
+		List<GlobalGroupVO> globalGroupsVO;
+		if(!showInactiveGroups) {
+			globalGroupsVO = globalGroupVODataProvider.listActiveGlobalGroupVOsWithUsersInCollection(getCollection());
+		} else {
+			globalGroupsVO = globalGroupVODataProvider.listInactiveGlobalGroupVOsWithUsersInCollection(getCollection());
+		}
+
 		globalGroupVODataProvider.setGlobalGroupVOs(globalGroupsVO);
 		Container container = buildGroupContainer(globalGroupVODataProvider);
 		BaseTable table = new BaseTable("ListCollectionUserView.globalGroupsTableTitle", $("ListCollectionUserView.globalGroupsTableTitle", globalGroupVODataProvider.size()), container);
@@ -349,11 +371,13 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	@Override
 	public void refreshTable() {
 		Table newUsersTable = buildUserTable();
-		Table newGlobalGroupsTable = buildGroupsTable();
+//		Table newGlobalGroupsTable = buildGroupsTable();
 		layout.replaceComponent(usersTable, newUsersTable);
-		layout.replaceComponent(groupsTable, newGlobalGroupsTable);
+//		layout.replaceComponent(groupsTable, newGlobalGroupsTable);
+		activeGroupsTab.refreshTable();
+		inactiveGroupsTab.refreshTable();
 		usersTable = newUsersTable;
-		groupsTable = newGlobalGroupsTable;
+//		groupsTable = newGlobalGroupsTable;
 
 		cleanUserAndRoles();
 		cleanGroupsAndRoles();

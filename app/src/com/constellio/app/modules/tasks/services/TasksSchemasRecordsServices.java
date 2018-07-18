@@ -573,6 +573,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
 		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays)
 				.set(RequestTask.APPLICANT, assignerId);
 	}
@@ -580,7 +582,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	//KEEP
 	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
-				.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle)).setAssigneeUsersCandidates(assignees)
+				.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle))
+				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
@@ -590,6 +595,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ReactivationRequest.REACTIVATION_DATE, localDate);
 	}
@@ -600,6 +607,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowFolderExtensionRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedFolders(asList(folderId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ExtensionRequest.EXTENSION_VALUE, value);
 	}
@@ -610,6 +619,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedContainers(asList(containerId)).set(BorrowRequest.BORROW_DURATION, numberOfDays)
 				.set(RequestTask.APPLICANT, assignerId);
 	}
@@ -619,6 +630,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.returnContainerRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId);
 	}
 
@@ -628,6 +641,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ReactivationRequest.REACTIVATION_DATE, localDate);
 	}
@@ -638,6 +653,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowContainerExtensionRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
 				.setLinkedContainers(asList(containerId)).set(RequestTask.APPLICANT, assignerId)
 				.set(ExtensionRequest.EXTENSION_VALUE, value);
 	}
