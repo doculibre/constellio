@@ -96,11 +96,11 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			LocalDateTime creationDate = TimeProvider.getLocalDateTime();
 			emailToSend.setTo(emailAddresses);
 			emailToSend.setSendOn(creationDate);
-			final String subject = StringEscapeUtils.escapeHtml4($("RMObject.alertWhenAvailableSubject", record.getTitle()));
+			final String subject = $("RMObject.alertWhenAvailableSubject", record.getTitle());
 			emailToSend.setSubject(subject);
 			emailToSend.setTemplate(RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
 			List<String> parameters = new ArrayList<>();
-			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			parameters.add("creationDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			String rmObjectTitle = decommissioningList.getTitle();

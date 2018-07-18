@@ -159,7 +159,7 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.add(TASK_STATUS + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status)));
 		newParameters.add(TASK_STATUS_FR + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_fr)));
 		newParameters.add(TASK_STATUS_EN + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_en)));
-		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getDescription())));
+		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
 		newParameters.add(TASK_REASON + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getReason())));
 		newParameters.add(TASK_END_DATE + ":" + formatToParameter(task.getEndDate()));
 		String constellioURL = eimConfigs.getConstellioUrl();
