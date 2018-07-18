@@ -79,7 +79,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	void execute(List<Record> batch, List<String> errors) {
 		Transaction transaction = null;
 		try {
-			transaction = action.execute(batch, metadataSchemaTypes, new RecordProvider(recordServices), modelLayerFactory);
+			transaction = action.execute(batch, user, metadataSchemaTypes, new RecordProvider(recordServices), modelLayerFactory);
 
 		} catch (Throwable t) {
 			if (report != null) {

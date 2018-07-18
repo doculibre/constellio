@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.Record;
 import  com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.HashMap;
@@ -39,8 +40,7 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
         Map<String, Object> modifiedMetadatas = new HashMap<>();
         MetadataSchemaTypes metadataSchemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
-
-        if(Folder.SCHEMA_TYPE.equals(record.getSchemaCode().substring(0, record.getSchemaCode().indexOf("_")))) {
+        if(record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
             recordServices.recalculate(record);
             Folder folder = rmSchemasRecordsServices.wrapFolder(record);
 
@@ -119,16 +119,14 @@ public class RMBatchProcessingSpecialCaseExtension extends BatchProcessingSpecia
             }
         }
 
-        return modifiedMetadatas;
-    }
-
-    private boolean isValidDelai(List<CopyRetentionRule> copyRetentionRules, String id) {
-        for(CopyRetentionRule copyRetentionRule : copyRetentionRules) {
-            if(copyRetentionRule.equals(id)) {
-                return true;
-            }
+        MetadataSchema schema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+        if(schema.hasMetadataWithCode(RMObject.FORM_MODIFIED_ON)) {
+            record.set(schema.get(RMObject.FORM_MODIFIED_ON), LocalDateTime.now());
+            record.set(schema.get(RMObject.FORM_MODIFIED_BY), batchProcessingSpecialCaseParams.getUser());
+            modifiedMetadatas.put(record.getSchemaCode() + "_" + Folder.FORM_MODIFIED_ON, LocalDateTime.now());
+            modifiedMetadatas.put(record.getSchemaCode() + "_" + Folder.FORM_MODIFIED_BY, batchProcessingSpecialCaseParams.getUser());
         }
 
-        return false;
+        return modifiedMetadatas;
     }
 }
