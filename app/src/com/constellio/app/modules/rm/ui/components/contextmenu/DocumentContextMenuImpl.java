@@ -31,6 +31,7 @@ import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogConte
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -47,7 +48,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
-	
+
 	private boolean visible;
 	private RecordVO recordVO;
 	private ContentVersionVO contentVersionVO;
@@ -84,7 +85,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			presenter.setRecordVO(documentVO);
 		}
 	}
-	
+
 	protected DocumentContextMenuPresenter newPresenter() {
 		return new DocumentContextMenuPresenter(this);
 	}
@@ -496,5 +497,5 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			}
 		}
 	}
-	
+
 }

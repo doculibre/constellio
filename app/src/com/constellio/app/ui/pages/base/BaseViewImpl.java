@@ -467,4 +467,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected boolean isBreadcrumbsVisible(){
 		return true;
 	}
+	
+	@Override
+	public MainLayout getMainLayout() {
+		return ConstellioUI.getCurrent().getMainLayout();
+	}
+	
 }

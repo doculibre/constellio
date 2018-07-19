@@ -88,10 +88,13 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private EnumWithSmallCodeComboBox defaultPageLength;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
-	@PropertyId("defaultAdministrativeUnit")
-	private Field defaultAdministrativeUnitField;
 	@PropertyId("agentManuallyDisabled")
 	private CheckBox agentManuallyDisabledField;
+    //TODO RM Module Extension
+	@PropertyId("defaultAdministrativeUnit")
+	private Field defaultAdministrativeUnitField;
+	@PropertyId("hideNotActive")
+	private Field hideNotActiveField;
 
 	private boolean agentManuallyDisabledVisible;
 
@@ -345,10 +348,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		if(presenter.isRMModuleActivated()) {
 			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true, false);
 			defaultAdministrativeUnitField.setCaption($("ModifyProfileView.defaultAdministrativeUnit"));
+
+			hideNotActiveField = new CheckBox($("ModifyProfileView.hideNotActive"));
 		} else {
 			defaultAdministrativeUnitField = new TextField();
 			defaultAdministrativeUnitField.setVisible(false);
 			defaultAdministrativeUnitField.setEnabled(false);
+
+			hideNotActiveField = new TextField();
+			hideNotActiveField.setVisible(false);
+			hideNotActiveField.setEnabled(false);
 		}
 
 		agentManuallyDisabledField = new CheckBox($("ModifyProfileView.agentManuallyDisabled"));
@@ -358,7 +367,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
         form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
                 phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-                taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField) {
+                taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField, hideNotActiveField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {

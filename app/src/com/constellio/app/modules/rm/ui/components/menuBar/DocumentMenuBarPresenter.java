@@ -1,9 +1,16 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemsParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -13,9 +20,12 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
-	
+
 	private DocumentMenuBar menuBar;
 
 	public DocumentMenuBarPresenter(DocumentMenuBar menuBar) {

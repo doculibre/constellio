@@ -50,6 +50,7 @@ public class Task extends RecordWrapper {
 	public static final String LINKED_CONTAINERS = "linkedContainers";
 	public static final String REASON = "reason";
 	public static final String STARRED_BY_USERS = "starredByUsers";
+	public static final String READ_BY_USER = "readByUser";
 
 	/**
 	 * Fields used by second and third version of the workflow feature
@@ -402,11 +403,20 @@ public class Task extends RecordWrapper {
 		return get(QUESTION);
 	}
 
-	public static boolean isExpressionLanguage(String decision) {
-		String value = StringUtils.trimToEmpty(decision);
+	public static boolean isExpressionLanguage(String text) {
+		String value = StringUtils.trimToEmpty(text);
 		if (StringUtils.startsWith(value, "${") && StringUtils.endsWith(value, "}")) {
 			return true;
 		}
 		return false;
+	}
+
+	public Boolean getReadByUser() {
+		return get(READ_BY_USER);
+	}
+
+	public Task setReadByUser(Boolean readByUser) {
+		set(READ_BY_USER, readByUser);
+		return this;
 	}
 }

@@ -1,12 +1,6 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
@@ -18,8 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -64,6 +62,8 @@ import com.vaadin.ui.Component;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
+	public static final String TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB = "TaskManagementPresenterPreviousTab";
+
 	public static final String TASKS_ASSIGNED_BY_CURRENT_USER = "tasksAssignedByCurrentUser";
 	public static final String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
 	public static final String TASKS_ASSIGNED_TO_CURRENT_USER = "tasksAssignedToCurrentUser";
@@ -170,7 +170,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void deleteButtonClicked(RecordVO record) {
 		taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
-		view.reloadCurrentTab();
+		refreshCurrentTab();
 	}
 
 	@Override
@@ -212,6 +212,34 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		String closed = task.getStatus();
 		boolean isNotEditable = !getFinishedOrClosedStatuses().contains(closed);
 		return isNotEditable && taskPresenterServices.isEditTaskButtonVisible(record, getCurrentUser());
+	}
+
+	@Override
+	public boolean isReadByUser(RecordVO recordVO) {
+		return taskPresenterServices.isReadByUser(toRecord(recordVO));
+	}
+
+	@Override
+	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
+		try {
+			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
+			refreshCurrentTab();
+			view.getMainLayout().getMenu().refreshBadges();
+		} catch (RecordServicesException e) {
+			view.showErrorMessage(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public String getPreviousSelectedTab() {
+		String attribute = ConstellioUI.getCurrentSessionContext().getAttribute(TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB);
+		ConstellioUI.getCurrentSessionContext().setAttribute(TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, null);
+
+		return attribute;
+	}
+
+	public void registerPreviousSelectedTab() {
+		ConstellioUI.getCurrentSessionContext().setAttribute(TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
 	}
 
 	@Override
@@ -386,13 +414,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private List<String> getMetadataForTab(String tabId) {
 		switch (tabId) {
 		case TASKS_ASSIGNED_TO_CURRENT_USER:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNER, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNER, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
 		case TASKS_ASSIGNED_BY_CURRENT_USER:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNEE, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNEE, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
 		case TASKS_NOT_ASSIGNED:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
 		default:
-			return Arrays.asList(STARRED_BY_USERS, TITLE, ASSIGNER, ASSIGNEE, DUE_DATE, STATUS);
+			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNER, Task.DEFAULT_SCHEMA+"_"+END_DATE);
 		}
 	}
 
@@ -446,12 +474,17 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
 		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty() && task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
-				|| tasksSchemas.isRequestTask(task)) {
+				|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
-			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-			refreshCurrentTab();
+			try {
+				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, task.getDecision(), null, null, null);
+				refreshCurrentTab();
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				view.showErrorMessage(e.getMessage());
+			}
 		}
 	}
 

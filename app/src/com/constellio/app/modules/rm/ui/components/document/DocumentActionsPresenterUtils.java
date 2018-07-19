@@ -17,6 +17,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
+import org.apache.commons.lang.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -24,6 +28,8 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemsParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -929,5 +935,89 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 		String clicks = defaultIfBlank(url, documentVO.getId());
 		searchEventServices.updateClicks(searchEvent, clicks);
+	}
+
+	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
+
+		final String collection = presenterUtils.getCollection();
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		final Record record = currentDocument();
+
+		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemsParams() {
+
+			@Override
+			public Document getDocument() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				return rm.wrapDocument(record);
+			}
+
+			@Override
+			public RecordVO getRecordVO() {
+				return documentVO;
+			}
+
+			@Override
+			public BaseViewImpl getView() {
+				return view;
+			}
+
+			@Override
+			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
+
+				MenuItem workflowItem = rootItem.addItem(caption, icon, null);
+				workflowItem.setCommand(new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						runnable.run();
+					}
+				});
+			}
+		});
+	}
+
+	public void addItemsFromExtensions(final BaseContextMenu menu, final BaseViewImpl view) {
+
+		final String collection = presenterUtils.getCollection();
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		final Record record = currentDocument();
+
+		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemsParams() {
+
+			@Override
+			public Document getDocument() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				return rm.wrapDocument(record);
+			}
+
+			@Override
+			public RecordVO getRecordVO() {
+				return documentVO;
+			}
+
+			@Override
+			public BaseViewImpl getView() {
+				return view;
+			}
+
+			@Override
+			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
+
+				ContextMenuItem workflowItem = menu.addItem(caption, icon);
+				workflowItem.addItemClickListener(new ContextMenuItemClickListener() {
+					@Override
+					public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
+						runnable.run();
+					}
+				});
+			}
+		});
 	}
 }

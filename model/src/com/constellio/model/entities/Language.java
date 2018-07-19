@@ -69,7 +69,11 @@ public enum Language {
 	}
 
 	public static Language withLocale(Locale locale) {
-		return withCode(locale.getLanguage());
+		if (locale != null) {
+			return withCode(locale.getLanguage());
+		} else {
+			return French;
+		}
 	}
 
 	public static Language withCode(String code) {

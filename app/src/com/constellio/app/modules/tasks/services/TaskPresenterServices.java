@@ -11,6 +11,9 @@ import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -26,6 +29,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +39,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -179,6 +186,18 @@ public class TaskPresenterServices {
 	boolean wasCreatedByUser(Record record, User user) {
 		Task task = tasksSchemas.wrapTask(record);
 		return task.getCreatedBy() != null && task.getCreatedBy().equals(user.getId());
+	}
+
+	public boolean isReadByUser(Record record) {
+		Task task = tasksSchemas.wrapTask(record);
+		return BooleanUtils.isTrue(task.getReadByUser());
+	}
+
+	public void setReadByUser(Record record, boolean readByUser) throws RecordServicesException {
+		Task task = tasksSchemas.wrapTask(record);
+		task.setReadByUser(readByUser);
+
+		recordServices.update(task.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setSkipUSRMetadatasRequirementValidations(true));
 	}
 
 	public void sendReminder(Record record, User user) {

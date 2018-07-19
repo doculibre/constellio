@@ -17,5 +17,7 @@ public interface ConstellioMenu extends Serializable {
 	ConstellioFactories getConstellioFactories();
 
 	void setLocale(Locale locale);
+	
+	void refreshBadges();
 
 }

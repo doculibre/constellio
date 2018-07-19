@@ -76,6 +76,7 @@ import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.extensions.treenode.TreeNodeExtension;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -97,6 +98,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 
 public class AppLayerCollectionExtensions {
 
@@ -147,6 +149,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -632,6 +636,16 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return getDefaultDisplayForReference(id);
+	}
+
+	public Field<?> getFieldForMetadata(MetadataVO metadataVO) {
+		for(MetadataFieldExtension extension: metadataFieldExtensions) {
+			Field<?> component = extension.getMetadataField(metadataVO);
+			if(component != null) {
+				return component;
+			}
+		}
+		return new MetadataFieldFactory().build(metadataVO);
 	}
 
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {

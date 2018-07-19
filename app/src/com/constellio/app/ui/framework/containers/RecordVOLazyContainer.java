@@ -7,6 +7,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.constellio.app.ui.framework.data.RecordVOFilter;
+import com.vaadin.data.Container;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.Transformer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.Query;
@@ -205,6 +210,19 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 
 		@Override
 		public Query constructQuery(final QueryDefinition queryDefinition) {
+			List<RecordVOFilter> filters = new ArrayList<>();
+			for(Filter filter: CollectionUtils.emptyIfNull(queryDefinition.getFilters())) {
+				if(filter instanceof RecordVOFilter) {
+					filters.add((RecordVOFilter) filter);
+				}
+			}
+
+			if (!filters.isEmpty()) {
+				for (RecordVODataProvider dataProvider : dataProviders) {
+                    dataProvider.setFilters(filters);
+                }
+			}
+
 			Object[] sortPropertyIds = queryDefinition.getSortPropertyIds();
 			if (sortPropertyIds != null && sortPropertyIds.length > 0) {
 				List<MetadataVO> sortMetadatas = new ArrayList<MetadataVO>();

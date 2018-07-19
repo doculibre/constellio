@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.vaadin.ui.Field;
 
 /**
  * Implemented:
@@ -19,6 +20,8 @@ public interface TaskForm extends Serializable {
 	SessionContext getSessionContext();
 
 	CustomTaskField<?> getCustomField(String metadataCode);
+
+	Field<?> getField(String metadataCode);
 
 	void reload();
 

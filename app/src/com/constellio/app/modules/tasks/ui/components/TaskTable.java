@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.vaadin.data.Item;
+import com.vaadin.event.ItemClickEvent;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -53,6 +55,27 @@ public class TaskTable extends RecordVOTable {
 		setCellStyleGenerator(new TaskStyleGenerator());
 		setPageLength(Math.min(15, provider.size()));
 		setWidth("100%");
+
+		addDisplayOnClickListener();
+	}
+
+	protected void addDisplayOnClickListener() {
+		this.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Item item = event.getItem();
+				RecordVO recordVO = null;
+				if (item instanceof RecordVO) {
+					recordVO = (RecordVO) item;
+				} else if (item instanceof RecordVOItem) {
+					recordVO = ((RecordVOItem) item).getRecord();
+				}
+
+				if(recordVO != null) {
+					displayTask(recordVO);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -76,7 +99,7 @@ public class TaskTable extends RecordVOTable {
 				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.displayButtonClicked(recordVO);
+						displayTask(recordVO);
 					}
 				});
 				
@@ -84,11 +107,26 @@ public class TaskTable extends RecordVOTable {
 					rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							presenter.editButtonClicked(recordVO);
+							editTask(recordVO);
 						}
 					});
 				}
 
+				if (presenter.isReadByUser(recordVO)) {
+					rootItem.addItem($("TaskTable.markAsUnread"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, false);
+						}
+					});
+				} else {
+					rootItem.addItem($("TaskTable.markAsRead"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, true);
+						}
+					});
+				}
 
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
 
@@ -163,6 +201,18 @@ public class TaskTable extends RecordVOTable {
 		return records;
 	}
 
+	private void editTask(RecordVO recordVO) {
+		presenter.setReadByUser(recordVO, true);
+		presenter.registerPreviousSelectedTab();
+		presenter.editButtonClicked(recordVO);
+	}
+
+	private void displayTask(RecordVO recordVO) {
+		presenter.setReadByUser(recordVO, true);
+		presenter.registerPreviousSelectedTab();
+		presenter.displayButtonClicked(recordVO);
+	}
+
 	@Override
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 		if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
@@ -204,6 +254,10 @@ public class TaskTable extends RecordVOTable {
 
 		boolean isEditButtonEnabled(RecordVO recordVO);
 
+		boolean isReadByUser(RecordVO recordVO);
+
+		void setReadByUser(RecordVO recordVO, boolean readByUser);
+
 		boolean isCompleteButtonEnabled(RecordVO recordVO);
 
 		boolean isCloseButtonEnabled(RecordVO recordVO);
@@ -216,7 +270,7 @@ public class TaskTable extends RecordVOTable {
 
 		void completeQuicklyButtonClicked(RecordVO recordVO);
 
-		public BaseView getView();
+		BaseView getView();
 
 		void reloadTaskModified(Task task);
 
@@ -224,6 +278,7 @@ public class TaskTable extends RecordVOTable {
 
 		void updateTaskStarred(boolean isStarred, String taskId);
 
+		void registerPreviousSelectedTab();
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
@@ -233,7 +288,15 @@ public class TaskTable extends RecordVOTable {
 		@Override
 		public String getStyle(Table source, Object itemId, Object propertyId) {
 			String style;
-			if (!isDueDateColumn(propertyId)) {
+			if(isTitleColumn(propertyId)) {
+				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
+				if(!presenter.isReadByUser(item.getRecord())) {
+					// TODO Rendre gras le texte plutôt que le fond
+					style = OVER_DUE_TASK_STYLE;
+				} else {
+					style = null;
+				}
+			} else if (!isDueDateColumn(propertyId)) {
 				style = null;
 			} else {
 				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
@@ -247,6 +310,14 @@ public class TaskTable extends RecordVOTable {
 				}
 			}
 			return style;
+		}
+
+		private boolean isTitleColumn(Object propertyId) {
+			if (!(propertyId instanceof MetadataVO)) {
+				return false;
+			}
+			MetadataVO metadata = (MetadataVO) propertyId;
+			return Task.TITLE.equals(MetadataVO.getCodeWithoutPrefix(metadata.getCode()));
 		}
 
 		private boolean isDueDateColumn(Object propertyId) {

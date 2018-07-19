@@ -61,7 +61,10 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		recordDisplayLayout.setSpacing(true);
 		recordDisplay = new RecordDisplay(currentTask, new TaskDisplayFactory());
 		recordDisplayLayout.addComponent(recordDisplay);
+		recordDisplayLayout.setId(RECORD_DISPLAY_LAYOUT_ID);
+
 		subTasks = new CustomComponent();
+		subTasks.setId(SUB_TASKS_ID);
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
@@ -88,6 +91,11 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		verticalLayout.addComponent(tabSheet);
 		presenter.selectInitialTabForUser();
 		return verticalLayout;
+	}
+
+	@Override
+	public Component getSelectedTab() {
+		return tabSheet.getSelectedTab();
 	}
 
 	@Override

@@ -1,7 +1,11 @@
 package com.constellio.app.modules.rm.extensions.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemsParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.services.factories.AppLayerFactory;
 
@@ -17,6 +21,11 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private List<DocumentExtension> documentExtensions;
 	private List<FolderExtension> folderExtensions;
 	private List<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
+	RMReportBuilderFactories rmReportBuilderFactories;
+
+	DecommissioningListFolderTableExtension decommissioningListFolderTableExtension;
+
+	public List<DocumentExtension> documentExtensions = new ArrayList<>();
 
 	public RMModuleExtensions(AppLayerFactory appLayerFactory) {
 		rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
@@ -65,4 +74,11 @@ public class RMModuleExtensions implements ModuleExtensions {
     public List<AdvancedSearchPresenterExtension> getAdvancedSearchPresenterExtensions() {
 		return advancedSearchPresenterExtensions;
 	}
+
+	public void addMenuBarButtons(DocumentExtensionAddMenuItemsParams params) {
+		for (DocumentExtension documentExtension : documentExtensions) {
+			documentExtension.addMenuItems(params);
+		}
+	}
+
 }

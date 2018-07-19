@@ -5,8 +5,12 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
 import com.constellio.app.modules.tasks.ui.components.fields.list.*;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
 
 import java.util.List;
@@ -14,10 +18,18 @@ import java.util.Locale;
 
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
 
 	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
+	public static final String ASSIGNEE_GROUPS_CANDIDATES = "assigneeGroupsCandidates";
+	public static final String ASSIGNEE_USERS_CANDIDATES = "assigneeUsersCandidates";
+	public static final String ASSIGNATION_MODES = "assignationModes";
+	public static final String INSTANCE_WORKFLOW = "linkedWorkflowExecution";
+	public static final String ASSIGNER = "assigner";
 
 	private List<String> unavailablesTaskTypes;
 
@@ -82,6 +94,28 @@ public class TaskFieldFactory extends MetadataFieldFactory {
         	break;
 		case REMINDER_FREQUENCY:
 			field = new TaskReminderFrequencyFieldImpl();
+			break;
+		case ASSIGNEE_GROUPS_CANDIDATES:
+			field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
+			postBuild(field, metadata);
+			break;
+		case ASSIGNEE_USERS_CANDIDATES:
+			field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
+			postBuild(field, metadata);
+			break;
+		case ASSIGNER:
+			field = new LookupRecordField(User.SCHEMA_TYPE);
+			postBuild(field, metadata);
+			break;
+		case ASSIGNATION_MODES:
+			field = new TaskAssignationEnumField(metadata.getEnumClass());
+			postBuild(field, metadata);
+			break;
+		case INSTANCE_WORKFLOW:
+			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			String currentCollection = metadata.getCollection();
+			field = appLayerFactory.getExtensions().forCollection(currentCollection).getFieldForMetadata(metadata);
+			postBuild(field, metadata);
 			break;
 		default:
 			field = super.build(metadata, locale);

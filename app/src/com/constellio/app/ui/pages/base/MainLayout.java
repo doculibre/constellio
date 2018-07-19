@@ -13,5 +13,8 @@ public interface MainLayout extends Serializable {
 
 	Navigation navigate();
 
-	ConstellioHeaderImpl getHeader();
+	ConstellioHeader getHeader();
+	
+	ConstellioMenu getMenu();
+	
 }

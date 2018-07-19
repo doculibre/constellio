@@ -12724,16 +12724,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-error {
-	color: #FFFFFF;
-	background-color: #F5A9A9;
-	background: #F5A9A9;
-	background: -moz-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #F5A9A9), color-stop(100%, #d65353));
-	background: -webkit-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: -o-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: -ms-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: linear, to bottom, #F5A9A9 0%, #d65353 100%;
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F5A9A9', endColorstr='#d65353',GradientType=0 );
+	color: red;
+	font-weight: bold;
 }
 
 .constellio .v-table-cell-content-disabled {
@@ -12876,6 +12868,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-suggestmenu .gwt-MenuItem span {
 	padding-left: 10px;
+}
+
+.constellio .filters-panel .v-filterselect {
+	height: 23px;
 }
 
 .constellio .autocomplete-error .v-filterselect-input, .constellio .lookup-error .v-filterselect-input {

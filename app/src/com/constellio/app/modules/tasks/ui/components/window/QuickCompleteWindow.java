@@ -11,21 +11,24 @@ import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.joda.time.LocalDate;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -67,11 +70,47 @@ public class QuickCompleteWindow {
         Field acceptedField = buildAcceptedField(task, recordVO, fieldFactory, fieldLayout);
         Field reasonField = buildReasonField(task, recordVO, fieldFactory, fieldLayout);
 
+        Map<MetadataVO, Field> fields = buildUncompletedRequiredField(recordVO, fieldFactory, fieldLayout);
+
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
-        buttonLayout.addComponents(buildCancelButton(), buildSaveButton(task, fieldLayout, decisionField, acceptedField, reasonField));
+        buttonLayout.addComponents(buildCancelButton(), buildSaveButton(task, fieldLayout, decisionField, acceptedField, reasonField, fields));
         mainLayout.addComponents(fieldLayout, buttonLayout);
         return mainLayout;
+    }
+
+    private Map<MetadataVO, Field> buildUncompletedRequiredField(RecordVO recordVO, TaskFieldFactory fieldFactory, VerticalLayout fieldLayout) {
+        Map<MetadataVO, Field> fields = new HashMap<>();
+        List<MetadataValueVO> formMetadataValues = recordVO.getFormMetadataValues();
+        for(MetadataValueVO metadataValueVO: CollectionUtils.emptyIfNull(formMetadataValues)) {
+            MetadataVO m = metadataValueVO.getMetadata();
+
+            if(m.isRequired() && m.isEnabled() && m.getDefaultValue() == null && metadataValueVO.getValue() == null) {
+                Field<?> field = fieldFactory.build(m);
+
+                fieldLayout.addComponent(field);
+
+                fields.put(m, field);
+            }
+        }
+
+        return fields;
+    }
+
+    private void updateUncompletedRequiredField(Task task, Map<MetadataVO, Field> fields) {
+        MetadataSchema taskSchema = task.getSchema();
+        Record record = task.getWrappedRecord();
+
+        for(Map.Entry<MetadataVO, Field> entry: MapUtils.emptyIfNull(fields).entrySet()) {
+            MetadataVO m = entry.getKey();
+            Field field= entry.getValue();
+
+            Object value = field.getValue();
+            if(value instanceof Date) {
+                value = LocalDate.fromDateFields((Date) value);
+            }
+            record.set(taskSchema.getMetadata(m.getCode()), value);
+        }
     }
 
     private Field buildDecisionField(Task task, RecordVO recordVO, TaskFieldFactory fieldFactory, VerticalLayout fieldLayout) {
@@ -143,7 +182,7 @@ public class QuickCompleteWindow {
         return cancelButton;
     }
 
-    private Button buildSaveButton(final Task task, final VerticalLayout fieldLayout, final Field decisionField, final Field acceptedField, final Field reasonField) {
+    private Button buildSaveButton(final Task task, final VerticalLayout fieldLayout, final Field decisionField, final Field acceptedField, final Field reasonField, final Map<MetadataVO, Field> fields) {
         final Button saveButton = new Button($("save"));
         saveButton.addClickListener(new Button.ClickListener() {
             @Override
@@ -166,6 +205,7 @@ public class QuickCompleteWindow {
                 }
 
                 if(errors.isEmpty()) {
+                    updateUncompletedRequiredField(task, fields);
                     completeQuicklyButtonClicked(task,
                             decisionField == null? null: (String) decisionField.getValue(),
                             acceptedField == null? null: (Boolean) acceptedField.getValue(),
@@ -188,12 +228,22 @@ public class QuickCompleteWindow {
     }
 
     private void completeQuicklyButtonClicked(Task task, String decision, Boolean accepted, String reason) {
-        quickCompleteTask(appLayerFactory, task, decision, accepted, reason, view.getSessionContext().getCurrentUser().getId());
+        try {
+            quickCompleteTask(appLayerFactory, task, decision, accepted, reason, view.getSessionContext().getCurrentUser().getId());
+        } catch (RecordServicesException e) {
+            e.printStackTrace();
+            view.showErrorMessage(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            view.showErrorMessage(e.getMessage());
+            throw new RuntimeException();
+        }
+
         presenter.reloadTaskModified(task);
     }
 
     static public void quickCompleteTask(AppLayerFactory appLayerFactory, Task task,
-                                         String decision, Boolean accepted, String reason, String respondantId) {
+                                         String decision, Boolean accepted, String reason, String respondantId) throws RecordServicesException {
         TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(task.getCollection(), appLayerFactory);
         TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemas);
         TaskStatus finishedStatus = tasksSearchServices
@@ -208,14 +258,21 @@ public class QuickCompleteWindow {
         }
 
         task.setDecision(decision);
-        try {
-            appLayerFactory.getModelLayerFactory().newRecordServices().update(task);
-        } catch (RecordServicesException e) {
-            e.printStackTrace();
-        }
+        appLayerFactory.getModelLayerFactory().newRecordServices().update(task);
     }
 
     public void show() {
         ConstellioUI.getCurrent().addWindow(floatingWindow);
+    }
+
+    public static boolean hasRequiredFieldUncompleted(RecordVO task) {
+        List<MetadataValueVO> formMetadataValues = task.getFormMetadataValues();
+        for(MetadataValueVO metadataValueVO: CollectionUtils.emptyIfNull(formMetadataValues)) {
+            MetadataVO m = metadataValueVO.getMetadata();
+            if(m.isRequired() && m.isEnabled() && m.getDefaultValue() == null && metadataValueVO.getValue() == null) {
+                return true;
+            }
+        }
+        return false;
     }
 }

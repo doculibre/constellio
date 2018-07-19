@@ -18,6 +18,8 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 	String getIcon();
 
 	int getOrderValue();
+	
+	String getBadge(User user, AppLayerFactory appLayerFactory);
 
 	Class<? extends MenuViewGroup> getViewGroup();
 
@@ -34,6 +36,11 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		@Override
 		public int getOrderValue() {
 			return 999;
+		}
+
+		@Override
+		public String getBadge(User user, AppLayerFactory appLayerFactory) {
+			return null;
 		}
 	}
 

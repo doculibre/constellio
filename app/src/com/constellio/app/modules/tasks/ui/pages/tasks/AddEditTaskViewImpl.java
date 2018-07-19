@@ -8,6 +8,7 @@ import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -123,6 +124,13 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 					}
 				});
 			}
+
+			field.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.fieldValueChanged(field);
+				}
+			});
 		}
 
 		return recordForm;

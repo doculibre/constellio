@@ -11,6 +11,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,11 +165,30 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	protected LogicalSearchCondition getSearchCondition() {
+		LogicalSearchCondition logicalSearchCondition;
 		if (allowedSchemaTypes().isEmpty()) {
-			return fromAllSchemasIn(view.getCollection()).returnAll();
+			logicalSearchCondition = fromAllSchemasIn(view.getCollection()).returnAll();
 		} else {
-			return from(allowedSchemaTypes()).returnAll();
+			logicalSearchCondition = from(allowedSchemaTypes()).returnAll();
 		}
+		//TODO RM Module extension
+		if (isRMModuleActivated()) {
+			User user = getCurrentUser();
+			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
+				List<String> notActiveCodes = new ArrayList<>();
+				notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
+
+				MetadataSchema folderSchema = schema(Folder.DEFAULT_SCHEMA);
+				logicalSearchCondition = logicalSearchCondition.andWhere(folderSchema.getMetadata(Folder.ARCHIVISTIC_STATUS)).isNotIn(notActiveCodes);
+			}
+		}
+		return logicalSearchCondition;
+	}
+
+	private boolean isRMModuleActivated() {
+		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
 	@Override

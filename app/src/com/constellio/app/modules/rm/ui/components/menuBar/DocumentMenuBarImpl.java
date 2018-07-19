@@ -30,6 +30,7 @@ import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -45,7 +46,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 
 public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
-	
+
 	private boolean visible = true;
 	private RecordVO recordVO;
 	private ContentVersionVO contentVersionVO;
@@ -78,7 +79,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			presenter.setRecordVO(documentVO);
 		}
 	}
-	
+
 	protected DocumentMenuBarPresenter newPresenter() {
 		return new DocumentMenuBarPresenter(this);
 	}
@@ -93,14 +94,14 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 		this.visible = visible;
 	}
-	
+
 	@Override
 	public void buildMenuItems() {
 		removeItems();
 
 		MenuItem rootItem = addItem("", FontAwesome.BARS, null);
 		rootItem.setIcon(FontAwesome.BARS);
-		
+
 		if (StringUtils.isNotBlank(borrowedMessage)) {
 			rootItem.addItem(borrowedMessage, null);
 		}

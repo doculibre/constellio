@@ -300,6 +300,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		public Metadata betaWorkflowTaskSort() {
 			return metadata("workflowTaskSort");
 		}
+
+		public Metadata readByUser() {
+			return metadata("readByUser");
+		}
 	}
 
 	public BetaWorkflowTask wrapBetaWorkflowTask(Record record) {

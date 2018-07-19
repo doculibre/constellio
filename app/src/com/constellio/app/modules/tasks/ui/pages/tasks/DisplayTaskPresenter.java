@@ -21,6 +21,7 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -42,6 +43,8 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
+	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
+
 	TaskVO taskVO;
 	private RecordVODataProvider subTaskDataProvider;
 	private RecordVODataProvider eventsDataProvider;
@@ -82,6 +85,17 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		tasksSearchServices = new TasksSearchServices(tasksSchemas);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices(), tasksSearchServices, loggingServices);
+	}
+
+	public String getPreviousSelectedTab() {
+		String attribute = ConstellioUI.getCurrentSessionContext().getAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB);
+		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, null);
+
+		return attribute;
+	}
+
+	public void registerPreviousSelectedTab() {
+		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
 	}
 
 	public RecordVO getTask() {
@@ -165,6 +179,23 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public boolean isEditButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isEditTaskButtonVisible(toRecord(recordVO), getCurrentUser());
+	}
+
+	@Override
+	public boolean isReadByUser(RecordVO recordVO) {
+		return taskPresenterServices.isReadByUser(toRecord(recordVO));
+	}
+
+	@Override
+	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
+		try {
+			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
+			reloadCurrentTask();
+			view.getMainLayout().getMenu().refreshBadges();
+		} catch (RecordServicesException e) {
+			view.showErrorMessage(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -280,8 +311,13 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
-			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-			reloadCurrentTask();
+			try {
+				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
+				reloadCurrentTask();
+			} catch (RecordServicesException e) {
+				view.showErrorMessage(e.getMessage());
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -333,7 +369,12 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void selectInitialTabForUser() {
-		view.selectMetadataTab();
+		String previousSelectedTab = getPreviousSelectedTab();
+		if(previousSelectedTab != null && DisplayTaskView.SUB_TASKS_ID.equals(previousSelectedTab)) {
+			view.selectTasksTab();
+		} else {
+			view.selectMetadataTab();
+		}
 	}
 
 	public void viewAssembled() {

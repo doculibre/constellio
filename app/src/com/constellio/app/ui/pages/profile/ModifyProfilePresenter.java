@@ -84,6 +84,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
         if(isRMModuleActivated()) {
             user.set(RMUser.DEFAULT_ADMINISTRATIVE_UNIT, profileVO.getDefaultAdministrativeUnit());
+            user.set(RMUser.HIDE_NOT_ACTIVE, profileVO.isHideNotActive());
         }
 
         try {
@@ -158,12 +159,17 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         String address = user.getAddress();
         String loginLanguage = user.getLoginLanguageCode();
         String defaultAdministrativeUnit = null;
+        boolean hideNotActive = false;
         if(isRMModuleActivated()) {
             defaultAdministrativeUnit = user.get(RMUser.DEFAULT_ADMINISTRATIVE_UNIT);
             try {
                 recordServices().getDocumentById(defaultAdministrativeUnit);
             } catch (Exception e) {
                 defaultAdministrativeUnit = null;
+            }
+            Boolean hideNotActiveUserParam = user.get(RMUser.HIDE_NOT_ACTIVE);
+            if (Boolean.TRUE.equals(hideNotActiveUserParam)) {
+                hideNotActive = true;
             }
         }
         if (loginLanguage == null || loginLanguage.isEmpty()) {
@@ -210,20 +216,20 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
         SearchPageLength defaultPageLength = user.getDefaultPageLength();
 
         ProfileVO profileVO = newProfileVO(username, firstName, lastName, email, personalEmails, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
-                defaultTaxonomy, agentManuallyDisabled, defaultAdministrativeUnit, defaultPageLength);
+                defaultTaxonomy, agentManuallyDisabled, hideNotActive, defaultAdministrativeUnit, defaultPageLength);
         profileVO.setLoginLanguageCode(loginLanguage);
         return profileVO;
     }
 
     ProfileVO newProfileVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
-                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled, String defaultAdministrativeUnit, SearchPageLength defaultPageLength) {
+                           String fax, String jobTitle, String address, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, boolean agentManuallyDisabled, boolean hideNotActive, String defaultAdministrativeUnit, SearchPageLength defaultPageLength) {
         String personalEmailsPresentation = null;
         if (!CollectionUtils.isEmpty(personalEmails)) {
             personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
         }
 
         return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, fax, jobTitle, address, startTab, defaultTabInFolderDisplay,
-                defaultTaxonomy, defaultPageLength, null, null, null, agentManuallyDisabled, defaultAdministrativeUnit);
+                defaultTaxonomy, defaultPageLength, null, null, null, agentManuallyDisabled, hideNotActive, defaultAdministrativeUnit);
     }
 
     public void cancelButtonClicked() {

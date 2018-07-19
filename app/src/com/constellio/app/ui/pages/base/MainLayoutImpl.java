@@ -25,6 +25,7 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -57,7 +58,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private CssLayout contentFooterWrapperLayout;
 	private VerticalLayout contentFooterLayout;
 	private ConstellioHeaderImpl header;
-	private Component mainMenu;
+	private ConstellioMenuImpl mainMenu;
 	private SingleComponentContainer contentViewWrapper;
 	private DragAndDropWrapper dragAndDropWrapper;
 	private UserDocumentsWindow userDocumentsWindow;
@@ -166,7 +167,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return new ConstellioHeaderImpl();
 	}
 
-	protected Component buildMainMenu() {
+	protected ConstellioMenuImpl buildMainMenu() {
 		ConstellioMenuImpl mainMenu = new ConstellioMenuImpl() {
 			@Override
 			protected List<ConstellioMenuButton> buildMainMenuButtons() {
@@ -242,7 +243,12 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				item.activate(navigate());
 			}
 		});
-		return new ConstellioMenuButton(item.getViewGroup(), button);
+		return new ConstellioMenuButton(item.getViewGroup(), button) {
+			@Override
+			public String getBadge() {
+				return presenter.getBadge(item);
+			}
+		};
 	}
 
 	@Override
@@ -258,6 +264,11 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	@Override
 	public ConstellioHeaderImpl getHeader() {
 		return header;
+	}
+
+	@Override
+	public ConstellioMenu getMenu() {
+		return mainMenu;
 	}
 
 }
