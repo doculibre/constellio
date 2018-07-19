@@ -7,7 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Locale;
 
+import com.constellio.model.conf.ModelLayerConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -34,6 +36,9 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	MockedFactories factories = new MockedFactories();
 
 	@Mock
+	ModelLayerConfiguration modelLayerConfiguration;
+
+	@Mock
 	DecommissioningBuilderPresenter presenter;
 	@Mock
 	private ConstellioEIMConfigs mockedConfigs;
@@ -52,6 +57,8 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		when(factories.getModelLayerFactory().getSystemConfigs()).thenReturn(mockedConfigs);
 		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
 		when(factories.getAppLayerFactory().getModulesManager()).thenReturn(modulesManager);
+		when(factories.getModelLayerFactory().getConfiguration()).thenReturn(modelLayerConfiguration);
+		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn(Locale.FRENCH.getLanguage());
 
 		presenter = spy(new DecommissioningBuilderPresenter(view));
 		//		doReturn(new ArrayList<>()).when(presenter).getFoldersAlreadyInNonProcessedDecommissioningLists();

@@ -430,7 +430,12 @@ public class SearchServices {
 	public String getLanguageCode(String collection) {
 		String language;
 		try {
-			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+			List<String> languageCodes = collectionsListManager.getCollectionLanguages(collection);
+			if (languageCodes == null || languageCodes.size() == 0) {
+				language = mainDataLanguage;
+			} else {
+				language = languageCodes.get(0);
+			}
 		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
 			language = mainDataLanguage;
 		}
