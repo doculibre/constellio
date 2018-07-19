@@ -400,7 +400,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		List<Attribute> attributeList = child.getAttributes();
 
 		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(labelFinal) && currentAttribute.getName().length() > SettingsXMLFileReader.TITLE.length()) {
+			if(currentAttribute.getName().startsWith(labelFinal) && currentAttribute.getName().length() > labelFinal.length()) {
 				String languageCode = currentAttribute.getName().replace(labelFinal, "");
 				Language language = Language.withCode(languageCode);
 				languageTitleMap.put(language, currentAttribute.getValue());
