@@ -7,25 +7,27 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.LinkableConceptFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
@@ -202,19 +204,19 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSavingAContainerRecordWithCustomSchemaThenAggregatedMetadatasStillWork()
 			throws Exception {
-		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
-			}
-		});
+		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+				.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
+					}
+				});
 
 		ContainerRecordType zeContainerType = rm.newContainerRecordTypeWithId("zeContainerType");
 		zeContainerType.setTitle("zeContainerType");
 		zeContainerType.setCode("BOITE");
 		zeContainerType.setLinkedSchema(ContainerRecord.SCHEMA_TYPE + "_" + "ZeSchema");
 		recordServices.add(zeContainerType);
-
 
 		StorageSpace parentStorageSpace1 = buildStorageSpace().setCapacity(10L);
 		recordServices.add(parentStorageSpace1);
@@ -283,6 +285,41 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
 						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).hasSize(1);
+	}
+
+	@Test
+	public void givenAddAndRemoveChildThenNumberOfChildIsUpdated()
+			throws Exception {
+		StorageSpace parentStorageSpace = buildStorageSpace();
+		StorageSpace childStorageSpace = buildStorageSpace().setParentStorageSpace(parentStorageSpace);
+		Transaction transaction = new Transaction();
+		transaction.addAll(parentStorageSpace, childStorageSpace);
+		recordServices.execute(transaction);
+
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(1);
+
+		recordServices.update(childStorageSpace.setParentStorageSpace((String) null));
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(0);
+	}
+
+	@Test
+	public void givenAddChildAndDeleteItThenNumberOfChildIsUpdated()
+			throws Exception {
+		StorageSpace parentStorageSpace = buildStorageSpace();
+		StorageSpace childStorageSpace = buildStorageSpace().setParentStorageSpace(parentStorageSpace);
+		Transaction transaction = new Transaction();
+		transaction.addAll(parentStorageSpace, childStorageSpace);
+		recordServices.execute(transaction);
+
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(1);
+
+		recordServices.physicallyDeleteNoMatterTheStatus(childStorageSpace.getWrappedRecord(), User.GOD,
+				new RecordPhysicalDeleteOptions());
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(0);
 	}
 
 	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
