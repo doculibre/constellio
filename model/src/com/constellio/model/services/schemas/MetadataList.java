@@ -107,7 +107,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		ensureNotReadOnly();
 		boolean added = false;
 		for (Metadata metadata : c) {
-			if (!localCodeIndex.containsKey(metadata.getLocalCode())) {
+			if (!codeIndex.containsKey(metadata.getCode())) {
 				addToIndex(metadata);
 				added = nestedList.add(metadata);
 			}
@@ -120,7 +120,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		ensureNotReadOnly();
 		boolean added = false;
 		for (Metadata metadata : c) {
-			if (!localCodeIndex.containsKey(metadata.getLocalCode())) {
+			if (!codeIndex.containsKey(metadata.getCode())) {
 				addToIndex(metadata);
 				nestedList.add(index, metadata);
 				added = true;
