@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -632,7 +633,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
 		assertThat(emailToSend.getParameters()).hasSize(6);
-		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 		assertThat(emailToSend.getParameters().get(1))
 				.isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
 		assertThat(emailToSend.getParameters().get(2))

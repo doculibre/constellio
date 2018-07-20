@@ -28,6 +28,7 @@ import java.util.*;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.EmailAddress;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -593,7 +594,7 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 				TASK_ASSIGNED_ON + ":" + task.getAssignedOn(),
 				TASK_ASSIGNED + ":" + assigneeFullName,
 				TASK_DUE_DATE + ":" + "",
-				TASK_STATUS + ":" + status,
+				TASK_STATUS + ":" + StringEscapeUtils.escapeHtml4(status),
 				TASK_DESCRIPTION + ":" + "",
 				DISPLAY_TASK + ":" + constellioUrl + "#!displayTask/" + task.getId(),
 				COMPLETE_TASK + ":" + constellioUrl + "#!editTask/completeTask%253Dtrue%253Bid%253D" + task.getId(),

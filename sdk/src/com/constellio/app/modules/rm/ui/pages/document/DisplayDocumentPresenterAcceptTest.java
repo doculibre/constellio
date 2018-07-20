@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -300,7 +301,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).containsOnly("subject:Le document demandé est disponible: Chevreuil.odt",
+		assertThat(emailToSend.getParameters()).containsOnly("subject:"+ StringEscapeUtils.escapeHtml4("Le document demandé est disponible: Chevreuil.odt"),
 				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayDocument/docA19", "recordType:document");
 
