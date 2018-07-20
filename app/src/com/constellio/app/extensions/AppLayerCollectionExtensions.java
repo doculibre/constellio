@@ -20,6 +20,7 @@ import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
+import com.constellio.app.api.extensions.MetadataFieldExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
@@ -639,9 +640,9 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Field<?> getFieldForMetadata(MetadataVO metadataVO) {
-		for(MetadataFieldExtension extension: metadataFieldExtensions) {
+		for (MetadataFieldExtension extension : metadataFieldExtensions) {
 			Field<?> component = extension.getMetadataField(metadataVO);
-			if(component != null) {
+			if (component != null) {
 				return component;
 			}
 		}
