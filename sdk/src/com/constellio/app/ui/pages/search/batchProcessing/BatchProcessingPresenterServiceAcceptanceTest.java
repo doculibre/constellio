@@ -164,10 +164,11 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(mapSpecialCase.size() == 1);
 		assertThat(mapSpecialCase.get("A05").get("folder_default_mainCopyRuleIdEntered").equals(retentionRule1.getSecondaryCopy().getId()));
 		assertThat(mapSpecialCase.get("A04")).isNull();
-		assertThat(results.getRecordModifications(folder2.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
-				tuple("2 (Rule #2)", "1 (Rule #1)", "folder_default_retentionRule"),
+		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn",results.getRecordModifications(folder2.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
-				tuple("5-2-T", "888-0-D", "folder_default_mainCopyRule"));
+				tuple("5-2-T", "888-0-D", "folder_default_mainCopyRule"),
+				tuple("2 (Règle de conservation #2)", "1 (Règle de conservation #1)", "folder_default_retentionRule"),
+				tuple(null, "00000000059 (System Admin)", "folder_default_formModifiedBy"));
 		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("42-5-C", "5-2-C", "folder_default_mainCopyRule"));
 	}
@@ -227,13 +228,12 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
-		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn",results.getRecordModifications(folder1.getId()).getFieldsModifications()))
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications())
 				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("30", "10","folder_default_administrativeUnitCode"),
 				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
 				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
-				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule"),
-				tuple(null, "00000000059 (System Admin)", "folder_default_formModifiedBy")
+				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule")
 		);
 
 	}
@@ -513,14 +513,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(document3.getId(), document3.getTitle()));
 
 
-		assertThat(removeMetadataCodeAndConfirmPresence("document_default_formModifiedOn", results.getRecordModifications(document1.getId()).getFieldsModifications()))
+		assertThat(results.getRecordModifications(document1.getId()).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
 				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
 				tuple("document_default_categoryCode", "X110", "Z112"),
-				tuple("document_default_formModifiedBy", null, "00000000059 (System Admin)"),
 				tuple("document_default_retentionRule", "1 (Règle de conservation #1)", "3 (Règle de conservation #3)")
 		);
 	}
@@ -561,14 +560,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(document2.getId(), document2.getTitle()),
 				tuple(document3.getId(), document3.getTitle()));
 
-		assertThat(removeMetadataCodeAndConfirmPresence("document_default_formModifiedOn", results.getRecordModifications(document1.getId()).getFieldsModifications()))
+		assertThat(results.getRecordModifications(document1.getId()).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
 				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
 				tuple("document_default_categoryCode", "X110", "Z112"),
-				tuple("document_default_formModifiedBy", null, "00000000059 (System Admin)"),
 				tuple("document_default_retentionRule", "1 (Règle de conservation #1)", "3 (Règle de conservation #3)")
 
 		);
@@ -956,14 +954,14 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
-		assertThat(removeMetadataCodeAndConfirmPresence("folder_employe_formModifiedOn",results.getRecordModifications(records.folder_A01).getFieldsModifications()))
+		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
-		assertThat(removeMetadataCodeAndConfirmPresence("folder_employe_formModifiedOn",results.getRecordModifications(records.folder_A02).getFieldsModifications()))
+		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
