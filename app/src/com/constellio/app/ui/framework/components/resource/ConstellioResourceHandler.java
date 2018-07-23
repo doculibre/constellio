@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -138,13 +139,21 @@ public class ConstellioResourceHandler implements RequestHandler {
     	return createResource(recordId, metadataCode, version, filename, false);
     }
 
-    public static Resource createResource(String recordId, String metadataCode, String version, String filename, boolean preview) {
+	public static Resource createResource(String recordId, String metadataCode, String version, String filename, boolean preview) {
+		return createResource(recordId, metadataCode, version, filename, preview, false);
+	}
+
+    public static Resource createResource(String recordId, String metadataCode, String version, String filename, boolean preview, boolean useBrowserCache) {
     	Map<String, String> params = new LinkedHashMap<>();
     	params.put("recordId", recordId);
     	params.put("metadataCode", metadataCode);
     	params.put("preview", "" + preview);
     	params.put("version", version);
     	params.put("z-filename", filename);
+    	if(!useBrowserCache) {
+			Random random = new Random();
+			params.put("cacheRandomizer", String.valueOf(random.nextLong()));
+		}
     	String resourcePath = ParamUtils.addParams(PATH , params);
         return new ExternalResource(resourcePath);
     }

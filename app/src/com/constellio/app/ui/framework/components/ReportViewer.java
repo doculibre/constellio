@@ -27,7 +27,9 @@ public class ReportViewer extends VerticalLayout {
 		StreamSource source = buildSource(reportWriter);
 
 		Embedded viewer = new Embedded();
-		viewer.setSource(new StreamResource(source, filename));
+		StreamResource streamResource = new StreamResource(source, filename);
+		streamResource.setCacheTime(0);
+		viewer.setSource(streamResource);
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
 		viewer.setHeight("100%");
