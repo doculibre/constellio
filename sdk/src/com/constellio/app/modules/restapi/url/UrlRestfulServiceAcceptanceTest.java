@@ -1,6 +1,6 @@
 package com.constellio.app.modules.restapi.url;
 
-import com.constellio.app.modules.restapi.ConstellioRestApiModule;
+import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.app.modules.restapi.core.exception.AtLeastOneParameterRequiredException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
@@ -11,10 +11,11 @@ import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
+import com.constellio.app.modules.restapi.core.util.UrlUtils;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -24,6 +25,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -42,7 +44,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     private RMTestRecords records = new RMTestRecords(zeCollection);
     private Users users = new Users();
 
-    private String host;
+    private String host = "localhost:7070";
     private String serviceKey = "bobKey";
     private String token = "bobToken";
     private String folderId = "A20";
@@ -64,10 +66,8 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Before
     public void setUp() {
-        prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+        prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users).withRMTest(records)
                 .withFoldersAndContainersOfEveryStatus());
-
-        givenInstalledModule(ConstellioRestApiModule.class).enabledInEveryCollections();
 
         UserServices userServices = getModelLayerFactory().newUserServices();
 
@@ -76,9 +76,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
                         .withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
 
         givenTimeIs(fakeDate);
-
-        host = getModelLayerFactory().getSystemConfigurationsManager()
-                .<String>getValue(ConstellioEIMConfigs.CONSTELLIO_URL).split("/")[2].split(":")[0];
+        givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 
         webTarget = newWebTarget("v1/urls");
 
@@ -89,12 +87,11 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     @Test
     public void testGetUrlDocumentGetMethod() throws Exception {
         method = HttpMethods.GET;
-        String expectedUrl = trimPort(
-                webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
-                        .concat(String.format("?folderId=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
-                                folderId, serviceKey, method, date, expiration, calculateSignature(folderId))));
+        String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+                .concat(String.format("?folderId=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+                        folderId, serviceKey, method, date, expiration, calculateSignature(folderId))));
 
-        Response response = getWebTarget("id").request().get();
+        Response response = buildRequest("id").get();
 
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -112,12 +109,11 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     public void testGetUrlDocumentGetMethodAndVersion() throws Exception {
         method = HttpMethods.GET;
         version = "1.0";
-        String expectedUrl = trimPort(
-                webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource() + "/content")
-                        .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&version=%s&signature=%s",
-                                id, serviceKey, method, date, expiration, version, calculateSignature(id))));
+        String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource() + "/content")
+                .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&version=%s&signature=%s",
+                        id, serviceKey, method, date, expiration, version, calculateSignature(id))));
 
-        Response response = getWebTarget("folderId").request().get();
+        Response response = buildRequest("folderId").get();
 
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -131,12 +127,11 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     @Test
     public void testGetUrlDocumentPutMethod() throws Exception {
         method = HttpMethods.PUT;
-        String expectedUrl = trimPort(
-                webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
-                        .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
-                                id, serviceKey, method, date, expiration, calculateSignature(id))));
+        String expectedUrl = webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+                .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+                        id, serviceKey, method, date, expiration, calculateSignature(id)));
 
-        Response response = getWebTarget("folderId").request().get();
+        Response response = buildRequest("folderId").get();
 
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -144,18 +139,17 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
         String url = response.readEntity(String.class);
 
         assertThat(url).isNotEmpty();
-        assertThat(trimPort(url)).isEqualTo(expectedUrl);
+        assertThat(url).isEqualTo(expectedUrl);
     }
 
     @Test
     public void testGetUrlDocumentPatchMethod() throws Exception {
         method = HttpMethods.PATCH;
-        String expectedUrl = trimPort(
-                webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
-                        .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
-                                id, serviceKey, method, date, expiration, calculateSignature(id))));
+        String expectedUrl = webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+                .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+                        id, serviceKey, method, date, expiration, calculateSignature(id)));
 
-        Response response = getWebTarget("folderId").request().get();
+        Response response = buildRequest("folderId").get();
 
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -163,18 +157,17 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
         String url = response.readEntity(String.class);
 
         assertThat(url).isNotEmpty();
-        assertThat(trimPort(url)).isEqualTo(expectedUrl);
+        assertThat(url).isEqualTo(expectedUrl);
     }
 
     @Test
     public void testGetUrlDocumentDeleteMethod() throws Exception {
         method = HttpMethods.DELETE;
-        String expectedUrl = trimPort(
-                webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
-                        .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
-                                id, serviceKey, method, date, expiration, calculateSignature(id))));
+        String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+                .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+                        id, serviceKey, method, date, expiration, calculateSignature(id))));
 
-        Response response = getWebTarget("folderId").request().get();
+        Response response = buildRequest("folderId").get();
 
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -189,12 +182,11 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     public void testGetUrlDocumentDeleteMethodAndPhysical() throws Exception {
         method = HttpMethods.DELETE;
         physical = "false";
-        String expectedUrl = trimPort(
-                webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
-                        .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&physical=%s&signature=%s",
-                                id, serviceKey, method, date, expiration, physical, calculateSignature(id))));
+        String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+                .concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&physical=%s&signature=%s",
+                        id, serviceKey, method, date, expiration, physical, calculateSignature(id))));
 
-        Response response = getWebTarget("folderId").request().get();
+        Response response = buildRequest("folderId").get();
 
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -208,7 +200,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     @Test
     public void testGetUrlWithInvalidMethodAndVersionParameters() throws Exception {
         version = "1.0";
-        Response response = getWebTarget("id").request().get();
+        Response response = buildRequest("id").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -218,7 +210,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingTokenParameter() throws Exception {
-        Response response = getWebTarget("id", "token").request().get();
+        Response response = buildRequest("id", "token").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -228,7 +220,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingServiceKeyParameter() throws Exception {
-        Response response = getWebTarget("id", "serviceKey").request().get();
+        Response response = buildRequest("id", "serviceKey").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -238,7 +230,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingSchemaTypeParameter() throws Exception {
-        Response response = getWebTarget("id", "schemaType").request().get();
+        Response response = buildRequest("id", "schemaType").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -249,13 +241,13 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     @Test
     public void testGetUrlWithInvalidSchemaTypeParameter() throws Exception {
         schemaType = "SCHEMA_TYPE";
-        Response response = getWebTarget("id").request().get();
+        Response response = buildRequest("id").get();
         assertThat(response.getStatus()).isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testGetUrlWithMissingMethodParameter() throws Exception {
-        Response response = getWebTarget("id", "method").request().get();
+        Response response = buildRequest("id", "method").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -266,7 +258,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
     @Test
     public void testGetUrlWithInvalidMethodParameter() throws Exception {
         method = "METHOD";
-        Response response = getWebTarget("id").request().get();
+        Response response = buildRequest("id").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -276,7 +268,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingIdAndFolderIdParameters() throws Exception {
-        Response response = getWebTarget("id", "folderId").request().get();
+        Response response = buildRequest("id", "folderId").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -286,7 +278,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithBothIdAndFolderIdParameters() throws Exception {
-        Response response = getWebTarget().request().get();
+        Response response = buildRequest().get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -296,7 +288,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithIdAndWithoutFolderIdParametersForPostMethod() throws Exception {
-        Response response = getWebTarget("folderId").request().get();
+        Response response = buildRequest("folderId").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -306,7 +298,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingExpirationParameter() throws Exception {
-        Response response = getWebTarget("id", "expiration").request().get();
+        Response response = buildRequest("id", "expiration").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -316,7 +308,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingExpirationParameterAndLanguageHeader() throws Exception {
-        Response response = getWebTarget("id", "expiration").request()
+        Response response = buildRequest("id", "expiration")
                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en-gb").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
@@ -327,7 +319,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 
     @Test
     public void testGetUrlWithMissingExpirationParameterAndMultipleLanguagesHeader() throws Exception {
-        Response response = getWebTarget("id", "expiration").request()
+        Response response = buildRequest("id", "expiration")
                 .header(HttpHeaders.ACCEPT_LANGUAGE, "en-us, en;q=1.0,fr-ca, fr;q=0.5,es;q=0.5").get();
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
@@ -336,7 +328,37 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
                 .isEqualTo(i18n.$(NOT_NULL_MESSAGE, Locale.ENGLISH, "expiration"));
     }
 
-    private WebTarget getWebTarget(String ... excludedParams) throws Exception {
+    @Test
+    public void testGetUrlWithUnallowedHostHeader() throws Exception {
+        host = "www.fakedns.com";
+        Response response = buildRequest("id").get();
+        assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+        RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+        assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+                .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+    }
+
+    @Test
+    public void testGetUrlWithAllowedHostHeader() throws Exception {
+        host = "localhost2";
+        String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.DOCUMENT.getResource())
+                .concat(String.format("?folderId=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+                        folderId, serviceKey, method, date, expiration, calculateSignature(folderId))));
+        expectedUrl = UrlUtils.replaceHost(expectedUrl, host);
+
+        Response response = buildRequest("id").get();
+
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
+
+        String url = response.readEntity(String.class);
+
+        assertThat(url).isNotEmpty();
+        assertThat(url).isEqualTo(expectedUrl);
+    }
+
+    private Invocation.Builder buildRequest(String ... excludedParams) throws Exception {
         List<String> parameters = asList("token", "serviceKey", "schemaType", "method", "id", "folderId", "expiration",
                 "version", "physical");
         List<String> excludedParameters = asList(excludedParams);
@@ -348,7 +370,7 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
             if (value == null) continue;
             webTarget = webTarget.queryParam(parameter, value);
         }
-        return webTarget;
+        return webTarget.request().header(HttpHeaders.HOST, host);
     }
 
     private String trimPort(String url) {

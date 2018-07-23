@@ -52,7 +52,7 @@ public class ConstellioRestApiModule implements InstallableSystemModule {
 
     @Override
     public List<SystemConfiguration> getConfigurations() {
-        return Collections.emptyList();
+        return RestApiConfigs.configurations;
     }
 
     @Override

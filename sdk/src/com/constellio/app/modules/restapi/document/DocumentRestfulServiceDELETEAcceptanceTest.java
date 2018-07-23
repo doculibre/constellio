@@ -8,6 +8,7 @@ import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.ui.i18n.i18n;
@@ -31,15 +32,9 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
     public void testDeleteDocument() throws Exception {
         Response response = doDeleteQuery();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-        assertThat(commitCounter.newCommitsCall()).hasSize(9);
-        assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 
-        try {
-            recordServices.getDocumentById(id);
-            fail("Record not deleted");
-        } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-            // ignore
-        }
+        Record record = recordServices.getDocumentById(id);
+        assertThat(record).isNotNull();
     }
 
     @Test
@@ -69,6 +64,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
     @Test
     public void testDeleteDocumentAlreadyLogicallyDeleted() throws Exception {
+        physical = "true";
         Record record = recordServices.getDocumentById(id);
         recordServices.logicallyDelete(record, User.GOD);
 
@@ -88,6 +84,8 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
         physical = "true";
         Response response = doDeleteQuery();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+        assertThat(commitCounter.newCommitsCall()).hasSize(9);
+        assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 
         try {
             recordServices.getDocumentById(id);
@@ -305,6 +303,24 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
                 .isEqualTo(i18n.$(new InvalidParameterException("physical", physical).getValidationError()));
     }
 
+    @Test
+    public void testDeleteDocumentWithUnallowedHostHeader() throws Exception {
+        host = "localhost2:8080";
+        Response response = doDeleteQuery();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+
+        RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+        assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+                .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+    }
+
+    @Test
+    public void testDeleteDocumentWithAllowedHost() throws Exception {
+        host = "localhost2";
+        Response response = doDeleteQuery();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+    }
+
     //
     // PRIVATE FUNCTIONS
     //
@@ -316,7 +332,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
     private Response doDeleteQuery(boolean calculateSignature, String ... excludedParam) throws Exception {
         method = !HttpMethods.contains(method) ? "fakeMethod" : DELETE;
         return buildQuery(webTarget, calculateSignature, asList("id", "serviceKey", "method", "date", "expiration", "physical", "signature"), excludedParam)
-                .request().delete();
+                .request().header("host", host).delete();
     }
 
 }

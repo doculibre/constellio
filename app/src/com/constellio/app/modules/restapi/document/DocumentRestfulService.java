@@ -38,6 +38,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -69,7 +70,8 @@ public class DocumentRestfulService {
                                @Parameter(required=true, description="Date") @QueryParam("date") String date,
                                @Parameter(required=true, description="Expiration") @QueryParam("expiration") Integer expiration,
                                @Parameter(required=true, description="Document Version. Use 'last' for latest version.") @QueryParam("version") String version,
-                               @Parameter(required=true, description="Signature") @QueryParam("signature") String signature) throws Exception {
+                               @Parameter(required=true, description="Signature") @QueryParam("signature") String signature,
+                               @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         validateRequiredParameters(serviceKey, method, date, expiration, signature);
         if (id == null) throw new RequiredParameterException("id");
@@ -77,7 +79,7 @@ public class DocumentRestfulService {
 
         if (!method.equals(HttpMethods.GET)) throw new InvalidParameterException("method", method);
 
-        DocumentContentDto documentContentDto = documentService.getContent(id, serviceKey, method, date, expiration, version, signature);
+        DocumentContentDto documentContentDto = documentService.getContent(host, id, serviceKey, method, date, expiration, version, signature);
         return Response.ok(documentContentDto.getContent(), documentContentDto.getMimeType())
                 .header("Content-Disposition", "attachment; filename=\"" + documentContentDto.getFilename() + "\"")
                 .build();
@@ -99,7 +101,8 @@ public class DocumentRestfulService {
                         @Parameter(required=true, description="Expiration") @QueryParam("expiration") Integer expiration,
                         @Parameter(required=true, description="Signature") @QueryParam("signature") String signature,
                         @Parameter(name="filter", description="Fields to filter from the JSON response.", example="[\"directAces\", \"inheritedAces\"]")
-                            @QueryParam("filter") Set<String> filters) throws Exception {
+                            @QueryParam("filter") Set<String> filters,
+                        @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         validateRequiredParameters(serviceKey, method, date, expiration, signature);
         if (id == null) throw new RequiredParameterException("id");
@@ -107,7 +110,7 @@ public class DocumentRestfulService {
 
         if (!method.equals(HttpMethods.GET)) throw new InvalidParameterException("method", method);
 
-        DocumentDto document = documentService.get(id, serviceKey, method, date, expiration, signature, filters);
+        DocumentDto document = documentService.get(host, id, serviceKey, method, date, expiration, signature, filters);
 
         return Response.ok(document).tag(document.getETag()).build();
     }
@@ -138,7 +141,8 @@ public class DocumentRestfulService {
                                @QueryParam("filter") Set<String> filters,
                            @Parameter(description="The flushing mode indicates how the commits are executed in solr",
                                    schema=@Schema(allowableValues={"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
-                               @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush) throws Exception {
+                               @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+                           @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         validateRequiredParameters(serviceKey, method, date, expiration, signature);
         if (folderId == null) throw new RequiredParameterException("folderId");
@@ -159,8 +163,8 @@ public class DocumentRestfulService {
             throw new RequiredParameterException("content.filename");
         }
 
-        DocumentDto createdDocument =
-                documentService.create(folderId, serviceKey, method, date, expiration, signature, document, fileStream, flush, filters);
+        DocumentDto createdDocument = documentService.create(host, folderId, serviceKey, method, date, expiration,
+                signature, document, fileStream, flush, filters);
 
         return Response.status(Response.Status.CREATED).entity(createdDocument).tag(createdDocument.getETag()).build();
     }
@@ -195,10 +199,11 @@ public class DocumentRestfulService {
                                @QueryParam("filter") Set<String> filters,
                            @Parameter(description="An ETag value can be specified to activate the concurrency control mode.<br>" +
                                    "Using that mode, a request cannot be fulfilled if the ETag value is not the latest concurrency control version of the document.")
-                               @HeaderParam("If-Match") String eTag,
+                               @HeaderParam(HttpHeaders.IF_MATCH) String eTag,
                            @Parameter(description="The flushing mode indicates how the commits are executed in solr",
                                    schema=@Schema(allowableValues={"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
-                              @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush) throws Exception {
+                              @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+                           @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         validateRequiredParameters(serviceKey, method, date, expiration, signature);
         if (id == null) throw new RequiredParameterException("id");
@@ -218,8 +223,8 @@ public class DocumentRestfulService {
         if (eTag != null && !StringUtils.isUnsignedLong(eTag)) throw new InvalidParameterException("ETag", eTag);
         document.setETag(eTag);
 
-        DocumentDto updatedDocument =
-                documentService.update(id, serviceKey, method, date, expiration, signature, document, fileStream, false, flush, filters);
+        DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
+                document, fileStream, false, flush, filters);
 
         return Response.ok(updatedDocument).tag(updatedDocument.getETag()).build();
     }
@@ -253,10 +258,11 @@ public class DocumentRestfulService {
                                   @Parameter(description="Fields to filter from the JSON response.") @QueryParam("filter") Set<String> filters,
                                   @Parameter(description="An ETag value can be specified to activate the concurrency control mode.<br>" +
                                           "Using that mode, a request cannot be fulfilled if the ETag value is not the latest concurrency control version of the document.")
-                                      @HeaderParam("If-Match") String eTag,
+                                      @HeaderParam(HttpHeaders.IF_MATCH) String eTag,
                                   @Parameter(description="The flushing mode indicates how the commits are executed in solr",
                                          schema=@Schema(allowableValues={"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
-                                      @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush) throws Exception {
+                                      @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+                                  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         validateRequiredParameters(serviceKey, method, date, expiration, signature);
         if (id == null) throw new RequiredParameterException("id");
@@ -274,8 +280,8 @@ public class DocumentRestfulService {
         if (eTag != null && !StringUtils.isUnsignedLong(eTag)) throw new InvalidParameterException("ETag", eTag);
         document.setETag(eTag);
 
-        DocumentDto updatedDocument =
-                documentService.update(id, serviceKey, method, date, expiration, signature, document, fileStream, true, flush, filters);
+        DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
+                document, fileStream, true, flush, filters);
 
         return Response.ok(updatedDocument).tag(document.getETag()).build();
     }
@@ -292,8 +298,9 @@ public class DocumentRestfulService {
                            @Parameter(required=true, description="HTTP Method", schema=@Schema(allowableValues={"DELETE"})) @QueryParam("method") String method,
                            @Parameter(required=true, description="Date") @QueryParam("date") String date,
                            @Parameter(required=true, description="Expiration") @QueryParam("expiration") Integer expiration,
-                           @Parameter(description="Document must be physically deleted", schema=@Schema(type="boolean", defaultValue="true")) @QueryParam("physical") String physical,
-                           @Parameter(required=true, description="Signature") @QueryParam("signature") String signature) throws Exception {
+                           @Parameter(description="Document must be physically deleted", schema=@Schema(type="boolean", defaultValue="false")) @QueryParam("physical") String physical,
+                           @Parameter(required=true, description="Signature") @QueryParam("signature") String signature,
+                           @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         validateRequiredParameters(serviceKey, method, date, expiration, signature);
         if (id == null) throw new RequiredParameterException("id");
@@ -303,7 +310,7 @@ public class DocumentRestfulService {
         if (physical != null && !physical.equals("true") && !physical.equals("false")) throw new InvalidParameterException("physical", physical);
         Boolean physicalValue = physical != null ? Boolean.valueOf(physical) : null;
 
-        documentService.delete(id, serviceKey, method, date, expiration, physicalValue, signature);
+        documentService.delete(host, id, serviceKey, method, date, expiration, physicalValue, signature);
 
         return Response.noContent().build();
     }

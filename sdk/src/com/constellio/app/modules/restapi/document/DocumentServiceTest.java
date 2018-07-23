@@ -47,6 +47,7 @@ public class DocumentServiceTest {
     private String documentTitle = "title";
     private String eTag = "12345";
 
+    private String host = "localhost";
     private String serviceKey = "serviceKey";
     private String method = HttpMethods.GET;
     private String date = DateUtils.formatIsoNoMillis(new DateTime());
@@ -77,7 +78,8 @@ public class DocumentServiceTest {
 
     @Test
     public void testGet() throws Exception {
-        DocumentDto documentDto = documentService.get(documentId, serviceKey, method, date, expiration, signature, Collections.<String>emptySet());
+        DocumentDto documentDto = documentService.get(host, documentId, serviceKey, method, date, expiration,
+                signature, Collections.<String>emptySet());
 
         assertThat(documentDto).isNotNull().isEqualTo(DocumentDto.builder()
                 .id(documentId)
@@ -93,7 +95,7 @@ public class DocumentServiceTest {
     public void testGetWithInvalidId() throws Exception {
         when(documentDao.getRecordById(documentId)).thenReturn(null);
 
-        documentService.get(documentId, serviceKey, method, date, expiration, signature, Collections.<String>emptySet());
+        documentService.get(host, documentId, serviceKey, method, date, expiration, signature, Collections.<String>emptySet());
     }
 
 }

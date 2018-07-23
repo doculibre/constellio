@@ -1,6 +1,6 @@
 package com.constellio.app.modules.restapi.document;
 
-import com.constellio.app.modules.restapi.ConstellioRestApiModule;
+import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
@@ -121,8 +121,7 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
         authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
         searchServices = getModelLayerFactory().newSearchServices();
 
-        host = getModelLayerFactory().getSystemConfigurationsManager()
-                .<String>getValue(ConstellioEIMConfigs.CONSTELLIO_URL).split("/")[2].split(":")[0];
+        host = "localhost:7070";
         dateFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
         dateTimeFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
 
@@ -130,6 +129,8 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
                 .withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
         userServices.addUpdateUserCredential(users.sasquatch().withServiceKey(sasquatchServiceKey)
                 .withAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
+
+        givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
         givenTimeIs(fakeDate);
 
         ObjectMapper mapper = new ObjectMapper().addMixIn(ContentDto.class, MixinContentDto.class)

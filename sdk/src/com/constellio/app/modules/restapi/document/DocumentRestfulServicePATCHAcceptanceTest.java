@@ -24,6 +24,7 @@ import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -1080,7 +1081,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
         String eTag = String.valueOf(document.getVersion());
 
         documentToPartialUpdate.setTitle("aNewTitle");
-        Response response = buildPatchQuery().request().header(HttpHeaders.IF_MATCH, eTag)
+        Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
                 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
@@ -1094,13 +1095,13 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
         String eTag = String.valueOf(document.getVersion());
 
         documentToPartialUpdate.setTitle("aNewTitle");
-        Response response = buildPatchQuery().request().header(HttpHeaders.IF_MATCH, eTag)
+        Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
                 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String validEtag = response.getEntityTag().getValue();
 
         documentToPartialUpdate.setTitle("aNewTitle2");
-        response = buildPatchQuery().request().header(HttpHeaders.IF_MATCH, eTag)
+        response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
                 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
         assertThat(response.getStatus()).isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1111,13 +1112,31 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
     @Test
     public void testPartialUpdateWithInvalidEtag() throws Exception {
-        Response response = buildPatchQuery().request().header(HttpHeaders.IF_MATCH, "invalidEtag")
+        Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, "invalidEtag")
                 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
         assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
                 .isEqualTo(i18n.$(new InvalidParameterException("ETag", "invalidEtag").getValidationError()));
+    }
+
+    @Test
+    public void testPartialUpdateWithUnallowedHostHeader() throws Exception {
+        host = "fakedns.com";
+        Response response = doPatchQuery(documentToPartialUpdate, null);
+        assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+
+        RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+        assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+                .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+    }
+
+    @Test
+    public void testPartialUpdateWithAllowedHost() throws Exception {
+        host = "localhost2";
+        Response response = doPatchQuery(documentToPartialUpdate, null);
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 
     //
@@ -1144,7 +1163,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
         WebTarget webTarget = buildPatchQuery(calculateSignature, excludedParam);
         if (filters != null && !filters.isEmpty()) webTarget = webTarget.queryParam("filter", filters.toArray());
 
-        Invocation.Builder webTargetBuilder = webTarget.request();
+        Invocation.Builder webTargetBuilder = webTarget.request().header("host", host);
         if (flushMode != null) webTargetBuilder.header(CustomHttpHeaders.FLUSH_MODE, flushMode);
         return webTargetBuilder.build("PATCH", entity(buildMultiPart(document, file), MULTIPART_FORM_DATA_TYPE)).invoke();
     }

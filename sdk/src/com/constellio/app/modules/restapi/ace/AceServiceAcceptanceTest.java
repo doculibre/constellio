@@ -65,9 +65,8 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
     @Before
     public void setUp() throws Exception {
-        prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+        prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users).withRMTest(records)
                 .withFoldersAndContainersOfEveryStatus());
-        givenInstalledModule(ConstellioRestApiModule.class).enabledInEveryCollections();
 
         rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
         recordServices = getModelLayerFactory().newRecordServices();

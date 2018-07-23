@@ -8,6 +8,7 @@ import com.constellio.app.modules.restapi.core.exception.RequiredParameterExcept
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
+import com.constellio.app.modules.restapi.core.util.UrlUtils;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,15 +20,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static com.constellio.app.modules.restapi.core.util.HttpMethods.DELETE;
 import static com.constellio.app.modules.restapi.core.util.HttpMethods.GET;
 import static com.constellio.app.modules.restapi.core.util.HttpMethods.POST;
+import static com.constellio.app.modules.restapi.core.util.UrlUtils.trimPort;
 
 @Path("urls")
 @Tag(name="urls")
@@ -51,8 +55,9 @@ public class UrlRestfulService {
                         @Parameter(description="Folder Id (POST only)") @QueryParam("folderId") String folderId,
                         @Parameter(required=true, description="Expiration in seconds") @QueryParam("expiration") Integer expiration,
                         @Parameter(description="Version (GET only). Set to 'last' for latest version.") @QueryParam("version") String version,
-                        @Parameter(description="Physical (DELETE only). Set to false to move the resource to the trash without performing a physical deletion.",
-                                schema=@Schema(type="boolean", defaultValue="true")) @QueryParam("physical") String physical) throws Exception {
+                        @Parameter(description="Physical (DELETE only). Set to true to physically delete the resource.",
+                                schema=@Schema(type="boolean", defaultValue="false")) @QueryParam("physical") String physical,
+                        @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
         if (token == null) throw new RequiredParameterException("token");
         if (serviceKey == null) throw new RequiredParameterException("serviceKey");
@@ -79,7 +84,8 @@ public class UrlRestfulService {
             throw new InvalidParameterException("physical", physical);
         }
 
-        String url = urlService.getSignedUrl(token, serviceKey, schemaType, method, id, folderId, String.valueOf(expiration), version, physical);
+        String url = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId,
+                String.valueOf(expiration), version, physical);
         return Response.ok(url).build();
     }
 

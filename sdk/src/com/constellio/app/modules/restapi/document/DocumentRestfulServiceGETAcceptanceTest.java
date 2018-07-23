@@ -11,6 +11,7 @@ import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.ui.i18n.i18n;
@@ -44,7 +45,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         List<String> value2 = asList("value2a", "value2b");
         addUsrMetadata(MetadataValueType.STRING, value1, value2);
 
-        Response response = buildGetQuery().request().get();
+        Response response = buildGetQuery().request().header("host", host).get();
 
         assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
@@ -83,7 +84,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         Response response = buildGetQuery()
                 .queryParam("filter", "folderId", "type", "content", "title", "keywords", "author",
                         "subject", "organization", "directAces", "inheritedAces", "extendedAttributes")
-                .request().get();
+                .request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
 
         assertThat(singletonList(response.readEntity(DocumentDto.class))).extracting("id", "folderId", "type", "content", "title",
@@ -98,7 +99,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     public void testGetDocumentSomeFilters() throws Exception {
         Response response = buildGetQuery()
                 .queryParam("filter", "type", "content", "inheritedAces", "extendedAttributes")
-                .request().get();
+                .request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
 
         DocumentDto documentDto = response.readEntity(DocumentDto.class);
@@ -116,7 +117,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentInvalidFilter() throws Exception {
-        Response response = buildGetQuery().queryParam("filter", "invalid").request().get();
+        Response response = buildGetQuery().queryParam("filter", "invalid").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -130,7 +131,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         final LocalDate value2a = TimeProvider.getLocalDate().minusDays(1), value2b = TimeProvider.getLocalDate().plusDays(1);
         addUsrMetadata(MetadataValueType.DATE, value1, asList(value2a, value2b));
 
-        DocumentDto documentDto = buildGetQuery().request().get(DocumentDto.class);
+        DocumentDto documentDto = buildGetQuery().request().header("host", host).get(DocumentDto.class);
 
         assertThat(documentDto.getExtendedAttributes()).containsOnly(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(value1.toString())).build(),
@@ -143,7 +144,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         final LocalDateTime value2a = TimeProvider.getLocalDateTime().minusDays(1), value2b = TimeProvider.getLocalDateTime().plusDays(1);
         addUsrMetadata(MetadataValueType.DATE_TIME, value1, asList(value2a, value2b));
 
-        DocumentDto documentDto = buildGetQuery().request().get(DocumentDto.class);
+        DocumentDto documentDto = buildGetQuery().request().header("host", host).get(DocumentDto.class);
 
         assertThat(documentDto.getExtendedAttributes()).containsOnly(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(toDateString(value1))).build(),
@@ -156,7 +157,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         final String value2a = "<i>value2a", value2b = "<html>";
         addUsrMetadata(MetadataValueType.TEXT, value1, asList(value2a, value2b));
 
-        DocumentDto documentDto = buildGetQuery().request().get(DocumentDto.class);
+        DocumentDto documentDto = buildGetQuery().request().header("host", host).get(DocumentDto.class);
 
         assertThat(documentDto.getExtendedAttributes()).containsOnly(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(String.valueOf(value1))).build(),
@@ -168,7 +169,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         final double value1 = 1.5, value2a = 2.1, value2b = 2.2;
         addUsrMetadata(MetadataValueType.NUMBER, value1, asList(value2a, value2b));
 
-        DocumentDto documentDto = buildGetQuery().request().get(DocumentDto.class);
+        DocumentDto documentDto = buildGetQuery().request().header("host", host).get(DocumentDto.class);
 
         assertThat(documentDto.getExtendedAttributes()).containsOnly(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(String.valueOf(value1))).build(),
@@ -181,7 +182,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         final boolean value1 = true, value2a = false, value2b = true;
         addUsrMetadata(MetadataValueType.BOOLEAN, value1, asList(value2a, value2b));
 
-        DocumentDto documentDto = buildGetQuery().request().get(DocumentDto.class);
+        DocumentDto documentDto = buildGetQuery().request().header("host", host).get(DocumentDto.class);
 
         assertThat(documentDto.getExtendedAttributes()).containsOnly(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(String.valueOf(value1))).build(),
@@ -196,7 +197,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         final String value2b = records.getAlice().getId();
         addUsrMetadata(MetadataValueType.REFERENCE, value1, asList(value2a, value2b));
 
-        DocumentDto documentDto = buildGetQuery().request().get(DocumentDto.class);
+        DocumentDto documentDto = buildGetQuery().request().header("host", host).get(DocumentDto.class);
 
         assertThat(documentDto.getExtendedAttributes()).containsOnly(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(String.valueOf(value1))).build(),
@@ -205,7 +206,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithMissingId() throws Exception {
-        Response response = buildGetQuery( "id").request().get();
+        Response response = buildGetQuery( "id").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -215,7 +216,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentWithInvalidId() throws Exception {
         id = "fakeId";
-        Response response = buildGetQuery().request().get();
+        Response response = buildGetQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -225,7 +226,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithMissingServiceKey() throws Exception {
-        Response response = buildGetQuery( "serviceKey").request().get();
+        Response response = buildGetQuery( "serviceKey").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -235,7 +236,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentWithInvalidServiceKey() throws Exception {
         serviceKey = "fakeServiceKey";
-        Response response = buildGetQuery().request().get();
+        Response response = buildGetQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -245,7 +246,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithMissingMethod() throws Exception {
-        Response response = buildGetQuery( "method").request().get();
+        Response response = buildGetQuery( "method").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -255,7 +256,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentWithInvalidMethod() throws Exception {
         method = "fakeMethod";
-        Response response = buildGetQuery().request().get();
+        Response response = buildGetQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -265,7 +266,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithMissingDate() throws Exception {
-        Response response = buildGetQuery( "date").request().get();
+        Response response = buildGetQuery( "date").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -274,7 +275,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithMissingExpiration() throws Exception {
-        Response response = buildGetQuery( "expiration").request().get();
+        Response response = buildGetQuery( "expiration").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -283,7 +284,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithMissingSignature() throws Exception {
-        Response response = buildGetQuery( "signature").request().get();
+        Response response = buildGetQuery( "signature").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -292,7 +293,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
 
     @Test
     public void testGetDocumentWithInvalidSignature() throws Exception {
-        Response response = buildGetQuery(false).request().get();
+        Response response = buildGetQuery(false).request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -304,7 +305,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     public void testGetDocumentWithInvalidDateAndExpiration() throws Exception {
         date = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime().minusDays(365));
         expiration = "1";
-        Response response = buildGetQuery().request().get();
+        Response response = buildGetQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -316,12 +317,30 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     public void testGetDocumentWithUserWithoutPermissions() throws Exception {
         serviceKey = sasquatchServiceKey;
         token = sasquatchToken;
-        Response response = buildGetQuery().request().get();
+        Response response = buildGetQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
         assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
                 .isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+    }
+
+    @Test
+    public void testGetDocumentWithUnallowedHostHeader() throws Exception {
+        host = "fakedns.com";
+        Response response = buildGetQuery().request().header("host", host).get();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+
+        RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+        assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+                .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+    }
+
+    @Test
+    public void testGetDocumentWithAllowedHost() throws Exception {
+        host = "localhost2";
+        Response response = buildGetQuery().request().header("host", host).get();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 
     //
@@ -331,7 +350,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentVersion1() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
 
         assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
         assertThat(response.getMediaType().toString()).contains(expectedMimeType);
@@ -344,7 +363,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentVersion2() throws Exception {
         version = "2.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
 
         assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
         assertThat(response.getMediaType().toString()).contains(MimeTypes.MIME_TEXT_PLAIN);
@@ -357,7 +376,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentLatestVersion() throws Exception {
         version = "last";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
 
         assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
         assertThat(response.getMediaType().toString()).contains(expectedMimeType);
@@ -370,7 +389,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingId() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery( "id").request().get();
+        Response response = buildGetContentQuery( "id").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -381,7 +400,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     public void testGetDocumentContentWithInvalidId() throws Exception {
         id = "fakeId";
         version = "1.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -392,7 +411,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingServiceKey() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery( "serviceKey").request().get();
+        Response response = buildGetContentQuery( "serviceKey").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -403,7 +422,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     public void testGetDocumentContentWithInvalidServiceKey() throws Exception {
         serviceKey = "fakeServiceKey";
         version = "1.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -414,7 +433,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingMethod() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery( "method").request().get();
+        Response response = buildGetContentQuery( "method").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -425,7 +444,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     public void testGetDocumentContentWithInvalidMethod() throws Exception {
         method = "fakeMethod";
         version = "1.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -436,7 +455,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingDate() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery( "date").request().get();
+        Response response = buildGetContentQuery( "date").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -446,7 +465,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingExpiration() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery( "expiration").request().get();
+        Response response = buildGetContentQuery( "expiration").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -456,7 +475,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingVersion() throws Exception {
         version = null;
-        Response response = buildGetContentQuery( "version").request().get();
+        Response response = buildGetContentQuery( "version").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -466,7 +485,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithInvalidVersion() throws Exception {
         version = "3.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -477,7 +496,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithMissingSignature() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery( "signature").request().get();
+        Response response = buildGetContentQuery( "signature").request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -487,7 +506,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
     @Test
     public void testGetDocumentContentWithInvalidSignature() throws Exception {
         version = "1.0";
-        Response response = buildGetContentQuery(false).request().get();
+        Response response = buildGetContentQuery(false).request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -500,7 +519,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         date = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime().minusDays(365));
         expiration = "1";
         version = "1.0";
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -513,7 +532,7 @@ public class DocumentRestfulServiceGETAcceptanceTest extends BaseDocumentRestful
         version = "1.0";
         serviceKey = sasquatchServiceKey;
         token = sasquatchToken;
-        Response response = buildGetContentQuery().request().get();
+        Response response = buildGetContentQuery().request().header("host", host).get();
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);

@@ -26,6 +26,7 @@ import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -1101,11 +1102,11 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
     }
 
     @Test
-    public void testPartialUpdateWithEtag() throws Exception {
+    public void testUpdateWithEtag() throws Exception {
         Record document = recordServices.getDocumentById(minDocumentWithoutAcesToUpdate.getId());
         String eTag = String.valueOf(document.getVersion());
 
-        Response response = buildPutQuery().request().header(HttpHeaders.IF_MATCH, eTag)
+        Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
                 .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
@@ -1114,17 +1115,17 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
     }
 
     @Test
-    public void testPartialUpdateWithOldEtag() throws Exception {
+    public void testUpdateWithOldEtag() throws Exception {
         Record document = recordServices.getDocumentById(minDocumentWithoutAcesToUpdate.getId());
         String eTag = String.valueOf(document.getVersion());
 
-        Response response = buildPutQuery().request().header(HttpHeaders.IF_MATCH, eTag)
+        Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
                 .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String validEtag = response.getEntityTag().getValue();
 
         minDocumentWithoutAcesToUpdate.setTitle("aNewTitle2");
-        response = buildPutQuery().request().header(HttpHeaders.IF_MATCH, eTag)
+        response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
                 .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1134,14 +1135,32 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
     }
 
     @Test
-    public void testPartialUpdateWithInvalidEtag() throws Exception {
-        Response response = buildPutQuery().request().header(HttpHeaders.IF_MATCH, "invalidEtag")
+    public void testUpdateWithInvalidEtag() throws Exception {
+        Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, "invalidEtag")
                 .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
         assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
                 .isEqualTo(i18n.$(new InvalidParameterException("ETag", "invalidEtag").getValidationError()));
+    }
+
+    @Test
+    public void testUpdateWithUnallowedHostHeader() throws Exception {
+        host = "fakedns.com";
+        Response response = doPutQuery(minDocumentToUpdate, null);
+        assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+
+        RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+        assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+                .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+    }
+
+    @Test
+    public void testUpdateWithAllowedHost() throws Exception {
+        host = "localhost2";
+        Response response = doPutQuery(minDocumentToUpdate, null);
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 
     //
@@ -1168,7 +1187,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
         WebTarget webTarget = buildPutQuery(calculateSignature, excludedParam);
         if (filters != null && !filters.isEmpty()) webTarget = webTarget.queryParam("filter", filters.toArray());
 
-        Invocation.Builder webTargetBuilder = webTarget.request();
+        Invocation.Builder webTargetBuilder = webTarget.request().header("host", host);
         if (flushMode != null) webTargetBuilder.header(CustomHttpHeaders.FLUSH_MODE, flushMode);
         return webTargetBuilder.put(entity(buildMultiPart(document, file), MULTIPART_FORM_DATA_TYPE));
     }
@@ -1185,7 +1204,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
     private Response doPatchQuery(String flushMode, DocumentDto document) throws Exception {
         method = HttpMethods.PATCH;
         return buildQuery(webTarget, true, asList("id", "serviceKey", "method", "date", "expiration", "signature"))
-                .request().header(CustomHttpHeaders.FLUSH_MODE, flushMode)
+                .request().header("host", host).header(CustomHttpHeaders.FLUSH_MODE, flushMode)
                 .build("PATCH", entity(buildMultiPart(document), MULTIPART_FORM_DATA_TYPE)).invoke();
     }
 

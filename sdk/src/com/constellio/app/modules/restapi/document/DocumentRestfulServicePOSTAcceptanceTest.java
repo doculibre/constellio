@@ -24,6 +24,7 @@ import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -97,7 +98,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateMinimalDocument() throws Exception {
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -119,7 +121,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateFullDocument() throws Exception {
         addUsrMetadata(MetadataValueType.STRING, null, null);
 
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -181,7 +184,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         Response response = buildPostQuery()
                 .queryParam("filter", "folderId", "type", "content", "title", "keywords", "author", "subject",
                         "organization", "directAces", "inheritedAces", "extendedAttributes")
-                .request().post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+                .request().header("host", host).post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
         DocumentDto documentDto = response.readEntity(DocumentDto.class);
@@ -197,7 +200,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
         Response response = buildPostQuery()
                 .queryParam("filter", "type", "content", "directAces", "inheritedAces", "extendedAttributes")
-                .request().post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+                .request().header("host", host).post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
         DocumentDto documentDto = response.readEntity(DocumentDto.class);
@@ -210,8 +213,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentInvalidFilter() throws Exception {
-        Response response = buildPostQuery().queryParam("filter", "invalid").request()
-                .post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().queryParam("filter", "invalid")
+                .request().header("host", host).post(entity(buildMultiPart(fullDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -224,7 +227,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         Record documentType = recordServices.getDocumentById(records.documentTypeId_1);
         minDocumentToAdd.setType(DocumentTypeDto.builder().code((String)documentType.get(Schemas.CODE)).build());
 
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -245,7 +249,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMinorVersionType() throws Exception {
         minDocumentToAdd.setContent(ContentDto.builder().versionType(MINOR).filename("minor.txt").build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -276,7 +281,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         minDocumentToAdd.setExtendedAttributes(asList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
                 ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -293,7 +299,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.DATE, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -310,7 +317,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         minDocumentToAdd.setExtendedAttributes(asList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
                 ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -327,7 +335,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.DATE_TIME, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -343,7 +352,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         minDocumentToAdd.setExtendedAttributes(asList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
                 ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -360,7 +370,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.NUMBER, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -376,7 +387,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         minDocumentToAdd.setExtendedAttributes(asList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
                 ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -393,7 +405,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.BOOLEAN, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -409,7 +422,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         minDocumentToAdd.setExtendedAttributes(asList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
                 ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -428,7 +442,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         minDocumentToAdd.setExtendedAttributes(asList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
                 ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
@@ -444,7 +459,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.REFERENCE, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -458,7 +474,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.REFERENCE, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -468,7 +485,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithMissingFolderId() throws Exception {
-        Response response = buildPostQuery("folderId").request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery("folderId").request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -479,7 +497,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateDocumentWithInvalidFolderId() throws Exception {
         folderId = "fakeFolderId";
         minDocumentToAdd.setFolderId(folderId);
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -489,7 +508,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithMissingServiceKey() throws Exception {
-        Response response = buildPostQuery("serviceKey").request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery("serviceKey").request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -499,7 +519,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidServiceKey() throws Exception {
         serviceKey = "fakeKey";
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -509,7 +530,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithMissingMethod() throws Exception {
-        Response response = buildPostQuery("method").request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery("method").request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -519,7 +541,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidMethod() throws Exception {
         method = "fakeMethod";
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -529,7 +552,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithMissingDate() throws Exception {
-        Response response = buildPostQuery("date").request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery("date").request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -539,7 +563,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidDate() throws Exception {
         date = "12345";
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -549,7 +574,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithMissingExpiration() throws Exception {
-        Response response = buildPostQuery("expiration").request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery("expiration").request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -559,7 +585,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidExpiration() throws Exception {
         expiration = "111111111111111111111111111";
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -570,7 +597,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateDocumentWithInvalidDateAndExpiration() throws Exception {
         date = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime().minusDays(365));
         expiration = "1";
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -580,7 +608,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithMissingSignature() throws Exception {
-        Response response = buildPostQuery("signature").request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery("signature").request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -590,7 +619,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidSignature() throws Exception {
         signature = "fakeSignature";
-        Response response = buildPostQuery(false).request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery(false).request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -602,7 +632,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateDocumentWithUserWithoutPermissions() throws Exception {
         serviceKey = sasquatchServiceKey;
         token = sasquatchToken;
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -613,7 +644,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMissingDocumentFolderId() throws Exception {
         minDocumentToAdd.setFolderId(null);
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -623,7 +655,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidDocumentFolderId() throws Exception {
         minDocumentToAdd.setFolderId(records.folder_A42);
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -634,7 +667,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMissingDocumentTitle() throws Exception {
         minDocumentToAdd.setTitle(null);
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -644,7 +678,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidTypeId() throws Exception {
         minDocumentToAdd.setType(DocumentTypeDto.builder().id("fake").build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -655,7 +690,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidTypeCode() throws Exception {
         minDocumentToAdd.setType(DocumentTypeDto.builder().code("fake").build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -666,7 +702,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithTypeIdAndTypeCode() throws Exception {
         minDocumentToAdd.setType(DocumentTypeDto.builder().id("id").code("code").build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -677,7 +714,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithContentAndMissingFile() throws Exception {
         minDocumentToAdd.setContent(ContentDto.builder().filename("test.txt").versionType(MINOR).build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -686,7 +724,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentWithFileAndMissingContent() throws Exception {
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -696,7 +735,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMissingContentVersionType() throws Exception {
         minDocumentToAdd.setContent(ContentDto.builder().filename("test.txt").build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -706,7 +746,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMissingContentFilename() throws Exception {
         minDocumentToAdd.setContent(ContentDto.builder().versionType(MAJOR).build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd, fileToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -716,7 +757,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMissingAcePrincipals() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().permissions(singleton(READ)).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -726,7 +768,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithEmptyAcePrincipals() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(Collections.<String>emptySet()).permissions(singleton(READ)).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -736,7 +779,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidAcePrincipals() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton("fake")).permissions(singleton(READ)).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -747,7 +791,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithMissingAcePermissions() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice)).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -757,7 +802,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithEmptyAcePermissions() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice)).permissions(Collections.<String>emptySet()).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -770,7 +816,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         String end = toDateString(new LocalDate());
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
                 .permissions(singleton(READ)).startDate(start).endDate(end).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -781,7 +828,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateDocumentWithStartDateOnly() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
                 .permissions(singleton(READ)).startDate(toDateString(new LocalDate())).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
         DocumentDto doc = response.readEntity(DocumentDto.class);
@@ -798,7 +846,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateDocumentWithEndDateOnly() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
                 .permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -808,7 +857,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidAcePermissions() throws Exception {
         minDocumentToAdd.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice)).permissions(singleton("fake")).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -819,7 +869,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithInvalidExtAttributeKey() throws Exception {
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key("fake").values(singletonList("123")).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -832,7 +883,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         addUsrMetadata(MetadataValueType.STRING, null, null);
 
         minDocumentToAdd.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(asList("ab","cd")).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -844,7 +896,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     public void testCreateDocumentWithEmptyExtAttributeValues() throws Exception {
         minDocumentToAdd.setExtendedAttributes(singletonList(
                 ExtendedAttributeDto.builder().key(fakeMetadata1).values(Collections.<String>emptyList()).build()));
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -854,7 +907,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     @Test
     public void testCreateDocumentWithCustomSchema() throws Exception {
         minDocumentToAdd.setType(DocumentTypeDto.builder().id(records.documentTypeForm().getId()).build());
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -874,7 +928,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
     @Test
     public void testCreateDocumentDefaultFlushMode() throws Exception {
-        Response response = buildPostQuery().request().post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(commitCounter.newCommitsCall()).isEmpty();
 
@@ -937,12 +992,32 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
         assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + documents.get(0).getVersion() + "\"");
     }
 
+    @Test
+    public void testCreateDocumentWithUnallowedHostHeader() throws Exception {
+        host = "fakedns.com";
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+
+        RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+        assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
+                .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+    }
+
+    @Test
+    public void testCreateDocumentWithAllowedHost() throws Exception {
+        host = "localhost2";
+        Response response = buildPostQuery().request().header("host", host)
+                .post(entity(buildMultiPart(minDocumentToAdd), MULTIPART_FORM_DATA_TYPE));
+        assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+    }
+
     //
     // PRIVATE FUNCTIONS
     //
 
     private Response doPostQuery(String flushMode, DocumentDto document) throws Exception {
-        return buildPostQuery().request().header(CustomHttpHeaders.FLUSH_MODE, flushMode)
+        return buildPostQuery().request().header("host", host).header(CustomHttpHeaders.FLUSH_MODE, flushMode)
                 .post(entity(buildMultiPart(document), MULTIPART_FORM_DATA_TYPE));
     }
 
@@ -959,7 +1034,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
     private Response doPutQuery(String flushMode, DocumentDto document) throws Exception {
         method = HttpMethods.PUT;
         return buildQuery(webTarget, true, asList("id", "serviceKey", "method", "date", "expiration", "signature"))
-                .request().header(CustomHttpHeaders.FLUSH_MODE, flushMode)
+                .request().header("host", host).header(CustomHttpHeaders.FLUSH_MODE, flushMode)
                 .put(entity(buildMultiPart(document), MULTIPART_FORM_DATA_TYPE));
     }
 

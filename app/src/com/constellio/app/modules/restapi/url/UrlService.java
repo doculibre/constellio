@@ -2,6 +2,7 @@ package com.constellio.app.modules.restapi.url;
 
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
+import com.constellio.app.modules.restapi.core.util.UrlUtils;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.url.dao.UrlDao;
 import com.constellio.app.modules.restapi.validation.ValidationService;
@@ -19,13 +20,14 @@ public class UrlService {
     @Inject
     private ValidationService validationService;
 
-    public String getSignedUrl(String token, String serviceKey, SchemaTypes schemaType, String method, String id,
+    public String getSignedUrl(String host, String token, String serviceKey, SchemaTypes schemaType, String method, String id,
                                String folderId, String expiration, String version, String physical) throws Exception {
+        validationService.validateHost(host);
         validationService.validateAuthentication(token, serviceKey);
 
         String date = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime());
 
-        String data = getHost()
+        String data = host
                 .concat(!Strings.isNullOrEmpty(id) ? id : folderId)
                 .concat(serviceKey)
                 .concat(schemaType.name())
@@ -37,7 +39,7 @@ public class UrlService {
 
         String signature = signatureService.sign(token, data);
 
-        return getResourcePath(schemaType)
+        return getResourcePath(host, schemaType)
                 .concat(!Strings.isNullOrEmpty(version) ? "/content" : "")
                 .concat("?")
                 .concat(!Strings.isNullOrEmpty(id) ? "id=" + id : "folderId=" + folderId)
@@ -50,16 +52,12 @@ public class UrlService {
                 .concat("&signature=").concat(signature);
     }
 
-    private String getHost() {
-        return urlDao.getServerHost();
+    private String getResourcePath(String host, SchemaTypes schemaType) {
+        return getServerPath(host).concat("rest/v1/").concat(schemaType.getResource());
     }
 
-    private String getPath() {
-        return urlDao.getServerPath();
-    }
-
-    private String getResourcePath(SchemaTypes schemaType) {
-        return getPath().concat("rest/v1/").concat(schemaType.getResource());
+    private String getServerPath(String host) {
+        return UrlUtils.replaceHost(urlDao.getServerPath(), host);
     }
 
 }

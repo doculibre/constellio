@@ -1,5 +1,6 @@
 package com.constellio.app.modules.restapi.core.dao;
 
+import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
@@ -20,8 +21,10 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
+import com.google.common.base.Strings;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,8 +86,18 @@ public abstract class BaseDao {
         return metadataSchemasManager.getSchemaOf(record);
     }
 
-    public String getServerHost() {
-        return getUrl().split("/")[2].split(":")[0];
+    public List<String> getAllowedHosts() {
+        String value = systemConfigurationsManager.getValue(RestApiConfigs.REST_API_URLS);
+        if (Strings.isNullOrEmpty(value)) {
+            return Collections.singletonList(getServerHost());
+        }
+
+        List<String> restApiUrls = new ArrayList<>();
+        String[] urls = value.split(";");
+        for (String url : urls) {
+            restApiUrls.add((url.trim()));
+        }
+        return restApiUrls;
     }
 
     public String getServerPath() {
@@ -144,6 +157,10 @@ public abstract class BaseDao {
         if (value.equals("LATER")) return RecordsFlushing.LATER();
 
         return RecordsFlushing.WITHIN_SECONDS(Integer.valueOf(value.split("_")[1]));
+    }
+
+    private String getServerHost() {
+        return getUrl().split("/")[2].split(":")[0];
     }
 
     public Record getUserByUsername(String username, String collection) {

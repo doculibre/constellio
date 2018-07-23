@@ -52,9 +52,9 @@ public class DocumentService extends BaseService {
 
     private static String SCHEMA_TYPE = SchemaTypes.DOCUMENT.name();
 
-    public DocumentDto create(String folderId, String serviceKey, String method, String date, int expiration, String signature,
+    public DocumentDto create(String host, String folderId, String serviceKey, String method, String date, int expiration, String signature,
                               DocumentDto document, InputStream contentInputStream, String flushMode, Set<String> filters) throws Exception {
-        validateParameters(folderId, serviceKey, SCHEMA_TYPE, method, date, expiration, null, null, signature);
+        validateParameters(host, folderId, serviceKey, SCHEMA_TYPE, method, date, expiration, null, null, signature);
 
         Record folder = getRecord(folderId, true);
         User user = getUser(serviceKey, folder.getCollection());
@@ -84,19 +84,20 @@ public class DocumentService extends BaseService {
         }
     }
 
-    public void delete(String id, String serviceKey, String method, String date, int expiration, Boolean physical, String signature) throws Exception {
-        validateParameters(id, serviceKey, SCHEMA_TYPE, method, date, expiration, null, physical, signature);
+    public void delete(String host, String id, String serviceKey, String method, String date, int expiration, Boolean physical,
+                       String signature) throws Exception {
+        validateParameters(host, id, serviceKey, SCHEMA_TYPE, method, date, expiration, null, physical, signature);
 
         Record document = getRecord(id, false);
         User user = getUser(serviceKey, document.getCollection());
         validationService.validateUserAccess(user, document, method);
 
-        documentDao.deleteDocument(user, document, physical == null || physical);
+        documentDao.deleteDocument(user, document, Boolean.TRUE.equals(physical));
     }
 
-    public DocumentContentDto getContent(String id, String serviceKey, String method, String date, int expiration,
+    public DocumentContentDto getContent(String host, String id, String serviceKey, String method, String date, int expiration,
                                          String version, String signature) throws Exception {
-        validateParameters(id, serviceKey, SCHEMA_TYPE, method, date, expiration, version, null, signature);
+        validateParameters(host, id, serviceKey, SCHEMA_TYPE, method, date, expiration, version, null, signature);
 
         Record document = getRecord(id, false);
         User user = getUser(serviceKey, document.getCollection());
@@ -105,9 +106,9 @@ public class DocumentService extends BaseService {
         return documentDao.getContent(document, version);
     }
 
-    public DocumentDto get(String id, String serviceKey, String method, String date, int expiration, String signature,
+    public DocumentDto get(String host, String id, String serviceKey, String method, String date, int expiration, String signature,
                            Set<String> filters) throws Exception {
-        validateParameters(id, serviceKey, SCHEMA_TYPE, method, date, expiration,null, null, signature);
+        validateParameters(host, id, serviceKey, SCHEMA_TYPE, method, date, expiration,null, null, signature);
 
         Record document = getRecord(id, false);
         User user = getUser(serviceKey, document.getCollection());
@@ -118,10 +119,10 @@ public class DocumentService extends BaseService {
         return adapt(null, document, documentSchema, false, filters);
     }
 
-    public DocumentDto update(String id, String serviceKey, String method, String date, int expiration, String signature,
+    public DocumentDto update(String host, String id, String serviceKey, String method, String date, int expiration, String signature,
                               DocumentDto document, InputStream contentInputStream, boolean partial, String flushMode,
                               Set<String> filters) throws Exception {
-        validateParameters(id, serviceKey, SCHEMA_TYPE, method, date, expiration, null, null, signature);
+        validateParameters(host, id, serviceKey, SCHEMA_TYPE, method, date, expiration, null, null, signature);
 
         Record documentRecord = getRecord(id, true);
         if (document.getETag() != null) {
@@ -230,10 +231,11 @@ public class DocumentService extends BaseService {
         return document;
     }
 
-    private void validateParameters(String id, String serviceKey, String schemaType, String method, String date, int expiration,
+    private void validateParameters(String host, String id, String serviceKey, String schemaType, String method, String date, int expiration,
                                     String version, Boolean physical, String signature) throws Exception {
+        validationService.validateHost(host);
         validationService.validateUrl(date, expiration);
-        validationService.validateSignature(id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+        validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
     }
 
     private void validateExtendedAttributes(List<ExtendedAttributeDto> extendedAttributes, MetadataSchema schema) {

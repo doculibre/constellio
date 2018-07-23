@@ -16,6 +16,7 @@ import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.data.utils.TimeProvider;
@@ -43,10 +44,10 @@ public class ValidationService extends BaseService {
     @Inject
     private ValidationDao validationDao;
 
-    public void validateSignature(String id, String serviceKey, String schemaType, String method, String date, int expiration,
+    public void validateSignature(String host, String id, String serviceKey, String schemaType, String method, String date, int expiration,
                                   String version, Boolean physical, String signature) throws Exception {
         String physicalValue = physical != null ? String.valueOf(physical) : null;
-        String data = StringUtils.concat(getHost(), id, serviceKey, schemaType, method, date, String.valueOf(expiration), version, physicalValue);
+        String data = StringUtils.concat(host, id, serviceKey, schemaType, method, date, String.valueOf(expiration), version, physicalValue);
 
         Collection<String> tokens = validationDao.getUserTokens(serviceKey, true);
         if (tokens.isEmpty()) throw new UnauthenticatedUserException();
@@ -128,12 +129,12 @@ public class ValidationService extends BaseService {
         if (!eTag.equals(String.valueOf(recordVersion))) throw new OptimisticLockException(recordId, eTag, recordVersion);
     }
 
+    public void validateHost(String host) {
+        if (!validationDao.getAllowedHosts().contains(host)) throw new UnallowedHostException(host);
+    }
+
     @Override
     protected BaseDao getDao() {
         return validationDao;
-    }
-
-    private String getHost() {
-        return validationDao.getServerHost();
     }
 }

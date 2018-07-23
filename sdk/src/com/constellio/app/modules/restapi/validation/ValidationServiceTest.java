@@ -46,6 +46,7 @@ public class ValidationServiceTest {
 
     @InjectMocks private ValidationService validationService;
 
+    private String host = "localhost";
     private String id = "id";
     private String serviceKey = "serviceKey";
     private String schemaType = SchemaTypes.DOCUMENT.name();
@@ -79,13 +80,13 @@ public class ValidationServiceTest {
 
     @Test
     public void testValidateSignatureWithCorrectSignature() throws Exception {
-        validationService.validateSignature(id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+        validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
     }
 
     @Test(expected=InvalidSignatureException.class)
     public void testValidateSignatureWithInvalidSignature() throws Exception {
         String fakeSignature = "0000000000000000000000000000000000000000000";
-        validationService.validateSignature(id, serviceKey, schemaType, method, date, expiration, version, physical, fakeSignature);
+        validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, fakeSignature);
     }
 
     @Test(expected=InvalidSignatureException.class)
@@ -93,14 +94,14 @@ public class ValidationServiceTest {
         when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(Lists.newArrayList("fakeToken1", "fakeToken2"));
         when(signatureService.sign(anyString(), anyString())).thenReturn("anotherSignature");
 
-        validationService.validateSignature(id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+        validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
     }
 
     @Test(expected=UnauthenticatedUserException.class)
     public void testValidateSignatureWithNoToken() throws Exception {
         when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(Collections.<String>emptyList());
 
-        validationService.validateSignature(id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+        validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
     }
 
     @Test
