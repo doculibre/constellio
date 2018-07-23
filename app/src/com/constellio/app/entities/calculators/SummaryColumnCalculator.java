@@ -95,7 +95,12 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				summmaryColumnValue.append(prefixContentToStirng);
 			}
 		}
+		if(Strings.isNullOrEmpty(summmaryColumnValue.toString())) {
+			return null;
+		}
+
 		return summmaryColumnValue.toString();
+
 	}
 
 	public ReferenceDependency getReferenceDependancy(String metadataCode) {
