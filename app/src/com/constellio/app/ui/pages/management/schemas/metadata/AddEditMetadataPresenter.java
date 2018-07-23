@@ -307,7 +307,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (schemaCode.endsWith("_default")) {
 			builderDefaultSchema = builder;
 		} else {
-			builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
+			builderDefaultSchema = types.getSchema(schemaCode).get(formMetadataVO.getCode());
+			if(builderDefaultSchema.getInheritance() != null) {
+				builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
+			}
 			if (builderDefaultSchema == null) {
 				builderDefaultSchema = builder;
 			}

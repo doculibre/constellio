@@ -2,6 +2,7 @@ package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.model.entities.Language;
+import com.jgoodies.common.base.Strings;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
@@ -164,7 +165,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void setLabelsAttribute(Element element, Map<Language,String> labels){
 		if (labels != null && labels.keySet() != null) {
 			for(Language language : labels.keySet()) {
-				element.setAttribute(LABEL + language.getCode(), labels.get(language));
+				if(Strings.isNotBlank(labels.get(language))) {
+					element.setAttribute(LABEL + language.getCode(), labels.get(language));
+				}
 			}
 		}
 	}

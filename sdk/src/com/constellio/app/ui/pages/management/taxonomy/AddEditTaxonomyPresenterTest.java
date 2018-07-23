@@ -1,10 +1,10 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -35,7 +35,8 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	AddEditTaxonomyPresenter presenter;
 	Map<Language, String> newTaxonomyTitle;
 	MockedFactories mockedFactories = new MockedFactories();
-	@Mock CollectionsManager collectionsManager;
+	@Mock
+	CollectionsListManager collectionsListManager;
 
 	@Before
 	public void setUp()
@@ -53,8 +54,8 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		languages.add("en");
 		languages.add("fr");
 
-		when(mockedFactories.getAppLayerFactory().getCollectionsManager()).thenReturn(collectionsManager);
-		when(mockedFactories.getAppLayerFactory().getCollectionsManager().getCollectionLanguages(anyString())).thenReturn(languages);
+		when(mockedFactories.getModelLayerFactory().getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(collectionsListManager.getCollectionLanguages(anyString())).thenReturn(languages);
 
 		newTaxonomyTitle = new HashMap<>();
 		newTaxonomyTitle.put(Language.French, "taxonomy 1");
