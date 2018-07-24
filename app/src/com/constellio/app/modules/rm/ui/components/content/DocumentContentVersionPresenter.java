@@ -24,6 +24,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
@@ -130,7 +131,8 @@ public class DocumentContentVersionPresenter implements Serializable {
 	}
 
 	private boolean isCheckOutLinkVisible() {
-		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !Email.SCHEMA.equals(documentVO.getSchema().getCode());
+		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !Email.SCHEMA
+				.equals(documentVO.getSchema().getCode());
 	}
 
 	public void displayDocumentLinkClicked() {
@@ -147,7 +149,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.getContent().checkOut(currentUser);
 			presenterUtils.addOrUpdate(document.getWrappedRecord());
-			
+
 			SessionContext sessionContext = window.getSessionContext();
 			documentVO = documentVOBuilder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, window.getSessionContext());
 			agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO, sessionContext);
@@ -165,19 +167,22 @@ public class DocumentContentVersionPresenter implements Serializable {
 	}
 
 	protected void updateSearchResultClicked() {
-		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
-		SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
-		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
+					presenterUtils.modelLayerFactory());
+			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-		searchEventServices.incrementClickCounter(searchEvent.getId());
+			searchEventServices.incrementClickCounter(searchEvent.getId());
 
-		String url = null;
-		try {
-			url = documentVO.get("url");
-		} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+			String url = null;
+			try {
+				url = documentVO.get("url");
+			} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+			}
+			String clicks = defaultIfBlank(url, documentVO.getId());
+			searchEventServices.updateClicks(searchEvent, clicks);
 		}
-		String clicks = defaultIfBlank(url, documentVO.getId());
-		searchEventServices.updateClicks(searchEvent, clicks);
 	}
 }

@@ -424,80 +424,84 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	private void logSearchEvent(SearchResultVODataProvider dataProvider, SPEQueryResponse response) {
-		LogicalSearchQuery query = dataProvider.getQuery();
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			LogicalSearchQuery query = dataProvider.getQuery();
 
-		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
-		int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+			int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+			int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
 
-		query.setStartRow(start);
-		query.setNumberOfRows(rows);
+			query.setStartRow(start);
+			query.setNumberOfRows(rows);
 
-		ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-				.addSolrModifiableParams(query);
+			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
+					.addSolrModifiableParams(query);
 
-		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
-		SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
-		searchEvent.setOriginalQuery(query.getFreeTextQuery());
-		searchEvent.setClickCount(0);
+			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+			searchEvent.setOriginalQuery(query.getFreeTextQuery());
+			searchEvent.setClickCount(0);
 
-		Capsule capsule = getCapsuleForCurrentSearch();
-		if (capsule != null) {
-			searchEvent.setCapsule(capsule);
-		}
+			Capsule capsule = getCapsuleForCurrentSearch();
+			if (capsule != null) {
+				searchEvent.setCapsule(capsule);
+			}
 
-		ArrayList<String> paramList = new ArrayList<>();
+			ArrayList<String> paramList = new ArrayList<>();
 
-		for (String paramName : modifiableSolrParams.getParameterNames()) {
-			if (!StringUtils.equalsAny(paramName, "qf", "pf", "fl")) {
-				if ("q".equals(paramName)) {
-					searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
-				} else {
-					String[] values = modifiableSolrParams.getParams(paramName);
+			for (String paramName : modifiableSolrParams.getParameterNames()) {
+				if (!StringUtils.equalsAny(paramName, "qf", "pf", "fl")) {
+					if ("q".equals(paramName)) {
+						searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
+					} else {
+						String[] values = modifiableSolrParams.getParams(paramName);
 
-					if (values.length == 1) {
-						paramList.add(paramName + "=" + values[0]);
-					} else if (values.length > 1) {
-						StringBuilder valuesAsOneStringBuilder = new StringBuilder();
-						for (String value : values) {
-							valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+						if (values.length == 1) {
+							paramList.add(paramName + "=" + values[0]);
+						} else if (values.length > 1) {
+							StringBuilder valuesAsOneStringBuilder = new StringBuilder();
+							for (String value : values) {
+								valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+							}
+							paramList.add(valuesAsOneStringBuilder.toString());
 						}
-						paramList.add(valuesAsOneStringBuilder.toString());
-					}
 
+					}
 				}
 			}
-		}
-		searchEvent.setParams(paramList);
-		searchEvent.setQTime(response.getQtime());
-		searchEvent.setNumFound(response.getNumFound());
-		UIContext uiContext = view.getUIContext();
+			searchEvent.setParams(paramList);
+			searchEvent.setQTime(response.getQtime());
+			searchEvent.setNumFound(response.getNumFound());
+			UIContext uiContext = view.getUIContext();
 
-		SearchEvent oldSearchEventRecord = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
-		SearchEvent oldSearchEvent = null;
-		if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
-			oldSearchEvent = oldSearchEventRecord;
-		}
+			SearchEvent oldSearchEventRecord = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent oldSearchEvent = null;
+			if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
+				oldSearchEvent = oldSearchEventRecord;
+			}
 
-		if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-			ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
-			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			searchEventServices.save(searchEvent);
+			if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
+				ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
+				SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+				searchEventServices.save(searchEvent);
 
-			checkAndUpdateDwellTime(oldSearchEvent);
+				checkAndUpdateDwellTime(oldSearchEvent);
+			}
 		}
 	}
 
 	private void checkAndUpdateDwellTime(SearchEvent searchEvent) {
-		Long start = view.getUIContext().clearAttribute(SEARCH_EVENT_DWELL_TIME);
-		if (!ObjectUtils.allNotNull(searchEvent, start)) {
-			return;
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			Long start = view.getUIContext().clearAttribute(SEARCH_EVENT_DWELL_TIME);
+			if (!ObjectUtils.allNotNull(searchEvent, start)) {
+				return;
+			}
+
+			long dwellTime = System.currentTimeMillis() - start;
+			searchEvent.setDwellTime(dwellTime);
+
+			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+			searchEventServices.updateDwellTime(searchEvent.getId(), dwellTime);
 		}
-
-		long dwellTime = System.currentTimeMillis() - start;
-		searchEvent.setDwellTime(dwellTime);
-
-		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		searchEventServices.updateDwellTime(searchEvent.getId(), dwellTime);
 	}
 
 	private boolean areSearchEventEqual(SearchEvent searchEvenFromSessionContext, SearchEvent searchEvent) {
@@ -911,63 +915,67 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public void searchResultClicked(RecordVO recordVO) {
-		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
-		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-		searchEventServices.incrementClickCounter(searchEvent.getId());
+			searchEventServices.incrementClickCounter(searchEvent.getId());
 
-		String url = null;
-		try {
-			url = recordVO.get("url");
-		} catch (RecordVORuntimeException_NoSuchMetadata e) {
-			LOGGER.warn(e.getMessage(), e);
+			String url = null;
+			try {
+				url = recordVO.get("url");
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				LOGGER.warn(e.getMessage(), e);
+			}
+			String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+			searchEventServices.updateClicks(searchEvent, clicks);
 		}
-		String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-		searchEventServices.updateClicks(searchEvent, clicks);
 	}
 
 	public void searchNavigationButtonClicked() {
-		SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
-		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
-				appLayerFactory.getModelLayerFactory());
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
+					appLayerFactory.getModelLayerFactory());
 
-		List<String> params = new ArrayList<>(searchEvent.getParams());
+			List<String> params = new ArrayList<>(searchEvent.getParams());
 
-		int pageNumber = getPageNumber();
-		int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
-		int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
+			int pageNumber = getPageNumber();
+			int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+			int start = (pageNumber > 0 ? pageNumber - 1 : 0) * rows;
 
-		ListIterator<String> listIterator = params.listIterator();
-		while (listIterator.hasNext()) {
-			String param = listIterator.next();
+			ListIterator<String> listIterator = params.listIterator();
+			while (listIterator.hasNext()) {
+				String param = listIterator.next();
 
-			if (StringUtils.startsWith(param, "start=")) {
-				listIterator.set("start=" + start);
+				if (StringUtils.startsWith(param, "start=")) {
+					listIterator.set("start=" + start);
+				}
+
+				if (StringUtils.startsWith(param, "rows=")) {
+					listIterator.set("rows=" + rows);
+				}
 			}
 
-			if (StringUtils.startsWith(param, "rows=")) {
-				listIterator.set("rows=" + rows);
+			SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
+			newSearchEvent.setParams(params);
+			newSearchEvent.setClickCount(searchEvent.getClickCount());
+			newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
+			newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
+			newSearchEvent.setQuery(searchEvent.getQuery());
+			newSearchEvent.setNumFound(searchEvent.getNumFound());
+			newSearchEvent.setQTime(searchEvent.getQTime());
+			newSearchEvent.setCapsule(searchEvent.getCapsule());
+
+			if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
+				ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
+				searchEventServices.save(newSearchEvent);
+			} else {
+				searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 			}
-		}
-
-		SearchEvent newSearchEvent = schemasRecordsServices.newSearchEvent();
-		newSearchEvent.setParams(params);
-		newSearchEvent.setClickCount(searchEvent.getClickCount());
-		newSearchEvent.setPageNavigationCount(searchEvent.getPageNavigationCount() + 1);
-		newSearchEvent.setOriginalQuery(searchEvent.getOriginalQuery());
-		newSearchEvent.setQuery(searchEvent.getQuery());
-		newSearchEvent.setNumFound(searchEvent.getNumFound());
-		newSearchEvent.setQTime(searchEvent.getQTime());
-		newSearchEvent.setCapsule(searchEvent.getCapsule());
-
-		if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-			ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
-			searchEventServices.save(newSearchEvent);
-		} else {
-			searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);
 		}
 	}
 
