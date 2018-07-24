@@ -54,14 +54,14 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(zeCollection);
 		MetadataList populated = types.getAllMetadatas().onlyPopulated();
 		assertThat(populated).extracting("localCode")
-				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo");
+				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
 		MetadataSchemaTypesBuilder builder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
 		builder.getMetadata("document_default_author")
 				.setLabels(asMap(Language.French, "zAuthor fr", Language.English, "zAuthor en"));
 		schemasManager.saveUpdateSchemaTypes(builder);
 		MetadataList allMetadata = schemasManager.getSchemaTypes(zeCollection).getAllMetadatas();
 		assertThat(allMetadata.onlyPopulated()).extracting("localCode")
-				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo");
+				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
 		assertThat(allMetadata.getMetadataWithLocalCode("author").getLabels()).containsOnly(
 				entry(Language.French, "zAuthor fr"),
 				entry(Language.English, "zAuthor en")
@@ -81,7 +81,7 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		});
 		allMetadata = schemasManager.getSchemaTypes(zeCollection).getAllMetadatas();
 		assertThat(allMetadata.onlyPopulated()).extracting("localCode")
-				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo",
+				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title",
 						"borrowUser", "zMeta");
 
 	}
