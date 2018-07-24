@@ -19,7 +19,7 @@ public class FilterTableAdapter extends FilterTable {
 
     public FilterTableAdapter(Table adaptedTable, FilterDecorator decorator, FilterGenerator generator) {
         this.adaptedTable = adaptedTable;
-        
+        int i;
         if (decorator != null) {
     		setFilterDecorator(decorator);
         }
