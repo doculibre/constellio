@@ -788,7 +788,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
 		assertThat(metadataSchemaType).isNotNull();
-		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo("label");
 		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().keySet()).doesNotContain(English);
 	}
 
@@ -2665,7 +2665,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(types.getMetadata("folder_custom2_m2").getLabel(French)).isEqualTo("Custom M2 label");
 		assertThat(types.getMetadata("folder_custom2_m3").getLabel(French)).isEqualTo("M3 label");
 
-		custom1M1.setLabel(null);
 		custom1M2.setLabel("New custom label 1");
 		custom2M2.setLabel("New custom label 2");
 		defaultM3.setLabel("New m3 label");

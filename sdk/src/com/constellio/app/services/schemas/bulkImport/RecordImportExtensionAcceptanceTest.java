@@ -95,7 +95,6 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 		try {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
-			System.out.println("ici");
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
 					"Dossier 664 : Le dossier «664» a une date de destruction alors que son statut archivistique est \"Versé\"."
 			);

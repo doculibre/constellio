@@ -93,7 +93,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	private void init() {
 		searchPresenterService = new SearchPresenterService(collection, modelLayerFactory);
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(view.getSessionContext());
 	}
 
 	public AddEditRobotPresenter forParams(String parameters) {
