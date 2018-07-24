@@ -2927,19 +2927,19 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		query.setCondition(from(zeSchema.instance()).returnAll());
 
 		query.setFreeTextQuery("\"10340\"");
-		assertThat(searchServices.search(query)).extracting("id").containsExactly("record3", "record2");
+		assertThat(searchServices.search(query)).extracting("id").containsExactly("record3");
 
 		query.setFreeTextQuery("\"103400\"");
-		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2", "record3");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2");
 
 		query.setFreeTextQuery("\"1034002\"");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
 
 		query.setFreeTextQuery("10340");
-		assertThat(searchServices.search(query)).extracting("id").containsOnly("record3", "record2");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record3");
 
 		query.setFreeTextQuery("103400");
-		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2", "record3");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2");
 
 		query.setFreeTextQuery("1034002");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
