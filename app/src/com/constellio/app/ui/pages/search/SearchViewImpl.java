@@ -69,7 +69,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout thesaurusDisambiguation;
 	private VerticalLayout spellCheckerSuggestions;
 	private VerticalLayout summary;
-	private CollapsibleHorizontalSplitPanel resultsAndFacetsPanel;
+	private Component resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
@@ -338,17 +338,23 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
 		
-		resultsAndFacetsPanel = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
-		resultsAndFacetsPanel.addStyleName("search-result-and-facets-container");
-		resultsAndFacetsPanel.setSecondComponentWidth(300, Unit.PIXELS);
-		resultsAndFacetsPanel.setFirstComponent(resultsArea);
-		resultsAndFacetsPanel.setSecondComponent(facetsArea);
-
-//		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
-//		body.addStyleName("search-result-and-facets-container");
-//		body.setWidth("100%");
-//		body.setExpandRatio(resultsArea, 1);
-//		body.setSpacing(true);
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
+			body.addStyleName("search-result-and-facets-container");
+			body.setSecondComponentWidth(300, Unit.PIXELS);
+			body.setFirstComponent(resultsArea);
+			body.setSecondComponent(facetsArea);
+			
+			resultsAndFacetsPanel = body;
+		} else {
+			I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
+			body.addStyleName("search-result-and-facets-container");
+			body.setWidth("100%");
+			body.setExpandRatio(resultsArea, 1);
+			body.setSpacing(true);
+			
+			resultsAndFacetsPanel = body;
+		}
 
 		refreshCapsule();
 

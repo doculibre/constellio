@@ -321,11 +321,6 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
     }
 
     @Override
-    protected Component buildActionMenu(ViewChangeListener.ViewChangeEvent event) {
-        return super.buildActionMenu(event);
-    }
-
-    @Override
     public void removeAllTheSelectedFile() {
         uploadSkosField.setValue(null);
     }

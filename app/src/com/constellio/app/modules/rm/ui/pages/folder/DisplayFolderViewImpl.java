@@ -67,6 +67,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -1101,4 +1102,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		closeAllWindows();
 		return navigation;
 	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+	
 }

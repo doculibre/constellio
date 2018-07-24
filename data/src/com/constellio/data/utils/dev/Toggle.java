@@ -54,6 +54,9 @@ public class Toggle {
 
 	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
 
+	public static AvailableToggle SEARCH_RESULTS_VIEWER = newToggle(false);
+
+
 
 	// ------------------------------------------------
 

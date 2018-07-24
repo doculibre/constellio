@@ -18,8 +18,6 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 	
 	private static final String STYLE_NAME_SECOND_HIDDEN = STYLE_NAME + "-second-hidden";
 	
-	private static final int SPLITTER_WIDTH = 20;
-	
 	private String panelId;
 	
 	private boolean secondComponentVisible = true;

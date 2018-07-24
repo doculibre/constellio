@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -34,11 +35,6 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class FacetsPanel extends VerticalLayout {
 	
-	public static final String FACET_BOX_STYLE = "facet-box";
-	public static final String FACET_TITLE_STYLE = "facet-title";
-	public static final String SORT_BOX_STYLE = "sort-box";
-	public static final String SORT_TITLE_STYLE = "sort-title";
-
 	public FacetsPanel() {
 		addStyleName("search-result-facets");
 //		setWidth("300px");
@@ -57,7 +53,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 	private Component buildSortComponent(List<MetadataVO> sortableMetadata, String sortCriterionValue, SortOrder sortOrder) {
 		Label sortBy = new Label($("SearchView.sortBy"));
 		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
-		sortBy.addStyleName(SORT_TITLE_STYLE);
+		sortBy.addStyleName("sort-title");
 
 		final ComboBox criterion = new BaseComboBox();
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
@@ -95,7 +91,11 @@ public abstract class FacetsPanel extends VerticalLayout {
 
 		VerticalLayout layout = new VerticalLayout(sortBy, inner);
 		layout.setWidth("95%");
-		layout.addStyleName(SORT_BOX_STYLE);
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			layout.addStyleName("sort-box-viewer");
+		} else {
+			layout.addStyleName("sort-box");
+		}
 
 		return layout;
 	}
@@ -124,7 +124,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
 		captionBar.setExpandRatio(title, 1);
 		captionBar.setWidth("100%");
-		captionBar.addStyleName(FACET_TITLE_STYLE);
+		captionBar.addStyleName("facet-title");
 
 		VerticalLayout layout = new VerticalLayout(captionBar);
 		layout.setWidth("95%");
@@ -185,7 +185,11 @@ public abstract class FacetsPanel extends VerticalLayout {
 
 		layout.addComponent(table);
 		layout.setVisible(!facet.getValues().isEmpty());
-		layout.addStyleName(FACET_BOX_STYLE);
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			layout.addStyleName("facet-box-viewer");
+		} else {
+			layout.addStyleName("facet-box");
+		}
 		return layout;
 	}
 

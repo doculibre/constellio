@@ -333,6 +333,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
         } else {
             if (isActionMenuBar()) {
                 MenuBar menuBar = new MenuBar();
+                menuBar.addStyleName("action-menu-bar");
                 menuBar.setAutoOpen(true);
                 menuBar.setIcon(FontAwesome.ELLIPSIS_H);
                 result = menuBar;
@@ -352,6 +353,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                 }
             } else {
                 VerticalLayout actionMenuLayout = new VerticalLayout();
+                actionMenuLayout.addStyleName("action-menu-layout");
                 actionMenuLayout.setSizeUndefined();
 
                 int visibleButtons = 0;

@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellK
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
+import com.constellio.data.utils.dev.Toggle;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
@@ -24,7 +25,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchResultDetailedTable extends BasePagedTable<SearchResultContainer> implements SearchResultTable {
-	public static final String TABLE_STYLE = "search-result-table";
+	
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
 	private Set<Object> selected;
@@ -39,6 +40,14 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 	public SearchResultDetailedTable(SearchResultContainer container, boolean withCheckBoxes) {
 		super("SearchResultDetailedTable", container);
+		
+		addStyleName("search-result-table");
+		
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			addStyleName("search-result-viewer-table");
+		} else {
+			addStyleName("search-result-detailed-table");
+		}
 
 		listeners = new HashSet<>();
 		selected = new LinkedHashSet<>();
@@ -79,14 +88,20 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		setContainerDataSource(container);
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		if (withCheckBoxes) {
-			setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+				setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			} else {
+				setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			}
 		} else {
-			setVisibleColumns(SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+				setVisibleColumns(SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			} else {
+				setVisibleColumns(SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			}
 		}
-		setColumnWidth(SearchResultContainer.THUMBNAIL_PROPERTY, 80);
 		setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
 		setPageLength(Math.min(container.size(), DEFAULT_PAGE_LENGTH));
-		addStyleName(TABLE_STYLE);
 	}
 
 	public List<String> getSelectedRecordIds() {

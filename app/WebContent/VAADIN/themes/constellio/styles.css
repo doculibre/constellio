@@ -13456,7 +13456,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
-	width: 20px;
+	width: 10px;
 	text-align: center;
 	white-space: nowrap;
 	outline: medium none;
@@ -13480,7 +13480,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-second-container-collapsible-horizontal-splitpanel {
-	padding-left: 30px;
+	padding-left: 20px;
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
@@ -13666,6 +13666,18 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 5px;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table * {
+	border: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table .v-table-table {
+	box-shadow: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table .v-table-row-odd {
+	background-color: #fff;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content {
 	vertical-align: top;
 }
@@ -13763,6 +13775,49 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: underline;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer {
+	border-radius: 4px 4px 4px 4px;
+	border: 1px solid #d5d5d5;
+	background-color: #fafafa;
+	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .facet-title {
+	font-size: 0.9em;
+	padding-left: 13px;
+	border-bottom: 1px solid #d5d5d5;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer table * {
+	border: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-body {
+	border: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-cell-content {
+	height: auto;
+	padding-top: 2px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-row-odd {
+	background-color: #fff;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label {
+	max-width: 260px;
+	word-break: break-word;
+	white-space: normal;
+	display: inline-block;
+	color: #197de1;
+	font-size: 0.8em;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label:hover {
+	text-decoration: underline;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box {
 	border: 1px solid #3a434d;
 	border-radius: 4px;
@@ -13785,18 +13840,40 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 13px;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer {
+	border-radius: 4px 4px 4px 4px;
+	border: 1px solid #d5d5d5;
+	background-color: #fafafa;
+	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer .sort-title {
+	font-size: 0.9em;
+	padding-left: 13px;
+	border-bottom: 1px solid #d5d5d5;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer .sort-box-content {
+	font-size: 0.8em;
+	background: #fff;
+	padding-left: 13px;
+	padding-top: 8px;
+	padding-bottom: 4px;
+	padding-right: 13px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .records-management .v-tree-node-caption:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder .v-tree-node-caption:hover {
 	color: white;
 	background-color: #197de1;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout {
 	width: 225px;
 	border: 1px solid #3a434d;
 	border-radius: 4px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button {
 	padding-left: 8px;
 	color: white;
 	font-weight: normal;
@@ -13810,17 +13887,17 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button:hover {
 	color: #197de1;
 	background-color: #3a434d;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button:after {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button:after {
 	box-shadow: none;
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-disabled:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-disabled:hover {
 	color: white;
 	background-color: #414B56;
 }

@@ -57,6 +57,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -937,6 +938,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Navigation navigation = super.navigate();
 		closeAllWindows();
 		return navigation;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
 	}
 
 	private class StartWorkflowButton extends WindowButton {
