@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.params.ParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -123,6 +124,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	Boolean allItemsSelected = false;
 
 	Boolean allItemsDeselected = false;
+	private Boolean isFromFavori = false;
+	String cartId = null;
 
 	private boolean popup;
 
@@ -158,8 +161,27 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return true;
 	}
 
+	public Boolean isFromFavori() {
+		return isFromFavori != null && isFromFavori;
+	}
+
+	public String getCartId() {
+		return cartId;
+	}
+
 	public void forParams(String params) {
-		String id = params;
+
+		String id;
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+		if(paramsMap != null && paramsMap.get("isFromFavory") != null) {
+			id = paramsMap.get("id");
+			isFromFavori = Boolean.parseBoolean(paramsMap.get("isFromFavori"));
+			cartId = paramsMap.get("cartId");
+
+		} else {
+			id = params;
+		}
+
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 

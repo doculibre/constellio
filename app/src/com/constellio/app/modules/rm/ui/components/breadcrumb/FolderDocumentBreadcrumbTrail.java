@@ -19,10 +19,18 @@ import com.vaadin.ui.Button;
 public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
 	
 	private FolderDocumentBreadcrumbTrailPresenter presenter;
+	private boolean isFromFavori = false;
+	private String carteId;
 
-	public FolderDocumentBreadcrumbTrail(String recordId, String taxonomyCode, BaseView view) {
+	public FolderDocumentBreadcrumbTrail(String recordId, String cartId, String taxonomyCode, BaseView view) {
+		this(recordId, cartId, taxonomyCode, view, false);
+	}
+
+	public FolderDocumentBreadcrumbTrail(String recordId, String cartId, String taxonomyCode, BaseView view, boolean isFromFavori) {
 		super(view, null);
 		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this);
+		this.isFromFavori = isFromFavori;
+		this.carteId = cartId;
 	}
 
 	@Override
@@ -41,7 +49,12 @@ public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implemen
 			recordId = null;
 		} else if (item instanceof SearchResultsBreadcrumbItem) {
 			recordId = null;
-		} else {
+		} else if (item instanceof FolderDocumentBreadcrumbTrailPresenter.CartBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof FolderDocumentBreadcrumbTrailPresenter.CartItemBreadcrumItem) {
+			recordId = null;
+		}
+		else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());
 		}
 		if (recordId != null) {
@@ -63,4 +76,11 @@ public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implemen
 		return ConstellioUI.getCurrent();
 	}
 
+	public String getCarteId() {
+		return carteId;
+	}
+
+	public boolean isFromFavori() {
+		return isFromFavori;
+	}
 }

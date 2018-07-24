@@ -3,10 +3,7 @@ package com.constellio.app.modules.rm.navigation;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.pages.base.UIContext;
 import com.vaadin.navigator.Navigator;
-import com.vaadin.server.BrowserWindowOpener;
-import com.vaadin.ui.UI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +19,15 @@ public class RMViews extends CoreViews {
 
 	public void displayFolder(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
+	}
+
+	public void displayFolder(String id, boolean isFromFavori, String cartId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("isFromFavori", Boolean.toString(isFromFavori));
+		params.put("id", id);
+		params.put("cartId", cartId);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER,params));
 	}
 
 	public void displayFolder(String id, String homePageUrl, boolean isToOpenInNewTab) {

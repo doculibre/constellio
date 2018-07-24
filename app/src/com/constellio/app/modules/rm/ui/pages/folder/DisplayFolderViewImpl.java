@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.util.MessageUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -229,7 +230,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
+		if(presenter.isFromFavori()) {
+			return new FolderDocumentBreadcrumbTrail(recordVO.getId(), presenter.getCartId(), taxonomyCode, this);
+		} else {
+			return new TitleBreadcrumbTrail(this, $("hello"));
+		}
 	}
 
 	//	@Override

@@ -15,6 +15,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -48,6 +49,8 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
+	private ModelLayerFactory modelLayerFactory;
+
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode, FolderDocumentBreadcrumbTrail breadcrumbTrail) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
@@ -64,7 +67,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private void initTransientObjects() {
 		ConstellioFactories constellioFactories = breadcrumbTrail.getConstellioFactories();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		
 		SessionContext sessionContext = breadcrumbTrail.getSessionContext();
@@ -170,7 +173,14 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
 		}
-		
+
+		if(breadcrumbTrail.isFromFavori()) {
+			breadcrumbTrail.addItem(new CartBreadcrumbItem());
+			if(breadcrumbTrail.getCarteId() != null) {
+				breadcrumbTrail.addItem(new CartItemBreadcrumItem(breadcrumbTrail.getCarteId()));
+			}
+		}
+
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}
@@ -204,6 +214,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			} else {
 				breadcrumbTrail.navigate().to().simpleSearchReplay(searchId);
 			}
+		} else if (item instanceof CartBreadcrumbItem) {
+			breadcrumbTrail.navigate().to(RMViews.class).cart();
+			handled = true;
+		} else if (item instanceof CartItemBreadcrumItem) {
+			breadcrumbTrail.navigate().to(RMViews.class).cart(((CartItemBreadcrumItem) item).getId());
+			handled = true;
 		} else {
 			handled = false;
 		}
@@ -259,6 +275,41 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			return true;
 		}
 
+	}
+
+	class CartItemBreadcrumItem implements BreadcrumbItem {
+
+		String id;
+
+		CartItemBreadcrumItem(String id) {
+			this.id = id;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+		@Override
+		public String getLabel() {
+			return null;
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return false;
+		}
+	}
+
+	class CartBreadcrumbItem implements BreadcrumbItem {
+		@Override
+		public String getLabel() {
+			return i18n.$("FavoriBreadcrumbItem.title");
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return true;
+		}
 	}
 
 	class FolderBreadcrumbItem implements BreadcrumbItem {

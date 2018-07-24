@@ -277,7 +277,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
+		return new FolderDocumentBreadcrumbTrail(documentVO.getId(),null, taxonomyCode, this);
 	}
 
 	@Override
