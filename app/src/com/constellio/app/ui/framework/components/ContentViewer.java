@@ -28,7 +28,9 @@ public class ContentViewer extends VerticalLayout {
 		StreamSource source = getStreamFromContent();
 
 		Embedded viewer = new Embedded();
-		viewer.setSource(new StreamResource(source, contentName));
+		StreamResource streamResource = new StreamResource(source, contentName);
+		streamResource.setCacheTime(0);
+		viewer.setSource(streamResource);
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
 		viewer.setHeight("1024px");

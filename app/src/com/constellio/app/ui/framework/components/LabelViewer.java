@@ -30,7 +30,9 @@ public class LabelViewer extends VerticalLayout {
             byte[] PDFbytes = IOUtils.toByteArray(inputStream);
             StreamSource source = buildSource(PDFbytes);
             BrowserFrame viewer = new BrowserFrame();
-            viewer.setSource(new StreamResource(source, filename));
+            StreamResource streamResource = new StreamResource(source, filename);
+            streamResource.setCacheTime(0);
+            viewer.setSource(streamResource);
 
             viewer.setWidth("100%");
 //            viewer.setHeight("900px");
