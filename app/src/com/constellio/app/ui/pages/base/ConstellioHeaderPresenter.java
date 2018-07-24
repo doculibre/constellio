@@ -2,8 +2,8 @@ package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -20,10 +20,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.pages.search.*;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -37,13 +33,22 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -53,6 +58,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchResultsViewMode;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
@@ -68,10 +74,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordImpl;
-import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -90,15 +98,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.IOException;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
@@ -277,8 +276,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	@Override
-	public Map<String,String> getMetadataSchemasList(String schemaTypeCode){
-		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils= new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+	public Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(
+				ConstellioUI.getCurrentSessionContext());
 		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
@@ -365,16 +365,17 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
-				Boolean visibleForUserAndInAdvancedSearch = config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser());
+				Boolean visibleForUserAndInAdvancedSearch =
+						config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser());
 				Boolean condition = !isTextOrString ||
 						(isTextOrString && metadata.isSearchable()) ||
 						Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
 						ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
 						ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
-				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())){
+				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
 					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
-					if(SCHEMA.getLocalCode().equals(metadata.getLocalCode())){
-						metadataVO.setLabel(Locale.FRENCH,"Schéma de métadonnée");
+					if (SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
+						metadataVO.setLabel(Locale.FRENCH, "Schéma de métadonnée");
 					}
 					result.add(metadataVO);
 				}
@@ -854,24 +855,27 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public List<String> getAutocompleteSuggestions(String text) {
 		List<String> suggestions = new ArrayList<>();
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			int minInputLength = 3;
+			int maxResults = 10;
+			String[] excludedRequests = new String[0];
+			String collection = header.getCollection();
 
-		int minInputLength = 3;
-		int maxResults = 10;
-		String[] excludedRequests = new String[0];
-		String collection = header.getCollection();
+			SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory);
+			ThesaurusManager thesaurusManager = modelLayerFactory.getThesaurusManager();
+			ThesaurusService thesaurusService = thesaurusManager.get(collection);
 
-        SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory);
-		ThesaurusManager thesaurusManager = modelLayerFactory.getThesaurusManager();
-		ThesaurusService thesaurusService = thesaurusManager.get(collection);
-
-		List<String> statsSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
-		suggestions.addAll(statsSuggestions);
-		if (thesaurusService != null && statsSuggestions.size() < maxResults) {
-			int thesaurusMaxResults = maxResults - statsSuggestions.size();
-			List<String> thesaurusSuggestions = thesaurusService.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength, thesaurusMaxResults);
-			suggestions.addAll(thesaurusSuggestions);
+			List<String> statsSuggestions = searchEventServices
+					.getMostPopularQueriesAutocomplete(text, maxResults, excludedRequests);
+			suggestions.addAll(statsSuggestions);
+			if (thesaurusService != null && statsSuggestions.size() < maxResults) {
+				int thesaurusMaxResults = maxResults - statsSuggestions.size();
+				List<String> thesaurusSuggestions = thesaurusService
+						.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength,
+								thesaurusMaxResults);
+				suggestions.addAll(thesaurusSuggestions);
+			}
 		}
-
 		return suggestions;
 	}
 

@@ -19,8 +19,8 @@ public class FilterTableAdapter extends FilterTable {
 
     public FilterTableAdapter(Table adaptedTable, FilterDecorator decorator, FilterGenerator generator) {
         this.adaptedTable = adaptedTable;
-        
-        if (decorator != null) {
+
+		if (decorator != null) {
     		setFilterDecorator(decorator);
         }
         if (generator != null) {

@@ -52,6 +52,7 @@ import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -927,21 +928,23 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	protected void updateSearchResultClicked() {
-		ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
-		SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
-				presenterUtils.modelLayerFactory());
-		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
+					presenterUtils.modelLayerFactory());
+			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-		searchEventServices.incrementClickCounter(searchEvent.getId());
+			searchEventServices.incrementClickCounter(searchEvent.getId());
 
-		String url = null;
-		try {
-			url = documentVO.get("url");
-		} catch (RecordVORuntimeException_NoSuchMetadata e) {
+			String url = null;
+			try {
+				url = documentVO.get("url");
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+			}
+			String clicks = defaultIfBlank(url, documentVO.getId());
+			searchEventServices.updateClicks(searchEvent, clicks);
 		}
-		String clicks = defaultIfBlank(url, documentVO.getId());
-		searchEventServices.updateClicks(searchEvent, clicks);
 	}
 
 //	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
