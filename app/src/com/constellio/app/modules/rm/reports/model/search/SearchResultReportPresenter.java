@@ -66,7 +66,7 @@ public class SearchResultReportPresenter {
 		}
 		Iterator<Record> recordsIterator;
 		if(searchQuery != null) {
-			recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(searchQuery);
+			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
 		}
 		//TODO DO Not use searchQuery
 		else if (selectedRecords == null || selectedRecords.isEmpty()) {

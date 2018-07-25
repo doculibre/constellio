@@ -571,23 +571,39 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		//		if (((AdvancedSearchViewImpl) view).isSelectAllMode()) {
 		List<String> selectedRecordIds = view.getSelectedRecordIds();
+		LogicalSearchQuery query = null;
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			if (!batchProcessOnAllSearchResults) {
-				return buildUnsecuredLogicalSearchQueryWithSelectedIds();
+				query = buildUnsecuredLogicalSearchQueryWithSelectedIds();
 			} else if (selectedRecordIds != null && !selectedRecordIds.isEmpty()) {
-				return buildUnsecuredLogicalSearchQueryWithUnselectedIds();
+				query = buildUnsecuredLogicalSearchQueryWithUnselectedIds();
 			} else {
-				return buildUnsecuredLogicalSearchQueryWithAllRecords();
+				query = buildUnsecuredLogicalSearchQueryWithAllRecords();
 			}
 		} else {
 			if (!batchProcessOnAllSearchResults) {
-				return buildLogicalSearchQueryWithSelectedIds();
+				query = buildLogicalSearchQueryWithSelectedIds();
 			} else if (selectedRecordIds != null && !selectedRecordIds.isEmpty()) {
-				return buildLogicalSearchQueryWithUnselectedIds();
+				query = buildLogicalSearchQueryWithUnselectedIds();
 			} else {
-				return buildLogicalSearchQueryWithAllRecords();
+				query = buildLogicalSearchQueryWithAllRecords();
 			}
 		}
+
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+
+		if(sortCriterion != null && !sortCriterion.isEmpty()) {
+			Metadata metadata = getMetadata(sortCriterion);
+			if(sortOrder == SortOrder.ASCENDING) {
+				query.sortAsc(metadata);
+			} else {
+				query.sortDesc(metadata);
+			}
+		}
+
+		return query;
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
@@ -596,9 +612,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -608,9 +621,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -619,9 +629,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -630,9 +637,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -641,9 +645,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -651,9 +652,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -661,9 +659,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 

@@ -51,7 +51,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 						getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
 						parameters.getRecordsElements()).iterator();
 			} else {
-				recordIterator = getFactory().getModelLayerFactory().newSearchServices().recordsIterator(parameters.getQuery(), 200);
+				recordIterator = getFactory().getModelLayerFactory().newSearchServices().recordsIteratorKeepingOrder(parameters.getQuery(), 200);
 			}
 
 			while (recordIterator.hasNext()) {
