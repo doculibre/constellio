@@ -160,11 +160,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 
 			actionMenu = buildActionMenu(event);
-			if (actionMenu != null || !isFullWidthIfActionMenuAbsent()) {
+			if (actionMenu != null || (!isFullWidthIfActionMenuAbsent() && !isActionMenuBar())) {
 				addStyleName("action-menu-wrapper");
-				if (actionMenu != null) {
-					actionMenu.addStyleName("action-menu");
-				}
 			}
 
 			mainComponent = buildMainComponent(event);
@@ -374,7 +371,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                 result = actionMenuLayout;
             }
         }
-            return result;
+        if (result != null) {
+			result.addStyleName("action-menu");        	
+        }
+        return result;
     }
 
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {

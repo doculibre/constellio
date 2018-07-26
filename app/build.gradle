@@ -58,7 +58,6 @@ dependencies {
     compile "org.vaadin.addons:actionbuttontextfield:1.0.2"
     compile "org.vaadin.addons:googleanalyticstracker:2.1.0"
     compile "org.vaadin.addon:confirmdialog:2.1.2"
-    compile "org.vaadin.addon:filteringtable:1.0.0.v7"
     compile "com.vaadin:vaadin-themes:7.7.5"
     compile "com.vaadin:vaadin-client-compiled:7.7.5"
     compile "com.vaadin:vaadin-shared:7.7.5"
@@ -88,7 +87,6 @@ dependencies {
 
     compile "org.vaadin.addons:ckeditor-wrapper-for-vaadin:7.11.0"
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
-    compile files("../libs/filteringtable-1.0.0.v7.jar")
     compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:activelink:7.3.1"
 }

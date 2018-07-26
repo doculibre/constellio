@@ -13902,6 +13902,10 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #414B56;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-caption-action-menu-bar {
+	display: none;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .v-slot-footer {
 	padding-top: 5px;
 	height: 50px;
