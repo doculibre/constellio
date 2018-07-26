@@ -10,9 +10,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.ui.builders.TaskFollowerFromVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.fields.*;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Schemas;
@@ -267,6 +272,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustAcceptedField();
 		adjustReasonField();
 		adjustAssignerField();
+		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
 	}
 
@@ -433,6 +439,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			field.setVisible(task.isModel());
 		} catch (NoSuchRecordWithId e) {
 			field.setVisible(false);
+		}
+	}
+
+	private void adjustFollowersField() {
+		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
+				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
+		ListAddRemoveTaskFollowerField field = (ListAddRemoveTaskFollowerField) ((TaskFormImpl) view.getForm()).getField(Task.TASK_FOLLOWERS);
+		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
+		if(!editMode && field != null && defaultFollower != null) {
+			field.addTaskFollower(defaultFollower);
 		}
 	}
 
