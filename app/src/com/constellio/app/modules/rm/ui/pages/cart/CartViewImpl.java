@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
@@ -40,6 +41,7 @@ import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.google.common.base.Strings;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
@@ -383,11 +385,23 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 			@Override
 			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
-				Property loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
-				if(loadContainerProperty.getValue() instanceof String) {
-					String value = (String) loadContainerProperty.getValue();
-					if (Strings.isNullOrEmpty(value)) {
-						loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+				Property loadContainerProperty = null;
+				if(itemId instanceof Integer) {
+					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
+					MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
+					String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
+					if(metadataVO != null && !Strings.isNullOrEmpty(value)) {
+						loadContainerProperty = new ObjectProperty(value, Component.class);
+					}
+				}
+
+				if(loadContainerProperty == null) {
+					loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
+					if (loadContainerProperty.getValue() instanceof String) {
+						String value = (String) loadContainerProperty.getValue();
+						if (Strings.isNullOrEmpty(value)) {
+							loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+						}
 					}
 				}
 
@@ -532,7 +546,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
-				dataProvider, asList(CommonMetadataBuilder.SUMMARY));
+				dataProvider, asList(CommonMetadataBuilder.TITLE));
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override
