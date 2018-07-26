@@ -23,12 +23,15 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class TaskUserFieldsExtension extends PagesComponentsExtension {
 	String collection;
@@ -43,25 +46,51 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
 		if(params.getMainComponent() instanceof ModifyProfileView) {
-			User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+			AdditionnalRecordField autoAssigningField = buildAutoAssigningField(params);
+            AdditionnalRecordField taskFollowerField = buildTaskFollowerField(params);
 
-			TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
-			TaskFollower taskFollower = user.get(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
-			AdditionalTaskFollowerFieldImpl field = new AdditionalTaskFollowerFieldImpl();
-			field.setCaption(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(user.getWrappedRecord())
-					.getMetadata(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK)
-					.getLabel(Language.withLocale(params.getMainComponent().getSessionContext().getCurrentLocale())));
-
-			if(taskFollower != null) {
-				field.setTaskFollowerVO(taskToVOBuilder.toTaskFollowerVO(taskFollower));
-			} else {
-				field.setTaskFollowerVO(new TaskFollowerVO(user.getId(), false, false, false, false, false));
-			}
-
-			additionnalFields.add(field);
+			additionnalFields.addAll(asList(autoAssigningField, taskFollowerField));
 		}
 		return additionnalFields;
 	}
+
+	private AdditionnalRecordField buildTaskFollowerField(RecordFieldsExtensionParams params) {
+        User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+        TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
+        TaskFollower taskFollower = user.get(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
+        AdditionalTaskFollowerFieldImpl taskFollowerField = new AdditionalTaskFollowerFieldImpl();
+        taskFollowerField.setCaption(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(user.getWrappedRecord())
+                .getMetadata(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK)
+                .getLabel(Language.withLocale(params.getMainComponent().getSessionContext().getCurrentLocale())));
+
+        if(taskFollower != null) {
+            taskFollowerField.setTaskFollowerVO(taskToVOBuilder.toTaskFollowerVO(taskFollower));
+        } else {
+            taskFollowerField.setTaskFollowerVO(new TaskFollowerVO(user.getId(), false, false, false, false, false));
+        }
+
+        return taskFollowerField;
+    }
+
+    private AdditionnalRecordField buildAutoAssigningField(RecordFieldsExtensionParams params) {
+        User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+        Boolean isAssigningTaskAutomatically = user.get(TaskUser.ASSIGN_TASK_AUTOMATICALLY);
+        AutoAssigningTaskAdditionFieldImpl autoAssigningField = new AutoAssigningTaskAdditionFieldImpl();
+        autoAssigningField.setImmediate(true);
+		autoAssigningField.setCaption(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(user.getWrappedRecord())
+				.getMetadata(TaskUser.ASSIGN_TASK_AUTOMATICALLY)
+				.getLabel(Language.withLocale(params.getMainComponent().getSessionContext().getCurrentLocale())));
+
+        if(Boolean.FALSE.equals(isAssigningTaskAutomatically)) {
+            autoAssigningField.setValue(false);
+        } else {
+            autoAssigningField.setValue(true);
+        }
+
+        return autoAssigningField;
+    }
 
 	private class AdditionalTaskFollowerFieldImpl extends TaskFollowerFieldImpl implements AdditionnalRecordField<TaskFollowerVO> {
 
@@ -96,4 +125,17 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 			return false;
 		}
 	}
+
+	private class AutoAssigningTaskAdditionFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
+
+        @Override
+        public String getMetadataLocalCode() {
+            return TaskUser.ASSIGN_TASK_AUTOMATICALLY;
+        }
+
+        @Override
+        public Boolean getCommittableValue() {
+            return getValue();
+        }
+    }
 }
