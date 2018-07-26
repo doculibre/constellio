@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -36,17 +37,6 @@ import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Embedded;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
 	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
@@ -380,6 +370,15 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			@Override
 			protected void cancelButtonClick(ProfileVO profileVO) {
 				presenter.cancelButtonClicked();
+			}
+
+			@Override
+			protected String getTabCaption(Field<?> field, Object propertyId) {
+				if(field instanceof AdditionnalRecordField) {
+					return $("ModifyProfileView.configsTab");
+				} else {
+					return $("ModifyProfileView.profileTab");
+				}
 			}
 		};
 

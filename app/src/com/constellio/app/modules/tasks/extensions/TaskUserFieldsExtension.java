@@ -16,6 +16,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -26,6 +27,8 @@ import com.vaadin.ui.Field;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskUserFieldsExtension extends PagesComponentsExtension {
 	String collection;
@@ -45,10 +48,16 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 			TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
 			TaskFollower taskFollower = user.get(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
 			AdditionalTaskFollowerFieldImpl field = new AdditionalTaskFollowerFieldImpl();
+			field.setCaption(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(user.getWrappedRecord())
+					.getMetadata(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK)
+					.getLabel(Language.withLocale(params.getMainComponent().getSessionContext().getCurrentLocale())));
 
 			if(taskFollower != null) {
 				field.setTaskFollowerVO(taskToVOBuilder.toTaskFollowerVO(taskFollower));
+			} else {
+				field.setTaskFollowerVO(new TaskFollowerVO(user.getId(), false, false, false, false, false));
 			}
+
 			additionnalFields.add(field);
 		}
 		return additionnalFields;
@@ -64,11 +73,27 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 		@Override
 		public TaskFollower getCommittableValue() {
 			TaskFollowerVO value = getValue();
-			if(value != null) {
+			if(value != null && isFollowingSomething(value)) {
 				TaskFollowerFromVOBuilder builder = new TaskFollowerFromVOBuilder();
 				return builder.build(value);
 			}
 			return null;
+		}
+
+		private boolean isFollowingSomething(TaskFollowerVO taskFollowerVO)  {
+			return taskFollowerVO.isFollowSubTasksModified() || taskFollowerVO.isFollowTaskAssigneeModified() ||
+					taskFollowerVO.isFollowTaskCompleted() || taskFollowerVO.isFollowTaskDeleted() ||
+					taskFollowerVO.isFollowTaskStatusModified();
+		}
+
+		@Override
+		protected boolean isFollowerIdFieldVisible() {
+			return false;
+		}
+
+		@Override
+		protected boolean isInvalidFieldValue() {
+			return false;
 		}
 	}
 }
