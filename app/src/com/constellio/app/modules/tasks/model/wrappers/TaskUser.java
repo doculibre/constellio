@@ -11,6 +11,7 @@ import com.constellio.model.services.security.roles.Roles;
  */
 public class TaskUser extends User{
     public static final String DEFAULT_FOLLOWER_WHEN_CREATING_TASK = "defaultFollowerWhenCreatingTask";
+    public static final String ASSIGN_TASK_AUTOMATICALLY = "assignTaskAutomatically";
 
     public TaskUser(Record record, MetadataSchemaTypes types, Roles roles) {
         super(record, types, roles);
@@ -22,6 +23,15 @@ public class TaskUser extends User{
 
     public TaskUser setDefaultFollowerWhenCreatingTask(TaskFollower taskFollower) {
         set(DEFAULT_FOLLOWER_WHEN_CREATING_TASK, taskFollower);
+        return this;
+    }
+
+    public Boolean getAssignTaskAutomatically() {
+        return get(ASSIGN_TASK_AUTOMATICALLY);
+    }
+
+    public TaskUser setAssignTaskAutomatically(Boolean isAssigningTaskAutomatically) {
+        set(ASSIGN_TASK_AUTOMATICALLY, isAssigningTaskAutomatically);
         return this;
     }
 }

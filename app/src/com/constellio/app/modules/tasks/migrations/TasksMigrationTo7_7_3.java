@@ -44,6 +44,7 @@ public class TasksMigrationTo7_7_3 extends MigrationHelper implements MigrationS
                     .getDefaultSchema();
             task.createUndeletable(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK).setType(MetadataValueType.STRUCTURE)
                     .defineStructureFactory(TaskFollowerFactory.class);
+            task.createUndeletable(TaskUser.ASSIGN_TASK_AUTOMATICALLY).setType(MetadataValueType.BOOLEAN);
         }
     }
 }

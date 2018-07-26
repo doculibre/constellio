@@ -144,8 +144,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 	}
 
-
-
 	public void saveButtonClicked(RecordVO recordVO) {
 		if (recordVO == null) {
 			return;
@@ -227,7 +225,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		} else {
 			editMode = false;
 			task = tasksSchemas.newTask();
-			task.setAssignee(getCurrentUser().getId());
+			TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
+					modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
+			if(!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
+				task.setAssignee(getCurrentUser().getId());
+			}
+
 			task.setDueDate(TimeProvider.getLocalDate());
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
@@ -443,9 +446,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustFollowersField() {
+		ListAddRemoveTaskFollowerField field = (ListAddRemoveTaskFollowerField) ((TaskFormImpl) view.getForm()).getField(Task.TASK_FOLLOWERS);
 		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
 				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
-		ListAddRemoveTaskFollowerField field = (ListAddRemoveTaskFollowerField) ((TaskFormImpl) view.getForm()).getField(Task.TASK_FOLLOWERS);
 		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
 		if(!editMode && field != null && defaultFollower != null) {
 			field.addTaskFollower(defaultFollower);
