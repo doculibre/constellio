@@ -1,10 +1,7 @@
 package com.constellio.model.services.search;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -150,7 +147,7 @@ public class Elevations implements Serializable {
 		}
 
 		public QueryElevation addDocElevation(DocElevation docElevation) {
-			this.docElevations.add(docElevation);
+			addUpdate(Arrays.asList(docElevation));
 			return this;
 		}
 
@@ -175,23 +172,6 @@ public class Elevations implements Serializable {
 			public boolean equals(Object obj) {
 				return EqualsBuilder.reflectionEquals(this, obj);
 			}
-		}
-	}
-
-	public static class DocExclusion implements Serializable {
-		private String id;
-
-		public DocExclusion(String id) {
-			this.id = id;
-		}
-
-		@XmlAttribute(name = "id")
-		public String getId() {
-			return id;
-		}
-
-		public boolean equals(Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj);
 		}
 	}
 }
