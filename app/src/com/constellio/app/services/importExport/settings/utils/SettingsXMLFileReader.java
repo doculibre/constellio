@@ -1,9 +1,5 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.factories.ModelLayerFactory;
-
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -23,9 +19,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
@@ -126,7 +119,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return new ImportedCollectionSettings().setCode(collectionCode)
 				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
 				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
-				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES),language));
+				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES), language));
 	}
 
 	private List<ImportedType> getCollectionTypes(Element typesElement, List<String> language) {
@@ -141,10 +134,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		ImportedType type = new ImportedType()
 				.setCode(typeElement.getAttributeValue(CODE))
 				.setTabs(getTabs(typeElement.getChild(TABS)))
-				.setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA),language))
-				.setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas"),language));
+				.setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA), language))
+				.setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas"), language));
 		String label = typeElement.getAttributeValue(LABEL);
-		Map<Language, String> languageTitleMap = getLanguageStringMap(typeElement, language, label,LABEL);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(typeElement, language, label, LABEL);
 		if (languageTitleMap.size() > 0) {
 			type.setLabels(languageTitleMap);
 		}
@@ -171,7 +164,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return importedMetadataSchema;
 	}
 
-	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema,List<String> language ) {
+	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema, List<String> language) {
 		String label = schemaElement.getAttributeValue(LABEL);
 		Map<Language, String> languageTitleMap = getLanguageStringMap(schemaElement, language, label, LABEL);
 		if (languageTitleMap.size() > 0) {
@@ -182,7 +175,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		importedMetadataSchema.setSearchMetadatas(toList(schemaElement.getAttributeValue("searchMetadatas")));
 		importedMetadataSchema.setTableMetadatas(toList(schemaElement.getAttributeValue("tableMetadatas")));
 
-		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA),language));
+		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA), language));
 	}
 
 	private List<String> toList(String listOfItems) {
@@ -196,7 +189,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	private List<ImportedMetadata> readMetadata(List<Element> elements, List<String> languageList) {
 		List<ImportedMetadata> metadata = new ArrayList<>();
 		for (Element element : elements) {
-			metadata.add(readMetadata(element,languageList));
+			metadata.add(readMetadata(element, languageList));
 		}
 		return metadata;
 	}
@@ -400,14 +393,15 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	}
 
 	@NotNull
-	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String label, String labelFinal) {
+	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String label,
+			String labelFinal) {
 		Map<Language, String> languageTitleMap = new HashMap<>();
 		int numberOfLang = 0;
 
 		List<Attribute> attributeList = child.getAttributes();
 
-		for(Attribute currentAttribute : attributeList) {
-			if(currentAttribute.getName().startsWith(labelFinal) && currentAttribute.getName().length() > labelFinal.length()) {
+		for (Attribute currentAttribute : attributeList) {
+			if (currentAttribute.getName().startsWith(labelFinal) && currentAttribute.getName().length() > labelFinal.length()) {
 				String languageCode = currentAttribute.getName().replace(labelFinal, "");
 				Language language = Language.withCode(languageCode);
 				languageTitleMap.put(language, currentAttribute.getValue());
@@ -415,8 +409,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			}
 		}
 
-		if(numberOfLang == 0 && label != null) {
-			for(String languageCollection : languageList) {
+		if (numberOfLang == 0 && label != null) {
+			for (String languageCollection : languageList) {
 				Language language = Language.withCode(languageCollection);
 				languageTitleMap.put(language, label);
 			}
@@ -484,7 +478,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		String title = element.getAttributeValue(TITLE);
 
-		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title,TITLE);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title, TITLE);
 
 		if (languageTitleMap.size() > 0) {
 			valueList.setTitle(languageTitleMap);
@@ -543,5 +537,5 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		return reader.read();
 
-	}*/
+	}
 }
