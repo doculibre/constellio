@@ -1546,7 +1546,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenTheRequireConversionFlagIsActivatedWhenCheckContentsToConvertThenConvert()
+	public void givenTheRequireConversionFlagIsActivatedWhenCheckContentsToConvertThenConvertAndGenerateThumbnail()
 			throws Exception {
 
 		ContentVersionDataSummary zeContent = uploadDocx1InputStream();
@@ -1557,6 +1557,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isFalse();
 		try {
 			contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
+			contentManager.getContentThumbnailInputStream(zeContent.getHash(), SDK_STREAM);
 			fail("Exception expected");
 		} catch (ContentManagerRuntimeException_ContentHasNoPreview e) {
 			//OK
@@ -1566,6 +1567,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
 		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isTrue();
+		assertThat(contentManager.hasContentThumbnail(zeContent.getHash())).isTrue();
 
 		InputStream in = contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();

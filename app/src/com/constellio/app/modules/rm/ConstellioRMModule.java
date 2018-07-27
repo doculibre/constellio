@@ -11,9 +11,11 @@ import java.util.Map;
 
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_0_1_2;
 import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,6 +190,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
 		scripts.add(new RMDocumentMigrationTo7_6_10(collection, appLayerFactory));
 		scripts.add(new RMEmailMigrationTo7_7_1(collection, appLayerFactory));
+
+		if (new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory()).isThumbnailGenerationEnabled()) {
+			scripts.add(new RMDocumentMigrationTo8_0_1_2(collection, appLayerFactory));
+		}
 
 		return scripts;
 	}

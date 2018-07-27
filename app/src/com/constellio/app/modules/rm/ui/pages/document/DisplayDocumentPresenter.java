@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.in;
 import static java.util.Arrays.asList;
 
 import java.io.InputStream;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.services.contents.ContentManager;
 import com.vaadin.ui.Button;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -504,5 +506,24 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				= new LogicalSearchQuerySort("termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')",
 				false);
 		query.sortFirstOn(sortField);
+	}
+
+	// FIXME temp code to test thumbnail
+	public InputStream getThumbnailInputStream(String documentId) {
+		Document document = rm.getDocument(documentId);
+		Content content = document.getContent();
+		if (content != null) {
+			ContentVersion contentVersion = content.getCurrentVersion();
+			if (contentVersion != null) {
+				String hash = contentVersion.getHash();
+				try {
+					return new ContentManager(modelLayerFactory)
+							.getContentThumbnailInputStream(hash, "DisplayDocumentPresenter.getThumbnailInputStream");
+				} catch (Exception e) {
+					// do nothing
+				}
+			}
+		}
+		return null;
 	}
 }

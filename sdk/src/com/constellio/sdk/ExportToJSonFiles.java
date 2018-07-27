@@ -231,7 +231,7 @@ public class ExportToJSonFiles {
         final File toMove = getFileOf(contentVersionVO.getHash());
         if (toMove.exists()) {
             toMove.renameTo(versionFile);
-            for (String ext: new String[]{"__parsed", ".preview"}){
+            for (String ext: new String[]{"__parsed", ".preview", ".thumbnail"}){
                 new File(toMove.getAbsolutePath() + ext).renameTo(new File(versionFile.getAbsolutePath() + ext));
             }
         } else {

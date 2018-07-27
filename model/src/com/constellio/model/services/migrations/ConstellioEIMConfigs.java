@@ -116,6 +116,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 
+	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -223,6 +225,9 @@ public class ConstellioEIMConfigs {
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
+
+		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
+				.withReIndexionRequired());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -442,4 +447,6 @@ public class ConstellioEIMConfigs {
 	public boolean isAdminPasswordChangeEnabled() {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
 	}
+
+	public boolean isThumbnailGenerationEnabled() { return manager.getValue(ENABLE_THUMBNAIL_GENERATION); }
 }

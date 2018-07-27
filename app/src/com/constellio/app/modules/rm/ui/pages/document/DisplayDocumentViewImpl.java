@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
+import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
+import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -7,6 +11,8 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -234,7 +240,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		});
 
 		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
-		
+
+		// FIXME temp component to test thumbnail
+		StreamResource resource = new StreamResource(new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				try {
+					InputStream inputStream = presenter.getThumbnailInputStream(documentVO.getId());
+					return inputStream;
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}, "thumbnail.png");
+		mainLayout.addComponent(new Image("Thumbnail", resource), 1);
+
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
