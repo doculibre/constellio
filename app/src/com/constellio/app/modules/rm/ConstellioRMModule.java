@@ -143,6 +143,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_4_33;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_5_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_5_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_3;
