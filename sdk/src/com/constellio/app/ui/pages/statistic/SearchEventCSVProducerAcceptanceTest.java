@@ -19,7 +19,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class SearchEventCSVProducerAcceptanceTest extends StatisticsPresenterAcceptanceTest {
+public class SearchEventCSVProducerAcceptanceTest extends StatisticsAcceptanceTest {
     @Mock
     private Table table;
 

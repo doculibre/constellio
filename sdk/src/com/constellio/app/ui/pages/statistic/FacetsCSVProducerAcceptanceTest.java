@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.statistic;
 import com.constellio.app.ui.framework.data.FacetsDataProvider;
 import com.vaadin.ui.Table;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -17,7 +16,7 @@ import static com.constellio.app.ui.pages.statistic.StatisticsViewImpl.initStati
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class FacetsCSVProducerAcceptanceTest extends StatisticsPresenterAcceptanceTest {
+public class FacetsCSVProducerAcceptanceTest extends StatisticsAcceptanceTest {
     @Mock
     private Table table;
 
