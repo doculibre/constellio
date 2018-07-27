@@ -58,10 +58,22 @@ public class i18n {
 	}
 
 	public static String $(String key) {
-		return $(key, (Object) null);
+		return $(key, null, (Object) null);
 	}
 
 	public static String $(String key, Object... args) {
+		return $(key, null, args);
+	}
+
+	public static String $(String key, Map<String, Object> args) {
+		return $(key, null, args);
+	}
+
+	public static String $(String key, Locale locale) {
+		return $(key, locale, (Object) null);
+	}
+
+	public static String $(String key, Locale locale, Object... args) {
 		String message = null;
 
 		if (key == null) {
@@ -69,7 +81,7 @@ public class i18n {
 		}
 		for (Utf8ResourceBundles bundle : getBundles()) {
 
-			ResourceBundle messages = bundle.getBundle(getLocale());
+			ResourceBundle messages = bundle.getBundle(locale != null ? locale : getLocale());
 
 			if (messages.containsKey(key)) {
 
@@ -91,36 +103,14 @@ public class i18n {
 		return message;
 	}
 
-	public static String $(String key, Locale locale) {
+	public static String $(String key, Locale locale, Map<String, Object> args) {
 		String message = null;
 
 		if (key == null) {
 			return "";
 		}
 		for (Utf8ResourceBundles bundle : getBundles()) {
-
-			ResourceBundle messages = bundle.getBundle(locale);
-
-			if (messages.containsKey(key)) {
-				message = messages.getString(key);
-			}
-		}
-
-		if (message == null) {
-			message = key;
-		}
-
-		return message;
-	}
-
-	public static String $(String key, Map<String, Object> args) {
-		String message = null;
-
-		if (key == null) {
-			return "";
-		}
-		for (Utf8ResourceBundles bundle : getBundles()) {
-			ResourceBundle messages = bundle.getBundle(getLocale());
+			ResourceBundle messages = bundle.getBundle(locale != null ? locale : getLocale());
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
 				if (args.get("prefix") != null) {
@@ -320,9 +310,13 @@ public class i18n {
 	}
 
 	public static String $(ValidationError error) {
+		return $(error, null);
+	}
+
+	public static String $(ValidationError error, Locale locale) {
 		String key = error.getCode();
 		Map<String, Object> args = error.getParameters();
-		return $(key, args);
+		return $(key, locale, args);
 	}
 
 	public static String $(Throwable throwable) {
