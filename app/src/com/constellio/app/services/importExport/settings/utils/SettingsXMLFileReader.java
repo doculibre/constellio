@@ -1,5 +1,9 @@
 package com.constellio.app.services.importExport.settings.utils;
 
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.model.entities.Language;
+import com.constellio.model.services.factories.ModelLayerFactory;
+
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -19,6 +23,9 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
@@ -536,5 +543,5 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		return reader.read();
 
-	}
+	}*/
 }

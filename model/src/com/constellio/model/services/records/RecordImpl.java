@@ -4,6 +4,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 
