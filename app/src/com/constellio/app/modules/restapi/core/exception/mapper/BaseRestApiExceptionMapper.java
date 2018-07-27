@@ -1,40 +1,41 @@
 package com.constellio.app.modules.restapi.core.exception.mapper;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import java.util.List;
+import java.util.Locale;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Locale;
+
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.entities.Language;
 
 abstract class BaseRestApiExceptionMapper {
 
-    protected static ModelLayerConfiguration configuration = ConstellioFactories.getInstance().getModelLayerConfiguration();
+	protected static ModelLayerConfiguration configuration = ConstellioFactories.getInstance().getModelLayerConfiguration();
 
-    @Context
-    protected HttpHeaders headers;
+	@Context
+	protected HttpHeaders headers;
 
-    protected Locale getLocale() {
-        List<String> supportedLanguages = i18n.getSupportedLanguages();
+	protected Locale getLocale() {
+		List<String> supportedLanguages = Language.getAvailableLanguageCodes();
 
-        for (Locale locale : headers.getAcceptableLanguages()) {
-            if (supportedLanguages.contains(locale.getLanguage())) {
-                return locale;
-            }
-        }
+		for (Locale locale : headers.getAcceptableLanguages()) {
+			if (supportedLanguages.contains(locale.getLanguage())) {
+				return locale;
+			}
+		}
 
-        return new Locale(configuration.getMainDataLanguage());
-    }
+		return new Locale(configuration.getMainDataLanguage());
+	}
 
-    Response buildResponse(RestApiErrorResponse errorResponse) {
-        return Response.status(errorResponse.getCode())
-                .entity(errorResponse)
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
+	Response buildResponse(RestApiErrorResponse errorResponse) {
+		return Response.status(errorResponse.getCode())
+				.entity(errorResponse)
+				.type(MediaType.APPLICATION_JSON)
+				.build();
+	}
 
 }
