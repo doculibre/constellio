@@ -195,19 +195,26 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value, Metadata metadata,
 			Locale locale) {
 
-		String valueLanguage = collectionLanguages.get(0);
+		SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value, locale);
+		Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
 
 		Map<String, Object> copyfields = new HashMap<>();
-		for (String collectionLanguage : collectionLanguages) {
-			String fieldCode = getSearchFieldFor(metadata) + collectionLanguage;
-			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value);
-				Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
-				copyfields.put(fieldCode, finalValue);
-			} else {
-				copyfields.put(fieldCode, "");
-			}
-		}
+		String fieldCode = getSearchFieldFor(metadata) + locale.getLanguage();
+		copyfields.put(fieldCode, finalValue);
+
+		//		String valueLanguage = collectionLanguages.get(0);
+		//
+		//		Map<String, Object> copyfields = new HashMap<>();
+		//		for (String collectionLanguage : collectionLanguages) {
+		//			String fieldCode = getSearchFieldFor(metadata) + collectionLanguage;
+		//			if (collectionLanguage.equals(valueLanguage) && value != null) {
+		//				SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value);
+		//				Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
+		//				copyfields.put(fieldCode, finalValue);
+		//			} else {
+		//				copyfields.put(fieldCode, "");
+		//			}
+		//		}
 
 		return copyfields;
 	}

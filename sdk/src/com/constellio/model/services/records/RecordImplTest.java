@@ -190,12 +190,6 @@ public class RecordImplTest extends ConstellioTest {
 
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void cannotInstanciateRecordWithoutCode()
-			throws Exception {
-		new TestRecord((String) null, "zeCollection");
-	}
-
 	@Test(expected = UnsupportedOperationException.class)
 	public void cannotAddRemoveFieldValuesUsingGetModifiedValues()
 			throws Exception {

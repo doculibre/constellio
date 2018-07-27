@@ -22,6 +22,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.validators.MetadataUniqueValidator;
 import com.constellio.model.services.search.SearchServices;
@@ -118,6 +119,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(searchServices.hasResults(query.capture())).thenReturn(true);
 		when(record.isModified(metadata)).thenReturn(true);
 		when(record.get(metadata)).thenReturn(zeValue);
+		when(metadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		validator.validate(record, validationErrors);
 

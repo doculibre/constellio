@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
@@ -27,7 +28,7 @@ public class TestRecord extends RecordImpl {
 	}
 
 	public TestRecord(SchemaShortcuts schema) {
- 		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
+		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
 		this.schemaShortcuts = schema;
 	}
 
@@ -50,6 +51,7 @@ public class TestRecord extends RecordImpl {
 		MetadataSchema schema = Mockito.mock(MetadataSchema.class);
 		when(schema.getCode()).thenReturn(schemaCode);
 		when(schema.getCollection()).thenReturn(collection);
+		when(schema.getCollectionInfo()).thenReturn(new CollectionInfo(collection, "fr", asList("fr")));
 		return schema;
 	}
 

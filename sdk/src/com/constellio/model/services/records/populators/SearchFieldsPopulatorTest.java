@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.model.services.extensions.ModelLayerExtensions;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +23,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ParsedContentProvider;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.sdk.tests.ConstellioTest;
