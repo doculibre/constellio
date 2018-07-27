@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
@@ -367,6 +368,10 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	public RecordVO getCurrentConcept() {
 		return presenter.getCurrentConcept();
 	}
+
+	public TaxonomyVO getTaxonomy() {
+	    return presenter.getTaxonomy();
+    }
 
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {
 		private final boolean comments;

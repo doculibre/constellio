@@ -82,6 +82,10 @@ public class ThesaurusService implements Serializable {
 		this.deniedTerms = getToLowerCase(new HashSet<>(deniedTerms));
 	}
 
+	public Set<SkosConcept> getTopConcepts() {
+		return topConcepts;
+	}
+
 	public Map<String, SkosConcept> getAllConcepts() {
 		return allConcepts;
 	}
