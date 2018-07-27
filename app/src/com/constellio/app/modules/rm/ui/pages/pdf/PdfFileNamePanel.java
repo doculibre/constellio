@@ -42,6 +42,8 @@ public class PdfFileNamePanel extends VerticalLayout {
     }
 
     public void init() {
+        window.setHeight("220px");
+
         pdfFileNameField = new BaseTextField($("PdfFileNamePanel.pdfFileName"));
         pdfFileNameField.setRequired(true);
         pdfFileNameField.setRequiredError($("PdfFileNamePanel.pdfFileName.required"));

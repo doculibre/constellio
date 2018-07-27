@@ -73,7 +73,6 @@ public class BatchProcessingButton extends WindowButton {
 		
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
-		vLayout.setSizeFull();
 		vLayout.setSpacing(true);
 		
 		Label questionLabel = new Label($("AdvancedSearch.batchProcessingRecordSelection"));

@@ -78,8 +78,10 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		select.setValue(new ArrayList<MetadataVO>());
 		List<String> selectedMetadataCodes = null;
 		if(presenter.isEditMode()) {
-			 selectedMetadataCodes = presenter.getReport().getReportedMetadataVOCodeList();
+			 selectedMetadataCodes = presenter.getInheritedMetadataCodesFor(
+			 		presenter.getReport().getReportedMetadataVOCodeList());
 		}
+
 		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {
 			select.addItem(form);
 			if(presenter.isEditMode() && selectedMetadataCodes != null) {

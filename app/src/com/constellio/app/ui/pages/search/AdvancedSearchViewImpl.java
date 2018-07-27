@@ -219,7 +219,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
             private Component buildQuerySelectionWindow() {
                 Panel panel = new Panel();
                 VerticalLayout vLayout = new VerticalLayout();
-                vLayout.setSizeFull();
                 vLayout.setSpacing(true);
 
                 Label questionLabel = new Label($("AdvancedSearch.reportRecordSelection"));
