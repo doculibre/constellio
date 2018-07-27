@@ -87,7 +87,6 @@ subprojects {
         compile.exclude module: "asm-debug-all"
         compile.exclude module: "org.objectweb.asm"
         compile.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
-        runtime.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
         compile.exclude group: 'org.apache.cxf', module:'cxf-rt-rs-client'
         compile.exclude group: 'asm', module: 'asm'
     }
