@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -142,6 +143,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		pluginManager.registerModule(new TaskModule());
 		pluginManager.registerModule(new ConstellioRobotsModule());
 		pluginManager.registerModule(new ESRMRobotsModule());
+		pluginManager.registerModule(new ConstellioRestApiModule());
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));

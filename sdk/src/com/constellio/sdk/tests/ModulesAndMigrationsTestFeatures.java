@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
@@ -98,6 +99,10 @@ public class ModulesAndMigrationsTestFeatures {
 	public ModulesAndMigrationsTestFeatures withConstellioRMModule() {
 		withTaskModule();
 		return withModule(ConstellioRMModule.class);
+	}
+
+	public ModulesAndMigrationsTestFeatures withConstellioRestApiModule() {
+		return withModule(ConstellioRestApiModule.class);
 	}
 
 	public ModulesAndMigrationsTestFeatures withTaskModule() {
