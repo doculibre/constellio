@@ -15,6 +15,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
+import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +61,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock SearchBoostManager searchBoostManager;
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
+	@Mock SearchConfigurationsManager searchConfigurationsManager;
+	@Mock SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
 	@Mock GlobalGroupsManager globalGroupsManager;
@@ -97,6 +101,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		when(modelLayerFactory.getSearchBoostManager()).thenReturn(searchBoostManager);
+		when(modelLayerFactory.getSearchConfigurationsManager()).thenReturn(searchConfigurationsManager);
+		when(modelLayerFactory.getSynonymsConfigurationsManager()).thenReturn(synonymsConfigurationsManager);
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 
 		collectionsManager = spy(new com.constellio.app.services.collections.CollectionsManager(
@@ -121,6 +127,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(collectionsManager).initializeCollection("zeCollection");
 	}
 
+	@Test
 	public void whenAddingCollectionWithNonUniqueCodeThenException()
 			throws Exception {
 
@@ -163,6 +170,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(authorizationDetailsManager).createCollectionAuthorizationDetail(zeCollection);
 		verify(rolesManager).createCollectionRole(zeCollection);
 		verify(searchBoostManager).createCollectionSearchBoost(zeCollection);
+		verify(searchConfigurationsManager).createCollectionElevations(zeCollection);
+		verify(synonymsConfigurationsManager).createCollectionSynonyms(zeCollection);
 	}
 
 	@Test

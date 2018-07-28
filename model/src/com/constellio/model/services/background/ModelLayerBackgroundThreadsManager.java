@@ -62,11 +62,11 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 				.executedEvery(standardHours(6)).handlingExceptionWith(CONTINUE));
 
 		backgroundThreadsManager.configure(repeatingAction("flushEvents", new FlushEventsBackgroundAction(modelLayerFactory))
-				.executedEvery(FLUSH_EVENTS_EVERY_DURATION).handlingExceptionWith(CONTINUE));
+				.executedEvery(FLUSH_EVENTS_EVERY_DURATION).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 
 		flushRecordsBackgroundAction = new FlushRecordsBackgroundAction(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("flushRecords", flushRecordsBackgroundAction)
-				.executedEvery(standardMinutes(2)).handlingExceptionWith(CONTINUE));
+				.executedEvery(standardMinutes(2)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);

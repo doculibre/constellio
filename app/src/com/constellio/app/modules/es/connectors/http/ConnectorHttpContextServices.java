@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
@@ -27,6 +29,8 @@ public class ConnectorHttpContextServices {
 
 	ESSchemasRecordsServices es;
 
+	public static final Set<String> dirtyContexts = new HashSet<>();
+
 	public ConnectorHttpContextServices(ESSchemasRecordsServices es) {
 		this.es = es;
 	}
@@ -36,30 +40,35 @@ public class ConnectorHttpContextServices {
 	}
 
 	private void save(ConnectorHttpContext context, boolean add) {
-		File tempFile = es.getIOServices().newTemporaryFile(URLS_TEMP_FILE_WRITING_RESOURCE);
-		InputStream tempFileInputStream = null;
-		try {
-			ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
-			saveTo(context, tempFile);
 
-			String vaultFilePath = "connectors/" + context.getConnectorId() + "/fetchedUrls.txt";
+		if (dirtyContexts.contains(context.connectorId)) {
+			dirtyContexts.remove(context.connectorId);
+			File tempFile = es.getIOServices().newTemporaryFile(URLS_TEMP_FILE_WRITING_RESOURCE);
+			InputStream tempFileInputStream = null;
+			try {
+				ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
+				saveTo(context, tempFile);
 
-			tempFileInputStream = es.getIOServices().newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
-			//String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
-			contentDao.add(vaultFilePath, tempFileInputStream);
-			//			if (add) {
-			//				configManager.add(path, tempFileInputStream);
-			//			} else {
-			//				String hash = configManager.getBinary(path).getHash();
-			//				configManager.update(path, hash, tempFileInputStream);
-			//			}
+				String vaultFilePath = "connectors/" + context.getConnectorId() + "/fetchedUrls.txt";
 
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+				tempFileInputStream = es.getIOServices()
+						.newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
+				//String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
+				contentDao.add(vaultFilePath, tempFileInputStream);
+				//			if (add) {
+				//				configManager.add(path, tempFileInputStream);
+				//			} else {
+				//				String hash = configManager.getBinary(path).getHash();
+				//				configManager.update(path, hash, tempFileInputStream);
+				//			}
 
-		} finally {
-			es.getIOServices().closeQuietly(tempFileInputStream);
-			es.getIOServices().deleteQuietly(tempFile);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+
+			} finally {
+				es.getIOServices().closeQuietly(tempFileInputStream);
+				es.getIOServices().deleteQuietly(tempFile);
+			}
 		}
 	}
 
@@ -80,6 +89,7 @@ public class ConnectorHttpContextServices {
 	public ConnectorHttpContext createContext(String connectorId) {
 
 		ConnectorHttpContext connectorHttpContext = new ConnectorHttpContext(connectorId);
+		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		save(connectorHttpContext, true);
 		return connectorHttpContext;
 	}
