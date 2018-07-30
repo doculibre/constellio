@@ -10,6 +10,7 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.api.extensions.params.EmailMessageParams;
@@ -67,7 +68,8 @@ public class CartEmailService {
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
-				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);
+				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs);
 				message.writeTo(outputStream);
 				String filename = "cart.eml";
 				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");

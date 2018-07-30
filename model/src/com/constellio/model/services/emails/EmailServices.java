@@ -31,6 +31,7 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -100,12 +101,12 @@ public class EmailServices {
 	public void closeSession(Session session) {
 	}
 
-	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments)
+	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments, ConstellioEIMConfigs configs)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		message.setSentDate(LocalDateTime.now().toDate());
-		if (StringUtils.isNotBlank(from)) {
+		if (StringUtils.isNotBlank(from) && configs.isIncludingFromFieldWhenGeneratingEmails()) {
 			message.setFrom(new InternetAddress(from));
 		}
 		if (subject != null) {
