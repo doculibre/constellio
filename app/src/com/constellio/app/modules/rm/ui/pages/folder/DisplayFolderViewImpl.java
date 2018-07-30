@@ -871,7 +871,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Button buildBorrowButton() {
 		return new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "460px")) {
+				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final JodaDateField borrowDatefield = new JodaDateField();
