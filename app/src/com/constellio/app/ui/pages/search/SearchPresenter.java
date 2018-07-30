@@ -754,6 +754,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		}
+		sort(result);
 		return result;
 	}
 
@@ -945,5 +946,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchConfigurationsManager.setElevated(freeTextQuery, record, true);
 		}
 		view.refreshSearchResultsAndFacets();
+	}
+
+	protected void sort(List<MetadataVO> metadataVOs) {
+		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+			}
+		});
 	}
 }
