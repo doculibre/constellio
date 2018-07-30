@@ -226,7 +226,7 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
 
-		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
+		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
 				.withReIndexionRequired());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);

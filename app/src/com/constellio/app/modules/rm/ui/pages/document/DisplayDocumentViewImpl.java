@@ -254,7 +254,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				}
 			}
 		}, "thumbnail.png");
-		mainLayout.addComponent(new Image("Thumbnail", resource), 1);
+		mainLayout.addComponent(new Image("", resource), 1);
 
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);

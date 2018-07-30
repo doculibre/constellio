@@ -1,30 +1,30 @@
 package com.constellio.model.services.contents.thumbnail;
 
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Iterator;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ImageThumbnailGeneratorAcceptanceTest extends ConstellioTest {
 
-    private ImagScalrImageThumbnailGenerator imagScalr = new ImagScalrImageThumbnailGenerator(100);
-    private ThumbnailatorImageThumbnailGenerator thumbnailator = new ThumbnailatorImageThumbnailGenerator(100);
-    private JavaImageScalingThumbnailGenerator javaImageScaling = new JavaImageScalingThumbnailGenerator(100);
+    private static final int THUMBNAIL_SIZE = 100;
 
-    private File jpegFile, bmpFile, tiffFile, gifFile, pngFile, cmykFile, hugeFile, giganticFile;
+    private ImagScalrImageThumbnailGenerator imagScalr = new ImagScalrImageThumbnailGenerator(THUMBNAIL_SIZE);
+    private ThumbnailatorImageThumbnailGenerator thumbnailator = new ThumbnailatorImageThumbnailGenerator(THUMBNAIL_SIZE);
+    private JavaImageScalingThumbnailGenerator javaImageScaling = new JavaImageScalingThumbnailGenerator(THUMBNAIL_SIZE);
 
-    private BufferedImage thumbnail;
-    private String filename;
+    private File jpegFile, bmpFile, tiffFile, gifFile, pngFile, cmykFile, hugeFile, giganticFile, heightFile;
 
     @Before
     public void setUp() throws Exception {
-        thumbnail = null;
-        filename = null;
-
         jpegFile = getTestResourceFile("1920x1080.jpg");
         bmpFile = getTestResourceFile("1920x1080.bmp");
         tiffFile = getTestResourceFile("1024x1024.tif");
@@ -33,16 +33,12 @@ public class ImageThumbnailGeneratorAcceptanceTest extends ConstellioTest {
         cmykFile = getTestResourceFile("CMYK.jpg");
         hugeFile = getTestResourceFile("4454x3191.jpg");
         giganticFile = getTestResourceFile("8000x8000.jpg");
+        heightFile = getTestResourceFile("3648x5472.jpg");
 
         // do a conversion to warm-up generators
         imagScalr.generateThumbnail(jpegFile);
         thumbnailator.generateThumbnail(jpegFile);
         javaImageScaling.generateThumbnail(jpegFile);
-    }
-
-    @After
-    public void cleanUp() throws Exception {
-        //ImageIO.write(thumbnail, "png", new File(filename));
     }
 
     //
@@ -177,15 +173,56 @@ public class ImageThumbnailGeneratorAcceptanceTest extends ConstellioTest {
         benchmark(javaImageScaling, "javaImageScalingWithGigantic.png", giganticFile);
     }
 
+    //
+    // Generic
+    //
+
+    @Test
+    public void testThumbnailHasCorrectMaximumWidthSize() throws Exception {
+        for (ImageThumbnailGenerator generator : asList(imagScalr, javaImageScaling, thumbnailator)) {
+            BufferedImage thumbnail = generator.generateThumbnail(jpegFile);
+            assertThat(thumbnail.getWidth() == THUMBNAIL_SIZE).isTrue();
+            assertThat(thumbnail.getHeight() < THUMBNAIL_SIZE).isTrue();
+        }
+    }
+
+    @Test
+    public void testThumbnailHasCorrectMaximumHeightSize() throws Exception {
+        for (ImageThumbnailGenerator generator : asList(imagScalr, javaImageScaling, thumbnailator)) {
+            BufferedImage thumbnail = generator.generateThumbnail(heightFile);
+            assertThat(thumbnail.getWidth() < THUMBNAIL_SIZE).isTrue();
+            assertThat(thumbnail.getHeight() == THUMBNAIL_SIZE).isTrue();
+        }
+    }
+
+    @Test
+    public void testThumbnailHasCorrectMaximumWidthAndHeightSize() throws Exception {
+        for (ImageThumbnailGenerator generator : asList(imagScalr, javaImageScaling, thumbnailator)) {
+            BufferedImage thumbnail = generator.generateThumbnail(tiffFile);
+            assertThat(thumbnail.getWidth() == THUMBNAIL_SIZE).isTrue();
+            assertThat(thumbnail.getHeight() == THUMBNAIL_SIZE).isTrue();
+        }
+    }
+
+    @Test
+    public void testJpegReaderIsUsingTwelveMonkeysJpegPlugin() {
+        Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("JPEG");
+        assertThat(readers.hasNext()).isTrue();
+
+        ImageReader reader = readers.next();
+        assertThat(reader.toString()).startsWith("com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReader");
+    }
+
     private void benchmark(ImageThumbnailGenerator generator, String filename, File file) throws Exception {
         int tries = 5;
 
         long sum = 0;
         for (int i = 0; i < tries; i++) {
             long t0 = System.currentTimeMillis();
-            this.filename = filename;
-            thumbnail = generator.generateThumbnail(file);
+            BufferedImage thumbnail = generator.generateThumbnail(file);
             sum += time(t0);
+
+            //ImageIO.write(thumbnail, "png", new File(filename));
         }
         average(sum, tries);
     }
