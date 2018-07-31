@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.services.schemas.builders.*;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -55,12 +56,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.vaadin.ui.UI;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
@@ -299,13 +296,24 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 		builder.setDuplicable(formMetadataVO.isDuplicable());
 
-		MetadataBuilder builderDefaultSchema;
+		MetadataBuilder builderDefaultSchema = null;
 
-		if(schemaCode.endsWith("_default")) {
+		if (schemaCode.endsWith("_default")) {
 			builderDefaultSchema = builder;
 		} else {
-			builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
-			if(builderDefaultSchema == null) {
+			try {
+				builderDefaultSchema = types.getSchema(schemaCode).get(formMetadataVO.getCode());
+			} catch(MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+				// error
+			} catch (MetadataSchemaBuilderRuntimeException.InvalidAttribute e) {
+				// error take provided schema
+			}
+
+			if(builderDefaultSchema != null && builderDefaultSchema.getInheritance() != null) {
+				builderDefaultSchema = types.getSchema(schemaCode).getDefaultSchema().get(formMetadataVO.getCode());
+			}
+
+			if (builderDefaultSchema == null) {
 				builderDefaultSchema = builder;
 			}
 		}
