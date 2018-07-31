@@ -299,6 +299,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			for (int i = 0; i < searchOccurence; i++) {
 				SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
 				searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+				searchEvent.setOriginalQuery(StringUtils.stripAccents(searchValue.toLowerCase()));
 				transaction.add(searchEvent);
 			}
 		}
@@ -311,9 +312,9 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		for (String searchValue : searchValues) {
 			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE, 3, 5);
 			assertThat(suggestions)
-					.containsExactly("searchtermnotinthesaurusautocomplete1", "searchtermnotinthesaurusautocomplete2",
-							"searchtermnotinthesaurusautocomplete3", "searchtermnotinthesaurusautocomplete4",
-							"searchtermnotinthesaurusautocomplete6");
+					.containsExactly("Searchtermnotinthesaurusautocomplete1", "Searchtermnotinthesaurusautocomplete2",
+							"Searchtermnotinthesaurusautocomplete3", "Searchtermnotinthesaurusautocomplete4",
+							"Searchtermnotinthesaurusautocomplete6");
 		}
 	}
 
