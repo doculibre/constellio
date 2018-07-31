@@ -952,7 +952,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
 			@Override
 			public int compare(MetadataVO o1, MetadataVO o2) {
-				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
+				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+				return firstLabel.compareTo(secondLabel);
 			}
 		});
 	}
