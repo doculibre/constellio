@@ -64,6 +64,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
+		givenCollection(zeCollection);
 		givenWaitForBatchProcessAfterTestIsDisabled();
 		getModelLayerFactory().getBatchProcessesController().close();
 		when(firstMetadata.getCode()).thenReturn("first");

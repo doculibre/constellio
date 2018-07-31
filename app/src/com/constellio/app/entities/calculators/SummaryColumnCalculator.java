@@ -1,5 +1,15 @@
 package com.constellio.app.entities.calculators;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
@@ -7,22 +17,21 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.*;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 import com.google.common.base.Strings;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class SummaryColumnCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
 	DynamicLocalDependency dynamicMetadatasDependency = new DynamicMetadatasDependency();
@@ -53,7 +62,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
 
 				StringBuilder textForMetadata = new StringBuilder();
-				if(metadata != null) {
+				if (metadata != null) {
 					if (metadata.getType() != MetadataValueType.REFERENCE) {
 						if (metadata.isMultivalue()) {
 							List metadataValue = values.getValue(localeCode);
@@ -88,14 +97,14 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				}
 				String prefixContentToStirng = addPrefixContentToString(textForMetadata.toString(), currentMap);
 
-				if(!Strings.isNullOrEmpty(prefixContentToStirng) && summmaryColumnValue.length() > 0) {
+				if (!Strings.isNullOrEmpty(prefixContentToStirng) && summmaryColumnValue.length() > 0) {
 					prefixContentToStirng = ", " + prefixContentToStirng;
 				}
 
 				summmaryColumnValue.append(prefixContentToStirng);
 			}
 		}
-		if(Strings.isNullOrEmpty(summmaryColumnValue.toString())) {
+		if (Strings.isNullOrEmpty(summmaryColumnValue.toString())) {
 			return null;
 		}
 
@@ -117,7 +126,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	@Override
-	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
+	public synchronized void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
 		dependencies.clear();
 
 		metadataCode = calculatedMetadata.getCode();
@@ -133,9 +142,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
 	}
 
-
 	@Override
-	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
+	public synchronized void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
 
 		MetadataList metadataList = schema.getMetadatas();
@@ -147,14 +155,15 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				String metadataCode = (String) currentMap.get(METADATA_CODE);
 				Metadata currentMetadata = schema.getMetadata(metadataCode);
 
-                if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
-                    dependencies.add(toReferenceDependency(types, schema, metadataCode, getReferenceMetadataDisplayStringValue(currentMap)));
-                }
-            }
-        }
+				if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
+					dependencies.add(toReferenceDependency(types, schema, metadataCode,
+							getReferenceMetadataDisplayStringValue(currentMap)));
+				}
+			}
+		}
 
-        dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
-    }
+		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+	}
 
 	public String getReferenceMetadataDisplayStringValue(Map mapWithReferenceMetadataDisplay) {
 		SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay
@@ -169,7 +178,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		if (isAlwaysShow || !Strings.isNullOrEmpty(itemShown)) {
 			String prefix = (String) summarySettings.get(PREFIX);
 
-			if(Strings.isNullOrEmpty(prefix)) {
+			if (Strings.isNullOrEmpty(prefix)) {
 				prefix = "";
 			}
 
@@ -183,23 +192,23 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		String returnValue = "";
 		if (value != null) {
 			switch (metadata.getType()) {
-				case DATE:
-					if(value instanceof LocalDate) {
-						LocalDate localDateJoda = (LocalDate) value;
-						value = localDateJoda.toDateTimeAtStartOfDay().toDate();
-					}
+			case DATE:
+				if (value instanceof LocalDate) {
+					LocalDate localDateJoda = (LocalDate) value;
+					value = localDateJoda.toDateTimeAtStartOfDay().toDate();
+				}
 
-					returnValue = SimpleDateFormatSingleton
-							.getSimpleDateFormat(parameters.get
-									(dateformat)).format(value);
-					break;
-				case DATE_TIME:
-					if(value instanceof LocalDateTime) {
-						LocalDateTime localDateTimeJoda = (LocalDateTime) value;
-						returnValue = DateFormatUtils.format(localDateTimeJoda);
-					}
-					break;
-				case STRING:
+				returnValue = SimpleDateFormatSingleton
+						.getSimpleDateFormat(parameters.get
+								(dateformat)).format(value);
+				break;
+			case DATE_TIME:
+				if (value instanceof LocalDateTime) {
+					LocalDateTime localDateTimeJoda = (LocalDateTime) value;
+					returnValue = DateFormatUtils.format(localDateTimeJoda);
+				}
+				break;
+			case STRING:
 				returnValue = value.toString();
 				break;
 			case TEXT:
@@ -242,7 +251,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	@Override
-	public List<? extends Dependency> getDependencies() {
+	public synchronized List<? extends Dependency> getDependencies() {
 		return dependencies;
 	}
 
@@ -256,7 +265,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 			if (list != null) {
 				for (Map listItem : (List<Map>) list) {
-					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE)).equals(metadata.getLocalCode()) || metadata.getLocalCode()
+					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE))
+							.equals(metadata.getLocalCode()) || metadata.getLocalCode()
 							.equals(Schemas.TITLE.getLocalCode())) {
 						return true;
 					}
