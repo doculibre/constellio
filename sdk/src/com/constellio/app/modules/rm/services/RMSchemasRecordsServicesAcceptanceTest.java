@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Locale;
 
+import com.constellio.model.entities.records.Record;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -68,7 +69,12 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE)).isEqualTo("Xe category");
+		Record categoryIdX = recordServices.getDocumentById(records.categoryId_X);
+		categoryIdX.set(Schemas.TITLE, Locale.CANADA_FRENCH, "{fr} Xe category");
+		categoryIdX.set(Schemas.TITLE, Locale.ENGLISH, "{en} Xe category");
+		recordServices.update(categoryIdX);
+
+		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE)).isEqualTo("{fr} Xe category");
 		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE, Locale.CANADA_FRENCH))
 				.isEqualTo("{fr} Xe category");
 		assertThat(recordServices.getDocumentById(records.categoryId_X).get(Schemas.TITLE, Locale.ENGLISH))
