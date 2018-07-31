@@ -95,7 +95,11 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 			"retentionRule_default_title", "retentionRule_default_juridicReference", "retentionRule_default_generalComment",
 			"retentionRule_default_keywords", "retentionRule_default_copyRulesComment", "retentionRule_default_description",
 			"report_default_title",
-			"uniformSubdivision_default_title"
+			"uniformSubdivision_default_title",
+			"printable_default_title",
+			"ddvCapsuleLanguage_default_description",
+			"ddvCapsuleLanguage_default_title"
+
 	};
 
 	@Test

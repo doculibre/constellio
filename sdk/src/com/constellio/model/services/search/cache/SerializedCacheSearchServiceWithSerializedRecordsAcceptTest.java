@@ -55,11 +55,11 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 
 		givenTestRecords();
 
-		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default")
+		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default").andWhere(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default")
 				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet"));
-		fromAllSchemasWhereNumberIs42 = fromAllSchemasIn(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default")
+		fromAllSchemasWhereNumberIs42 = fromAllSchemasIn(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default").andWhere(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default")
 				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet")).andWhere(zeSchema.numberMetadata()).isEqualTo(42);
-		fromZeSchema = from(zeSchema.instance()).returnAll();
+		fromZeSchema = from(zeSchema.instance()).where(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default");
 
 		thirdSchema_3 = record("thirdSchema_3");
 		zeSchema_4 = record("zeSchema_4");

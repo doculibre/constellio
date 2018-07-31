@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -32,6 +33,7 @@ public class RMMigrationTo8_1 extends MigrationHelper implements MigrationScript
 
         @Override
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+            typesBuilder.getSchema(Printable.DEFAULT_SCHEMA).get(Printable.TITLE).setMultiLingual(true);
             //For i18n purposes
         }
     }
