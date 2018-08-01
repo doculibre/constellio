@@ -13,16 +13,12 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.LocalDate;
@@ -3276,7 +3272,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public List<? extends Dependency> getDependencies() {
-			return TestUtils.asList(codeParam);
+			return singletonList(codeParam);
 		}
 	}
 

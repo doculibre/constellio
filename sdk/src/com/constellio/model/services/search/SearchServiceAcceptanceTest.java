@@ -688,9 +688,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
-		assertThat(records.get(0).get(zeSchema.stringMetadata())).isNull();
+		assertThat(records.get(0).<String>get(zeSchema.stringMetadata())).isNull();
 		assertThat((boolean) records.get(0).get(zeSchema.booleanMetadata())).isTrue();
-		assertThat(records.get(1).get(zeSchema.stringMetadata())).isNull();
+		assertThat(records.get(1).<String>get(zeSchema.stringMetadata())).isNull();
 		assertThat((boolean) records.get(1).get(zeSchema.booleanMetadata())).isTrue();
 
 	}
@@ -716,16 +716,16 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
-		assertThat(records.get(0).get(zeSchema.stringMetadata())).isNotNull();
+		assertThat(records.get(0).<String>get(zeSchema.stringMetadata())).isNotNull();
 		assertThat(records.get(0).getId()).isNotNull();
 		assertThat(records.get(0).getVersion()).isNotNull();
 		assertThat(records.get(0).getSchemaCode()).isNotNull();
-		assertThat(records.get(0).get(zeSchema.booleanMetadata())).isNull();
-		assertThat(records.get(1).get(zeSchema.stringMetadata())).isNotNull();
+		assertThat(records.get(0).<Boolean>get(zeSchema.booleanMetadata())).isNull();
+		assertThat(records.get(1).<String>get(zeSchema.stringMetadata())).isNotNull();
 		assertThat(records.get(1).getId()).isNotNull();
 		assertThat(records.get(1).getVersion()).isNotNull();
 		assertThat(records.get(1).getSchemaCode()).isNotNull();
-		assertThat(records.get(1).get(zeSchema.booleanMetadata())).isNull();
+		assertThat(records.get(1).<Boolean>get(zeSchema.booleanMetadata())).isNull();
 	}
 
 	@Test
@@ -941,8 +941,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		List<Record> records = searchServices.search(query);
 
 		assertThat(records).hasSize(2);
-		assertThat(records.get(0).get(zeSchema.stringMetadata())).isEqualTo("Chuck Norris");
-		assertThat(records.get(1).get(zeSchema.stringMetadata())).isEqualTo("Chuck Lechat Norris");
+		assertThat(records.get(0).<String>get(zeSchema.stringMetadata())).isEqualTo("Chuck Norris");
+		assertThat(records.get(1).<String>get(zeSchema.stringMetadata())).isEqualTo("Chuck Lechat Norris");
 	}
 
 	@Test
@@ -2613,7 +2613,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				"Folder");
 		Record record = searchServices.searchSingleResult(condition);
 
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Folder 1");
+		assertThat(record.<String>get(Schemas.TITLE)).isEqualTo("Folder 1");
 	}
 
 	@Test
@@ -2811,13 +2811,13 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
 
-		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata())).isNull();
+		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).<Double>get(zeSchema.numberMetadata())).isNull();
 
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
 
 		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
-		assertThat(recordInCache.get(zeSchema.numberMetadata())).isNull();
+		assertThat(recordInCache.<Double>get(zeSchema.numberMetadata())).isNull();
 	}
 
 	@Test
@@ -2833,14 +2833,14 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.hasResults(from(zeSchema.type()).where(zeSchema.numberMetadata()).isNotNull())).isFalse();
 
-		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).get(zeSchema.numberMetadata()))
+		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).<Double>get(zeSchema.numberMetadata()))
 				.isEqualTo(15.0);
 
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
 
 		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
-		assertThat(recordInCache.get(zeSchema.numberMetadata())).isEqualTo(15.0);
+		assertThat(recordInCache.<Double>get(zeSchema.numberMetadata())).isEqualTo(15.0);
 
 	}
 

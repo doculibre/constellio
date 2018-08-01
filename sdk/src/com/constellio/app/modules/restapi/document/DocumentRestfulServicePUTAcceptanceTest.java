@@ -1096,7 +1096,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
         List<Record> documents = searchServices.search(new LogicalSearchQuery(
                 from(rm.document.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
         assertThat(documents.get(0).getTitle()).isEqualTo(minDocumentWithoutAcesToUpdate.getTitle());
-        assertThat(documents.get(0).get(rm.document.author())).isEqualTo(minDocumentToUpdate.getAuthor());
+        assertThat(documents.get(0).<String>get(rm.document.author())).isEqualTo(minDocumentToUpdate.getAuthor());
 
         assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + documents.get(0).getVersion() + "\"");
     }

@@ -1070,7 +1070,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
         List<Record> documents = searchServices.search(new LogicalSearchQuery(
                 from(rm.document.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
         assertThat(documents.get(0).getTitle()).isEqualTo("title2");
-        assertThat(documents.get(0).get(rm.document.author())).isEqualTo("author2");
+        assertThat(documents.get(0).<String>get(rm.document.author())).isEqualTo("author2");
 
         assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + documents.get(0).getVersion() + "\"");
     }
