@@ -382,13 +382,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
 
-		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				System.out.println("Jonathan Plamndon");
-			}
-		});
-
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
