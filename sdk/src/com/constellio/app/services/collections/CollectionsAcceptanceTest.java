@@ -204,8 +204,8 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).contains("constellio");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(35);
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(36);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(37);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
@@ -221,7 +221,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 			// collection deleted so no such collection.
 		}
 
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(36);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isFalse();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isFalse();
