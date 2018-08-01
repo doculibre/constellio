@@ -845,7 +845,7 @@ public class TestUtils {
 			}
 		}
 
-		public ListAssert<Object> extractingMetadatas(String... metadatas) {
+		public ListAssert<Object> extracting(String... metadatas) {
 			Object[] objects = new Object[metadatas.length];
 
 			if (actual instanceof Record) {
