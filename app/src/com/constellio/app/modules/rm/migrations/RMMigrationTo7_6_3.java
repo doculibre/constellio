@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.modules.rm.RMTypes.rmSchemas;
-
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -12,6 +10,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 
+import static com.constellio.app.modules.rm.RMTypes.rmSchemas;
+
 public class RMMigrationTo7_6_3 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -19,7 +19,8 @@ public class RMMigrationTo7_6_3 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
@@ -28,7 +29,7 @@ public class RMMigrationTo7_6_3 extends MigrationHelper implements MigrationScri
 		for (MetadataSchema schema : rmSchemas(appLayerFactory, collection)) {
 			if (schema.hasMetadataWithCode(Schemas.PATH.getLocalCode())) {
 				transaction.add(schemasDisplayManager.getMetadata(collection, schema.get(Schemas.PATH.getLocalCode()).getCode())
-						.withVisibleInAdvancedSearchStatus(true));
+													 .withVisibleInAdvancedSearchStatus(true));
 			}
 		}
 		schemasDisplayManager.execute(transaction);

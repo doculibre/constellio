@@ -1,29 +1,21 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.computeSearchFilter;
-import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.getSimpleName;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.naming.ldap.LdapContext;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.InvalidSearchFilterRuntimeException;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.naming.ldap.LdapContext;
+import java.util.*;
+
+import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.computeSearchFilter;
+import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.getSimpleName;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @InternetTest
 public class ConnectorLDAPServicesImplRealTest extends ConstellioTest {

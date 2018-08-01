@@ -1,22 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.*;
-
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -27,6 +10,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -40,10 +24,24 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Constelio on 2016-11-04.
@@ -74,7 +72,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 
@@ -126,19 +124,19 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customSchema").create("newSearchableMetadata")
-						.setType(MetadataValueType.STRING).setSearchable(true);
+					 .setType(MetadataValueType.STRING).setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
-						.withVisibleInAdvancedSearchStatus(true));
+														   .withVisibleInAdvancedSearchStatus(true));
 
 		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE));
 		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
 		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true)
-				.set(AUTHORIZATIONS, new ArrayList<>()));
+											.set(AUTHORIZATIONS, new ArrayList<>()));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
 		newMetadatas.removeAll(baseMetadatas);
@@ -171,7 +169,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 
 		recordServices.add((RecordWrapper) rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01")
-				.set(Schemas.TITLE, "J01"));
+											 .set(Schemas.TITLE, "J01"));
 
 		connectWithAdmin();
 		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
@@ -180,15 +178,15 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("newSearchableMetadata")
-						.setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
-						.setSearchable(true);
+					 .setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
+					 .setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
-						.withVisibleInAdvancedSearchStatus(true));
+														   .withVisibleInAdvancedSearchStatus(true));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
 		newMetadatas.removeAll(baseMetadatas);
@@ -207,7 +205,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
-						.setEnabled(false);
+					 .setEnabled(false);
 			}
 		});
 
@@ -217,7 +215,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
-						.setEnabled(true);
+					 .setEnabled(true);
 			}
 		});
 
@@ -272,9 +270,9 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	private Folder newFolder(String title) {
 		return schemasRecordsServices.newFolderWithId("testFolder").setTitle(title).setOpenDate(LocalDate.now())
-				.setAdministrativeUnitEntered(rmRecords.unitId_10a)
-				.setCategoryEntered(rmRecords.categoryId_X110)
-				.setRetentionRuleEntered(rmRecords.getRule2())
-				.setCopyStatusEntered(CopyType.PRINCIPAL);
+									 .setAdministrativeUnitEntered(rmRecords.unitId_10a)
+									 .setCategoryEntered(rmRecords.categoryId_X110)
+									 .setRetentionRuleEntered(rmRecords.getRule2())
+									 .setCopyStatusEntered(CopyType.PRINCIPAL);
 	}
 }

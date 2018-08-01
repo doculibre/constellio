@@ -1,20 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.junit.Before;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -29,6 +14,13 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.junit.Before;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class ListCollectionUserPresenterAcceptanceTest extends ConstellioTest {
 

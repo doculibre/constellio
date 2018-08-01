@@ -28,7 +28,8 @@ public class RMMigrationTo5_1_7 implements MigrationScript {
 
 	public static class SchemaAlterationsFor5_1_7 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor5_1_7(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor5_1_7(String collection, MigrationResourcesProvider provider,
+											AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -42,13 +43,13 @@ public class RMMigrationTo5_1_7 implements MigrationScript {
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 
 			schema.createUndeletable(Cart.OWNER).setDefaultRequirement(true).setUniqueValue(true)
-					.defineReferencesTo(builder.getSchemaType(User.SCHEMA_TYPE));
+				  .defineReferencesTo(builder.getSchemaType(User.SCHEMA_TYPE));
 			schema.createUndeletable(Cart.FOLDERS).setMultivalue(true)
-					.defineReferencesTo(builder.getSchemaType(Folder.SCHEMA_TYPE));
+				  .defineReferencesTo(builder.getSchemaType(Folder.SCHEMA_TYPE));
 			schema.createUndeletable(Cart.DOCUMENTS).setMultivalue(true)
-					.defineReferencesTo(builder.getSchemaType(Document.SCHEMA_TYPE));
+				  .defineReferencesTo(builder.getSchemaType(Document.SCHEMA_TYPE));
 			schema.createUndeletable(Cart.CONTAINERS).setMultivalue(true)
-					.defineReferencesTo(builder.getSchemaType(ContainerRecord.SCHEMA_TYPE));
+				  .defineReferencesTo(builder.getSchemaType(ContainerRecord.SCHEMA_TYPE));
 
 			schema.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCopied(schema.getMetadata(Cart.OWNER),
 					builder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema().getMetadata(CommonMetadataBuilder.TITLE));

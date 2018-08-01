@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -54,14 +42,20 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
@@ -142,16 +136,16 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		int indexOfSelectedTab = tabSheet.getTabPosition(tab);
 		PageItem tabSource = tabs.get(indexOfSelectedTab);
 		switch (tabSource.getType()) {
-		case RECENT_ITEM_TABLE:
-			return buildRecentItemTable((RecentItemTable) tabSource);
-		case RECORD_TABLE:
-			return buildRecordTable((RecordTable) tabSource);
-		case RECORD_TREE:
-			return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
-		case CUSTOM_ITEM:
-			return buildCustomComponent((CustomItem) tabSource);
-		default:
-			throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
+			case RECENT_ITEM_TABLE:
+				return buildRecentItemTable((RecentItemTable) tabSource);
+			case RECORD_TABLE:
+				return buildRecordTable((RecordTable) tabSource);
+			case RECORD_TREE:
+				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
+			case CUSTOM_ITEM:
+				return buildCustomComponent((CustomItem) tabSource);
+			default:
+				throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
 	}
 
@@ -266,11 +260,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
 				getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return providers.size() > 1 ?
-				buildRecordMultiTree(recordTree, providers) :
-				buildRecordTree(recordTree, providers.get(0));
+			   buildRecordMultiTree(recordTree, providers) :
+			   buildRecordTree(recordTree, providers.get(0));
 	}
 
-	private RecordLazyTreeTabSheet buildRecordMultiTree(final RecordTree recordTree, List<RecordLazyTreeDataProvider> providers) {
+	private RecordLazyTreeTabSheet buildRecordMultiTree(final RecordTree recordTree,
+														List<RecordLazyTreeDataProvider> providers) {
 		final RecordLazyTreeTabSheet subTabSheet = new RecordLazyTreeTabSheet(providers) {
 			@Override
 			protected RecordLazyTree newLazyTree(RecordLazyTreeDataProvider dataProvider, int bufferSize) {
@@ -366,7 +361,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		private static final String MENUBAR_PROPERTY_ID = "menuBar";
 
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		public RecentTable(String tableId, List<RecentItem> recentItems) {
 			super(tableId);
 
@@ -453,7 +448,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				if (menuBarRequired) {
 					RecordContextMenu contextMenu = null;
 					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent()
-							.getRecordContextMenuHandlers();
+																						   .getRecordContextMenuHandlers();
 					for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
 						if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
 							contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
@@ -489,7 +484,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 							MenuBar menuBar = null;
 							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent()
-									.getRecordMenuBarHandlers();
+																						   .getRecordMenuBarHandlers();
 							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 								menuBar = recordMenuBarHandler.get(recordVO);
 								if (menuBar != null) {

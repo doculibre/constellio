@@ -1,30 +1,14 @@
 package com.constellio.data.io.streams.factories;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.Scanner;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
-
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_FileNotFound;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
+
+import java.io.*;
+import java.util.Scanner;
 
 public class StreamsServices {
 

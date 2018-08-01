@@ -13,11 +13,11 @@ import java.io.InputStream;
 
 public class TasksMigrationTo7_6_6 extends MigrationHelper implements MigrationScript {
 
-    private String collection;
+	private String collection;
 
-    private MigrationResourcesProvider migrationResourcesProvider;
+	private MigrationResourcesProvider migrationResourcesProvider;
 
-    private AppLayerFactory appLayerFactory;
+	private AppLayerFactory appLayerFactory;
 
 	@Override
 	public String getVersion() {
@@ -25,40 +25,41 @@ public class TasksMigrationTo7_6_6 extends MigrationHelper implements MigrationS
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
-        this.collection = collection;
-        this.migrationResourcesProvider = migrationResourcesProvider;
-        this.appLayerFactory = appLayerFactory;
+		this.collection = collection;
+		this.migrationResourcesProvider = migrationResourcesProvider;
+		this.appLayerFactory = appLayerFactory;
 
 		reloadEmailTemplates();
 	}
 
 	private void reloadEmailTemplates() {
-        if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
-            reloadEmailTemplate("subTasksModificationTemplate_en.html", TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
-            reloadEmailTemplate("taskAssigneeModificationTemplate_en.html", TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
-            reloadEmailTemplate("taskAssigneeToYouTemplate_en.html", TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
-            reloadEmailTemplate("taskDeletionTemplate_en.html", TasksEmailTemplates.TASK_DELETED);
-            reloadEmailTemplate("taskReminderTemplate_en.html", TasksEmailTemplates.TASK_REMINDER);
-            reloadEmailTemplate("taskStatusModificationTemplate_en.html", TasksEmailTemplates.TASK_STATUS_MODIFIED);
-            reloadEmailTemplate("taskStatusModificationToCompletedTemplate_en.html", TasksEmailTemplates.TASK_COMPLETED);
-        } else {
-            reloadEmailTemplate("subTasksModificationTemplate.html", TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
-            reloadEmailTemplate("taskAssigneeModificationTemplate.html", TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
-            reloadEmailTemplate("taskAssigneeToYouTemplate.html", TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
-            reloadEmailTemplate("taskDeletionTemplate.html", TasksEmailTemplates.TASK_DELETED);
-            reloadEmailTemplate("taskReminderTemplate.html", TasksEmailTemplates.TASK_REMINDER);
-            reloadEmailTemplate("taskStatusModificationTemplate.html", TasksEmailTemplates.TASK_STATUS_MODIFIED);
-            reloadEmailTemplate("taskStatusModificationToCompletedTemplate.html", TasksEmailTemplates.TASK_COMPLETED);
-        }
+		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
+			reloadEmailTemplate("subTasksModificationTemplate_en.html", TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
+			reloadEmailTemplate("taskAssigneeModificationTemplate_en.html", TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
+			reloadEmailTemplate("taskAssigneeToYouTemplate_en.html", TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
+			reloadEmailTemplate("taskDeletionTemplate_en.html", TasksEmailTemplates.TASK_DELETED);
+			reloadEmailTemplate("taskReminderTemplate_en.html", TasksEmailTemplates.TASK_REMINDER);
+			reloadEmailTemplate("taskStatusModificationTemplate_en.html", TasksEmailTemplates.TASK_STATUS_MODIFIED);
+			reloadEmailTemplate("taskStatusModificationToCompletedTemplate_en.html", TasksEmailTemplates.TASK_COMPLETED);
+		} else {
+			reloadEmailTemplate("subTasksModificationTemplate.html", TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
+			reloadEmailTemplate("taskAssigneeModificationTemplate.html", TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
+			reloadEmailTemplate("taskAssigneeToYouTemplate.html", TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
+			reloadEmailTemplate("taskDeletionTemplate.html", TasksEmailTemplates.TASK_DELETED);
+			reloadEmailTemplate("taskReminderTemplate.html", TasksEmailTemplates.TASK_REMINDER);
+			reloadEmailTemplate("taskStatusModificationTemplate.html", TasksEmailTemplates.TASK_STATUS_MODIFIED);
+			reloadEmailTemplate("taskStatusModificationToCompletedTemplate.html", TasksEmailTemplates.TASK_COMPLETED);
+		}
 	}
 
 	private void reloadEmailTemplate(final String templateFileName, final String templateId) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
-            appLayerFactory.getModelLayerFactory().getEmailTemplatesManager().replaceCollectionTemplate(templateId, collection, templateInputStream);
+			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager().replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {

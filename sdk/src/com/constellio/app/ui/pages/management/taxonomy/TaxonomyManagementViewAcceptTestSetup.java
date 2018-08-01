@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -19,6 +13,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+
+import java.util.*;
 
 public class TaxonomyManagementViewAcceptTestSetup extends SchemasSetup {
 
@@ -72,7 +68,7 @@ public class TaxonomyManagementViewAcceptTestSetup extends SchemasSetup {
 	}
 
 	private void setupClassificationComplexTaxonomy(MetadataSchemaTypeBuilder categoryType,
-			MetadataSchemaTypeBuilder subCategoryType) {
+													MetadataSchemaTypeBuilder subCategoryType) {
 		subCategoryType.getDefaultSchema().create("parentCategory").defineChildOfRelationshipToType(categoryType);
 		subCategoryType.getDefaultSchema().create("parentSubCategory").defineChildOfRelationshipToType(subCategoryType);
 	}
@@ -269,7 +265,8 @@ public class TaxonomyManagementViewAcceptTestSetup extends SchemasSetup {
 			return record;
 		}
 
-		private Record createSubCategory(Transaction transaction, String id, Record parentCategory, Record parentSubCategory) {
+		private Record createSubCategory(Transaction transaction, String id, Record parentCategory,
+										 Record parentSubCategory) {
 			Record record = new TestRecord(subCategory, id);
 			record.set(subCategory.title(), id);
 			record.set(subCategory.parentCategory(), parentCategory);

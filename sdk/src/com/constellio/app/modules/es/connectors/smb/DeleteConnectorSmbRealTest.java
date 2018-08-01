@@ -1,25 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbFile;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactoryImpl;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -38,6 +18,24 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbFile;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class DeleteConnectorSmbRealTest extends ConstellioTest {
 
@@ -143,15 +141,15 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 
 	private ConnectorSmbInstance createConnector(String... seeds) {
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode("zeConnectorCode")
-				.setEnabled(true)
-				.setSeeds(asList(seeds))
-				.setUsername(username)
-				.setPassword(password)
-				.setDomain(domain)
-				.setInclusions(Arrays.asList(share))
-				.setExclusions(new ArrayList<String>())
-				.setTitle("zeConnectorTitle"));
+															   .setCode("zeConnectorCode")
+															   .setEnabled(true)
+															   .setSeeds(asList(seeds))
+															   .setUsername(username)
+															   .setPassword(password)
+															   .setDomain(domain)
+															   .setInclusions(Arrays.asList(share))
+															   .setExclusions(new ArrayList<String>())
+															   .setTitle("zeConnectorTitle"));
 
 		flushRecord(connectorInstance.getWrappedRecord());
 
@@ -164,7 +162,7 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 		while (!ok) {
 
 			Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-					.getMetadata(ConnectorSmbFolder.SCHEMA_TYPE + "_" + connectorInstance.getId() + "_" + ConnectorSmbFolder.URL);
+													  .getMetadata(ConnectorSmbFolder.SCHEMA_TYPE + "_" + connectorInstance.getId() + "_" + ConnectorSmbFolder.URL);
 			LogicalSearchCondition condition = from(es.schemaType(ConnectorSmbFolder.SCHEMA_TYPE))
 					.where(metadata).is(share + "test/");
 
@@ -212,7 +210,7 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 	private void flushRecord(Record record) {
 		try {
 			es.getRecordServices()
-					.update(record);
+			  .update(record);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

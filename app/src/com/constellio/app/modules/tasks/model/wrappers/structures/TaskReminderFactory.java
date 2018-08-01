@@ -6,14 +6,13 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 
-import static com.constellio.model.entities.records.wrappers.structure.StructureFactoryUtils.newLocalDateJsonSerializerDeserializer;
-
 import java.io.IOException;
+
+import static com.constellio.model.entities.records.wrappers.structure.StructureFactoryUtils.newLocalDateJsonSerializerDeserializer;
 
 public class TaskReminderFactory implements StructureFactory {
 	transient private GsonBuilder gsonBuilder;
@@ -45,7 +44,7 @@ public class TaskReminderFactory implements StructureFactory {
 			}
 		};
 		gsonBuilder = new GsonBuilder().setExclusionStrategies(strategy)
-				.registerTypeAdapter(LocalDate.class, newLocalDateJsonSerializerDeserializer());
+									   .registerTypeAdapter(LocalDate.class, newLocalDateJsonSerializerDeserializer());
 		gson = gsonBuilder.create();
 	}
 
@@ -73,9 +72,9 @@ public class TaskReminderFactory implements StructureFactory {
 		boolean processed = taskReminder.isProcessed();
 
 		return new TaskReminder().setBeforeRelativeDate(beforeFlexibleDate).setFixedDate(fixedDate)
-				.setRelativeDateMetadataCode(flexibleDateMetadataCode)
-				.setNumberOfDaysToRelativeDate(numberOfDaysInFlexibleDate).setProcessed(processed)
-				.setDirty(false);
+								 .setRelativeDateMetadataCode(flexibleDateMetadataCode)
+								 .setNumberOfDaysToRelativeDate(numberOfDaysInFlexibleDate).setProcessed(processed)
+								 .setDirty(false);
 	}
 
 	@Override

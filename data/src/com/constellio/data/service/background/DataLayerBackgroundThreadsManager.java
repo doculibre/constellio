@@ -9,26 +9,26 @@ import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatin
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 
 public class DataLayerBackgroundThreadsManager implements StatefulService {
-    public static Duration FLUSH_EVENTS_EVERY_DURATION = Duration.standardSeconds(15);
+	public static Duration FLUSH_EVENTS_EVERY_DURATION = Duration.standardSeconds(15);
 
-    DataLayerFactory dataLayerFactory;
-    BackgroundThreadsManager backgroundThreadsManager;
+	DataLayerFactory dataLayerFactory;
+	BackgroundThreadsManager backgroundThreadsManager;
 
 
-    public DataLayerBackgroundThreadsManager(DataLayerFactory dataLayerFactory) {
-        this.dataLayerFactory = dataLayerFactory;
-        this.backgroundThreadsManager = dataLayerFactory.getBackgroundThreadsManager();
-    }
+	public DataLayerBackgroundThreadsManager(DataLayerFactory dataLayerFactory) {
+		this.dataLayerFactory = dataLayerFactory;
+		this.backgroundThreadsManager = dataLayerFactory.getBackgroundThreadsManager();
+	}
 
-    @Override
-    public void initialize() {
-        backgroundThreadsManager.configure(repeatingAction("vaultAndReplicationRecoverySystem",
-                new ReadFileSystemContentDaoRecoveryLogsAndRepairs(dataLayerFactory))
-                .executedEvery(Duration.standardMinutes(5)).handlingExceptionWith(CONTINUE));
-    }
+	@Override
+	public void initialize() {
+		backgroundThreadsManager.configure(repeatingAction("vaultAndReplicationRecoverySystem",
+				new ReadFileSystemContentDaoRecoveryLogsAndRepairs(dataLayerFactory))
+				.executedEvery(Duration.standardMinutes(5)).handlingExceptionWith(CONTINUE));
+	}
 
-    @Override
-    public void close() {
+	@Override
+	public void close() {
 
-    }
+	}
 }

@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -17,8 +13,9 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import org.apache.commons.collections.CollectionUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<CopyType> {
 
@@ -30,7 +27,7 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 			.toAnEnum(Folder.RETENTION_RULE, RetentionRule.SCOPE);
 
 	LocalDependency<List<String>> folderUnitAncestorsParam = LocalDependency.toAReference(Folder.ADMINISTRATIVE_UNIT_ANCESTORS)
-			.whichIsMultivalue();
+																			.whichIsMultivalue();
 
 	ReferenceDependency<List<CopyRetentionRule>> ruleCopyRulesParam = ReferenceDependency.toAStructure(Folder.RETENTION_RULE,
 			RetentionRule.COPY_RETENTION_RULES).whichIsMultivalue();
@@ -44,7 +41,6 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 	ReferenceDependency<CopyType> parentCopyTypeParam = ReferenceDependency.toAnEnum(Folder.PARENT_FOLDER, Folder.COPY_STATUS);
 
 	ConfigDependency<Boolean> openHolderParam = RMConfigs.OPEN_HOLDER.dependency();
-
 
 
 	@Override
@@ -93,7 +89,7 @@ public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<Copy
 		}
 
 		if (openHolder && Boolean.TRUE.equals(ruleResponsibleUnits) && ruleUnits != null
-				&& ruleUnits.contains(folderUnit)) {
+			&& ruleUnits.contains(folderUnit)) {
 			return CopyType.PRINCIPAL;
 		}
 

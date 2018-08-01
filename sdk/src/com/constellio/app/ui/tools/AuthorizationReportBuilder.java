@@ -1,15 +1,5 @@
 package com.constellio.app.ui.tools;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeyIntMap;
@@ -19,6 +9,15 @@ import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
 
 public class AuthorizationReportBuilder {
 
@@ -30,7 +29,7 @@ public class AuthorizationReportBuilder {
 
 		StringBuilder stringBuilder = new StringBuilder();
 		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
-				.getCollectionsExcludingSystem()) {
+												.getCollectionsExcludingSystem()) {
 
 			String report = build(collection, appLayerFactory);
 

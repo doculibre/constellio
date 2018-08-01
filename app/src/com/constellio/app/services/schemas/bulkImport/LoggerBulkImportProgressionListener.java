@@ -50,7 +50,7 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 
 	@Override
 	public void afterRecordValidations(String fromLegacyId, String toLegacyId, int totalValidated, int batchQty,
-			int errorsCount) {
+									   int errorsCount) {
 
 		String progression;
 		if (errorsCount == 0) {
@@ -60,16 +60,17 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 		}
 
 		progression += batchQty + " records [" + fromLegacyId + " - " + toLegacyId
-				+ "] - Total of " + totalValidated + " records validated";
+					   + "] - Total of " + totalValidated + " records validated";
 
 		LOGGER.info(progression);
 	}
 
 	@Override
-	public void afterRecordImports(String fromLegacyId, String toLegacyId, int totalImported, int batchQty, int errorsCount) {
+	public void afterRecordImports(String fromLegacyId, String toLegacyId, int totalImported, int batchQty,
+								   int errorsCount) {
 
 		String progression = currentStepName + " Imported batch of " + batchQty + " records [" + fromLegacyId + " - "
-				+ toLegacyId + "] for a total of " + totalImported + " records";
+							 + toLegacyId + "] for a total of " + totalImported + " records";
 
 		if (errorsCount > 0) {
 			progression += " - " + errorsCount + " records failed to import in this batch";

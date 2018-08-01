@@ -1,21 +1,5 @@
 package com.constellio.app.modules.robots.services;
 
-import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.actions.RunExtractorsActionExecutor;
@@ -42,6 +26,21 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class RobotsManagerAcceptTest extends ConstellioTest {
 
@@ -176,83 +175,83 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 
 		String zeType = zeSchema.typeCode();
 		Robot robot100 = transaction.add(newRobot("100"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA1).isEqualTo("1"))
-				.setAction(SET_METADATA4).setActionParameters(setMetadata4To("100"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA1).isEqualTo("1"))
+									.setAction(SET_METADATA4).setActionParameters(setMetadata4To("100"));
 
 		Robot robot110 = transaction.add(newRobot("110"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot100)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("1"))
-				.setAction(SET_METADATA5).setActionParameters(setMetadata5To("110"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot100)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("1"))
+									.setAction(SET_METADATA5).setActionParameters(setMetadata5To("110"));
 
 		Robot robot111 = transaction.add(newRobot("111"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot110)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("111"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot110)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("111"));
 
 		Robot robot112 = transaction.add(newRobot("112"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot110)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("112"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot110)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("112"));
 
 		Robot robot120 = transaction.add(newRobot("120"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot100)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("2"))
-				.setAction(SET_METADATA5).setActionParameters(setMetadata5To("120"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot100)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("2"))
+									.setAction(SET_METADATA5).setActionParameters(setMetadata5To("120"));
 
 		Robot robot121 = transaction.add(newRobot("121"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot120)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("121"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot120)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("121"));
 
 		Robot robot122 = transaction.add(newRobot("122"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot120)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("122"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(false).setParent(robot120)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("122"));
 
 		Robot robot200 = transaction.add(newRobot("200"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA1).isEqualTo("2"))
-				.setAction(SET_METADATA4).setActionParameters(setMetadata4To("200"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA1).isEqualTo("2"))
+									.setAction(SET_METADATA4).setActionParameters(setMetadata4To("200"));
 
 		Robot robot210 = transaction.add(newRobot("210"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot200)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("1"))
-				.setAction(SET_METADATA5).setActionParameters(setMetadata5To("210"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot200)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("1"))
+									.setAction(SET_METADATA5).setActionParameters(setMetadata5To("210"));
 
 		Robot robot211 = transaction.add(newRobot("211"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot210)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("211"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot210)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("211"));
 
 		Robot robot212 = transaction.add(newRobot("212"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot210)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("212"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot210)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("212"));
 
 		Robot robot220 = transaction.add(newRobot("220"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot200)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("2"))
-				.setAction(SET_METADATA5).setActionParameters(setMetadata5To("220"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot200)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA2).isEqualTo("2"))
+									.setAction(SET_METADATA5).setActionParameters(setMetadata5To("220"));
 
 		Robot robot221 = transaction.add(newRobot("221"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot220)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("221"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot220)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("1"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("221"));
 
 		Robot robot222 = transaction.add(newRobot("222"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot220)
-				.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
-				.setAction(SET_METADATA6).setActionParameters(setMetadata6To("222"));
+									.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot220)
+									.setSearchCriterion(fromType(zeSchema.typeCode()).where(METADATA3).isEqualTo("2"))
+									.setAction(SET_METADATA6).setActionParameters(setMetadata6To("222"));
 
 		Robot robotTwoPieces = transaction.add(newRobot("twoPieces"))
-				.setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot220)
-				.setSearchCriteria(Arrays.asList(
-						fromType(zeType).where(METADATA1).isEqualTo("2").withLeftParens().booleanOperator(AND).build(),
-						fromType(zeType).where(METADATA2).isEqualTo("2").booleanOperator(AND).build(),
-						fromType(zeType).where(METADATA3).isEqualTo("2").withRightParens().booleanOperator(OR).build(),
-						fromType(zeType).where(METADATA3).isEqualTo("3").build()))
-				.setAction(SET_METADATA4).setActionParameters(setMetadata4To("Deux morceaux de robots"));
+										  .setSchemaFilter(zeSchema.typeCode()).setExcludeProcessedByChildren(true).setParent(robot220)
+										  .setSearchCriteria(Arrays.asList(
+												  fromType(zeType).where(METADATA1).isEqualTo("2").withLeftParens().booleanOperator(AND).build(),
+												  fromType(zeType).where(METADATA2).isEqualTo("2").booleanOperator(AND).build(),
+												  fromType(zeType).where(METADATA3).isEqualTo("2").withRightParens().booleanOperator(OR).build(),
+												  fromType(zeType).where(METADATA3).isEqualTo("3").build()))
+										  .setAction(SET_METADATA4).setActionParameters(setMetadata4To("Deux morceaux de robots"));
 
 		recordServices.execute(transaction);
 
@@ -403,10 +402,10 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 			throws Exception {
 		assertThat(manager.getSupportedSchemaTypes()).containsOnly("zeType", "anotherType");
 		assertThat(manager.getRegisteredActionsFor("zeType")).extracting("code")
-				.containsOnly(SET_METADATA1, SET_METADATA2, SET_METADATA3, SET_METADATA4, SET_METADATA5, SET_METADATA6,
-						RunExtractorsActionExecutor.ID);
+															 .containsOnly(SET_METADATA1, SET_METADATA2, SET_METADATA3, SET_METADATA4, SET_METADATA5, SET_METADATA6,
+																	 RunExtractorsActionExecutor.ID);
 		assertThat(manager.getRegisteredActionsFor("anotherType")).extracting("code")
-				.containsOnly(SET_METADATA1, SET_METADATA2, RunExtractorsActionExecutor.ID);
+																  .containsOnly(SET_METADATA1, SET_METADATA2, RunExtractorsActionExecutor.ID);
 	}
 
 	private List<Record> allRecords() {
@@ -451,8 +450,9 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	private ActionExecutor setMetadataExecutor(final Metadata metadata) {
 		return new ActionExecutor() {
 			@Override
-			public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-					List<Record> records, List<Record> processedRecords, boolean dryRun) {
+			public Transaction execute(String robotId, ActionParameters actionParameters,
+									   AppLayerFactory appLayerFactory,
+									   List<Record> records, List<Record> processedRecords, boolean dryRun) {
 				Transaction transaction = new Transaction();
 				for (Record record : records) {
 					transaction.add(record.set(metadata, actionParameters.get("value")));
@@ -465,27 +465,27 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 
 	private void setupSchemas(MetadataSchemaTypesBuilder types) {
 		MetadataSchemaBuilder setMetadata1Parameters = types.getSchemaType(ActionParameters.SCHEMA_TYPE)
-				.createCustomSchema(SET_METADATA1_PARAMETERS_SCHEMA);
+															.createCustomSchema(SET_METADATA1_PARAMETERS_SCHEMA);
 		setMetadata1Parameters.create("value").setType(MetadataValueType.STRING);
 
 		MetadataSchemaBuilder setMetadata2Parameters = types.getSchemaType(ActionParameters.SCHEMA_TYPE)
-				.createCustomSchema(SET_METADATA2_PARAMETERS_SCHEMA);
+															.createCustomSchema(SET_METADATA2_PARAMETERS_SCHEMA);
 		setMetadata2Parameters.create("value").setType(MetadataValueType.STRING);
 
 		MetadataSchemaBuilder setMetadata3Parameters = types.getSchemaType(ActionParameters.SCHEMA_TYPE)
-				.createCustomSchema(SET_METADATA3_PARAMETERS_SCHEMA);
+															.createCustomSchema(SET_METADATA3_PARAMETERS_SCHEMA);
 		setMetadata3Parameters.create("value").setType(MetadataValueType.STRING);
 
 		MetadataSchemaBuilder setMetadata4Parameters = types.getSchemaType(ActionParameters.SCHEMA_TYPE)
-				.createCustomSchema(SET_METADATA4_PARAMETERS_SCHEMA);
+															.createCustomSchema(SET_METADATA4_PARAMETERS_SCHEMA);
 		setMetadata4Parameters.create("value").setType(MetadataValueType.STRING);
 
 		MetadataSchemaBuilder setMetadata5Parameters = types.getSchemaType(ActionParameters.SCHEMA_TYPE)
-				.createCustomSchema(SET_METADATA5_PARAMETERS_SCHEMA);
+															.createCustomSchema(SET_METADATA5_PARAMETERS_SCHEMA);
 		setMetadata5Parameters.create("value").setType(MetadataValueType.STRING);
 
 		MetadataSchemaBuilder setMetadata6Parameters = types.getSchemaType(ActionParameters.SCHEMA_TYPE)
-				.createCustomSchema(SET_METADATA6_PARAMETERS_SCHEMA);
+															.createCustomSchema(SET_METADATA6_PARAMETERS_SCHEMA);
 		setMetadata6Parameters.create("value").setType(MetadataValueType.STRING);
 
 		MetadataSchemaBuilder zeSchemaBuilder = types.getSchema(zeSchema.code());

@@ -1,33 +1,5 @@
 package com.constellio.app.services.appManagement;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.io.FileUtils.readFileToString;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
@@ -39,6 +11,29 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.apache.commons.io.FileUtils.readFileToString;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 //TODO Maxime : Vérifier pourquoi ce test est extrêmement lent
 @SlowTest
@@ -75,7 +70,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
 		getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
-				.setValue(ConstellioEIMConfigs.CLEAN_DURING_INSTALL, true);
+							.setValue(ConstellioEIMConfigs.CLEAN_DURING_INSTALL, true);
 		foldersLocator = new FoldersLocator() {
 
 			@Override
@@ -165,7 +160,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 				.prepareInstallablePluginInNextWebapp(installedPluginsCaptor.capture(), any(File.class));
 
 		assertThat(installedPluginsCaptor.getAllValues()).extracting("name")
-				.containsOnly("plugin1.jar", "PLUGIN2.JAR");
+														 .containsOnly("plugin1.jar", "PLUGIN2.JAR");
 
 		assertThat(newWebappUpdatedPlugins).doesNotExist();
 
@@ -208,8 +203,8 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		File versionToKeep3 = addVersion("5.2.1-4");
 		File versionToKeep4 = addVersion("5.4.1");
 		uploadADummyUpdateJarWithVersion("5.0.5");
-		String[] expectedFilesNames = { versionToKeep1.getName(), versionToKeep2.getName(), versionToKeep3.getName(),
-				versionToKeep4.getName(), "webapp-5.0.5-2" };
+		String[] expectedFilesNames = {versionToKeep1.getName(), versionToKeep2.getName(), versionToKeep3.getName(),
+									   versionToKeep4.getName(), "webapp-5.0.5-2"};
 
 		appManagementService.update(new ProgressInfo());
 
@@ -230,7 +225,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		File invalidVersionToKeep1 = addVersion("5.1.1-3lol");
 		File versionToKeep1 = addVersion("5.0.5");
 		uploadADummyUpdateJarWithVersion("5.0.5");
-		String[] expectedFilesNames = { invalidVersionToKeep1.getName(), versionToKeep1.getName(), "webapp-5.0.5-1" };
+		String[] expectedFilesNames = {invalidVersionToKeep1.getName(), versionToKeep1.getName(), "webapp-5.0.5-1"};
 
 		appManagementService.update(new ProgressInfo());
 
@@ -260,8 +255,8 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		File versionToKeep3 = addVersion("5.2.1-4");
 		File versionToKeep4 = addVersion("5.4.1");
 		uploadADummyUpdateJarWithVersion("5.4.1");
-		String[] expectedFilesNames = { versionToKeep1.getName(), versionToKeep2.getName(), versionToKeep3.getName(),
-				versionToKeep4.getName(), "webapp-5.4.1-1" };
+		String[] expectedFilesNames = {versionToKeep1.getName(), versionToKeep2.getName(), versionToKeep3.getName(),
+									   versionToKeep4.getName(), "webapp-5.4.1-1"};
 
 		appManagementService.update(new ProgressInfo());
 

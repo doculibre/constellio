@@ -1,12 +1,11 @@
 package com.constellio.model.services.parser;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.services.parser.LanguageDetectionServicesRuntimeException.LanguageDetectionManagerRuntimeException_CannotDetectLanguage;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.model.services.parser.LanguageDetectionServicesRuntimeException.LanguageDetectionManagerRuntimeException_CannotDetectLanguage;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LanguageDetectionManagerAcceptTest extends ConstellioTest {
 

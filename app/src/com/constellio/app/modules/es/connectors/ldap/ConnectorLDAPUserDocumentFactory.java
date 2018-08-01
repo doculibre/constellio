@@ -1,17 +1,17 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConnectorLDAPUserDocumentFactory {
-	public static ConnectorLDAPUserDocument populateUser(ConnectorLDAPUserDocument document, LDAPObjectAttributes ldapObject,
-			ConnectorLDAPInstance connectorInstance) {
+	public static ConnectorLDAPUserDocument populateUser(ConnectorLDAPUserDocument document,
+														 LDAPObjectAttributes ldapObject,
+														 ConnectorLDAPInstance connectorInstance) {
 		String username = getStringValue(connectorInstance, ConnectorLDAPInstance.USERNAME_ATTRIBUTE_NAME,
 				ldapObject);
 		String firstName = getStringValue(connectorInstance, ConnectorLDAPInstance.FIRST_NAME_ATTRIBUTE_NAME,
@@ -42,13 +42,13 @@ public class ConnectorLDAPUserDocumentFactory {
 			enabled = false;
 		}
 		return document.setEnabled(enabled).setUsername(username).setFirstName(firstName).setLastName(lastName).setEmail(email)
-				.setDistinguishedName(distinguishedName).setAddress(address).setWorkTitle(workTitle).setTelephone(telephones)
-				.setDisplayName(displayName).setCompany(company).setManager(manager).setDepartment(department);
+					   .setDistinguishedName(distinguishedName).setAddress(address).setWorkTitle(workTitle).setTelephone(telephones)
+					   .setDisplayName(displayName).setCompany(company).setManager(manager).setDepartment(department);
 
 	}
 
 	private static List<String> getTelephones(ConnectorLDAPInstance connectorInstance,
-			LDAPObjectAttributes ldapObject) {
+											  LDAPObjectAttributes ldapObject) {
 		List<String> returnList = new ArrayList<>();
 		List<String> telephonesAttributesNames = connectorInstance.getTelephone();
 		if (telephonesAttributesNames != null) {
@@ -66,12 +66,12 @@ public class ConnectorLDAPUserDocumentFactory {
 	}
 
 	private static String getStringValue(ConnectorLDAPInstance connectorInstance, String metadataName,
-			LDAPObjectAttributes ldapObject) {
+										 LDAPObjectAttributes ldapObject) {
 		return getStringValue(connectorInstance, metadataName, ldapObject, "");
 	}
 
 	private static String getStringValue(ConnectorLDAPInstance connectorInstance, String metadataName,
-			LDAPObjectAttributes ldapObject, String valuesSeparator) {
+										 LDAPObjectAttributes ldapObject, String valuesSeparator) {
 		StringBuilder stb = new StringBuilder();
 		Object value = connectorInstance.get(metadataName);
 		List<String> attributesNames = new ArrayList<>();
@@ -96,12 +96,12 @@ public class ConnectorLDAPUserDocumentFactory {
 
 	private static boolean isUserEnabled(LDAPObjectAttributes ldapObject, DirectoryType directoryType) {
 		switch (directoryType) {
-		case ACTIVE_DIRECTORY:
-			return isADUserEnabled(ldapObject);
-		case E_DIRECTORY:
-			return isEDirectoryEnabled(ldapObject);
-		default:
-			throw new RuntimeException("Unsupported type " + directoryType);
+			case ACTIVE_DIRECTORY:
+				return isADUserEnabled(ldapObject);
+			case E_DIRECTORY:
+				return isEDirectoryEnabled(ldapObject);
+			default:
+				throw new RuntimeException("Unsupported type " + directoryType);
 		}
 	}
 

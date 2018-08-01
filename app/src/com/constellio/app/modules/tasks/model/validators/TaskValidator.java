@@ -20,13 +20,14 @@ public class TaskValidator implements RecordValidator {
 		validate(task, params.getSchema(), params.getConfigProvider(), params.getValidationErrors());
 	}
 
-	public void validate(Task task, MetadataSchema schema, ConfigProvider configProvider, ValidationErrors validationErrors) {
-		if(!areAssignationsValid(task)) {
+	public void validate(Task task, MetadataSchema schema, ConfigProvider configProvider,
+						 ValidationErrors validationErrors) {
+		if (!areAssignationsValid(task)) {
 			validationErrors.add(getClass(), ASSIGNATION_DATE_AND_ASSIGNED_ON_ASSIGNER_SHOULD_BE_ALL_NULL_OR_ALL_NOT_NULL);
 		}
 
 		if (task.getDueDate() != null && task.getParentTaskDueDate() != null
-				&& task.getDueDate().isAfter(task.getParentTaskDueDate())) {
+			&& task.getDueDate().isAfter(task.getParentTaskDueDate())) {
 			validationErrors.add(getClass(), DUE_DATE_MUST_BE_LESSER_OR_EQUAL_THAN_PARENT_DUE_DATE);
 		}
 
@@ -34,7 +35,7 @@ public class TaskValidator implements RecordValidator {
 			BetaWorkflowTask betaWorkflowTask = new BetaWorkflowTask(task);
 			if (betaWorkflowTask.getWorkflowInstance() != null && task.getStatusType().isFinishedOrClosed()) {
 				if (betaWorkflowTask.hasDecisions() && !betaWorkflowTask.getNextTasksDecisionsCodes()
-						.contains(task.getDecision())) {
+																		.contains(task.getDecision())) {
 					validationErrors.add(getClass(), TASK_DECISION_IS_REQUIRED);
 				}
 			}
@@ -43,8 +44,8 @@ public class TaskValidator implements RecordValidator {
 
 	static private boolean taskAssignationIsNull(Task task) {
 		return task.getAssignee() == null && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates()
-				.isEmpty())
-				&& (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().isEmpty());
+																								.isEmpty())
+			   && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().isEmpty());
 	}
 
 	static public boolean areAssignationsValid(Task task) {

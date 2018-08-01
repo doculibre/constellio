@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -34,6 +28,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static java.util.Arrays.asList;
+
 public class RMMigrationTo5_0_6 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -42,7 +42,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -57,7 +57,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		}
 
 		modelLayerFactory.getSystemConfigurationsManager()
-				.signalDefaultValueModification(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, true);
+						 .signalDefaultValueModification(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, true);
 
 		//Reindexation that was planned in 5.0.6, moved to 5.0.7
 		//		ReindexingServices reindexingServices = appLayerFactory.getModelLayerFactory().newReindexingServices();
@@ -114,12 +114,12 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 	}
 
 	private void addVariablePeriod888And999(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		VariableRetentionPeriod period888 = rm.newVariableRetentionPeriod().setCode("888")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
+											  .setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
 		VariableRetentionPeriod period999 = rm.newVariableRetentionPeriod().setCode("999")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999"));
+											  .setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999"));
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(period888, period999));
 		} catch (RecordServicesException e) {
@@ -132,7 +132,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_0_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -149,22 +149,22 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
 			folderSchema.createUndeletable(Folder.LINEAR_SIZE).setType(MetadataValueType.NUMBER).setEssential(true);
 			folderSchema.createUndeletable(Folder.ACTIVE_RETENTION_CODE).setType(MetadataValueType.STRING)
-					.defineDataEntry().asCalculated(FolderActiveRetentionPeriodCodeCalculator.class);
+						.defineDataEntry().asCalculated(FolderActiveRetentionPeriodCodeCalculator.class);
 			folderSchema.createUndeletable(Folder.SEMIACTIVE_RETENTION_CODE).setType(MetadataValueType.STRING)
-					.defineDataEntry().asCalculated(FolderSemiActiveRetentionPeriodCodeCalculator.class);
+						.defineDataEntry().asCalculated(FolderSemiActiveRetentionPeriodCodeCalculator.class);
 
 			//Container
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).createUndeletable(ContainerRecord.CAPACITY)
-					.setType(MetadataValueType.NUMBER);
+						.setType(MetadataValueType.NUMBER);
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).createUndeletable(ContainerRecord.FILL_RATIO_ENTRED)
-					.setType(MetadataValueType.NUMBER);
+						.setType(MetadataValueType.NUMBER);
 
 			ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
 			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, null,
 					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
 
 			typesBuilder.getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA)
-					.get(VariableRetentionPeriod.CODE).setUnmodifiable(true).addValidator(IntegerStringValidator.class);
+						.get(VariableRetentionPeriod.CODE).setUnmodifiable(true).addValidator(IntegerStringValidator.class);
 
 			modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(typesBuilder);
 
@@ -172,7 +172,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			userDocumentSchema.create("folder").defineReferencesTo(typesBuilder.getSchema(Folder.DEFAULT_SCHEMA));
 		}
 
-		private void modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(MetadataSchemaTypesBuilder typesBuilder) {
+		private void modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(
+				MetadataSchemaTypesBuilder typesBuilder) {
 			List<MetadataValueType> typesWithoutNullValues = asList(STRUCTURE, TEXT);
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				for (MetadataBuilder metadata : typeBuilder.getAllMetadatas()) {

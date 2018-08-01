@@ -1,15 +1,5 @@
 package com.constellio.model.entities.search.logical.condition;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.willReturn;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -21,6 +11,15 @@ import com.constellio.model.services.search.query.logical.condition.DataStoreFie
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.willReturn;
 
 /**
  * Created by maxime on 7/31/14.

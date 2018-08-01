@@ -1,8 +1,8 @@
 package com.constellio.model.entities.schemas.entries;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
+
+import java.util.List;
 
 public abstract class InMemoryAggregatedValuesParams {
 	List<Object> values;

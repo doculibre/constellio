@@ -1,8 +1,8 @@
 package com.constellio.model.services.migrations;
 
-import java.util.List;
-
 import com.constellio.model.entities.records.RecordMigrationScript;
+
+import java.util.List;
 
 public class RequiredRecordMigrations {
 

@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
@@ -18,11 +8,7 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupField.Text
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
@@ -30,6 +16,15 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
 public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
@@ -48,27 +43,29 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected ConverterWithCache<String, String> converterWithCache;
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-			String schemaTypeCode, boolean writeAccess) {
+									   String schemaTypeCode, boolean writeAccess) {
 		this(constellioFactories, sessionContext, schemaTypeCode, null, writeAccess, true);
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-			String schemaTypeCode, boolean writeAccess, boolean includeDeactivated) {
+									   String schemaTypeCode, boolean writeAccess, boolean includeDeactivated) {
 		this(constellioFactories, sessionContext, schemaTypeCode, null, writeAccess, includeDeactivated);
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-			String schemaTypeCode, String schemaCode, boolean writeAccess) {
+									   String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, true);
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-			String schemaTypeCode, String schemaCode, boolean writeAccess, boolean includeDeactivated) {
+									   String schemaTypeCode, String schemaCode, boolean writeAccess,
+									   boolean includeDeactivated) {
 		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, includeDeactivated, false);
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
-			String schemaTypeCode, String schemaCode, boolean writeAccess, boolean includeDeactivated, boolean onlyLinkables) {
+									   String schemaTypeCode, String schemaCode, boolean writeAccess,
+									   boolean includeDeactivated, boolean onlyLinkables) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -168,7 +165,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		if (schemaTypeCode != null) {
 
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
-					.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
+													   .getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
 			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
@@ -185,12 +182,12 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 			if (schemaTypeCode.equals(Category.SCHEMA_TYPE) && !includeDeactivated) {
 				condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE))
-						.isFalseOrNull();
+									 .isFalseOrNull();
 			}
 		} else {
 
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
-					.getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
+													 .getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
 			List<Metadata> extraMetadatas = schema.getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(schema).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));

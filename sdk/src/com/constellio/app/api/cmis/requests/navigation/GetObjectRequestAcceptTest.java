@@ -1,15 +1,5 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
@@ -25,6 +15,15 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest
 public class GetObjectRequestAcceptTest extends ConstellioTest {
@@ -86,7 +85,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 	public void givenObjectCreatedWithUserThenObjectHasCorrectCreatedByValue()
 			throws Exception {
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true)
-				.getWrappedRecord());
+								   .getWrappedRecord());
 		Session cmisSession = givenAdminSessionOnZeCollection();
 		Record record = new TestRecord(zeCollectionSchemas.getSchema("folder_default"), "aTestFolder");
 		recordServices.execute(new Transaction(record).setUser(users.chuckNorrisIn(zeCollection)));
@@ -164,7 +163,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-				.build();
+									  .build();
 	}
 
 }

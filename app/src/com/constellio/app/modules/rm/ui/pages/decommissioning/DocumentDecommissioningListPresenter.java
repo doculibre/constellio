@@ -169,13 +169,13 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void addDocumentsButtonClicked() {
-		if(calculateSearchType() != null) {
+		if (calculateSearchType() != null) {
 			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
 		}
 	}
 
 	public SearchType calculateSearchType() {
-		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+		if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
 				case FOLDERS_TO_DEPOSIT:
 					return SearchType.activeToDeposit;
@@ -190,7 +190,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 				case DOCUMENTS_TO_TRANSFER:
 					return SearchType.documentTransfer;
 			}
-		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+		} else if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
 				case FOLDERS_TO_DEPOSIT:
 					return SearchType.semiActiveToDeposit;
@@ -207,8 +207,8 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	public void removeDocumentsButtonClicked(HashMap<Integer, Boolean> selected) {
 		Set<String> idsToRemove = new HashSet<>();
-		for(Map.Entry<Integer, Boolean> entry: selected.entrySet()) {
-			if(Boolean.TRUE.equals(entry.getValue())) {
+		for (Map.Entry<Integer, Boolean> entry : selected.entrySet()) {
+			if (Boolean.TRUE.equals(entry.getValue())) {
 				RecordVO recordVO = getDocuments().getRecordVO(entry.getKey());
 				idsToRemove.add(recordVO.getId());
 			}

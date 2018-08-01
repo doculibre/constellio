@@ -1,10 +1,5 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -16,6 +11,10 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationScript {
 
@@ -31,7 +30,8 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
@@ -44,7 +44,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 
 	private void reloadEmailTemplates() {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-				.equals("en")) {
+						   .equals("en")) {
 			reloadEmailTemplate("taskStatusModificationToCompletedTemplate_en.html", TasksEmailTemplates.TASK_COMPLETED);
 		} else {
 			reloadEmailTemplate("taskStatusModificationToCompletedTemplate.html", TasksEmailTemplates.TASK_COMPLETED);
@@ -56,7 +56,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-					.replaceCollectionTemplate(templateId, collection, templateInputStream);
+						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -67,7 +67,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 	class SchemaAlterationFor7_7_4 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_7_4(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -78,7 +78,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder task = typesBuilder.getSchemaType(Task.SCHEMA_TYPE)
-					.getDefaultSchema();
+													 .getDefaultSchema();
 			if (!typesBuilder.getSchema(Task.DEFAULT_SCHEMA).hasMetadata(Task.REASON)) {
 				typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.REASON).setType(MetadataValueType.TEXT);
 			}

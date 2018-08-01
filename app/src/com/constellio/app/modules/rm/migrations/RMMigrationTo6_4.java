@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.util.Set;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -20,6 +18,8 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.Set;
+
 public class RMMigrationTo6_4 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -36,8 +36,8 @@ public class RMMigrationTo6_4 implements MigrationScript {
 		transaction.add(displayManager.getSchema(collection, "cart_default"));
 
 		transaction.add(displayManager.getSchema(collection, "userDocument_default")
-				.withRemovedDisplayMetadatas("userDocument_default_folder")
-				.withRemovedFormMetadatas("userDocument_default_folder"));
+									  .withRemovedDisplayMetadatas("userDocument_default_folder")
+									  .withRemovedFormMetadatas("userDocument_default_folder"));
 
 		displayManager.execute(transaction.build());
 
@@ -45,7 +45,8 @@ public class RMMigrationTo6_4 implements MigrationScript {
 
 	public static class SchemaAlterationsFor6_4 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_4(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_4(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -66,7 +67,7 @@ public class RMMigrationTo6_4 implements MigrationScript {
 				cart.getMetadata(Cart.OWNER).setUniqueValue(false);
 
 				cart.createUndeletable(Cart.SHARED_WITH_USERS).setMultivalue(true)
-						.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 			}
 		}
 

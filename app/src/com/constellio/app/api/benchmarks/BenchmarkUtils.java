@@ -1,11 +1,5 @@
 package com.constellio.app.api.benchmarks;
 
-import static org.mockito.Mockito.when;
-
-import java.util.Locale;
-
-import org.mockito.Mockito;
-
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -13,6 +7,11 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.model.entities.records.wrappers.User;
+import org.mockito.Mockito;
+
+import java.util.Locale;
+
+import static org.mockito.Mockito.when;
 
 public class BenchmarkUtils {
 

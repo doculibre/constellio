@@ -1,13 +1,12 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.schemas.testimpl.TestStructureFactory1;
+import org.junit.Test;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
-import com.constellio.model.services.contents.ContentFactory;
-import com.constellio.model.services.schemas.testimpl.TestStructureFactory1;
 
 public class MetadataBuilder_StructureFactoriesTest extends MetadataBuilderTest {
 

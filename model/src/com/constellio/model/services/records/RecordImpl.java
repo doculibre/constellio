@@ -1,29 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -38,23 +14,26 @@ import com.constellio.model.entities.records.RecordRuntimeException.RecordIsAlre
 import com.constellio.model.entities.records.RecordRuntimeException.RecordRuntimeException_CannotModifyId;
 import com.constellio.model.entities.records.RecordRuntimeException.RequiredMetadataArgument;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.encrypt.EncryptionServices;
-import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_PopulatorReturnedNullValue;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_RecordCannotHaveTwoParents;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord;
+import com.constellio.model.services.records.RecordImplRuntimeException.*;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 public class RecordImpl implements Record {
 
@@ -91,13 +70,13 @@ public class RecordImpl implements Record {
 	}
 
 	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
-			boolean fullyLoaded) {
+					   boolean fullyLoaded) {
 		this(recordDTO, collectionInfo, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
 	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
-			boolean fullyLoaded, boolean unmodifiable) {
+					   boolean fullyLoaded, boolean unmodifiable) {
 		this(recordDTO, collectionInfo, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 		this.unmodifiable = unmodifiable;
@@ -797,29 +776,39 @@ public class RecordImpl implements Record {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof RecordImpl))
+		}
+		if (!(o instanceof RecordImpl)) {
 			return false;
+		}
 
 		RecordImpl record = (RecordImpl) o;
 
-		if (version != record.version)
+		if (version != record.version) {
 			return false;
-		if (disconnected != record.disconnected)
+		}
+		if (disconnected != record.disconnected) {
 			return false;
-		if (fullyLoaded != record.fullyLoaded)
+		}
+		if (fullyLoaded != record.fullyLoaded) {
 			return false;
-		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null)
+		}
+		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null) {
 			return false;
-		if (schemaCode != null ? !schemaCode.equals(record.schemaCode) : record.schemaCode != null)
+		}
+		if (schemaCode != null ? !schemaCode.equals(record.schemaCode) : record.schemaCode != null) {
 			return false;
-		if (collection != null ? !collection.equals(record.collection) : record.collection != null)
+		}
+		if (collection != null ? !collection.equals(record.collection) : record.collection != null) {
 			return false;
-		if (!id.equals(record.id))
+		}
+		if (!id.equals(record.id)) {
 			return false;
-		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null)
+		}
+		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null) {
 			return false;
+		}
 
 		return true;
 	}
@@ -855,8 +844,8 @@ public class RecordImpl implements Record {
 		for (Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String key = entry.getKey();
 			boolean specialField = key.equals("schema_s") || key.equals("id") || key.equals("_version_")
-					|| key.equals("autocomplete_ss") || key.equals("collection_s")
-					|| key.equals("modifiedOn_dt") || key.equals("createdOn_dt") || key.equals("modifiedById_s");
+								   || key.equals("autocomplete_ss") || key.equals("collection_s")
+								   || key.equals("modifiedOn_dt") || key.equals("createdOn_dt") || key.equals("modifiedById_s");
 
 			if (!specialField) {
 				String metadataCode = new SchemaUtils().getLocalCodeFromDataStoreCode(key);
@@ -865,15 +854,15 @@ public class RecordImpl implements Record {
 					Object modifiedValue = entry.getValue();
 					Object currentValue = otherVersionRecordDTO.getFields().get(entry.getKey());
 					if (LangUtils.areNullableEqual(currentValue, modifiedValue)
-							|| (currentValue == null && isEmptyList(modifiedValue))
-							|| (modifiedValue == null && isEmptyList(currentValue))) {
+						|| (currentValue == null && isEmptyList(modifiedValue))
+						|| (modifiedValue == null && isEmptyList(currentValue))) {
 						//Both transactions made the same change on that field
 						removedKeys.add(entry.getKey());
 					} else {
 
 						if (!(LangUtils.areNullableEqual(currentValue, initialValue)
-								|| (currentValue == null && isEmptyList(initialValue))
-								|| (initialValue == null && isEmptyList(currentValue)))) {
+							  || (currentValue == null && isEmptyList(initialValue))
+							  || (initialValue == null && isEmptyList(currentValue)))) {
 							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}
@@ -914,7 +903,7 @@ public class RecordImpl implements Record {
 
 	private boolean isCreationOrModificationInfo(String key) {
 		return Schemas.MODIFIED_BY.getDataStoreCode().equals(key) || Schemas.MODIFIED_ON.getDataStoreCode().equals(key)
-				|| Schemas.CREATED_BY.getDataStoreCode().equals(key) || Schemas.CREATED_ON.getDataStoreCode().equals(key);
+			   || Schemas.CREATED_BY.getDataStoreCode().equals(key) || Schemas.CREATED_ON.getDataStoreCode().equals(key);
 	}
 
 	private Object correctValue(Object value) {
@@ -1171,8 +1160,9 @@ public class RecordImpl implements Record {
 			if (value2 == null) {
 				return false;
 			} else {
-				if (value1 instanceof List)
+				if (value1 instanceof List) {
 					;
+				}
 
 			}
 

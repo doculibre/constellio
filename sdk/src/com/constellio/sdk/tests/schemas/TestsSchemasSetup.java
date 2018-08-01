@@ -1,22 +1,5 @@
 package com.constellio.sdk.tests.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
@@ -34,6 +17,14 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.testimpl.TestStructureFactory1;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 
 public class TestsSchemasSetup extends SchemasSetup {
 
@@ -95,7 +86,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
-	public static MetadataBuilderConfigurator whichIsCalculatedUsing(final Class<? extends MetadataValueCalculator<?>> clazz) {
+	public static MetadataBuilderConfigurator whichIsCalculatedUsing(
+			final Class<? extends MetadataValueCalculator<?>> clazz) {
 		return new MetadataBuilderConfigurator() {
 
 			@Override
@@ -479,23 +471,24 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(boolean multivalue,
+	public TestsSchemasSetup withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(
+			boolean multivalue,
 			boolean multivalueReferences, boolean required) {
 		MetadataBuilder stringReference = zeDefaultSchemaBuilder.create("stringRef").setType(REFERENCE)
-				.setMultivalue(multivalueReferences);
+																.setMultivalue(multivalueReferences);
 		MetadataBuilder copiedStringMetadata = zeDefaultSchemaBuilder.create("copiedStringMeta").setType(STRING)
-				.setLabels(asMap(Language.French, "Une métadonnée copiée"))
-				.setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
+																	 .setLabels(asMap(Language.French, "Une métadonnée copiée"))
+																	 .setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
 		MetadataBuilder otherSchemaStringMetadata = anOtherSchemaTypeBuilder.getDefaultSchema().create("stringMetadata")
-				.setType(STRING).setMultivalue(multivalue);
+																			.setType(STRING).setMultivalue(multivalue);
 
 		MetadataBuilder dateReference = zeDefaultSchemaBuilder.create("dateRef").setType(REFERENCE)
-				.setMultivalue(multivalueReferences);
+															  .setMultivalue(multivalueReferences);
 		MetadataBuilder copiedDateMetadata = zeDefaultSchemaBuilder.create("copiedDateMeta").setType(DATE_TIME)
-				.setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
+																   .setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
 		MetadataBuilder otherSchemaDateMetadata = anOtherSchemaTypeBuilder.getDefaultSchema().create("dateMeta").setType(
 				DATE_TIME)
-				.setMultivalue(multivalue);
+																		  .setMultivalue(multivalue);
 
 		stringReference.defineReferences().set(anOtherSchemaTypeBuilder);
 		copiedStringMetadata.defineDataEntry().asCopied(stringReference, otherSchemaStringMetadata);
@@ -548,7 +541,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withATitle(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("zetitle").setType(STRING)
-				.addLabel(Language.French, "Title");
+																.addLabel(Language.French, "Title");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -556,7 +549,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAContent(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("content").setType(STRING)
-				.addLabel(Language.French, "Content");
+																.addLabel(Language.French, "Content");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -564,7 +557,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAParsedContent(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("parsedContent").setType(STRING)
-				.addLabel(Language.French, "Parsed content");
+																.addLabel(Language.French, "Parsed content");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -577,7 +570,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAStructureMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("structureMetadata").setType(STRUCTURE)
-				.defineStructureFactory(TestStructureFactory1.class);
+																.defineStructureFactory(TestStructureFactory1.class);
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -585,7 +578,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("stringMetadata").setType(STRING)
-				.addLabel(Language.French, "A toAString metadata");
+																.addLabel(Language.French, "A toAString metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -593,7 +586,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAStringMetadataInAnotherSchema(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("stringMetadata").setType(STRING)
-				.addLabel(Language.French, "A toAString metadata");
+																	 .addLabel(Language.French, "A toAString metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -644,7 +637,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAModifiedStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("stringMetadata").setType(STRING)
-				.addLabel(Language.French, "A toAString metadata");
+																.addLabel(Language.French, "A toAString metadata");
 		metadataBuilder.addLabel(Language.French, "A modified label");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
@@ -653,7 +646,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAnotherStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("anotherStringMetadata").setType(STRING)
-				.addLabel(Language.French, "An other toAString metadata");
+																.addLabel(Language.French, "An other toAString metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -661,7 +654,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAThirdStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("thirdStringMetadata").setType(STRING)
-				.addLabel(Language.French, "A third string metadata");
+																.addLabel(Language.French, "A third string metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -675,7 +668,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAnotherSchemaStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("stringMetadata").setType(STRING)
-				.addLabel(Language.French, "String metadata");
+																	 .addLabel(Language.French, "String metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -683,7 +676,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withADateTimeMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("dateTimeMetadata").setType(DATE_TIME)
-				.addLabel(Language.French, "a date time metadata");
+																.addLabel(Language.French, "a date time metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -691,7 +684,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withADateMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("dateMetadata").setType(DATE)
-				.addLabel(Language.French, "a date metadata");
+																.addLabel(Language.French, "a date metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -699,7 +692,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withANumberMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("numberMetadata").setType(NUMBER)
-				.addLabel(Language.French, "A number metadata");
+																.addLabel(Language.French, "A number metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -707,7 +700,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAnIntegerMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("integerMetadata").setType(INTEGER)
-				.addLabel(Language.French, "An integer metadata");
+																.addLabel(Language.French, "An integer metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -715,7 +708,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withABooleanMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("booleanMetadata").setType(BOOLEAN)
-				.addLabel(Language.French, "A boolean metadata");
+																.addLabel(Language.French, "A boolean metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -723,7 +716,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAReferenceMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("referenceMetadata").setType(REFERENCE)
-				.addLabel(Language.French, "A reference metadata");
+																.addLabel(Language.French, "A reference metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -731,32 +724,35 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAReferenceMetadataToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("referenceMetadata").setType(REFERENCE)
-				.addLabel(Language.French, "A reference metadata");
+																.addLabel(Language.French, "A reference metadata");
 		metadataBuilder.defineReferencesTo(zeSchemaTypeBuilder);
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
 
-	public TestsSchemasSetup withAParentReferenceFromZeSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromZeSchemaToZeSchema(
+			MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("parentReferenceFromZeSchemaToZeSchema")
-				.defineChildOfRelationshipToSchemas(Arrays.asList(zeDefaultSchemaBuilder));
+																.defineChildOfRelationshipToSchemas(Arrays.asList(zeDefaultSchemaBuilder));
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
 
-	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(
+			MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
-				.defineChildOfRelationshipToType(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
+																	 .defineChildOfRelationshipToType(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
 
-	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(
+			MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
-				.defineReferencesTo(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
+																	 .defineReferencesTo(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -881,7 +877,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	}
 
 	public TestsSchemasSetup withAnEnumMetadata(Class enumClass,
-			MetadataBuilderConfigurator... builderConfigurators) {
+												MetadataBuilderConfigurator... builderConfigurators) {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("withAnEnumMetadata").defineAsEnum(enumClass);
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
@@ -905,7 +901,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	public TestsSchemasSetup withAFixedSequence(MetadataBuilderConfigurator... builderConfigurators) {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("fixedSequenceMetadata").defineDataEntry()
-				.asFixedSequence("zeSequence");
+																.asFixedSequence("zeSequence");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
@@ -913,7 +909,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withADynamicSequence() {
 		zeDefaultSchemaBuilder.create("metadataDefiningSequenceNumber").setType(STRING);
 		zeDefaultSchemaBuilder.create("dynamicSequenceMetadata").defineDataEntry()
-				.asSequenceDefinedByMetadata("metadataDefiningSequenceNumber");
+							  .asSequenceDefinedByMetadata("metadataDefiningSequenceNumber");
 		return this;
 	}
 

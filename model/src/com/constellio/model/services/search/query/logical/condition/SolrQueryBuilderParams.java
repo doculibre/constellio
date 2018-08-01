@@ -31,6 +31,6 @@ public class SolrQueryBuilderParams {
 
 	public boolean isSecondaryLanguage() {
 		return types != null && languageCode != null && types != null
-				&& !languageCode.equals(types.getCollectionInfo().getMainSystemLanguage().getCode());
+			   && !languageCode.equals(types.getCollectionInfo().getMainSystemLanguage().getCode());
 	}
 }

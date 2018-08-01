@@ -1,17 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-
-import java.util.Arrays;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
@@ -24,6 +12,17 @@ import com.constellio.model.services.search.query.logical.valueCondition.Conditi
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 @SlowTest
 public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTest {
@@ -101,7 +100,7 @@ public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTe
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idol"))))
 				.isEmpty();
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
-				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
+																				   .andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
 				.isEmpty();
 
 		assertThat(searchServices
@@ -123,7 +122,7 @@ public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTe
 				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idol")).setPreferAnalyzedFields(true)))
 				.isEmpty();
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
-				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
+																				   .andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
 				.isEmpty();
 	}
 

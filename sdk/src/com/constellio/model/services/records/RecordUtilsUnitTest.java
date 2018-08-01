@@ -1,21 +1,20 @@
 package com.constellio.model.services.records;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class RecordUtilsUnitTest extends ConstellioTest {
 

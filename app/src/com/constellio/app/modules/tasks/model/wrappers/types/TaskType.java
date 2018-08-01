@@ -1,12 +1,12 @@
 package com.constellio.app.modules.tasks.model.wrappers.types;
 
-import java.util.Map;
-
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Map;
 
 public class TaskType extends ValueListItem implements SchemaLinkingType {
 	public static final String SCHEMA_TYPE = "ddvTaskType";

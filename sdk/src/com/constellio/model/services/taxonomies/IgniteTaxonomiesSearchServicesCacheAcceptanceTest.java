@@ -1,14 +1,13 @@
 package com.constellio.model.services.taxonomies;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.services.taxonomies.ignite.IgniteTaxonomiesSearchServicesCache;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.model.services.taxonomies.ignite.IgniteTaxonomiesSearchServicesCache;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.IgniteTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @IgniteTest
 public class IgniteTaxonomiesSearchServicesCacheAcceptanceTest extends ConstellioTest {
@@ -31,10 +30,10 @@ public class IgniteTaxonomiesSearchServicesCacheAcceptanceTest extends Constelli
 		cache.insert("dakota", "002", "mode3", false);
 		cache.insert("bob", "003", "mode3", true);
 	}
-	
+
 	@After
 	public void tearDown()
-		throws Exception {
+			throws Exception {
 		cache.invalidateAll();
 	}
 

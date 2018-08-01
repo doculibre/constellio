@@ -1,10 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Mockito.doReturn;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.restapi.ConstellioRestApiModule;
@@ -25,6 +20,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Mockito.doReturn;
 
 public class ModulesAndMigrationsTestFeatures {
 
@@ -71,7 +71,7 @@ public class ModulesAndMigrationsTestFeatures {
 			InstallableModule module = moduleClass.newInstance();
 			if (!modulesManager.isInstalled(module)) {
 				modulesManager.installValidModuleAndGetInvalidOnes(module, mainAppLayerFactory.getModelLayerFactory()
-						.getCollectionsListManager());
+																							  .getCollectionsListManager());
 			}
 			if (!modulesManager.isModuleEnabled(collection, module)) {
 				modulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
@@ -116,7 +116,7 @@ public class ModulesAndMigrationsTestFeatures {
 	public ModulesAndMigrationsTestFeatures withAdmin() {
 		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
 		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()
-				.newUserPhotosServices();
+																	 .newUserPhotosServices();
 		if (users == null) {
 			users = new Users();
 			users.setUp(userServices).withPhotos(userPhotosServices);
@@ -132,7 +132,7 @@ public class ModulesAndMigrationsTestFeatures {
 	public ModulesAndMigrationsTestFeatures withAllTest(Users usingUsers) {
 		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
 		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()
-				.newUserPhotosServices();
+																	 .newUserPhotosServices();
 		if (this.users == null) {
 			users = usingUsers;
 			users.setUp(userServices).withPhotos(userPhotosServices);

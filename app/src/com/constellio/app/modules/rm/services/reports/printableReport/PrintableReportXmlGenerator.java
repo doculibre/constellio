@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.services.reports.printableReport;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -26,15 +14,24 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
 
 
-
 	public PrintableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection,
-			XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale) {
+									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale) {
 		super(appLayerFactory, collection, locale);
 		this.xmlGeneratorParameters = xmlGeneratorParameters;
 
@@ -49,10 +46,10 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		XmlReportGeneratorParameters parameters = getXmlGeneratorParameters();
 		for (int i = 0; i < parameters.getNumberOfCopies(); i++) {
 			Iterator<Record> recordIterator;
-			if(parameters.getQuery() == null) {
+			if (parameters.getQuery() == null) {
 				recordIterator = asList(parameters.isParametersUsingIds() ?
-						getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
-						parameters.getRecordsElements()).iterator();
+										getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
+										parameters.getRecordsElements()).iterator();
 			} else {
 				recordIterator = getFactory().getModelLayerFactory().newSearchServices().recordsIterator(parameters.getQuery(), 200);
 			}
@@ -102,7 +99,8 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that create Element(s) for a particular metadata and record element
-	 * @param metadata metadata
+	 *
+	 * @param metadata      metadata
 	 * @param recordElement record
 	 * @return list of element to add
 	 */
@@ -145,6 +143,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that return all the record of each given ids.
+	 *
 	 * @param schemaType
 	 * @param ids
 	 * @return
@@ -157,7 +156,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		for (List<String> idChunk : splittedIds) {
 			LogicalSearchCondition condition = from(
 					metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER)
-					.isIn(idChunk);
+																									 .isIn(idChunk);
 			List<Record> recordChunk = searchServices.search(new LogicalSearchQuery(condition));
 			allRecords.addAll(recordChunk);
 		}
@@ -182,6 +181,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that will fill the empty tags to make sure JasperSoft correctly read them.
+	 *
 	 * @param originalElements element to check if empty
 	 * @return
 	 */
@@ -199,6 +199,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 	/**
 	 * Method that format a path to make it pretty
 	 * format:  folder01 > folder02 > document1
+	 *
 	 * @param recordElement
 	 * @return
 	 */

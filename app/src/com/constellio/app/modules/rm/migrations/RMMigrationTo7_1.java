@@ -61,21 +61,21 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
 
-        transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
-                .withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
-                .withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-                .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-        );
-        displayManager.execute(transaction.build());
-        createDefaultLabel(collection, factory, provider);
-    }
+		transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
+									  .withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
+									  .withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+									  .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+		);
+		displayManager.execute(transaction.build());
+		createDefaultLabel(collection, factory, provider);
+	}
 
-    private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
-        Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-        List<String> newRgdPermissions = new ArrayList<>();
-        newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
-        modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
-    }
+	private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
+		Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+		List<String> newRgdPermissions = new ArrayList<>();
+		newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
+		modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
+	}
 
 	public void createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider)
 			throws Exception {
@@ -88,7 +88,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		RecordServices rs = model.newRecordServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, factory);
 		MetadataSchemaType metaBuilder = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaType(Printable.SCHEMA_TYPE);
+												.getSchemaType(Printable.SCHEMA_TYPE);
 		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
 		ContentManager contentManager = model.getContentManager();
 		UserServices userServices = model.newUserServices();
@@ -107,8 +107,8 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 			if (type.equals(Folder.SCHEMA_TYPE)) {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
-						provider.getDefaultLanguageString("Migration.typeAveryDroite") :
-						provider.getDefaultLanguageString("Migration.typeAveryGauche"));
+																								   provider.getDefaultLanguageString("Migration.typeAveryDroite") :
+																								   provider.getDefaultLanguageString("Migration.typeAveryGauche"));
 			} else {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
 			}
@@ -122,10 +122,10 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 				ContentVersionDataSummary upload = contentManager
 						.upload(fileInputStream, etiquetteName + " " + format + " " + type).getContentVersionDataSummary();
 
-			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
-			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
-					contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
-			trans.add(record);
+				record.set(typeBuilder.getMetadata(Report.TITLE), titre);
+				record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
+						contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
+				trans.add(record);
 			} finally {
 				fileInputStream.close();
 			}
@@ -149,20 +149,21 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 	public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_7(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_7(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder builder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
-					.createCustomSchema(PrintableLabel.SCHEMA_LABEL);
+														.createCustomSchema(PrintableLabel.SCHEMA_LABEL);
 			builder.create(PrintableLabel.TYPE_LABEL).setType(STRING).defineDataEntry()
-					.asManual();
+				   .asManual();
 			builder.create(PrintableLabel.LIGNE).setType(MetadataValueType.NUMBER).setUndeletable(true).setEssential(true)
-					.defineDataEntry().asManual();
+				   .defineDataEntry().asManual();
 			builder.create(PrintableLabel.COLONNE).setType(MetadataValueType.NUMBER).setUndeletable(true).setEssential(true)
-					.defineDataEntry().asManual();
+				   .defineDataEntry().asManual();
 
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
 
@@ -190,9 +191,9 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 		private void migrateContainerRecord(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).create(ContainerRecord.LOCALIZATION).setType(STRING)
-					.defineDataEntry().asCalculated(ContainerRecordLocalizationCalculator.class);
+						.defineDataEntry().asCalculated(ContainerRecordLocalizationCalculator.class);
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.TEMPORARY_IDENTIFIER)
-					.setDefaultRequirement(false);
+						.setDefaultRequirement(false);
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.IDENTIFIER).setDefaultRequirement(false);
 		}
 

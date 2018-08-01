@@ -1,18 +1,17 @@
 package com.constellio.data.events;
 
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
 import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 
 public class EventBusManager implements EventReceiver, StatefulService {
 

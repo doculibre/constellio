@@ -1,14 +1,11 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LDAPObjectAttributes {
 	Map<String, LDAPObjectAttribute> ldapObjects = new HashMap<>();

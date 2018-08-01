@@ -1,21 +1,5 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -32,6 +16,18 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class MigrationServicesAcceptanceTest extends ConstellioTest {
 	ConstellioPluginManager pluginManager;
@@ -139,28 +135,28 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		inOrder.verify(coreMigrationTo100)
-				.migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-				.migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo102)
-				.migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo103)
-				.migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo110)
-				.migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo110)
-				.migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection1"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
 		inOrder.verify(coreMigrationTo100)
-				.migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100).migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(
 				appLayerFactory));
 		inOrder.verify(aModuleMigrationTo102).migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(
 				appLayerFactory));
 		inOrder.verify(coreMigrationTo103)
-				.migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo110)
-				.migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo110).migrate(eq("collection2"), any(MigrationResourcesProvider.class), eq(
 				appLayerFactory));
 
@@ -179,17 +175,17 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		migrationServices.migrate(zeCollection, "1.1.0", false);
 		inOrder.verify(coreMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo102)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo103)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo110)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo110)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
 		assertThat(migrationServices.getCurrentVersion(zeCollection)).isEqualTo("1.1.0");
 	}
@@ -205,23 +201,23 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		migrationServices.migrate(zeCollection, "1.1.0", false);
 
 		inOrder.verify(coreMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleWithDependencyMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleWithDependencyMigrationTo101)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo102)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo103)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleWithDependencyMigrationTo106)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo110)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo110)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
 		assertThat(migrationServices.getCurrentVersion(zeCollection)).isEqualTo("1.1.0");
 	}
@@ -255,21 +251,21 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		migrationServices.migrate(zeCollection, "1.1.0", false);
 
 		inOrder.verify(coreMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleCMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleDMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleFMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleEMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleAMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleBMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo103)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
 		assertThat(migrationServices.getCurrentVersion(zeCollection)).isEqualTo("1.0.3");
 	}

@@ -1,12 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -15,6 +8,11 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 public class BatchProcessControllerAcceptanceTestSchemasSetup extends TestsSchemasSetup {
 
@@ -25,18 +23,18 @@ public class BatchProcessControllerAcceptanceTestSchemasSetup extends TestsSchem
 		referenceToZeSchema.setType(REFERENCE).defineReferences().set(zeSchemaTypeBuilder);
 
 		MetadataBuilder anotherSchemaCopiedText = anOtherDefaultSchemaBuilder.create("copiedTextMetadata")
-				.setType(STRING).defineDataEntry().asCopied(referenceToZeSchema, zeSchemaText);
+																			 .setType(STRING).defineDataEntry().asCopied(referenceToZeSchema, zeSchemaText);
 		anOtherDefaultSchemaBuilder.create("copiedTextLengthMetadata").setType(NUMBER).defineDataEntry()
-				.asCalculated(TextMetadataLengthCalculator.class);
+								   .asCalculated(TextMetadataLengthCalculator.class);
 
 		MetadataBuilder referenceToAnotherSchema = athirdDefaultSchemaBuilder
 				.create("referenceToAnotherSchema");
 		referenceToAnotherSchema.setType(REFERENCE).defineReferences().set(anOtherSchemaTypeBuilder);
 
 		athirdDefaultSchemaBuilder.create("copiedTextMetadata").setType(STRING).defineDataEntry()
-				.asCopied(referenceToAnotherSchema, anotherSchemaCopiedText);
+								  .asCopied(referenceToAnotherSchema, anotherSchemaCopiedText);
 		athirdDefaultSchemaBuilder.create("copiedTextLengthMetadata").setType(NUMBER).defineDataEntry()
-				.asCalculated(TextMetadataLengthCalculator.class);
+								  .asCalculated(TextMetadataLengthCalculator.class);
 
 		return this;
 	}

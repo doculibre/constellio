@@ -1,19 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -31,6 +17,19 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -110,7 +109,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		String bobId = users.bobIn(zeCollection).getId();
 		String aliceId = users.aliceIn(zeCollection).getId();
 		Task zeTask = tasksSchemas.newTask().setTitle("zeTask").setAssignee(aliceId).setAssignationDate(shishDate.minusDays(1))
-				.setAssigner(bobId);
+								  .setAssigner(bobId);
 
 		RecordVO taskVO = new RecordToVOBuilder().build(zeTask.getWrappedRecord(), FORM, sessionContext);
 		presenter.saveButtonClicked(taskVO);
@@ -128,7 +127,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		String bobId = users.bobIn(zeCollection).getId();
 		String aliceId = users.aliceIn(zeCollection).getId();
 		Task zeTask = tasksSchemas.newTask().setTitle("zeTask").setAssignee(aliceId).setAssignationDate(shishDate.minusDays(1))
-				.setAssigner(bobId);
+								  .setAssigner(bobId);
 		recordServices.add(zeTask);
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 
@@ -184,7 +183,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		return tasksSchemas
 				.wrapUser(searchServices.searchSingleResult(
 						from(tasksSchemas.userSchema()).where(tasksSchemas.userSchema().getMetadata(User.USERNAME))
-								.isEqualTo(sessionContext.getCurrentUser().getUsername()))).getId();
+													   .isEqualTo(sessionContext.getCurrentUser().getUsername()))).getId();
 	}
 
 }

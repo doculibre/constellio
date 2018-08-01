@@ -1,22 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -49,6 +32,22 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
@@ -87,7 +86,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+										.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
 		when(view.getUIContext()).thenReturn(new FakeUIContext());
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
@@ -105,14 +104,14 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		clearExistingFacets();
 
 		recordServices.add(rm.newFacetQuery(typeFacetId).setOrder(0).setTitle("Type")
-				.withQuery("schema_s:folder*", "Dossiers")
-				.withQuery("schema_s:document*", "Documents")
-				.withQuery("schema_s:containerRecord*", "Contenants"));
+							 .withQuery("schema_s:folder*", "Dossiers")
+							 .withQuery("schema_s:document*", "Documents")
+							 .withQuery("schema_s:containerRecord*", "Contenants"));
 
 		recordServices.add(rm.newFacetField(retentionRuleFacetId).setOrder(1).setTitle("Règles de conservations")
-				.setFieldDataStoreCode("retentionRuleId_s"));
+							 .setFieldDataStoreCode("retentionRuleId_s"));
 		recordServices.add(rm.newFacetField(archivisticStatusFacetId).setOrder(2).setTitle("Archivistic status")
-				.setFieldDataStoreCode("archivisticStatus_s"));
+							 .setFieldDataStoreCode("archivisticStatus_s"));
 
 		allFolderDocumentsContainersCount = searchServices.getResultsCount(
 				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecord.schemaType())).returnAll());
@@ -264,7 +263,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
-				.contains(rm.defaultFolderSchema().getMetadata("USRnouvelleMetadataTest").getLocalCode());
+																	.contains(rm.defaultFolderSchema().getMetadata("USRnouvelleMetadataTest").getLocalCode());
 	}
 
 	@Test
@@ -284,7 +283,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
-				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
+																	.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
 	@Test

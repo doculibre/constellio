@@ -1,13 +1,5 @@
 package com.constellio.model.services.emails;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
@@ -16,6 +8,13 @@ import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.model.services.collections.CollectionsListManager;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EmailTemplatesManager implements StatefulService {
 	private static final String EMAIL_TEMPLATES_CONFIGS = "/emailTemplates/";
@@ -28,7 +27,7 @@ public class EmailTemplatesManager implements StatefulService {
 	private IOServices ioServices;
 
 	public EmailTemplatesManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
-			IOServices ioServices) {
+								 IOServices ioServices) {
 		this.configManager = configManager;
 		this.ioServices = ioServices;
 		this.collectionsListManager = collectionsListManager;
@@ -101,7 +100,7 @@ public class EmailTemplatesManager implements StatefulService {
 			TextConfiguration templateText = configManager.getText(collectionConfigPath);
 			if (templateText == null) {
 				throw new RuntimeException("Invalid template" + templateId + " in collection " + collection + ", given path "
-						+ collectionConfigPath);
+										   + collectionConfigPath);
 			}
 			templates.putTemplate(templateId, templateText.getText());
 		}

@@ -1,5 +1,9 @@
 package com.constellio.app.modules.es.connectors.http.robotstxt;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -7,10 +11,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RobotsTxtFactory {
 	private static final String SEPARATOR = "://";
@@ -26,7 +26,7 @@ public class RobotsTxtFactory {
 			try {
 				RobotsTxt robotsTxt = this.robotsTxt.get(baseUrl);
 				if (robotsTxt == null || (robotsTxt.getFetchTime() != null && robotsTxt.getFetchTime().plusHours(HOURS)
-						.isBeforeNow())) {
+																					   .isBeforeNow())) {
 					URL base = new URL(baseUrl);
 
 					try (InputStream robotsTxtStream = new URL(base, ROBOT_TXT_FILE).openStream()) {
@@ -50,7 +50,7 @@ public class RobotsTxtFactory {
 		try {
 			URL u = new URL(url);
 
-			return StringUtils.join(new String[] { u.getProtocol(), u.getAuthority() }, SEPARATOR);
+			return StringUtils.join(new String[]{u.getProtocol(), u.getAuthority()}, SEPARATOR);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			return null;

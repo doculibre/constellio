@@ -1,24 +1,23 @@
 package com.constellio.data.io.concurrent.filesystem;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.exception.AtomicIOException;
 import com.constellio.data.io.concurrent.exception.OptimisticLockingException;
 import com.constellio.data.io.concurrent.exception.UnsupportedPathException;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A {@link AtomicFileSystem} that works on the local fileSystem
- * @author doculibre
  *
+ * @author doculibre
  */
 public class AtomicLocalFileSystem implements AtomicFileSystem {
 	private HashingService hashingService;
@@ -66,13 +65,15 @@ public class AtomicLocalFileSystem implements AtomicFileSystem {
 	private String checkPath(String path, Object version) {
 		if (version != null) {
 			DataWithVersion readData = readData(path);
-			if (!readData.getVersion().equals(version))
+			if (!readData.getVersion().equals(version)) {
 				throw new OptimisticLockingException();
+			}
 		}
 
-		if (!path.contains(File.separator) || path.startsWith("//"))
+		if (!path.contains(File.separator) || path.startsWith("//")) {
 			throw new UnsupportedPathException(
 					"All paths should contain " + File.separator + " and should not start with //: " + path);
+		}
 		return path;
 	}
 
@@ -95,8 +96,9 @@ public class AtomicLocalFileSystem implements AtomicFileSystem {
 	public synchronized List<String> list(String path) {
 		List<String> files = new ArrayList<>();
 		File aDir = makeFile(path);
-		if (!aDir.exists() || aDir.isFile())
+		if (!aDir.exists() || aDir.isFile()) {
 			return null;
+		}
 		for (File file : aDir.listFiles()) {
 			files.add(file.getAbsolutePath());
 		}

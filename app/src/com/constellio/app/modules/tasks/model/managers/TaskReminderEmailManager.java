@@ -1,17 +1,5 @@
 package com.constellio.app.modules.tasks.model.managers;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -38,6 +26,17 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class TaskReminderEmailManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TaskReminderEmailManager.class);
@@ -54,7 +53,7 @@ public class TaskReminderEmailManager implements StatefulService {
 	public TaskReminderEmailManager(AppLayerFactory appLayerFactory, String collection) {
 		this.appLayerFactory = appLayerFactory;
 		this.backgroundThreadsManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
-				.getBackgroundThreadsManager();
+													   .getBackgroundThreadsManager();
 		taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -86,7 +85,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		if (ReindexingServices.getReindexingInfos() == null) {
 			LogicalSearchQuery query = new LogicalSearchQuery(
 					from(taskSchemas.userTask.schema()).where(taskSchemas.userTask.nextReminderOn())
-							.isLessOrEqualThan(TimeProvider.getLocalDate()));
+													   .isLessOrEqualThan(TimeProvider.getLocalDate()));
 			do {
 				query.setNumberOfRows(RECORDS_BATCH);
 				Transaction transaction = new Transaction();
@@ -120,7 +119,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		List<TaskReminder> newReminders = new ArrayList<>();
 		for (TaskReminder taskReminder : task.getReminders()) {
 			if (taskReminder.computeDate(task).isBefore(TimeProvider.getLocalDate()) || taskReminder.computeDate(task)
-					.isEqual(TimeProvider.getLocalDate())) {
+																									.isEqual(TimeProvider.getLocalDate())) {
 				taskReminder.setProcessed(true);
 			}
 			newReminders.add(taskReminder);
@@ -131,10 +130,10 @@ public class TaskReminderEmailManager implements StatefulService {
 	public EmailToSend createEmailToSend(Task task, List<EmailAddress> validEmailAddresses) {
 		List<String> parameters = new ArrayList<>();
 		EmailToSend emailToSend = taskSchemas.newEmailToSend().setTryingCount(0d)
-				.setTemplate(TasksEmailTemplates.TASK_REMINDER)
-				.setTo(validEmailAddresses)
-				.setParameters(parameters)
-				.setSendOn(TimeProvider.getLocalDateTime());
+											 .setTemplate(TasksEmailTemplates.TASK_REMINDER)
+											 .setTo(validEmailAddresses)
+											 .setParameters(parameters)
+											 .setSendOn(TimeProvider.getLocalDateTime());
 		prepareTaskParameters(emailToSend, task);
 		return emailToSend;
 	}
@@ -160,7 +159,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
-		if(task.getDueDate() != null) {
+		if (task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
@@ -175,7 +174,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters
 				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
 		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
-				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
+						  + "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 		newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
 
 		emailToSend.setParameters(newParameters);
@@ -200,7 +199,7 @@ public class TaskReminderEmailManager implements StatefulService {
 			return "";
 		}
 		return taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
-				taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
+			   taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	private List<EmailAddress> getValidEmailAddresses(List<String> usersIds) {
@@ -208,7 +207,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		LogicalSearchCondition condition = from(taskSchemas.userSchema()).where(Schemas.IDENTIFIER).isIn(usersIds);
 		Metadata userEmailMetadata = taskSchemas.userSchema().get(User.EMAIL);
 		List<Record> usersFromGroups = searchServices.search(new LogicalSearchQuery(condition).
-				setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(asList(Schemas.TITLE, userEmailMetadata))));
+																									  setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(asList(Schemas.TITLE, userEmailMetadata))));
 		for (Record userRecord : usersFromGroups) {
 			String userEmail = userRecord.get(userEmailMetadata);
 			String userTitle = userRecord.get(Schemas.TITLE);
@@ -235,7 +234,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		if (taskAssigneeGroupsCandidates != null && !taskAssigneeGroupsCandidates.isEmpty()) {
 			Metadata userGroups = taskSchemas.userSchema().getMetadata(User.GROUPS);
 			LogicalSearchCondition condition = from(taskSchemas.userSchema()).where(userGroups)
-					.isContaining(taskAssigneeGroupsCandidates);
+																			 .isContaining(taskAssigneeGroupsCandidates);
 			List<Record> usersFromGroups = searchServices.search(new LogicalSearchQuery(condition)
 					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 			for (Record userRecord : usersFromGroups) {

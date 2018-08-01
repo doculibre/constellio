@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -19,6 +13,11 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PresenterService {
 	private ModelLayerFactory modelLayerFactory;
@@ -53,17 +52,17 @@ public class PresenterService {
 			return null;
 		}
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(sessionContext.getCurrentCollection());
+													 .getSchemaTypes(sessionContext.getCurrentCollection());
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		Metadata metadata = types.getMetadata(metadataCode);
 		return builder.build(metadata, sessionContext);
 	}
-	
+
 	public ConstellioEIMConfigs getSystemConfigs() {
 		return modelLayerFactory.getSystemConfigs();
 	}
 
-	public List<String> getConceptsWithPermissionsForUser(User user, String...permissions) {
+	public List<String> getConceptsWithPermissionsForUser(User user, String... permissions) {
 		Set<String> recordIds = new HashSet<>();
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		for (String permission : permissions) {
@@ -71,6 +70,6 @@ public class PresenterService {
 		}
 		return new ArrayList<>(recordIds);
 	}
-	
+
 }
 

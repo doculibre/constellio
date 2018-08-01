@@ -1,29 +1,18 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
-import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
-import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
-import com.constellio.app.modules.es.services.ESGeneratedSchemasRecordsServices.SchemaTypeShortcuts_connectorInstance_default;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.io.InputStream;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class ConnectorHttpUtilsServices implements ConnectorUtilsServices<ConnectorHttp> {
 
@@ -98,7 +87,7 @@ public class ConnectorHttpUtilsServices implements ConnectorUtilsServices<Connec
 
 	@Override
 	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
-			String availableVersion) {
+											 String availableVersion) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

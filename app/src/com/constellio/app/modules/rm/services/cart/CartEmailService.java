@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.services.cart;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
@@ -28,6 +16,16 @@ import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import org.apache.commons.io.IOUtils;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CartEmailService {
 	private static final String TMP_EML_FILE = "CartEmailService-emlFile";
@@ -61,7 +59,7 @@ public class CartEmailService {
 			String subject = "";
 			String from = user.getEmail();
 			List<MessageAttachment> attachments = getAttachments(cart, requestUser);
-			
+
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments);
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);

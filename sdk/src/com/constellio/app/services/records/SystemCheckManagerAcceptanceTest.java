@@ -1,37 +1,5 @@
 package com.constellio.app.services.records;
 
-import static com.constellio.app.services.records.SystemCheckManager.BROKEN_REFERENCES_METRIC;
-import static com.constellio.app.services.records.SystemCheckManager.CHECKED_REFERENCES_METRIC;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage1;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage2;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage3;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage4;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage5;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage6;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.joda.time.LocalDate.now;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.common.SolrInputDocument;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -41,11 +9,7 @@ import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticS
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -81,6 +45,30 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.common.SolrInputDocument;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.services.records.SystemCheckManager.BROKEN_REFERENCES_METRIC;
+import static com.constellio.app.services.records.SystemCheckManager.CHECKED_REFERENCES_METRIC;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.*;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.joda.time.LocalDate.now;
 
 public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
@@ -103,7 +91,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
@@ -125,7 +113,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		recordServices.add(documentType);
 
 		Document document = rm.newDocumentWithTypeAndId(documentType, "MyDocument").setTitle("Document")
-				.setFolder(records.folder_A01);
+							  .setFolder(records.folder_A01);
 		document.setCreatedOn(LocalDateTime.now());
 
 		documentType.setLinkedSchema("document_USRdocumentSchema2");
@@ -149,7 +137,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
@@ -170,7 +158,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		recordServices.add(folderType);
 
 		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder")
-				.setParentFolder(records.folder_A01);
+						  .setParentFolder(records.folder_A01);
 		folder.setType(folderType);
 		folder.setOpenDate(LocalDate.now());
 		folder.setCreatedOn(LocalDateTime.now());
@@ -196,7 +184,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
@@ -207,7 +195,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema1");
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRfolderSchema2");
 				types.getSchemaType(Folder.SCHEMA_TYPE).getSchema("USRfolderSchema1").create("metadataInSchema1")
-						.setType(MetadataValueType.STRING);
+					 .setType(MetadataValueType.STRING);
 			}
 
 		});
@@ -220,7 +208,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		recordServices.add(folderType);
 
 		Folder folder = rm.newFolderWithTypeAndId(folderType.getId(), "MyFolder").setTitle("Folder")
-				.setParentFolder(records.folder_A01);
+						  .setParentFolder(records.folder_A01);
 		folder.setType(folderType);
 		folder.setOpenDate(LocalDate.now());
 		folder.setCreatedOn(LocalDateTime.now());
@@ -243,7 +231,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	public void testdocumentAndFolderSchemaCodeThen5Errors() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
@@ -262,7 +250,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
@@ -318,7 +306,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
@@ -366,11 +354,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "zeId").set(TITLE, "1"));
 		transaction.add(new TestRecord(anotherSchema, "recordWithProblem1").set(TITLE, "2")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "zeId"));
+																		   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "zeId"));
 		transaction.add(new TestRecord(anotherSchema, "recordWithoutProblem").set(TITLE, "3")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "zeId"));
+																			 .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "zeId"));
 		transaction.add(new TestRecord(anotherSchema, "recordWithProblem2").set(TITLE, "4")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "zeId"));
+																		   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "zeId"));
 		recordServices.execute(transaction);
 
 		SolrClient solrClient = getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
@@ -457,11 +445,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		transaction.add(new TestRecord(zeSchema, "recordB").set(TITLE, "B"));
 		transaction.add(new TestRecord(zeSchema, "recordC").set(TITLE, "C"));
 		transaction.add(new TestRecord(anotherSchema, "recordWithProblem1").set(TITLE, "2")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("recordC", "recordA", "recordB")));
+																		   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("recordC", "recordA", "recordB")));
 		transaction.add(new TestRecord(anotherSchema, "recordWithoutProblem").set(TITLE, "3")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("recordA", "recordB")));
+																			 .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("recordA", "recordB")));
 		transaction.add(new TestRecord(anotherSchema, "recordWithProblem2").set(TITLE, "4")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("recordA", "recordC")));
+																		   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("recordA", "recordC")));
 		recordServices.execute(transaction);
 
 		SolrClient solrClient = getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
@@ -545,7 +533,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getMetadata(anotherSchema.referenceFromAnotherSchemaToZeSchema().getCode())
-						.setDefaultValue(asList("recordA", "recordD", "recordC"));
+					 .setDefaultValue(asList("recordA", "recordD", "recordC"));
 			}
 		});
 
@@ -571,7 +559,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getMetadata("anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema").getDefaultValue())
+										 .getMetadata("anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema").getDefaultValue())
 				.isEqualTo(asList("recordA", "recordD", "recordC"));
 
 		systemCheckResults = systemCheckManager.runSystemCheck(true);
@@ -592,7 +580,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		);
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getMetadata("anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema").getDefaultValue())
+										 .getMetadata("anotherSchemaType_default_referenceFromAnotherSchemaToZeSchema").getDefaultValue())
 				.isEqualTo(asList("recordC"));
 
 	}
@@ -602,7 +590,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -626,7 +614,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -666,7 +654,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		recordServices.add(rm.newFolder().setTitle("My folder").setAdministrativeUnitEntered(records.unitId_20)
-				.setOpenDate(now()).setCategoryEntered(records.categoryId_Z100).setRetentionRuleEntered(records.ruleId_1));
+							 .setOpenDate(now()).setCategoryEntered(records.categoryId_Z100).setRetentionRuleEntered(records.ruleId_1));
 		for (Category category : rm.searchCategorys(ALL)) {
 			recordServices.update((RecordWrapper) category.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), true));
 		}
@@ -723,7 +711,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -733,7 +721,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		Folder zeFolder = rm.newFolderWithId("zeFolder").setTitle("ze title").setOpenDate(date(2016, 1, 1))
-				.setParentFolder(records.folder_A03);
+							.setParentFolder(records.folder_A03);
 		getModelLayerFactory().newRecordServices().add(zeFolder);
 		List<DecomListFolderDetail> details = new ArrayList<>(list.getFolderDetails());
 		details.add(new DecomListFolderDetail().setFolderId(zeFolder.getId()));
@@ -763,7 +751,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	public void givenDestructionOrDepositDateIsAfterTransferDateThenProblemFoundAndFixed()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+										.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
 		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
 				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
@@ -771,27 +759,27 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 
 		//Probleme
 		transaction.add(records.getFolder_A01().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
-				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
+							   .setActualTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
 
 		//Probleme
 		transaction.add(records.getFolder_A02().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
-				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
+							   .setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
 
 		//OK
 		transaction.add(records.getFolder_A03().setManualArchivisticStatus(FolderStatus.SEMI_ACTIVE)
-				.setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
+							   .setActualTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
 
 		//Probleme
 		transaction.add(records.getFolder_A04().setManualArchivisticStatus(FolderStatus.ACTIVE)
-				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
+							   .setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDestructionDate(date(2014, 1, 1)));
 
 		//Probleme
 		transaction.add(records.getFolder_A05().setManualArchivisticStatus(FolderStatus.ACTIVE)
-				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
+							   .setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2014, 1, 1)));
 
 		//OK
 		transaction.add(records.getFolder_A06().setManualArchivisticStatus(FolderStatus.ACTIVE)
-				.setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
+							   .setManualExpectedTransferDate(date(2015, 1, 1)).setManualExpectedDepositDate(date(2015, 1, 1)));
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
@@ -821,7 +809,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule()
-				.withAllTestUsers().withRMTest(records).withFoldersAndContainersOfEveryStatus());
+										.withAllTestUsers().withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
 		RobotSchemaRecordServices robotsSchemas = new RobotSchemaRecordServices(zeCollection, getAppLayerFactory());
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());

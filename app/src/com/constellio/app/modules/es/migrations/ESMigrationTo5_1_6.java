@@ -1,31 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.AUTHENTICATION_SCHEME;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DAYS_BEFORE_REFETCHING;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DOMAIN;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.EXCLUDE_PATTERNS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.INCLUDE_PATTERNS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.MAX_LEVEL;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_DOCUMENTS_PER_JOBS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_JOBS_IN_PARALLEL;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.ON_DEMANDS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.PASSWORD;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.SEEDS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.USERNAME;
-import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -85,6 +59,16 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyAlreadyExists;
 
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.*;
+import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
+
 public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScript {
 
 	EnterpriseSearchMigrationHelper migration;
@@ -103,7 +87,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 
@@ -142,7 +126,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		MetadataSchemaType facetSchemaType = es.schemaType(Facet.SCHEMA_TYPE);
 		if (facetSchemaType.getDefaultSchema().hasMetadataWithCode(Facet.USED_BY_MODULE)) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.from(facetSchemaType)
-					.where(facetSchemaType.getDefaultSchema().getMetadata(Facet.USED_BY_MODULE)).isEqualTo(ConstellioESModule.ID);
+																		  .where(facetSchemaType.getDefaultSchema().getMetadata(Facet.USED_BY_MODULE)).isEqualTo(ConstellioESModule.ID);
 			List<Record> esFacets = searchServices.search(new LogicalSearchQuery(condition));
 
 			for (Record esFacet : esFacets) {
@@ -204,7 +188,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	private void createConnectorTypes(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+									  AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
 		migration = new EnterpriseSearchMigrationHelper(appLayerFactory, collection,
 				migrationResourcesProvider);
@@ -212,10 +196,10 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		Transaction transaction = new Transaction();
 		transaction.add(migration
 				.newConnectorType(migration.es.connectorInstance_http.schema(), ConnectorHttp.class, ConnectorType.CODE_HTTP))
-				.setDefaultAvailableConnectorFields(asList(
-						field(ConnectorHttpDocument.SCHEMA_TYPE, "charset", STRING),
-						field(ConnectorHttpDocument.SCHEMA_TYPE, "language", STRING),
-						field(ConnectorHttpDocument.SCHEMA_TYPE, "lastModification", DATE_TIME)));
+				   .setDefaultAvailableConnectorFields(asList(
+						   field(ConnectorHttpDocument.SCHEMA_TYPE, "charset", STRING),
+						   field(ConnectorHttpDocument.SCHEMA_TYPE, "language", STRING),
+						   field(ConnectorHttpDocument.SCHEMA_TYPE, "lastModification", DATE_TIME)));
 
 		transaction.add(migration
 				.newConnectorType(migration.es.connectorInstance_smb.schema(), ConnectorSmb.class, ConnectorType.CODE_SMB));
@@ -246,20 +230,20 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.in(ConnectorHttpInstance.SCHEMA_TYPE)
-				.addToDisplay(ConnectorHttpInstance.INCLUDE_PATTERNS, ConnectorHttpInstance.EXCLUDE_PATTERNS)
-				.atTheEnd();
+						  .addToDisplay(ConnectorHttpInstance.INCLUDE_PATTERNS, ConnectorHttpInstance.EXCLUDE_PATTERNS)
+						  .atTheEnd();
 
 		transactionBuilder.in(ConnectorHttpInstance.SCHEMA_TYPE)
-				.addToForm(ConnectorHttpInstance.INCLUDE_PATTERNS, ConnectorHttpInstance.EXCLUDE_PATTERNS)
-				.atTheEnd();
+						  .addToForm(ConnectorHttpInstance.INCLUDE_PATTERNS, ConnectorHttpInstance.EXCLUDE_PATTERNS)
+						  .atTheEnd();
 
 		transactionBuilder.in(ConnectorLDAPUserDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorLDAPUserDocument.FIRST_NAME,
-						ConnectorLDAPUserDocument.LAST_NAME, ConnectorLDAPUserDocument.TELEPHONE,
-						ConnectorLDAPUserDocument.EMAIL, ConnectorLDAPUserDocument.ADDRESS)
-				.atFirstPosition();
+						  .addToSearchResult(ConnectorLDAPUserDocument.FIRST_NAME,
+								  ConnectorLDAPUserDocument.LAST_NAME, ConnectorLDAPUserDocument.TELEPHONE,
+								  ConnectorLDAPUserDocument.EMAIL, ConnectorLDAPUserDocument.ADDRESS)
+						  .atFirstPosition();
 		transactionBuilder.in(ConnectorLDAPUserDocument.SCHEMA_TYPE)
-				.removeFromSearchResult(Schemas.MODIFIED_ON.getLocalCode());
+						  .removeFromSearchResult(Schemas.MODIFIED_ON.getLocalCode());
 
 		manager.execute(transactionBuilder.build());
 	}
@@ -268,7 +252,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_1_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -292,60 +276,61 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 		}
 
-		private void createConnectorLDAPSchemas(MetadataSchemaTypesBuilder types, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorLDAPSchemas(MetadataSchemaTypesBuilder types,
+												ESSchemaTypesMigrationHelper migration) {
 			MetadataSchemaBuilder connectorLDAPInstanceSchema = migration.newConnectorInstanceSchema(
 					ConnectorLDAPInstance.SCHEMA_LOCAL_CODE);
 			//in the current version only AD is supported
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.DIRECTORY_TYPE).defineAsEnum(DirectoryType.class)
-					.setDefaultValue(
-							ACTIVE_DIRECTORY).setSystemReserved(true).setDefaultRequirement(true);
+									   .setDefaultValue(
+											   ACTIVE_DIRECTORY).setSystemReserved(true).setDefaultRequirement(true);
 			//for now we fetch only users
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.FETCH_GROUPS).setType(BOOLEAN)
-					.setSystemReserved(true);
+									   .setSystemReserved(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.FETCH_COMPUTERS).setType(
 					BOOLEAN).setSystemReserved(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.FETCH_USERS).setType(BOOLEAN)
-					.setSystemReserved(true).setDefaultValue(true);
+									   .setSystemReserved(true).setDefaultValue(true);
 
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.FOLLOW_REFERENCES).setType(BOOLEAN);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.URLS).setType(STRING).setMultivalue(true)
-					.setDefaultRequirement(true);
+									   .setDefaultRequirement(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.INCLUDE_REGEX).setType(STRING);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.EXCLUDE_REGEX).setType(STRING);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.CONNECTION_USERNAME).setType(STRING)
-					.setDefaultRequirement(true);
+									   .setDefaultRequirement(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.PASSWORD).setType(STRING).setEncrypted(true)
-					.setDefaultRequirement(true);
+									   .setDefaultRequirement(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.USERNAME_ATTRIBUTE_NAME).setType(STRING)
-					.setDefaultValue("sAMAccountName");
+									   .setDefaultValue("sAMAccountName");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.FIRST_NAME_ATTRIBUTE_NAME).setType(STRING)
-					.setDefaultValue("givenName");
+									   .setDefaultValue("givenName");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.LAST_NAME_ATTRIBUTE_NAME).setType(
 					STRING).setDefaultValue("sn");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.EMAIL_ATTRIBUTE_NAME).setType(
 					STRING).setDefaultValue("mail");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.ADDRESS_ATTRIBUTE_NAME).setType(STRING)
-					.setDefaultValue(
-							asList("physicalDeliveryOfficeName", "streetAddress", "l",
-									"postalCode", "st", "co", "c")).setMultivalue(true);
+									   .setDefaultValue(
+											   asList("physicalDeliveryOfficeName", "streetAddress", "l",
+													   "postalCode", "st", "co", "c")).setMultivalue(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.DISTINGUISHED_NAME_ATTRIBUTE_NAME)
-					.setType(STRING).setDefaultValue("distinguishedName").setDefaultRequirement(true);
+									   .setType(STRING).setDefaultValue("distinguishedName").setDefaultRequirement(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.WORK_TITLE_ATTRIBUTE_NAME)
-					.setType(STRING).setDefaultValue("title");
+									   .setType(STRING).setDefaultValue("title");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.TELEPHONE_ATTRIBUTE_NAME).setType(STRING)
-					.setDefaultValue(
-							asList("telephoneNumber", "mobile", "ipPhone")).setMultivalue(true);
+									   .setDefaultValue(
+											   asList("telephoneNumber", "mobile", "ipPhone")).setMultivalue(true);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.DISPLAY_NAME_ATTRIBUTE_NAME)
-					.setType(STRING).setDefaultValue("cn");
+									   .setType(STRING).setDefaultValue("cn");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.COMPANY_ATTRIBUTE_NAME)
-					.setType(STRING).setDefaultValue("company");
+									   .setType(STRING).setDefaultValue("company");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.DEPARTMENT_ATTRIBUTE_NAME)
-					.setType(STRING).setDefaultValue("department");
+									   .setType(STRING).setDefaultValue("department");
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.MANAGER_ATTRIBUTE_NAME)
-					.setType(STRING).setDefaultValue("manager");
+									   .setType(STRING).setDefaultValue("manager");
 
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.NUMBER_OF_JOBS_IN_PARALLEL).setType(NUMBER)
-					.setDefaultValue(1);
+									   .setDefaultValue(1);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.NUMBER_OF_DOCUMENTS_PER_JOB).setType(
 					NUMBER).setDefaultValue(10);
 			connectorLDAPInstanceSchema.createUndeletable(ConnectorLDAPInstance.USER_BASE_CONTEXT_LIST).setType(
@@ -360,19 +345,19 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.FIRST_NAME).setType(STRING).setSearchable(
 					true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.LAST_NAME).setType(STRING)
-					.setSearchable(true);
+									   .setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.EMAIL).setType(STRING).setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.ADDRESS).setType(TEXT).setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.WORK_TITLE).setType(STRING)
-					.setSearchable(true);
+									   .setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.TELEPHONE).setType(STRING)
-					.setMultivalue(true).setSearchable(true);
+									   .setMultivalue(true).setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.DISPLAY_NAME).setType(STRING);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.COMPANY).setType(STRING).setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.DEPARTMENT).setType(STRING)
-					.setSearchable(true);
+									   .setSearchable(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.ENABLED).setType(BOOLEAN)
-					.setDefaultValue(true);
+									   .setDefaultValue(true);
 			connectorLDAPDocumentSchema.createUndeletable(ConnectorLDAPUserDocument.MANAGER).setType(STRING);
 		}
 
@@ -393,7 +378,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 		}
 
-		private void createConnectorCommonSchemaTypes(MetadataSchemaTypesBuilder types, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorCommonSchemaTypes(MetadataSchemaTypesBuilder types,
+													  ESSchemaTypesMigrationHelper migration) {
 
 			MetadataSchemaBuilder connectorSchema, connectorTypeSchema;
 
@@ -404,11 +390,11 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			connectorTypeSchema.createUniqueCodeMetadata();
 			connectorTypeSchema.get(Schemas.TITLE_CODE).setMultiLingual(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.LINKED_SCHEMA).setType(STRING)
-					.setDefaultRequirement(true);
+							   .setDefaultRequirement(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.CONNECTOR_CLASS_NAME).setType(STRING)
-					.setDefaultRequirement(true);
+							   .setDefaultRequirement(true);
 			connectorTypeSchema.createUndeletable(ConnectorType.DEFAULT_AVAILABLE_FIELDS).setType(STRUCTURE).setMultivalue(true)
-					.defineStructureFactory(ConnectorFieldFactory.class).addValidator(ConnectorFieldValidator.class);
+							   .defineStructureFactory(ConnectorFieldFactory.class).addValidator(ConnectorFieldValidator.class);
 
 			//-
 			//Create Connector schema type
@@ -416,23 +402,24 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			connectorSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true).setMultiLingual(true);
 			connectorSchema.createUniqueCodeMetadata();
 			connectorSchema.createUndeletable(ConnectorInstance.CONNECTOR_TYPE)
-					.setType(MetadataValueType.REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorTypeSchemaType);
+						   .setType(MetadataValueType.REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorTypeSchemaType);
 			connectorSchema.createUndeletable(ConnectorInstance.TRAVERSAL_CODE).setType(STRING);
 			connectorSchema.createUndeletable(ConnectorInstance.ENABLED).setType(MetadataValueType.BOOLEAN).setDefaultValue(true);
 			connectorSchema.createUndeletable(ConnectorInstance.LAST_TRAVERSAL_ON).setType(MetadataValueType.DATE_TIME);
 
 			connectorSchema.createUndeletable(ConnectorInstance.AVAILABLE_FIELDS).setType(STRUCTURE).setMultivalue(true)
-					.defineStructureFactory(ConnectorFieldFactory.class).addValidator(ConnectorFieldValidator.class);
+						   .defineStructureFactory(ConnectorFieldFactory.class).addValidator(ConnectorFieldValidator.class);
 
 			connectorSchema.createUndeletable(ConnectorInstance.PROPERTIES_MAPPING).setType(STRUCTURE)
-					.defineStructureFactory(MapStringListStringStructureFactory.class);
+						   .defineStructureFactory(MapStringListStringStructureFactory.class);
 
 			connectorSchema.createUndeletable(TRAVERSAL_SCHEDULE).setType(STRUCTURE).setMultivalue(true)
-					.defineStructureFactory(
-							TraversalScheduleFactory.class);
+						   .defineStructureFactory(
+								   TraversalScheduleFactory.class);
 		}
 
-		private void createConnectorHTTPSchemas(MetadataSchemaTypesBuilder types, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorHTTPSchemas(MetadataSchemaTypesBuilder types,
+												ESSchemaTypesMigrationHelper migration) {
 			MetadataSchemaBuilder instanceSchema, documentSchema;
 
 			//-
@@ -443,13 +430,13 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			instanceSchema.createUndeletable(INCLUDE_PATTERNS).setType(TEXT);
 			instanceSchema.createUndeletable(EXCLUDE_PATTERNS).setType(TEXT);
 			instanceSchema.createUndeletable(NUMBER_OF_DOCUMENTS_PER_JOBS).setType(NUMBER)
-					.setDefaultValue(10).setDefaultRequirement(true);
+						  .setDefaultValue(10).setDefaultRequirement(true);
 			instanceSchema.createUndeletable(NUMBER_OF_JOBS_IN_PARALLEL).setType(NUMBER)
-					.setDefaultValue(1).setDefaultRequirement(true);
+						  .setDefaultValue(1).setDefaultRequirement(true);
 			instanceSchema.createUndeletable(DAYS_BEFORE_REFETCHING).setType(NUMBER)
-					.setDefaultValue(5).setDefaultRequirement(true);
+						  .setDefaultValue(5).setDefaultRequirement(true);
 			instanceSchema.createUndeletable(MAX_LEVEL).setType(NUMBER)
-					.setDefaultValue(5).setDefaultRequirement(true);
+						  .setDefaultValue(5).setDefaultRequirement(true);
 			instanceSchema.createUndeletable(AUTHENTICATION_SCHEME).defineAsEnum(AuthenticationScheme.class);
 			instanceSchema.createUndeletable(USERNAME).setType(STRING);
 			//FIMXE hidden
@@ -463,7 +450,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			documentSchema.createUndeletable(ConnectorHttpDocument.PARSED_CONTENT).setType(TEXT).setSearchable(true);
 		}
 
-		private void createConnectorSMBSchemas(MetadataSchemaTypesBuilder types2, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorSMBSchemas(MetadataSchemaTypesBuilder types2,
+											   ESSchemaTypesMigrationHelper migration) {
 			MetadataSchemaBuilder instanceSchema, documentSchema, folderSchema;
 			MetadataSchemaTypeBuilder folderSchemaType;
 
@@ -471,10 +459,10 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			//Create Connector SMB instance schema
 			instanceSchema = migration.newConnectorInstanceSchema(ConnectorSmbInstance.SCHEMA_LOCAL_CODE);
 			instanceSchema.createUndeletable(ConnectorSmbInstance.SEEDS).setType(STRING).setMultivalue(true)
-					.setDefaultRequirement(true);
+						  .setDefaultRequirement(true);
 			instanceSchema.createUndeletable(ConnectorSmbInstance.USERNAME).setType(STRING).setDefaultRequirement(true);
 			instanceSchema.createUndeletable(ConnectorSmbInstance.PASSWORD).setType(STRING).setDefaultRequirement(true)
-					.setEncrypted(true);
+						  .setEncrypted(true);
 			instanceSchema.createUndeletable(ConnectorSmbInstance.DOMAIN).setType(STRING).setDefaultRequirement(true);
 			instanceSchema.createUndeletable(ConnectorSmbInstance.INCLUSIONS).setType(STRING).setMultivalue(true);
 			instanceSchema.createUndeletable(ConnectorSmbInstance.EXCLUSIONS).setType(STRING).setMultivalue(true);
@@ -486,10 +474,10 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 					ConnectorSmbInstance.SCHEMA_CODE);
 			folderSchema = folderSchemaType.getDefaultSchema();
 			folderSchema.createUndeletable("parent").defineReferencesTo(folderSchemaType)
-					.setChildOfRelationship(true);
+						.setChildOfRelationship(true);
 			folderSchema.createUndeletable(ConnectorSmbFolder.LAST_FETCH_ATTEMPT).setType(DATE_TIME).setSearchable(true);
 			folderSchema.createUndeletable(ConnectorSmbFolder.LAST_FETCHED_STATUS).defineAsEnum(LastFetchedStatus.class)
-					.setSearchable(true);
+						.setSearchable(true);
 
 			//-
 			//Create Connector SMB document schema type
@@ -500,11 +488,11 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			documentSchema.createUndeletable(ConnectorSmbDocument.PERMISSIONS_HASH).setType(STRING);
 			documentSchema.createUndeletable(ConnectorSmbDocument.LAST_FETCH_ATTEMPT).setType(DATE_TIME).setSearchable(true);
 			documentSchema.createUndeletable("parent").defineReferencesTo(folderSchemaType)
-					.setTaxonomyRelationship(true);
+						  .setTaxonomyRelationship(true);
 			documentSchema.createUndeletable(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS).defineAsEnum(LastFetchedStatus.class)
-					.setSearchable(true);
+						  .setSearchable(true);
 			documentSchema.createUndeletable(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_DETAILS).setType(STRING)
-					.setSearchable(false);
+						  .setSearchable(false);
 			documentSchema.createUndeletable(ConnectorSmbDocument.LANGUAGE).setType(STRING).setSearchable(true);
 			documentSchema.createUndeletable(ConnectorSmbDocument.EXTENSION).setType(STRING).setSearchable(true);
 		}
@@ -518,7 +506,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	private void createFacets(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider)
+							  MigrationResourcesProvider migrationResourcesProvider)
 			throws RecordServicesException {
 
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
@@ -526,25 +514,25 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 		// Facets common to all connectors
 		Facet mimetypeFacet = es.newFacetField()
-				.setUsedByModule(ConstellioESModule.ID)
-				.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
+								.setUsedByModule(ConstellioESModule.ID)
+								.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
+								.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
 		addAllMimetypeLabels(mimetypeFacet);
 		recordServices.add(mimetypeFacet);
 
 		// Facets for SMB connector
 		recordServices.add(es.newFacetField()
-				.setUsedByModule(ConstellioESModule.ID)
-				.setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
-				.withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
-				.withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
-				.withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
+							 .setUsedByModule(ConstellioESModule.ID)
+							 .setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
+							 .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
+							 .withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
+							 .withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
+							 .withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
 
 		recordServices.add(es.newFacetField()
-				.setUsedByModule(ConstellioESModule.ID)
-				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
+							 .setUsedByModule(ConstellioESModule.ID)
+							 .setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
+							 .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
 
 		//		recordServices.add(es.newFacetField()
 		//				.setUsedByModule(ConstellioESModule.ID)
@@ -552,12 +540,12 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
 
 		recordServices.add(es.newFacetField()
-				.setUsedByModule(ConstellioESModule.ID)
-				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
-				//FIXME
-				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
-				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
+							 .setUsedByModule(ConstellioESModule.ID)
+							 .setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
+							 .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
+							 //FIXME
+							 .withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
+							 .withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
 
 	}
 
@@ -626,7 +614,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+												MigrationResourcesProvider migrationResourcesProvider) {
 
 		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
 				migrationResourcesProvider, "init.taxoSmbFolders");
@@ -656,14 +644,15 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		manager.execute(transaction.build());
 	}
 
-	private void configureLDAPDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureLDAPDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											  SchemasDisplayManager manager,
+											  String collection) {
 		transaction
 				.add(manager.getType(collection, ConnectorLDAPUserDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
 		transaction
 				.add(manager.getMetadata(collection, ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.USERNAME)
-						.withVisibleInAdvancedSearchStatus(true));
+							.withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager
 				.getMetadata(collection, ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.FIRST_NAME)
@@ -674,11 +663,11 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 				.withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.EMAIL)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction
 				.add(manager.getMetadata(collection, ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.ADDRESS)
-						.withVisibleInAdvancedSearchStatus(true));
+							.withVisibleInAdvancedSearchStatus(true));
 		transaction
 				.add(manager
 						.getMetadata(collection, ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.TELEPHONE)
@@ -686,8 +675,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	}
 
-	private void configureLDAPConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureLDAPConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											   SchemasDisplayManager manager,
+											   String collection) {
 		List<String> form = asList(
 				ConnectorLDAPInstance.SCHEMA_CODE + "_" + ConnectorLDAPInstance.CODE,
 				ConnectorLDAPInstance.SCHEMA_CODE + "_" + ConnectorLDAPInstance.TITLE,
@@ -726,44 +716,44 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		);
 
 		transaction.addReplacing(transaction.getModifiedSchema(ConnectorLDAPInstance.SCHEMA_CODE)
-				.withFormMetadataCodes(form)
-				.withDisplayMetadataCodes(display));
+											.withFormMetadataCodes(form)
+											.withDisplayMetadataCodes(display));
 
 		transaction
 				.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.CONNECTION_USERNAME)
-						.withMetadataGroup(configurationTab));
+							.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.PASSWORD)
-				.withMetadataGroup(configurationTab).withInputType(MetadataInputType.PASSWORD));
+							   .withMetadataGroup(configurationTab).withInputType(MetadataInputType.PASSWORD));
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.DIRECTORY_TYPE)
-				.withMetadataGroup(configurationTab));
+							   .withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.URLS)
-				.withMetadataGroup(configurationTab));
+							   .withMetadataGroup(configurationTab));
 		transaction
 				.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.FOLLOW_REFERENCES)
-						.withMetadataGroup(configurationTab));
+							.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.FETCH_USERS)
-				.withMetadataGroup(configurationTab));
+							   .withMetadataGroup(configurationTab));
 		transaction.add(manager
 				.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.USER_BASE_CONTEXT_LIST)
 				.withMetadataGroup(configurationTab));
 
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ENABLED)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, TRAVERSAL_SCHEDULE)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(
 				manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE,
 						ConnectorLDAPInstance.NUMBER_OF_DOCUMENTS_PER_JOB)
-						.withMetadataGroup(executionTab));
+					   .withMetadataGroup(executionTab));
 		transaction.add(
 				manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE,
 						ConnectorLDAPInstance.NUMBER_OF_JOBS_IN_PARALLEL)
-						.withMetadataGroup(executionTab));
+					   .withMetadataGroup(executionTab));
 
 		transaction
 				.add(manager.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE,
 						ConnectorLDAPInstance.DISTINGUISHED_NAME_ATTRIBUTE_NAME)
-						.withMetadataGroup(ldapUserTab));
+							.withMetadataGroup(ldapUserTab));
 		transaction.add(manager
 				.getMetadata(collection, ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.USERNAME_ATTRIBUTE_NAME)
 				.withMetadataGroup(ldapUserTab));
@@ -800,8 +790,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	}
 
-	private void configureSmbConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureSmbConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											  SchemasDisplayManager manager,
+											  String collection) {
 
 		List<String> form = asList(
 				ConnectorSmbInstance.SCHEMA_CODE + "_" + ConnectorSmbInstance.CODE,
@@ -829,134 +820,137 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		);
 
 		transaction.addReplacing(transaction.getModifiedSchema(ConnectorSmbInstance.SCHEMA_CODE)
-				.withFormMetadataCodes(form)
-				.withDisplayMetadataCodes(display));
+											.withFormMetadataCodes(form)
+											.withDisplayMetadataCodes(display));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbInstance.SCHEMA_CODE, ConnectorSmbInstance.PASSWORD)
-				.withInputType(MetadataInputType.PASSWORD));
+							   .withInputType(MetadataInputType.PASSWORD));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbInstance.SCHEMA_CODE, ENABLED)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorSmbInstance.SCHEMA_CODE, TRAVERSAL_SCHEDULE)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 
 	}
 
-	private void configureHttpConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureHttpConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											   SchemasDisplayManager manager,
+											   String collection) {
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, ENABLED)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, NUMBER_OF_DOCUMENTS_PER_JOBS)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, NUMBER_OF_JOBS_IN_PARALLEL)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, DAYS_BEFORE_REFETCHING)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, TRAVERSAL_SCHEDULE)
-				.withMetadataGroup(executionTab));
+							   .withMetadataGroup(executionTab));
 
 		transaction.add(manager
 				.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, ConnectorHttpInstance.AUTHENTICATION_SCHEME)
 				.withMetadataGroup(credentialsTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, ConnectorHttpInstance.USERNAME)
-				.withMetadataGroup(credentialsTab));
+							   .withMetadataGroup(credentialsTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, ConnectorHttpInstance.PASSWORD)
-				.withMetadataGroup(credentialsTab).withInputType(MetadataInputType.PASSWORD));
+							   .withMetadataGroup(credentialsTab).withInputType(MetadataInputType.PASSWORD));
 
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, ConnectorHttpInstance.DOMAIN)
-				.withMetadataGroup(credentialsTab));
+							   .withMetadataGroup(credentialsTab));
 
 	}
 
-	private void configureSmbDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureSmbDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											 SchemasDisplayManager manager,
+											 String collection) {
 		transaction.add(manager.getType(collection, ConnectorSmbDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
 		transaction.add(manager.getType(collection, ConnectorSmbDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.TITLE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.EXTENSION)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.ERROR_CODE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.LANGUAGE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction
 				.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.PARSED_CONTENT)
-						.withVisibleInAdvancedSearchStatus(true));
+							.withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.SIZE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorDocument.FETCHED_DATETIME)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.URL)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 	}
 
-	private void configureHttpDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureHttpDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											  SchemasDisplayManager manager,
+											  String collection) {
 		transaction.in(ConnectorHttpDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorHttpDocument.URL)
-				.atTheEnd();
+				   .addToSearchResult(ConnectorHttpDocument.URL)
+				   .atTheEnd();
 
 		transaction.add(manager.getType(collection, ConnectorHttpDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.TITLE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.CONTENT_TYPE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.ERROR_CODE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.LEVEL)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction
 				.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.PARSED_CONTENT)
-						.withVisibleInAdvancedSearchStatus(true));
+							.withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorDocument.FETCHED_DATETIME)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		transaction.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.URL)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 	}
 
 	private void configureConnectorInstanceDisplayAndSearchDisplay(SchemaTypesDisplayTransactionBuilder transaction,
-			SchemasDisplayManager manager, String collection) {
+																   SchemasDisplayManager manager, String collection) {
 
 		transaction.add(manager.getType(collection, ConnectorInstance.SCHEMA_TYPE)
-				.withMetadataGroup(groups));
+							   .withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, ConnectorInstance.DEFAULT_SCHEMA, ConnectorInstance.CONNECTOR_TYPE)
-				.withInputType(MetadataInputType.HIDDEN));
+							   .withInputType(MetadataInputType.HIDDEN));
 
 		transaction.in(ConnectorInstance.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorInstance.CONNECTOR_TYPE)
-				.afterMetadata(Schemas.TITLE_CODE);
+				   .addToSearchResult(ConnectorInstance.CONNECTOR_TYPE)
+				   .afterMetadata(Schemas.TITLE_CODE);
 		transaction.in(ConnectorInstance.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorInstance.TRAVERSAL_CODE)
-				.afterMetadata(ConnectorInstance.CONNECTOR_TYPE);
+				   .addToSearchResult(ConnectorInstance.TRAVERSAL_CODE)
+				   .afterMetadata(ConnectorInstance.CONNECTOR_TYPE);
 		transaction.in(ConnectorInstance.SCHEMA_TYPE)
-				.removeFromSearchResult(Schemas.MODIFIED_ON.getLocalCode());
+				   .removeFromSearchResult(Schemas.MODIFIED_ON.getLocalCode());
 
 		transaction.in(ConnectorInstance.SCHEMA_TYPE)
-				.addToDisplay(ConnectorInstance.CONNECTOR_TYPE)
-				.afterMetadata(Schemas.TITLE_CODE);
+				   .addToDisplay(ConnectorInstance.CONNECTOR_TYPE)
+				   .afterMetadata(Schemas.TITLE_CODE);
 		transaction.in(ConnectorInstance.SCHEMA_TYPE)
-				.addToDisplay(ConnectorInstance.TRAVERSAL_CODE)
-				.afterMetadata(ConnectorInstance.CONNECTOR_TYPE);
+				   .addToDisplay(ConnectorInstance.TRAVERSAL_CODE)
+				   .afterMetadata(ConnectorInstance.CONNECTOR_TYPE);
 		transaction.in(ConnectorInstance.SCHEMA_TYPE)
-				.addToDisplay(Schemas.MODIFIED_ON.getLocalCode())
-				.afterMetadata(ConnectorInstance.SCHEMA_TYPE);
+				   .addToDisplay(Schemas.MODIFIED_ON.getLocalCode())
+				   .afterMetadata(ConnectorInstance.SCHEMA_TYPE);
 	}
 }

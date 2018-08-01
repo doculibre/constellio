@@ -1,10 +1,5 @@
 package com.constellio.app.ui;
 
-import static java.util.Arrays.asList;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -14,6 +9,10 @@ import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import static java.util.Arrays.asList;
 
 @UiTest
 @MainTest
@@ -31,12 +30,12 @@ public class StartDemoRMConstellioInEnglishAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers();
 		givenCollectionWithTitle("LaCollectionDeRida", asList("en"), "Collection d'entreprise").withConstellioRMModule()
-				.withAllTestUsers();
+																							   .withAllTestUsers();
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		records = new RMTestRecords(zeCollection).setup(getAppLayerFactory())
-				.withFoldersAndContainersOfEveryStatus();//				.withEvents();
+												 .withFoldersAndContainersOfEveryStatus();//				.withEvents();
 		new DemoTestRecords("LaCollectionDeRida").setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 	}
 

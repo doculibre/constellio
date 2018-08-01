@@ -6,9 +6,7 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import org.joda.time.LocalDate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +19,7 @@ public class FolderMainCopyRuleCodeCalculator implements MetadataValueCalculator
 	public String calculate(CalculatorParameters parameters) {
 		CopyRetentionRule mainCopyRule = parameters.get(this.mainCopyRuleParam);
 
-		if(mainCopyRule != null) {
+		if (mainCopyRule != null) {
 			return mainCopyRule.getCode();
 		}
 		return null;

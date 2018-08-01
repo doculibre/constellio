@@ -1,16 +1,15 @@
 package com.constellio.app.modules.es.connectors;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.List;
-
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ConnectorDeleterJob extends ConnectorJob {
 	final List<String> recordsToDelete;

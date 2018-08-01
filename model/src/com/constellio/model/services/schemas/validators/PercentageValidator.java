@@ -11,9 +11,10 @@ import java.util.Map;
 public class PercentageValidator implements RecordMetadataValidator<Number> {
 
 	@Override
-	public void validate(Metadata metadata, Number percentage, ConfigProvider configProvider, ValidationErrors validationErrors) {
-		if(percentage != null&&
-				(percentage.doubleValue() < 0 || percentage.doubleValue() > 100)){
+	public void validate(Metadata metadata, Number percentage, ConfigProvider configProvider,
+						 ValidationErrors validationErrors) {
+		if (percentage != null &&
+			(percentage.doubleValue() < 0 || percentage.doubleValue() > 100)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("PERCENTAGE", percentage.toString());
 			validationErrors.add(getClass(), "INVALID_PERCENTAGE", parameters);

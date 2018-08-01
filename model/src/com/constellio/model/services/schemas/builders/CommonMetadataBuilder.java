@@ -1,14 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -17,21 +8,14 @@ import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
-import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
-import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
-import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
-import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
-import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
-import com.constellio.model.services.schemas.calculators.PathCalculator;
-import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
-import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
-import com.constellio.model.services.schemas.calculators.TokensCalculator4;
+import com.constellio.model.services.schemas.calculators.*;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class CommonMetadataBuilder {
 	public static final String ID = "id";
@@ -86,8 +70,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(ID).setType(STRING)
-						.setUnmodifiable(true)
-						.setUniqueValue(true).setDefaultRequirement(true).setSearchable(true).setSortable(true);
+														 .setUnmodifiable(true)
+														 .setUniqueValue(true).setDefaultRequirement(true).setSearchable(true).setSortable(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -97,8 +81,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(LEGACY_ID).setType(STRING)
-						.setUnmodifiable(true)
-						.setUniqueValue(true).setDefaultRequirement(true).setSearchable(true);
+														.setUnmodifiable(true)
+														.setUniqueValue(true).setDefaultRequirement(true).setSearchable(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -109,7 +93,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA).setType(STRING)
-						.setDefaultRequirement(true);
+														.setDefaultRequirement(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -120,8 +104,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PATH).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(PathCalculator.class);
+														.setMultivalue(true)
+														.defineDataEntry().asCalculated(PathCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -131,8 +115,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PATH_PARTS).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(PathPartsCalculator.class);
+														.setMultivalue(true)
+														.defineDataEntry().asCalculated(PathPartsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -142,7 +126,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPAL_PATH).setType(STRING)
-						.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
+														.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -152,8 +136,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PARENT_PATH).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(ParentPathCalculator.class);
+														.setMultivalue(true)
+														.defineDataEntry().asCalculated(ParentPathCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -164,7 +148,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(AUTHORIZATIONS).setType(STRING)
-						.setMultivalue(true);
+														.setMultivalue(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -174,7 +158,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(REMOVED_AUTHORIZATIONS)
-						.setType(STRING).setMultivalue(true);
+														.setType(STRING).setMultivalue(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -184,8 +168,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(INHERITED_AUTHORIZATIONS)
-						.setType(STRING)
-						.setMultivalue(true);
+														.setType(STRING)
+														.setMultivalue(true);
 				if (!schema.getCode().equals(Group.DEFAULT_SCHEMA)) {
 					metadataBuilder.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 				}
@@ -198,7 +182,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(DETACHED_AUTHORIZATIONS)
-						.setType(BOOLEAN);
+														.setType(BOOLEAN);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -208,8 +192,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_AUTHORIZATIONS)
-						.setType(STRING).setMultivalue(true)
-						.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
+														.setType(STRING).setMultivalue(true)
+														.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -220,9 +204,9 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
-						.setMultivalue(true);
+														.setMultivalue(true);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				} else {
@@ -240,7 +224,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS_OF_HIERARCHY).setType(STRING)
-						.setMultivalue(true).defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+														.setMultivalue(true).defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -276,7 +260,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(LOGICALLY_DELETED)
-						.setType(BOOLEAN);
+														.setType(BOOLEAN);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -314,7 +298,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(CREATED_ON).setType(DATE_TIME)
-						.setSortable(true);
+														.setSortable(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -352,7 +336,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder title = schema.createUndeletable(TITLE).setType(STRING).setSearchable(true)
-						.setSchemaAutocomplete(true);
+											  .setSchemaAutocomplete(true);
 				if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 					title.defineDataEntry().asCalculated(UserTitleCalculator.class);
 				}
@@ -366,7 +350,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(FOLLOWERS).setType(STRING).setMultivalue(true)
-						.setSearchable(true);
+														.setSearchable(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -417,7 +401,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REFERENCES).setType(STRING).setMultivalue(true)
-						.defineDataEntry().asCalculated(AllReferencesCalculator.class);
+														.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -438,8 +422,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ATTACHED_ANCESTORS).setType(STRING)
-						.setMultivalue(true).setEssential(true)
-						.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+														.setMultivalue(true).setEssential(true)
+														.defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -450,8 +434,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_REMOVED_AUTHS).setType(STRING)
-						.setMultivalue(true).setEssential(true)
-						.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
+														.setMultivalue(true).setEssential(true)
+														.defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -462,8 +446,8 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
-						.setMultivalue(true).setEssential(true).setMultiLingual(true)
-						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+														.setMultivalue(true).setEssential(true).setMultiLingual(true)
+														.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -474,7 +458,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(DATA_VERSION).setType(NUMBER)
-						.setEssentialInSummary(true);
+														.setEssentialInSummary(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -495,7 +479,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(CAPTION).setType(STRING)
-						.setSortable(true);
+														.setSortable(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -509,10 +493,10 @@ public class CommonMetadataBuilder {
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
 					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
-							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
+								   .setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
 
 				} else {
 					metadataBuilder.setType(STRING).setMultivalue(true);

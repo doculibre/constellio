@@ -1,10 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -24,6 +19,11 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+
 public class CoreMigrationTo_8_0_1 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -31,7 +31,8 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
@@ -55,10 +56,10 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 			SchemasDisplayManager schemaDisplaysManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			schemaDisplaysManager
 					.saveMetadata(schemaDisplaysManager.getMetadata(collection, Capsule.DEFAULT_SCHEMA + "_" + Capsule.LANGUAGE)
-							.withInputType(MetadataInputType.DROPDOWN));
+													   .withInputType(MetadataInputType.DROPDOWN));
 			schemaDisplaysManager
 					.saveMetadata(schemaDisplaysManager.getMetadata(collection, Capsule.DEFAULT_SCHEMA + "_" + Capsule.IMAGES)
-							.withInputType(MetadataInputType.CONTENT));
+													   .withInputType(MetadataInputType.CONTENT));
 
 			SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			displayManager.saveSchema(displayManager.getSchema(collection, VaultScanReport.FULL_SCHEMA).withNewTableMetadatas(
@@ -72,17 +73,18 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 
 	class CoreSchemaAlterationFor_8_0_1 extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_8_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+		protected CoreSchemaAlterationFor_8_0_1(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE)
-					.createCustomSchema(VaultScanReport.SCHEMA);
+													   .createCustomSchema(VaultScanReport.SCHEMA);
 			schema.createUndeletable(VaultScanReport.NUMBER_OF_DELETED_CONTENTS).setType(MetadataValueType.NUMBER)
-					.setSystemReserved(true);
+				  .setSystemReserved(true);
 			schema.createUndeletable(VaultScanReport.MESSAGE).setType(MetadataValueType.TEXT).setSystemReserved(true);
 
 			MetadataSchemaBuilder capsuleSchema = typesBuilder.getSchema(Capsule.DEFAULT_SCHEMA);

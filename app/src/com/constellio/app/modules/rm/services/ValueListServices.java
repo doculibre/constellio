@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -38,6 +27,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ValueListServices {
 	MetadataSchemasManager schemasManager;
@@ -126,7 +121,8 @@ public class ValueListServices {
 		}
 	}
 
-	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options) {
+	public MetadataSchemaType createValueDomain(String code, Map<Language, String> title,
+												CreateValueListOptions options) {
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
 		}
@@ -142,8 +138,9 @@ public class ValueListServices {
 		}
 	}
 
-	public MetadataSchemaTypeBuilder createValueDomain(String code, Map<Language, String> title, CreateValueListOptions options,
-			MetadataSchemaTypesBuilder types) {
+	public MetadataSchemaTypeBuilder createValueDomain(String code, Map<Language, String> title,
+													   CreateValueListOptions options,
+													   MetadataSchemaTypesBuilder types) {
 
 		if (!code.startsWith("ddv")) {
 			throw new RuntimeException("Code must start with ddv");
@@ -158,9 +155,9 @@ public class ValueListServices {
 			for (String schemaType : options.getTypesWithReferenceMetadata()) {
 				String metadataCode = code.replace("ddv", "");
 				types.getSchemaType(schemaType).getDefaultSchema().create(metadataCode).setType(REFERENCE)
-						.setMultivalue(options.isCreateMetadatasAsMultivalued())
-						.setLabels(valueListSchemaType.getLabels())
-						.defineReferencesTo(valueListSchemaType);
+					 .setMultivalue(options.isCreateMetadatasAsMultivalued())
+					 .setLabels(valueListSchemaType.getLabels())
+					 .defineReferencesTo(valueListSchemaType);
 			}
 		}
 
@@ -181,13 +178,13 @@ public class ValueListServices {
 	}
 
 	public Taxonomy lazyCreateTaxonomy(MetadataSchemaTypesBuilder typeBuilder, String code, Map<Language, String> title,
-			boolean isMultiLingual) {
+									   boolean isMultiLingual) {
 		String typeCode = "taxo" + code + "Type";
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typeBuilder);
 
 		builder.createHierarchicalValueListItemSchema(typeCode, title,
 				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false)
-						.setMultilingual(isMultiLingual));
+													 .setMultilingual(isMultiLingual));
 
 		return Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(typeCode));
 	}
@@ -198,13 +195,14 @@ public class ValueListServices {
 	}
 
 	public Taxonomy createTaxonomy(Map<Language, String> title, List<String> userIds, List<String> groupIds,
-			boolean isVisibleInHomePage, boolean isMultiLingual) {
+								   boolean isVisibleInHomePage, boolean isMultiLingual) {
 		String code = generateCode("");
 		return createTaxonomy(code, title, userIds, groupIds, isVisibleInHomePage, isMultiLingual);
 	}
 
-	public Taxonomy createTaxonomy(String code, Map<Language, String> title, List<String> userIds, List<String> groupIds,
-			boolean isVisibleInHomePage, boolean isMultiLingual) {
+	public Taxonomy createTaxonomy(String code, Map<Language, String> title, List<String> userIds,
+								   List<String> groupIds,
+								   boolean isVisibleInHomePage, boolean isMultiLingual) {
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title, isMultiLingual);
 		Taxonomy taxonomy = Taxonomy
 				.createPublic("taxo" + code, title, collection, userIds, groupIds, Arrays.asList(type.getCode()),
@@ -221,7 +219,7 @@ public class ValueListServices {
 
 		for (MetadataSchemaType type : schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaTypes()) {
 			List<Metadata> metadatas = type.getAllMetadatas().onlyTaxonomyReferences()
-					.onlyReferencesToType(taxonomy.getSchemaTypes().get(0));
+										   .onlyReferencesToType(taxonomy.getSchemaTypes().get(0));
 
 			if (!metadatas.isEmpty()) {
 				classifiedTypes.add(type);
@@ -234,16 +232,17 @@ public class ValueListServices {
 
 	//FIXME label multilingual
 	//TODO Patrick
-	public Metadata createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaTypeCode, String groupCode,
-			String groupLabel) {
+	public Metadata createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaTypeCode,
+																   String groupCode,
+																   String groupLabel) {
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
 
 		String localCode = taxonomy.getCode() + "Ref";
 		MetadataSchemaTypeBuilder taxonomyType = types.getSchemaType(taxonomy.getSchemaTypes().get(0));
 		MetadataBuilder metadataBuilder = types.getSchemaType(schemaTypeCode).getDefaultSchema().create(localCode)
-				.defineTaxonomyRelationshipToType(taxonomyType)
-				.setMultivalue(true);
+											   .defineTaxonomyRelationshipToType(taxonomyType)
+											   .setMultivalue(true);
 
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
 			if (taxonomy.getTitle(language) == null) {

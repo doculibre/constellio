@@ -160,7 +160,7 @@ public class DecommissioningListQueryFactory {
 			return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
 		} else {
 			Set<String> administrativeUnits = new HashSet<>();
-			for(String permission: permissionList) {
+			for (String permission : permissionList) {
 				administrativeUnits.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
 			}
 			return new LogicalSearchQuery(condition.andWhere(rm.decommissioningList.administrativeUnit()).isIn(new ArrayList<Object>(administrativeUnits)))

@@ -1,14 +1,13 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.constellio.model.services.search.query.logical.LogicalOperator;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.services.search.query.logical.LogicalOperator;
-import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 
@@ -17,7 +16,7 @@ public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 	final List<LogicalSearchCondition> nestedSearchConditions;
 
 	public CompositeLogicalSearchCondition(DataStoreFilters filters, LogicalOperator logicalOperator,
-			List<LogicalSearchCondition> nestedSearchConditions) {
+										   List<LogicalSearchCondition> nestedSearchConditions) {
 		super(filters);
 		this.logicalOperator = logicalOperator;
 		this.nestedSearchConditions = Collections.unmodifiableList(nestedSearchConditions);

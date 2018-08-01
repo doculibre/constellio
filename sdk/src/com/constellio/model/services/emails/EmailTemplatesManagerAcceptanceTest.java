@@ -1,14 +1,13 @@
 package com.constellio.model.services.emails;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmailTemplatesManagerAcceptanceTest extends ConstellioTest {
 	private EmailTemplatesManager manager;

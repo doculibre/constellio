@@ -17,7 +17,8 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor5_1_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -26,7 +27,7 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 	class SchemaAlterationFor5_1_6 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor5_1_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -42,7 +43,7 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 		private void setupClassifyConnectorTaxonomyActionParametersSchema() {
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+													   .getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(false);
 		}
 

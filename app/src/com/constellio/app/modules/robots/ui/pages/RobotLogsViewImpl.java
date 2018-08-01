@@ -1,7 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -11,6 +9,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RobotLogsViewImpl extends BaseViewImpl implements RobotLogsView {
 	private final RobotLogsPresenter presenter;

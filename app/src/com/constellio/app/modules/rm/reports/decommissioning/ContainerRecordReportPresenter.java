@@ -130,11 +130,11 @@ public class ContainerRecordReportPresenter {
 		MetadataSchemaType folderSchemaType = rm.folder.schemaType();
 
 		Metadata folderMetadata = rm.folder.schemaType().getDefaultSchema()
-				.getMetadata(Folder.CONTAINER);
+										   .getMetadata(Folder.CONTAINER);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)
-				.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode())
-				.sortAsc(Schemas.IDENTIFIER);
+																							.where(folderMetadata).isEqualTo(containerId)).sortAsc(rm.folder.categoryCode())
+																																		  .sortAsc(Schemas.IDENTIFIER);
 
 		List<Folder> folders = rm.wrapFolders(searchServices.search(foldersQuery));
 
@@ -306,7 +306,7 @@ public class ContainerRecordReportPresenter {
 
 	private String buildExtremeDatesWithUnverifiedAssumptionThatGetDocumentsWasCalledBefore() {
 		StringBuilder stringBuilder = new StringBuilder();
-		if(beginingYear != Integer.MAX_VALUE) {
+		if (beginingYear != Integer.MAX_VALUE) {
 			stringBuilder.append(beginingYear);
 		} else {
 			stringBuilder.append("N/A");
@@ -314,7 +314,7 @@ public class ContainerRecordReportPresenter {
 
 		stringBuilder.append("-");
 
-		if(endingYear != Integer.MIN_VALUE) {
+		if (endingYear != Integer.MIN_VALUE) {
 			stringBuilder.append(endingYear);
 		} else {
 			stringBuilder.append("N/A");
@@ -360,8 +360,8 @@ public class ContainerRecordReportPresenter {
 				AdministrativeUnit administrativeUnit = getAdministrativeUnitAddress(administrativeUnits.get(0));
 
 				administrativeAddress = administrativeUnit.getCode() + " - " + administrativeUnit.getTitle()
-						+ "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
-			} else if(administrativeUnits != null && !administrativeUnits.isEmpty()) {
+										+ "\n" + StringUtils.defaultString(administrativeUnit.getAdress());
+			} else if (administrativeUnits != null && !administrativeUnits.isEmpty()) {
 				administrativeAddress = $("DocumentTransfertReport.multipleAdministrativeUnits");
 			}
 
@@ -371,7 +371,7 @@ public class ContainerRecordReportPresenter {
 			buildUserPart(container, identificationModel);
 
 			Collection collection = rm.getCollection(this.collection);
-			organisationName = rmConfigs.isPopulateBordereauxWithCollection()? collection.getTitle():"";
+			organisationName = rmConfigs.isPopulateBordereauxWithCollection() ? collection.getTitle() : "";
 			publicOrganisationNumber = collection.getOrganizationNumber();
 
 			LocalDate firstTransferReportDate = container.getFirstTransferReportDate();

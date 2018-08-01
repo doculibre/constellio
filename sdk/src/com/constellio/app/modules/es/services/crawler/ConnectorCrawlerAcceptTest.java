@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.services.crawler;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
@@ -26,6 +14,17 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 
@@ -51,7 +50,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenConnectorThatReturnsEmptyJobsThanItsTraversalDateSetCorrectly()
-		throws Exception{
+			throws Exception {
 		LocalDateTime now = LocalDateTime.now();
 		givenTimeIs(now);
 		areConnectorsDoingJobs = false;
@@ -64,7 +63,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenConnectorThatDoesNotReturnsEmptyJobsThanItsTraversalDateIsNull()
-			throws Exception{
+			throws Exception {
 		LocalDateTime now = LocalDateTime.now();
 		givenTimeIs(now);
 		areConnectorsDoingJobs = true;
@@ -360,7 +359,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
 		ConnectorType type = es.newConnectorTypeWithId(testConnectorTypeId).setCode("test").setTitle("test")
-				.setConnectorClassName(ConnectorTest.class.getName()).setLinkedSchema(ConnectorInstance.SCHEMA_TYPE + "_test");
+							   .setConnectorClassName(ConnectorTest.class.getName()).setLinkedSchema(ConnectorInstance.SCHEMA_TYPE + "_test");
 		recordServices.add(type);
 	}
 

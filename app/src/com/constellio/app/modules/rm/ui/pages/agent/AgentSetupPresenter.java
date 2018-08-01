@@ -13,8 +13,8 @@ public class AgentSetupPresenter extends BasePresenter<AgentSetupView> {
 	}
 
 	public AgentSetupPresenter(AgentSetupView view,
-			ConstellioFactories constellioFactories,
-			SessionContext sessionContext) {
+							   ConstellioFactories constellioFactories,
+							   SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 	}
 
@@ -22,7 +22,7 @@ public class AgentSetupPresenter extends BasePresenter<AgentSetupView> {
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
 	}
-	
+
 	void viewEntered() {
 		String agentVersion = ConstellioAgentUtils.getAgentVersion();
 		String agentDownloadURL = ConstellioAgentUtils.getAgentDownloadURL();

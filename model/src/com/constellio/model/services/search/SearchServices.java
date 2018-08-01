@@ -1,32 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.services.records.RecordUtils.splitByCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.DisMaxParams;
-import org.apache.solr.common.params.FacetParams;
-import org.apache.solr.common.params.HighlightParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.MoreLikeThisParams;
-import org.apache.solr.common.params.ShardParams;
-import org.apache.solr.common.params.StatsParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -41,11 +14,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -66,23 +35,34 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SearchServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchServices.class);
 
-	private static String[] STOP_WORDS_FR = { "au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
-			"eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
-			"nous", "on", "ou", "par", "pas", "pour", "qu", "que", "qui", "sa", "se", "ses", "son", "sur", "ta", "te", "tes",
-			"toi", "ton", "tu", "un", "une", "vos", "votre", "vous", "c", "d", "j", "l", "à", "m", "n", "s", "t", "y", "été",
-			"étée", "étées", "étés", "étant", "suis", "es", "est", "sommes", "êtes", "sont", "serai", "seras", "sera", "serons",
-			"serez", "seront", "serais", "serait", "serions", "seriez", "seraient", "étais", "était", "étions", "étiez",
-			"étaient", "fus", "fut", "fûmes", "fûtes", "furent", "sois", "soit", "soyons", "soyez", "soient", "fusse", "fusses",
-			"fût", "fussions", "fussiez", "fussent", "ayant", "eu", "eue", "eues", "eus", "ai", "as", "avons", "avez", "ont",
-			"aurai", "auras", "aura", "aurons", "aurez", "auront", "aurais", "aurait", "aurions", "auriez", "auraient", "avais",
-			"avait", "avions", "aviez", "avaient", "eut", "eûmes", "eûtes", "eurent", "aie", "aies", "ait", "ayons", "ayez",
-			"aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
-			"ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi" };
+	private static String[] STOP_WORDS_FR = {"au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
+											 "eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
+											 "nous", "on", "ou", "par", "pas", "pour", "qu", "que", "qui", "sa", "se", "ses", "son", "sur", "ta", "te", "tes",
+											 "toi", "ton", "tu", "un", "une", "vos", "votre", "vous", "c", "d", "j", "l", "à", "m", "n", "s", "t", "y", "été",
+											 "étée", "étées", "étés", "étant", "suis", "es", "est", "sommes", "êtes", "sont", "serai", "seras", "sera", "serons",
+											 "serez", "seront", "serais", "serait", "serions", "seriez", "seraient", "étais", "était", "étions", "étiez",
+											 "étaient", "fus", "fut", "fûmes", "fûtes", "furent", "sois", "soit", "soyons", "soyez", "soient", "fusse", "fusses",
+											 "fût", "fussions", "fussiez", "fussent", "ayant", "eu", "eue", "eues", "eus", "ai", "as", "avons", "avez", "ont",
+											 "aurai", "auras", "aura", "aurons", "aurez", "auront", "aurais", "aurait", "aurions", "auriez", "auraient", "avais",
+											 "avait", "avions", "aviez", "avaient", "eut", "eûmes", "eûtes", "eurent", "aie", "aies", "ait", "ayons", "ayez",
+											 "aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
+											 "ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi"};
 
 	//RecordDao recordDao;
 	RecordServices recordServices;
@@ -243,7 +223,8 @@ public class SearchServices {
 		};
 	}
 
-	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
+	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
+																	  int skipping) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
 		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, skipping) {
@@ -255,7 +236,8 @@ public class SearchServices {
 		};
 	}
 
-	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, final int batchSize) {
+	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query,
+																			final int batchSize) {
 		LogicalSearchQuery querCompatibleWithCache = new LogicalSearchQuery(query);
 		querCompatibleWithCache.setStartRow(0);
 		querCompatibleWithCache.setNumberOfRows(100000);
@@ -305,7 +287,7 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
-			int skipping) {
+																			int skipping) {
 
 		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
 
@@ -619,8 +601,9 @@ public class SearchServices {
 
 			StringBuilder similarityFields = new StringBuilder();
 			for (String aSimilarityField : moreLikeThisFields) {
-				if (similarityFields.length() != 0)
+				if (similarityFields.length() != 0) {
 					similarityFields.append(",");
+				}
 				if (!aSimilarityField.contains("_txt_") && !aSimilarityField.contains("_t_")) {
 					System.err.printf("The %s does not support term vector. It may cause performance issue.\n", aSimilarityField);
 				}
@@ -673,7 +656,7 @@ public class SearchServices {
 
 			if (sort instanceof FieldLogicalSearchQuerySort) {
 				if (query.getLanguage() != null && !query.getLanguage()
-						.equals(modelLayerFactory.getCollectionsListManager().getMainDataLanguage())) {
+														 .equals(modelLayerFactory.getCollectionsListManager().getMainDataLanguage())) {
 					DataStoreField dataStoreField = ((FieldLogicalSearchQuerySort) sort).getField();
 					//Metadata may not be multilingual, fields of main data language.
 
@@ -736,6 +719,7 @@ public class SearchServices {
 
 	/**
 	 * FIXME With solr 6+, use mm autorelax instead
+	 *
 	 * @param userQuery
 	 * @return
 	 */
@@ -746,7 +730,7 @@ public class SearchServices {
 	}
 
 	private String getQfFor(String language, List<SearchBoost> boosts,
-			List<MetadataSchemaType> searchedSchemaTypes) {
+							List<MetadataSchemaType> searchedSchemaTypes) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
@@ -767,7 +751,7 @@ public class SearchServices {
 						sb.append("^20 ");
 					} else {
 						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
-								.getDataStoreCode();
+													   .getDataStoreCode();
 						if (!fields.contains(analyzedField)) {
 							sb.append(analyzedField + " ");
 						}

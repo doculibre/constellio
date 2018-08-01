@@ -1,13 +1,12 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
+import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
-import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImportedAuthorizationReader {
 
@@ -39,9 +38,9 @@ public class ImportedAuthorizationReader {
 	private ImportedAuthorization readAuthorization(Element authorizationElement) {
 		return new ImportedAuthorization().setId(readId(authorizationElement)).setAccess(
 				readAccess(authorizationElement)).setRoles(readRoles(authorizationElement))
-				.setPrincipals(readPrincipals(authorizationElement))
-				.setTargets(readTargets(authorizationElement))
-				.setOverrideInherited(readOverrideInherited(authorizationElement));
+										  .setPrincipals(readPrincipals(authorizationElement))
+										  .setTargets(readTargets(authorizationElement))
+										  .setOverrideInherited(readOverrideInherited(authorizationElement));
 	}
 
 	private Boolean readOverrideInherited(Element authorizationElement) {

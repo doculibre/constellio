@@ -1,6 +1,6 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AGGREGATION_INPUT;
+import com.constellio.data.utils.KeyListMap;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.data.utils.KeyListMap;
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AGGREGATION_INPUT;
 
 public class MetadataNetwork implements Serializable {
 
@@ -17,8 +17,8 @@ public class MetadataNetwork implements Serializable {
 	Map<String, List<MetadataNetworkLink>> linksToMetadata;
 
 	public MetadataNetwork(List<MetadataNetworkLink> links,
-			Map<String, List<MetadataNetworkLink>> linksFromMetadata,
-			Map<String, List<MetadataNetworkLink>> linksToMetadata) {
+						   Map<String, List<MetadataNetworkLink>> linksFromMetadata,
+						   Map<String, List<MetadataNetworkLink>> linksToMetadata) {
 		this.links = links;
 		this.linksFromMetadata = linksFromMetadata;
 		this.linksToMetadata = linksToMetadata;
@@ -33,7 +33,7 @@ public class MetadataNetwork implements Serializable {
 
 		for (MetadataNetworkLink link : links) {
 			if (link.getFromMetadata().getCode().startsWith(schemaType)
-					|| link.getToMetadata().getCode().startsWith(schemaType)) {
+				|| link.getToMetadata().getCode().startsWith(schemaType)) {
 				linksWithinSchemaType.add(link);
 			}
 		}
@@ -41,7 +41,8 @@ public class MetadataNetwork implements Serializable {
 		return linksWithinSchemaType;
 	}
 
-	public Map<String, List<MetadataNetworkLink>> getAggregationMetadataNetworkLinkRegroupedByReference(String schemaType) {
+	public Map<String, List<MetadataNetworkLink>> getAggregationMetadataNetworkLinkRegroupedByReference(
+			String schemaType) {
 		KeyListMap<String, MetadataNetworkLink> linksWithinSchemaType = new KeyListMap<>();
 
 		for (MetadataNetworkLink link : links) {

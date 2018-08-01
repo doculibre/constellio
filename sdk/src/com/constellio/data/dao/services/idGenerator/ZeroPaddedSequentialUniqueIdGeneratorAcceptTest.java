@@ -1,18 +1,13 @@
 package com.constellio.data.dao.services.idGenerator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.utils.ThreadList;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.utils.ThreadList;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ZeroPaddedSequentialUniqueIdGeneratorAcceptTest extends ConstellioTest {
 

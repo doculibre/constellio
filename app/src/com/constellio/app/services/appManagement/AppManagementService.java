@@ -1,45 +1,5 @@
 package com.constellio.app.services.appManagement;
 
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import com.constellio.data.utils.PropertyFileUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.input.CountingInputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException.CannotSaveOldPlugins;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.AppManagementServiceRuntimeException_SameVersionsInDifferentFolders;
@@ -62,10 +22,28 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
+
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
 
 public class AppManagementService {
 
@@ -144,7 +122,7 @@ public class AppManagementService {
 			String currentWarVersion = GetWarVersionUtils.getWarVersionUsingGradleAsFallback(null);
 
 			currentStep = "Based on jar file, the version of the new war is '" + warVersion + "', current version is '"
-					+ currentWarVersion + "'";
+						  + currentWarVersion + "'";
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)) {
@@ -277,7 +255,8 @@ public class AppManagementService {
 		}
 	}
 
-	private void keepOnlyLastFiveVersionsAndAtLeastOneVersionModifiedBeforeLastWeek(File webAppsFolder, File deployFolder) {
+	private void keepOnlyLastFiveVersionsAndAtLeastOneVersionModifiedBeforeLastWeek(File webAppsFolder,
+																					File deployFolder) {
 		Map<String, File> existingWebAppsMappedByVersion = getExistingVersionsFoldersMappedByVersion(webAppsFolder, deployFolder);
 
 		if (existingWebAppsMappedByVersion.size() > MAX_VERSION_TO_KEEP) {

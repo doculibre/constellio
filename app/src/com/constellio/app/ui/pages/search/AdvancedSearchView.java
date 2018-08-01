@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.List;
 
 public interface AdvancedSearchView extends SearchView {
-	
+
 	String SEARCH_TYPE = "advancedSearch";
 
 	List<Criterion> getSearchCriteria();
@@ -26,9 +26,9 @@ public interface AdvancedSearchView extends SearchView {
 
 	List<String> getUnselectedRecordIds();
 
-    void fireSomeRecordsSelected();
+	void fireSomeRecordsSelected();
 
 	void fireNoRecordSelected();
 
-    NewReportPresenter getPresenter();
+	NewReportPresenter getPresenter();
 }

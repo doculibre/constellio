@@ -1,39 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -51,6 +22,28 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
@@ -172,8 +165,8 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		XMLImportDataProvider document = toXMLFile("document.xml");
 		XMLImportDataProvider retentionRule = toXMLFile("retentionRule.xml");
 		XMLImportDataProvider ddvDocumentType = toXMLFile("ddvDocumentType.xml");
-		XMLImportDataProvider[] files = new XMLImportDataProvider[] {
-				ddvDocumentType, category, administrativeUnit, retentionRule, folder, document, };
+		XMLImportDataProvider[] files = new XMLImportDataProvider[]{
+				ddvDocumentType, category, administrativeUnit, retentionRule, folder, document,};
 
 		for (ImportDataProvider importDataProvider : files) {
 			importServices.bulkImport(importDataProvider, progressionListener, admin);
@@ -389,11 +382,11 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(content3).isNotNull();
 
 		assertThat(content3.getVersions()).extracting("filename", "version", "comment")
-				.isEqualTo(asList(
-						tuple("The Kings Return1", "1.0", "DVD #1"),
-						tuple("The Kings Return2", "1.1", "DVD #2"),
-						tuple("The Kings Return3", "2.0", "DVD #3 : extras")
-				));
+										  .isEqualTo(asList(
+												  tuple("The Kings Return1", "1.0", "DVD #1"),
+												  tuple("The Kings Return2", "1.1", "DVD #2"),
+												  tuple("The Kings Return3", "2.0", "DVD #3 : extras")
+										  ));
 
 		assertThat(content3.getCurrentVersion().getHash()).isEqualTo(testSecondResourceHash);
 		assertThat(content3.getCurrentVersion().getFilename()).isEqualTo("The Kings Return3");
@@ -558,7 +551,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(retentionRulesFromCategory("Z999").containsAll(asList(rule1.getId(), ruleAdministration.getId()))).isTrue();
 
 		update(rm.getUniformSubdivision("subdivId_2").setRetentionRules(asList(ruleAdministration.getId()))
-				.getWrappedRecord());
+				 .getWrappedRecord());
 		assertThat(retentionRulesFromSubdivion("subdivId_2").contains(ruleAdministration.getId())).isTrue();
 	}
 

@@ -1,22 +1,5 @@
 package com.constellio.app.ui.pages.statistic;
 
-import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.util.NamedList;
-import org.apache.solr.common.util.SimpleOrderedMap;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -27,6 +10,22 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
+import org.assertj.core.api.Assertions;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST;
+import static org.mockito.Mockito.when;
 
 public class StatisticsPresenterAcceptanceTest extends ConstellioTest {
 	private SchemasRecordsServices schemasRecordsServices;

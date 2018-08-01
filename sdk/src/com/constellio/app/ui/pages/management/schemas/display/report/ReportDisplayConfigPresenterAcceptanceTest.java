@@ -1,18 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.reports.model.search.ReportTestUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -30,6 +17,14 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -52,7 +47,7 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		navigator = new MockedNavigation();

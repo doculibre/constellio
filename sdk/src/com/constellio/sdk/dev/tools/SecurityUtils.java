@@ -1,13 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -16,12 +8,20 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public class SecurityUtils {
 
 	public static String printSecurityReport(String collection, AppLayerFactory appLayerFactory) {
 
 		List<User> usersInCollection = appLayerFactory.getModelLayerFactory().newUserServices()
-				.getAllUsersInCollection(collection);
+													  .getAllUsersInCollection(collection);
 
 		Iterator<User> removeInvalids = usersInCollection.iterator();
 

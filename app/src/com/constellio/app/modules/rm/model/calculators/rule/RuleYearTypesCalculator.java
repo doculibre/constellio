@@ -1,20 +1,16 @@
 package com.constellio.app.modules.rm.model.calculators.rule;
 
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.ReferenceListMetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+
+import java.util.*;
+
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static java.util.Arrays.asList;
 
 public class RuleYearTypesCalculator extends ReferenceListMetadataValueCalculator {
 

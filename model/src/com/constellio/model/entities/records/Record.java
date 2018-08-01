@@ -1,15 +1,15 @@
 package com.constellio.model.entities.records;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataList;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
 
 public interface Record extends Serializable, CollectionObject {
 

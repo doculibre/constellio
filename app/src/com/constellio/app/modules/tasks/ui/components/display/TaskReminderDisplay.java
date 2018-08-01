@@ -5,7 +5,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.vaadin.ui.Label;
 
 public class TaskReminderDisplay extends Label {
-	
+
 	private TaskReminderVOToStringConverter converter = new TaskReminderVOToStringConverter();
 
 	public TaskReminderDisplay(TaskReminderVO taskReminderVO) {

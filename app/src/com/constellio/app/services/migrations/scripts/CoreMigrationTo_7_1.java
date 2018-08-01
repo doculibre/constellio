@@ -1,11 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -22,6 +16,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.JasperFilePrintableValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CoreMigrationTo_7_1 implements MigrationScript {
 
@@ -33,7 +32,8 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		givenNewPermissionsToRGDandADMRoles(collection, appLayerFactory.getModelLayerFactory());
 		new CoreSchemaAlterationFor7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -51,7 +51,7 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor7_1 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -59,10 +59,10 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(Printable.SCHEMA_TYPE).getDefaultSchema();
 			builder.create(Printable.JASPERFILE).setType(MetadataValueType.CONTENT).setUndeletable(true).setEssential(true)
-					.defineDataEntry().asManual()
-					.addValidator(JasperFilePrintableValidator.class);
+				   .defineDataEntry().asManual()
+				   .addValidator(JasperFilePrintableValidator.class);
 			builder.create(Printable.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setUndeletable(true).setDefaultValue(true)
-					.defineDataEntry().asManual();
+				   .defineDataEntry().asManual();
 
 			MetadataSchemaBuilder UserBuilder = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
 			UserBuilder.create(User.FAX).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
@@ -70,15 +70,15 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 
 			if (typesBuilder.getCollection().equals(Collection.SYSTEM_COLLECTION)) {
 				MetadataSchemaBuilder UserCredentialBuilder = typesBuilder.getSchemaType(SolrUserCredential.SCHEMA_TYPE)
-						.getDefaultSchema();
+																		  .getDefaultSchema();
 				UserCredentialBuilder.create(SolrUserCredential.ADDRESS).setEssential(false).setType(MetadataValueType.STRING)
-						.defineDataEntry().asManual();
+									 .defineDataEntry().asManual();
 				UserCredentialBuilder.create(SolrUserCredential.FAX).setEssential(false).setType(MetadataValueType.STRING)
-						.defineDataEntry().asManual();
+									 .defineDataEntry().asManual();
 				UserCredentialBuilder.create(SolrUserCredential.JOB_TITLE).setEssential(false).setType(MetadataValueType.STRING)
-						.defineDataEntry().asManual();
+									 .defineDataEntry().asManual();
 				UserCredentialBuilder.create(SolrUserCredential.PHONE).setEssential(false).setType(MetadataValueType.STRING)
-						.defineDataEntry().asManual();
+									 .defineDataEntry().asManual();
 			}
 		}
 	}

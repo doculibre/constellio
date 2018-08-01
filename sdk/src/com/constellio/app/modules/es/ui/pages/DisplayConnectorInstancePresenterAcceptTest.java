@@ -1,27 +1,11 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import com.constellio.app.modules.es.navigation.ESViews;
-import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.sdk.tests.MockedNavigation;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Transaction;
@@ -31,6 +15,16 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
@@ -41,7 +35,7 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 	RecordServices recordServices;
 	ESSchemasRecordsServices es;
 	UserServices userServices;
-    MockedNavigation navigator;
+	MockedNavigation navigator;
 
 	Users users = new Users();
 	ConnectorType connectorType;
@@ -59,8 +53,8 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-        navigator = new MockedNavigation();
-        when(view.navigate()).thenReturn(navigator);
+		navigator = new MockedNavigation();
+		when(view.navigate()).thenReturn(navigator);
 
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -72,17 +66,17 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-						.setCode("zeConnector")
-						.setTitle("Ze Connector")
-						.setTraversalCode("traversalCode").setEnabled(true)
-						.setSeeds("http://constellio.com"));
+								   .setCode("zeConnector")
+								   .setTitle("Ze Connector")
+								   .setTraversalCode("traversalCode").setEnabled(true)
+								   .setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-						.setCode("anotherConnector")
-						.setTitle("Another Connector")
-						.setTraversalCode("anotherTraversalCode").setEnabled(true)
-						.setSeeds("http://constellio.com"));
+								   .setCode("anotherConnector")
+								   .setTitle("Another Connector")
+								   .setTraversalCode("anotherTraversalCode").setEnabled(true)
+								   .setSeeds("http://constellio.com"));
 
 		presenter = new DisplayConnectorInstancePresenter(view);
 	}
@@ -213,12 +207,12 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		Transaction transaction = new Transaction();
 
 		transaction.add(es.newConnectorHttpDocumentWithId("olderTraversalRecord", connectorInstance))
-				.setURL("http://constellio.com/document1").setTitle("Titre1").setFetched(true)
-				.setModifiedOn(new LocalDateTime()).setTraversalCode(connectorInstance.getTraversalCode());
+				   .setURL("http://constellio.com/document1").setTitle("Titre1").setFetched(true)
+				   .setModifiedOn(new LocalDateTime()).setTraversalCode(connectorInstance.getTraversalCode());
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record2", connectorInstance))
-				.setModifiedOn(new LocalDateTime().plusSeconds(3)).setURL("http://constellio.com/document2").setTitle("Titre2")
-				.setFetched(true).setTraversalCode(connectorInstance.getTraversalCode());
+				   .setModifiedOn(new LocalDateTime().plusSeconds(3)).setURL("http://constellio.com/document2").setTitle("Titre2")
+				   .setFetched(true).setTraversalCode(connectorInstance.getTraversalCode());
 
 		recordServices.execute(transaction);
 	}

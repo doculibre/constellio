@@ -1,23 +1,22 @@
 package com.constellio.model.services.contents;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-import java.util.List;
-
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.utils.Lazy;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.utils.Lazy;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.InputStream;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ContentFactoryTest extends ConstellioTest {
 
@@ -61,7 +60,7 @@ public class ContentFactoryTest extends ConstellioTest {
 				"0.1", aliceId, meetingOClock, "comment:Of\n\rVersion0.1");
 		secondVersion = new ContentVersion(new ContentVersionDataSummary("ze2ndHash", "zeMime2", zeLength2), "zeFileName_2.pdf",
 				"0.2", bobId, shishOClock, null);
-		
+
 		sameInfoAsCurrentVersion = new ContentVersion(new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3), "zeFileName_3.pdf",
 				"0.1", charlesId, teaOClock, "commentOf\nVersion::0.1");
 		sameInfoAsCurrentVersion2 = new ContentVersion(new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3), "zeFileName_3.pdf",
@@ -70,7 +69,7 @@ public class ContentFactoryTest extends ConstellioTest {
 				"0.3", bobId, shishOClock, null);
 		sameInfoAsCurrentVersion3 = new ContentVersion(new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3), "zeFileName_3.pdf",
 				"0.4", charlesId, teaOClock, "commentOf\nVersion::0.4");
-		
+
 		content = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion, tockOClock,
 				dakotaId, false);
 		emptyContent = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion,
@@ -148,10 +147,10 @@ public class ContentFactoryTest extends ConstellioTest {
 			throws Exception {
 
 		String legacyContentStringValue = "zeContent::cf=zeFileName_3.pdf::co=true::"
-				+ "f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=1.0::"
-				+ "f=zeCOFileName_3.pdf:h=zeCOHash:l=0:m=zeCOMime3:u=dakotaId:t=1351987323000:v=1.1::dakotaId::1351990923000::"
-				+ "f=zeFileName_1.pdf:h=ze1stHash:l=0:m=zeMime1:u=aliceId:t=1352005323000:v=0.1::"
-				+ "f=zeFileName_2.pdf:h=ze2ndHash:l=0:m=zeMime2:u=bobId:t=1351998123000:v=0.2::";
+										  + "f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=1.0::"
+										  + "f=zeCOFileName_3.pdf:h=zeCOHash:l=0:m=zeCOMime3:u=dakotaId:t=1351987323000:v=1.1::dakotaId::1351990923000::"
+										  + "f=zeFileName_1.pdf:h=ze1stHash:l=0:m=zeMime1:u=aliceId:t=1352005323000:v=0.1::"
+										  + "f=zeFileName_2.pdf:h=ze2ndHash:l=0:m=zeMime2:u=bobId:t=1351998123000:v=0.2::";
 
 		Content content = (Content) factory.build(legacyContentStringValue);
 		assertThat(content.getHistoryVersions()).hasSize(2);
@@ -364,30 +363,30 @@ public class ContentFactoryTest extends ConstellioTest {
 		assertThat(text).doesNotContain(ContentFactory.checkedOut().getText());
 
 	}
-	
+
 	@Test
 	public void givenSameInfoAsCurrentVersionWhenToStringThenFoundOnce() {
-		
+
 		String text = factory.toString(sameInfoAsCurrentContent);
 		assertThat(StringUtils.countMatches(text, ":f=zeFileName_3.pdf")).isEqualTo(2);
 		assertThat(StringUtils.countMatches(text, ":u=charlesId")).isEqualTo(2);
 		assertThat(StringUtils.countMatches(text, ":m=zeMime3")).isEqualTo(2);
 		System.out.println(text);
 	}
-	
+
 	@Test
 	public void givenStringWithoutDuplicatedInfoWhenBuildThenInfoSetOnAllVersions() {
-		String text = "v2:zeContent::cf=zeFileName_3.pdf::co=true::f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=1.0:commentOf\r\n" + 
-				"Version$#$$#$1.0::f=zeCOFileName_3.pdf:h=zeCOHash:l=0:m=zeCOMime3:u=dakotaId:t=1351987323000:v=1.1:commentOf$#$$#$CheckedOutVersion::dakotaId::1351990923000::f=:h=zeHash:l=0:m=:u=:t=1351994523000:v=0.1:commentOf\r\n" + 
-				"Version$#$$#$0.1::f=:h=zeHash:l=0:m=:u=:t=1351994523000:v=0.2:commentOf\r\n" + 
-				"Version$#$$#$0.2::f=zeFileName_2.pdf:h=ze2ndHash:l=0:m=zeMime2:u=bobId:t=1351998123000:v=0.3:null::f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=0.4:commentOf\r\n" + 
-				"Version$#$$#$0.4::";
-		
+		String text = "v2:zeContent::cf=zeFileName_3.pdf::co=true::f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=1.0:commentOf\r\n" +
+					  "Version$#$$#$1.0::f=zeCOFileName_3.pdf:h=zeCOHash:l=0:m=zeCOMime3:u=dakotaId:t=1351987323000:v=1.1:commentOf$#$$#$CheckedOutVersion::dakotaId::1351990923000::f=:h=zeHash:l=0:m=:u=:t=1351994523000:v=0.1:commentOf\r\n" +
+					  "Version$#$$#$0.1::f=:h=zeHash:l=0:m=:u=:t=1351994523000:v=0.2:commentOf\r\n" +
+					  "Version$#$$#$0.2::f=zeFileName_2.pdf:h=ze2ndHash:l=0:m=zeMime2:u=bobId:t=1351998123000:v=0.3:null::f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=0.4:commentOf\r\n" +
+					  "Version$#$$#$0.4::";
+
 		Content content = (Content) factory.build(text);
 		ContentVersion currentParsed = content.getCurrentVersion();
 		ContentVersion currentCOParsed = content.getCurrentCheckedOutVersion();
 		List<ContentVersion> historyVersions = content.getHistoryVersions();
-		
+
 		assertThat(currentParsed.getVersion()).isEqualTo("1.0");
 		assertThat(currentParsed.getFilename()).isEqualTo("zeFileName_3.pdf");
 		assertThat(currentParsed.getModifiedBy()).isEqualTo("charlesId");
@@ -397,7 +396,7 @@ public class ContentFactoryTest extends ConstellioTest {
 		assertThat(currentCOParsed.getFilename()).isEqualTo("zeCOFileName_3.pdf");
 		assertThat(currentCOParsed.getModifiedBy()).isEqualTo("dakotaId");
 		assertThat(currentCOParsed.getMimetype()).isEqualTo("zeCOMime3");
-		
+
 		assertThat(historyVersions.size()).isEqualTo(4);
 		ContentVersion historyVersion1 = historyVersions.get(0);
 		ContentVersion historyVersion2 = historyVersions.get(1);

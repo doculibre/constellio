@@ -1,12 +1,5 @@
 package com.constellio.dev;
 
-import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -25,6 +18,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CustomScriptMain {
 

@@ -59,7 +59,7 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 			throws Exception {
 		presenter.updateCollectionModules(collectionVO, zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioRMModule.ID)));
 		assertThat(moduleManager.getEnabledModules(zeCollection)).extracting("id")
-				.containsOnly(ConstellioRMModule.ID, TaskModule.ID);
+																 .containsOnly(ConstellioRMModule.ID, TaskModule.ID);
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 			throws Exception {
 		presenter.updateCollectionModules(collectionVO, zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioRobotsModule.ID)));
 		assertThat(moduleManager.getEnabledModules(zeCollection)).extracting("id")
-				.containsOnly(TaskModule.ID, ConstellioRobotsModule.ID);
+																 .containsOnly(TaskModule.ID, ConstellioRobotsModule.ID);
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class AddEditCollectionPresenterWithTaskModuleAcceptanceTest extends Cons
 			throws Exception {
 		presenter.updateCollectionModules(collectionVO, zeCollectionRecord, zeCollection, new HashSet<>(asList(ConstellioESModule.ID)));
 		assertThat(moduleManager.getEnabledModules(zeCollection)).extracting("id")
-				.containsOnly(TaskModule.ID, ConstellioESModule.ID);
+																 .containsOnly(TaskModule.ID, ConstellioESModule.ID);
 	}
 
 }

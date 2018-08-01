@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -30,6 +21,14 @@ import com.constellio.model.services.taxonomies.LinkableConceptFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class FolderCategoryFieldImpl extends LookupRecordField implements FolderCategoryField {
 
@@ -53,8 +52,9 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 		setInternalValue((String) value);
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode, final String schemaCode,
-			boolean writeAccess) {
+	private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode,
+																		final String schemaCode,
+																		boolean writeAccess) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		final String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -85,9 +85,10 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 	}
 
 	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode,
-			ConstellioFactories constellioFactories, SessionContext sessionContext) {
+																	  ConstellioFactories constellioFactories,
+																	  SessionContext sessionContext) {
 		MetadataSchemaType categoryType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(Category.SCHEMA_TYPE);
+															 .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(Category.SCHEMA_TYPE);
 		LogicalSearchCondition searchCondition = from(categoryType)
 				.where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();

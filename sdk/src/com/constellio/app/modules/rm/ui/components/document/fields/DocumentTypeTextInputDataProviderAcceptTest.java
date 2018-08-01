@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document.fields;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
@@ -23,6 +12,16 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DocumentTypeTextInputDataProviderAcceptTest extends ConstellioTest {
 
@@ -42,7 +41,7 @@ public class DocumentTypeTextInputDataProviderAcceptTest extends ConstellioTest 
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+								  .withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

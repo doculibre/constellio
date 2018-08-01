@@ -1,16 +1,15 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import org.junit.Test;
+
+import java.util.regex.Pattern;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-
-import java.util.regex.Pattern;
-
-import org.junit.Test;
-
-import com.constellio.model.entities.schemas.RegexConfig;
-import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 
 public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderTest {
 
@@ -85,7 +84,7 @@ public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderT
 
 		inheritedMetadataBuilder.setType(STRING).definePopulateConfigsBuilder(metadataPopulateConfigsBuilder1);
 		metadataWithInheritanceBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder2).addProperty("property3")
-				.addStyle("style3").addRegex(createRegexConfig(3));
+									  .addStyle("style3").addRegex(createRegexConfig(3));
 
 		buildAndModify();
 
@@ -113,7 +112,7 @@ public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderT
 
 		inheritedMetadataBuilder.setType(STRING).definePopulateConfigsBuilder(metadataPopulateConfigsBuilder1);
 		metadataWithInheritanceBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder2).addProperty("property1")
-				.addStyle("style1");
+									  .addStyle("style1");
 
 		build();
 
@@ -140,7 +139,7 @@ public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderT
 
 		inheritedMetadataBuilder.setType(STRING).definePopulateConfigsBuilder(metadataPopulateConfigsBuilder1);
 		metadataWithInheritanceBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder2).addProperty("property1")
-				.addStyle("style1");
+									  .addStyle("style1");
 
 		buildAndModify();
 

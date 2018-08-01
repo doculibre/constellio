@@ -1,9 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -16,6 +12,10 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 /**
  * Created by Charles Blanchette on 2017-03-29.
  */
@@ -27,7 +27,8 @@ public class ESMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_1_3(collection, migrationResourcesProvider, appLayerFactory);
 	}
@@ -35,7 +36,7 @@ public class ESMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 	static class SchemaAlterationFor7_1_3 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_1_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory)
+										   AppLayerFactory appLayerFactory)
 				throws RecordServicesException {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			alterFacets(collection, appLayerFactory, migrationResourcesProvider);
@@ -47,13 +48,13 @@ public class ESMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 		}
 
 		private void alterFacets(String collection, AppLayerFactory appLayerFactory,
-				MigrationResourcesProvider migrationResourcesProvider)
+								 MigrationResourcesProvider migrationResourcesProvider)
 				throws RecordServicesException {
 			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 			RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 
 			LogicalSearchCondition condition = from(es.facet.schemaType()).where(es.facet.fieldDatastoreCode())
-					.isEqualTo(es.connectorDocument.mimetype().getDataStoreCode());
+																		  .isEqualTo(es.connectorDocument.mimetype().getDataStoreCode());
 
 			List<Facet> facets = es.searchFacets(condition);
 			for (Facet facet : facets) {

@@ -11,10 +11,8 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import java.util.*;
 
-import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 public class RMMigrationTo7_3_1 implements MigrationScript {
 
@@ -24,7 +22,8 @@ public class RMMigrationTo7_3_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_3_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setFilePlanTaxonomyLabel(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
@@ -33,11 +32,11 @@ public class RMMigrationTo7_3_1 implements MigrationScript {
 	}
 
 	private void setFilePlanTaxonomyLabel(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+										  MigrationResourcesProvider migrationResourcesProvider) {
 		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy filePlanTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.CLASSIFICATION_PLAN);
 
-		Map<Language,String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory, migrationResourcesProvider,"init.rm.plan");
+		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory, migrationResourcesProvider, "init.rm.plan");
 
 		filePlanTaxo.withTitle(mapLangageTitre);
 
@@ -47,11 +46,11 @@ public class RMMigrationTo7_3_1 implements MigrationScript {
 
 
 	private void setAdmUnitsTaxonomyLabel(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+										  MigrationResourcesProvider migrationResourcesProvider) {
 		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy admUnitTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		Map<Language,String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(
+		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(
 				collection, modelLayerFactory, migrationResourcesProvider, "taxo.admUnits");
 
 		admUnitTaxo = admUnitTaxo.withTitle(mapLangageTitre);
@@ -61,7 +60,7 @@ public class RMMigrationTo7_3_1 implements MigrationScript {
 	class SchemaAlterationFor7_3_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_3_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

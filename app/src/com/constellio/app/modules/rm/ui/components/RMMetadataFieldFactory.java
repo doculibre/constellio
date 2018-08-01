@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.ui.components;
 
-import java.util.Locale;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.vaadin.ui.Field;
+
+import java.util.Locale;
 
 public class RMMetadataFieldFactory extends MetadataFieldFactory {
 

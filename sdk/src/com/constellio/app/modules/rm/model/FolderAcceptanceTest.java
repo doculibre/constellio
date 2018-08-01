@@ -1,35 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
-import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -39,11 +9,7 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -70,6 +36,25 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.*;
+import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
+import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class FolderAcceptanceTest extends ConstellioTest {
 
@@ -556,7 +541,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customFolder");
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("zeCalculatedMetadata").setType(STRING)
-						.defineDataEntry().asCalculated(ZeCategoryCodeCalculator.class);
+					 .defineDataEntry().asCalculated(ZeCategoryCodeCalculator.class);
 			}
 		});
 
@@ -564,11 +549,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		recordServices.add(folderType);
 
 		Folder folder = rm.newFolderWithType(folderType)
-				.setTitle("Ze custom folder")
-				.setOpenDate(new LocalDate())
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X13)
-				.setRetentionRuleEntered(records.ruleId_1);
+						  .setTitle("Ze custom folder")
+						  .setOpenDate(new LocalDate())
+						  .setAdministrativeUnitEntered(records.unitId_10a)
+						  .setCategoryEntered(records.categoryId_X13)
+						  .setRetentionRuleEntered(records.ruleId_1);
 		recordServices.add(folder);
 
 		assertThatRecord(rm.getFolder(folder.getId()))
@@ -656,7 +641,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getMainCopyRule()).isEqualTo(principal("888-5-T", PA));
 		assertThat(folder.getActiveRetentionCode()).isEqualTo("888");
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
-		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[] { null, null }));
+		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[]{null, null}));
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2020, march31_2020);
 		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
 
@@ -815,7 +800,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
 		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly((LocalDate) null);
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2075);
-		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null}));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2075);
@@ -908,7 +893,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
 		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly((LocalDate) null);
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2035);
-		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null}));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2035);
@@ -954,9 +939,9 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getActualDestructionDate()).isNull();
 		assertThat(folder.getApplicableCopyRules()).containsExactly(principal("888-5-T", PA), principal("888-5-D", MD));
 		assertThat(folder.getMainCopyRule()).isEqualTo(principal("888-5-T", PA));
-		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[] { null, null }));
-		assertThat(folder.getCopyRulesExpectedDestructionDates()).isEqualTo(asList(new LocalDate[] { null, null }));
-		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null, null }));
+		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[]{null, null}));
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).isEqualTo(asList(new LocalDate[]{null, null}));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null, null}));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isNull();
@@ -1324,7 +1309,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						.setSemiActiveDateMetadata("dateA"),
+						   .setSemiActiveDateMetadata("dateA"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1417,7 +1402,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						.setSemiActiveDateMetadata("dateA").setIgnoreActivePeriod(true),
+						   .setSemiActiveDateMetadata("dateA").setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1511,7 +1496,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						.setSemiActiveDateMetadata("dateB"),
+						   .setSemiActiveDateMetadata("dateB"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1594,7 +1579,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						.setSemiActiveDateMetadata(Folder.TIME_RANGE),
+						   .setSemiActiveDateMetadata(Folder.TIME_RANGE),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1661,8 +1646,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		//		assertThat(folderA7.getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
 
 		Folder folder = rm.newFolderWithId("zeFolder").setTitle("Bouc").setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_Z112).setRetentionRuleEntered(records.ruleId_3)
-				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4));
+						  .setCategoryEntered(records.categoryId_Z112).setRetentionRuleEntered(records.ruleId_3)
+						  .setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4));
 
 		recordServices.update(folder);
 
@@ -1695,7 +1680,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						.setSemiActiveDateMetadata(Folder.TIME_RANGE),
+						   .setSemiActiveDateMetadata(Folder.TIME_RANGE),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1776,7 +1761,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata(Folder.TIME_RANGE)
-						.setSemiActiveDateMetadata("dateB"),
+						   .setSemiActiveDateMetadata("dateB"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1858,7 +1843,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata(Folder.TIME_RANGE)
-						.setSemiActiveDateMetadata("dateB"),
+						   .setSemiActiveDateMetadata("dateB"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1939,7 +1924,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						.setSemiActiveDateMetadata("dateB").setIgnoreActivePeriod(true),
+						   .setSemiActiveDateMetadata("dateB").setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -2145,7 +2130,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setSemiActiveDateMetadata("dateA")
-						.setIgnoreActivePeriod(true),
+						   .setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -2266,9 +2251,9 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "888-75-D").setSemiActiveDateMetadata("dateNaiss")
-						.setIgnoreActivePeriod(true),
+						   .setIgnoreActivePeriod(true),
 				copyBuilder.newPrincipal(asList(records.MD), "75-0-D").setActiveDateMetadata("dateNaiss")
-						.setIgnoreActivePeriod(true),
+						   .setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 		recordServices.update(rule2);
@@ -2395,11 +2380,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		Folder folderWithoutType_PA_MD = transaction.add(folderBuilder.build()).setMediumTypes(records.PA_MD);
 
 		Folder secondaryFolderType1 = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
-				.setCopyStatusEntered(CopyType.SECONDARY);
+												 .setCopyStatusEntered(CopyType.SECONDARY);
 		Folder secondaryFolderType2 = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA_MD)
-				.setCopyStatusEntered(CopyType.SECONDARY);
+												 .setCopyStatusEntered(CopyType.SECONDARY);
 		Folder secondaryFolder = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
-				.setCopyStatusEntered(CopyType.SECONDARY);
+											.setCopyStatusEntered(CopyType.SECONDARY);
 
 		recordServices.execute(transaction);
 
@@ -2993,7 +2978,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	private void ensureValidationError(RecordServicesException e, Class<?> validatorClass, String errorCode,
-			Map<String, Object> parameters) {
+									   Map<String, Object> parameters) {
 		if (e instanceof ValidationException) {
 			ValidationException ve = (ValidationException) e;
 			ValidationErrors validationErrors = ve.getErrors();

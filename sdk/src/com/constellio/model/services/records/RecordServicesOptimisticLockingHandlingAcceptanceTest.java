@@ -1,17 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -29,6 +17,17 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends ConstellioTest {
@@ -267,11 +266,11 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 							}
 							try {
 								double currentCopiedNumber = recordServices.getDocumentById(zeRecordId)
-										.get(zeSchema.number(index));
+																		   .get(zeSchema.number(index));
 								double expectedNumber = j - 1;
 								if (currentCopiedNumber != expectedNumber) {
 									System.out.println(" **** Field #" + index + " : Expected '" + expectedNumber + "' but was '"
-											+ currentCopiedNumber + "'");
+													   + currentCopiedNumber + "'");
 									corruptionCounter.incrementAndGet();
 								}
 
@@ -341,11 +340,11 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 							}
 							try {
 								double currentCopiedNumber = recordServices.getDocumentById(zeRecordId)
-										.get(zeSchema.number(index));
+																		   .get(zeSchema.number(index));
 								double expectedNumber = j - 1;
 								if (currentCopiedNumber != expectedNumber) {
 									System.out.println(" **** Field #" + index + " : Expected '" + expectedNumber + "' but was '"
-											+ currentCopiedNumber + "'");
+													   + currentCopiedNumber + "'");
 									corruptionCounter.incrementAndGet();
 								}
 
@@ -414,11 +413,11 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 							}
 							try {
 								double currentCopiedNumber = recordServices.getDocumentById(zeRecordId)
-										.get(zeSchema.number(index));
+																		   .get(zeSchema.number(index));
 								double expectedNumber = j - 1;
 								if (currentCopiedNumber != expectedNumber) {
 									System.out.println(" **** Field #" + index + " : Expected '" + expectedNumber + "' but was '"
-											+ currentCopiedNumber + "' **** ");
+													   + currentCopiedNumber + "' **** ");
 									corruptionCounter.incrementAndGet();
 								}
 
@@ -562,15 +561,15 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 
 		Record zeSchemaRecord1 = recordServices.newRecordWithSchema(zeSchema.instance());
 		transaction.addUpdate(zeSchemaRecord1.set(zeSchema.number1(), 10.0).set(zeSchema.number2(), 1.0)
-				.set(zeSchema.refToAnotherSchema(), anotherSchemaRecordId));
+											 .set(zeSchema.refToAnotherSchema(), anotherSchemaRecordId));
 
 		Record zeSchemaRecord2 = recordServices.newRecordWithSchema(zeSchema.instance());
 		transaction.addUpdate(zeSchemaRecord2.set(zeSchema.number1(), 10.0).set(zeSchema.number2(), 1.0)
-				.set(zeSchema.refToAnotherSchema(), anotherSchemaRecordId));
+											 .set(zeSchema.refToAnotherSchema(), anotherSchemaRecordId));
 
 		Record zeSchemaRecord3 = recordServices.newRecordWithSchema(zeSchema.instance());
 		transaction.addUpdate(zeSchemaRecord3.set(zeSchema.number1(), 10.0).set(zeSchema.number2(), 1.0)
-				.set(zeSchema.refToAnotherSchema(), anotherSchemaRecordId));
+											 .set(zeSchema.refToAnotherSchema(), anotherSchemaRecordId));
 
 		recordServices.execute(transaction);
 
@@ -589,7 +588,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 			zeDefaultSchemaBuilder.create("number2").setType(NUMBER);
 			zeDefaultSchemaBuilder.create("refToAnotherSchema").defineReferencesTo(anOtherSchemaTypeBuilder);
 			zeDefaultSchemaBuilder.create("calculatedNumber").setType(NUMBER).defineDataEntry()
-					.asCalculated(SumOfOtherMetadatas.class);
+								  .asCalculated(SumOfOtherMetadatas.class);
 
 			return this;
 		}
@@ -599,9 +598,9 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 
 			for (int i = 0; i < quantity; i++) {
 				MetadataBuilder reference = zeDefaultSchemaBuilder.create("reference" + i)
-						.defineReferencesTo(anOtherSchemaTypeBuilder);
+																  .defineReferencesTo(anOtherSchemaTypeBuilder);
 				zeDefaultSchemaBuilder.create("number" + i).setType(NUMBER)
-						.defineDataEntry().asCopied(reference, anotherSchemaNumber);
+									  .defineDataEntry().asCopied(reference, anotherSchemaNumber);
 			}
 
 			return this;
@@ -616,15 +615,15 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 			zeDefaultSchemaBuilder.create("reference3").defineReferencesTo(anOtherSchemaTypeBuilder);
 			zeDefaultSchemaBuilder.create("reference4").defineReferencesTo(anOtherSchemaTypeBuilder);
 			zeDefaultSchemaBuilder.create("number0").setType(NUMBER)
-					.defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator1.class);
+								  .defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator1.class);
 			zeDefaultSchemaBuilder.create("number1").setType(NUMBER)
-					.defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator2.class);
+								  .defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator2.class);
 			zeDefaultSchemaBuilder.create("number2").setType(NUMBER)
-					.defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator3.class);
+								  .defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator3.class);
 			zeDefaultSchemaBuilder.create("number3").setType(NUMBER)
-					.defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator4.class);
+								  .defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator4.class);
 			zeDefaultSchemaBuilder.create("number4").setType(NUMBER)
-					.defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator5.class);
+								  .defineDataEntry().asCalculated(RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator5.class);
 
 			return this;
 		}

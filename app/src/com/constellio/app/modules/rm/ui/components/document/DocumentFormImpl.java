@@ -15,7 +15,7 @@ public abstract class DocumentFormImpl extends RecordForm implements DocumentFor
 		super(record, new DocumentFieldFactory(record.getMetadataValue(
 				record.getMetadata(Document.FOLDER)).<String>getValue(),
 				record.getMetadataValue(record.getMetadata(Document.TYPE)).<String>getValue(),
-				record.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES),isViewOnly));
+				record.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES), isViewOnly));
 	}
 
 	@Override

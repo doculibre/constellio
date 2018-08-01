@@ -20,7 +20,8 @@ public class ESMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor_8_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		updateFormAndDisplay(collection, appLayerFactory);
@@ -32,12 +33,12 @@ public class ESMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.in(ConnectorHttpInstance.SCHEMA_TYPE)
-				.addToDisplay(ConnectorHttpInstance.ON_DEMANDS)
-				.atTheEnd();
+						  .addToDisplay(ConnectorHttpInstance.ON_DEMANDS)
+						  .atTheEnd();
 
 		transactionBuilder.in(ConnectorHttpInstance.SCHEMA_TYPE)
-				.addToForm(ConnectorHttpInstance.ON_DEMANDS)
-				.atTheEnd();
+						  .addToForm(ConnectorHttpInstance.ON_DEMANDS)
+						  .atTheEnd();
 
 		manager.execute(transactionBuilder.build());
 	}
@@ -45,8 +46,8 @@ public class ESMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
 	class SchemaAlterationFor_8_0_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor_8_0_1(String collection,
-												MigrationResourcesProvider migrationResourcesProvider,
-												AppLayerFactory appLayerFactory) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

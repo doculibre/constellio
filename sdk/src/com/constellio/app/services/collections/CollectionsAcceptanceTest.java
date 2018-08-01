@@ -1,30 +1,16 @@
 package com.constellio.app.services.collections;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionNotFound;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -41,6 +27,18 @@ import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocuments
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CollectionsAcceptanceTest extends ConstellioTest {
 
@@ -115,15 +113,15 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
 		userServices.addUserToCollection(userServices.getUser(admin), "anotherCollection");
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
-				.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
-						"com.constellio.app.modules.rm.ConstellioRMModule");
+																							.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
+																									"com.constellio.app.modules.rm.ConstellioRMModule");
 
 		collectionsManager.deleteCollection(zeCollection);
 		givenCollection(zeCollection).withConstellioRMModule().withRobotsModule();
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
-				.containsOnly("com.constellio.app.modules.tasks.TaskModule",
-						"com.constellio.app.modules.robots.ConstellioRobotsModule",
-						"com.constellio.app.modules.rm.ConstellioRMModule");
+																							.containsOnly("com.constellio.app.modules.tasks.TaskModule",
+																									"com.constellio.app.modules.robots.ConstellioRobotsModule",
+																									"com.constellio.app.modules.rm.ConstellioRMModule");
 
 		assertThat(userServices.getUser(admin).getCollections()).containsOnly("anotherCollection");
 		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
@@ -233,7 +231,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 		assertThat(userServices.getUser(bobGratton).getCollections()).doesNotContain("constellio");
 		assertThat(userServices.getGroup("legends").getUsersAutomaticallyAddedToCollections()).doesNotContain("constellio")
-				.contains("doculibre");
+																							  .contains("doculibre");
 	}
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {
@@ -247,7 +245,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 	private Set<String> getAllCollectionsInVersionPropertiesFile() {
 		PropertiesConfiguration propertiesConfiguration = getDataLayerFactory().getConfigManager()
-				.getProperties("version.properties");
+																			   .getProperties("version.properties");
 		Set<String> collectionsInVersionProperties = propertiesConfiguration.getProperties().keySet();
 		return collectionsInVersionProperties;
 	}
@@ -282,10 +280,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 				.legendsIn("doculibre").getId(), users.heroesIn("doculibre").getId());
 
 		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
-				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem1));
+																		 .forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem1));
 
 		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
-				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem2));
+																		 .forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem2));
 	}
 
 	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
@@ -295,10 +293,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 				.legendsIn("constellio").getId(), users.heroesIn("constellio").getId());
 
 		authorizationsServices.add(authorizationInCollection("constellio").givingReadAccess()
-				.forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem1));
+																		  .forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem1));
 
 		authorizationsServices.add(authorizationInCollection("constellio").givingReadAccess()
-				.forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem2));
+																		  .forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem2));
 
 	}
 

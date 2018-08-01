@@ -1,18 +1,16 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-
+import com.constellio.app.modules.es.connectors.smb.security.TrusteeManager;
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
 import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactoryImpl;
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
+import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
+import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.sdk.tests.ConstellioTest;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
-
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -21,14 +19,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.constellio.app.modules.es.connectors.smb.security.TrusteeManager;
-import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
-import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
-import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
-import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
-import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
-import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 	private ESSchemasRecordsServices es;
@@ -42,7 +40,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 		prepareSystem(withZeCollection().withConstellioESModule()
-				.withAllTestUsers());
+										.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
@@ -63,7 +61,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenReturn(true);
@@ -112,7 +110,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenThrow(new SmbException(123, false));
@@ -161,7 +159,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenReturn(false);
@@ -185,7 +183,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.isFile()).isFalse();
 		assertThat(smbFileDTO.isDirectory()).isTrue();
 		assertThat(smbFileDTO.getExtension()).isEmpty();
-		assertThat(smbFileDTO.getName()).isEqualTo(StringUtils.removeEnd(SmbTestParams.EXISTING_FOLDER,"/"));
+		assertThat(smbFileDTO.getName()).isEqualTo(StringUtils.removeEnd(SmbTestParams.EXISTING_FOLDER, "/"));
 		assertThat(smbFileDTO.getLength()).isZero();
 		assertThat(smbFileDTO.getParsedContent()).isEmpty();
 		assertThat(smbFileDTO.getLanguage()).isEmpty();
@@ -209,7 +207,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenReturn(false);
@@ -257,7 +255,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenReturn(true);
@@ -306,7 +304,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenReturn(true);
@@ -355,7 +353,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenThrow(new SmbException(123, false));
 		when(smbFile.isFile()).thenReturn(true);
@@ -405,7 +403,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
 		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
 		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
+									.getWindowsPermissions(any(SmbFile.class));
 
 		when(smbFile.exists()).thenReturn(true);
 		when(smbFile.isFile()).thenReturn(true);

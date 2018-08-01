@@ -1,17 +1,16 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition {
 
@@ -24,8 +23,8 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	private Boolean preferAnalyzedField;
 
 	public DataStoreFieldLogicalSearchCondition(DataStoreFilters filters,
-			List<?> dataStoreFields, LogicalOperator metadataLogicalOperator,
-			LogicalSearchValueCondition valueCondition) {
+												List<?> dataStoreFields, LogicalOperator metadataLogicalOperator,
+												LogicalSearchValueCondition valueCondition) {
 		super(filters);
 		if (dataStoreFields == null) {
 			this.dataStoreFields = null;
@@ -134,7 +133,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 
 			for (int i = 0; i < dataStoreFields.size() - 1; i++) {
 				query += " " + valueCondition.getSolrQuery(getSearchedField(params, dataStoreFields.get(i))) + " "
-						+ metadataLogicalOperator;
+						 + metadataLogicalOperator;
 			}
 
 			DataStoreField metadata = dataStoreFields.get(dataStoreFields.size() - 1);
@@ -160,7 +159,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		if (useSecondaryLanguageField) {
 			if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
 				return dataStoreField.getAnalyzedField(params.getLanguageCode())
-						.getSecondaryLanguageField(params.getLanguageCode());
+									 .getSecondaryLanguageField(params.getLanguageCode());
 			} else {
 				return dataStoreField.getSecondaryLanguageField(params.getLanguageCode());
 			}
@@ -173,7 +172,8 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		}
 	}
 
-	public DataStoreFieldLogicalSearchCondition replacingValueConditionWith(LogicalSearchValueCondition newValueCondition) {
+	public DataStoreFieldLogicalSearchCondition replacingValueConditionWith(
+			LogicalSearchValueCondition newValueCondition) {
 		return new DataStoreFieldLogicalSearchCondition(filters, dataStoreFields, metadataLogicalOperator,
 				newValueCondition);
 	}

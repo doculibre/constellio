@@ -1,20 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCode;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -27,11 +12,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -40,6 +21,18 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
@@ -256,7 +249,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		labels.put(Language.French, "Ze magic group");
 		groups.put("ZeMagicGroup", labels);
 		schemasDisplayManager.saveType(schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE)
-				.withNewMetadataGroup(groups));
+															.withNewMetadataGroup(groups));
 
 		createMetadataAndValidate();
 	}
@@ -350,7 +343,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices
 				.add(recordServices.newRecordWithSchema(zoraDomain.getDefaultSchema()).set(TITLE, "test")
-						.set(Schemas.CODE, "test"));
+								   .set(Schemas.CODE, "test"));
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();

@@ -1,20 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.ComparisonFailure;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
@@ -37,6 +22,20 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.junit.Before;
+import org.junit.ComparisonFailure;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
@@ -115,7 +114,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitlePath()));
+																			 .setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitlePath()));
 
 		for (Record record : records) {
 			assertThat(record.isFullyLoaded()).isFalse();
@@ -152,8 +151,8 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
-				.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(Schemas.TITLE)).isEqualTo("original title");
+								.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+								.get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
@@ -192,8 +191,8 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
-				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(Schemas.TITLE)).isEqualTo("original title");
+								.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+								.get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
@@ -473,11 +472,11 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		record1 = (TestRecord) transaction.add(newRecordOf("1", zeCollectionSchemaWithoutCache).withTitle("a"));
 		record2 = (TestRecord) transaction.add(newRecordOf("2", zeCollectionSchemaWithPermanentCache).withTitle("b"));
 		record3 = (TestRecord) transaction.add(newRecordOf("3", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
+																									.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
 		transaction.add(newRecordOf("18", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
+																			  .set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
 		transaction.add(newRecordOf("42", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
+																			  .set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
 		recordServices.execute(transaction);
 		recordServices.add(record4 = newRecordOf("4", anotherCollectionSchemaWithVolatileCache).withTitle("d"));
 		recordServices.add(record5 = newRecordOf("5", anotherCollectionSchemaWithoutCache).withTitle("e"));

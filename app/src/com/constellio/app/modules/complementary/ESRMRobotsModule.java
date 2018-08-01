@@ -1,12 +1,5 @@
 package com.constellio.app.modules.complementary;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -23,6 +16,13 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigration {
 	public static final String ID = "es_rm_robots";

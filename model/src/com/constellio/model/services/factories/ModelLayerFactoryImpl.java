@@ -1,19 +1,5 @@
 package com.constellio.model.services.factories;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-
-import java.io.IOException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.model.services.search.*;
-import com.constellio.model.services.thesaurus.ThesaurusManager;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.data.conf.CacheType;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -61,6 +47,7 @@ import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImp
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.*;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -69,20 +56,22 @@ import com.constellio.model.services.security.authentification.CombinedAuthentic
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.taxonomies.EventBusTaxonomiesSearchServicesCache;
-import com.constellio.model.services.taxonomies.MemoryTaxonomiesSearchServicesCache;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
+import com.constellio.model.services.taxonomies.*;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.SolrGlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
-import com.constellio.model.services.users.UserPhotosServices;
-import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.*;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
@@ -133,9 +122,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
-			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
-			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
-			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+								 ModelLayerConfiguration modelLayerConfiguration,
+								 StatefullServiceDecorator statefullServiceDecorator,
+								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
@@ -244,7 +234,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public synchronized ThesaurusManager getThesaurusManager() {
-		if(thesaurusManager == null) {
+		if (thesaurusManager == null) {
 			thesaurusManager = add(new ThesaurusManager(this));
 		}
 		return thesaurusManager;

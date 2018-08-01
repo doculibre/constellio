@@ -1,27 +1,10 @@
 package com.constellio.sdk.tests;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Taxonomy;
@@ -34,6 +17,14 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTest {
 	ConstellioPluginManager pluginManager;
@@ -88,7 +79,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		int i = 0;
@@ -127,7 +118,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Document.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 
@@ -153,7 +144,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, AdministrativeUnit.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThereIsNotSystemReservedIn(metadataCodes);
@@ -170,7 +161,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Category.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThat(metadataCodes.get(0)).isEqualTo(Category.DEFAULT_SCHEMA + "_" + Category.CODE);
@@ -193,7 +184,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, DecommissioningList.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		int i = 0;
@@ -216,7 +207,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, FilingSpace.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThat(metadataCodes.get(0)).isEqualTo(FilingSpace.DEFAULT_SCHEMA + "_" + FilingSpace.CODE);
@@ -251,7 +242,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, StorageSpace.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.subList(0, 6)).isEqualTo(asList(
 				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.TYPE,
@@ -277,7 +268,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, UniformSubdivision.DEFAULT_SCHEMA)
-				.getFormMetadataCodes();
+														  .getFormMetadataCodes();
 
 		assertThat(metadataCodes.subList(0, 4)).isEqualTo(asList(
 				UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.CODE,

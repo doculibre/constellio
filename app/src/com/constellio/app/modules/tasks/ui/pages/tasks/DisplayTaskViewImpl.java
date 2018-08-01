@@ -1,12 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
@@ -26,13 +19,15 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";

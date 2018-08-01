@@ -8,27 +8,27 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class SIPProgressionViewPresenter extends BasePresenter<SIPProgressionViewImpl> {
 
-    private ProgressInfo progressInfo;
+	private ProgressInfo progressInfo;
 
-    public SIPProgressionViewPresenter(SIPProgressionViewImpl view, String id) {
-        super(view);
-        setTask(id);
-    }
+	public SIPProgressionViewPresenter(SIPProgressionViewImpl view, String id) {
+		super(view);
+		setTask(id);
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return true;
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
 
-    protected AsyncTaskBatchProcess getTask(String id) {
-        return (AsyncTaskBatchProcess) modelLayerFactory.getBatchProcessesManager().get(id);
-    }
+	protected AsyncTaskBatchProcess getTask(String id) {
+		return (AsyncTaskBatchProcess) modelLayerFactory.getBatchProcessesManager().get(id);
+	}
 
-    public ProgressInfo getProgressInfo() {
-        return progressInfo;
-    }
+	public ProgressInfo getProgressInfo() {
+		return progressInfo;
+	}
 
-    protected void setTask(String id) {
-        progressInfo = ((SIPBuildAsyncTask) getTask(id).getTask()).getProgressInfo();
-    }
+	protected void setTask(String id) {
+		progressInfo = ((SIPBuildAsyncTask) getTask(id).getTask()).getProgressInfo();
+	}
 }

@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class FilingSpace extends RecordWrapper {
 
@@ -24,7 +24,7 @@ public class FilingSpace extends RecordWrapper {
 	public static final String COMMENTS = "comments";
 
 	public FilingSpace(Record record,
-			MetadataSchemaTypes types) {
+					   MetadataSchemaTypes types) {
 		super(record, types, DEFAULT_SCHEMA);
 	}
 

@@ -1,14 +1,4 @@
-
 package com.constellio.app.ui.pages.search.criteria;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
 
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
@@ -17,6 +7,14 @@ import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.Crit
 import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestEnum;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 	public static final String STRING_VALUE = "string value";

@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.model.entities.schemas.Schemas;
@@ -12,6 +7,10 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
@@ -26,7 +25,7 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+								  .withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -53,9 +52,9 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("X100", "X13");
 
 		taxoManagementWebElement.add()
-				.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEW")
-				.setValue(Category.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode(), "New category")
-				.clickSaveButtonAndWaitForPageReload();
+								.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEW")
+								.setValue(Category.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode(), "New category")
+								.clickSaveButtonAndWaitForPageReload();
 
 		assertThat(taxoManagementWebElement.getCurrentConceptCode()).isEqualTo("X");
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("X100", "X13", "NEW");
@@ -66,8 +65,8 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		assertThat(taxoManagementWebElement.getCurrentConceptTitle()).isEqualTo("New category");
 
 		taxoManagementWebElement.add()
-				.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEWER")
-				.clickCancelButtonAndWaitForPageReload();
+								.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEWER")
+								.clickCancelButtonAndWaitForPageReload();
 
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).isEmpty();
 	}

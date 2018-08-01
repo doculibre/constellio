@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMConfigs.DecommissioningPhase;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -31,6 +21,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class DecommissioningServiceFolderDecommissioningAcceptTest extends ConstellioTest {
 	DecommissioningService service;
@@ -43,7 +42,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = new DecommissioningService(zeCollection, getAppLayerFactory());
@@ -746,7 +745,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		}
 	}
 
-	private void verifyProcessed(LocalDate processingDate, User processingUser, DecommissioningList decommissioningList) {
+	private void verifyProcessed(LocalDate processingDate, User processingUser,
+								 DecommissioningList decommissioningList) {
 		assertThat(decommissioningList.getProcessingDate()).isEqualTo(processingDate);
 		assertThat(decommissioningList.getProcessingUser()).isEqualTo(processingUser.getId());
 	}

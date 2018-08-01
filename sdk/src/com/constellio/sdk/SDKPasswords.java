@@ -1,15 +1,14 @@
 package com.constellio.sdk;
 
+import com.constellio.data.utils.ConsoleLogger;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.model.conf.FoldersLocator;
+import org.junit.internal.AssumptionViolatedException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-
-import org.junit.internal.AssumptionViolatedException;
-
-import com.constellio.data.utils.ConsoleLogger;
-import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
 
 public class SDKPasswords {
 

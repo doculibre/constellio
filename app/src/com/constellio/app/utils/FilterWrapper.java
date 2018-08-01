@@ -1,22 +1,16 @@
 package com.constellio.app.utils;
 
+import javax.servlet.*;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-
 public class FilterWrapper implements Filter, Serializable {
-	
+
 	private Filter wrapped;
 
 	public FilterWrapper(Filter wrapped) {
 		super();
-		
+
 		this.wrapped = wrapped;
 	}
 

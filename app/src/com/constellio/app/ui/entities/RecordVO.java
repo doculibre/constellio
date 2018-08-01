@@ -1,16 +1,16 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 @SuppressWarnings("serial")
 public class RecordVO implements Serializable {

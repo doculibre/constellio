@@ -17,7 +17,7 @@ public class RecordLogicalDeletionValidationEvent implements RecordEvent {
 	boolean thenPhysicallyDeleted;
 
 	public RecordLogicalDeletionValidationEvent(Record record, User user, Factory<Boolean> referenceCount,
-			boolean thenPhysicallyDeleted) {
+												boolean thenPhysicallyDeleted) {
 		this.record = record;
 		this.user = user;
 		this.referenceCount = new FactoryWithCache<>(referenceCount);

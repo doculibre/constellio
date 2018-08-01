@@ -1,16 +1,11 @@
 package com.constellio.app.modules.tasks.services.background;
 
-import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.ui.components.fields.TaskReminderFrequencyFieldImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -20,19 +15,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class AlertOverdueTasksBackgroundAction implements Runnable {
@@ -74,8 +64,8 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 				String userIdToSendEmailTo = task.getAssignee();
 				int numberOfRemindersAlreadySent = task.getNumberOfReminders();
 
-				if(numberOfRemindersAlreadySent != -1) {
-					if(isLimitAttained(reminderFrequency, numberOfRemindersAlreadySent)) {
+				if (numberOfRemindersAlreadySent != -1) {
+					if (isLimitAttained(reminderFrequency, numberOfRemindersAlreadySent)) {
 						userIdToSendEmailTo = task.getEscalationAssignee();
 						numberOfRemindersAlreadySent = -1;
 					} else {
@@ -107,11 +97,12 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 		}
 	}
 
-	private LocalDateTime addFrequencyToDueDate(LocalDateTime dueDate, String reminderFrequency, LocalDateTime lastReminder) {
+	private LocalDateTime addFrequencyToDueDate(LocalDateTime dueDate, String reminderFrequency,
+												LocalDateTime lastReminder) {
 		String[] parameters = reminderFrequency.split(PARAMETER_SEPARATOR);
 		LocalDateTime returnedValue = null;
-		LocalDateTime reminderDate = lastReminder == null? dueDate:lastReminder;
-		if(parameters.length >= 2) {
+		LocalDateTime reminderDate = lastReminder == null ? dueDate : lastReminder;
+		if (parameters.length >= 2) {
 			String reminderFrequencyType = parameters[0];
 			String reminderFrequencyValue = parameters[1];
 
@@ -132,11 +123,11 @@ public class AlertOverdueTasksBackgroundAction implements Runnable {
 
 	public boolean isLimitAttained(String reminderFrequency, int numberOfReminders) {
 		boolean isLimitAttained = false;
-		if(numberOfReminders == -1) {
+		if (numberOfReminders == -1) {
 			isLimitAttained = true;
 		} else {
 			String[] parameters = reminderFrequency.split(PARAMETER_SEPARATOR);
-			if(parameters.length == 4) {
+			if (parameters.length == 4) {
 				String reminderDurationType = parameters[2];
 				String reminderDurationValue = parameters[3];
 

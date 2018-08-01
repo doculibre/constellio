@@ -1,20 +1,5 @@
 package com.constellio.model.services.records.populators;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.assertj.core.data.MapEntry;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -27,6 +12,16 @@ import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.data.MapEntry;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SearchFieldsPopulatorTest extends ConstellioTest {
 
@@ -252,13 +247,13 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 		when(metadata.isSortable()).thenReturn(false);
 		Object value = Arrays.asList(klingonIntimidation, klingonIntimidation2, beauceronMessage, oldElvishText, failureMessage);
 		assertThat(populator.populateCopyfields(metadata, value, Locale.FRENCH)).hasSize(2)
-				.containsEntry("title_txt_klingon", Arrays.asList(klingonIntimidation, klingonIntimidation2))
-				.containsEntry("title_txt_elvish", Arrays.asList(oldElvishText));
+																				.containsEntry("title_txt_klingon", Arrays.asList(klingonIntimidation, klingonIntimidation2))
+																				.containsEntry("title_txt_elvish", Arrays.asList(oldElvishText));
 
 		value = Arrays.asList(klingonIntimidation, klingonIntimidation2, beauceronMessage);
 		assertThat(populator.populateCopyfields(metadata, value, Locale.FRENCH)).hasSize(2)
-				.containsEntry("title_txt_klingon", Arrays.asList(klingonIntimidation, klingonIntimidation2))
-				.containsEntry("title_txt_elvish", Arrays.asList(""));
+																				.containsEntry("title_txt_klingon", Arrays.asList(klingonIntimidation, klingonIntimidation2))
+																				.containsEntry("title_txt_elvish", Arrays.asList(""));
 
 	}
 
@@ -276,25 +271,25 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 		Object value = Arrays.asList(oldElvishTextContent, klingonIntimidationContent1, klingonIntimidationContent2,
 				contentWithoutParsedContent);
 		assertThat(populator.populateCopyfields(metadata, value, Locale.FRENCH)).hasSize(4)
-				.containsEntry("content_txt_klingon", Arrays.asList(klingonIntimidation, klingonIntimidation2))
-				.containsEntry("content_txt_elvish", Arrays.asList(oldElvishText))
-				.containsEntry("content_klingon_ss",
-						Arrays.asList(klingonIntimidationContent1CurrentVersionFilename,
-								klingonIntimidationContent2CurrentVersionFilename,
-								contentWithoutParsedContentCurrentVersionFilename))
-				.containsEntry("content_elvish_ss",
-						Arrays.asList(oldElvishTextContentCurrentVersionFilename,
-								contentWithoutParsedContentCurrentVersionFilename));
+																				.containsEntry("content_txt_klingon", Arrays.asList(klingonIntimidation, klingonIntimidation2))
+																				.containsEntry("content_txt_elvish", Arrays.asList(oldElvishText))
+																				.containsEntry("content_klingon_ss",
+																						Arrays.asList(klingonIntimidationContent1CurrentVersionFilename,
+																								klingonIntimidationContent2CurrentVersionFilename,
+																								contentWithoutParsedContentCurrentVersionFilename))
+																				.containsEntry("content_elvish_ss",
+																						Arrays.asList(oldElvishTextContentCurrentVersionFilename,
+																								contentWithoutParsedContentCurrentVersionFilename));
 
 		value = Arrays.asList(klingonIntimidationContent1, contentWithoutParsedContent);
 		assertThat(populator.populateCopyfields(metadata, value, Locale.FRENCH)).hasSize(4)
-				.containsEntry("content_txt_klingon", Arrays.asList(klingonIntimidation))
-				.containsEntry("content_klingon_ss",
-						Arrays.asList(klingonIntimidationContent1CurrentVersionFilename,
-								contentWithoutParsedContentCurrentVersionFilename))
-				.containsEntry("content_elvish_ss",
-						Arrays.asList(contentWithoutParsedContentCurrentVersionFilename))
-				.containsEntry("content_txt_elvish", Arrays.asList(""))
+																				.containsEntry("content_txt_klingon", Arrays.asList(klingonIntimidation))
+																				.containsEntry("content_klingon_ss",
+																						Arrays.asList(klingonIntimidationContent1CurrentVersionFilename,
+																								contentWithoutParsedContentCurrentVersionFilename))
+																				.containsEntry("content_elvish_ss",
+																						Arrays.asList(contentWithoutParsedContentCurrentVersionFilename))
+																				.containsEntry("content_txt_elvish", Arrays.asList(""))
 		;
 
 	}

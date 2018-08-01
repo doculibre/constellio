@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -23,26 +16,10 @@ import com.constellio.app.modules.rm.model.calculators.decommissioningList.Decom
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCopyRuleCalculator2;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCopyTypeCalculator2;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformRuleCalculator2;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentActualDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentActualDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentActualTransferDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentApplicableCopyRulesCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentArchivisticStatusCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedTransferDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentIsSameInactiveFateAsFolderCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentIsSameSemiActiveFateAsFolderCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentMainCopyRuleCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentRetentionRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.*;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -55,6 +32,11 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 public class RMMigrationTo5_1_9 implements MigrationScript {
 	@Override
@@ -83,8 +65,8 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 		).beforeTheHugeCommentMetadata();
 
 		transaction.in(RetentionRule.SCHEMA_TYPE)
-				.addToForm(RetentionRule.SCOPE).atFirstPosition()
-				.in(RetentionRule.SCHEMA_TYPE).addToForm(
+				   .addToForm(RetentionRule.SCOPE).atFirstPosition()
+				   .in(RetentionRule.SCHEMA_TYPE).addToForm(
 				RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
 				RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
 				RetentionRule.DOCUMENT_COPY_RETENTION_RULES).afterMetadata(RetentionRule.COPY_RETENTION_RULES);
@@ -129,7 +111,8 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 	public static class SchemaAlterationsFor5_1_9 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor5_1_9(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor5_1_9(String collection, MigrationResourcesProvider provider,
+											AppLayerFactory factory) {
 			super(collection, provider, factory);
 
 			configureTableMetadatas(collection, factory);
@@ -174,7 +157,7 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 		private void createNewDecommissioningListMetadata() {
 			MetadataSchemaBuilder schema = types().getSchemaType(DecommissioningList.SCHEMA_TYPE)
-					.getDefaultSchema();
+												  .getDefaultSchema();
 			MetadataSchemaTypeBuilder document = types().getSchemaType(Document.SCHEMA_TYPE);
 
 			schema.createUndeletable(DecommissioningList.DOCUMENTS_REPORT_CONTENT).setType(CONTENT);
@@ -198,19 +181,19 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 		private void setupCategoryMetadatasCalculators() {
 			MetadataSchemaBuilder defaultSchema = types().getSchemaType(Category.SCHEMA_TYPE)
-					.getDefaultSchema();
+														 .getDefaultSchema();
 			defaultSchema.create(Category.LEVEL).setType(MetadataValueType.NUMBER)
-					.defineDataEntry().asCalculated(CategoryLevelCalculator.class);
+						 .defineDataEntry().asCalculated(CategoryLevelCalculator.class);
 			defaultSchema.create(Category.COPY_RETENTION_RULES_ON_DOCUMENT_TYPES)
-					.defineStructureFactory(CopyRetentionRuleInRuleFactory.class).setMultivalue(true)
-					.defineDataEntry().asCalculated(CategoryCopyRetentionRulesOnDocumentTypesCalculator.class);
+						 .defineStructureFactory(CopyRetentionRuleInRuleFactory.class).setMultivalue(true)
+						 .defineDataEntry().asCalculated(CategoryCopyRetentionRulesOnDocumentTypesCalculator.class);
 		}
 
 		private void setupFoldersMetadatasCalculators() {
 			MetadataSchemaBuilder defaultSchema = types().getSchemaType(Folder.SCHEMA_TYPE)
-					.getDefaultSchema();
+														 .getDefaultSchema();
 			defaultSchema.get(Folder.COPY_STATUS)
-					.defineDataEntry().asCalculated(FolderCopyStatusCalculator3.class);
+						 .defineDataEntry().asCalculated(FolderCopyStatusCalculator3.class);
 		}
 
 		private void setupDocumentsMetadatasCalculators() {
@@ -219,38 +202,38 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 			MetadataBuilder folderRetentionRule = folderSchemaType.getDefaultSchema().getMetadata(Folder.RETENTION_RULE);
 			MetadataBuilder folderCopyStatus = folderSchemaType.getDefaultSchema().getMetadata(Folder.COPY_STATUS);
 			MetadataSchemaBuilder defaultSchema = types().getSchemaType(Document.SCHEMA_TYPE)
-					.getDefaultSchema();
+														 .getDefaultSchema();
 			defaultSchema.create(Document.INHERITED_FOLDER_RETENTION_RULE)
-					.defineReferencesTo(retentionRuleSchemaType)
-					.defineDataEntry().asCopied(defaultSchema.get(Document.FOLDER), folderRetentionRule);
+						 .defineReferencesTo(retentionRuleSchemaType)
+						 .defineDataEntry().asCopied(defaultSchema.get(Document.FOLDER), folderRetentionRule);
 			defaultSchema.create(Document.COPY_STATUS).defineAsEnum(CopyType.class)
-					.defineDataEntry().asCopied(defaultSchema.get(Document.FOLDER), folderCopyStatus);
+						 .defineDataEntry().asCopied(defaultSchema.get(Document.FOLDER), folderCopyStatus);
 			defaultSchema.getMetadata(Document.FOLDER_RETENTION_RULE)
-					.defineDataEntry().asCalculated(DocumentRetentionRuleCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentRetentionRuleCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_ARCHIVISTIC_STATUS)
-					.defineDataEntry().asCalculated(DocumentArchivisticStatusCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentArchivisticStatusCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_ACTUAL_DEPOSIT_DATE)
-					.defineDataEntry().asCalculated(DocumentActualDepositDateCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentActualDepositDateCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_ACTUAL_DESTRUCTION_DATE)
-					.defineDataEntry().asCalculated(DocumentActualDestructionDateCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentActualDestructionDateCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_ACTUAL_TRANSFER_DATE)
-					.defineDataEntry().asCalculated(DocumentActualTransferDateCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentActualTransferDateCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_EXPECTED_DEPOSIT_DATE)
-					.defineDataEntry().asCalculated(DocumentExpectedDepositDateCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentExpectedDepositDateCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_EXPECTED_DESTRUCTION_DATE)
-					.defineDataEntry().asCalculated(DocumentExpectedDestructionDateCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentExpectedDestructionDateCalculator.class);
 			defaultSchema.getMetadata(Document.FOLDER_EXPECTED_TRANSFER_DATE)
-					.defineDataEntry().asCalculated(DocumentExpectedTransferDateCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentExpectedTransferDateCalculator.class);
 			defaultSchema.createUndeletable(Document.APPLICABLE_COPY_RULES)
-					.defineStructureFactory(CopyRetentionRuleInRuleFactory.class).setMultivalue(true)
-					.defineDataEntry().asCalculated(DocumentApplicableCopyRulesCalculator.class);
+						 .defineStructureFactory(CopyRetentionRuleInRuleFactory.class).setMultivalue(true)
+						 .defineDataEntry().asCalculated(DocumentApplicableCopyRulesCalculator.class);
 			defaultSchema.createUndeletable(Document.SAME_SEMI_ACTIVE_FATE_AS_FOLDER).setType(BOOLEAN)
-					.defineDataEntry().asCalculated(DocumentIsSameSemiActiveFateAsFolderCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentIsSameSemiActiveFateAsFolderCalculator.class);
 			defaultSchema.createUndeletable(Document.SAME_INACTIVE_FATE_AS_FOLDER).setType(BOOLEAN)
-					.defineDataEntry().asCalculated(DocumentIsSameInactiveFateAsFolderCalculator.class);
+						 .defineDataEntry().asCalculated(DocumentIsSameInactiveFateAsFolderCalculator.class);
 			defaultSchema.createUndeletable(Document.MAIN_COPY_RULE)
-					.defineStructureFactory(CopyRetentionRuleFactory.class)
-					.defineDataEntry().asCalculated(DocumentMainCopyRuleCalculator.class);
+						 .defineStructureFactory(CopyRetentionRuleFactory.class)
+						 .defineDataEntry().asCalculated(DocumentMainCopyRuleCalculator.class);
 			defaultSchema.createUndeletable(Document.ACTUAL_DEPOSIT_DATE_ENTERED).setType(MetadataValueType.DATE);
 			defaultSchema.createUndeletable(Document.ACTUAL_DESTRUCTION_DATE_ENTERED).setType(MetadataValueType.DATE);
 			defaultSchema.createUndeletable(Document.ACTUAL_TRANSFER_DATE_ENTERED).setType(MetadataValueType.DATE);
@@ -259,19 +242,19 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 		private void createNewRetentionRulesMetadatas() {
 			MetadataSchemaBuilder defaultSchema = types().getSchemaType(RetentionRule.SCHEMA_TYPE)
-					.getDefaultSchema();
+														 .getDefaultSchema();
 			defaultSchema.createUndeletable(RetentionRule.DOCUMENT_COPY_RETENTION_RULES)
-					.setMultivalue(true)
-					.setType(STRUCTURE)
-					.defineStructureFactory(CopyRetentionRuleFactory.class);
+						 .setMultivalue(true)
+						 .setType(STRUCTURE)
+						 .defineStructureFactory(CopyRetentionRuleFactory.class);
 			defaultSchema.createUndeletable(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE)
-					.setType(STRUCTURE)
-					.defineStructureFactory(CopyRetentionRuleFactory.class);
+						 .setType(STRUCTURE)
+						 .defineStructureFactory(CopyRetentionRuleFactory.class);
 			defaultSchema.createUndeletable(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE)
-					.setType(STRUCTURE)
-					.defineStructureFactory(CopyRetentionRuleFactory.class);
+						 .setType(STRUCTURE)
+						 .defineStructureFactory(CopyRetentionRuleFactory.class);
 			defaultSchema.createUndeletable(RetentionRule.SCOPE)
-					.defineAsEnum(RetentionRuleScope.class);
+						 .defineAsEnum(RetentionRuleScope.class);
 			defaultSchema.get(RetentionRule.COPY_RETENTION_RULES).setDefaultRequirement(false);
 		}
 

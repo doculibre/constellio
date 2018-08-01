@@ -6,11 +6,8 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.HashMap;
@@ -23,7 +20,8 @@ public class TasksMigrationTo7_6_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new TaskSchemaAlterationFor7_6_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
@@ -33,13 +31,13 @@ public class TasksMigrationTo7_6_1 implements MigrationScript {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypeDisplayConfig taskSchemaType = manager.getType(collection, Task.SCHEMA_TYPE);
 		Map<String, Map<Language, String>> metadataGroup = new HashMap<>(taskSchemaType.getMetadataGroup());
-		if(metadataGroup.containsKey(remindersTab)) {
+		if (metadataGroup.containsKey(remindersTab)) {
 			Map<Language, String> tabLabels = new HashMap<>();
 			tabLabels.put(Language.French, "\uF0A2 Rappels");
 			tabLabels.put(Language.English, "\uF0A2 Reminders");
 			metadataGroup.put(remindersTab, tabLabels);
 		}
-		if(metadataGroup.containsKey(detailsTab)) {
+		if (metadataGroup.containsKey(detailsTab)) {
 			Map<Language, String> tabLabels = new HashMap<>();
 			tabLabels.put(Language.French, "\uF0EA Fichiers");
 			tabLabels.put(Language.English, "\uF0EA Files");
@@ -59,10 +57,10 @@ public class TasksMigrationTo7_6_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata(Task.LAST_REMINDER)
-					.addLabel(Language.French,"Dernier rappel").addLabel(Language.English,"Last reminder");
+						.addLabel(Language.French, "Dernier rappel").addLabel(Language.English, "Last reminder");
 
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata(Task.NUMBER_OF_REMINDERS)
-					.addLabel(Language.French,"Nombre de rappels").addLabel(Language.English,"Number of reminders");
+						.addLabel(Language.French, "Nombre de rappels").addLabel(Language.English, "Number of reminders");
 		}
 	}
 }

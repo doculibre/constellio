@@ -1,16 +1,15 @@
 package com.constellio.app.ui.tools;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-
 import com.constellio.app.ui.tools.RecordContainerWebElementRuntimeException.RecordContainerWebElementRuntimeException_NoSuchRowWithValueInColumn;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RecordContainerWebElement {
 

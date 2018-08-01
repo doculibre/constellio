@@ -3,9 +3,7 @@ package com.constellio.app.modules.es.extensions;
 
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.modules.es.constants.ESTaxonomies;
-import com.constellio.app.services.factories.AppLayerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;

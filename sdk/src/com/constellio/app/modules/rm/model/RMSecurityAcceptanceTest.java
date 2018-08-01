@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.DELETE_CONTAINERS;
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.DISPLAY_CONTAINERS;
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_CONTAINERS;
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_STORAGE_SPACES;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.entities.records.wrappers.User;
@@ -23,6 +11,14 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMSecurityAcceptanceTest extends ConstellioTest {
 
@@ -44,7 +40,7 @@ public class RMSecurityAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		rolesManager = getModelLayerFactory().getRolesManager();

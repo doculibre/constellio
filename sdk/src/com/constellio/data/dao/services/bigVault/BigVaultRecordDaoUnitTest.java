@@ -1,20 +1,19 @@
 package com.constellio.data.dao.services.bigVault;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.constellio.data.dao.services.DataLayerLogger;
-import com.constellio.data.dao.services.DataStoreTypesFactory;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class BigVaultRecordDaoUnitTest {
 

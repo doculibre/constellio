@@ -4,11 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.WorkflowTask;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -27,7 +23,7 @@ public class CoreMigrationTo_6_1 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_1 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

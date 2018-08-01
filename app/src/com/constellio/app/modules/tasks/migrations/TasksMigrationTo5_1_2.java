@@ -1,18 +1,16 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.services.emails.EmailTemplatesManager;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class TasksMigrationTo5_1_2 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -21,14 +19,16 @@ public class TasksMigrationTo5_1_2 extends MigrationHelper implements MigrationS
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
 	}
 
-	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void reloadEmailTemplates(AppLayerFactory appLayerFactory,
+									  MigrationResourcesProvider migrationResourcesProvider,
+									  String collection) {
 		reloadEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "taskAssigneeModificationTemplate.html",
 				TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
 		reloadEmailTemplate(appLayerFactory, migrationResourcesProvider, collection,
@@ -46,13 +46,14 @@ public class TasksMigrationTo5_1_2 extends MigrationHelper implements MigrationS
 				TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
 	}
 
-	private void addEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplate(AppLayerFactory appLayerFactory,
+								  MigrationResourcesProvider migrationResourcesProvider,
+								  String collection,
+								  String templateFileName, String templateId) {
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-					.addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
+						   .addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -60,12 +61,13 @@ public class TasksMigrationTo5_1_2 extends MigrationHelper implements MigrationS
 		}
 	}
 
-	private void reloadEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void reloadEmailTemplate(AppLayerFactory appLayerFactory,
+									 MigrationResourcesProvider migrationResourcesProvider,
+									 String collection,
+									 String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-				.getEmailTemplatesManager();
+																	.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

@@ -1,11 +1,5 @@
 package com.constellio.app.entities.modules;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -14,16 +8,21 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.RolesManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MigrationHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MigrationHelper.class);
 
 	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
-			SchemaDisplayConfig schema, String... localCodes) {
+										SchemaDisplayConfig schema, String... localCodes) {
 
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory()
-				.getMetadataSchemasManager().getSchemaTypes(collection);
+														 .getMetadataSchemasManager().getSchemaTypes(collection);
 
 		List<String> visibleMetadataCodes = new ArrayList<>();
 		for (String localCode : localCodes) {
@@ -45,7 +44,7 @@ public class MigrationHelper {
 			} else {
 				try {
 					if (!schemaTypes.getMetadata(retrievedMetadataCode)
-							.isSystemReserved()) {
+									.isSystemReserved()) {
 						otherMetadatas.add(retrievedMetadataCode);
 					}
 				} catch (InvalidCodeFormat e) {

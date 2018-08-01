@@ -1,24 +1,11 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.entities.Language;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -40,6 +27,18 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest extends ConstellioTest {
@@ -187,7 +186,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata(childOfReference), "000666");
+				   .set(zeSchema.metadata(childOfReference), "000666");
 
 		transaction.add(new TestRecord(zeSchema, "000666"));
 

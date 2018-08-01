@@ -1,14 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.validators;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.model.entities.schemas.ConfigProvider;
@@ -16,6 +7,14 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends ConstellioTest {
 
@@ -86,7 +85,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 		validator.validate(parameters, schema, configProvider, errors);
 
 		assertThat(errors).has(size(1))
-				.has(error(ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_TAXO_XOR_DEFAULT_PARENT_FOLDER));
+						  .has(error(ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_TAXO_XOR_DEFAULT_PARENT_FOLDER));
 	}
 
 	@Test

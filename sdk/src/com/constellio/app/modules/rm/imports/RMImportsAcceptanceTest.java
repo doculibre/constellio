@@ -1,20 +1,11 @@
 package com.constellio.app.modules.rm.imports;
 
-import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
-import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
-import com.constellio.app.services.schemas.bulkImport.DummyImportDataProvider;
-import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
-import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
+import com.constellio.app.services.schemas.bulkImport.*;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
@@ -23,6 +14,10 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Test;
+
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMImportsAcceptanceTest extends ConstellioTest {
 
@@ -73,11 +68,11 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 			@Override
 			public ImportDataBuilder get(String id) {
 				return folder().setId(id).addField("title", "Record " + id)
-						.addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
-						.addField(Folder.CATEGORY_ENTERED, "code:X13")
-						.addField(Folder.RETENTION_RULE_ENTERED, "code:1")
-						.addField(Folder.OPENING_DATE, date(2015, 1, 4))
-						.addField(Folder.ENTERED_CLOSING_DATE, date(2016, 1, 4));
+							   .addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
+							   .addField(Folder.CATEGORY_ENTERED, "code:X13")
+							   .addField(Folder.RETENTION_RULE_ENTERED, "code:1")
+							   .addField(Folder.OPENING_DATE, date(2015, 1, 4))
+							   .addField(Folder.ENTERED_CLOSING_DATE, date(2016, 1, 4));
 			}
 		};
 
@@ -85,12 +80,12 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 			@Override
 			public ImportDataBuilder get(String id) {
 				return folder().setId(id).addField("title", "Record " + id)
-						.addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
-						.addField(Folder.CATEGORY_ENTERED, "code:X13")
-						.addField(Folder.RETENTION_RULE_ENTERED, "code:2")
-						.addField(Folder.COPY_STATUS_ENTERED, "P")
-						.addField(Folder.OPENING_DATE, date(2014, 1, 4))
-						.addField(Folder.ENTERED_CLOSING_DATE, date(2015, 1, 4));
+							   .addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
+							   .addField(Folder.CATEGORY_ENTERED, "code:X13")
+							   .addField(Folder.RETENTION_RULE_ENTERED, "code:2")
+							   .addField(Folder.COPY_STATUS_ENTERED, "P")
+							   .addField(Folder.OPENING_DATE, date(2014, 1, 4))
+							   .addField(Folder.ENTERED_CLOSING_DATE, date(2015, 1, 4));
 			}
 		};
 
@@ -160,8 +155,8 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void bulkImport(ImportDataProvider importDataProvider,
-			final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user, BulkImportParams params)
+							final BulkImportProgressionListener bulkImportProgressionListener,
+							final User user, BulkImportParams params)
 			throws ValidationException {
 
 		params.setImportErrorsBehavior(CONTINUE_FOR_RECORD_OF_SAME_TYPE);

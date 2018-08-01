@@ -1,21 +1,20 @@
 package com.constellio.app.modules.es.connectors;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import com.constellio.app.modules.es.connectors.spi.DefaultAbstractConnector;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
-import com.constellio.app.modules.es.connectors.spi.DefaultAbstractConnector;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.Record;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public abstract class GenericConnector extends DefaultAbstractConnector {
 	private static final Logger LOGGER = LogManager.getLogger(GenericConnector.class);
@@ -189,12 +188,12 @@ public abstract class GenericConnector extends DefaultAbstractConnector {
 	}
 
 	protected abstract ConnectorJob newConnectorUpdaterJob(GenericConnector genericConnector,
-			GenericConnectorInstance connectorInstance,
-			List<String> documentsToCrawlRemoteIds, String documentType);
+														   GenericConnectorInstance connectorInstance,
+														   List<String> documentsToCrawlRemoteIds, String documentType);
 
 	protected abstract ConnectorJob newConnectorCrawlerJob(GenericConnector genericConnector,
-			GenericConnectorInstance connectorInstance,
-			List<String> documentsToCrawlRemoteIds, String documentType);
+														   GenericConnectorInstance connectorInstance,
+														   List<String> documentsToCrawlRemoteIds, String documentType);
 
 	interface GenericConnectorInstance {
 		int getNumberOfJobsInParallel();
@@ -232,8 +231,8 @@ public abstract class GenericConnector extends DefaultAbstractConnector {
 
 		private boolean isFetchEnded() {
 			if (this.allNewObjectsToFetch.isEmpty()
-					&& this.allObjectsToUpdate.isEmpty()
-					&& this.allObjectsToRemoveConstellioIds.isEmpty()) {
+				&& this.allObjectsToUpdate.isEmpty()
+				&& this.allObjectsToRemoveConstellioIds.isEmpty()) {
 				return true;
 			} else {
 				return false;
@@ -270,7 +269,7 @@ public abstract class GenericConnector extends DefaultAbstractConnector {
 					this.allObjectsToRemoveConstellioIds.add(documentInfo.getConstellioRecordId());
 				} else {
 					LocalDateTime documentExpirationTime = documentInfo.getLastFetch()
-							.plus(connectorInstance.getMaxDurationBetweenTraversals());
+																	   .plus(connectorInstance.getMaxDurationBetweenTraversals());
 					if (documentExpirationTime.isBefore(traversalStart) || documentExpirationTime.equals(traversalStart)) {
 						this.allObjectsToUpdate.add(remoteId);
 					}
@@ -326,7 +325,8 @@ public abstract class GenericConnector extends DefaultAbstractConnector {
 		}
 	}
 
-	private List<ConstellioDocumentInfo> getAllConnectorInstanceDocumentOfType(GenericConnectorInstance connectorInstance,
+	private List<ConstellioDocumentInfo> getAllConnectorInstanceDocumentOfType(
+			GenericConnectorInstance connectorInstance,
 			String documentType) {
 		//TODO write query svp
 		//LogicalSearchQuery query = es.connectorDocumentsToFetchQuery((ConnectorInstance<?>) connectorInstance, documentType);

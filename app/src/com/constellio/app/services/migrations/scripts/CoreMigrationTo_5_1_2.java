@@ -1,8 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -10,6 +7,9 @@ import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CoreMigrationTo_5_1_2 implements MigrationScript {
 	@Override

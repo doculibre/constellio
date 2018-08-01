@@ -1,16 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.TERMINATED_STATUS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Record;
@@ -22,7 +11,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
+
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.TERMINATED_STATUS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class TasksSearchServices {
 	TasksSchemasRecordsServices tasksSchemas;
@@ -36,23 +32,23 @@ public class TasksSearchServices {
 	public LogicalSearchQuery getTasksAssignedByUserQuery(User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assigner()).isEqualTo(user)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-						.andWhere(tasksSchemas.userTask.assignee()).isNotEqual(user)
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
-						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
-						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
+														.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+														.andWhere(tasksSchemas.userTask.assignee()).isNotEqual(user)
+														.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+														.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
+														.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assignee()).isNull()
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
-						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
-						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
-						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
+														.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+														.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
+														.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
+														.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+														.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
+														.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
@@ -99,8 +95,8 @@ public class TasksSearchServices {
 	public LogicalSearchQuery getDirectSubTasks(String taskId, User user) {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.parentTask()).isEqualTo(taskId)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
+														.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+														.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
 				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
@@ -126,8 +122,8 @@ public class TasksSearchServices {
 	public TaskStatus getFirstFinishedStatus() {
 		LogicalSearchQuery firstClosedTaskStatusQuery = new LogicalSearchQuery(
 				from(tasksSchemas.ddvTaskStatus.schema()).where(tasksSchemas.ddvTaskStatus.statusType())
-						.is(FINISHED)
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+														 .is(FINISHED)
+														 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.sortDesc(tasksSchemas.ddvTaskStatus.createdOn())
 				.sortDesc(tasksSchemas.ddvTaskStatus.modifiedOn()).setNumberOfRows(1);
 		List<Record> result = searchServices.search(firstClosedTaskStatusQuery);
@@ -140,13 +136,13 @@ public class TasksSearchServices {
 	public List<TaskStatus> getFinishedStatuses() {
 		return tasksSchemas.searchTaskStatuss(
 				where(tasksSchemas.ddvTaskStatus.statusType()).is(FINISHED).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
-						.isFalseOrNull());
+															  .isFalseOrNull());
 	}
 
 	public List<TaskStatus> getClosedStatuses() {
 		return tasksSchemas.searchTaskStatuss(
 				where(tasksSchemas.ddvTaskStatus.statusType()).is(CLOSED).andWhere(Schemas.LOGICALLY_DELETED_STATUS)
-						.isFalseOrNull());
+															  .isFalseOrNull());
 	}
 
 	public String getSchemaCodeForTaskTypeRecordId(String taskTypeRecordId) {

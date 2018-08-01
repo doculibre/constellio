@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -15,6 +8,12 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmailAcceptanceTest extends ConstellioTest {
 
@@ -28,7 +27,7 @@ public class EmailAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -65,8 +64,8 @@ public class EmailAcceptanceTest extends ConstellioTest {
 		assertThat(email.getFolderCategory()).isEqualTo(records.categoryId_X110);
 
 		Folder folder = records.getFolder_A03()
-				.setCategoryEntered(records.categoryId_X13)
-				.setAdministrativeUnitEntered(records.unitId_11b);
+							   .setCategoryEntered(records.categoryId_X13)
+							   .setAdministrativeUnitEntered(records.unitId_11b);
 
 		recordServices.execute(new Transaction(folder.getWrappedRecord()));
 		waitForBatchProcess();

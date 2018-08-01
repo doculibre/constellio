@@ -1,33 +1,23 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.model.entities.enums.ParsingBehavior;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
@@ -48,7 +38,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		assumeLocalSolr();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
-				.withFoldersAndContainersOfEveryStatus());
+										.withFoldersAndContainersOfEveryStatus());
 		//syncSolrConfigurationFiles(getDataLayerFactory());
 		synonymsConfigurationsManager = getModelLayerFactory().getSynonymsConfigurationsManager();
 		searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();

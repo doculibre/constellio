@@ -133,73 +133,73 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 			Field<?> field;
 			switch (metadataVO.getLocalCode()) {
-			case RetentionRule.COPY_RETENTION_RULES:
-				if (presenter.isFoldersCopyRetentionRulesVisible()) {
-					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter, getSessionContext().getCurrentLocale()) {
-						@Override
-						protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
-							presenter.disposalTypeChanged(copyRetentionRule);
-						}
+				case RetentionRule.COPY_RETENTION_RULES:
+					if (presenter.isFoldersCopyRetentionRulesVisible()) {
+						field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter, getSessionContext().getCurrentLocale()) {
+							@Override
+							protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
+								presenter.disposalTypeChanged(copyRetentionRule);
+							}
 
-						@Override
-						protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
-							return presenter.getFolderMetadataVOs();
-						}
-					};
+							@Override
+							protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
+								return presenter.getFolderMetadataVOs();
+							}
+						};
+						postBuild(field, recordVO, metadataVO);
+					} else {
+						field = null;
+					}
+					break;
+				case RetentionRule.DOCUMENT_COPY_RETENTION_RULES:
+					if (presenter.isDocumentsCopyRetentionRulesVisible()) {
+						field = new DocumentCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter) {
+							@Override
+							protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
+								return presenter.getDateMetadataVOs(documentTypeId);
+							}
+						};
+						postBuild(field, recordVO, metadataVO);
+					} else {
+						field = null;
+					}
+					break;
+				case RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE:
+					if (presenter.isDefaultDocumentsCopyRetentionRulesVisible()) {
+						initDocumentDefaultCopyRetentionRuleTable(recordVO);
+						field = documentDefaultCopyRetentionRuleTable.getPrincipalCopyRetentionRuleField();
+						postBuild(field, recordVO, metadataVO);
+					} else {
+						field = null;
+					}
+					break;
+				case RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE:
+					if (presenter.isDefaultDocumentsCopyRetentionRulesVisible()) {
+						initDocumentDefaultCopyRetentionRuleTable(recordVO);
+						field = documentDefaultCopyRetentionRuleTable.getSecondaryCopyRetentionRuleField();
+						postBuild(field, recordVO, metadataVO);
+						field.setVisible(false);
+					} else {
+						field = null;
+					}
+					break;
+				case RetentionRule.DOCUMENT_TYPES_DETAILS:
+					field = presenter.shouldDisplayDocumentTypeDetails() ? new ListAddRemoveRetentionRuleDocumentTypeField() : null;
+					if (field != null) {
+						postBuild(field, recordVO, metadataVO);
+					}
+					break;
+				case RetentionRuleVO.CATEGORIES:
+					field = buildCategoriesField(recordVO, metadataVO);
 					postBuild(field, recordVO, metadataVO);
-				} else {
-					field = null;
-				}
-				break;
-			case RetentionRule.DOCUMENT_COPY_RETENTION_RULES:
-				if (presenter.isDocumentsCopyRetentionRulesVisible()) {
-					field = new DocumentCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter) {
-						@Override
-						protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
-							return presenter.getDateMetadataVOs(documentTypeId);
-						}
-					};
+					break;
+				case RetentionRuleVO.UNIFORM_SUBDIVISIONS:
+					field = buildCategoriesField(recordVO, metadataVO);
 					postBuild(field, recordVO, metadataVO);
-				} else {
-					field = null;
-				}
-				break;
-			case RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE:
-				if (presenter.isDefaultDocumentsCopyRetentionRulesVisible()) {
-					initDocumentDefaultCopyRetentionRuleTable(recordVO);
-					field = documentDefaultCopyRetentionRuleTable.getPrincipalCopyRetentionRuleField();
-					postBuild(field, recordVO, metadataVO);
-				} else {
-					field = null;
-				}
-				break;
-			case RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE:
-				if (presenter.isDefaultDocumentsCopyRetentionRulesVisible()) {
-					initDocumentDefaultCopyRetentionRuleTable(recordVO);
-					field = documentDefaultCopyRetentionRuleTable.getSecondaryCopyRetentionRuleField();
-					postBuild(field, recordVO, metadataVO);
-					field.setVisible(false);
-				} else {
-					field = null;
-				}
-				break;
-			case RetentionRule.DOCUMENT_TYPES_DETAILS:
-				field = presenter.shouldDisplayDocumentTypeDetails() ? new ListAddRemoveRetentionRuleDocumentTypeField() : null;
-				if (field != null) {
-					postBuild(field, recordVO, metadataVO);
-				}
-				break;
-			case RetentionRuleVO.CATEGORIES:
-				field = buildCategoriesField(recordVO, metadataVO);
-				postBuild(field, recordVO, metadataVO);
-				break;
-			case RetentionRuleVO.UNIFORM_SUBDIVISIONS:
-				field = buildCategoriesField(recordVO, metadataVO);
-				postBuild(field, recordVO, metadataVO);
-				field.setVisible(presenter.areSubdivisionUniformEnabled());
-				field.setEnabled(presenter.areSubdivisionUniformEnabled());
-				break;
-			case RetentionRule.SCOPE:
+					field.setVisible(presenter.areSubdivisionUniformEnabled());
+					field.setEnabled(presenter.areSubdivisionUniformEnabled());
+					break;
+				case RetentionRule.SCOPE:
 					if (presenter.isScopeVisible()) {
 						field = new EnumWithSmallCodeComboBox<>(RetentionRuleScope.class);
 						field.addValueChangeListener(new ValueChangeListener() {
@@ -214,13 +214,13 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 						field = null;
 					}
 					break;
-			case RetentionRule.ADMINISTRATIVE_UNITS:
-				field = new RetentionRuleListAddRemoveAdministrativeUnitLookupField();
-				postBuild(field, recordVO, metadataVO);
-				break;
-			default:
-				field = super.build(recordVO, metadataVO, locale);
-				break;
+				case RetentionRule.ADMINISTRATIVE_UNITS:
+					field = new RetentionRuleListAddRemoveAdministrativeUnitLookupField();
+					postBuild(field, recordVO, metadataVO);
+					break;
+				default:
+					field = super.build(recordVO, metadataVO, locale);
+					break;
 			}
 			return field;
 		}

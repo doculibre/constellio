@@ -14,7 +14,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 
-import static com.constellio.app.services.migrations.CoreRoles.ADMINISTRATOR;
 import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
 import static java.util.Arrays.asList;
 
@@ -33,7 +32,7 @@ public class RMMigrationTo6_5_33 implements MigrationScript {
 		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToDisplay(ContainerRecord.ADMINISTRATIVE_UNITS)
-				.afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
+				   .afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
 
 		schemaDisplayManager.execute(transaction.build());
 		setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), provider);
@@ -47,7 +46,8 @@ public class RMMigrationTo6_5_33 implements MigrationScript {
 
 	public static class SchemaAlterationsFor6_5_33 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_5_33(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_5_33(String collection, MigrationResourcesProvider provider,
+											 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -58,7 +58,7 @@ public class RMMigrationTo6_5_33 implements MigrationScript {
 			MetadataSchemaBuilder containerDefaultSchema = types().getSchema(ContainerRecord.DEFAULT_SCHEMA);
 			if (!containerDefaultSchema.hasMetadata(ContainerRecord.ADMINISTRATIVE_UNITS)) {
 				containerDefaultSchema.create(ContainerRecord.ADMINISTRATIVE_UNITS)
-						.setMultivalue(true).defineReferencesTo(adminUnitSchemaType);
+									  .setMultivalue(true).defineReferencesTo(adminUnitSchemaType);
 			}
 		}
 	}

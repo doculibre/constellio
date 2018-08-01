@@ -1,19 +1,5 @@
 package com.constellio.app.services.recovery;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
-import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
-import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_MEMORY_IN_MO;
-import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_SPACE_IN_GIG;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -32,6 +18,19 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
+import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
+import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_MEMORY_IN_MO;
+import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_SPACE_IN_GIG;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -55,7 +54,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 		upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(getAppLayerFactory(), getIOLayerFactory().newIOServices());
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -96,7 +95,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		VaultSnapshot currentSnapShot = tools.snapshot();
 		tools.ensureSameSnapshots("", snapshotBeforeReplay, currentSnapShot);
 		TextConfiguration schemas = getDataLayerFactory().getConfigManager()
-				.getText(zeCollection + "/schemas.xml");
+														 .getText(zeCollection + "/schemas.xml");
 		assertThat(schemas.getText().contains(addedSchemaTypeCode)).isFalse();
 	}
 
@@ -113,7 +112,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		upgradeAppRecoveryService.stopRollbackMode();
 		validateRecordsModifiedAsExpected();
 		TextConfiguration schemas = getDataLayerFactory().getConfigManager()
-				.getText(zeCollection + "/schemas.xml");
+														 .getText(zeCollection + "/schemas.xml");
 		assertThat(schemas.getText().contains(addedSchemaTypeCode)).isTrue();
 	}
 
@@ -181,20 +180,20 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		recordCreatedToBeDeletedPhysicallyId = recordCreatedToBeDeletedPhysically.getId();
 		Transaction transaction = new Transaction();
 		transaction.add(recordCreated.setTitle("created")
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_2)
-				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
-				.getWrappedRecord());
+									 .setAdministrativeUnitEntered(records.unitId_10a)
+									 .setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_2)
+									 .setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
+									 .getWrappedRecord());
 		transaction.add(recordCreatedToBeDeletedLogically.setTitle("to be deleted l")
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_2)
-				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
-				.getWrappedRecord());
+														 .setAdministrativeUnitEntered(records.unitId_10a)
+														 .setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_2)
+														 .setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
+														 .getWrappedRecord());
 		transaction.add(recordCreatedToBeDeletedPhysically.setTitle("to be deleted p")
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_2)
-				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
-				.getWrappedRecord());
+														  .setAdministrativeUnitEntered(records.unitId_10a)
+														  .setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_2)
+														  .setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
+														  .getWrappedRecord());
 		recordServices.execute(transaction);
 	}
 

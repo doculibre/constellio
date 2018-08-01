@@ -91,7 +91,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	public List<RecordVODataProvider> getDataProviders() {
 		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(taxonomy.getCollection());
+														   .getSchemaTypes(taxonomy.getCollection());
 		List<RecordVODataProvider> dataProviders = createDataProvidersForSchemas(schemaTypes);
 
 		return dataProviders;
@@ -112,7 +112,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	private void createDataProviderIfSchemaCanBeChildOfCurrentConcept(List<RecordVODataProvider> dataProviders,
-			MetadataSchema currentSchema, MetadataSchema schema) {
+																	  MetadataSchema currentSchema,
+																	  MetadataSchema schema) {
 		if (getCurrentConcept() != null) {
 			for (Metadata reference : schema.getParentReferences()) {
 				if (reference.getAllowedReferences().isAllowed(currentSchema)) {
@@ -182,8 +183,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return taxonomiesManager.getEnabledTaxonomyWithCode(view.getCollection(), taxonomyCode);
 	}
 
-	public String getMultiLangualTitle(){
-		if(conceptId == null) {
+	public String getMultiLangualTitle() {
+		if (conceptId == null) {
 			return null;
 		}
 		MetadataSchema metadataSchema = schemasRecordsServices.schema(getCurrentConcept().getRecord().getSchemaCode());

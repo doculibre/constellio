@@ -1,11 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -15,6 +9,11 @@ import com.constellio.model.services.schemas.testimpl.TestMetadataValueCalculato
 import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
 import com.constellio.model.services.schemas.testimpl.problems.AbstractTestMetadataValueCalculator;
 import com.constellio.model.services.schemas.testimpl.problems.TestMetadataValueCalculatorWithoutDefaultConstructor;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 
@@ -86,7 +85,7 @@ public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 	@Test
 	public void givenDataEntryDefinedAsCopiedWhenBuildingThenHasCorrectAttributes() {
 		metadataWithoutInheritanceBuilder.setType(STRING).defineDataEntry()
-				.asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
+										 .asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
 
 		build();
 		DataEntry dataEntry = metadataWithoutInheritance.getDataEntry();
@@ -101,7 +100,7 @@ public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 	@Test
 	public void givenDataEntryDefinedAsCopiedWhenModifyingThenHasCorrectAttributes() {
 		metadataWithoutInheritanceBuilder.setType(STRING).defineDataEntry()
-				.asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
+										 .asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
 
 		buildAndModify();
 		DataEntry dataEntry = metadataWithoutInheritanceBuilder.getDataEntry();
@@ -149,7 +148,7 @@ public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 				TestMetadataValueCalculatorWithoutDefaultConstructor.class);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test(expected = MetadataBuilderRuntimeException.InvalidAttribute.class)
 	public void whenDefineCalculatorNotImplementingInterfaceThenException() {
 		metadataWithoutInheritanceBuilder.defineDataEntry().asCalculated((Class) TestRecordMetadataValidator2.class);

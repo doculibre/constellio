@@ -1,12 +1,5 @@
 package com.constellio.sdk.tests.setups;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -16,6 +9,12 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.IOUtils;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Users {
 

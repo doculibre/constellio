@@ -1,10 +1,10 @@
 package com.constellio.model.conf;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-
-import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class FoldersLocator {
 
@@ -41,10 +41,10 @@ public class FoldersLocator {
 
 			if (classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getName().equals("bin")) {
 				finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-						.getParentFile().getAbsoluteFile();
+									   .getParentFile().getAbsoluteFile();
 			} else {
 				finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-						.getParentFile().getParentFile().getParentFile().getAbsoluteFile();
+									   .getParentFile().getParentFile().getParentFile().getAbsoluteFile();
 			}
 
 		}
@@ -227,7 +227,7 @@ public class FoldersLocator {
 		// TODO Remove intelligid
 		if (!"constellio-plugins".equals(lowercaseJavaRootFolder) && ("constellio".equals(lowercaseJavaRootFolder) || "intelligid"
 				.equals(lowercaseJavaRootFolder) || lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder
-				.startsWith("constellio_") || lowercaseJavaRootFolder.startsWith("intelligid-"))) {
+																			  .startsWith("constellio_") || lowercaseJavaRootFolder.startsWith("intelligid-"))) {
 			return javaRootFolder;
 
 		} else if (gitSubProjects.contains(lowercaseJavaRootFolder)) {
@@ -239,7 +239,7 @@ public class FoldersLocator {
 
 		} else {
 			throw new IllegalStateException("Cannot find project folder for java root folder '" + javaRootFolder.getName()
-					+ "' path = '" + javaRootFolder.getAbsolutePath() + "'");
+											+ "' path = '" + javaRootFolder.getAbsolutePath() + "'");
 		}
 	}
 
@@ -320,7 +320,7 @@ public class FoldersLocator {
 		File parentJavaRootFolder = javaRootFolder.getParentFile();
 		return javaRootFolder.getName().contains("tomcat") || (parentJavaRootFolder != null && (
 				parentJavaRootFolder.getName().toLowerCase().contains("tomcat")
-						|| parentJavaRootFolder.getName().equals("webapps")));
+				|| parentJavaRootFolder.getName().equals("webapps")));
 	}
 
 	public File getConstellioWebinfFolder() {

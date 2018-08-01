@@ -1,28 +1,5 @@
 package com.constellio.app.modules.rm.services.cart;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -42,9 +19,26 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class CartEmailServiceAcceptanceTest extends ConstellioTest {
-	
+
 	private static final String TEST_ID = "CartEmlServiceAcceptanceTest-inputStreams";
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -68,7 +62,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -94,7 +88,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 		content2File = createFileFromContent(content2_title2, folder.getPath() + "/2");
 
 		document11WithContent1HavingTitle1 = rm.newDocument().setType(records.documentTypeId_1)
-				.setFolder(records.getFolder_A01().getId());
+											   .setFolder(records.getFolder_A01().getId());
 		transaction.add(document11WithContent1HavingTitle1.setContent(content1_title1).setTitle("11"));
 
 		document12WithContent1HavingTitle2 = rm.newDocument().setType(records.documentTypeId_1).setFolder(

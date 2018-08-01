@@ -1,24 +1,5 @@
 package com.constellio.model.services.records;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
@@ -27,6 +8,20 @@ import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntime
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 
@@ -84,7 +79,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
 
 		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-				.when(recordServices).execute(any(Transaction.class));
+											   .when(recordServices).execute(any(Transaction.class));
 
 		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
 
@@ -128,7 +123,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 
 		assertThat(transactionWithExceptionRecord.getRecords()).contains(theRecordThrowingAnException);
 		assertThat(transactionWithExceptionRecord.getReferencedRecords()).hasSize(2).containsValue(anotherReferencedRecord)
-				.containsValue(aThirdReferencedRecord);
+																		 .containsValue(aThirdReferencedRecord);
 		assertThat(transactionWithExceptionRecord.getRecordUpdateOptions().getRecordsFlushing())
 				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
 
@@ -141,7 +136,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
 
 		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-				.when(recordServices).execute(any(Transaction.class));
+											   .when(recordServices).execute(any(Transaction.class));
 
 		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
 
@@ -187,7 +182,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-				.when(recordServices).execute(any(Transaction.class));
+											   .when(recordServices).execute(any(Transaction.class));
 
 		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
 

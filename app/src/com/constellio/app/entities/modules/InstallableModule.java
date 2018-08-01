@@ -1,10 +1,10 @@
 package com.constellio.app.entities.modules;
 
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.modules.Module;
+
+import java.util.List;
 
 public interface InstallableModule extends Module {
 	List<MigrationScript> getMigrationScripts();

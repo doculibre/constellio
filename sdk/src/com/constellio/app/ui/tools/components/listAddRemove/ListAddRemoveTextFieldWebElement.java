@@ -20,7 +20,7 @@ public class ListAddRemoveTextFieldWebElement extends ListAddRemoveFieldWebEleme
 		clickAdd();
 		return this;
 	}
-	
+
 	public ListAddRemoveTextFieldWebElement addDate(String date) {
 		getInputDateComponent().setValue(date);
 		clickAdd();
@@ -39,6 +39,6 @@ public class ListAddRemoveTextFieldWebElement extends ListAddRemoveFieldWebEleme
 		return this;
 
 	}
-	
-	
+
+
 }

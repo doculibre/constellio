@@ -1,16 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
@@ -18,6 +7,16 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.ObjectProperty;
+import org.apache.commons.lang.StringUtils;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataVOLazyContainer extends LazyQueryContainer {

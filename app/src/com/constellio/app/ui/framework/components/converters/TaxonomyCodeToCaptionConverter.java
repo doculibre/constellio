@@ -1,14 +1,13 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.util.Locale;
-
-import com.constellio.model.entities.Language;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.TaxonomyCaptionUtils;
+import com.constellio.model.entities.Language;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
 
 public class TaxonomyCodeToCaptionConverter implements Converter<String, String> {
 

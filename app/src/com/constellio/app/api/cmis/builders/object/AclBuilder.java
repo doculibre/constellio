@@ -1,16 +1,6 @@
 package com.constellio.app.api.cmis.builders.object;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepositoryInfoManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
@@ -18,6 +8,14 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AclBuilder {
 

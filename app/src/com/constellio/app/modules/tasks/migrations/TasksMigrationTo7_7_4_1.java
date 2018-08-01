@@ -32,7 +32,8 @@ public class TasksMigrationTo7_7_4_1 extends MigrationHelper implements Migratio
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
@@ -48,7 +49,7 @@ public class TasksMigrationTo7_7_4_1 extends MigrationHelper implements Migratio
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
 		transaction.add(manager.getMetadata(collection, USER_TASK_DEFAULT_READ_BY_USER)
-				.withMetadataGroup(INIT_USER_TASK_TAB).withInputType(MetadataInputType.CHECKBOXES));
+							   .withMetadataGroup(INIT_USER_TASK_TAB).withInputType(MetadataInputType.CHECKBOXES));
 
 		manager.execute(transaction);
 	}
@@ -56,7 +57,7 @@ public class TasksMigrationTo7_7_4_1 extends MigrationHelper implements Migratio
 	class SchemaAlterationFor7_7_4_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_7_4_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -65,7 +66,7 @@ public class TasksMigrationTo7_7_4_1 extends MigrationHelper implements Migratio
 			MetadataSchemaBuilder schema = typesBuilder.getSchema(Task.DEFAULT_SCHEMA);
 			if (!schema.hasMetadata(Task.READ_BY_USER)) {
 				schema.createUndeletable(Task.READ_BY_USER).setType(MetadataValueType.BOOLEAN).setDefaultValue(Boolean.FALSE)
-						.addLabel(Language.French, LUE).addLabel(Language.English, READ);
+					  .addLabel(Language.French, LUE).addLabel(Language.English, READ);
 			}
 		}
 	}

@@ -11,9 +11,6 @@ import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -30,7 +27,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +35,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -51,7 +45,7 @@ public class TaskPresenterServices {
 	private SearchServices searchServices;
 
 	public TaskPresenterServices(TasksSchemasRecordsServices tasksSchemas, RecordServices recordServices,
-			TasksSearchServices tasksSearchServices, LoggingServices loggingServices) {
+								 TasksSearchServices tasksSearchServices, LoggingServices loggingServices) {
 		this.tasksSchemas = tasksSchemas;
 		this.recordServices = recordServices;
 		this.tasksSearchServices = tasksSearchServices;
@@ -216,14 +210,14 @@ public class TaskPresenterServices {
 
 		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
-						.where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
+										   .where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
 
 		boolean isSubTaskWithRequiredStatusFound = false;
 
-		for(Record taskAsRecord : tasksSearchServices){
+		for (Record taskAsRecord : tasksSearchServices) {
 			Task currentTask = tasksSchemas.wrapTask(taskAsRecord);
-			if(TaskStatusType.STANDBY.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())
-					|| TaskStatusType.IN_PROGRESS.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())) {
+			if (TaskStatusType.STANDBY.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())
+				|| TaskStatusType.IN_PROGRESS.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())) {
 				isSubTaskWithRequiredStatusFound = true;
 				break;
 			}
@@ -250,7 +244,7 @@ public class TaskPresenterServices {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-		if(updateOptions != null) {
+		if (updateOptions != null) {
 			createTransaction.setOptions(updateOptions);
 		}
 		createTransaction.addUpdate(record);
@@ -295,6 +289,6 @@ public class TaskPresenterServices {
 		}
 		Task task = tasksSchemas.getTask(record.getId());
 		return task.getAssignee() == null && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates()
-				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
+																							   .isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
 	}
 }

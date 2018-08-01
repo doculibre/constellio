@@ -1,18 +1,16 @@
 package com.constellio.data.utils.hashing;
 
-import java.io.*;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.EncodingService;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Factory;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
+
+import java.io.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class HashingService {
 

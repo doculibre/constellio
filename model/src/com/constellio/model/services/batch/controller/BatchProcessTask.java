@@ -1,17 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.RecursiveTask;
-
-import com.constellio.model.services.factories.ModelLayerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
@@ -20,14 +8,20 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordModificationImpactHandler;
-import com.constellio.model.services.records.RecordProvider;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.*;
 import com.constellio.model.services.records.RecordServicesException.OptimisticLocking;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.RecursiveTask;
+
+import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class BatchProcessTask extends RecursiveTask<List<String>> {
@@ -44,8 +38,10 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	private final BatchProcessReport report;
 	private final ModelLayerFactory modelLayerFactory;
 
-	public BatchProcessTask(TaskList taskList, List<Record> records, BatchProcessAction action, RecordServices recordServices,
-							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user, BatchProcessReport report, ModelLayerFactory modelLayerFactory) {
+	public BatchProcessTask(TaskList taskList, List<Record> records, BatchProcessAction action,
+							RecordServices recordServices,
+							MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices, User user,
+							BatchProcessReport report, ModelLayerFactory modelLayerFactory) {
 		this.records = records;
 		this.recordServices = recordServices;
 		this.metadataSchemaTypes = metadataSchemaTypes;

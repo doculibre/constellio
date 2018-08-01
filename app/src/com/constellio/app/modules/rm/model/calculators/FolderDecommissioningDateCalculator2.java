@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDateIfNotAlready;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -17,6 +10,12 @@ import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDateIfNotAlready;
 
 public class FolderDecommissioningDateCalculator2 implements MetadataValueCalculator<LocalDate> {
 
@@ -24,7 +23,7 @@ public class FolderDecommissioningDateCalculator2 implements MetadataValueCalcul
 	LocalDependency<LocalDate> closingDateParam = LocalDependency.toADate(Folder.CLOSING_DATE);
 	LocalDependency<LocalDate> actualTransferDateParam = LocalDependency.toADate(Folder.ACTUAL_TRANSFER_DATE);
 	LocalDependency<List<LocalDate>> reactivationDatesParam = LocalDependency.toADate(Folder.REACTIVATION_DATES)
-			.whichIsMultivalue();
+																			 .whichIsMultivalue();
 	LocalDependency<LocalDate> reactivationDecommissioningDateParam = LocalDependency
 			.toADate(Folder.REACTIVATION_DECOMMISSIONING_DATE);
 	LocalDependency<FolderStatus> folderStatusParam = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);

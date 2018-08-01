@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -26,6 +14,17 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * Created by Constellio on 2017-01-04.
@@ -44,7 +43,7 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -131,8 +130,8 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-				.setTemporaryIdentifier("containerTestTemporary").setAdministrativeUnits(asList(records.unitId_10))
-				.setDecommissioningType(DecommissioningType.DEPOSIT);
+				 .setTemporaryIdentifier("containerTestTemporary").setAdministrativeUnits(asList(records.unitId_10))
+				 .setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public ContainerRecordType buildDefaultContainerType() {
@@ -148,21 +147,21 @@ public class ContainerRecordValidatorAcceptanceTest extends ConstellioTest {
 
 		recordServices
 				.add(rm.newFolderWithId("parentFolder").setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-						.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-						.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+					   .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+					   .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 				);
 		recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-				.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+							 .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+							 .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 		);
 		recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-				.setParentFolder("parentFolder")
-				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-				.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+							 .setParentFolder("parentFolder")
+							 .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+							 .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 		);
 		recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setParentFolder("parentFolder")
-				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-				.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+							 .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+							 .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 		);
 	}
 }

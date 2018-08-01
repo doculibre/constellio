@@ -1,38 +1,11 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.asSet;
-import static com.constellio.sdk.tests.TestUtils.mockMetadata;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.services.records.RecordServices;
@@ -40,6 +13,19 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class ModificationImpactCalculatorTest extends ConstellioTest {
 
@@ -156,13 +142,13 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		when(schemaTypes.getSchemaTypes())
 				.thenReturn(asList(firstTypeWithImpact, secondTypeWithImpact, thirdTypeWithoutImpact));
 		doReturn(Arrays.asList(firstTypeImpact)).when(impactCalculator)
-				.findImpactsOfARecordsModificationInSchemaType(firstTypeWithImpact, recordsModification,
-						transactionRecordsList, "zeTitle");
+												.findImpactsOfARecordsModificationInSchemaType(firstTypeWithImpact, recordsModification,
+														transactionRecordsList, "zeTitle");
 		doReturn(Arrays.asList(secondTypeImpact)).when(impactCalculator).findImpactsOfARecordsModificationInSchemaType(
 				secondTypeWithImpact, recordsModification, transactionRecordsList, "zeTitle");
 		doReturn(new ArrayList<>()).when(impactCalculator)
-				.findImpactsOfARecordsModificationInSchemaType(thirdTypeWithoutImpact, recordsModification,
-						transactionRecordsList, "zeTitle");
+								   .findImpactsOfARecordsModificationInSchemaType(thirdTypeWithoutImpact, recordsModification,
+										   transactionRecordsList, "zeTitle");
 
 		List<ModificationImpact> impacts = impactCalculator.findImpactOfARecordsModification(
 				recordsModification, transactionRecordsList, "zeTitle");
@@ -296,9 +282,9 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 		Metadata automaticMetadata = mockMetadata("zetype_default_automaticMetadata");
 		doReturn(asList(reference1)).when(impactCalculator)
-				.getReferencesToMetadata(automaticMetadata, modifiedMetadata1);
+									.getReferencesToMetadata(automaticMetadata, modifiedMetadata1);
 		doReturn(asList(reference1, reference2)).when(impactCalculator)
-				.getReferencesToMetadata(automaticMetadata, modifiedMetadata2);
+												.getReferencesToMetadata(automaticMetadata, modifiedMetadata2);
 
 		List<Metadata> modifiedMetadatas = asList(modifiedMetadata1, modifiedMetadata2);
 		List<Metadata> references = impactCalculator.getReferenceMetadatasLinkingToModifiedMetadatas(

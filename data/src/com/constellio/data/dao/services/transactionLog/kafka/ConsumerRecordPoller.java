@@ -1,11 +1,11 @@
 package com.constellio.data.dao.services.transactionLog.kafka;
 
-import java.util.Map;
-
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
+
+import java.util.Map;
 
 public class ConsumerRecordPoller<K, V> {
 	private final Consumer<K, V> consumer;

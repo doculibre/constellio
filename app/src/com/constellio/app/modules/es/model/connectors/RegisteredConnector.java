@@ -1,7 +1,6 @@
 package com.constellio.app.modules.es.model.connectors;
 
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
-import com.constellio.app.modules.es.connectors.spi.Connector;
 
 public class RegisteredConnector {
 

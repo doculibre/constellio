@@ -1,9 +1,9 @@
 package com.constellio.model.entities.modules;
 
+import com.constellio.model.entities.configs.SystemConfiguration;
+
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.model.entities.configs.SystemConfiguration;
 
 public interface Module extends ConstellioPlugin {
 	boolean isComplementary();

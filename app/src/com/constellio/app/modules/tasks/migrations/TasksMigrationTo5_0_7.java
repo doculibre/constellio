@@ -1,32 +1,5 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.DROPDOWN;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.HIDDEN;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.LOOKUP;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.RICHTEXT;
-import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-import static com.constellio.model.entities.records.wrappers.ValueListItem.CODE;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -66,6 +39,22 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.PercentageValidator;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.*;
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.*;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.entities.records.wrappers.ValueListItem.CODE;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -75,10 +64,10 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		if (!appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.hasType(RMTask.SCHEMA_TYPE)) {
+							.hasType(RMTask.SCHEMA_TYPE)) {
 
 			new TaskStatusSchemaAlterationFor5_0_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
 			createTaskStatusTypes(collection, appLayerFactory, migrationResourcesProvider);
@@ -91,7 +80,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	}
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+									MigrationResourcesProvider migrationResourcesProvider) {
 
 		Language language = migrationResourcesProvider.getLanguage();
 
@@ -119,45 +108,45 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 						Task.DEFAULT_SCHEMA + "_" + Task.DUE_DATE)));
 
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.CONTENTS)
-				.withMetadataGroup(filesTab).withInputType(MetadataInputType.CONTENT).withVisibleInAdvancedSearchStatus(true));
+							   .withMetadataGroup(filesTab).withInputType(MetadataInputType.CONTENT).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.DESCRIPTION)
-				.withInputType(RICHTEXT).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(RICHTEXT).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNEE_USERS_CANDIDATES)
-				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+							   .withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNEE_GROUPS_CANDIDATES)
-				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+							   .withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNEE)
-				.withMetadataGroup(assignmentTab).withVisibleInAdvancedSearchStatus(true));
+							   .withMetadataGroup(assignmentTab).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.STATUS)
-				.withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNER)
-				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNED_ON)
-				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.END_DATE)
-				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, TaskStatus.DEFAULT_SCHEMA, TaskStatus.STATUS_TYPE)
-				.withInputType(DROPDOWN).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(DROPDOWN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.REMINDERS)
-				.withMetadataGroup(remindersTab));
+							   .withMetadataGroup(remindersTab));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TASK_FOLLOWERS)
-				.withMetadataGroup(followersTab));
+							   .withMetadataGroup(followersTab));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.PARENT_TASK)
-				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.START_DATE)
-				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TYPE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TITLE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.DUE_DATE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.PARENT_TASK_DUE_DATE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.FOLLOWERS_IDS)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.PROGRESS_PERCENTAGE)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 
 		manager.execute(transaction);
 
@@ -171,7 +160,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	}
 
 	private void createTaskStatusTypes(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+									   MigrationResourcesProvider migrationResourcesProvider) {
 		Transaction transaction = new Transaction();
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
@@ -181,17 +170,17 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		String closedCode = CLOSED_CODE;
 
 		transaction.add(schemas.newTaskStatus().setCode(standByCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
-				.setStatusType(STANDBY));
+							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+							   .setStatusType(STANDBY));
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
-				.setStatusType(IN_PROGRESS));
+							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
+							   .setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
-				.setStatusType(FINISHED));
+							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
+							   .setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
-				.setStatusType(CLOSED));
+							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
+							   .setStatusType(CLOSED));
 
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
@@ -200,8 +189,9 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection) {
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "taskAssigneeModificationTemplate.html",
 				TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection,
@@ -217,13 +207,14 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 				TasksEmailTemplates.TASK_REMINDER);
 	}
 
-	private void addEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplate(AppLayerFactory appLayerFactory,
+								  MigrationResourcesProvider migrationResourcesProvider,
+								  String collection,
+								  String templateFileName, String templateId) {
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-					.addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
+						   .addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -232,8 +223,9 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	}
 
 	private class TaskStatusSchemaAlterationFor5_0_7 extends MetadataSchemasAlterationHelper {
-		public TaskStatusSchemaAlterationFor5_0_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+		public TaskStatusSchemaAlterationFor5_0_7(String collection,
+												  MigrationResourcesProvider migrationResourcesProvider,
+												  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -255,7 +247,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
 			defaultSchema.getMetadata(CODE).setUniqueValue(true).setUnmodifiable(true);
 			defaultSchema.createUndeletable(TaskStatus.STATUS_TYPE).defineAsEnum(TaskStatusType.class)
-					.setDefaultRequirement(true);
+						 .setDefaultRequirement(true);
 
 			return schemaType;
 		}
@@ -265,7 +257,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		TaskStatus standbyStatus;
 
 		public TaskSchemaAlterationFor5_0_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory, TaskStatus standbyStatus) {
+											AppLayerFactory appLayerFactory, TaskStatus standbyStatus) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			this.standbyStatus = standbyStatus;
 		}
@@ -288,7 +280,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 
 		private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
-				MetadataSchemaBuilder taskType) {
+															   MetadataSchemaBuilder taskType) {
 			MetadataSchemaTypeBuilder taskStatusType = typesBuilder.getSchemaType(TaskStatus.SCHEMA_TYPE);
 			MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Task.SCHEMA_TYPE).setSecurity(true);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
@@ -299,13 +291,13 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			defaultSchema.createUndeletable(Task.ASSIGNEE).defineReferencesTo(userSchemaBuilder);
 			defaultSchema.createUndeletable(Task.ASSIGNER).defineReferencesTo(userSchemaBuilder);
 			defaultSchema.createUndeletable(Task.ASSIGNEE_GROUPS_CANDIDATES)
-					.defineReferencesTo(typesBuilder.getDefaultSchema(Group.SCHEMA_TYPE)).setMultivalue(true);
+						 .defineReferencesTo(typesBuilder.getDefaultSchema(Group.SCHEMA_TYPE)).setMultivalue(true);
 			defaultSchema.createUndeletable(Task.ASSIGNEE_USERS_CANDIDATES).defineReferencesTo(
 					typesBuilder.getDefaultSchema(User.SCHEMA_TYPE)).setMultivalue(true);
 			defaultSchema.createUndeletable(Task.ASSIGNED_ON).setType(DATE);
 			defaultSchema.createUndeletable(Task.FOLLOWERS_IDS).defineReferencesTo(userSchemaBuilder).setMultivalue(true)
-					.defineDataEntry()
-					.asCalculated(TaskFollowersCalculator.class);
+						 .defineDataEntry()
+						 .asCalculated(TaskFollowersCalculator.class);
 			defaultSchema.createUndeletable(Task.TASK_FOLLOWERS).setType(STRUCTURE).setMultivalue(true).defineStructureFactory(
 					TaskFollowerFactory.class);
 			defaultSchema.createUndeletable(Task.DESCRIPTION).setType(TEXT).setSearchable(true);
@@ -318,14 +310,14 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			MetadataBuilder dueDate = defaultSchema.createUndeletable(Task.DUE_DATE).setType(DATE);
 			defaultSchema.createUndeletable(Task.END_DATE).setType(DATE);
 			defaultSchema.createUndeletable(Task.STATUS).defineReferencesTo(taskStatusType).setDefaultRequirement(true)
-					.setDefaultValue(standbyStatus.getId());
+						 .setDefaultValue(standbyStatus.getId());
 			defaultSchema.createUndeletable(Task.PROGRESS_PERCENTAGE).setType(NUMBER).addValidator(PercentageValidator.class);
 			MetadataBuilder parent = defaultSchema.createUndeletable(Task.PARENT_TASK)
-					.defineChildOfRelationshipToType(schemaType);
+												  .defineChildOfRelationshipToType(schemaType);
 			defaultSchema.createUndeletable(Task.PARENT_TASK_DUE_DATE).setType(DATE).defineDataEntry().asCopied(
 					parent, dueDate);
 			defaultSchema.createUndeletable(Task.COMMENTS).setType(STRUCTURE).defineStructureFactory(CommentFactory.class)
-					.setMultivalue(true);
+						 .setMultivalue(true);
 			defaultSchema.get(Schemas.TITLE.getLocalCode()).setDefaultRequirement(true);
 			defaultSchema.get(Schemas.TOKENS.getLocalCode()).defineDataEntry().asCalculated(TaskTokensCalculator.class);
 			return schemaType;

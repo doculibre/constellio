@@ -1,16 +1,5 @@
 package com.constellio.app.ui.util;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
-
-import java.io.Serializable;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -24,6 +13,16 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 
 public class SchemaCaptionUtils implements Serializable {
 
@@ -232,7 +231,8 @@ public class SchemaCaptionUtils implements Serializable {
 		return sb.toString();
 	}
 
-	private static String applyPattern(String pattern, RecordVO recordVO, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+	private static String applyPattern(String pattern, RecordVO recordVO, Locale locale,
+									   LocalisedRecordMetadataRetrieval mode) {
 		StringBuffer sb = new StringBuffer(pattern);
 		int start = pattern.length();
 		while ((start = pattern.lastIndexOf(EXPRESSION_START, start - 1)) != -1) {

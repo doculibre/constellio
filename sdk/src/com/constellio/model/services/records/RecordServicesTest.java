@@ -1,45 +1,7 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.app.services.collections.CollectionsManager;
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.dto.records.TransactionDTO;
-import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.*;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
@@ -49,18 +11,9 @@ import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordMigrationScript;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -94,6 +47,29 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.*;
 
 public class RecordServicesTest extends ConstellioTest {
 
@@ -594,7 +570,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.addUpdate(otherSavedRecord);
 		transaction.setRecordFlushing(recordsFlushing);
 		doReturn(asMap("records", transactionDTO)).when(recordServices)
-				.createTransactionDTOs(eq(transaction), anyList());
+												  .createTransactionDTOs(eq(transaction), anyList());
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doNothing().when(recordServices).handleOptimisticLocking(any(TransactionDTO.class), any(Transaction.class),
@@ -717,17 +693,17 @@ public class RecordServicesTest extends ConstellioTest {
 
 		LogicalSearchCondition condition = query.getValue().getCondition();
 		LogicalSearchCondition firstRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(firstRecordId)
-				.andWhere(Schemas.VERSION).isNotEqual(firstRecordVersion);
+																				 .andWhere(Schemas.VERSION).isNotEqual(firstRecordVersion);
 		LogicalSearchCondition secondRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(secondRecordId)
-				.andWhere(Schemas.VERSION).isNotEqual(secondRecordVersion);
+																				  .andWhere(Schemas.VERSION).isNotEqual(secondRecordVersion);
 		LogicalSearchCondition thirdRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(thirdRecordId)
-				.andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
+																				 .andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
 
 		SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 		assertThat(condition.getSolrQuery(params)).isEqualTo(
 				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection())
-						.whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
-						.getSolrQuery(params));
+										   .whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
+										   .getSolrQuery(params));
 	}
 
 	@Test(expected = RecordServicesException.UnresolvableOptimisticLockingConflict.class)
@@ -842,12 +818,12 @@ public class RecordServicesTest extends ConstellioTest {
 		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
 				asList(aModificationImpact, anotherModificationImpact), new ArrayList<String>());
 		doReturn(response).when(recordServices)
-				.calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
+						  .calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
 
 		TransactionDTO transactionDTO = mock(TransactionDTO.class);
 		doReturn(asMap("records", transactionDTO)).when(recordServices)
-				.createTransactionDTOs(eq(transaction), anyList());
+												  .createTransactionDTOs(eq(transaction), anyList());
 
 		recordServices.executeWithImpactHandler(transaction, handler);
 
@@ -1016,7 +992,7 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = mock(Transaction.class);
 		when(transaction.getCollection()).thenReturn(zeCollection);
 		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
-				.findContentsModificationsIn(metadataSchemaTypes, transaction);
+																				.findContentsModificationsIn(metadataSchemaTypes, transaction);
 		doThrow(zeException).when(recordServices).saveTransactionDTO(eq(transaction),
 				eq(recordModificationImpactHandler), anyInt());
 
@@ -1041,7 +1017,7 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = mock(Transaction.class);
 		when(transaction.getCollection()).thenReturn(zeCollection);
 		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
-				.findContentsModificationsIn(metadataSchemaTypes, transaction);
+																				.findContentsModificationsIn(metadataSchemaTypes, transaction);
 		doThrow(zeException).when(recordServices).saveTransactionDTO(eq(transaction),
 				eq(recordModificationImpactHandler), anyInt());
 

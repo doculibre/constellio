@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.services.migrations.MigrationUtil.getLabelsByLanguage;
-import static com.constellio.data.utils.LangUtils.withoutDuplicates;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -14,17 +8,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.DecommissioningMonth;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
@@ -33,17 +17,19 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo5_0_5 implements MigrationScript {
 	@Override
@@ -53,7 +39,7 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new SchemaAlterationFor5_0_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setupDisplayConfig(collection, appLayerFactory);
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
@@ -61,7 +47,7 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 	}
 
 	private void setAdminUnitLabel(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+								   MigrationResourcesProvider migrationResourcesProvider) {
 		TaxonomiesManager manager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy adminUnitsTaxo = manager.getEnabledTaxonomyWithCode(collection, RMTaxonomies.ADMINISTRATIVE_UNITS);
 
@@ -78,7 +64,7 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_0_5(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -95,25 +81,25 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 
 			//Document
 			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).createUndeletable(Document.FOLDER_BORROWED)
-					.setType(MetadataValueType.BOOLEAN);
+						.setType(MetadataValueType.BOOLEAN);
 
 			//Folder
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable(Folder.BORROWED)
-					.setType(MetadataValueType.BOOLEAN);
+						.setType(MetadataValueType.BOOLEAN);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable(Folder.BORROW_DATE)
-					.setType(MetadataValueType.DATE_TIME);
+						.setType(MetadataValueType.DATE_TIME);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable(Folder.BORROW_PREVIEW_RETURN_DATE)
-					.setType(MetadataValueType.DATE);
+						.setType(MetadataValueType.DATE);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable(Folder.BORROW_RETURN_DATE)
-					.setType(MetadataValueType.DATE_TIME);
+						.setType(MetadataValueType.DATE_TIME);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable(Folder.BORROW_USER)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+						.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable(Folder.BORROW_USER_ENTERED)
-					.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+						.setType(MetadataValueType.REFERENCE).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 
 			//Container
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).createUndeletable(ContainerRecord.BORROWED)
-					.setType(MetadataValueType.BOOLEAN);
+						.setType(MetadataValueType.BOOLEAN);
 
 			makeAllMetadatasEssentialsInTypeExcept(typesBuilder.getSchema(AdministrativeUnit.DEFAULT_SCHEMA),
 					AdministrativeUnit.ADRESS, AdministrativeUnit.COMMENTS, AdministrativeUnit.DECOMMISSIONING_MONTH,
@@ -170,9 +156,9 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 
 			for (Metadata metadata : schema.getMetadatas()) {
 				if (!metadata.getLocalCode().startsWith("USR") && !exceptList.contains(metadata.getLocalCode())
-						&& metadata.getInheritance() == null) {
+					&& metadata.getInheritance() == null) {
 					if (!Schemas.ERROR_ON_PHYSICAL_DELETION.hasSameCode(metadata)
-							&& !Schemas.LOGICALLY_DELETED_ON.hasSameCode(metadata)) {
+						&& !Schemas.LOGICALLY_DELETED_ON.hasSameCode(metadata)) {
 						schemaBuilder.getMetadata(metadata.getLocalCode()).setEnabled(true);
 						schemaBuilder.getMetadata(metadata.getLocalCode()).setEssential(true);
 					}
@@ -193,26 +179,26 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-				.addToDisplay(AdministrativeUnit.DECOMMISSIONING_MONTH, AdministrativeUnit.FILING_SPACES_ADMINISTRATORS)
-				.atTheEnd();
+						  .addToDisplay(AdministrativeUnit.DECOMMISSIONING_MONTH, AdministrativeUnit.FILING_SPACES_ADMINISTRATORS)
+						  .atTheEnd();
 
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-				.addToForm(AdministrativeUnit.DECOMMISSIONING_MONTH)
-				.afterMetadata(AdministrativeUnit.PARENT);
+						  .addToForm(AdministrativeUnit.DECOMMISSIONING_MONTH)
+						  .afterMetadata(AdministrativeUnit.PARENT);
 
 		transactionBuilder.in(Folder.SCHEMA_TYPE)
-				.addToDisplay(Folder.BORROWED, Folder.BORROW_DATE, Folder.BORROW_USER_ENTERED, Folder.BORROW_PREVIEW_RETURN_DATE)
-				.beforeTheHugeCommentMetadata();
+						  .addToDisplay(Folder.BORROWED, Folder.BORROW_DATE, Folder.BORROW_USER_ENTERED, Folder.BORROW_PREVIEW_RETURN_DATE)
+						  .beforeTheHugeCommentMetadata();
 
 		transactionBuilder.in(Folder.SCHEMA_TYPE)
-				.addToForm(Folder.BORROW_PREVIEW_RETURN_DATE)
-				.atTheEnd();
+						  .addToForm(Folder.BORROW_PREVIEW_RETURN_DATE)
+						  .atTheEnd();
 
 		manager.execute(transactionBuilder.build());
 
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		transaction.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + Folder.MEDIUM_TYPES)
-				.withInputType(MetadataInputType.CHECKBOXES));
+							   .withInputType(MetadataInputType.CHECKBOXES));
 
 		manager.execute(transaction);
 	}

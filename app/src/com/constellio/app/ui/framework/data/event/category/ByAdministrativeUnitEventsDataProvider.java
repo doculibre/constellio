@@ -1,27 +1,28 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ByAdministrativeUnitEventsDataProvider extends DefaultEventsDataProvider implements EventsCategoryDataProvider {
 
-	public ByAdministrativeUnitEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection, String currentUserName,
-			LocalDateTime startDate, LocalDateTime endDate, String id) {
+	public ByAdministrativeUnitEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection,
+												  String currentUserName,
+												  LocalDateTime startDate, LocalDateTime endDate, String id) {
 		super(modelLayerFactory, collection, currentUserName, startDate, endDate, id);
 	}
 
 	@Override
-	protected LogicalSearchQuery createSpecificQuery(ModelLayerFactory modelLayerFactory, User currentUser, String eventType,
-			LocalDateTime startDate,
-			LocalDateTime endDate, String id) {
+	protected LogicalSearchQuery createSpecificQuery(ModelLayerFactory modelLayerFactory, User currentUser,
+													 String eventType,
+													 LocalDateTime startDate,
+													 LocalDateTime endDate, String id) {
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
 		return rmSchemasRecordsServices
 				.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate, endDate, id);

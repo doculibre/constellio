@@ -40,7 +40,7 @@ public class ImportedDataEntry {
 
 	public static ImportedDataEntry asCopied(String referenceMetadata, String copiedMetadata) {
 		return new ImportedDataEntry().withType("copied").withReferencedMetadata(referenceMetadata)
-				.withCopiedMetadata(copiedMetadata);
+									  .withCopiedMetadata(copiedMetadata);
 	}
 
 	public String getType() {

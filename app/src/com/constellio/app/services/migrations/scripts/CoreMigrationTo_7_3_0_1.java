@@ -1,13 +1,12 @@
 package com.constellio.app.services.migrations.scripts;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CoreMigrationTo_7_3_0_1 implements MigrationScript {
 
@@ -19,14 +18,15 @@ public class CoreMigrationTo_7_3_0_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor7_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	private class CoreSchemaAlterationFor7_3 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

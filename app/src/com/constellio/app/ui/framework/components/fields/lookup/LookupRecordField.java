@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -28,6 +20,13 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 
 public class LookupRecordField extends LookupField<String> {
 
@@ -42,12 +41,12 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess,
-			RecordTextInputDataProvider recordTextInputDataProvider) {
+							 RecordTextInputDataProvider recordTextInputDataProvider) {
 		this(schemaTypeCode, null, writeAccess, recordTextInputDataProvider);
 	}
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
-			RecordTextInputDataProvider recordTextInputDataProvider) {
+							 RecordTextInputDataProvider recordTextInputDataProvider) {
 		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, true));
 	}
 
@@ -63,7 +62,8 @@ public class LookupRecordField extends LookupField<String> {
 		this(schemaTypeCode, schemaCode, writeAccess, true, true);
 	}
 
-	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated, boolean isShowAllIfHasAccessToManageSecurity) {
+	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
+							 boolean isShowAllIfHasAccessToManageSecurity) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
 		this.isShowDeactivated = showDeactivated;
@@ -71,19 +71,21 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public LookupRecordField(RecordTextInputDataProvider recordTextInputDataProvider,
-			LookupTreeDataProvider<String>[] lookupTreeDataProviders) {
+							 LookupTreeDataProvider<String>[] lookupTreeDataProviders) {
 		super(recordTextInputDataProvider, lookupTreeDataProviders);
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
 
 	public LookupRecordField(RecordTextInputDataProvider recordTextInputDataProvider,
-							 LookupTreeDataProvider<String>[] lookupTreeDataProviders, TaxonomyRecordIdToContextCaptionConverter itemConverter) {
+							 LookupTreeDataProvider<String>[] lookupTreeDataProviders,
+							 TaxonomyRecordIdToContextCaptionConverter itemConverter) {
 		super(recordTextInputDataProvider, lookupTreeDataProviders);
 		setItemConverter(itemConverter);
 	}
 
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
-			boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
+																		boolean writeAccess,
+																		boolean isShowAllIfHasAccessToManageSecurity) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -99,7 +101,7 @@ public class LookupRecordField extends LookupField<String> {
 		if (schemaTypeCode != null) {
 			taxonomies = taxonomiesManager
 					.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
-		} else if(schemaCode != null){
+		} else if (schemaCode != null) {
 			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
 		}
 		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
@@ -114,7 +116,8 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	@Override
-	protected BaseAutocompleteField<String> newAutocompleteField(AutocompleteSuggestionsProvider<String> suggestionsProvider) {
+	protected BaseAutocompleteField<String> newAutocompleteField(
+			AutocompleteSuggestionsProvider<String> suggestionsProvider) {
 		return new RecordAutocompleteField(suggestionsProvider);
 	}
 

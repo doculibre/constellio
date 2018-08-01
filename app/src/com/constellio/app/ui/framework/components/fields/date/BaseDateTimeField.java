@@ -1,11 +1,11 @@
 package com.constellio.app.ui.framework.components.fields.date;
 
-import java.util.Date;
-
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.vaadin.data.Property;
 import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.DateField;
+
+import java.util.Date;
 
 public class BaseDateTimeField extends DateField {
 

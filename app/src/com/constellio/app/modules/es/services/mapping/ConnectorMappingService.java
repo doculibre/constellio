@@ -1,14 +1,5 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
@@ -34,6 +25,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerException.Opt
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.*;
 
 public class ConnectorMappingService {
 	private static final String MAPPING_METADATA_PREFIX = "MAP";
@@ -259,7 +252,8 @@ public class ConnectorMappingService {
 		private final SchemaDisplayManagerTransaction transaction;
 		private final List<Alteration> alterations;
 
-		public ConnectorMappingTransaction(MetadataSchemaTypesBuilder types, SchemaDisplayManagerTransaction transaction) {
+		public ConnectorMappingTransaction(MetadataSchemaTypesBuilder types,
+										   SchemaDisplayManagerTransaction transaction) {
 			this.types = types;
 			this.transaction = transaction;
 			alterations = new ArrayList<>();
@@ -303,11 +297,11 @@ public class ConnectorMappingService {
 		protected void execute() {
 			for (Alteration alteration : alterations) {
 				MetadataBuilder builder = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(alteration.schema))
-						.getSchema(alteration.schema)
-						.create(alteration.localCode)
-						.setType(alteration.params.getType())
-						.setMultivalue(alteration.params.isMultivalue())
-						.setSearchable(alteration.params.isSearchable());
+											   .getSchema(alteration.schema)
+											   .create(alteration.localCode)
+											   .setType(alteration.params.getType())
+											   .setMultivalue(alteration.params.isMultivalue())
+											   .setSearchable(alteration.params.isSearchable());
 
 				for (String languageStr : collectionsManager.getCollectionLanguages(es.getCollection())) {
 					builder.addLabel(Language.withCode(languageStr),
@@ -318,7 +312,7 @@ public class ConnectorMappingService {
 
 			for (Alteration alteration : alterations) {
 				transaction.add(schemasDisplayManager.getMetadata(es.getCollection(), alteration.schema, alteration.localCode)
-						.withVisibleInAdvancedSearchStatus(alteration.params.isAdvancedSearch()));
+													 .withVisibleInAdvancedSearchStatus(alteration.params.isAdvancedSearch()));
 
 				if (alteration.params.isSearchResults()) {
 					SchemaDisplayConfig schema = transaction.getModifiedSchema(alteration.schema);

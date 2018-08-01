@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -14,13 +9,17 @@ import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class FolderClosingDateCalculator implements MetadataValueCalculator<LocalDate> {
 
 	LocalDependency<LocalDate> openingDateParam = LocalDependency.toADate(Folder.OPENING_DATE);
 	LocalDependency<LocalDate> enteredClosingDateParam = LocalDependency.toADate(Folder.ENTERED_CLOSING_DATE);
 	LocalDependency<List<CopyRetentionRule>> copiesParam = LocalDependency.toAStructure(Folder.APPLICABLE_COPY_RULES)
-			.whichIsMultivalue();
+																		  .whichIsMultivalue();
 	ConfigDependency<Boolean> configCalculatedClosingDateParam = RMConfigs.CALCULATED_CLOSING_DATE.dependency();
 	ConfigDependency<Integer> configNumberOfYearWhenFixedDelayParam =
 			RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE.dependency();

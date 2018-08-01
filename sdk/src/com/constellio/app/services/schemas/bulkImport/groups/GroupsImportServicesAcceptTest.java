@@ -1,16 +1,15 @@
 package com.constellio.app.services.schemas.bulkImport.groups;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GroupsImportServicesAcceptTest extends ConstellioTest {
 

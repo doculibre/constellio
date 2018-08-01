@@ -1,37 +1,11 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.solr.common.params.SolrParams;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ObjectAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
@@ -54,6 +28,27 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.solr.common.params.SolrParams;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ObjectAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
@@ -82,7 +77,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		prepareSystem(
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
@@ -607,7 +602,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 100; i++) {
 			String code = toTitle(i);
 			rootCategories.add(rm.newCategoryWithId(code).setCode(code).setTitle("Title " + toTitle((20000 - i)))
-					.setRetentionRules(asList(records.ruleId_1)));
+								 .setRetentionRules(asList(records.ruleId_1)));
 		}
 		Category category42 = rootCategories.get(41);
 		addRecordsInRandomOrder(rootCategories);
@@ -616,7 +611,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 100; i++) {
 			String code = "42_" + toTitle(i);
 			childCategories.add(rm.newCategoryWithId(code).setRetentionRules(asList(records.ruleId_1))
-					.setParent(category42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
+								  .setParent(category42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
 		}
 		Category category42_42 = childCategories.get(41);
 		addRecordsInRandomOrder(childCategories);
@@ -674,7 +669,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 100; i++) {
 			String code = toTitle(1000 + i);
 			rootAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code).setCode(code)
-					.setTitle("Title " + toTitle(20000 - i)));
+										  .setTitle("Title " + toTitle(20000 - i)));
 		}
 		AdministrativeUnit unit42 = rootAdministrativeUnits.get(41);
 		addRecordsInRandomOrder(rootAdministrativeUnits);
@@ -683,7 +678,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 100; i++) {
 			String code = "42_" + toTitle(i);
 			childAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code)
-					.setParent(unit42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
+										   .setParent(unit42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
 		}
 		AdministrativeUnit unit42_666 = childAdministrativeUnits.get(41);
 		addRecordsInRandomOrder(childAdministrativeUnits);
@@ -755,20 +750,20 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(recordsWithChildren(records.categoryId_X));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 4, 4))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																						 .has(solrQueryCounts(3, 4, 4))
+																						 .has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 2))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(3, 2, 2))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(2, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(2, 0, 0))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(1, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																					   .has(solrQueryCounts(1, 0, 0))
+																					   .has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -780,9 +775,9 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 
 		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
-				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
+												  .setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
 		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
-				.setActualTransferDate(LocalDate.now());
+												  .setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
 		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
@@ -796,20 +791,20 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(numFoundAndListSize(1))
 				.has(recordsWithChildren(records.categoryId_X));
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 4, 4))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																						 .has(solrQueryCounts(3, 4, 4))
+																						 .has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 2))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(3, 2, 2))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(2, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(2, 0, 0))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(1, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																					   .has(solrQueryCounts(1, 0, 0))
+																					   .has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -821,7 +816,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 
 		getModelLayerFactory().newRecordServices()
-				.execute(new Transaction().addAll(records.getFolder_A20().setActualTransferDate(LocalDate.now())));
+							  .execute(new Transaction().addAll(records.getFolder_A20().setActualTransferDate(LocalDate.now())));
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
@@ -832,20 +827,20 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(numFoundAndListSize(1))
 				.has(recordsWithChildren(records.categoryId_X));
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 4, 4))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																						 .has(solrQueryCounts(3, 4, 4))
+																						 .has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 2))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(3, 2, 2))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(2, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(2, 0, 0))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(1, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																					   .has(solrQueryCounts(1, 0, 0))
+																					   .has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -863,20 +858,20 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(numFoundAndListSize(1))
 				.has(recordsWithChildren(records.categoryId_X));
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 4, 4))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																						 .has(solrQueryCounts(3, 4, 4))
+																						 .has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(3, 2, 2))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(3, 2, 2))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(2, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																							.has(solrQueryCounts(2, 0, 0))
+																							.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
-				.has(solrQueryCounts(1, 0, 0))
-				.has(secondSolrQueryCounts(1, 0, 0));
+																					   .has(solrQueryCounts(1, 0, 0))
+																					   .has(secondSolrQueryCounts(1, 0, 0));
 
 	}
 
@@ -892,8 +887,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 0; i < size; i++) {
 			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
 			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
-					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
-					.setAdministrativeUnitEntered(records.unitId_10a);
+							  .setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+							  .setAdministrativeUnitEntered(records.unitId_10a);
 			addedRecords.add(folder);
 			if (i == size - 2) {
 				folderNearEnd = folder;
@@ -943,12 +938,12 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 300; i++) {
 			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
 			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
-					.setTitle("Category #" + code).setParent(rootCategory);
+										   .setTitle("Category #" + code).setParent(rootCategory);
 			transaction.add(rm.newFolder().setTitle("A folder")
-					.setCategoryEntered(category)
-					.setRetentionRuleEntered(records.ruleId_1)
-					.setAdministrativeUnitEntered(records.unitId_10a)
-					.setOpenDate(new LocalDate(2014, 11, 1)));
+							  .setCategoryEntered(category)
+							  .setRetentionRuleEntered(records.ruleId_1)
+							  .setAdministrativeUnitEntered(records.unitId_10a)
+							  .setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -970,12 +965,12 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 300; i++) {
 			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
 			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
-					.setTitle("Category #" + code).setParent(rootCategory);
+										   .setTitle("Category #" + code).setParent(rootCategory);
 			transaction.add(rm.newFolder().setTitle("A folder")
-					.setCategoryEntered(category)
-					.setRetentionRuleEntered(records.ruleId_1)
-					.setAdministrativeUnitEntered(records.unitId_10a)
-					.setOpenDate(new LocalDate(2014, 11, 1)));
+							  .setCategoryEntered(category)
+							  .setRetentionRuleEntered(records.ruleId_1)
+							  .setAdministrativeUnitEntered(records.unitId_10a)
+							  .setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -1002,7 +997,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
+																			   .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
@@ -1014,7 +1009,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
 		//Nothing changed since the service is using a cache
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
+																			   .setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
@@ -1035,7 +1030,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(null))
+																			   .setFastContinueInfos(null))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
@@ -1045,7 +1040,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
+																			   .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
@@ -1056,7 +1051,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		//Calling with a bad fastContinueInfos, but no difference since the service is using a cache
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+																			   .setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300"))
@@ -1077,12 +1072,12 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		for (int i = 1; i <= 300; i++) {
 			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
 			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
-					.setTitle("Category #" + code);
+										   .setTitle("Category #" + code);
 			transaction.add(rm.newFolder().setTitle("A folder")
-					.setCategoryEntered(category)
-					.setRetentionRuleEntered(records.ruleId_1)
-					.setAdministrativeUnitEntered(records.unitId_10a)
-					.setOpenDate(new LocalDate(2014, 11, 1)));
+							  .setCategoryEntered(category)
+							  .setRetentionRuleEntered(records.ruleId_1)
+							  .setAdministrativeUnitEntered(records.unitId_10a)
+							  .setOpenDate(new LocalDate(2014, 11, 1)));
 		}
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
@@ -1106,7 +1101,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
+																	  .setFastContinueInfos(new FastContinueInfos(false, 10, new ArrayList<String>())))
 				.has(recordsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
@@ -1117,7 +1112,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
+																	  .setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
 				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
 						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
@@ -1138,7 +1133,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(null))
+																	  .setFastContinueInfos(null))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300", "categoryId_X", "categoryId_Z"))
@@ -1148,7 +1143,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
+																	  .setFastContinueInfos(new FastContinueInfos(false, 289, new ArrayList<String>())))
 				.has(recordsInOrder("category_290", "category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300", "categoryId_X", "categoryId_Z"))
@@ -1158,7 +1153,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(alice, options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
+																	  .setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
 				.has(recordsInOrder("category_291", "category_292", "category_293",
 						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
 						"category_300", "categoryId_X", "categoryId_Z"))
@@ -1171,12 +1166,12 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 	private Folder newFolderInCategory(Category category, String title) {
 		return rm.newFolder().setCategoryEntered(category).setTitle(title).setOpenDate(new LocalDate())
-				.setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(records.unitId_10a);
+				 .setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(records.unitId_10a);
 	}
 
 	private Folder newFolderInUnit(AdministrativeUnit unit, String title) {
 		return rm.newFolder().setCategoryEntered(records.categoryId_X100).setTitle(title).setOpenDate(new LocalDate())
-				.setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(unit);
+				 .setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(unit);
 	}
 
 	private String toTitle(int i) {
@@ -1209,13 +1204,13 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " NumFound on first call")
-						.isEqualTo(expectedCount);
+															 .isEqualTo(expectedCount);
 				assertThat(value.firstAnswer().getRecords().size())
 						.describedAs(description().toString() + " records list size on first call")
 						.isEqualTo(expectedCount);
 
 				assertThat(value.secondAnswer().getNumFound()).describedAs(description().toString() + " NumFound on second call")
-						.isEqualTo(expectedCount);
+															  .isEqualTo(expectedCount);
 				assertThat(value.secondAnswer().getRecords().size())
 						.describedAs(description().toString() + " records list size on second call")
 						.isEqualTo(expectedCount);
@@ -1241,9 +1236,9 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				assertThat(value.firstAnswer().getRecords().size()).describedAs("first call records list size")
-						.isEqualTo(expectedCount);
+																   .isEqualTo(expectedCount);
 				assertThat(value.secondAnswer().getRecords().size()).describedAs("second call records list size")
-						.isEqualTo(expectedCount);
+																	.isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -1472,11 +1467,13 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 	private ConditionTemplate withoutFilters = null;
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(
+			User user) {
 		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final int start,
 			final int rows) {
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
@@ -1494,7 +1491,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final TaxonomiesSearchOptions options) {
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 			@Override
@@ -1528,12 +1526,14 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(
+			User user,
 			String category) {
 		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final String category,
 			final int start, final int rows) {
 
@@ -1554,7 +1554,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final String category, final TaxonomiesSearchOptions options) {
 
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
@@ -1669,8 +1670,9 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries, final int queryResults,
-			final int facets) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
+																					final int queryResults,
+																					final int facets) {
 		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
@@ -1680,7 +1682,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
+									   .isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);
@@ -1692,7 +1694,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 	}
 
 	private Condition<? super LinkableTaxonomySearchResponseCaller> secondSolrQueryCounts(final int queries,
-			final int queryResults, final int facets) {
+																						  final int queryResults,
+																						  final int facets) {
 		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
@@ -1702,7 +1705,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
+									   .isEqualTo(expected);
 
 				}
 				queriesCount.set(0);

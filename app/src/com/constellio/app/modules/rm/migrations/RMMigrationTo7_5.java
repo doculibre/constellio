@@ -33,7 +33,8 @@ public class RMMigrationTo7_5 extends MigrationHelper implements MigrationScript
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
@@ -45,29 +46,29 @@ public class RMMigrationTo7_5 extends MigrationHelper implements MigrationScript
 	class SchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_5(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).get(Task.LINKED_CONTAINERS).removeOldReferences()
-					.defineReferencesTo(typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE));
 			MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			metadataSchemaBuilder.createSystemReserved(Folder.IS_RESTRICTED_ACCESS).setType(MetadataValueType.BOOLEAN)
-					.setUndeletable(true);
+								 .setUndeletable(true);
 
 			MetadataSchemaBuilder builder = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE)
-					.createCustomSchema(SIParchive.SCHEMA_NAME);
+														.createCustomSchema(SIParchive.SCHEMA_NAME);
 			builder.createUndeletable(SIParchive.NAME).setType(MetadataValueType.STRING).defineDataEntry().asManual();
 			builder.createUndeletable(SIParchive.CREATION_DATE).setType(MetadataValueType.DATE_TIME).setEssential(true);
 			builder.createUndeletable(SIParchive.USER).setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE)).defineDataEntry().asManual();
+				   .defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE)).defineDataEntry().asManual();
 
 			MetadataSchemaBuilder printableReportMetadataSchemaBuilder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
-					.getDefaultSchema();
+																					 .getDefaultSchema();
 			if (!printableReportMetadataSchemaBuilder.get(Printable.JASPERFILE)
-					.hasValidator(JasperFilePrintableValidator.class)) {
+													 .hasValidator(JasperFilePrintableValidator.class)) {
 				printableReportMetadataSchemaBuilder.get(Printable.JASPERFILE).addValidator(JasperFilePrintableValidator.class);
 			}
 		}

@@ -4,9 +4,7 @@ import com.constellio.app.modules.tasks.services.background.AlertOverdueTasksBac
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
-import com.vaadin.data.Container;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.converter.Converter;
 import com.vaadin.ui.*;
 import org.joda.time.LocalDate;
 
@@ -61,7 +59,7 @@ public class TaskReminderFrequencyFieldImpl extends CustomField<String> implemen
 	}
 
 	private void initFieldsValues() {
-		if(getValue() != null) {
+		if (getValue() != null) {
 			setFieldValue(getValue());
 		}
 	}
@@ -103,13 +101,13 @@ public class TaskReminderFrequencyFieldImpl extends CustomField<String> implemen
 	@Override
 	public Object getFieldValue() {
 		String returnedValue = null;
-		if(reminderFrequencyType.getValue() != null && reminderFrequencyValue.getValue() != null && !reminderFrequencyValue.getValue().isEmpty()) {
-			returnedValue =  reminderFrequencyType.getValue() + PARAMETER_SEPARATOR + reminderFrequencyValue.getValue();
-			if(reminderDurationType.getValue() != null) {
+		if (reminderFrequencyType.getValue() != null && reminderFrequencyValue.getValue() != null && !reminderFrequencyValue.getValue().isEmpty()) {
+			returnedValue = reminderFrequencyType.getValue() + PARAMETER_SEPARATOR + reminderFrequencyValue.getValue();
+			if (reminderDurationType.getValue() != null) {
 				String durationType = (String) reminderDurationType.getValue();
-				if("Date".equals(durationType) && reminderLimitDateValue.getValue() != null) {
+				if ("Date".equals(durationType) && reminderLimitDateValue.getValue() != null) {
 					returnedValue += PARAMETER_SEPARATOR + reminderDurationType.getValue() + PARAMETER_SEPARATOR + LocalDate.fromDateFields(reminderLimitDateValue.getValue()).toString();
-				} else if(reminderDurationValue.getValue() != null && !reminderDurationValue.getValue().isEmpty()) {
+				} else if (reminderDurationValue.getValue() != null && !reminderDurationValue.getValue().isEmpty()) {
 					returnedValue += PARAMETER_SEPARATOR + reminderDurationType.getValue() + PARAMETER_SEPARATOR + reminderDurationValue.getValue();
 				}
 			}
@@ -119,17 +117,17 @@ public class TaskReminderFrequencyFieldImpl extends CustomField<String> implemen
 
 	@Override
 	public void setFieldValue(Object value) {
-		if(value != null) {
+		if (value != null) {
 			String[] parameters = ((String) value).split(PARAMETER_SEPARATOR);
-			if(parameters.length == 2) {
+			if (parameters.length == 2) {
 				reminderFrequencyType.setValue(parameters[0]);
 				reminderFrequencyValue.setValue(parameters[1]);
-			} else if(parameters.length == 4) {
+			} else if (parameters.length == 4) {
 				reminderFrequencyType.setValue(parameters[0]);
 				reminderFrequencyValue.setValue(parameters[1]);
 				String durationType = parameters[2];
 				reminderDurationType.setValue(durationType);
-				if("Date".equals(durationType)) {
+				if ("Date".equals(durationType)) {
 					reminderLimitDateValue.setValue(LocalDate.parse(parameters[3]).toDate());
 					updateDurationType(true);
 				} else {

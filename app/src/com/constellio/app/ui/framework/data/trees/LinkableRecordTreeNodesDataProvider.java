@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.data.trees;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
-
-import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -21,6 +17,9 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.users.UserServices;
 
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
+
 public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 
 	String taxonomyCode;
@@ -35,7 +34,7 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	}
 
 	public LinkableRecordTreeNodesDataProvider(String taxonomyCode, String schemaTypeCode, boolean writeAccess,
-			TaxonomiesSearchFilter filter) {
+											   TaxonomiesSearchFilter filter) {
 		this.taxonomyCode = taxonomyCode;
 		this.schemaTypeCode = schemaTypeCode;
 		this.writeAccess = writeAccess;
@@ -47,7 +46,8 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize, FastContinueInfos infos) {
+	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize,
+														   FastContinueInfos infos) {
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		User currentUser = getCurrentUser(modelLayerFactory);
 		Record record = getRecord(modelLayerFactory, parentId);
@@ -79,13 +79,13 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
-						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+																	  .withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
 
 		if (writeAccess) {
 			options.setRequiredAccess(Role.WRITE);
 		}
 
-		if(showOnlyTriangleIfContent) {
+		if (showOnlyTriangleIfContent) {
 			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.ALWAYS);
 		} else {
 			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY);
@@ -113,7 +113,8 @@ public class LinkableRecordTreeNodesDataProvider implements RecordTreeNodesDataP
 		return recordServices.getDocumentById(id);
 	}
 
-	public LinkableRecordTreeNodesDataProvider setShowAllIfHasAccessToManageSecurity(boolean showAllIfHasAccessToManageSecurity) {
+	public LinkableRecordTreeNodesDataProvider setShowAllIfHasAccessToManageSecurity(
+			boolean showAllIfHasAccessToManageSecurity) {
 		isShowAllIfHasAccessToManageSecurity = showAllIfHasAccessToManageSecurity;
 		return this;
 	}

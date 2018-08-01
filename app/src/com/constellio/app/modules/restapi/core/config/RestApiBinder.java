@@ -15,18 +15,18 @@ import javax.inject.Singleton;
 
 public class RestApiBinder extends AbstractBinder {
 
-    @Override
-    protected void configure() {
-        bind(SignatureService.class).to(SignatureService.class).in(Singleton.class);
-        bind(ValidationService.class).to(ValidationService.class).in(Singleton.class);
-        bind(UrlService.class).to(UrlService.class).in(Singleton.class);
-        bind(DocumentService.class).to(DocumentService.class).in(Singleton.class);
-        bind(AceService.class).to(AceService.class).in(Singleton.class);
+	@Override
+	protected void configure() {
+		bind(SignatureService.class).to(SignatureService.class).in(Singleton.class);
+		bind(ValidationService.class).to(ValidationService.class).in(Singleton.class);
+		bind(UrlService.class).to(UrlService.class).in(Singleton.class);
+		bind(DocumentService.class).to(DocumentService.class).in(Singleton.class);
+		bind(AceService.class).to(AceService.class).in(Singleton.class);
 
-        bind(DocumentDao.class).to(DocumentDao.class).in(Singleton.class);
-        bind(ValidationDao.class).to(ValidationDao.class).in(Singleton.class);
-        bind(AceDao.class).to(AceDao.class).in(Singleton.class);
-        bind(UrlDao.class).to(UrlDao.class).in(Singleton.class);
-    }
+		bind(DocumentDao.class).to(DocumentDao.class).in(Singleton.class);
+		bind(ValidationDao.class).to(ValidationDao.class).in(Singleton.class);
+		bind(AceDao.class).to(AceDao.class).in(Singleton.class);
+		bind(UrlDao.class).to(UrlDao.class).in(Singleton.class);
+	}
 
 }

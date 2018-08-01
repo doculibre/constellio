@@ -1,12 +1,11 @@
 package com.constellio.model.entities.structures;
 
-import java.util.StringTokenizer;
-
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
+import java.util.StringTokenizer;
 
 public class EmailAddressFactory implements StructureFactory {
 
@@ -31,11 +30,11 @@ public class EmailAddressFactory implements StructureFactory {
 		EmailAddress emailAddress = (EmailAddress) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, emailAddress.getName() == null ?
-				NULL :
-				emailAddress.getName());
+								   NULL :
+								   emailAddress.getName());
 		writeString(stringBuilder, emailAddress.getEmail() == null ?
-				NULL :
-				START_EMAIL + emailAddress.getEmail() + END_EMAIL);
+								   NULL :
+								   START_EMAIL + emailAddress.getEmail() + END_EMAIL);
 		return stringBuilder.toString();
 	}
 

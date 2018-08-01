@@ -1,14 +1,13 @@
 package com.constellio.model.services.search.query.logical;
 
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 
 public class LogicalSearchQuerySignature implements Serializable {
 
@@ -76,14 +75,16 @@ public class LogicalSearchQuerySignature implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof LogicalSearchQuerySignature))
+		}
+		if (!(o instanceof LogicalSearchQuerySignature)) {
 			return false;
+		}
 		LogicalSearchQuerySignature that = (LogicalSearchQuerySignature) o;
 		return Objects.equals(conditionSignature, that.conditionSignature) &&
-				Objects.equals(sortSignature, that.sortSignature) &&
-				Objects.equals(language, that.language);
+			   Objects.equals(sortSignature, that.sortSignature) &&
+			   Objects.equals(language, that.language);
 	}
 
 	@Override

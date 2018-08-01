@@ -1,11 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.DOCUMENT_TYPE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.IN_FOLDER;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.MAJOR_VERSIONS;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -19,6 +13,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.*;
+import static java.util.Arrays.asList;
+
 public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 
 	@Override
@@ -27,7 +24,8 @@ public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor6_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -39,7 +37,7 @@ public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 	class SchemaAlterationFor6_0 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor6_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -55,18 +53,18 @@ public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 
 		private void setupClassifyConnectorDocumentInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
+													   .getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
 
 			MetadataSchemaTypeBuilder documentTypeSchemaType = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE);
 
 			schema.createUndeletable(ClassifyConnectorDocumentInFolderActionParameters.DOCUMENT_TYPE)
-					.defineReferencesTo(documentTypeSchemaType);
+				  .defineReferencesTo(documentTypeSchemaType);
 		}
 	}
 
 	private void updateClassifyDocumentInFolderParametersForm(String collection,
-			MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+															  MigrationResourcesProvider migrationResourcesProvider,
+															  AppLayerFactory appLayerFactory) {
 
 		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
 
@@ -83,13 +81,13 @@ public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 		)));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, IN_FOLDER)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, MAJOR_VERSIONS)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_TYPE)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

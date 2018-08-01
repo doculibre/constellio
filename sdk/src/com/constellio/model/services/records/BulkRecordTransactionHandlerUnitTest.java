@@ -1,22 +1,21 @@
 package com.constellio.model.services.records;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-
-import java.util.HashMap;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.BulkRecordTransactionHandler.BulkRecordTransactionHandlerTask;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_Interrupted;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 public class BulkRecordTransactionHandlerUnitTest extends ConstellioTest {
 

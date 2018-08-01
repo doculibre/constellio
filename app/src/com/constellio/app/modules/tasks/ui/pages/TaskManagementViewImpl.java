@@ -1,21 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.ui.components.DemoFilterDecorator;
-import com.constellio.app.modules.tasks.ui.components.DemoFilterGenerator;
-import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
-import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
+import com.constellio.app.modules.tasks.ui.components.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -36,12 +22,16 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 	private final TaskManagementPresenter presenter;
@@ -120,11 +110,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	}
 
 	public void backToPreviousSelectedTab() {
-		if(previousSelectedTab != null) {
+		if (previousSelectedTab != null) {
 			Iterator<Component> iterator = sheet.iterator();
-			while(iterator.hasNext()) {
+			while (iterator.hasNext()) {
 				Component component = iterator.next();
-				if(previousSelectedTab.equals(component.getId())) {
+				if (previousSelectedTab.equals(component.getId())) {
 					sheet.setSelectedTab(component);
 					presenter.tabSelected(previousSelectedTab);
 					break;
@@ -208,11 +198,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		//layout.addComponent(new BaseFilteringTable());
 	}
 
-//	@Override
-//	public void displayTasks(RecordVODataProvider provider, Object[] propertyId, boolean[] ascending) {
-//		VerticalLayout layout = getEmptiedSelectedTab();
-//		layout.addComponent(new TaskTable(provider, presenter).sort(propertyId, ascending));
-//	}
+	//	@Override
+	//	public void displayTasks(RecordVODataProvider provider, Object[] propertyId, boolean[] ascending) {
+	//		VerticalLayout layout = getEmptiedSelectedTab();
+	//		layout.addComponent(new TaskTable(provider, presenter).sort(propertyId, ascending));
+	//	}
 
 	@Override
 	public void displayWorkflows(RecordVODataProvider provider) {

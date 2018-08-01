@@ -1,14 +1,5 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -16,6 +7,14 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskSchemasExtensionTestUpdateRemindersStatusAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -77,15 +76,15 @@ public class TaskSchemasExtensionTestUpdateRemindersStatusAcceptanceTest extends
 		notProcessedReminderWithFixedDate_7 = new TaskReminder().setFixedDate(now.minusDays(1)).setProcessed(false);
 
 		recordServices.add(zeTask.setTitle("zeTaskTilte").setStartDate(oldStartDate).setDueDate(oldDueDate)
-				.setReminders(asList(reminderWithRelativeToStartDateProcessedWithOldStartDateAndProcessedWithNewStartDate_0,
-						reminderWithRelativeToStartDateProcessedWithOldStartDateAndNotProcessedWithNewStartDate_1,
-						reminderWithRelativeToStartDateNotProcessedWithOldStartDateAndNotProcessedWithNewStartDate_2,
-						reminderWithRelativeToDueDateProcessedWithOldDueDateAndProcessedWithNewDueDate_3,
-						reminderWithRelativeToDueDateProcessedWithOldDueDateAndNotProcessedWithNewDueDate_4,
-						reminderWithRelativeToDueDateNotProcessedWithOldDueDateAndNotProcessedWithNewDueDate_5,
-						processedReminderWithFixedDate_6,
-						notProcessedReminderWithFixedDate_7
-				)));
+								 .setReminders(asList(reminderWithRelativeToStartDateProcessedWithOldStartDateAndProcessedWithNewStartDate_0,
+										 reminderWithRelativeToStartDateProcessedWithOldStartDateAndNotProcessedWithNewStartDate_1,
+										 reminderWithRelativeToStartDateNotProcessedWithOldStartDateAndNotProcessedWithNewStartDate_2,
+										 reminderWithRelativeToDueDateProcessedWithOldDueDateAndProcessedWithNewDueDate_3,
+										 reminderWithRelativeToDueDateProcessedWithOldDueDateAndNotProcessedWithNewDueDate_4,
+										 reminderWithRelativeToDueDateNotProcessedWithOldDueDateAndNotProcessedWithNewDueDate_5,
+										 processedReminderWithFixedDate_6,
+										 notProcessedReminderWithFixedDate_7
+								 )));
 	}
 
 	@Test

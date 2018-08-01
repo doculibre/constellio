@@ -1,16 +1,8 @@
 package com.constellio.app.ui.pages.rm.document;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.RecordFormWebElement;
@@ -19,6 +11,13 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
@@ -39,9 +38,9 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus()
-						.withDocumentsHavingContent(),
+								  .withDocumentsHavingContent(),
 				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
-						.withFoldersAndContainersOfEveryStatus()
+													.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");

@@ -1,21 +1,12 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculator;
 import com.constellio.app.modules.tasks.model.calculators.WorkflowTaskSortCalculator;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
+import com.constellio.app.modules.tasks.model.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
@@ -33,6 +24,11 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException.RolesManagerRuntimeException_Validation;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
 public class TasksMigrationTo6_0 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -40,7 +36,8 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationsFor6_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		configureDisplayConfig(collection, appLayerFactory);
@@ -50,12 +47,12 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 	private void configureDisplayConfig(String collection, AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection)
-				.in(Task.SCHEMA_TYPE)
-				.addToForm(Task.DECISION, Task.RELATIVE_DUE_DATE)
-				.atTheEnd()
-				.in(Task.SCHEMA_TYPE)
-				.addToDisplay(Task.DECISION, Task.BETA_WORKFLOW, Task.BETA_WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
-				.atTheEnd();
+																		 .in(Task.SCHEMA_TYPE)
+																		 .addToForm(Task.DECISION, Task.RELATIVE_DUE_DATE)
+																		 .atTheEnd()
+																		 .in(Task.SCHEMA_TYPE)
+																		 .addToDisplay(Task.DECISION, Task.BETA_WORKFLOW, Task.BETA_WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
+																		 .atTheEnd();
 		manager.execute(transactionBuilder.build());
 	}
 
@@ -78,7 +75,7 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 
 	private class SchemaAlterationsFor6_0 extends MetadataSchemasAlterationHelper {
 		public SchemaAlterationsFor6_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+									   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -99,7 +96,7 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 			workflowInstanceSchema.create(BetaWorkflowInstance.STATUS).defineAsEnum(WorkflowInstanceStatus.class);
 			workflowInstanceSchema.create(BetaWorkflowInstance.WORKFLOW).defineReferencesTo(workflowSchemaType);
 			workflowInstanceSchema.create(BetaWorkflowInstance.EXTRA_FIELDS)
-					.defineStructureFactory(MapStringListStringStructureFactory.class);
+								  .defineStructureFactory(MapStringListStringStructureFactory.class);
 
 			MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.getSchemaType(Task.SCHEMA_TYPE);
 			MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
@@ -115,10 +112,10 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 			taskSchema.create(Task.IS_MODEL).setType(MetadataValueType.BOOLEAN);
 			taskSchema.create(Task.BETA_NEXT_TASK_CREATED).setType(MetadataValueType.BOOLEAN);
 			taskSchema.create(Task.BETA_WORKFLOW_TASK_SORT).setType(MetadataValueType.NUMBER)
-					.defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
+					  .defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
 			taskSchema.create(Task.BETA_NEXT_TASKS).setType(MetadataValueType.REFERENCE).setMultivalue(true)
-					.defineReferencesTo(taskSchemaType)
-					.defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
+					  .defineReferencesTo(taskSchemaType)
+					  .defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
 			taskSchema.create(Task.BETA_NEXT_TASKS_DECISIONS).defineStructureFactory(MapStringStringStructureFactory.class);
 			taskSchema.create(Task.RELATIVE_DUE_DATE).setType(MetadataValueType.NUMBER);
 

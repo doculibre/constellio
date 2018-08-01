@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.entities.Language;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -26,6 +17,7 @@ import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -39,6 +31,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -84,7 +83,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
 				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
-				.equals(EventType.LATE_BORROWED_FOLDERS)) {
+						   .equals(EventType.LATE_BORROWED_FOLDERS)) {
 			voBuilder = getRecordToVOBuilderToBorrowedFolders();
 
 			MetadataSchema folderDefaultSchema = schemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
@@ -141,36 +140,36 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		User currentUser = getCurrentUser();
 		initParameters(view.getParameters());
 		switch (this.eventCategory) {
-		case EVENTS_BY_ADMINISTRATIVE_UNIT:
-			return rmSchemasEventsServices().newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType,
-					startDate,
-					endDate, id);
-		case EVENTS_BY_FOLDER:
-			return rmSchemasEventsServices()
-					.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate,
-							endDate,
-							id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
-		case EVENTS_BY_CONTAINER:
-			return rmSchemasEventsServices()
-					.newFindEventByDateRangeAndByContainerQuery(currentUser, eventType, startDate,
-							endDate,
-							id);
-		case EVENTS_BY_USER:
-			if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
-				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersByUser(currentUser, id);
-			} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
-				return rmSchemasEventsServices().newFindLateBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
-			} else {
-				return rmSchemasEventsServices().newFindEventByDateRangeAndByUserIdQuery(currentUser, eventType, startDate,
+			case EVENTS_BY_ADMINISTRATIVE_UNIT:
+				return rmSchemasEventsServices().newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType,
+						startDate,
 						endDate, id);
-			}
-		case CURRENTLY_BORROWED_DOCUMENTS:
-			return rmSchemasEventsServices().newFindCurrentlyBorrowedDocumentsQuery(currentUser);
-		case CURRENTLY_BORROWED_FOLDERS:
-			return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersQuery(currentUser);
+			case EVENTS_BY_FOLDER:
+				return rmSchemasEventsServices()
+						.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate,
+								endDate,
+								id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
+			case EVENTS_BY_CONTAINER:
+				return rmSchemasEventsServices()
+						.newFindEventByDateRangeAndByContainerQuery(currentUser, eventType, startDate,
+								endDate,
+								id);
+			case EVENTS_BY_USER:
+				if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
+					return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersByUser(currentUser, id);
+				} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
+					return rmSchemasEventsServices().newFindLateBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
+				} else {
+					return rmSchemasEventsServices().newFindEventByDateRangeAndByUserIdQuery(currentUser, eventType, startDate,
+							endDate, id);
+				}
+			case CURRENTLY_BORROWED_DOCUMENTS:
+				return rmSchemasEventsServices().newFindCurrentlyBorrowedDocumentsQuery(currentUser);
+			case CURRENTLY_BORROWED_FOLDERS:
+				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersQuery(currentUser);
 
-		default:
-			return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+			default:
+				return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
 		}
 	}
 
@@ -209,7 +208,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.RECORD_ID) || metadataValue.getMetadata().getCode()
-				.contains(CommonMetadataBuilder.ID);
+																							   .contains(CommonMetadataBuilder.ID);
 	}
 
 	public boolean isDeltaMetadata(MetadataValueVO metadataValue) {
@@ -259,12 +258,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	public void recordLinkClicked(RecordVO eventVO) {
 		Map<String, Object> params = new HashMap<>();
 
-		if(EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory))
-		{
+		if (EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory)) {
 			Record linkedRecord = recordServices().getDocumentById(eventVO.getId());
-			if(Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+			if (Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 				String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-						.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
+														.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
 				params.put("schemaType", schemaTypeLabel);
 				final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
 				view.showErrorMessage(errorMessage);
@@ -275,17 +273,15 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				return;
 			}
-		}
-		else
-		{
+		} else {
 			String eventId = eventVO.get(Event.RECORD_ID);
 			try {
 				Record linkedRecord = recordServices().getDocumentById(eventId);
 				String linkedRecordId = linkedRecord.getId();
 
-				if(Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
+				if (Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 					String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-							.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
+															.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
 					params.put("schemaType", schemaTypeLabel);
 					final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
 					view.showErrorMessage(errorMessage);
@@ -318,7 +314,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			@Override
 			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
-					SessionContext sessionContext) {
+								  SessionContext sessionContext) {
 				MetadataSchema folderSchema = schemas().folder.schema();
 				Metadata borrowDateMetadata = folderSchema.getMetadata(Folder.BORROW_DATE);
 				LocalDateTime eventTime = record.get(borrowDateMetadata);
@@ -332,8 +328,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
 				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
-						.where(borrowedMetadata).isTrue()
-						.andWhere(borrowDateMetadata).isEqualTo(
+																						   .where(borrowedMetadata).isTrue()
+																						   .andWhere(borrowDateMetadata).isEqualTo(
 								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
 
 				SearchServices searchServices = modelLayerFactory.newSearchServices();

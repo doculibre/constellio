@@ -1,13 +1,12 @@
 package com.constellio.model.entities.schemas.sort;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultStringSortFieldNormalizerTest extends ConstellioTest {
 
@@ -37,8 +36,8 @@ public class DefaultStringSortFieldNormalizerTest extends ConstellioTest {
 			String normalizedStringAfter = normalizedStrings.get(i + 1);
 			assertThat(normalizedStringBefore.compareTo(normalizedStringAfter)).describedAs(
 					"Element at position " + i + " with normalized text '" + normalizedStringBefore + "' is expected to be " +
-							"before element at position " + (i + 1) + " with normalized text '" + normalizedStringAfter + "'")
-					.isLessThan(0);
+					"before element at position " + (i + 1) + " with normalized text '" + normalizedStringAfter + "'")
+																			   .isLessThan(0);
 		}
 
 	}

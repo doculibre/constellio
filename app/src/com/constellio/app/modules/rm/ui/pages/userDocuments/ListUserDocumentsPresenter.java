@@ -1,31 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserDocumentVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
@@ -49,6 +32,18 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUserDocumentsView> {
 
@@ -115,7 +110,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
 				LogicalSearchQueryOperators.from(userFolderSchema).where(userMetadata).is(currentUser.getWrappedRecord())
-						.andWhere(parentUserFolderMetadata).isNull());
+										   .andWhere(parentUserFolderMetadata).isNull());
 		query.sortAsc(Schemas.IDENTIFIER);
 
 		return query;
@@ -130,7 +125,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
 				LogicalSearchQueryOperators.from(userDocumentSchema).where(userMetadata).is(currentUser.getWrappedRecord())
-						.andWhere(userFolderMetadata).isNull());
+										   .andWhere(userFolderMetadata).isNull());
 		query.sortAsc(Schemas.IDENTIFIER);
 
 		return query;
@@ -203,16 +198,16 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+																 .where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+																 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						)
 						.filteredWithUser(getCurrentUser());
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				LogicalSearchQuery duplicateUserDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.userDocumentSchemaType())
-								.where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-								.andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId()))
+																 .where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+																 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+																 .andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId()))
 						.filteredWithUser(getCurrentUser());
 				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
 				if (duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {
@@ -265,12 +260,12 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				RMUserFolder userFolder = rm.wrapUserFolder(record);
 				DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 				decommissioningService.deleteUserFolder(userFolder, currentUser);
-				if(refreshUI) {
+				if (refreshUI) {
 					userFoldersDataProvider.fireDataRefreshEvent();
 				}
 			} else {
 				delete(record);
-				if(refreshUI) {
+				if (refreshUI) {
 					userDocumentsDataProvider.fireDataRefreshEvent();
 				}
 			}

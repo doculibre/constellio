@@ -1,20 +1,19 @@
 package com.constellio.model.utils;
 
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
+import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.NoSuchConstructor;
+import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
+import org.jdom2.Element;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.jdom2.Element;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.NoSuchConstructor;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
 
 public class ParametrizedInstanceUtils {
 
@@ -220,16 +219,16 @@ public class ParametrizedInstanceUtils {
 
 	private boolean isValid(Class clazz) {
 		return Map.class.isAssignableFrom(clazz) ||
-				List.class.isAssignableFrom(clazz) ||
-				Integer.class.equals(clazz) ||
-				String.class.equals(clazz) ||
-				Double.class.equals(clazz) ||
-				Float.class.equals(clazz) ||
-				LocalDateTime.class.equals(clazz) ||
-				LocalDate.class.equals(clazz) ||
-				Boolean.class.equals(clazz) ||
-				Long.class.equals(clazz) ||
-				Enum.class.isAssignableFrom(clazz);
+			   List.class.isAssignableFrom(clazz) ||
+			   Integer.class.equals(clazz) ||
+			   String.class.equals(clazz) ||
+			   Double.class.equals(clazz) ||
+			   Float.class.equals(clazz) ||
+			   LocalDateTime.class.equals(clazz) ||
+			   LocalDate.class.equals(clazz) ||
+			   Boolean.class.equals(clazz) ||
+			   Long.class.equals(clazz) ||
+			   Enum.class.isAssignableFrom(clazz);
 	}
 }
 

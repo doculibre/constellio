@@ -1,23 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
-import static com.constellio.app.modules.es.sdk.ESTestUtils.assertThatEventsObservedBy;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.addEvent;
-import static java.util.Arrays.asList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrFolderUpdater;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
@@ -39,6 +21,19 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import static com.constellio.app.modules.es.sdk.ESTestUtils.assertThatEventsObservedBy;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.addEvent;
+import static java.util.Arrays.asList;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
@@ -59,21 +54,21 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 		prepareSystem(withZeCollection().withConstellioESModule()
-				.withAllTestUsers());
+										.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorInstance = es.newConnectorSmbInstance()
-				.setDomain(SmbTestParams.DOMAIN)
-				.setUsername(SmbTestParams.USERNAME)
-				.setPassword(SmbTestParams.PASSWORD)
-				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-				.setExclusions(asList(""))
-				.setTitle(SmbTestParams.CONNECTOR_TITLE);
+							  .setDomain(SmbTestParams.DOMAIN)
+							  .setUsername(SmbTestParams.USERNAME)
+							  .setPassword(SmbTestParams.PASSWORD)
+							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+							  .setCode(SmbTestParams.INSTANCE_CODE)
+							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+							  .setExclusions(asList(""))
+							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
 		es.getConnectorManager()
-				.createConnector(connectorInstance);
+		  .createConnector(connectorInstance);
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
@@ -102,8 +97,8 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-				.containsOnly(addEvent(es.newConnectorSmbFolder(connectorInstance)
-						.setUrl(SHARE_URL)));
+												 .containsOnly(addEvent(es.newConnectorSmbFolder(connectorInstance)
+																		  .setUrl(SHARE_URL)));
 
 		verify(updater, times(1))
 				.updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
@@ -123,8 +118,8 @@ public class SmbNewFolderRetrievalJobAcceptanceTest extends ConstellioTest {
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-				.containsOnly(addEvent(es.newConnectorSmbFolder(connectorInstance)
-						.setUrl(SHARE_URL)));
+												 .containsOnly(addEvent(es.newConnectorSmbFolder(connectorInstance)
+																		  .setUrl(SHARE_URL)));
 
 		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
 	}

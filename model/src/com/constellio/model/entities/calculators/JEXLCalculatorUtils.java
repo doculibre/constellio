@@ -1,8 +1,8 @@
 package com.constellio.model.entities.calculators;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 
 public class JEXLCalculatorUtils {
 

@@ -71,10 +71,10 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		zeTask = tasksSchemas.newTask();
 		recordServices.add(zeTask.setTitle("zeTitle").setStatus(CLOSED())
-				.setTaskFollowers(asList(new TaskFollower().setFollowerId(bobHasReadAccessOnTask.getId())))
-				.setAssignee(aliceHasWriteAccessOnZeTask.getId()).setAssigner(chuckNorrisHasDeleteAccessOnTask.getId())
-				.setAssignationDate(LocalDate.now())
-				.setCreatedBy(chuckNorrisHasDeleteAccessOnTask.getId()));
+								 .setTaskFollowers(asList(new TaskFollower().setFollowerId(bobHasReadAccessOnTask.getId())))
+								 .setAssignee(aliceHasWriteAccessOnZeTask.getId()).setAssigner(chuckNorrisHasDeleteAccessOnTask.getId())
+								 .setAssignationDate(LocalDate.now())
+								 .setCreatedBy(chuckNorrisHasDeleteAccessOnTask.getId()));
 	}
 
 	@Test
@@ -100,13 +100,13 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserCreatedClosedTaskThenVisibleInRecentlyClosedTask ()
+	public void givenUserCreatedClosedTaskThenVisibleInRecentlyClosedTask()
 			throws Exception {
 		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);
 		doNothing().when(view).displayTasks(argumentCaptor.capture());
 
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
-				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
 		presenter.tabSelected(presenter.TASKS_RECENTLY_COMPLETED);
 
@@ -118,7 +118,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserAssignedToClosedTaskThenVisibleInRecentlyClosedTask ()
+	public void givenUserAssignedToClosedTaskThenVisibleInRecentlyClosedTask()
 			throws Exception {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -127,7 +127,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		doNothing().when(view).displayTasks(argumentCaptor.capture());
 
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
-				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
 		presenter.tabSelected(presenter.TASKS_RECENTLY_COMPLETED);
 
@@ -139,7 +139,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserNotAssignedToClosedTaskAndIsNotTheCreatorThenInvisibleInRecentlyClosedTask ()
+	public void givenUserNotAssignedToClosedTaskAndIsNotTheCreatorThenInvisibleInRecentlyClosedTask()
 			throws Exception {
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -148,7 +148,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		doNothing().when(view).displayTasks(argumentCaptor.capture());
 
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
-				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
 		presenter.tabSelected(presenter.TASKS_RECENTLY_COMPLETED);
 

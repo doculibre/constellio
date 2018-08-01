@@ -1,12 +1,12 @@
 package com.constellio.model.services.records.aggregations;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CalculatorMetadataAggregationHandler implements MetadataAggregationHandler {
 
@@ -48,7 +48,7 @@ public class CalculatorMetadataAggregationHandler implements MetadataAggregation
 		List<Metadata> metadatas = new ArrayList<>();
 		try {
 			List<String> metadataDependencies = params.getAggregatedDataEntry().getAggregatedCalculator().newInstance()
-					.getMetadataDependencies();
+													  .getMetadataDependencies();
 			if (metadataDependencies != null) {
 				for (String metadataCode : metadataDependencies) {
 					metadatas.add(params.getMetadata(metadataCode));

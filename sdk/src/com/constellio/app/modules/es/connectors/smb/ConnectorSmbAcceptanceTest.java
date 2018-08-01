@@ -1,25 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.model.entities.records.Record;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
@@ -34,13 +14,29 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-
 import jcifs.smb.NtlmPasswordAuthentication;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.*;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 @InDevelopmentTest
 //TODO Activate test
@@ -88,14 +84,14 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		// givenCollection(zeCollection).withConstellioESModule().withAllTestUsers();
 		prepareSystem(withZeCollection().withConstellioESModule()
-				.withAllTestUsers());
+										.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		connectorManager = es.getConnectorManager();
 		eventObserver = new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, "crawlerObserver"));
 		connectorManager.setCrawler(ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-				.withoutSleeps());
+													.withoutSleeps());
 		NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication(SDKPasswords.testSmbDomain(),
 				SDKPasswords.testSmbUsername(),
 				SDKPasswords.testSmbPassword());
@@ -111,15 +107,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword(SDKPasswords.testSmbPassword())
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE));
 
 		// *
 		// * ----------------- Fetch phase 1 --------------
@@ -128,13 +124,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		SmbResult result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+									   .isEmpty();
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -144,16 +140,16 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, seedUrl));
+											 .containsOnly(tuple(ADD_EVENT, seedUrl));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(seedUrl, true, ONE_MINUTE_AFTER_TIME1, true));
+									   .containsOnly(tuple(seedUrl, true, ONE_MINUTE_AFTER_TIME1, true));
 
 		ConnectorSmbFolder folder = result.getFolders()
-				.get(0);
+										  .get(0);
 
 		assertThat(folder.getErrorMessage()).isEqualTo("The network name cannot be found.");
 		assertThat(folder.getErrorCode()).isEqualTo("ErrorCode");
@@ -172,15 +168,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword("invalidPassword")
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword("invalidPassword")
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE));
 
 		// *
 		// * ----------------- Fetch phase 1 --------------
@@ -189,13 +185,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		SmbResult result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+									   .isEmpty();
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -205,16 +201,16 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, SHARE_URL));
+											 .containsOnly(tuple(ADD_EVENT, SHARE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true));
 
 		ConnectorSmbFolder folder = result.getFolders()
-				.get(0);
+										  .get(0);
 
 		assertThat(folder.getErrorMessage()).isEqualTo("Logon failure: unknown user name or bad password.");
 		assertThat(folder.getErrorCode()).isEqualTo("ErrorCode");
@@ -231,15 +227,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword("invalidPassword")
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword("invalidPassword")
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE));
 
 		// *
 		// * ----------------- Fetch phase 1 --------------
@@ -248,13 +244,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		SmbResult result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+									   .isEmpty();
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -264,16 +260,16 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, seedUrl));
+											 .containsOnly(tuple(ADD_EVENT, seedUrl));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(seedUrl, true, ONE_MINUTE_AFTER_TIME1, true));
+									   .containsOnly(tuple(seedUrl, true, ONE_MINUTE_AFTER_TIME1, true));
 
 		ConnectorSmbFolder folder = result.getFolders()
-				.get(0);
+										  .get(0);
 
 		assertThat(folder.getErrorMessage()).isEqualTo("Failed to connect to server");
 		assertThat(folder.getErrorCode()).isEqualTo("ErrorCode");
@@ -292,15 +288,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword(SDKPasswords.testSmbPassword())
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE));
 
 		// *
 		// * ----------------- Fetch phase 1 --------------
@@ -309,13 +305,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		SmbResult result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+									   .isEmpty();
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -325,13 +321,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, SHARE_URL), tuple(ADD_EVENT, FILE_URL));
+											 .containsOnly(tuple(ADD_EVENT, SHARE_URL), tuple(ADD_EVENT, FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- End of traversal --------------
@@ -341,15 +337,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, FOLDER_URL), tuple(ADD_EVENT, ANOTHER_FILE_URL));
+											 .containsOnly(tuple(ADD_EVENT, FOLDER_URL), tuple(ADD_EVENT, ANOTHER_FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Refetch phase 3 --------------
@@ -359,15 +355,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Refetch phase 4 --------------
@@ -377,15 +373,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Refetch phase 5 --------------
@@ -395,15 +391,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(MODIFY_EVENT, SHARE_URL), tuple(MODIFY_EVENT, FILE_URL));
+											 .containsOnly(tuple(MODIFY_EVENT, SHARE_URL), tuple(MODIFY_EVENT, FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- End of second traversal --------------
@@ -413,15 +409,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(MODIFY_EVENT, FOLDER_URL), tuple(MODIFY_EVENT, ANOTHER_FILE_URL));
+											 .containsOnly(tuple(MODIFY_EVENT, FOLDER_URL), tuple(MODIFY_EVENT, ANOTHER_FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true));
 
 		SmbTestCommand cleanShare = commandFactory.get(SmbTestCommandType.CLEAN_SHARE, SHARE_URL, "");
 		cleanShare.execute();
@@ -437,24 +433,24 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword(SDKPasswords.testSmbPassword())
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE));
 
 		SmbResult result = fullyFetchShare();
 		result = fullyFetchShare();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
 
 		SmbTestCommand deleteFolder = commandFactory.get(SmbTestCommandType.DELETE, FOLDER_URL, "");
 		SmbTestCommand createFolder2 = commandFactory.get(SmbTestCommandType.CREATE_FOLDER, FOLDER2_URL, "");
@@ -476,13 +472,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -492,13 +488,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(MODIFY_EVENT, SHARE_URL), tuple(MODIFY_EVENT, FILE_URL));
+											 .containsOnly(tuple(MODIFY_EVENT, SHARE_URL), tuple(MODIFY_EVENT, FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TWO_MINUTES_AFTER_TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TWO_MINUTES_AFTER_TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 3 --------------
@@ -508,17 +504,17 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, FOLDER2_URL), tuple(ADD_EVENT, FILE2_URL));
+											 .containsOnly(tuple(ADD_EVENT, FOLDER2_URL), tuple(ADD_EVENT, FILE2_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FILE2_URL, true, THREE_MINUTES_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+												 tuple(FILE2_URL, true, THREE_MINUTES_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FOLDER2_URL, true, THREE_MINUTES_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+											   tuple(FOLDER2_URL, true, THREE_MINUTES_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TIME1, true));
 
 		// *
 		// * ----------------- End of traversal --------------
@@ -528,15 +524,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(DELETE_EVENT, FOLDER_URL), tuple(DELETE_EVENT, ANOTHER_FILE_URL));
+											 .containsOnly(tuple(DELETE_EVENT, FOLDER_URL), tuple(DELETE_EVENT, ANOTHER_FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FILE2_URL, true, THREE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+												 tuple(FILE2_URL, true, THREE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FOLDER2_URL, true, THREE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+											   tuple(FOLDER2_URL, true, THREE_MINUTES_AFTER_TIME1, true));
 
 		SmbTestCommand cleanShare = commandFactory.get(SmbTestCommandType.CLEAN_SHARE, SHARE_URL, "");
 		cleanShare.execute();
@@ -572,24 +568,24 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword(SDKPasswords.testSmbPassword())
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE));
 
 		SmbResult result = fullyFetchShare();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE_URL, true, TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true),
-						tuple(FILE3_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE_URL, true, TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true),
+												 tuple(FILE3_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
 
 		SmbTestCommand createFile4 = commandFactory.get(SmbTestCommandType.CREATE_FILE, FILE4_URL, "file4 content");
 		createFile4.execute();
@@ -608,14 +604,14 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE3_URL, true, TIME1, true), tuple(FILE_URL, true, TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE3_URL, true, TIME1, true), tuple(FILE_URL, true, TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -625,16 +621,16 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsSequence(tuple(ADD_EVENT, FILE4_URL), tuple(MODIFY_EVENT, FILE3_URL), tuple(MODIFY_EVENT, FILE_URL),
-						tuple(MODIFY_EVENT, SHARE_URL));
+											 .containsSequence(tuple(ADD_EVENT, FILE4_URL), tuple(MODIFY_EVENT, FILE3_URL), tuple(MODIFY_EVENT, FILE_URL),
+													 tuple(MODIFY_EVENT, SHARE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE4_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FILE3_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
+										 .containsOnly(tuple(FILE4_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(FILE3_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true), tuple(ANOTHER_FILE_URL, true, TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true), tuple(FOLDER_URL, true, TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 3 --------------
@@ -644,21 +640,21 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsSequence(tuple(ADD_EVENT, FILE5_URL), tuple(ADD_EVENT, FOLDER2_URL),
-						tuple(MODIFY_EVENT, ANOTHER_FILE_URL),
-						tuple(MODIFY_EVENT, FOLDER_URL));
+											 .containsSequence(tuple(ADD_EVENT, FILE5_URL), tuple(ADD_EVENT, FOLDER2_URL),
+													 tuple(MODIFY_EVENT, ANOTHER_FILE_URL),
+													 tuple(MODIFY_EVENT, FOLDER_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FILE4_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FILE3_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FILE5_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(FILE4_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(FILE3_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+												 tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+												 tuple(FILE5_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
-						tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FOLDER2_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(SHARE_URL, true, ONE_MINUTE_AFTER_TIME1, true),
+											   tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+											   tuple(FOLDER2_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- End of traversal --------------
@@ -687,7 +683,7 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		for (ConnectorSmbDocument document : result.getDocuments()) {
 			if (StringUtils.equals(document.getUrl(), url)) {
 				Record parentRecord = recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), document.getParentConnectorUrl());
-				return parentRecord != null? parentRecord.getId() : null;
+				return parentRecord != null ? parentRecord.getId() : null;
 			}
 		}
 		return "Parent not found for document";
@@ -697,7 +693,7 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		for (ConnectorSmbFolder folder : result.getFolders()) {
 			if (StringUtils.equals(folder.getUrl(), url)) {
 				Record parentRecord = recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), folder.getParentConnectorUrl());
-				return parentRecord != null? parentRecord.getId() : null;
+				return parentRecord != null ? parentRecord.getId() : null;
 			}
 		}
 		return "Parent not found for folder";
@@ -743,53 +739,53 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		List<String> exclusionsA = new ArrayList<>();
 
 		ConnectorSmbInstance connectorInstanceA = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode("connectora")
-				.setEnabled(true)
-				.setSeeds(seedsA)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusionsA)
-				.setExclusions(exclusionsA)
-				.setTitle("ConnectorA"));
+																					 .setCode("connectora")
+																					 .setEnabled(true)
+																					 .setSeeds(seedsA)
+																					 .setUsername(SDKPasswords.testSmbUsername())
+																					 .setPassword(SDKPasswords.testSmbPassword())
+																					 .setDomain(SDKPasswords.testSmbDomain())
+																					 .setInclusions(inclusionsA)
+																					 .setExclusions(exclusionsA)
+																					 .setTitle("ConnectorA"));
 
 		List<String> seedsB = Arrays.asList(SHARE_URL_B);
 		List<String> inclusionsB = seedsB;
 		List<String> exclusionsB = new ArrayList<>();
 
 		ConnectorSmbInstance connectorInstanceB = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode("connectorb")
-				.setEnabled(true)
-				.setSeeds(seedsB)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusionsB)
-				.setExclusions(exclusionsB)
-				.setTitle("ConnectorB"));
+																					 .setCode("connectorb")
+																					 .setEnabled(true)
+																					 .setSeeds(seedsB)
+																					 .setUsername(SDKPasswords.testSmbUsername())
+																					 .setPassword(SDKPasswords.testSmbPassword())
+																					 .setDomain(SDKPasswords.testSmbDomain())
+																					 .setInclusions(inclusionsB)
+																					 .setExclusions(exclusionsB)
+																					 .setTitle("ConnectorB"));
 
 		connectorManager.getCrawler()
-				.crawlNTimes(10);
+						.crawlNTimes(10);
 
 		List<ConnectorSmbDocument> documentsA = es
 				.searchConnectorSmbDocuments(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstanceA));
 		assertThat(documentsA).extracting("url")
-				.containsOnly(FILE_URL_A, ANOTHER_FILE_A);
+							  .containsOnly(FILE_URL_A, ANOTHER_FILE_A);
 
 		List<ConnectorSmbFolder> foldersA = es
 				.searchConnectorSmbFolders(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstanceA));
 		assertThat(foldersA).extracting("url")
-				.containsOnly(SHARE_URL_A, FOLDER_URL_A);
+							.containsOnly(SHARE_URL_A, FOLDER_URL_A);
 
 		List<ConnectorSmbDocument> documentsB = es
 				.searchConnectorSmbDocuments(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstanceB));
 		assertThat(documentsB).extracting("url")
-				.containsOnly(FILE_URL_B, ANOTHER_FILE_B);
+							  .containsOnly(FILE_URL_B, ANOTHER_FILE_B);
 
 		List<ConnectorSmbFolder> foldersB = es
 				.searchConnectorSmbFolders(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstanceB));
 		assertThat(foldersB).extracting("url")
-				.containsOnly(SHARE_URL_B, FOLDER_URL_B);
+							.containsOnly(SHARE_URL_B, FOLDER_URL_B);
 
 		SmbTestCommand cleanShareA = commandFactory.get(SmbTestCommandType.CLEAN_SHARE, SHARE_URL_A, "");
 		cleanShareA.execute();
@@ -809,16 +805,16 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE)
-				.setResumeUrl(FOLDER_URL));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword(SDKPasswords.testSmbPassword())
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE)
+															   .setResumeUrl(FOLDER_URL));
 
 		// *
 		// * ----------------- Fetch phase 1 --------------
@@ -827,13 +823,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		SmbResult result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetchAttempt", "searchable")
-				.isEmpty();
+									   .isEmpty();
 
 		// *
 		// * ----------------- Fetch phase 2 --------------
@@ -843,13 +839,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.isEmpty();
+										 .isEmpty();
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.isEmpty();
+									   .isEmpty();
 
 		// *
 		// * ----------------- Fetch phase 3 --------------
@@ -859,13 +855,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, ANOTHER_FILE_URL), tuple(ADD_EVENT, FOLDER_URL));
+											 .containsOnly(tuple(ADD_EVENT, ANOTHER_FILE_URL), tuple(ADD_EVENT, FOLDER_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 4. End of traversal --------------
@@ -876,13 +872,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 5 --------------
@@ -892,13 +888,13 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 6 --------------
@@ -908,15 +904,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(ADD_EVENT, SHARE_URL), tuple(ADD_EVENT, FILE_URL));
+											 .containsOnly(tuple(ADD_EVENT, SHARE_URL), tuple(ADD_EVENT, FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_MINUTES_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 7 --------------
@@ -926,15 +922,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(MODIFY_EVENT, FOLDER_URL), tuple(MODIFY_EVENT, ANOTHER_FILE_URL));
+											 .containsOnly(tuple(MODIFY_EVENT, FOLDER_URL), tuple(MODIFY_EVENT, ANOTHER_FILE_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 8. End of traversal --------------
@@ -944,15 +940,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 9. Stopping connector --------------
@@ -963,15 +959,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 10. Starting connector with resume url --------------
@@ -983,21 +979,21 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		connectorInstance = connectorInstance.setEnabled(true);
 		assertThat(connectorInstance.getResumeUrl()).isEqualTo(FOLDER_URL);
 		es.getRecordServices()
-				.update(connectorInstance);
+		  .update(connectorInstance);
 		assertThat(connectorInstance.getResumeUrl()).isEqualTo(FOLDER_URL);
 
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 11 --------------
@@ -1008,15 +1004,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, TWO_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 12 --------------
@@ -1027,15 +1023,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.containsOnly(tuple(MODIFY_EVENT, ANOTHER_FILE_URL), tuple(MODIFY_EVENT, FOLDER_URL));
+											 .containsOnly(tuple(MODIFY_EVENT, ANOTHER_FILE_URL), tuple(MODIFY_EVENT, FOLDER_URL));
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		// *
 		// * ----------------- Fetch phase 13. End of traversal --------------
@@ -1046,15 +1042,15 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		result = tickAndGetAllDocumentsAndFolders();
 
 		assertThat(eventObserver.newEvents()).extracting("eventType", "url")
-				.isEmpty();
+											 .isEmpty();
 
 		assertThat(result.getDocuments()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(ANOTHER_FILE_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
-						tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+										 .containsOnly(tuple(ANOTHER_FILE_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
+												 tuple(FILE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 		assertThat(result.getFolders()).extracting("url", "fetched", "lastFetched", "searchable")
-				.containsOnly(tuple(FOLDER_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
-						tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
+									   .containsOnly(tuple(FOLDER_URL, true, SEVEN_WEEKS_AFTER_TIME1, true),
+											   tuple(SHARE_URL, true, FIVE_MINUTES_AFTER_TIME1, true));
 
 	}
 
@@ -1069,16 +1065,16 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		exclusions = new ArrayList<>();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setEnabled(true)
-				.setSeeds(seeds)
-				.setUsername(SDKPasswords.testSmbUsername())
-				.setPassword(SDKPasswords.testSmbPassword())
-				.setDomain(SDKPasswords.testSmbDomain())
-				.setInclusions(inclusions)
-				.setExclusions(exclusions)
-				.setTitle(SmbTestParams.CONNECTOR_TITLE)
-				.setResumeUrl(FOLDER_URL));
+															   .setCode(SmbTestParams.INSTANCE_CODE)
+															   .setEnabled(true)
+															   .setSeeds(seeds)
+															   .setUsername(SDKPasswords.testSmbUsername())
+															   .setPassword(SDKPasswords.testSmbPassword())
+															   .setDomain(SDKPasswords.testSmbDomain())
+															   .setInclusions(inclusions)
+															   .setExclusions(exclusions)
+															   .setTitle(SmbTestParams.CONNECTOR_TITLE)
+															   .setResumeUrl(FOLDER_URL));
 
 		// *
 		// * ----------------- Fetch phase 8. End of traversal --------------
@@ -1105,7 +1101,7 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		connectorInstance = connectorInstance.setEnabled(true);
 		assertThat(connectorInstance.getResumeUrl()).isEqualTo(FOLDER_URL);
 		es.getRecordServices()
-				.update(connectorInstance);
+		  .update(connectorInstance);
 		assertThat(connectorInstance.getResumeUrl()).isEqualTo(FOLDER_URL);
 
 	}
@@ -1119,14 +1115,14 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 
 			results = tickAndGetAllDocumentsAndFolders();
 			newEvents = !eventObserver.newEvents()
-					.isEmpty();
+									  .isEmpty();
 		}
 		return results;
 	}
 
 	private SmbResult tickAndGetAllDocumentsAndFolders() {
 		connectorManager.getCrawler()
-				.crawlNTimes(1);
+						.crawlNTimes(1);
 
 		return new SmbResult(connectorDocuments(), connectorFolders());
 	}

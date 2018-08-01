@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.breadcrumb;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
@@ -16,9 +8,16 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
-	
+
 	private BaseView view;
 
 	private String viewTitle;
@@ -30,9 +29,9 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 
 		String collectionCode = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		if (StringUtils.isNotBlank(collectionCode)) {
-			addItem(new CollectionBreadcrumbItem(collectionCode)); 
+			addItem(new CollectionBreadcrumbItem(collectionCode));
 		}
-		
+
 		Class<? extends MenuViewGroup> viewGroupClass = null;
 		String viewGroupLabel = null;
 		List<Class<?>> implementedInterfaces = ClassUtils.getAllInterfaces(view.getClass());
@@ -49,9 +48,9 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 				}
 			}
 		}
-		
+
 		if (StringUtils.isNotBlank(viewGroupLabel)) {
-			addItem(new ViewGroupBreadcrumbItem(viewGroupClass, viewGroupLabel)); 
+			addItem(new ViewGroupBreadcrumbItem(viewGroupClass, viewGroupLabel));
 		}
 
 		List<? extends IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItems = getIntermediateItems();
@@ -62,7 +61,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		}
 
 		if (StringUtils.isNotBlank(viewTitle) && (StringUtils.isBlank(viewGroupLabel) || !viewGroupLabel.equals(viewTitle))) {
-			addItem(new CurrentViewItem(viewTitle)); 
+			addItem(new CurrentViewItem(viewTitle));
 		}
 	}
 
@@ -74,7 +73,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		return viewTitle;
 	}
 
-	public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems(){
+	public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 		return new ArrayList<>();
 	}
 
@@ -93,11 +92,11 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 			intermediateItem.activate(navigate());
 		}
 	}
-	
+
 	class CurrentViewItem implements BreadcrumbItem {
-		
+
 		private String viewTitle;
-		
+
 		CurrentViewItem(String viewTitle) {
 			this.viewTitle = viewTitle;
 		}
@@ -111,15 +110,15 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		public boolean isEnabled() {
 			return false;
 		}
-		
+
 	}
-	
+
 	class ViewGroupBreadcrumbItem implements BreadcrumbItem {
-		
+
 		private Class<? extends MenuViewGroup> viewGroupClass;
-		
+
 		private String viewGroupLabel;
-		
+
 		public ViewGroupBreadcrumbItem(Class<? extends MenuViewGroup> viewGroupClass, String viewGroupLabel) {
 			this.viewGroupClass = viewGroupClass;
 			this.viewGroupLabel = viewGroupLabel;
@@ -134,7 +133,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		public boolean isEnabled() {
 			return true;
 		}
-		
+
 		private NavigationItem getNavigationItem() {
 			NavigationItem viewGroupItem = null;
 			List<NavigationItem> items = new ArrayList<>();
@@ -152,7 +151,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 			}
 			return viewGroupItem;
 		}
-		
+
 	}
 
 }

@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -17,6 +7,15 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSea
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioTest {
 
@@ -33,7 +32,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -24,6 +16,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerException.Opt
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.assertj.core.groups.Tuple;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 
@@ -59,9 +58,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(FOLDER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(FOLDER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-				.contains(
-						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom1", Folder.SCHEMA_TYPE + " custom 1"),
-						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom2", Folder.SCHEMA_TYPE + " custom 2"));
+																   .contains(
+																		   Tuple.tuple(Folder.SCHEMA_TYPE + "_custom1", Folder.SCHEMA_TYPE + " custom 1"),
+																		   Tuple.tuple(Folder.SCHEMA_TYPE + "_custom2", Folder.SCHEMA_TYPE + " custom 2"));
 	}
 
 	@Test
@@ -71,9 +70,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(DOCUMENT_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(DOCUMENT_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-				.contains(
-						Tuple.tuple(Document.SCHEMA_TYPE + "_custom1", Document.SCHEMA_TYPE + " custom 1"),
-						Tuple.tuple(Document.SCHEMA_TYPE + "_custom2", Document.SCHEMA_TYPE + " custom 2"));
+																	 .contains(
+																			 Tuple.tuple(Document.SCHEMA_TYPE + "_custom1", Document.SCHEMA_TYPE + " custom 1"),
+																			 Tuple.tuple(Document.SCHEMA_TYPE + "_custom2", Document.SCHEMA_TYPE + " custom 2"));
 	}
 
 	@Test
@@ -83,9 +82,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(CONTAINER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(CONTAINER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-				.contains(
-						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom1", ContainerRecord.SCHEMA_TYPE + " custom 1"),
-						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom2", ContainerRecord.SCHEMA_TYPE + " custom 2"));
+																	  .contains(
+																			  Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom1", ContainerRecord.SCHEMA_TYPE + " custom 1"),
+																			  Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom2", ContainerRecord.SCHEMA_TYPE + " custom 2"));
 	}
 
 	@Test
@@ -95,17 +94,17 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(STORAGE_SPACE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(STORAGE_SPACE_LINKED_SCHEMA)).extracting("value", "caption")
-				.contains(
-						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom1", StorageSpace.SCHEMA_TYPE + " custom 1"),
-						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom2", StorageSpace.SCHEMA_TYPE + " custom 2"));
+																	 .contains(
+																			 Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom1", StorageSpace.SCHEMA_TYPE + " custom 1"),
+																			 Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom2", StorageSpace.SCHEMA_TYPE + " custom 2"));
 	}
 
 	private void givenCustomSchemasFor(String schemaType)
 			throws OptimisticLocking {
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(zeCollection);
-		types.getSchemaType(schemaType).createCustomSchema("custom1").addLabel(Language.French,schemaType + " custom 1");
-		types.getSchemaType(schemaType).createCustomSchema("custom2").addLabel(Language.French,schemaType + " custom 2");
+		types.getSchemaType(schemaType).createCustomSchema("custom1").addLabel(Language.French, schemaType + " custom 1");
+		types.getSchemaType(schemaType).createCustomSchema("custom2").addLabel(Language.French, schemaType + " custom 2");
 		manager.saveUpdateSchemaTypes(types);
 	}
 }

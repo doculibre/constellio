@@ -4,7 +4,6 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.vaadin.data.Item;
 
-import java.util.Collection;
 import java.util.List;
 
 public class TaskTypeFieldOptionGroupImpl extends RecordComboBox implements TaskTypeField {
@@ -19,8 +18,8 @@ public class TaskTypeFieldOptionGroupImpl extends RecordComboBox implements Task
 	}
 
 	public void removeUnavailablesTaskTypes() {
-		if(unavailablesTaskTypes != null) {
-			for(String type: unavailablesTaskTypes) {
+		if (unavailablesTaskTypes != null) {
+			for (String type : unavailablesTaskTypes) {
 				removeItem(type);
 			}
 		}
@@ -38,7 +37,7 @@ public class TaskTypeFieldOptionGroupImpl extends RecordComboBox implements Task
 
 	@Override
 	public Item addItem(Object itemId) throws UnsupportedOperationException {
-		if(unavailablesTaskTypes == null || !unavailablesTaskTypes.contains(itemId)) {
+		if (unavailablesTaskTypes == null || !unavailablesTaskTypes.contains(itemId)) {
 			return super.addItem(itemId);
 		}
 		return null;

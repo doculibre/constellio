@@ -71,7 +71,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		ValidationErrors validationErrors = new ValidationErrors();
 
 		givenCopyRetentionRule(copyRetentionRules).addField("copyType", "F'`,,,").addField("inactiveDisposalType", "S")
-				.addField("mediumType", "PA,FI");
+												  .addField("mediumType", "PA,FI");
 
 		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
@@ -101,19 +101,19 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		ValidationErrors validationErrors = new ValidationErrors();
 
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(2)).addField("copyType", "S")
-				.addField("inactiveDisposalType", "C")
-				.addField("mediumType", "PA");
+												  .addField("inactiveDisposalType", "C")
+												  .addField("mediumType", "PA");
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(3)).addField("copyType", "S")
-				.addField("inactiveDisposalType", "T").addField("mediumTypes", "PA,MD")
-				.addField("mediumType", "test").addField("activeRetentionPeriod", "-25");
+												  .addField("inactiveDisposalType", "T").addField("mediumTypes", "PA,MD")
+												  .addField("mediumType", "test").addField("activeRetentionPeriod", "-25");
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(10)).addField("copyType", "P")
-				.addField("activeRetentionPeriod", "999");
+												  .addField("activeRetentionPeriod", "999");
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(1)).addField("copyType", "Principale").addField(
 				"activeRetentionPeriod",
 				"888").addField("contentTypesComment", "value unknown").addField("inactiveDisposalType", "D");
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(1)).addField("copyType", "S")
-				.addField("activeRetentionPeriod", "awer")
-				.addField("contentTypesComment", "value unknown with full stack").addField("inactiveDisposalType", "T");
+												  .addField("activeRetentionPeriod", "awer")
+												  .addField("contentTypesComment", "value unknown with full stack").addField("inactiveDisposalType", "T");
 
 		givenDocumentTypes(documentTypes).code("emailDocumentType").addField("archivisticStatus", "Conservation");
 		givenDocumentTypes(documentTypes).code("documentType").addField("archivisticStatus", "T");
@@ -166,9 +166,9 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		ValidationErrors validationErrors = new ValidationErrors();
 
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(1)).addField("copyType", "")
-				.addField("inactiveDisposalType", "")
-				.addField("mediumTypes", "").addField("activeRetentionPeriod", "").addField("contentTypesComment", "")
-				.addField("semiActiveRetentionPeriod", "");
+												  .addField("inactiveDisposalType", "")
+												  .addField("mediumTypes", "").addField("activeRetentionPeriod", "").addField("contentTypesComment", "")
+												  .addField("semiActiveRetentionPeriod", "");
 
 		givenDocumentTypes(documentTypes).code("emailDocumentType").addField("archivisticStatus", "");
 

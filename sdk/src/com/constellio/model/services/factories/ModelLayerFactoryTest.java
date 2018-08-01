@@ -1,22 +1,5 @@
 package com.constellio.model.services.factories;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
@@ -46,6 +29,20 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import java.io.File;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class ModelLayerFactoryTest extends ConstellioTest {
 

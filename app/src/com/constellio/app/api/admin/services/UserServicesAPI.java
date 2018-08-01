@@ -1,24 +1,5 @@
 package com.constellio.app.api.admin.services;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.client.entities.GlobalGroupResource;
 import com.constellio.app.client.entities.GroupResource;
 import com.constellio.app.client.entities.UserResource;
@@ -27,6 +8,14 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
+import org.joda.time.LocalDateTime;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import java.util.*;
+import java.util.Map.Entry;
 
 @Path("users")
 @Consumes("application/xml")

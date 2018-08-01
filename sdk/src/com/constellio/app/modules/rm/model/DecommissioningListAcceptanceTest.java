@@ -54,7 +54,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -72,7 +72,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaType(DecommissioningList.SCHEMA_TYPE).hasSecurity()).isFalse();
+										 .getSchemaType(DecommissioningList.SCHEMA_TYPE).hasSecurity()).isFalse();
 	}
 
 	@Test
@@ -239,8 +239,8 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		String containerRecordType = records.getContainerBac01().getType();
 
 		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("ze container").setTemporaryIdentifier("42")
-				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT)
-				.setType(containerRecordType);
+											.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT)
+											.setType(containerRecordType);
 		containerRecord.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, null);
 		DecomListContainerDetail decomListContainerDetail = new DecomListContainerDetail(containerRecord.getId());
 		decommissioningList.setContainerDetails(asList(decomListContainerDetail));

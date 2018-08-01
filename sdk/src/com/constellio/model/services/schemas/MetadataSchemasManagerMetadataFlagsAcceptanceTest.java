@@ -1,22 +1,5 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasCustomAttributes;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDuplicable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForDeletion;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIncreaseDependencyLevel;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -31,7 +14,15 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends ConstellioTest {
 
@@ -116,10 +107,10 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
-						.setTransiency(TRANSIENT_EAGER);
+					 .setTransiency(TRANSIENT_EAGER);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setTransiency(null);
 				types.getSchema(zeSchema.code()).get(zeSchema.numberMetadata().getLocalCode())
-						.setTransiency(MetadataTransiency.PERSISTED);
+					 .setTransiency(MetadataTransiency.PERSISTED);
 			}
 		});
 
@@ -157,7 +148,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
-							.setTransiency(TRANSIENT_EAGER);
+						 .setTransiency(TRANSIENT_EAGER);
 				}
 			});
 			fail("Exception expected");
@@ -170,7 +161,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
-							.setTransiency(TRANSIENT_LAZY);
+						 .setTransiency(TRANSIENT_LAZY);
 				}
 			});
 			fail("Exception expected");
@@ -192,7 +183,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setEssentialInSummary(true);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode())
-						.setEssentialInSummary(false);
+					 .setEssentialInSummary(false);
 			}
 		});
 
@@ -213,7 +204,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setIncreasedDependencyLevel(true);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode())
-						.setIncreasedDependencyLevel(false);
+					 .setIncreasedDependencyLevel(false);
 			}
 		});
 

@@ -1,20 +1,5 @@
 package com.constellio.app.ui.pages.management.plugin;
 
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-
-import net.xeoh.plugins.base.PluginManager;
-import net.xeoh.plugins.base.impl.PluginManagerFactory;
-import net.xeoh.plugins.base.util.PluginManagerUtil;
-
-import org.apache.hadoop.util.StringUtils;
-
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
@@ -27,6 +12,16 @@ import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import net.xeoh.plugins.base.PluginManager;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
+import net.xeoh.plugins.base.util.PluginManagerUtil;
+import org.apache.hadoop.util.StringUtils;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
 
 public class PluginManagementPresenter extends BasePresenter<PluginManagementView> {
 	transient ConstellioPluginManager pluginManager;

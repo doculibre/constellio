@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+
+import java.io.Serializable;
+import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveContentVersionField extends ListAddRemoveField<Serializable, ContentVersionUploadField> {

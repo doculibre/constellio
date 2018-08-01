@@ -1,8 +1,7 @@
 package com.constellio.model.entities.schemas.entries;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class CalculatedDataEntry implements DataEntry {
 
@@ -30,7 +29,7 @@ public class CalculatedDataEntry implements DataEntry {
 	@Override
 	public boolean equals(Object obj) {
 		return obj instanceof CalculatedDataEntry && calculator.getClass().getSimpleName()
-				.equals(((CalculatedDataEntry) obj).getCalculator().getClass().getSimpleName());
+															   .equals(((CalculatedDataEntry) obj).getCalculator().getClass().getSimpleName());
 	}
 
 	@Override

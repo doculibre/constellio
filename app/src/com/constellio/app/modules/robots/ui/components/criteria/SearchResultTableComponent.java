@@ -1,7 +1,5 @@
 package com.constellio.app.modules.robots.ui.components.criteria;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.robots.ui.pages.AddEditRobotPresenter;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -17,6 +15,8 @@ import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class SearchResultTableComponent extends CustomComponent {
 
 	private AddEditRobotPresenter presenter;
@@ -27,7 +27,7 @@ public class SearchResultTableComponent extends CustomComponent {
 	private UserVO currentUserVO;
 
 	public SearchResultTableComponent(AddEditRobotPresenter presenter, AdvancedSearchCriteriaComponent component,
-			UserVO currentUserVO) {
+									  UserVO currentUserVO) {
 		this.presenter = presenter;
 		this.component = component;
 		this.currentUserVO = currentUserVO;
@@ -44,7 +44,7 @@ public class SearchResultTableComponent extends CustomComponent {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				if (presenter.getSchemaFilter() != null && component.getSearchCriteria() != null && !component.getSearchCriteria()
-						.isEmpty()) {
+																											  .isEmpty()) {
 					buildResultTable();
 				}
 			}

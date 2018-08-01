@@ -1,21 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Comparator;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
@@ -29,6 +13,19 @@ import com.constellio.model.services.schemas.testimpl.TestRecordValidator2;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.Comparator;
+
+import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetadataSchemaBuilderTest extends ConstellioTest {
@@ -439,9 +436,9 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 			throws Exception {
 		buildAndModify();
 		defaultSchemaBuilder.create("zeMetadata").setMultivalue(true).setUndeletable(true).setEnabled(false)
-				.setSystemReserved(true).setDefaultRequirement(true).addLabel(Language.French, "zeLabel")
-				.setType(MetadataValueType.BOOLEAN)
-				.setUnmodifiable(true);
+							.setSystemReserved(true).setDefaultRequirement(true).addLabel(Language.French, "zeLabel")
+							.setType(MetadataValueType.BOOLEAN)
+							.setUnmodifiable(true);
 
 		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2", true);
 		MetadataBuilder metadataBuilder = builder.getMetadata("zeMetadata");

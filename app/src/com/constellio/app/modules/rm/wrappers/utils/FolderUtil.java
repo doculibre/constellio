@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.wrappers.utils;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -14,36 +13,36 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import org.apache.commons.lang3.StringUtils;
 
 public class FolderUtil {
-    public static Folder createCopyFrom(Folder folder) {
-        String collection = folder.getCollection();
-        Folder copy = createNewFolder(collection);
+	public static Folder createCopyFrom(Folder folder) {
+		String collection = folder.getCollection();
+		Folder copy = createNewFolder(collection);
 
-        for (Metadata metadata : folder.getSchema().getMetadatas()) {
-            if (!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
-                copy.set(metadata.getLocalCode(), folder.get(metadata));
-            }
-        }
+		for (Metadata metadata : folder.getSchema().getMetadatas()) {
+			if (!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				copy.set(metadata.getLocalCode(), folder.get(metadata));
+			}
+		}
 
-        return copy;
-    }
+		return copy;
+	}
 
-    public static Folder createNewFolder() {
-        return createNewFolder(null);
-    }
+	public static Folder createNewFolder() {
+		return createNewFolder(null);
+	}
 
-    public static Folder createNewFolder(String collection) {
-        ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-        SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-        AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+	public static Folder createNewFolder(String collection) {
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
-        if(StringUtils.isBlank(collection)) {
-            collection = sessionContext.getCurrentCollection();
-        }
+		if (StringUtils.isBlank(collection)) {
+			collection = sessionContext.getCurrentCollection();
+		}
 
-        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-        SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA, constellioFactories, sessionContext);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 
-        Record record = presenterUtils.newRecord();
-        return rm.wrapFolder(record);
-    }
+		Record record = presenterUtils.newRecord();
+		return rm.wrapFolder(record);
+	}
 }

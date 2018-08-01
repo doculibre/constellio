@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.auth.AuthScope;
-
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
@@ -28,6 +16,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.auth.AuthScope;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class ConnectorHttp extends Connector {
 
@@ -75,7 +69,7 @@ public class ConnectorHttp extends Connector {
 
 	public ConnectorHttpDocument newUnfetchedURLDocument(String url, int level) {
 		return getEs().newConnectorHttpDocument(getConnectorInstance()).setURL(url).setFetched(false).setSearchable(false)
-				.setLevel(level);
+					  .setLevel(level);
 	}
 
 	private ConnectorHttpInstance getConnectorInstance() {

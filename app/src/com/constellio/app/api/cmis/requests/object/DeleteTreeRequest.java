@@ -1,7 +1,11 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.util.ArrayList;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
@@ -10,16 +14,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
+import java.util.ArrayList;
 
 public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData> {
 
@@ -28,7 +23,7 @@ public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData>
 	private final Boolean continueOnFailure;
 
 	public DeleteTreeRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String folderId, Boolean continueOnFailure) {
+							 CallContext context, String folderId, Boolean continueOnFailure) {
 		super(context, repository, appLayerFactory);
 		this.folderId = folderId;
 		this.continueOnFailure = continueOnFailure;

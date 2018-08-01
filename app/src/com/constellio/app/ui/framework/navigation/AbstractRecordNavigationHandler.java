@@ -1,17 +1,17 @@
 package com.constellio.app.ui.framework.navigation;
 
-import java.io.IOException;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 
+import java.io.IOException;
+
 public abstract class AbstractRecordNavigationHandler implements RecordNavigationHandler {
-	
+
 	protected transient ConstellioFactories constellioFactories;
-	
+
 	public AbstractRecordNavigationHandler(ConstellioFactories constellioFactories) {
 		this.constellioFactories = constellioFactories;
 		initTransientObjects();
@@ -28,7 +28,7 @@ public abstract class AbstractRecordNavigationHandler implements RecordNavigatio
 			constellioFactories = ConstellioFactories.getInstance();
 		}
 	}
-	
+
 	@Override
 	public boolean isViewForRecordId(String recordId) {
 		String schemaCode = getSchemaCodeForRecordId(recordId);
@@ -47,13 +47,13 @@ public abstract class AbstractRecordNavigationHandler implements RecordNavigatio
 		String schemaTypeCode = getSchemaTypeCodeForSchemaCode(schemaCode);
 		return isViewForSchemaTypeCode(schemaTypeCode);
 	}
-	
+
 	protected String getSchemaCodeForRecordId(String recordId) {
 		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordId);
 		return record.getSchemaCode();
 	}
-	
+
 	protected String getSchemaTypeCodeForSchemaCode(String schemaCode) {
 		return new SchemaUtils().getSchemaTypeCode(schemaCode);
 	}
@@ -71,7 +71,7 @@ public abstract class AbstractRecordNavigationHandler implements RecordNavigatio
 		String schemaTypeCode = getSchemaTypeCodeForSchemaCode(schemaCode);
 		navigateToView(recordVO.getId(), schemaTypeCode);
 	}
-	
+
 	protected abstract void navigateToView(String recordId, String schemaTypeCode);
 
 }

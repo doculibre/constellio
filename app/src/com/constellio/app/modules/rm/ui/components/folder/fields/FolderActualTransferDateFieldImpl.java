@@ -1,10 +1,9 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import java.util.Date;
-
+import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import org.joda.time.LocalDate;
 
-import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import java.util.Date;
 
 public class FolderActualTransferDateFieldImpl extends JodaDateField implements FolderActualTransferDateField {
 

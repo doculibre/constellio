@@ -1,11 +1,10 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.List;
-
-import org.jdom2.Document;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.jdom2.Document;
+
+import java.util.List;
 
 public class SchemasDisplayReader2 extends SchemasDisplayReader1 {
 

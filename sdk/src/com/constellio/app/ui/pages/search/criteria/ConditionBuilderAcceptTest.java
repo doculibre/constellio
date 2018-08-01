@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -26,6 +14,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.assertj.core.api.ListAssert;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConditionBuilderAcceptTest extends ConstellioTest {
 
@@ -42,7 +41,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		searchServices = getModelLayerFactory().newSearchServices();
@@ -199,7 +198,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
-				.value(1.0);
+			   .value(1.0);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
 	}
@@ -216,7 +215,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
-				.value(1.0);
+			   .value(1.0);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
 	}
@@ -234,7 +233,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
-				.value(1.0);
+			   .value(1.0);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
 	}
@@ -251,7 +250,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
-				.value(1.0);
+			   .value(1.0);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
 	}
@@ -269,7 +268,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.EQUALS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
-				.value(ldt);
+			   .value(ldt);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
 	}
@@ -286,7 +285,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.EQUALS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
-				.value(ldt);
+			   .value(ldt);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
 	}
@@ -304,7 +303,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setEndRelativeSearchOperator(RelativeSearchOperator.TODAY);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.BETWEEN).relativeSearchCriteria(relativeCriteria)
-				.value(now.toLocalDate().minusDays(1));
+			   .value(now.toLocalDate().minusDays(1));
 
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
 	}
@@ -321,7 +320,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setEndRelativeSearchOperator(RelativeSearchOperator.EQUALS);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.BETWEEN).relativeSearchCriteria(relativeCriteria)
-				.endValue(now.toLocalDate().plusDays(1));
+			   .endValue(now.toLocalDate().plusDays(1));
 
 		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
 	}
@@ -338,7 +337,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.LESSER_THAN)
-				.relativeSearchCriteria(relativeCriteria);
+			   .relativeSearchCriteria(relativeCriteria);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).doesNotContain(records.folder_A01);
 	}
@@ -355,7 +354,7 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
 		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.GREATER_THAN)
-				.relativeSearchCriteria(relativeCriteria);
+			   .relativeSearchCriteria(relativeCriteria);
 
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
 	}

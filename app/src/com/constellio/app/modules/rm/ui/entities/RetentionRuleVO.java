@@ -1,30 +1,5 @@
 package com.constellio.app.modules.rm.ui.entities;
 
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.APPROVAL_DATE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.APPROVED;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.CODE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RULES_COMMENT;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.CORPUS;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DESCRIPTION;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_COPY_RETENTION_RULES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.GENERAL_COMMENT;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.JURIDIC_REFERENCE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.KEYWORDS;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.RESPONSIBLE_ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -33,6 +8,13 @@ import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTy
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.*;
 
 public class RetentionRuleVO extends RecordVO {
 	public static final String CATEGORIES = "categories";

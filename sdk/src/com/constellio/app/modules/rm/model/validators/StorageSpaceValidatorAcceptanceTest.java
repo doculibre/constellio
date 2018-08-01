@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -26,6 +15,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * Created by Constellio on 2017-01-04.
@@ -46,7 +45,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withRMTest(records)
+								  .withRMTest(records)
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -103,7 +102,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(buildParentStorageSpaces().setCapacity(10L));
 		recordServices.add(buildChildStorageSpaces().setCapacity(5L)
-				.setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22))));
+													.setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22))));
 	}
 
 	@Test
@@ -111,7 +110,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 
 		recordServices.add(buildParentStorageSpaces().setCapacity(10L)
-				.setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22))));
+													 .setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22))));
 		recordServices.add(buildChildStorageSpaces().setCapacity(5L));
 	}
 
@@ -122,7 +121,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 		ContainerRecordType containerRecordType = buildDefaultContainerType();
 		recordServices.add(containerRecordType);
 		recordServices.add(buildParentStorageSpaces().setCapacity(10L)
-				.setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22), containerRecordType)));
+													 .setContainerType(asList(rm.getContainerRecordType(records.containerTypeId_boite22x22), containerRecordType)));
 		recordServices.add(buildChildStorageSpaces().setCapacity(5L).setContainerType(asList(containerRecordType)));
 	}
 
@@ -147,8 +146,8 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 		StorageSpace storageSpace = buildParentStorageSpaces();
 		recordServices.add(storageSpace.setCapacity(10L));
 		recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent")
-				.setAdministrativeUnits(asList(records.unitId_10a))
-				.setDecommissioningType(DecommissioningType.DEPOSIT));
+																  .setAdministrativeUnits(asList(records.unitId_10a))
+																  .setDecommissioningType(DecommissioningType.DEPOSIT));
 		recordServices.recalculate(storageSpace);
 		recordServices.update(storageSpace);
 		try {
@@ -164,11 +163,11 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 		recordServices.add(buildDefaultContainerType());
 		recordServices.add(buildParentStorageSpaces().setCapacity(10L));
 		recordServices.add(buildDefaultContainer("firstContainer").setStorageSpace("storageSpaceParent")
-				.setAdministrativeUnits(asList(records.unitId_10a))
-				.setDecommissioningType(DecommissioningType.DEPOSIT));
+																  .setAdministrativeUnits(asList(records.unitId_10a))
+																  .setDecommissioningType(DecommissioningType.DEPOSIT));
 		recordServices.add(buildDefaultContainer("secondContainer").setStorageSpace("storageSpaceParent")
-				.setAdministrativeUnits(asList(records.unitId_10a))
-				.setDecommissioningType(DecommissioningType.DEPOSIT));
+																   .setAdministrativeUnits(asList(records.unitId_10a))
+																   .setDecommissioningType(DecommissioningType.DEPOSIT));
 	}
 
 	@Test
@@ -180,7 +179,7 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 		recordServices.add(buildDefaultContainerType("secondContainerType"));
 
 		recordServices.add(buildParentStorageSpaces().setCapacity(10L)
-				.setContainerType(asList(rm.getContainerRecordType("secondContainerType"))));
+													 .setContainerType(asList(rm.getContainerRecordType("secondContainerType"))));
 		try {
 			recordServices.add(buildChildStorageSpaces().setCapacity(20L).setContainerType(asList(containerRecordType)));
 			fail("No exception was thrown");
@@ -210,12 +209,12 @@ public class StorageSpaceValidatorAcceptanceTest extends ConstellioTest {
 
 	public StorageSpace buildChildStorageSpaces() {
 		return rm.newStorageSpaceWithId("storageSpaceChild").setCode("CHILD").setTitle("Child")
-				.setParentStorageSpace("storageSpaceParent");
+				 .setParentStorageSpace("storageSpaceParent");
 	}
 
 	public ContainerRecord buildDefaultContainer(String id) {
 		return rm.newContainerRecordWithId(id).setType("containerTypeTest")
-				.setTemporaryIdentifier("containerTestTemporary");
+				 .setTemporaryIdentifier("containerTestTemporary");
 	}
 
 	public ContainerRecordType buildDefaultContainerType() {

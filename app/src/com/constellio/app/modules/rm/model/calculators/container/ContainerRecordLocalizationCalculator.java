@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.container;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -12,6 +8,10 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class ContainerRecordLocalizationCalculator implements MetadataValueCalculator<String> {
 

@@ -1,27 +1,22 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.users.UserCredentialsWriter.DN;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jdom2.Document;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.jdom2.Document;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.model.services.users.UserCredentialsWriter.DN;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class UserCredentialsWriterTest extends ConstellioTest {
 
@@ -103,10 +98,10 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 		assertThat(document.getRootElement().getChildren().get(0).getChild(DOMAIN).getText()).isEqualTo(
 				chuckUserCredential.getDomain());
 		assertThat(document.getRootElement().getChildren().get(0).getChild(TOKENS).getChildren().get(0).getChildren().get(0)
-				.getText()).isEqualTo(
+						   .getText()).isEqualTo(
 				"$token1");
 		assertThat(document.getRootElement().getChildren().get(0).getChild(TOKENS).getChildren().get(0).getChildren().get(1)
-				.getText()).isEqualTo(
+						   .getText()).isEqualTo(
 				endDate.toString());
 		assertThat(
 				document.getRootElement().getChildren().get(0).getChild(MS_EXCH_DELEGATE_LIST_BL).getChildren().get(0).getText())

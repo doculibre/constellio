@@ -1,16 +1,5 @@
 package com.constellio.app.modules.es.services;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.eclipse.jetty.server.Server;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
@@ -22,6 +11,16 @@ import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObser
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.eclipse.jetty.server.Server;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ConnectorManager_DeleteDocumentsAcceptanceTest extends ConstellioTest {
@@ -117,7 +116,7 @@ public class ConnectorManager_DeleteDocumentsAcceptanceTest extends ConstellioTe
 
 	private void givenDataSet1Connector() {
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-				.setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html"));
+															   .setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html"));
 	}
 
 	private List<ConnectorHttpDocument> tickAndGetAllDocuments() {

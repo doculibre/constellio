@@ -9,11 +9,12 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Data @Builder
+@Data
+@Builder
 @JsonRootName("ExtendedAttribute")
 public class ExtendedAttributeDto {
-    @NotNull
-    private String key;
-    @NotEmpty @Schema(required=true)
-    private List<String> values;
+	@NotNull
+	private String key;
+	@NotEmpty @Schema(required = true)
+	private List<String> values;
 }

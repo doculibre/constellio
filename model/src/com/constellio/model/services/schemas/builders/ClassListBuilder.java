@@ -1,13 +1,8 @@
 package com.constellio.model.services.schemas.builders;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.model.utils.ClassProvider;
+
+import java.util.*;
 
 public class ClassListBuilder<T> {
 

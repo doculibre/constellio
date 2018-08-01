@@ -3,7 +3,7 @@ package com.constellio.app.ui.framework.components.fields;
 import com.vaadin.data.Property;
 import com.vaadin.ui.*;
 
-import static java.lang.Boolean.*;
+import static java.lang.Boolean.TRUE;
 
 public class BaseNullableField<T> extends CustomField<T> {
 	protected Field<T> field;
@@ -20,14 +20,14 @@ public class BaseNullableField<T> extends CustomField<T> {
 		HorizontalLayout mainLayout = new HorizontalLayout();
 		mainLayout.setSpacing(true);
 
-		if(field.getCaption() != null) {
+		if (field.getCaption() != null) {
 			checkBox.setCaption("");
 		}
 
 		checkBox.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				if(TRUE.equals(checkBox.getValue())) {
+				if (TRUE.equals(checkBox.getValue())) {
 					field.setValue(null);
 					field.setEnabled(false);
 				} else {
@@ -44,7 +44,7 @@ public class BaseNullableField<T> extends CustomField<T> {
 	}
 
 	protected void setFieldToNull() {
-		if(!field.isRequired()) {
+		if (!field.isRequired()) {
 			field.setValue(null);
 		}
 	}
@@ -55,7 +55,7 @@ public class BaseNullableField<T> extends CustomField<T> {
 	}
 
 	public T getValue() {
-		if(Boolean.TRUE.equals(checkBox.getValue())) {
+		if (Boolean.TRUE.equals(checkBox.getValue())) {
 			return null;
 		} else {
 			return field.getValue();

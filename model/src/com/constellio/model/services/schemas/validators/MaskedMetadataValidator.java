@@ -1,20 +1,17 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.entities.Language;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.utils.MaskUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MaskedMetadataValidator implements Validator<Record> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MaskedMetadataValidator.class);
@@ -51,9 +48,9 @@ public class MaskedMetadataValidator implements Validator<Record> {
 				LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
 				addValidationErrors(validationErrors, (String) value, metadata);
 			}
-		} else if(value != null && value instanceof List) {
-			for(Object valueInList: (List) value) {
-				if(valueInList != null && valueInList instanceof String) {
+		} else if (value != null && value instanceof List) {
+			for (Object valueInList : (List) value) {
+				if (valueInList != null && valueInList instanceof String) {
 					String strValue = (String) valueInList;
 					if (!MaskUtils.isValid(metadata.getInputMask(), strValue)) {
 						LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");

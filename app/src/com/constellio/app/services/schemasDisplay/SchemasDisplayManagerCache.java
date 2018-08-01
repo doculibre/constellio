@@ -1,17 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
-import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -19,13 +7,16 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
+import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SchemasDisplayManagerCache implements Serializable {
 
@@ -119,7 +110,8 @@ public class SchemasDisplayManagerCache implements Serializable {
 		return config;
 	}
 
-	public SchemaDisplayConfig getSchemaDefaultDisplay(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
+	public SchemaDisplayConfig getSchemaDefaultDisplay(String schemaCode,
+													   MetadataSchemasManager metadataSchemasManager) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 		if (schemaCode.endsWith("_default")) {
 			return getDefaultSchemaDefaultDisplay(schemaCode, types);
@@ -187,7 +179,7 @@ public class SchemasDisplayManagerCache implements Serializable {
 	}
 
 	private MetadataDisplayConfig getDefaultMetadata(String metadataCode,
-			MetadataSchemasManager metadataSchemasManager) {
+													 MetadataSchemasManager metadataSchemasManager) {
 		MetadataDisplayConfig config;
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
@@ -204,7 +196,7 @@ public class SchemasDisplayManagerCache implements Serializable {
 	}
 
 	private MetadataInputType getDefaultMetadataInputType(String metadataCode,
-															   MetadataSchemasManager metadataSchemasManager) {
+														  MetadataSchemasManager metadataSchemasManager) {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 		List<MetadataInputType> types = MetadataInputType

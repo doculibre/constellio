@@ -1,53 +1,11 @@
 package com.constellio.app.services.extensions.plugins;
 
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.ID_MISMATCH;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_ID_FORMAT;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_JAR;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_MANIFEST;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_MIGRATION_SCRIPT;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_START;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.IO_EXCEPTION;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.JAR_NOT_FOUND;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.JAR_NOT_SAVED_CORRECTLY;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.MORE_THAN_ONE_INSTALLABLE_MODULE_PER_JAR;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_ID;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_INSTALLABLE_MODULE_DETECTED_FROM_JAR;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_VERSION;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import net.xeoh.plugins.base.PluginManager;
-import net.xeoh.plugins.base.impl.PluginManagerFactory;
-import net.xeoh.plugins.base.util.PluginManagerUtil;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_BlankId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_ExistingId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_NonAlphaNumeric;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_InvalidJar;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_InvalidManifest;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoCode;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoVersion;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NonExistingFile;
+import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.*;
 import com.constellio.app.services.extensions.plugins.PluginServices.PluginsReplacementException;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
@@ -59,6 +17,22 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
+import net.xeoh.plugins.base.PluginManager;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
+import net.xeoh.plugins.base.util.PluginManagerUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.*;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
 
 public class JSPFConstellioPluginManager implements StatefulService, ConstellioPluginManager {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFConstellioPluginManager.class);
@@ -72,8 +46,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private IOServices ioServices;
 	private final File pluginsManagementOnStartupFile;
 
-	public JSPFConstellioPluginManager(File pluginsDirectory, File pluginsManagementOnStartupFile, IOServices ioServices,
-			ConstellioPluginConfigurationManager pluginConfigManger) {
+	public JSPFConstellioPluginManager(File pluginsDirectory, File pluginsManagementOnStartupFile,
+									   IOServices ioServices,
+									   ConstellioPluginConfigurationManager pluginConfigManger) {
 		this.pluginConfigManger = pluginConfigManger;
 		this.pluginsDirectory = pluginsDirectory;
 		this.pluginsManagementOnStartupFile = pluginsManagementOnStartupFile;
@@ -134,7 +109,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 					if (!registeredModules.keySet().contains(dependency)) {
 						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
 						if (dependOnModule == null
-								|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
+							|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
 							//TODO disable and remove from validUploadedPlugins see avec Cis
 						}
 					}

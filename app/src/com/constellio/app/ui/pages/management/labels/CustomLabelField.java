@@ -4,21 +4,21 @@ import java.io.Serializable;
 
 public interface CustomLabelField<T> extends Serializable {
 
-    T getFieldValue();
+	T getFieldValue();
 
-    void setFieldValue(Object value);
+	void setFieldValue(Object value);
 
-    boolean isVisible();
+	boolean isVisible();
 
-    void setVisible(boolean visible);
+	void setVisible(boolean visible);
 
-    boolean isReadOnly();
+	boolean isReadOnly();
 
-    void setReadOnly(boolean readOnly);
+	void setReadOnly(boolean readOnly);
 
-    boolean isRequired();
+	boolean isRequired();
 
-    void setRequired(boolean required);
+	void setRequired(boolean required);
 
-    void focus();
+	void focus();
 }

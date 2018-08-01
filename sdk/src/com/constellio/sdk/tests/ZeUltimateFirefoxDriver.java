@@ -1,24 +1,10 @@
 package com.constellio.sdk.tests;
 
-import static org.openqa.selenium.Platform.WINDOWS;
-import static org.openqa.selenium.remote.CapabilityType.ACCEPT_SSL_CERTS;
-import static org.openqa.selenium.remote.CapabilityType.HAS_NATIVE_EVENTS;
-import static org.openqa.selenium.remote.CapabilityType.LOGGING_PREFS;
-import static org.openqa.selenium.remote.CapabilityType.PROXY;
-import static org.openqa.selenium.remote.CapabilityType.SUPPORTS_WEB_STORAGE;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.Platform;
-import org.openqa.selenium.Proxy;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriverException;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.openqa.selenium.*;
 import org.openqa.selenium.browserlaunchers.Proxies;
 import org.openqa.selenium.firefox.ExtensionConnection;
 import org.openqa.selenium.firefox.FirefoxBinary;
@@ -32,20 +18,16 @@ import org.openqa.selenium.io.Zip;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.logging.NeedsLocalLogs;
-import org.openqa.selenium.remote.BeanToJsonConverter;
-import org.openqa.selenium.remote.Command;
-import org.openqa.selenium.remote.CommandExecutor;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.DriverCommand;
-import org.openqa.selenium.remote.FileDetector;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.Response;
-import org.openqa.selenium.remote.SessionNotFoundException;
+import org.openqa.selenium.remote.*;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.openqa.selenium.Platform.WINDOWS;
+import static org.openqa.selenium.remote.CapabilityType.*;
 
 public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScreenshot, Killable {
 
@@ -95,7 +77,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	}
 
 	private static ZeUltimateFirefoxProfile extractProfile(Capabilities desiredCapabilities,
-			Capabilities requiredCapabilities) {
+														   Capabilities requiredCapabilities) {
 		long startTime = new Date().getTime();
 
 		ZeUltimateFirefoxProfile profile = null;
@@ -180,7 +162,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	}
 
 	public ZeUltimateFirefoxDriver(FirefoxBinary binary, ZeUltimateFirefoxProfile profile,
-			Capabilities desiredCapabilities, Capabilities requiredCapabilities) {
+								   Capabilities desiredCapabilities, Capabilities requiredCapabilities) {
 		super(new LazyCommandExecutor(binary, profile),
 				dropCapabilities(desiredCapabilities, BINARY, PROFILE),
 				dropCapabilities(requiredCapabilities, BINARY, PROFILE));
@@ -191,7 +173,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	public void setFileDetector(FileDetector detector) {
 		throw new WebDriverException(
 				"Setting the file detector only works on remote webdriver instances obtained " +
-						"via RemoteWebDriver");
+				"via RemoteWebDriver");
 	}
 
 	/**
@@ -263,7 +245,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 
 	/**
 	 * Drops capabilities that we shouldn't send over the wire.
-	 *
+	 * <p>
 	 * Used for capabilities which aren't BeanToJson-convertable, and are only used by the local
 	 * launcher.
 	 */

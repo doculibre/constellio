@@ -1,10 +1,10 @@
 package com.constellio.app.ui.tools.vaadin;
 
-import java.util.Date;
-
 import com.constellio.app.ui.framework.containers.ContainerButtonListener;
 import com.constellio.app.ui.tools.pageloadtime.PageLoadTimeWriter;
 import com.vaadin.ui.Button.ClickEvent;
+
+import java.util.Date;
 
 @SuppressWarnings("serial")
 public class TestContainerButtonListener implements ContainerButtonListener {

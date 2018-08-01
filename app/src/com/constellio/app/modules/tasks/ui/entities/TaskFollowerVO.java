@@ -11,8 +11,8 @@ public class TaskFollowerVO implements Serializable {
 	boolean followTaskDeleted;
 
 	public TaskFollowerVO(String followerId, Boolean followTaskAssigneeModified,
-			Boolean followSubTasksModified, Boolean followTaskStatusModified, Boolean followTaskCompleted,
-			Boolean followTaskDeleted) {
+						  Boolean followSubTasksModified, Boolean followTaskStatusModified, Boolean followTaskCompleted,
+						  Boolean followTaskDeleted) {
 		this.followerId = followerId;
 		this.followTaskAssigneeModified = followTaskAssigneeModified;
 		this.followSubTasksModified = followSubTasksModified;

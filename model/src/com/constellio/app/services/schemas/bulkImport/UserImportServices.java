@@ -1,14 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
@@ -19,6 +10,14 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class UserImportServices implements ImportServices {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserImportServices.class);
@@ -42,8 +41,9 @@ public class UserImportServices implements ImportServices {
 	}
 
 	@Override
-	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
-			User user, List<String> collections)
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+										BulkImportProgressionListener progressionListener,
+										User user, List<String> collections)
 			throws RecordsImportServicesRuntimeException {
 		currentElement = 0;
 		importDataProvider.initialize();
@@ -62,8 +62,9 @@ public class UserImportServices implements ImportServices {
 
 	@Override
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
-			BulkImportProgressionListener bulkImportProgressionListener, User user, List<String> collections,
-			BulkImportParams params) {
+										BulkImportProgressionListener bulkImportProgressionListener, User user,
+										List<String> collections,
+										BulkImportParams params) {
 		return bulkImport(importDataProvider, bulkImportProgressionListener, user, collections);
 	}
 

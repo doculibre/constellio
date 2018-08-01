@@ -1,11 +1,5 @@
 package com.constellio.app.modules.es.ui.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.joda.time.DateTimeConstants;
-
 import com.constellio.app.modules.es.model.connectors.structures.TraversalSchedule;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -20,14 +14,13 @@ import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.VerticalLayout;
+import org.joda.time.DateTimeConstants;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TraversalSchedulesComponent extends CustomField<List<TraversalSchedule>> {
 	public static final String WEEK_DAY_FIELD = "weekDay";

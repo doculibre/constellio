@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -19,9 +13,15 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class ButtonsContainer<T extends Container & Indexed & Sortable> extends ContainerAdapter<T> {
-	
+
 	public static final String DEFAULT_BUTTONS_PROPERTY_ID = "constellio-buttons-container";
 
 	private String buttonsPropertyId = "constellio-buttons-container";
@@ -72,7 +72,7 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 	protected Class<?> getOwnType(Object propertyId) {
 		return buttonsPropertyId.equals(propertyId) ? HorizontalLayout.class : null;
 	}
-	
+
 	public List<Button> getButtons(Object itemId) {
 		HorizontalLayout buttonsLayout = (HorizontalLayout) getContainerProperty(itemId, buttonsPropertyId).getValue();
 		return ComponentTreeUtils.getChildren(buttonsLayout, Button.class);
@@ -109,5 +109,5 @@ public class ButtonsContainer<T extends Container & Indexed & Sortable> extends 
 		protected abstract Button newButtonInstance(Object itemId, ButtonsContainer<?> container);
 
 	}
-	
+
 }

@@ -1,16 +1,16 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class FormMetadataVO implements Serializable {
@@ -41,12 +41,16 @@ public class FormMetadataVO implements Serializable {
 	boolean uniqueValue;
 	boolean isMultiLingual;
 
-	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
-			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
-			boolean facet,
-			MetadataInputType input, MetadataDisplayType displayType, boolean highlight, boolean autocomplete, boolean enabled,
-			String metadataGroup,
-			Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue, Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
+	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
+						  String reference,
+						  Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable,
+						  boolean advancedSearch,
+						  boolean facet,
+						  MetadataInputType input, MetadataDisplayType displayType, boolean highlight,
+						  boolean autocomplete, boolean enabled,
+						  String metadataGroup,
+						  Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
+						  Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR", 2)[1];
@@ -310,7 +314,7 @@ public class FormMetadataVO implements Serializable {
 	}
 
 	public void setMultiLingual(boolean multiLangual) {
-        isMultiLingual = multiLangual;
+		isMultiLingual = multiLangual;
 	}
 
 	public void addCustomAttribute(String attribute) {
@@ -341,23 +345,30 @@ public class FormMetadataVO implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		FormMetadataVO other = (FormMetadataVO) obj;
 		if (code == null) {
-			if (other.code != null)
+			if (other.code != null) {
 				return false;
-		} else if (!code.equals(other.code))
+			}
+		} else if (!code.equals(other.code)) {
 			return false;
+		}
 		if (schema == null) {
-			if (other.schema != null)
+			if (other.schema != null) {
 				return false;
-		} else if (!schema.equals(other.schema))
+			}
+		} else if (!schema.equals(other.schema)) {
 			return false;
+		}
 		return true;
 	}
 

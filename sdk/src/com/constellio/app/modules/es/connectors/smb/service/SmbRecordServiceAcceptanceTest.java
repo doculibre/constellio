@@ -1,28 +1,24 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
-import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.Condition;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 	private ESSchemasRecordsServices es;
@@ -33,27 +29,27 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 	public void setup()
 			throws RecordServicesException {
 		prepareSystem(withZeCollection().withConstellioESModule()
-				.withAllTestUsers());
+										.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordService = es.getRecordServices();
 
 		connectorInstance = es.newConnectorSmbInstance()
-				.setDomain(SmbTestParams.DOMAIN)
-				.setUsername(SmbTestParams.USERNAME)
-				.setPassword(SmbTestParams.PASSWORD)
-				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-				.setExclusions(asList(""))
-				.setTitle(SmbTestParams.CONNECTOR_TITLE);
+							  .setDomain(SmbTestParams.DOMAIN)
+							  .setUsername(SmbTestParams.USERNAME)
+							  .setPassword(SmbTestParams.PASSWORD)
+							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+							  .setCode(SmbTestParams.INSTANCE_CODE)
+							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+							  .setExclusions(asList(""))
+							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
 
 		recordService.update(connectorInstance);
 		recordService.flush();
 
 		es.getConnectorManager()
-				.createConnector(connectorInstance);
+		  .createConnector(connectorInstance);
 	}
 
 	@Test
@@ -92,13 +88,13 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
 
 		ConnectorSmbFolder folderPartial = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + "/testPartial/").setLastFetchedStatus(LastFetchedStatus.PARTIAL);
+											 .setUrl(SmbTestParams.EXISTING_SHARE + "/testPartial/").setLastFetchedStatus(LastFetchedStatus.PARTIAL);
 
 		ConnectorSmbFolder folderFailed = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + "/testFailed/").setLastFetchedStatus(LastFetchedStatus.FAILED);
+											.setUrl(SmbTestParams.EXISTING_SHARE + "/testFailed/").setLastFetchedStatus(LastFetchedStatus.FAILED);
 
 		ConnectorSmbFolder folderOk = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + "/testOk/").setLastFetchedStatus(LastFetchedStatus.OK);
+										.setUrl(SmbTestParams.EXISTING_SHARE + "/testOk/").setLastFetchedStatus(LastFetchedStatus.OK);
 
 		recordService.add(folderPartial);
 		recordService.add(folderFailed);

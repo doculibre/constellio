@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -11,13 +9,15 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public class BaseWindow extends Window {
-	
+
 	public static final String WINDOW_STYLE_NAME = "base-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
-	
+
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
-	
+
 	private Integer zIndex = null;
 
 	private float widthBeforeMinimize;
@@ -28,15 +28,15 @@ public class BaseWindow extends Window {
 	private int positionYBeforeMinimize;
 	private boolean modalBeforeMinimize;
 	private boolean resizableBeforeMinimize;
-	
+
 	private boolean minimized;
 
-    private final MouseEvents.ClickListener restoreMinimizedListener = new MouseEvents.ClickListener() {
-        @Override
-        public void click(MouseEvents.ClickEvent event) {
-        	restoreMinimized();
-        }
-    };
+	private final MouseEvents.ClickListener restoreMinimizedListener = new MouseEvents.ClickListener() {
+		@Override
+		public void click(MouseEvents.ClickEvent event) {
+			restoreMinimized();
+		}
+	};
 
 	public BaseWindow() {
 		init();
@@ -51,13 +51,13 @@ public class BaseWindow extends Window {
 		super(caption, content);
 		init();
 	}
-	
+
 	public void minimize() {
 		if (!minimized) {
-	        setModal(false);
-	        setResizable(false);
-	        addClickListener(restoreMinimizedListener);
-	        
+			setModal(false);
+			setResizable(false);
+			addClickListener(restoreMinimizedListener);
+
 			widthBeforeMinimize = getWidth();
 			heightBeforeMinimize = getHeight();
 
@@ -66,7 +66,7 @@ public class BaseWindow extends Window {
 
 			positionXBeforeMinimize = getPositionX();
 			positionYBeforeMinimize = getPositionY();
-			
+
 			modalBeforeMinimize = isModal();
 			resizableBeforeMinimize = isResizable();
 
@@ -82,8 +82,8 @@ public class BaseWindow extends Window {
 			setHeight(mimizedHeight + "px");
 			setPositionX(minimizedPositionX);
 			setPositionY(minimizedPositionY);
-	        minimized = true;
-		} 
+			minimized = true;
+		}
 	}
 
 	public void restoreMinimized() {
@@ -98,7 +98,7 @@ public class BaseWindow extends Window {
 			minimized = false;
 		}
 	}
-	
+
 	public boolean isMinimized() {
 		return minimized;
 	}
@@ -133,15 +133,15 @@ public class BaseWindow extends Window {
 			executeZIndexAdjustJavascript(zIndex);
 		}
 	}
-	
+
 	public static void executeZIndexAdjustJavascript(int zIndex) {
 		String jsVarName = "var_" + ((int) (Math.random() * 1000)) + "_" + System.currentTimeMillis();
 		StringBuffer zIndexFixJS = new StringBuffer();
 		zIndexFixJS.append("var " + jsVarName + " = document.getElementsByClassName('v-window');\n");
 		zIndexFixJS.append("for (i = 0; i < " + jsVarName + ".length; i++) {\n");
-	    zIndexFixJS.append("    " + jsVarName + "[i].style.zIndex=" + zIndex + ";\n");
-	    zIndexFixJS.append("}");
-		
+		zIndexFixJS.append("    " + jsVarName + "[i].style.zIndex=" + zIndex + ";\n");
+		zIndexFixJS.append("}");
+
 		JavaScript.getCurrent().execute(zIndexFixJS.toString());
 	}
 

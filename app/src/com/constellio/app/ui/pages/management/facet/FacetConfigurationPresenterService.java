@@ -1,28 +1,5 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.CODE;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.RecordVO;
@@ -49,6 +26,16 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class FacetConfigurationPresenterService extends BasePresenterUtils {
 
@@ -90,14 +77,14 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 	public RecordVO getVOForType(FacetType type) {
 		Facet facet;
 		switch (type) {
-		case FIELD:
-			facet = schemasRecords.newFacetField();
-			break;
-		case QUERY:
-			facet = schemasRecords.newFacetQuery();
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unknown type");
+			case FIELD:
+				facet = schemasRecords.newFacetField();
+				break;
+			case QUERY:
+				facet = schemasRecords.newFacetQuery();
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unknown type");
 		}
 
 		return getVOForRecord(facet.getWrappedRecord());
@@ -143,7 +130,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 			for (Metadata metadata : type.getAllMetadatas().onlyWithType(BOOLEAN, ENUM, INTEGER, REFERENCE, STRING, NUMBER)) {
 				String localCode = metadata.getLocalCode();
 				if (!codes.contains(metadata.getDataStoreCode()) && (!Schemas.isGlobalMetadata(localCode)
-						|| ALLOWED_GLOBAL_METADATAS_FOR_FIELD_FACETS.contains(localCode))) {
+																	 || ALLOWED_GLOBAL_METADATAS_FOR_FIELD_FACETS.contains(localCode))) {
 					String label = getFieldFacetLabel(metadata);
 					codes.add(metadata.getDataStoreCode());
 					availableFacetFieldMetadatas.add(new AvailableFacetFieldMetadata(metadata.getDataStoreCode(), label));
@@ -198,7 +185,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		for (MetadataSchemaType type : schemasDisplayManager.getAllowedSchemaTypesForSimpleSearch(collection)) {
 			for (Metadata metadata : type.getAllMetadatas().onlyWithType(BOOLEAN, INTEGER, STRING, NUMBER)) {
 				if (metadata.getDataStoreCode().equals(datastoreCode) &&
-						!FIELD_WITH_AUTOMATIC_LABELS.contains(metadata.getDataStoreCode())) {
+					!FIELD_WITH_AUTOMATIC_LABELS.contains(metadata.getDataStoreCode())) {
 					return true;
 				}
 			}
@@ -211,7 +198,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory());
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemasRecords.facetSchemaType()).returnAll())
-				.sortDesc(schemasRecords.defaultFacet().get(Facet.ORDER));
+			 .sortDesc(schemasRecords.defaultFacet().get(Facet.ORDER));
 
 		List<Record> records = searchServices().search(query);
 		return schemasRecords.wrapFacet(records.get(records.size() - 1)).getOrder() + 1;
@@ -249,7 +236,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 
 	public boolean isActive(RecordVO recordVO) {
 		return recordVO.getMetadataValue(recordVO.getMetadata(Facet.ACTIVE)).getValue() != null ?
-				(Boolean) recordVO.getMetadataValue(recordVO.getMetadata(Facet.ACTIVE)).getValue() :
-				false;
+			   (Boolean) recordVO.getMetadataValue(recordVO.getMetadata(Facet.ACTIVE)).getValue() :
+			   false;
 	}
 }

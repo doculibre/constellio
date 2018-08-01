@@ -1,9 +1,9 @@
 package com.constellio.app.services.systemProperties;
 
-import java.io.File;
-
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
+
+import java.io.File;
 
 public class SystemPropertiesServices {
 	private static final String TEST_FOLDER_NAME = SystemPropertiesServices.class.getName() + "-testFolderName";
@@ -26,17 +26,17 @@ public class SystemPropertiesServices {
 		return returnBoolean;
 	}
 
-	public boolean isFreeSpaceLowerThan(File existingFile, double spaceInGig){
+	public boolean isFreeSpaceLowerThan(File existingFile, double spaceInGig) {
 		long availableSpaceInGig = getAvailableSpaceInGig(existingFile);
 		return availableSpaceInGig < spaceInGig;
 	}
 
 	public long getAvailableSpaceInGig(File existingFile) {
-		if(!existingFile.exists()){
+		if (!existingFile.exists()) {
 			throw new RuntimeException("File does not exist " + existingFile.getPath());
 		}
 		long availableSpaceInBytes = existingFile.getUsableSpace();
-		return availableSpaceInBytes/1073741824;//1024*1024*1024
+		return availableSpaceInBytes / 1073741824;//1024*1024*1024
 	}
 
 	public boolean isAvailableMemoryLowerThan(long requiredMemoryInMo) {
@@ -47,11 +47,11 @@ public class SystemPropertiesServices {
 	public long getFreeMemoryInMo() {
 		System.gc();
 		long freeMemoryInBytes = Runtime.getRuntime().freeMemory();
-		return freeMemoryInBytes/1048576;//1024*1024
+		return freeMemoryInBytes / 1048576;//1024*1024
 	}
 
 	public double getFileSizeInGig(File file) {
 		long tlFileSizeInBytes = file.length();
-		return (double)tlFileSizeInBytes/1073741824;//1024*1024*1024
+		return (double) tlFileSizeInBytes / 1073741824;//1024*1024*1024
 	}
 }

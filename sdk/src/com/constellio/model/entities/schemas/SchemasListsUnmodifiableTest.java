@@ -1,21 +1,15 @@
 package com.constellio.model.entities.schemas;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
 
 public class SchemasListsUnmodifiableTest extends ConstellioTest {
 

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.model.connectors.ldap;
 
-import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -14,6 +7,12 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorLDAPInstanceAcceptanceTest extends ConstellioTest {
 
@@ -46,10 +45,10 @@ public class ConnectorLDAPInstanceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		ConnectorLDAPInstance connectorInstance = es.newConnectorLDAPInstance();
 		connectorInstance = (ConnectorLDAPInstance) connectorInstance.setUrls(asList("url"))
-				.setConnectionUsername("zeUser")
-				.setUsersBaseContextList(asList("BC"))
-				.setPassword("zePassword")
-				.setCode("code").setTitle("title");
+																	 .setConnectionUsername("zeUser")
+																	 .setUsersBaseContextList(asList("BC"))
+																	 .setPassword("zePassword")
+																	 .setCode("code").setTitle("title");
 		recordServices.add(connectorInstance);
 		assertThat(connectorInstance.getDirectoryType()).isEqualTo(ACTIVE_DIRECTORY);
 		assertThat(connectorInstance.getFirstName()).isEqualTo("givenName");

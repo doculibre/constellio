@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -19,6 +10,14 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class ContainerRecordAcceptanceTest extends ConstellioTest {
 
@@ -34,7 +33,7 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -52,7 +51,7 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 		String type = searchServices.searchRecordIds(from(rm.containerRecordTypeSchemaType()).returnAll()).get(0);
 		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("storageTest");
 		containerRecord.setIdentifier(containerRecord.getId()).setType(type).setAdministrativeUnits(Arrays.asList(records.unitId_10a))
-				.setDecommissioningType(DecommissioningType.DEPOSIT);
+					   .setDecommissioningType(DecommissioningType.DEPOSIT);
 		return containerRecord;
 	}
 

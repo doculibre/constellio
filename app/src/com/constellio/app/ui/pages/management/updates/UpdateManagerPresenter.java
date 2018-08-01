@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.management.updates;
 
-import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
-import static java.util.Arrays.asList;
-
-import java.io.*;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -22,7 +10,6 @@ import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -34,6 +21,17 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+
+import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
+import static java.util.Arrays.asList;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
@@ -112,13 +110,13 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			appLayerFactory.newApplicationService().restart();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Record event = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
-					.getWrappedRecord();
+							 .setType(EventType.RESTARTING)
+							 .setUsername(getCurrentUser().getUsername())
+							 .setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+							 .setIp(getCurrentUser().getLastIPAddress())
+							 .setCreatedOn(TimeProvider.getLocalDateTime())
+							 .setTitle($("ListEventsView.restarting"))
+							 .getWrappedRecord();
 			Transaction t = new Transaction();
 			t.add(event);
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
@@ -139,21 +137,21 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 			LOGGER.info("Reindexing finished");
 			Record eventRestarting = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
-					.getWrappedRecord();
+									   .setType(EventType.RESTARTING)
+									   .setUsername(getCurrentUser().getUsername())
+									   .setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+									   .setIp(getCurrentUser().getLastIPAddress())
+									   .setCreatedOn(TimeProvider.getLocalDateTime())
+									   .setTitle($("ListEventsView.restarting"))
+									   .getWrappedRecord();
 			Record eventReindexing = rm.newEvent()
-					.setType(EventType.REINDEXING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.reindexing"))
-					.getWrappedRecord();
+									   .setType(EventType.REINDEXING)
+									   .setUsername(getCurrentUser().getUsername())
+									   .setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+									   .setIp(getCurrentUser().getLastIPAddress())
+									   .setCreatedOn(TimeProvider.getLocalDateTime())
+									   .setTitle($("ListEventsView.reindexing"))
+									   .getWrappedRecord();
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));
 			try {
@@ -166,21 +164,21 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			appLayerFactory.newApplicationService().markForReindexing();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			Record eventRestarting = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("RedémarrageListEventsView.restarting"))
-					.getWrappedRecord();
+									   .setType(EventType.RESTARTING)
+									   .setUsername(getCurrentUser().getUsername())
+									   .setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+									   .setIp(getCurrentUser().getLastIPAddress())
+									   .setCreatedOn(TimeProvider.getLocalDateTime())
+									   .setTitle($("RedémarrageListEventsView.restarting"))
+									   .getWrappedRecord();
 			Record eventReindexing = rm.newEvent()
-					.setType(EventType.REINDEXING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.reindexing"))
-					.getWrappedRecord();
+									   .setType(EventType.REINDEXING)
+									   .setUsername(getCurrentUser().getUsername())
+									   .setUserRoles(StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
+									   .setIp(getCurrentUser().getLastIPAddress())
+									   .setCreatedOn(TimeProvider.getLocalDateTime())
+									   .setTitle($("ListEventsView.reindexing"))
+									   .getWrappedRecord();
 			Transaction t = new Transaction();
 			t.addAll(asList(eventReindexing, eventRestarting));
 			try {
@@ -261,7 +259,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
 		return appLayerFactory.newUpgradeAppRecoveryService()
-				.isUpdateWithRecoveryPossible();
+							  .isUpdateWithRecoveryPossible();
 	}
 
 	public String getExceptionDuringLastUpdate() {

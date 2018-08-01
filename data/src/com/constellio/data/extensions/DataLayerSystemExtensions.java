@@ -1,28 +1,22 @@
 package com.constellio.data.extensions;
 
-import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.solr.common.params.SolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBusManagerExtension;
 import com.constellio.data.events.ReceivedEventParams;
 import com.constellio.data.events.SentEventParams;
-import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
-import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
-import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
-import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
-import com.constellio.data.extensions.extensions.configManager.ReadConfigParams;
-import com.constellio.data.extensions.extensions.configManager.SupportedExtensionExtension;
+import com.constellio.data.extensions.extensions.configManager.*;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import org.apache.solr.common.params.SolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
 
 public class DataLayerSystemExtensions {
 
@@ -85,8 +79,9 @@ public class DataLayerSystemExtensions {
 		}
 	}
 
-	public boolean isDocumentFieldLoggedInTransactionLog(final String field, final String schema, final String collection,
-			boolean defaultValue) {
+	public boolean isDocumentFieldLoggedInTransactionLog(final String field, final String schema,
+														 final String collection,
+														 boolean defaultValue) {
 		return getBooleanValue(getTransactionLogExtensions(), defaultValue, new BooleanCaller<TransactionLogExtension>() {
 			@Override
 			public ExtensionBooleanResult call(TransactionLogExtension extension) {

@@ -1,25 +1,15 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisableButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.EnableButton;
+import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -28,6 +18,11 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListFacetConfigurationViewImpl extends BaseViewImpl implements ListFacetConfigurationView {
 	private ListFacetConfigurationPresenter presenter;

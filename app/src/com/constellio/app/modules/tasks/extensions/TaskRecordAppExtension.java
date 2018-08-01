@@ -45,9 +45,10 @@ public class TaskRecordAppExtension extends RecordAppExtension {
 
 	}
 
-	private void setNiceTitle(RecordVO recordVO, Record record, String schemaTypeCode, String schemaCode, String metadataCode) {
+	private void setNiceTitle(RecordVO recordVO, Record record, String schemaTypeCode, String schemaCode,
+							  String metadataCode) {
 		MetadataSchemaTypes metadataSchemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(collection);
+																 .getSchemaTypes(collection);
 		Metadata metadata = metadataSchemaTypes.getSchemaType(schemaTypeCode).getSchema(schemaCode).getMetadata(metadataCode);
 		String niceTitle = record.get(metadata);
 		if (niceTitle != null) {

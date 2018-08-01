@@ -1,20 +1,13 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class DeleteWithJustificationButton extends WindowButton {
 	public static final String CONFIRM_DELETION = "confirm-deletion";

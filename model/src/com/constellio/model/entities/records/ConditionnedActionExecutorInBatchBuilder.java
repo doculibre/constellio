@@ -1,10 +1,5 @@
 package com.constellio.model.entities.records;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -12,6 +7,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class ConditionnedActionExecutorInBatchBuilder {
 
@@ -21,7 +21,8 @@ public class ConditionnedActionExecutorInBatchBuilder {
 	RecordUpdateOptions options;
 	LogicalSearchCondition condition;
 
-	public ConditionnedActionExecutorInBatchBuilder(ModelLayerFactory modelLayerFactory, LogicalSearchCondition condition) {
+	public ConditionnedActionExecutorInBatchBuilder(ModelLayerFactory modelLayerFactory,
+													LogicalSearchCondition condition) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.condition = condition;
 		this.options = new RecordUpdateOptions()

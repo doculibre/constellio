@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_COPY_RETENTION_RULES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
-
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -16,6 +7,11 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.vaadin.ui.Component;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.*;
 
 public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 	private final RetentionRuleDisplayPresenter presenter;

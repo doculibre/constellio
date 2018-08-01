@@ -1,13 +1,5 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ConnectorManager;
@@ -24,6 +16,13 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
@@ -67,11 +66,11 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	private void configureConnectorsInstances() {
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-						.setCode("zeConnector")
-						.setTitle("Ze Connector")
-						.setTraversalCode("traversalCode")
-						.setEnabled(true)
-						.setSeeds("http://constellio.com"));
+								   .setCode("zeConnector")
+								   .setTitle("Ze Connector")
+								   .setTraversalCode("traversalCode")
+								   .setEnabled(true)
+								   .setSeeds("http://constellio.com"));
 
 	}
 

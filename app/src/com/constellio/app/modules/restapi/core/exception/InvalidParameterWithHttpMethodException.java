@@ -7,14 +7,14 @@ import java.util.Map;
 
 public class InvalidParameterWithHttpMethodException extends BaseRestApiException {
 
-    private static final String CODE = "invalidParameterWithHttpMethod";
+	private static final String CODE = "invalidParameterWithHttpMethod";
 
-    public InvalidParameterWithHttpMethodException(String parameter, String method) {
-        status = Response.Status.BAD_REQUEST;
+	public InvalidParameterWithHttpMethodException(String parameter, String method) {
+		status = Response.Status.BAD_REQUEST;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("parameter", parameter);
-        parameters.put("method", method);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("parameter", parameter);
+		parameters.put("method", method);
+		buildValidationError(CODE, parameters);
+	}
 }

@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -22,17 +14,20 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddEditSchemaRecordView>
@@ -41,9 +36,9 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditSchemaRecordPresenter.class);
 
 	private static final String CANNOT_CHANGE_LINKED_SCHEMA_WHEN_REFERENCED = "cannotChangeLinkedSchemaWhenReferenced";
-	
+
 	private String schemaCode;
-	
+
 	private RecordVO recordVO;
 
 	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view) {
@@ -54,7 +49,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		computeParams(params);
 		view.setRecordVO(recordVO);
 	}
-	
+
 	private void computeParams(String params) {
 		if (schemaCode == null) {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
@@ -78,7 +73,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 				MetadataSchema schema = schema(schemaCode);
 				record = recordServices.newRecordWithSchema(schema);
 			}
-			
+
 			setSchemaCode(schemaCode);
 			recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.FORM, view.getSessionContext());
 		}
@@ -88,11 +83,11 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		String schemaCode = getSchemaCode();
 		try {
 			Record record = toRecord(recordVO);
-			if(record.isModified(Schemas.LINKED_SCHEMA)) {
+			if (record.isModified(Schemas.LINKED_SCHEMA)) {
 				LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(view.getCollection())
-						.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId());
+																			  .where(Schemas.ALL_REFERENCES).isEqualTo(record.getId());
 				long resultsCount = searchServices().getResultsCount(condition);
-				if(resultsCount != 0) {
+				if (resultsCount != 0) {
 					ValidationErrors validationErrors = new ValidationErrors();
 					validationErrors.add(getClass(), CANNOT_CHANGE_LINKED_SCHEMA_WHEN_REFERENCED);
 					throw new RecordServicesException.ValidationException(record, validationErrors);
@@ -152,7 +147,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 			if (defaultSchema.hasMetadataWithCode("type")) {
 				Metadata metadata = defaultSchema.getMetadata("type");
 				if (metadata.getType() == MetadataValueType.REFERENCE
-						&& ddvTypeCode.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
+					&& ddvTypeCode.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
 					return type.getCode();
 				}
 			}

@@ -1,10 +1,10 @@
 package com.constellio.model.frameworks.validation;
 
-import java.io.Serializable;
-import java.util.Map;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.Serializable;
+import java.util.Map;
 
 public class ValidationError implements Serializable {
 

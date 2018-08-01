@@ -1,23 +1,19 @@
 package com.constellio.data.threads;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import org.joda.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Mockito.*;
 
 public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 
@@ -41,7 +37,7 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 	@Test(expected = BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads.class)
 	public void givenNotStartedBackgroundThreadConfigurationThenCannotConfigureThreads() {
 		BackgroundThreadConfiguration configuration = BackgroundThreadConfiguration.repeatingAction("zeAction", repeatedAction)
-				.executedEvery(Duration.standardMinutes(42));
+																				   .executedEvery(Duration.standardMinutes(42));
 		doReturn(command).when(backgroundThreadsManager).getRunnableCommand(configuration);
 
 		backgroundThreadsManager.configure(configuration);
@@ -52,7 +48,7 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 	public void whenConfiguringThreadThenConfiguredWithCorrectInfos() {
 		backgroundThreadsManager.initialize();
 		BackgroundThreadConfiguration configuration = BackgroundThreadConfiguration.repeatingAction("zeAction", repeatedAction)
-				.executedEvery(Duration.standardMinutes(42));
+																				   .executedEvery(Duration.standardMinutes(42));
 		doReturn(command).when(backgroundThreadsManager).getRunnableCommand(configuration);
 
 		backgroundThreadsManager.configure(configuration);

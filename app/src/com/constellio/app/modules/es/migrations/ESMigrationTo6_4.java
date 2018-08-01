@@ -1,10 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.app.modules.es.ESTypes.esSchemaTypes;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -14,6 +9,11 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.es.ESTypes.esSchemaTypes;
 
 public class ESMigrationTo6_4 implements MigrationScript {
 	@Override

@@ -1,15 +1,21 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Map.Entry;
-
+import au.edu.apsr.mtk.base.*;
+import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
+import com.constellio.app.modules.rm.services.sip.ead.EAD;
+import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
+import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileCountReachedException;
+import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileLengthReachedException;
+import com.constellio.app.modules.rm.services.sip.model.SIPCategory;
+import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
+import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
+import com.constellio.app.modules.rm.services.sip.model.SIPObject;
+import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
+import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -29,36 +35,12 @@ import org.jdom2.output.XMLOutputter;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
-import com.constellio.app.modules.rm.services.sip.ead.EAD;
-import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
-import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileCountReachedException;
-import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileLengthReachedException;
-import com.constellio.app.modules.rm.services.sip.model.SIPCategory;
-import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
-import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
-import com.constellio.app.modules.rm.services.sip.model.SIPObject;
-import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
-import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import java.io.File;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
 
-import au.edu.apsr.mtk.base.Agent;
-import au.edu.apsr.mtk.base.Div;
-import au.edu.apsr.mtk.base.DmdSec;
-import au.edu.apsr.mtk.base.FLocat;
-import au.edu.apsr.mtk.base.FileGrp;
-import au.edu.apsr.mtk.base.FileSec;
-import au.edu.apsr.mtk.base.Fptr;
-import au.edu.apsr.mtk.base.METS;
-import au.edu.apsr.mtk.base.METSException;
-import au.edu.apsr.mtk.base.METSWrapper;
-import au.edu.apsr.mtk.base.MdRef;
-import au.edu.apsr.mtk.base.MdWrap;
-import au.edu.apsr.mtk.base.MetsHdr;
-import au.edu.apsr.mtk.base.StructMap;
 /**
  * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
  * - agent ROLE="CREATOR" ORGANIZATION=""
@@ -167,7 +149,7 @@ public class ConstellioSIP {
 			'^',
 			'[',
 			']',
-	};
+			};
 
 	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
 
@@ -368,7 +350,8 @@ public class ConstellioSIP {
 		}
 	}
 
-	private void addToSIP(SIPObject sipObject, METS mets, FileGrp documentFileGroup, Div bagDiv, ValidationErrors errors)
+	private void addToSIP(SIPObject sipObject, METS mets, FileGrp documentFileGroup, Div bagDiv,
+						  ValidationErrors errors)
 			throws METSException {
 		File file = null;
 		try {
@@ -542,7 +525,7 @@ public class ConstellioSIP {
 			errors.add(IOException.class, e.getMessage());
 		} finally {
 			IOServices ioServices = sipObjectsProvider.getAppLayerCollection().getModelLayerFactory().getIOServicesFactory()
-					.newIOServices();
+													  .newIOServices();
 			ioServices.deleteQuietly(file);
 		}
 
@@ -787,7 +770,7 @@ public class ConstellioSIP {
 		bagInfoLines.add("Portrait général des formats numériques : " + extensionsAndCounts);
 		bagInfoLines
 				.add("Taille des fichiers numériques non compressés : " + FileUtils.byteCountToDisplaySize(sipFilesLength) + " ("
-						+ sipFilesLength + " octets)");
+					 + sipFilesLength + " octets)");
 		bagInfoLines.add("");
 		bagInfoLines.add("Logiciel : Constellio");
 		bagInfoLines.add("Site web de l’éditeur : http://www.constellio.com");

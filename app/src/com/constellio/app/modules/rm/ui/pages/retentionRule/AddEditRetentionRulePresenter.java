@@ -118,7 +118,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : records) {
 			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
-					.setTitle((String) record.get(Schemas.TITLE, ConstellioUI.getCurrentSessionContext().getCurrentLocale())).setCode((String) record.get(Schemas.CODE));
+																								 .setTitle((String) record.get(Schemas.TITLE, ConstellioUI.getCurrentSessionContext().getCurrentLocale())).setCode((String) record.get(Schemas.CODE));
 			returnList.add(variableRetentionPeriodVO);
 		}
 		return returnList;
@@ -168,7 +168,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		Transaction transaction = new Transaction().setUser(getCurrentUser());
 
 		LogicalSearchCondition condition = from(schema).where(ruleMetadata).isEqualTo(id)
-				.andWhere(Schemas.IDENTIFIER).isNotIn(records);
+													   .andWhere(Schemas.IDENTIFIER).isNotIn(records);
 		List<Record> removed = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : removed) {
 			List<Object> rules = new ArrayList<>(record.getList(ruleMetadata));
@@ -309,7 +309,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 		for (Metadata metadata : folder.getAllMetadatas()) {
 			if (FolderDecomDatesDynamicLocalDependency.isMetadataUsableByCopyRetentionRules(metadata)
-					&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+				&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
 				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
 				dateMetadataVOs.add(metadataVO);
 			}

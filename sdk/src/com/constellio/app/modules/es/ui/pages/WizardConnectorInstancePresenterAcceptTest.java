@@ -1,16 +1,5 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -28,6 +17,16 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
@@ -73,19 +72,19 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	private void configureConnectorsInstances() {
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-						.setCode("zeConnector")
-						.setTitle("Ze Connector")
-						.setTraversalCode("traversalCode")
-						.setEnabled(true)
-						.setSeeds("http://constellio.com"));
+								   .setCode("zeConnector")
+								   .setTitle("Ze Connector")
+								   .setTraversalCode("traversalCode")
+								   .setEnabled(true)
+								   .setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-						.setCode("anotherConnector")
-						.setTitle("Another Connector")
-						.setTraversalCode("anotherTraversalCode")
-						.setEnabled(true)
-						.setSeeds("http://constellio.com"));
+								   .setCode("anotherConnector")
+								   .setTitle("Another Connector")
+								   .setTraversalCode("anotherTraversalCode")
+								   .setEnabled(true)
+								   .setSeeds("http://constellio.com"));
 	}
 
 	@Test

@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -35,6 +24,16 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
@@ -52,7 +51,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
 		users = users.setUp(getAppLayerFactory().getModelLayerFactory().newUserServices());
@@ -205,12 +204,12 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	public void whenSavingAContainerRecordWithCustomSchemaThenAggregatedMetadatasStillWork()
 			throws Exception {
 		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-				.modify(zeCollection, new MetadataSchemaTypesAlteration() {
-					@Override
-					public void alter(MetadataSchemaTypesBuilder types) {
-						types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
-					}
-				});
+							.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+								@Override
+								public void alter(MetadataSchemaTypesBuilder types) {
+									types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
+								}
+							});
 
 		ContainerRecordType zeContainerType = rm.newContainerRecordTypeWithId("zeContainerType");
 		zeContainerType.setTitle("zeContainerType");
@@ -264,26 +263,26 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter);
 
 		List<TaxonomySearchRecord> visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
-						taxonomiesSearchOptions);
+																	  .getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+																			  taxonomiesSearchOptions);
 		assertThat(visibleChild).isEmpty();
 
 		getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
-						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+							.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+									StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).isEmpty();
 
 		child.setCapacity(30);
 		recordServices.update(child);
 
 		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
-						taxonomiesSearchOptions);
+										   .getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+												   taxonomiesSearchOptions);
 		assertThat(visibleChild).hasSize(1);
 
 		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
-						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+										   .getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+												   StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).hasSize(1);
 	}
 
@@ -324,7 +323,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
 		return storageSpace.getTitle().equals("storageTest") && storageSpace.getCapacity() != null
-				&& storageSpace.getCapacity() > containerCapacity;
+			   && storageSpace.getCapacity() > containerCapacity;
 	}
 
 	public void cleanStorageSpaces() {

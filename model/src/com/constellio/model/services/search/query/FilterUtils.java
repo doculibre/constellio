@@ -1,10 +1,5 @@
 package com.constellio.model.services.search.query;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -19,10 +14,15 @@ import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 import com.constellio.model.services.users.UserServices;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class FilterUtils {
 
 	public static String multiCollectionUserReadFilter(UserCredential userCredential, UserServices userServices,
-			SecurityTokenManager securityTokenManager) {
+													   SecurityTokenManager securityTokenManager) {
 		StringBuilder filter = new StringBuilder();
 		if (userCredential.getCollections().isEmpty() || !userCredential.isActiveUser()) {
 			addTokenA38(filter);
@@ -95,7 +95,7 @@ public class FilterUtils {
 				stringBuilder.append("_*");
 			}
 
-			for (String aGroup :  user.getUserGroups()) {
+			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
 					stringBuilder.append(" OR ");
 					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
@@ -170,7 +170,7 @@ public class FilterUtils {
 	}
 
 	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
-			MetadataSchemaType selectedType, boolean includeInvisible) {
+											 MetadataSchemaType selectedType, boolean includeInvisible) {
 
 		String selectedTypeSmallCode = null;
 		if (selectedType != null) {
@@ -355,7 +355,7 @@ public class FilterUtils {
 	}
 
 	private static void addAuthsTokens(StringBuilder stringBuilder, User user, boolean includeSpecifics,
-			AuthorizationDetailsFilter filter) {
+									   AuthorizationDetailsFilter filter) {
 
 		//Specific auths are excluded, they are handled with tokens
 		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, includeSpecifics, filter);

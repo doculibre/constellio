@@ -1,18 +1,10 @@
 package com.constellio.app.ui.pages.management.schemas.display.form;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayUtils;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.entities.FormMetadataVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
@@ -21,10 +13,15 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FormDisplayConfigPresenter extends SingleSchemaBasePresenter<FormDisplayConfigView> {
 

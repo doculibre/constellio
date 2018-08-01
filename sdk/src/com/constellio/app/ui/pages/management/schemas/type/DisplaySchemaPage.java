@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -14,6 +8,11 @@ import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DisplaySchemaPage extends PageHelper {
 
@@ -26,7 +25,7 @@ public class DisplaySchemaPage extends PageHelper {
 		paramMap.put("schemaTypeCode", "folder");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA_TYPE, paramMap);
 		driver.navigateTo()
-				.url(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
+			  .url(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
 	}
 
 	public ButtonWebElement getAddButton() {

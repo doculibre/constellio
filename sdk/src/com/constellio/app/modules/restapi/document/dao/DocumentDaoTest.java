@@ -35,94 +35,94 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class DocumentDaoTest {
 
-    @Mock private RecordServices recordServices;
-    @Mock private MetadataSchemasManager metadataSchemasManager;
-    @Mock private ContentManager contentManager;
+	@Mock private RecordServices recordServices;
+	@Mock private MetadataSchemasManager metadataSchemasManager;
+	@Mock private ContentManager contentManager;
 
-    @Mock private DocumentDto document;
-    @Mock private User user;
-    @Mock private Record record;
-    @Mock private MetadataSchema metadataSchema;
-    @Mock private Content content;
-    @Mock private InputStream inputStream;
-    @Mock private ContentVersion contentVersion;
+	@Mock private DocumentDto document;
+	@Mock private User user;
+	@Mock private Record record;
+	@Mock private MetadataSchema metadataSchema;
+	@Mock private Content content;
+	@Mock private InputStream inputStream;
+	@Mock private ContentVersion contentVersion;
 
-    @Mock private RecordDaoException.OptimisticLocking recordDaoOptimisticLocking;
+	@Mock private RecordDaoException.OptimisticLocking recordDaoOptimisticLocking;
 
-    @InjectMocks private DocumentDao documentDao;
+	@InjectMocks private DocumentDao documentDao;
 
-    private String id = "id";
-    private String version = "1.0";
-    private String mimeType = MimeTypes.MIME_APPLICATION_PDF;
+	private String id = "id";
+	private String version = "1.0";
+	private String mimeType = MimeTypes.MIME_APPLICATION_PDF;
 
-    @Before
-    public void setUp() {
-        initMocks(this);
+	@Before
+	public void setUp() {
+		initMocks(this);
 
-        when(metadataSchemasManager.getSchemaOf(record)).thenReturn(metadataSchema);
+		when(metadataSchemasManager.getSchemaOf(record)).thenReturn(metadataSchema);
 
-        when(document.getExtendedAttributes()).thenReturn(null);
-        when(record.getId()).thenReturn(id);
-        when(documentDao.getRecordById(anyString())).thenReturn(record);
+		when(document.getExtendedAttributes()).thenReturn(null);
+		when(record.getId()).thenReturn(id);
+		when(documentDao.getRecordById(anyString())).thenReturn(record);
 
-        when(content.getVersion(version)).thenReturn(contentVersion);
-        when(contentManager.getContentInputStream(anyString(), anyString())).thenReturn(inputStream);
-    }
+		when(content.getVersion(version)).thenReturn(contentVersion);
+		when(contentManager.getContentInputStream(anyString(), anyString())).thenReturn(inputStream);
+	}
 
-    @Test
-    public void testGetContent() {
-        when(documentDao.getMetadataValue(record, anyString())).thenReturn(content).thenReturn(mimeType);
+	@Test
+	public void testGetContent() {
+		when(documentDao.getMetadataValue(record, anyString())).thenReturn(content).thenReturn(mimeType);
 
-        DocumentContentDto contentDto = documentDao.getContent(record, version);
+		DocumentContentDto contentDto = documentDao.getContent(record, version);
 
-        assertThat(contentDto).isNotNull();
-        assertThat(contentDto.getContent()).isEqualTo(inputStream);
-        assertThat(contentDto.getMimeType()).isEqualTo(mimeType);
-    }
+		assertThat(contentDto).isNotNull();
+		assertThat(contentDto.getContent()).isEqualTo(inputStream);
+		assertThat(contentDto.getMimeType()).isEqualTo(mimeType);
+	}
 
-    @Test(expected=DocumentContentNotFoundException.class)
-    public void testGetContentContentNull() {
-        when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
+	@Test(expected = DocumentContentNotFoundException.class)
+	public void testGetContentContentNull() {
+		when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
 
-        documentDao.getContent(record, version);
-    }
+		documentDao.getContent(record, version);
+	}
 
-    @Test(expected=DocumentContentNotFoundException.class)
-    public void testGetContentNoSuchVersionException() {
-        when(content.getVersion(anyString()))
-                .thenThrow(new ContentImplRuntimeException.ContentImplRuntimeException_NoSuchVersion(null));
+	@Test(expected = DocumentContentNotFoundException.class)
+	public void testGetContentNoSuchVersionException() {
+		when(content.getVersion(anyString()))
+				.thenThrow(new ContentImplRuntimeException.ContentImplRuntimeException_NoSuchVersion(null));
 
-        documentDao.getContent(record, version);
-    }
+		documentDao.getContent(record, version);
+	}
 
-    @Test(expected=DocumentContentNotFoundException.class)
-    public void testGetContentNoSuchContentException() {
-        when(contentManager.getContentInputStream(anyString(), anyString()))
-                .thenThrow(new ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent(null));
+	@Test(expected = DocumentContentNotFoundException.class)
+	public void testGetContentNoSuchContentException() {
+		when(contentManager.getContentInputStream(anyString(), anyString()))
+				.thenThrow(new ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent(null));
 
-        documentDao.getContent(record, version);
-    }
+		documentDao.getContent(record, version);
+	}
 
-    @Test(expected=OptimisticLockException.class)
-    public void testUpdateDocumentOptimisticLockException() throws Exception {
-        when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
+	@Test(expected = OptimisticLockException.class)
+	public void testUpdateDocumentOptimisticLockException() throws Exception {
+		when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
 
-        doThrow(new RecordServicesException.OptimisticLocking(null, recordDaoOptimisticLocking))
-                .when(recordServices).execute(any(Transaction.class));
+		doThrow(new RecordServicesException.OptimisticLocking(null, recordDaoOptimisticLocking))
+				.when(recordServices).execute(any(Transaction.class));
 
-        documentDao.updateDocument(user, record, metadataSchema, document, content, true, "NOW");
-    }
+		documentDao.updateDocument(user, record, metadataSchema, document, content, true, "NOW");
+	}
 
-    @Test(expected=UnresolvableOptimisticLockException.class)
-    public void testUpdateDocumentUnresolvableOptimisticLockException() throws Exception {
-        when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
+	@Test(expected = UnresolvableOptimisticLockException.class)
+	public void testUpdateDocumentUnresolvableOptimisticLockException() throws Exception {
+		when(documentDao.getMetadataValue(record, anyString())).thenReturn(null);
 
-        doThrow(new RecordServicesException.UnresolvableOptimisticLockingConflict(""))
-                .when(recordServices).execute(any(Transaction.class));
+		doThrow(new RecordServicesException.UnresolvableOptimisticLockingConflict(""))
+				.when(recordServices).execute(any(Transaction.class));
 
-        documentDao.updateDocument(user, record, metadataSchema, document, content, true, "NOW");
-    }
+		documentDao.updateDocument(user, record, metadataSchema, document, content, true, "NOW");
+	}
 
-    // TODO test that content is deleted if add(document) throw an exception
+	// TODO test that content is deleted if add(document) throw an exception
 
 }

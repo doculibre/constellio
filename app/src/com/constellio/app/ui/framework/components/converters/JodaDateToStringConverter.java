@@ -1,14 +1,13 @@
 package com.constellio.app.ui.framework.components.converters;
 
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.vaadin.data.util.converter.Converter;
+import org.joda.time.LocalDate;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
-import org.joda.time.LocalDate;
-
-import com.constellio.app.ui.util.DateFormatUtils;
-import com.vaadin.data.util.converter.Converter;
 
 @SuppressWarnings("serial")
 public class JodaDateToStringConverter implements Converter<String, LocalDate> {

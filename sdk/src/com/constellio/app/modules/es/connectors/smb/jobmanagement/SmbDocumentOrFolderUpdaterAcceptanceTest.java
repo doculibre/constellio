@@ -1,27 +1,26 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
+import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 	private ESSchemasRecordsServices es;
@@ -52,21 +51,21 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup() {
 		prepareSystem(withZeCollection().withConstellioESModule()
-				.withAllTestUsers());
+										.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorInstance = es.newConnectorSmbInstance()
-				.setDomain(SmbTestParams.DOMAIN)
-				.setUsername(SmbTestParams.USERNAME)
-				.setPassword(SmbTestParams.PASSWORD)
-				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-				.setCode(SmbTestParams.INSTANCE_CODE)
-				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-				.setExclusions(asList(""))
-				.setTitle(SmbTestParams.CONNECTOR_TITLE);
+							  .setDomain(SmbTestParams.DOMAIN)
+							  .setUsername(SmbTestParams.USERNAME)
+							  .setPassword(SmbTestParams.PASSWORD)
+							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+							  .setCode(SmbTestParams.INSTANCE_CODE)
+							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+							  .setExclusions(asList(""))
+							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
 		es.getConnectorManager()
-				.createConnector(connectorInstance);
+		  .createConnector(connectorInstance);
 
 		smbRecordService = new SmbRecordService(es, connectorInstance);
 	}
@@ -96,33 +95,33 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_URL, false);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+									 .isNotEmpty();
 
 		assertThat(document.getLastModified()).isEqualTo(new LocalDateTime(smbFileDTO.getLastModified()))
-				.isNotNull();
+											  .isNotNull();
 		assertThat(document.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+											 .isNotNull();
 		assertThat(document.getSize()).isEqualTo(smbFileDTO.getLength())
-				.isNotNull();
+									  .isNotNull();
 		assertThat(document.getPermissionsHash()).isEqualTo(smbFileDTO.getPermissionsHash())
-				.isNotNull();
+												 .isNotNull();
 		assertThat(document.getTitle()).isEqualTo(smbFileDTO.getName())
-				.isNotNull();
+									   .isNotNull();
 
 		assertThat(document.getParsedContent()).isEqualTo(smbFileDTO.getParsedContent())
-				.isNotNull();
+											   .isNotNull();
 		assertThat(document.getLanguage()).isEqualTo(smbFileDTO.getLanguage())
-				.isNotNull();
+										  .isNotNull();
 		assertThat(document.getExtension()).isEqualTo(smbFileDTO.getExtension())
-				.isNotNull();
+										   .isNotNull();
 		assertThat(document.getManualTokens()).isEqualTo(smbFileDTO.getAllowTokens())
-				.isNotNull();
+											  .isNotNull();
 		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
-				.isNotNull();
+																	 .isNotNull();
 		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
-				.isNotNull();
+																	.isNotNull();
 		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
-				.isNotNull();
+																		  .isNotNull();
 
 		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
 		assertThat(document.getConnector()).isEqualTo(connectorInstance.getId());
@@ -161,15 +160,15 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setDenyShareTokens(SmbTestParams.DENY_SHARE_TOKENS);
 
 		document = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl("a")
-				.setLastModified(new LocalDateTime())
-				.setLastFetched(new LocalDateTime())
-				.setSize(11)
-				.setPermissionsHash("hash to replace")
-				.setTitle("title to replace")
-				.setParsedContent("content to replace")
-				.setLanguage("es")
-				.setExtension("no ext");
+					 .setUrl("a")
+					 .setLastModified(new LocalDateTime())
+					 .setLastFetched(new LocalDateTime())
+					 .setSize(11)
+					 .setPermissionsHash("hash to replace")
+					 .setTitle("title to replace")
+					 .setParsedContent("content to replace")
+					 .setLanguage("es")
+					 .setExtension("no ext");
 		document.setManualTokens("t")
 				.set(Schemas.SHARE_TOKENS.getLocalCode(), Arrays.asList("t"))
 				.set(Schemas.DENY_TOKENS.getLocalCode(), Arrays.asList("t"))
@@ -183,33 +182,33 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, document, PARENT_URL, false);
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+									 .isNotEmpty();
 
 		assertThat(document.getLastModified()).isEqualTo(new LocalDateTime(smbFileDTO.getLastModified()))
-				.isNotNull();
+											  .isNotNull();
 		assertThat(document.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+											 .isNotNull();
 		assertThat(document.getSize()).isEqualTo(smbFileDTO.getLength())
-				.isNotNull();
+									  .isNotNull();
 		assertThat(document.getPermissionsHash()).isEqualTo(smbFileDTO.getPermissionsHash())
-				.isNotNull();
+												 .isNotNull();
 		assertThat(document.getTitle()).isEqualTo(smbFileDTO.getName())
-				.isNotNull();
+									   .isNotNull();
 
 		assertThat(document.getParsedContent()).isEqualTo(smbFileDTO.getParsedContent())
-				.isNotNull();
+											   .isNotNull();
 		assertThat(document.getLanguage()).isEqualTo(smbFileDTO.getLanguage())
-				.isNotNull();
+										  .isNotNull();
 		assertThat(document.getExtension()).isEqualTo(smbFileDTO.getExtension())
-				.isNotNull();
+										   .isNotNull();
 		assertThat(document.getManualTokens()).isEqualTo(smbFileDTO.getAllowTokens())
-				.isNotNull();
+											  .isNotNull();
 		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
-				.isNotNull();
+																	 .isNotNull();
 		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
-				.isNotNull();
+																	.isNotNull();
 		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
-				.isNotNull();
+																		  .isNotNull();
 
 		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.OK);
 		assertThat(document.getConnector()).isEqualTo(connectorInstance.getId());
@@ -248,15 +247,15 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setErrorMessage("Error message");
 
 		document = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(URL)
-				.setLastModified(LAST_MODIFIED2)
-				.setLastFetched(LAST_MODIFIED2)
-				.setSize(SIZE)
-				.setPermissionsHash(PERMISSIONS_HASH)
-				.setTitle(TITLE)
-				.setParsedContent(PARSED_CONTENT)
-				.setLanguage(LANGUAGE)
-				.setExtension(EXTENSION);
+					 .setUrl(URL)
+					 .setLastModified(LAST_MODIFIED2)
+					 .setLastFetched(LAST_MODIFIED2)
+					 .setSize(SIZE)
+					 .setPermissionsHash(PERMISSIONS_HASH)
+					 .setTitle(TITLE)
+					 .setParsedContent(PARSED_CONTENT)
+					 .setLanguage(LANGUAGE)
+					 .setExtension(EXTENSION);
 		document.setManualTokens(TOKENS)
 				.set(Schemas.SHARE_TOKENS.getLocalCode(), TOKENS)
 				.set(Schemas.DENY_TOKENS.getLocalCode(), TOKENS)
@@ -377,13 +376,13 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_URL, false);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+								   .isNotEmpty();
 
 		assertThat(folder.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+										   .isNotNull();
 
 		assertThat(folder.getTitle()).isEqualTo(smbFileDTO.getName())
-				.isNotNull();
+									 .isNotNull();
 
 		assertThat(folder.getLastFetchedStatus()).isEqualTo(LastFetchedStatus.OK);
 		assertThat(folder.getConnector()).isEqualTo(connectorInstance.getId());
@@ -412,24 +411,24 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
 
 		folder = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(URL)
-				.setLastFetched(LAST_FETCHED)
-				.setTitle(TITLE)
-				.setLastFetchedStatus(LastFetchedStatus.FAILED)
-				.setConnector(CONNECTOR)
-				.setTraversalCode(TRAVERSAL_CODE)
-				.setFetched(false);
+				   .setUrl(URL)
+				   .setLastFetched(LAST_FETCHED)
+				   .setTitle(TITLE)
+				   .setLastFetchedStatus(LastFetchedStatus.FAILED)
+				   .setConnector(CONNECTOR)
+				   .setTraversalCode(TRAVERSAL_CODE)
+				   .setFetched(false);
 
 		documentOrFolderUpdater.updateDocumentOrFolder(smbFileDTO, folder, PARENT_URL, false);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+								   .isNotEmpty();
 
 		assertThat(folder.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+										   .isNotNull();
 
 		assertThat(folder.getTitle()).isEqualTo(smbFileDTO.getName())
-				.isNotNull();
+									 .isNotNull();
 
 		assertThat(folder.getLastFetchedStatus()).isEqualTo(LastFetchedStatus.OK);
 		assertThat(folder.getConnector()).isEqualTo(connectorInstance.getId());
@@ -462,10 +461,10 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_URL);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+								   .isNotEmpty();
 
 		assertThat(folder.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+										   .isNotNull();
 
 		assertThat(folder.getTitle()).isNull();
 
@@ -497,21 +496,21 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setErrorMessage("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
 		folder = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(URL)
-				.setLastFetched(LAST_FETCHED)
-				.setTitle(TITLE)
-				.setLastFetchedStatus(LastFetchedStatus.FAILED)
-				.setConnector(CONNECTOR)
-				.setTraversalCode(TRAVERSAL_CODE)
-				.setFetched(false);
+				   .setUrl(URL)
+				   .setLastFetched(LAST_FETCHED)
+				   .setTitle(TITLE)
+				   .setLastFetchedStatus(LastFetchedStatus.FAILED)
+				   .setConnector(CONNECTOR)
+				   .setTraversalCode(TRAVERSAL_CODE)
+				   .setFetched(false);
 
 		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_URL);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+								   .isNotEmpty();
 
 		assertThat(folder.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+										   .isNotNull();
 
 		assertThat(folder.getTitle()).isEqualTo(TITLE);
 
@@ -551,16 +550,16 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setDenyShareTokens(SmbTestParams.DENY_SHARE_TOKENS);
 
 		document = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(FILE_URL)
-				.setParentUrl(PARENT_URL)
-				.setLastModified(LAST_MODIFIED2)
-				.setLastFetched(LAST_FETCHED)
-				.setSize(SmbTestParams.EXISTING_FILE_LENGTH)
-				.setPermissionsHash(SmbTestParams.EXISTING_FILE_PERMISSION_HASH)
-				.setTitle(SmbTestParams.EXISTING_FILE)
-				.setParsedContent(SmbTestParams.EXISTING_FILE_CONTENT)
-				.setLanguage(SmbTestParams.EXISTING_FILE_LANG)
-				.setExtension(SmbTestParams.EXISTING_FILE_EXT);
+					 .setUrl(FILE_URL)
+					 .setParentUrl(PARENT_URL)
+					 .setLastModified(LAST_MODIFIED2)
+					 .setLastFetched(LAST_FETCHED)
+					 .setSize(SmbTestParams.EXISTING_FILE_LENGTH)
+					 .setPermissionsHash(SmbTestParams.EXISTING_FILE_PERMISSION_HASH)
+					 .setTitle(SmbTestParams.EXISTING_FILE)
+					 .setParsedContent(SmbTestParams.EXISTING_FILE_CONTENT)
+					 .setLanguage(SmbTestParams.EXISTING_FILE_LANG)
+					 .setExtension(SmbTestParams.EXISTING_FILE_EXT);
 		document.setManualTokens(SmbTestParams.ALLOW_TOKENS)
 				.set(Schemas.SHARE_TOKENS.getLocalCode(), SmbTestParams.ALLOW_SHARE_TOKENS)
 				.set(Schemas.DENY_TOKENS.getLocalCode(), SmbTestParams.DENY_TOKENS)
@@ -572,33 +571,33 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setLastFetchAttemptDetails("");
 
 		assertThat(document.getUrl()).isEqualTo(smbFileDTO.getUrl())
-				.isNotEmpty();
+									 .isNotEmpty();
 
 		assertThat(document.getLastModified()).isEqualTo(new LocalDateTime(smbFileDTO.getLastModified()))
-				.isNotNull();
+											  .isNotNull();
 		assertThat(document.getLastFetched()).isEqualTo(smbFileDTO.getLastFetchAttempt())
-				.isNotNull();
+											 .isNotNull();
 		assertThat(document.getSize()).isEqualTo(smbFileDTO.getLength())
-				.isNotNull();
+									  .isNotNull();
 		assertThat(document.getPermissionsHash()).isEqualTo(smbFileDTO.getPermissionsHash())
-				.isNotNull();
+												 .isNotNull();
 		assertThat(document.getTitle()).isEqualTo(smbFileDTO.getName())
-				.isNotNull();
+									   .isNotNull();
 
 		assertThat(document.getParsedContent()).isEqualTo(smbFileDTO.getParsedContent())
-				.isNotNull();
+											   .isNotNull();
 		assertThat(document.getLanguage()).isEqualTo(smbFileDTO.getLanguage())
-				.isNotNull();
+										  .isNotNull();
 		assertThat(document.getExtension()).isEqualTo(smbFileDTO.getExtension())
-				.isNotNull();
+										   .isNotNull();
 		assertThat(document.getManualTokens()).isEqualTo(smbFileDTO.getAllowTokens())
-				.isNotNull();
+											  .isNotNull();
 		assertThat(document.get(Schemas.SHARE_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getAllowShareTokens())
-				.isNotNull();
+																	 .isNotNull();
 		assertThat(document.get(Schemas.DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyTokens())
-				.isNotNull();
+																	.isNotNull();
 		assertThat(document.get(Schemas.SHARE_DENY_TOKENS.getLocalCode())).isEqualTo(smbFileDTO.getDenyShareTokens())
-				.isNotNull();
+																		  .isNotNull();
 
 		assertThat(document.getLastFetchAttemptStatus()).isEqualTo(LastFetchedStatus.PARTIAL);
 		assertThat(document.getConnector()).isEqualTo(connectorInstance.getId());

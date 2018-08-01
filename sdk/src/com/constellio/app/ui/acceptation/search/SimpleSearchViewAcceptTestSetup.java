@@ -1,10 +1,5 @@
 package com.constellio.app.ui.acceptation.search;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -18,6 +13,10 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleSearchViewAcceptTestSetup extends SchemasSetup {
 	public final static int DEFAULT_NUM_RECORDS = 100;
@@ -45,12 +44,12 @@ public class SimpleSearchViewAcceptTestSetup extends SchemasSetup {
 	public void setUp() {
 		MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(DOCUMENT);
 		builder.getDefaultSchema().create("bodyText").addLabel(Language.French, "Body text").setType(MetadataValueType.TEXT)
-				.setSearchable(true);
+			   .setSearchable(true);
 		builder.getDefaultSchema().create("number").addLabel(Language.French, "Number").setType(MetadataValueType.NUMBER)
-				.setSearchable(true);
+			   .setSearchable(true);
 		builder.getDefaultSchema().create("someFacet").addLabel(Language.French, "Some facet").setType(MetadataValueType.NUMBER);
 		builder.getDefaultSchema().create("anotherFacet").addLabel(Language.French, "Another facet")
-				.setType(MetadataValueType.STRING);
+			   .setType(MetadataValueType.STRING);
 		builder.getDefaultSchema().create("date").setType(MetadataValueType.DATE);
 		builder.getDefaultSchema().create("zenum").setType(MetadataValueType.ENUM).defineAsEnum(ZEnum.class);
 	}

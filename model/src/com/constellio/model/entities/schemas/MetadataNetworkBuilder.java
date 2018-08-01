@@ -1,32 +1,21 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AGGREGATION_INPUT;
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.AUTOMATIC_METADATA_INPUT;
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.SEQUENCE_INPUT;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataNetworkLinkType.*;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
+import static java.util.Arrays.asList;
 
 public class MetadataNetworkBuilder {
 
@@ -131,7 +120,7 @@ public class MetadataNetworkBuilder {
 	}
 
 	public void addNetworkLink(Metadata from, Metadata to, Metadata refMetadata, int level,
-			MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
+							   MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
 
 		List<Metadata> tosIncludingReference = new ArrayList<>();
 		tosIncludingReference.add(to);
@@ -175,7 +164,7 @@ public class MetadataNetworkBuilder {
 	}
 
 	public void addNetworkLink(Metadata from, List<Metadata> tos, Metadata refMetadata, int level,
-			MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
+							   MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
 
 		for (Metadata to : tos) {
 			if (to != null) {
@@ -277,7 +266,7 @@ public class MetadataNetworkBuilder {
 						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
 						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
 						Metadata dependentMetadata = referencedType.getDefaultSchema()
-								.getMetadata(dependency.getDependentMetadataCode());
+																   .getMetadata(dependency.getDependentMetadataCode());
 
 						metadatas.add(refMetadata);
 						metadatas.add(dependentMetadata);
@@ -306,7 +295,7 @@ public class MetadataNetworkBuilder {
 						Metadata refMetadata = schema.getMetadata(dependency.getLocalMetadataCode());
 						MetadataSchemaType referencedType = builder.type(refMetadata.getReferencedSchemaType());
 						Metadata dependentMetadata = referencedType.getDefaultSchema()
-								.getMetadata(dependency.getDependentMetadataCode());
+																   .getMetadata(dependency.getDependentMetadataCode());
 
 						builder.addNetworkLink(metadata, dependentMetadata, refMetadata, level, AUTOMATIC_METADATA_INPUT, false,
 								hasRefDependency);
@@ -366,7 +355,7 @@ public class MetadataNetworkBuilder {
 					String[] splittedCode = dataEntry.getMetadataProvidingSequenceCode().split("\\.");
 					Metadata firstMetadata = schema.getMetadata(splittedCode[0]);
 					Metadata secondMetadata = builder.type(firstMetadata.getReferencedSchemaType()).getDefaultSchema()
-							.getMetadata(splittedCode[1]);
+													 .getMetadata(splittedCode[1]);
 					metadatas.add(firstMetadata);
 					metadatas.add(secondMetadata);
 				} else {

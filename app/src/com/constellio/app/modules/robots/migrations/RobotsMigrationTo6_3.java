@@ -1,8 +1,5 @@
 package com.constellio.app.modules.robots.migrations;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -15,6 +12,9 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RobotsMigrationTo6_3 implements MigrationScript {
 	@Override
@@ -33,7 +33,7 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 		SchemasDisplayManager manager = factory.getMetadataSchemasDisplayManager();
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection)
-				.in(Robot.SCHEMA_TYPE).addToForm(Robot.AUTO_EXECUTE).atTheEnd();
+																		 .in(Robot.SCHEMA_TYPE).addToForm(Robot.AUTO_EXECUTE).atTheEnd();
 
 		List<String> metas = new ArrayList<>();
 		metas.addAll(manager.getSchema(collection, RobotLog.DEFAULT_SCHEMA).getTableMetadataCodes());
@@ -48,7 +48,8 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 
 	static class SchemaAlterationFor6_3 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor6_3(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationFor6_3(String collection, MigrationResourcesProvider provider,
+										 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -61,7 +62,7 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 			MetadataSchemaBuilder robotSchema = robot.getDefaultSchema();
 
 			robotSchema.createUndeletable(Robot.AUTO_EXECUTE).setType(MetadataValueType.BOOLEAN)
-					.setDefaultRequirement(true).setDefaultValue(false);
+					   .setDefaultRequirement(true).setDefaultValue(false);
 
 			MetadataSchemaTypeBuilder robotLogSchemaType = types.getOrCreateNewSchemaType(RobotLog.SCHEMA_TYPE);
 			MetadataSchemaBuilder robotLogSchema = robotLogSchemaType.getDefaultSchema();

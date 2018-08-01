@@ -1,5 +1,21 @@
 package com.constellio.model.services.schemas;
 
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -7,27 +23,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestRecord;
 
 public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 
@@ -251,7 +246,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	public void givenLazyTransientReferenceMetadataThenModificationPropagated()
 			throws Exception {
 		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(TRANSIENT_LAZY)
-				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(TRANSIENT_LAZY));
+											.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -268,7 +263,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	public void givenEagerTransientReferenceMetadataThenModificationPropagated()
 			throws Exception {
 		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER)
-				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataTransiency.TRANSIENT_EAGER));
+											.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataTransiency.TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));

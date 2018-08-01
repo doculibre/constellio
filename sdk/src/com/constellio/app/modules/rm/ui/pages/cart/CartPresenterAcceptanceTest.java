@@ -39,7 +39,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
-				.withAllTest(users));
+										.withAllTest(users));
 		searchServices = getModelLayerFactory().newSearchServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());

@@ -1,19 +1,5 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -36,6 +22,19 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
 
 @SlowTest
 public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
@@ -82,11 +81,11 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		transaction.add(new TestRecord(anotherSchema, "000666"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000042");
+				   .set(anotherSchema.metadata("referenceToZeSchema"), "000042");
 		recordServices.execute(transaction);
 
 		assertThatRecord(withId("000666"))
@@ -137,11 +136,11 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		transaction.add(new TestRecord(anotherSchema, "000042"))
-				.set(anotherSchema.metadata("referenceToZeSchema"), "000666");
+				   .set(anotherSchema.metadata("referenceToZeSchema"), "000666");
 		recordServices.execute(transaction);
 
 		assertThatRecord(withId("000042"))
@@ -197,11 +196,11 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 
 				MetadataSchemaBuilder anotherSchema = schemaTypes.getDefaultSchema("anotherSchemaType");
 				MetadataBuilder referenceToZeSchema = anotherSchema.create("referenceToZeSchema")
-						.defineReferencesTo(asList(zeSchema));
+																   .defineReferencesTo(asList(zeSchema));
 				anotherSchema.create("copiedMetadata").setType(STRING)
-						.defineDataEntry().asCopied(referenceToZeSchema, copiedMetadataInput);
+							 .defineDataEntry().asCopied(referenceToZeSchema, copiedMetadataInput);
 				anotherSchema.create("calculatedMetadata").setType(STRING)
-						.defineDataEntry().asCalculated(ReindexingServicesAcceptanceTest_Calculator.class);
+							 .defineDataEntry().asCalculated(ReindexingServicesAcceptanceTest_Calculator.class);
 
 			}
 		};

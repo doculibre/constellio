@@ -112,16 +112,16 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 	public void saveButtonClicked() {
 		List<DecomListFolderDetail> result = getAllFolderDetailsWithType();
 		List<DecomListFolderDetail> sortedResult = new ArrayList<>();
-		for(String id: codeTitles) {
-			for(DecomListFolderDetail folder: result) {
-				if(folder.getFolderId().equals(id)) {
+		for (String id : codeTitles) {
+			for (DecomListFolderDetail folder : result) {
+				if (folder.getFolderId().equals(id)) {
 					sortedResult.add(folder);
 					break;
 				}
 			}
 		}
-		for(DecomListFolderDetail folder: result) {
-			if(!sortedResult.contains(folder)) {
+		for (DecomListFolderDetail folder : result) {
+			if (!sortedResult.contains(folder)) {
 				sortedResult.add(folder);
 			}
 		}
@@ -148,21 +148,21 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		if (codeTitles == null) {
 			FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 			List<FolderDetailVO> result = new ArrayList<>();
-			for (FolderDetailWithType folder :  getLimitedFolderDetailsWithType()) {
+			for (FolderDetailWithType folder : getLimitedFolderDetailsWithType()) {
 				result.add(builder.build(folder));
 			}
 			return result;
 		} else {
 			FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 			List<FolderDetailVO> result = new ArrayList<>();
-			for (FolderDetailWithType folder :  getLimitedFolderDetailsWithType()) {
+			for (FolderDetailWithType folder : getLimitedFolderDetailsWithType()) {
 				result.add(builder.build(folder));
 			}
 
 			List<FolderDetailVO> sortedResult = new ArrayList<>();
-			for(String id: codeTitles) {
-				for(FolderDetailVO folderDetailVO: result) {
-					if(folderDetailVO.getFolderId().equals(id)) {
+			for (String id : codeTitles) {
+				for (FolderDetailVO folderDetailVO : result) {
+					if (folderDetailVO.getFolderId().equals(id)) {
 						sortedResult.add(folderDetailVO);
 						break;
 					}

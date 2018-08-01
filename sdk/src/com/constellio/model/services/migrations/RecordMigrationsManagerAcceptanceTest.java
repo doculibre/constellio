@@ -1,21 +1,5 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -32,6 +16,21 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 
@@ -144,62 +143,62 @@ public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 		migrations = migrationsManager.getRecordMigrationsFor(zeSchemaInZecollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("CountLetterE", "CountLetterD");
+										   .containsExactly("CountLetterE", "CountLetterD");
 
 		migrations = migrationsManager.getRecordMigrationsFor(anotherSchemaInZecollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("AnotherSchemaScript1", "AnotherSchemaScript2");
+										   .containsExactly("AnotherSchemaScript1", "AnotherSchemaScript2");
 
 		migrations = migrationsManager.getRecordMigrationsFor(zeSchemaInAnotherCollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("SetStringMetadata", "ChangeFramboiseForCanneberge");
+										   .containsExactly("SetStringMetadata", "ChangeFramboiseForCanneberge");
 
 		migrations = migrationsManager.getRecordMigrationsFor(zeSchemaInZecollectionRecord2);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("CountLetterD");
+										   .containsExactly("CountLetterD");
 
 		migrations = migrationsManager.getRecordMigrationsFor(anotherSchemaInZecollectionRecord2);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("AnotherSchemaScript2");
+										   .containsExactly("AnotherSchemaScript2");
 
 		migrations = migrationsManager.getRecordMigrationsFor(zeSchemaInAnotherCollectionRecord2);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("ChangeFramboiseForCanneberge");
+										   .containsExactly("ChangeFramboiseForCanneberge");
 
 		migrations = otherMigrationsManager.getRecordMigrationsFor(zeSchemaInZecollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("CountLetterE", "CountLetterD");
+										   .containsExactly("CountLetterE", "CountLetterD");
 
 		migrations = otherMigrationsManager.getRecordMigrationsFor(anotherSchemaInZecollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("AnotherSchemaScript1", "AnotherSchemaScript2");
+										   .containsExactly("AnotherSchemaScript1", "AnotherSchemaScript2");
 
 		migrations = otherMigrationsManager.getRecordMigrationsFor(zeSchemaInAnotherCollectionRecord1);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("SetStringMetadata", "ChangeFramboiseForCanneberge");
+										   .containsExactly("SetStringMetadata", "ChangeFramboiseForCanneberge");
 
 		migrations = otherMigrationsManager.getRecordMigrationsFor(zeSchemaInZecollectionRecord2);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("CountLetterD");
+										   .containsExactly("CountLetterD");
 
 		migrations = otherMigrationsManager.getRecordMigrationsFor(anotherSchemaInZecollectionRecord2);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("AnotherSchemaScript2");
+										   .containsExactly("AnotherSchemaScript2");
 
 		migrations = otherMigrationsManager.getRecordMigrationsFor(zeSchemaInAnotherCollectionRecord2);
 		assertThat(migrations.getVersion()).isEqualTo(2L);
 		assertThat(migrations.getScripts()).extracting("class.simpleName")
-				.containsExactly("ChangeFramboiseForCanneberge");
+										   .containsExactly("ChangeFramboiseForCanneberge");
 
 	}
 
@@ -515,7 +514,7 @@ public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 				.registerReturningTypesWithNewScripts(zeCollection, asList(scripts), true);
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		List<MetadataSchemaType> schemaTypes = manager.getSchemaTypes(zeCollection)
-				.getSchemaTypesWithCode(new ArrayList<>(schemaTypeCodes));
+													  .getSchemaTypesWithCode(new ArrayList<>(schemaTypeCodes));
 
 		reindexingServices.reindexCollections(ReindexationParams.recalculateAndRewriteSchemaTypesInBackground(schemaTypes));
 	}
@@ -525,7 +524,7 @@ public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 				.registerReturningTypesWithNewScripts("anotherCollection", asList(scripts), true);
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		List<MetadataSchemaType> schemaTypes = manager.getSchemaTypes("anotherCollection")
-				.getSchemaTypesWithCode(new ArrayList<>(schemaTypeCodes));
+													  .getSchemaTypesWithCode(new ArrayList<>(schemaTypeCodes));
 
 		reindexingServices.reindexCollections(ReindexationParams.recalculateAndRewriteSchemaTypesInBackground(schemaTypes));
 	}

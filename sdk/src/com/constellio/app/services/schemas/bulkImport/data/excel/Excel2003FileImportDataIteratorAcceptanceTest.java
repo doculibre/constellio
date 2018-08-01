@@ -1,17 +1,16 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class Excel2003FileImportDataIteratorAcceptanceTest extends ImportDataIteratorTest {
 
@@ -37,27 +36,27 @@ public class Excel2003FileImportDataIteratorAcceptanceTest extends ImportDataIte
 		assertThat(excelImportDataProvider.size("datas")).isEqualTo(3);
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(2)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("title", "Ze title"))
-				.has(field("createdOn", localDateTime))
-				.has(field("referenceToAnotherSchema", "42"))
-				.has(field("zeEmptyField", null))
-				.has(field("modifyOn", emptyList()));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("title", "Ze title"))
+											 .has(field("createdOn", localDateTime))
+											 .has(field("referenceToAnotherSchema", "42"))
+											 .has(field("zeEmptyField", null))
+											 .has(field("modifyOn", emptyList()));
 
 		assertThat(importDataIterator.next()).has(id("42")).has(index(3)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("title", "Another title"))
-				.has(field("referenceToAThirdSchema", "666"))
-				.has(field("zeEmptyField", null))
-				.has(field("modifyOn", emptyList()));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("title", "Another title"))
+											 .has(field("referenceToAThirdSchema", "666"))
+											 .has(field("zeEmptyField", null))
+											 .has(field("modifyOn", emptyList()));
 
 		assertThat(importDataIterator.next()).has(id("666")).has(index(4)).has(schema("customSchema"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", localDateTime))
-				.has(field("modifyOn", asList(anOtherLocalDate, localDate)))
-				.has(field("keywords", asList("keyword1", "keyword2")))
-				.has(field("zeNullField", null))
-				.has(field("title", "A third title"));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("createdOn", localDateTime))
+											 .has(field("modifyOn", asList(anOtherLocalDate, localDate)))
+											 .has(field("keywords", asList("keyword1", "keyword2")))
+											 .has(field("zeNullField", null))
+											 .has(field("title", "A third title"));
 
 	}
 
@@ -74,26 +73,26 @@ public class Excel2003FileImportDataIteratorAcceptanceTest extends ImportDataIte
 		assertThat(excelImportDataProvider.size("content")).isEqualTo(3);
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(2)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("title", "Ze title"))
-				.has(field("createdOn", localDateTime))
-				.has(field("referenceToAnotherSchema", "42"))
-				.has(field("zeEmptyField", null));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("title", "Ze title"))
+											 .has(field("createdOn", localDateTime))
+											 .has(field("referenceToAnotherSchema", "42"))
+											 .has(field("zeEmptyField", null));
 
 		assertThat(importDataIterator.next()).has(id("666")).has(index(4)).has(schema("customSchema"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", localDateTime))
-				.has(field("modifyOn", asList(anOtherLocalDate, localDate)))
-				.has(field("keywords", asList("keyword1", "keyword2")))
-				.has(field("zeNullField", null))
-				.has(field("title", "A third title"));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("createdOn", localDateTime))
+											 .has(field("modifyOn", asList(anOtherLocalDate, localDate)))
+											 .has(field("keywords", asList("keyword1", "keyword2")))
+											 .has(field("zeNullField", null))
+											 .has(field("title", "A third title"));
 
 		assertThat(importDataIterator.next()).has(id("35")).has(index(7)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", null))
-				.has(field("modifyOn", emptyList()))
-				.has(field("title", "There is also a title here"))
-				.has(field("referenceToAThirdSchema", "42"));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("createdOn", null))
+											 .has(field("modifyOn", emptyList()))
+											 .has(field("title", "There is also a title here"))
+											 .has(field("referenceToAThirdSchema", "42"));
 	}
 
 	@Test
@@ -113,35 +112,35 @@ public class Excel2003FileImportDataIteratorAcceptanceTest extends ImportDataIte
 		assertThat(excelImportDataProvider.size("dates")).isEqualTo(4);
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(2)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("title", "Ze title"))
-				.has(field("createdOn", localDateThird))
-				.has(field("createdOnDateTime", localDateTimeSecond))
-				.has(field("referenceToAnotherSchema", "42"))
-				.has(field("zeEmptyField", null));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("title", "Ze title"))
+											 .has(field("createdOn", localDateThird))
+											 .has(field("createdOnDateTime", localDateTimeSecond))
+											 .has(field("referenceToAnotherSchema", "42"))
+											 .has(field("zeEmptyField", null));
 
 		assertThat(importDataIterator.next()).has(id("666")).has(index(4)).has(schema("customSchema"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", localDateFirst))
-				.has(field("createdOnDateTime", localDateTime))
-				.has(field("modifyOn", asList(anOtherLocalDate, localDate)))
-				.has(field("keywords", asList("keyword1", "keyword2")))
-				.has(field("zeNullField", null))
-				.has(field("title", "A third title"));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("createdOn", localDateFirst))
+											 .has(field("createdOnDateTime", localDateTime))
+											 .has(field("modifyOn", asList(anOtherLocalDate, localDate)))
+											 .has(field("keywords", asList("keyword1", "keyword2")))
+											 .has(field("zeNullField", null))
+											 .has(field("title", "A third title"));
 
 		assertThat(importDataIterator.next()).has(id("25")).has(index(6)).has(schema("anotherCustomSchema"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", localDateSecond))
-				.has(field("zeNullField", null))
-				.has(field("title", "title"));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("createdOn", localDateSecond))
+											 .has(field("zeNullField", null))
+											 .has(field("title", "title"));
 
 		assertThat(importDataIterator.next()).has(id("35")).has(index(7)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", null))
-				.has(field("zeNullField", null))
-				.has(field("modifyOn", emptyList()))
-				.has(field("title", "There is also a title here"))
-				.has(field("referenceToAThirdSchema", "42"));
+											 .has(noField("id")).has(noField("schema"))
+											 .has(field("createdOn", null))
+											 .has(field("zeNullField", null))
+											 .has(field("modifyOn", emptyList()))
+											 .has(field("title", "There is also a title here"))
+											 .has(field("referenceToAThirdSchema", "42"));
 	}
 
 	@Test(expected = ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate.class)

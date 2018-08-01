@@ -1,12 +1,11 @@
 package com.constellio.model.entities.records;
 
-import java.util.List;
-
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.schemas.MetadataList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.schemas.MetadataList;
+import java.util.List;
 
 public class TransactionRecordsReindexation {
 

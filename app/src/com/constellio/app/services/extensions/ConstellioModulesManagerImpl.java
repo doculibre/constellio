@@ -1,17 +1,5 @@
 package com.constellio.app.services.extensions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
@@ -40,6 +28,12 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.utils.DependencyUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class ConstellioModulesManagerImpl implements ConstellioModulesManager, StatefulService {
 	@SuppressWarnings("unused") private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioModulesManagerImpl.class);
@@ -55,14 +49,16 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	private Set<String> initializedResources = new HashSet<>();
 
 	public ConstellioModulesManagerImpl(AppLayerFactory appLayerFactory,
-			ConstellioPluginManager constellioPluginManager, Delayed<MigrationServices> migrationServicesDelayed) {
+										ConstellioPluginManager constellioPluginManager,
+										Delayed<MigrationServices> migrationServicesDelayed) {
 		this(appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager(), migrationServicesDelayed,
 				appLayerFactory, constellioPluginManager);
 	}
 
-	public ConstellioModulesManagerImpl(ConfigManager configManager, Delayed<MigrationServices> migrationServicesDelayed,
-			AppLayerFactory appLayerFactory,
-			ConstellioPluginManager constellioPluginManager) {
+	public ConstellioModulesManagerImpl(ConfigManager configManager,
+										Delayed<MigrationServices> migrationServicesDelayed,
+										AppLayerFactory appLayerFactory,
+										ConstellioPluginManager constellioPluginManager) {
 		super();
 		this.appLayerFactory = appLayerFactory;
 		this.configManager = configManager;
@@ -225,7 +221,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	@Override
 	public Set<String> installValidModuleAndGetInvalidOnes(final Module module,
-			CollectionsListManager collectionsListManager) {
+														   CollectionsListManager collectionsListManager) {
 		Set<String> returnList = new HashSet<>();
 		markAsInstalled(module, collectionsListManager);
 
@@ -289,7 +285,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			List<RecordMigrationScript> scripts = ((InstallableSystemModuleWithRecordMigrations) module)
 					.getRecordMigrationScripts(collection, appLayerFactory);
 			modelLayerFactory.getRecordMigrationsManager()
-					.registerReturningTypesWithNewScripts(collection, scripts, true);
+							 .registerReturningTypesWithNewScripts(collection, scripts, true);
 			modelLayerFactory.getRecordMigrationsManager().checkScriptsToFinish();
 		}
 

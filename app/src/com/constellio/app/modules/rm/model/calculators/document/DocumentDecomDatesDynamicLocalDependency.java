@@ -1,15 +1,13 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
+
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDependency {
 
@@ -33,7 +31,7 @@ public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDepend
 
 	public static boolean isMetadataUsableByCopyRetentionRules(Metadata metadata) {
 		if (metadata.getType() == DATE || metadata.getType() == DATE_TIME || metadata.getType() == NUMBER
-				|| isTimeRangeMetadata(metadata)) {
+			|| isTimeRangeMetadata(metadata)) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
 
 		} else {

@@ -1,10 +1,10 @@
 package com.constellio.app.entities.modules.locators;
 
+import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class DefaultModuleResourcesLocator implements ModuleResourcesLocator {
 
@@ -128,7 +128,7 @@ public class DefaultModuleResourcesLocator implements ModuleResourcesLocator {
 		if (properties.exists()) {
 			URL[] urls;
 			try {
-				urls = new URL[] { folder.toURI().toURL() };
+				urls = new URL[]{folder.toURI().toURL()};
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}

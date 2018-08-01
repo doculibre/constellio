@@ -1,14 +1,14 @@
 package com.constellio.sdk.tests;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ModuleEnabler {
 
@@ -19,7 +19,8 @@ public class ModuleEnabler {
 	ConstellioModulesManager constellioModulesManager;
 
 	public ModuleEnabler(InstallableModule module,
-			CollectionsListManager collectionsListManager, ConstellioModulesManager constellioModulesManager) {
+						 CollectionsListManager collectionsListManager,
+						 ConstellioModulesManager constellioModulesManager) {
 		this.module = module;
 		this.collectionsListManager = collectionsListManager;
 		this.constellioModulesManager = constellioModulesManager;
@@ -39,7 +40,7 @@ public class ModuleEnabler {
 	}
 
 	public static ModuleEnabler givenInstalledModule(AppLayerFactory appLayerFactory,
-			Class<? extends InstallableModule> installableModuleClass) {
+													 Class<? extends InstallableModule> installableModuleClass) {
 		ConstellioModulesManager constellioModulesManager = appLayerFactory.getModulesManager();
 		CollectionsListManager collectionsListManager = appLayerFactory.getModelLayerFactory().getCollectionsListManager();
 		InstallableModule module;

@@ -1,19 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.DISPLAY;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Locale;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -35,6 +21,19 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.DISPLAY;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -65,7 +64,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		sessionContext.setCurrentCollection(zeCollection);
 		recordServices.add(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).setCollectionReadAccess(true)
-				.setCollectionDeleteAccess(true));
+								.setCollectionDeleteAccess(true));
 
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
@@ -103,7 +102,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withCollection("collectionTest").withConstellioRMModule().withTasksModule().withAllTest(users)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+												.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 
 		sessionContext = FakeSessionContext.adminInCollection("collectionTest");
@@ -128,13 +127,13 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), "collectionTest");
 		Transaction transaction = new Transaction();
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(zeTask.getId())
-				.setTitle(zeTask.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
-				.setType(EventType.MODIFY_TASK)
-				.setCreatedOn(LocalDateTime.now()));
+												.setTitle(zeTask.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
+												.setType(EventType.MODIFY_TASK)
+												.setCreatedOn(LocalDateTime.now()));
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(zeTask2.getId())
-				.setTitle(zeTask2.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
-				.setType(EventType.MODIFY_TASK)
-				.setCreatedOn(LocalDateTime.now()));
+												.setTitle(zeTask2.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
+												.setType(EventType.MODIFY_TASK)
+												.setCreatedOn(LocalDateTime.now()));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newEventsDao().flush();

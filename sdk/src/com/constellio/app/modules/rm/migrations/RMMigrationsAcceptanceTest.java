@@ -1,52 +1,35 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.noDuplicates;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
+import static com.constellio.sdk.tests.TestUtils.noDuplicates;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
@@ -56,7 +39,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		if (getModelLayerFactory().getCollectionsListManager().getCollections().contains(zeCollection)) {
 			MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-					.getSchemaTypes(zeCollection);
+																			.getSchemaTypes(zeCollection);
 			if (metadataSchemaTypes.hasType(RetentionRule.SCHEMA_TYPE)) {
 				whenMigratingToCurrentVersionThenValidSchemas();
 				whenMigratingToCurrentVersionThenValidSystemCollectionSchemas();
@@ -179,7 +162,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
+										 .getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -190,7 +173,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Collection.SYSTEM_COLLECTION);
 
 		assertThat(metadataSchemaTypes.getSchema(SolrUserCredential.DEFAULT_SCHEMA)
-				.getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
+									  .getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
 
 	}
 
@@ -198,7 +181,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		List<String> types = new ArrayList<>();
 		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollections()) {
 			for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager()
-					.getSchemaTypes(collection).getSchemaTypes()) {
+																 .getSchemaTypes(collection).getSchemaTypes()) {
 				if (type.hasSecurity()) {
 					types.add(type.getCode());
 				}
@@ -211,7 +194,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SchemaDisplayConfig folderDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
+																	  .getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
 
 		assertThat(folderDisplayConfig.getFormMetadataCodes()).endsWith(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
@@ -242,7 +225,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		//				Folder.DEFAULT_SCHEMA + "_" + "title");
 
 		SchemaDisplayConfig retentionRuleDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.getSchema(zeCollection, RetentionRule.DEFAULT_SCHEMA);
+																			 .getSchema(zeCollection, RetentionRule.DEFAULT_SCHEMA);
 
 		assertThat(retentionRuleDisplayConfig.getDisplayMetadataCodes())
 				.contains("retentionRule_default_scope",

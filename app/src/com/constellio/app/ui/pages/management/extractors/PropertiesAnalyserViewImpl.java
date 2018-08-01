@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -29,6 +22,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class PropertiesAnalyserViewImpl extends BaseViewImpl implements PropertiesAnalyserView {
 
@@ -94,7 +94,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 
 	private void updateTempFile() {
 		TempFileUpload value = (TempFileUpload) uploadField.getValue();
-		File tempFile = value == null? null:value.getTempFile();
+		File tempFile = value == null ? null : value.getTempFile();
 		presenter.calculatePropertiesAndStyles(tempFile);
 	}
 
@@ -123,7 +123,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 		container.addContainerProperty("Key", String.class, "");
 		container.addContainerProperty("Value", valueType, "");
 
-		for(Map.Entry<String, Object> property: values.entrySet()) {
+		for (Map.Entry<String, Object> property : values.entrySet()) {
 			Item item = container.addItem(property.getKey());
 			item.getItemProperty("Key").setValue(property.getKey());
 			item.getItemProperty("Value").setValue(property.getValue().toString());
@@ -152,37 +152,37 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 			@Override
 			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 				return asList(new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
+								  @Override
+								  public boolean isEnabled() {
+									  return true;
+								  }
 
-					@Override
-					public String getTitle() {
-						return $("ViewGroup.AdminViewGroup");
-					}
+								  @Override
+								  public String getTitle() {
+									  return $("ViewGroup.AdminViewGroup");
+								  }
 
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to().adminModule();
-					}
-				},
-				new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
+								  @Override
+								  public void activate(Navigation navigate) {
+									  navigate.to().adminModule();
+								  }
+							  },
+						new IntermediateBreadCrumbTailItem() {
+							@Override
+							public boolean isEnabled() {
+								return true;
+							}
 
-					@Override
-					public String getTitle() {
-						return $("ListMetadataExtractorsView.viewTitle");
-					}
+							@Override
+							public String getTitle() {
+								return $("ListMetadataExtractorsView.viewTitle");
+							}
 
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to().listMetadataExtractors();
-					}
-				});
+							@Override
+							public void activate(Navigation navigate) {
+								navigate.to().listMetadataExtractors();
+							}
+						});
 			}
 		};
 	}

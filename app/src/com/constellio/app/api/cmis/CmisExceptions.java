@@ -1,15 +1,6 @@
 package com.constellio.app.api.cmis;
 
-import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisNameConstraintViolationException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStreamNotSupportedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisUpdateConflictException;
+import org.apache.chemistry.opencmis.commons.exceptions.*;
 
 @SuppressWarnings("serial")
 public class CmisExceptions {

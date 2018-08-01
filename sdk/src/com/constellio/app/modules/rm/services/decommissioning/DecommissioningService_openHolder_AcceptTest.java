@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -18,6 +11,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningService_openHolder_AcceptTest extends ConstellioTest {
 	Users users = new Users();
@@ -53,7 +52,7 @@ public class DecommissioningService_openHolder_AcceptTest extends ConstellioTest
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -107,18 +106,18 @@ public class DecommissioningService_openHolder_AcceptTest extends ConstellioTest
 						edouardInSunAdminUnit10AndOthers.getId()));
 		folderInModificationWithRuleResponsible_WithCreatorInNoAdminUnit = saveAndReloadFolder(
 				(Folder) newFolder("2M").setRetentionRuleEntered(ruleResponsible_withResponsible).setCopyStatusEntered(PRINCIPAL)
-						.setCreatedBy(aliceInNoAdminUnit.getId()));
+										.setCreatedBy(aliceInNoAdminUnit.getId()));
 		folderInModificationWithRuleBoth_WithCreatorInNoAdminUnit = saveAndReloadFolder(
 				(Folder) newFolder("3M").setCopyStatusEntered(PRINCIPAL)
-						.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
+										.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
 								aliceInNoAdminUnit.getId()));
 		folderInModificationWithRuleBoth_WithCreatorInAdminUnit10AndOthers = saveAndReloadFolder(
 				(Folder) newFolder("4M").setCopyStatusEntered(PRINCIPAL)
-						.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
+										.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
 								bobInAdminUnit10AndOthers.getId()));
 		folderInModificationWithRuleBoth_WithCreatorInSubAdminUnit10AndOthers = saveAndReloadFolder(
 				(Folder) newFolder("4M").setCopyStatusEntered(PRINCIPAL)
-						.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
+										.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
 								edouardInSunAdminUnit10AndOthers.getId()));
 	}
 
@@ -130,8 +129,8 @@ public class DecommissioningService_openHolder_AcceptTest extends ConstellioTest
 
 	private Folder newFolder(String title) {
 		return rm.newFolder().setTitle(title).setOpenDate(LocalDate.now())
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X110);
+				 .setAdministrativeUnitEntered(records.unitId_10a)
+				 .setCategoryEntered(records.categoryId_X110);
 	}
 
 	@Test

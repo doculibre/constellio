@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -13,6 +8,10 @@ import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class GlobalGroupPageAcceptTest extends ConstellioTest {
@@ -32,7 +31,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -198,7 +197,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.USER_ADD_EDIT
-						+ "/groupList/groupDisplay/globalGroupCode%253Dheroes%253Busername%253Dadmin");
+						   + "/groupList/groupDisplay/globalGroupCode%253Dheroes%253Busername%253Dadmin");
 	}
 
 	public void givenDisplayPageWhenClickInDeleteUserFromGroupThenCanSearchHimInUserTable()

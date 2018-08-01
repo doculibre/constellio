@@ -1,13 +1,12 @@
 package com.constellio.app.modules.complementary.esRmRobots.validators;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordValidatorParams;
+import org.apache.commons.lang.StringUtils;
 
 public class ClassifyConnectorTaxonomyActionParametersValidator implements RecordValidator {
 
@@ -25,8 +24,8 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 	}
 
 	void validate(ClassifyConnectorFolderInTaxonomyActionParameters parameters, MetadataSchema schema,
-			ConfigProvider configProvider,
-			ValidationErrors validationErrors) {
+				  ConfigProvider configProvider,
+				  ValidationErrors validationErrors) {
 		if (StringUtils.isNotEmpty(parameters.getDefaultParentFolder())) {
 			validateParentFolderUseCase(parameters, validationErrors);
 		} else if (StringUtils.isNotEmpty(parameters.getInTaxonomy())) {
@@ -35,14 +34,14 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 	}
 
 	private void validateClassifyInTaxoUseCase(ClassifyConnectorFolderInTaxonomyActionParameters parameters,
-			ValidationErrors validationErrors) {
+											   ValidationErrors validationErrors) {
 		if (StringUtils.isEmpty(parameters.getPathPrefix())) {
 			validationErrors.add(getClass(), MUST_SPECIFY_PATH_PREFIX_WITH_TAXO);
 		}
 	}
 
 	private void validateParentFolderUseCase(ClassifyConnectorFolderInTaxonomyActionParameters parameters,
-			ValidationErrors validationErrors) {
+											 ValidationErrors validationErrors) {
 		if (StringUtils.isNotEmpty(parameters.getInTaxonomy())) {
 			validationErrors.add(getClass(), MUST_SPECIFY_TAXO_XOR_DEFAULT_PARENT_FOLDER);
 		} else if (StringUtils.isNotEmpty(parameters.getDefaultAdminUnit()) || StringUtils

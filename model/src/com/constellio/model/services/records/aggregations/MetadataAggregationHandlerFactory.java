@@ -10,26 +10,26 @@ public class MetadataAggregationHandlerFactory {
 		AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 		switch (dataEntry.getAgregationType()) {
 
-		case SUM:
-			return new SumMetadataAggregationHandler();
+			case SUM:
+				return new SumMetadataAggregationHandler();
 
-		case REFERENCE_COUNT:
-			return new ReferenceCountMetadataAggregationHandler();
+			case REFERENCE_COUNT:
+				return new ReferenceCountMetadataAggregationHandler();
 
-		case MIN:
-			return new MinMetadataAggregationHandler();
+			case MIN:
+				return new MinMetadataAggregationHandler();
 
-		case MAX:
-			return new MaxMetadataAggregationHandler();
+			case MAX:
+				return new MaxMetadataAggregationHandler();
 
-		case CALCULATED:
-			return new CalculatorMetadataAggregationHandler();
+			case CALCULATED:
+				return new CalculatorMetadataAggregationHandler();
 
-		case VALUES_UNION:
-			return new UnionMetadataAggregationHandler();
+			case VALUES_UNION:
+				return new UnionMetadataAggregationHandler();
 
-		default:
-			throw new ImpossibleRuntimeException("Aggregation type is not yet supported : " + dataEntry.getAgregationType());
+			default:
+				throw new ImpossibleRuntimeException("Aggregation type is not yet supported : " + dataEntry.getAgregationType());
 		}
 
 	}

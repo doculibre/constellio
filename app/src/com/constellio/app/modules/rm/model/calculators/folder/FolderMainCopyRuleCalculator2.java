@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -12,13 +7,17 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<CopyRetentionRule> {
 
 	LocalDependency<String> enteredCopyRuleParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
 
 	LocalDependency<List<CopyRetentionRule>> copyRulesParam = LocalDependency.toAStructure(Folder.APPLICABLE_COPY_RULES)
-			.whichIsRequired();
+																			 .whichIsRequired();
 
 	LocalDependency<List<LocalDate>> expectedDestructionDatesParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).whichIsMultivalue().whichIsRequired();

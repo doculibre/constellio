@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.reindexing;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+
+import java.util.List;
 
 public interface ReindexingAggregatedValuesTempStorage {
 

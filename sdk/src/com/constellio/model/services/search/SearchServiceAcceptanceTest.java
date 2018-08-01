@@ -1,53 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.data.dao.services.records.DataStore.EVENTS;
-import static com.constellio.data.dao.services.records.DataStore.RECORDS;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.ids;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-
-import org.apache.solr.common.params.SolrParams;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -83,6 +35,32 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import org.apache.solr.common.params.SolrParams;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.data.dao.services.records.DataStore.EVENTS;
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.ids;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @SlowTest
 public class SearchServiceAcceptanceTest extends ConstellioTest {
@@ -170,8 +148,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < WORD_DOC_CNT; i++) {
-			if (sb.length() != 0)
+			if (sb.length() != 0) {
 				sb.append(" ");
+			}
 			sb.append(words[random.nextInt(words.length)]);
 		}
 		return sb.toString();
@@ -182,8 +161,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		//given
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
-		String[] politicsWords = new String[] { "party", "democrat", "president", "election", "vote" };
-		String[] sportWords = new String[] { "hockey", "team", "game", "play", "league" };
+		String[] politicsWords = new String[]{"party", "democrat", "president", "election", "vote"};
+		String[] sportWords = new String[]{"hockey", "team", "game", "play", "league"};
 
 		for (int i = 0; i < 10; i++) {
 			transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
@@ -272,7 +251,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		Transaction tx = new Transaction();
 		for (int i = 10; i < 42; i++) {
 			tx.add(recordServices.newRecordWithSchema(zeSchema.instance(), "record" + i)
-					.set(zeSchema.stringMetadata(), "V" + i));
+								 .set(zeSchema.stringMetadata(), "V" + i));
 		}
 
 		recordServices.execute(tx);
@@ -528,7 +507,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.search(query)).containsOnly(record1, record2, record3);
 
 		query.getFacetFilters()
-				.selectedQueryFacetValue("dateFacet", "dateMetadata_da:[2012-05-14T00:00:00Z TO 2012-05-18T00:00:00Z]");
+			 .selectedQueryFacetValue("dateFacet", "dateMetadata_da:[2012-05-14T00:00:00Z TO 2012-05-18T00:00:00Z]");
 		assertThat(searchServices.search(query)).containsOnly(record2, record3);
 	}
 
@@ -587,8 +566,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchCondition condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isEqualTo("Chuck Norris");
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.getFacetFilters()
-				.selectedFieldFacetValues(zeSchema.numberMetadata().getDataStoreCode(), Arrays.asList("1.0", "2.0"))
-				.selectedFieldFacetValue(zeSchema.anotherStringMetadata().getDataStoreCode(), "A");
+			 .selectedFieldFacetValues(zeSchema.numberMetadata().getDataStoreCode(), Arrays.asList("1.0", "2.0"))
+			 .selectedFieldFacetValue(zeSchema.anotherStringMetadata().getDataStoreCode(), "A");
 
 		assertThat(searchServices.search(query)).containsOnly(record1);
 	}
@@ -674,7 +653,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris").set(
 				zeSchema.booleanMetadata(), true));
 		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Lechat Norris")
-				.set(zeSchema.booleanMetadata(), true));
+																	 .set(zeSchema.booleanMetadata(), true));
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "chuck Norris").set(
 				zeSchema.booleanMetadata(), true));
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Edouard Chuck Lechat").set(
@@ -702,7 +681,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris").set(
 				zeSchema.booleanMetadata(), true));
 		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Lechat Norris")
-				.set(zeSchema.booleanMetadata(), true));
+																	 .set(zeSchema.booleanMetadata(), true));
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "chuck Norris").set(
 				zeSchema.booleanMetadata(), true));
 		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Edouard Chuck Lechat").set(
@@ -764,7 +743,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idole"))))
 				.isEmpty();
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
-				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
+																				   .andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
 				.isEmpty();
 
 		assertThat(searchServices
@@ -786,7 +765,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idole")).setPreferAnalyzedFields(true)))
 				.isEmpty();
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
-				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
+																				   .andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
 				.isEmpty();
 	}
 
@@ -878,7 +857,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
 
 		String highlightText = "<em>" + text + "</em>";
-		for (Record record : new Record[] { expectedRecord, expectedRecord2 }) {
+		for (Record record : new Record[]{expectedRecord, expectedRecord2}) {
 			assertThat(highlights).containsKey(record.getId());
 			assertThat(highlights.get(record.getId()).size()).isGreaterThan(0);
 			for (List<String> snippets : highlights.get(record.getId()).values()) {
@@ -913,12 +892,13 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
 
 		String highlightText = "<em>" + text + "</em>";
-		for (Record record : new Record[] { expectedRecord, expectedRecord2 }) {
+		for (Record record : new Record[]{expectedRecord, expectedRecord2}) {
 			assertThat(highlights).containsKey(record.getId());
 			assertThat(highlights.get(record.getId()).size()).isGreaterThan(0);
 			for (Entry<String, List<String>> snippets : highlights.get(record.getId()).entrySet()) {
-				if (!snippets.getKey().equals("stringMetadata_t_en"))
+				if (!snippets.getKey().equals("stringMetadata_t_en")) {
 					continue;
+				}
 				for (String snippet : snippets.getValue()) {
 					assertThat(snippet).contains(highlightText);
 					assertThat(record.get(zeSchema.stringMetadata()).toString()).contains(snippet.replaceAll("</?em>", ""));
@@ -1002,7 +982,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata())
-				.isContainingText("Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris -1.-03");
+											 .isContainingText("Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris -1.-03");
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);
@@ -1165,7 +1145,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Norris")
-				.and(asList(startingWithText("Chuck")));
+											 .and(asList(startingWithText("Chuck")));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);
@@ -1182,7 +1162,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Norris")
-				.or(asList(startingWithText("Chuck")));
+											 .or(asList(startingWithText("Chuck")));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2);
@@ -1201,8 +1181,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck")
-				.andWhere(zeSchema.booleanMetadata()).isFalse().orWhere(zeSchema.stringMetadata())
-				.isNot(containingText("Lechat"));
+											 .andWhere(zeSchema.booleanMetadata()).isFalse().orWhere(zeSchema.stringMetadata())
+											 .isNot(containingText("Lechat"));
 
 		List<Record> records = findRecords(condition);
 
@@ -1222,8 +1202,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck")
-				.andWhere(zeSchema.booleanMetadata()).isFalse().orWhere(zeSchema.stringMetadata())
-				.isNot(containingText("Lechat"));
+											 .andWhere(zeSchema.booleanMetadata()).isFalse().orWhere(zeSchema.stringMetadata())
+											 .isNot(containingText("Lechat"));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3);
@@ -1243,7 +1223,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck")
-				.orWhere(zeSchema.booleanMetadata()).isTrue();
+											 .orWhere(zeSchema.booleanMetadata()).isTrue();
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3);
@@ -1807,7 +1787,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenDateTimeMultiValueMetadataWithThreeDateTimes();
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateTimeMetadata())
-				.isContaining(Arrays.asList(DATE_TIME1, DATE_TIME2));
+											 .isContaining(Arrays.asList(DATE_TIME1, DATE_TIME2));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);
@@ -1819,7 +1799,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenDateMultiValueMetadataWithThreeDates();
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata())
-				.isContaining(Arrays.asList(DATE1, DATE2));
+											 .isContaining(Arrays.asList(DATE1, DATE2));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);
@@ -1831,7 +1811,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenDateTimeMultiValueMetadataWithThreeDateTimes();
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateTimeMetadata())
-				.isContaining(Arrays.asList(DATE_TIME1, DATE_TIME4));
+											 .isContaining(Arrays.asList(DATE_TIME1, DATE_TIME4));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).isEmpty();
@@ -1843,7 +1823,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenDateMultiValueMetadataWithThreeDates();
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata())
-				.isContaining(Arrays.asList(DATE1, DATE4));
+											 .isContaining(Arrays.asList(DATE1, DATE4));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).isEmpty();
@@ -2026,7 +2006,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenNumberMultiValueMetadataWithThreeNumbers();
 
 		condition = from(zeSchema.instance()).where(zeSchema.numberMetadata())
-				.isNotContainingElements(Arrays.asList(-10, 0, 5));
+											 .isNotContainingElements(Arrays.asList(-10, 0, 5));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);
@@ -2038,7 +2018,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenNumberMultiValueMetadataWithThreeNumbers();
 
 		condition = from(zeSchema.instance()).where(zeSchema.numberMetadata())
-				.isNotContainingElements(Arrays.asList(-10, 0, 1));
+											 .isNotContainingElements(Arrays.asList(-10, 0, 1));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).isEmpty();
@@ -2074,7 +2054,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenDateMultiValueMetadataWithThreeDates();
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata())
-				.isNotContainingElements(Arrays.asList(DATE1));
+											 .isNotContainingElements(Arrays.asList(DATE1));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).isEmpty();
@@ -2086,7 +2066,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		givenDateTimeMultiValueMetadataWithThreeDateTimes();
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateTimeMetadata())
-				.isNotContainingElements(Arrays.asList(DATE_TIME1));
+											 .isNotContainingElements(Arrays.asList(DATE_TIME1));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).isEmpty();
@@ -2401,8 +2381,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		Record unexpectedRecord = expectedRecord4;
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-				.isIn(Arrays.asList(expectedRecord.getId(), expectedRecord2.getId(), unexpectedRecord.getId()))
-				.andWhere(Schemas.VERSION).isNotIn(Arrays.asList(1l, 2l, unexpectedRecord.getVersion()));
+																	  .isIn(Arrays.asList(expectedRecord.getId(), expectedRecord2.getId(), unexpectedRecord.getId()))
+																	  .andWhere(Schemas.VERSION).isNotIn(Arrays.asList(1l, 2l, unexpectedRecord.getVersion()));
 
 		List<Record> records = findRecords(condition);
 
@@ -2425,9 +2405,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		notInCriterion.add(unexpectedRecord.getId());
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-				.isNotIn(notInCriterion).andWhere(Schemas.IDENTIFIER).isNotIn(
+																	  .isNotIn(notInCriterion).andWhere(Schemas.IDENTIFIER).isNotIn(
 						notInCriterion).andWhere(Schemas.IDENTIFIER).isNotIn(notInCriterion)
-				.andWhere(Schemas.IDENTIFIER).isNotIn(notInCriterion).andWhere(Schemas.IDENTIFIER).isNotIn(notInCriterion);
+																	  .andWhere(Schemas.IDENTIFIER).isNotIn(notInCriterion).andWhere(Schemas.IDENTIFIER).isNotIn(notInCriterion);
 
 		List<Record> records = findRecords(condition);
 
@@ -2450,8 +2430,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		inCriterion.add(expectedRecord.getId());
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-				.isIn(inCriterion).andWhere(Schemas.IDENTIFIER).isIn(inCriterion).andWhere(Schemas.IDENTIFIER).isIn(inCriterion)
-				.andWhere(Schemas.IDENTIFIER).isIn(inCriterion).andWhere(Schemas.IDENTIFIER).isIn(inCriterion);
+																	  .isIn(inCriterion).andWhere(Schemas.IDENTIFIER).isIn(inCriterion).andWhere(Schemas.IDENTIFIER).isIn(inCriterion)
+																	  .andWhere(Schemas.IDENTIFIER).isIn(inCriterion).andWhere(Schemas.IDENTIFIER).isIn(inCriterion);
 
 		List<Record> records = findRecords(condition);
 
@@ -2470,7 +2450,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		}
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-				.isIn(inCriterion);
+																	  .isIn(inCriterion);
 		searchServices.hasResults(condition);
 
 	}
@@ -2486,7 +2466,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		}
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-				.isNotIn(notInCriteria);
+																	  .isNotIn(notInCriteria);
 		searchServices.hasResults(condition);
 
 	}
@@ -2561,7 +2541,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes("zeCollection")
-				.getSchemaType("zeSchemaType");
+														.getSchemaType("zeSchemaType");
 
 		assertThat(findRecords(from(zeSchema.instance()).returnAll()))
 				.containsOnly(defaultSchemaRecord1, defaultSchemaRecord2);
@@ -2629,7 +2609,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Norris")
-				.and(asList(startingWithText("Chuck"))).negated();
+											 .and(asList(startingWithText("Chuck"))).negated();
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).hasSize(3).doesNotContain(unexpectedRecord);
@@ -3000,7 +2980,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		searchBoostManager.add(zeCollection, createRegexBoost("title_s", "*O*", "My boost", 6.0));
 
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(zeSchema.instance()).returnAll())
-				.setFreeTextQuery("*");
+														   .setFreeTextQuery("*");
 		query.setQueryBoosts(searchBoostManager.getAllSearchBoostsByQueryType(zeCollection));
 
 		assertThat(searchServices.search(query)).extracting("id").containsExactly("r3", "r4", "r5", "r1", "r2");
@@ -3049,7 +3029,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				MetadataSchemaTypeBuilder anotherSchemaTypeBuilder = schemaTypes.getSchemaType(ANOTHER_SCHEMA_TYPE_CODE);
 
 				zeSchemaTypeBuilder.getDefaultSchema().create("anotherSchemaRecord")
-						.defineReferencesTo(anotherSchemaTypeBuilder);
+								   .defineReferencesTo(anotherSchemaTypeBuilder);
 
 				anotherSchemaTypeBuilder.getDefaultSchema().create("code").setType(MetadataValueType.STRING);
 			}

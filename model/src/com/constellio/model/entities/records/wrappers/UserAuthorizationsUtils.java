@@ -1,19 +1,5 @@
 package com.constellio.model.entities.records.wrappers;
 
-import static com.constellio.model.entities.schemas.Schemas.TOKENS;
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
@@ -23,6 +9,17 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
+import static com.constellio.model.entities.security.Role.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class UserAuthorizationsUtils {
 
@@ -59,7 +56,7 @@ public class UserAuthorizationsUtils {
 
 	public static boolean containsAUserToken(User user, Record record) {
 		SecurityTokenManager securityTokenManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
-				.getSecurityTokenManager();
+														.getSecurityTokenManager();
 		for (String token : securityTokenManager.getTokens(user).getAllowTokens()) {
 			if (record.getList(TOKENS).contains(token)) {
 				return true;
@@ -153,12 +150,13 @@ public class UserAuthorizationsUtils {
 	};
 
 	public static KeySetMap<String, String> retrieveUserTokens(User user,
-			boolean includeSpecifics, AuthorizationDetailsFilter filter) {
+															   boolean includeSpecifics,
+															   AuthorizationDetailsFilter filter) {
 
 		SchemasRecordsServices schemas = user.getRolesDetails().getSchemasRecordsServices();
 
 		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
-				.getGroupAuthorizationsInheritance();
+															.getGroupAuthorizationsInheritance();
 
 		Set<String> authsId;
 		if (inheritance == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
@@ -182,12 +180,12 @@ public class UserAuthorizationsUtils {
 				AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
 
 				TaxonomiesManager taxonomiesManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
-						.getTaxonomiesManager();
+														  .getTaxonomiesManager();
 				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
 						authorizationDetails.getTargetSchemaType());
 
 				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)
-						&& (isConcept || includeSpecifics)) {
+					&& (isConcept || includeSpecifics)) {
 					tokens.add(authorizationDetails.getTarget(), authId);
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -243,7 +241,7 @@ public class UserAuthorizationsUtils {
 	}
 
 	public static boolean hasMatchingAuthorizationIncludingSpecifics(User user, Record record,
-			AuthorizationDetailsFilter filter) {
+																	 AuthorizationDetailsFilter filter) {
 		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
 
 		List<String> attachedAncestors = record.<String>getList(Schemas.ATTACHED_ANCESTORS);
@@ -263,7 +261,7 @@ public class UserAuthorizationsUtils {
 	}
 
 	public static Set<String> getMatchingAuthorizationIncludingSpecifics(User user, Record record,
-			AuthorizationDetailsFilter filter) {
+																		 AuthorizationDetailsFilter filter) {
 		KeySetMap<String, String> tokens = retrieveUserTokens(user, true, filter);
 
 		Set<String> authIds = new HashSet<>();

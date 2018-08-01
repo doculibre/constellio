@@ -1,9 +1,5 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -12,6 +8,10 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * *** USED BY BETA_WORKFLOW BETA ***

@@ -1,19 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_ADMIN_UNIT;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_COPY_STATUS;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_OPEN_DATE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_PARENT_FOLDER;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -36,6 +22,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.*;
+import static java.util.Arrays.asList;
+
 public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 
 	@Override
@@ -44,7 +36,8 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor6_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -55,7 +48,7 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 	class SchemaAlterationFor6_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor6_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -72,7 +65,7 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 
 		private void modifyClassifyConnectorFolderInTaxonomyActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+													   .getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(true);
 			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(true);
@@ -84,25 +77,25 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 			MetadataSchemaTypeBuilder folderSchemaType = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.createCustomSchema(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE);
+													   .createCustomSchema(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE);
 			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.ACTION_AFTER_CLASSIFICATION)
-					.setDefaultRequirement(true)
-					.defineAsEnum(ActionAfterClassification.class)
-					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
+				  .setDefaultRequirement(true)
+				  .defineAsEnum(ActionAfterClassification.class)
+				  .setDefaultValue(ActionAfterClassification.DO_NOTHING);
 
 			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.FOLDER_MAPPING).setDefaultRequirement(false)
-					.setType(
-							MetadataValueType.CONTENT);
+				  .setType(
+						  MetadataValueType.CONTENT);
 			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.DOCUMENT_MAPPING).setDefaultRequirement(false)
-					.setType(
-							MetadataValueType.CONTENT);
+				  .setType(
+						  MetadataValueType.CONTENT);
 
 			schema.createUndeletable(ClassifyConnectorFolderInParentFolderActionParameters.DEFAULT_PARENT_FOLDER)
-					.setDefaultRequirement(false)
-					.defineReferencesTo(folderSchemaType);
+				  .setDefaultRequirement(false)
+				  .defineReferencesTo(folderSchemaType);
 
 			schema.create(ClassifyConnectorFolderInParentFolderActionParameters.DEFAULT_OPEN_DATE).setDefaultRequirement(false)
-					.setType(MetadataValueType.DATE);
+				  .setType(MetadataValueType.DATE);
 		}
 
 		private void setupClassifyConnectorFolderDirectlyInThePlanActionParametersSchema() {
@@ -112,37 +105,38 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 			MetadataSchemaTypeBuilder administrativeUnitSchemaType = typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.createCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
+													   .createCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION)
-					.setDefaultRequirement(true).defineAsEnum(ActionAfterClassification.class)
-					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
+				  .setDefaultRequirement(true).defineAsEnum(ActionAfterClassification.class)
+				  .setDefaultValue(ActionAfterClassification.DO_NOTHING);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.FOLDER_MAPPING)
-					.setDefaultRequirement(false).setType(MetadataValueType.CONTENT);
+				  .setDefaultRequirement(false).setType(MetadataValueType.CONTENT);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DOCUMENT_MAPPING)
-					.setDefaultRequirement(false).setType(MetadataValueType.CONTENT);
+				  .setDefaultRequirement(false).setType(MetadataValueType.CONTENT);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_ADMIN_UNIT)
-					.setDefaultRequirement(true).defineReferencesTo(administrativeUnitSchemaType);
+				  .setDefaultRequirement(true).defineReferencesTo(administrativeUnitSchemaType);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_CATEGORY)
-					.setDefaultRequirement(true).defineReferencesTo(categorySchemaType);
+				  .setDefaultRequirement(true).defineReferencesTo(categorySchemaType);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_RETENTION_RULE)
-					.setDefaultRequirement(true).defineReferencesTo(retentionRuleSchemaType);
+				  .setDefaultRequirement(true).defineReferencesTo(retentionRuleSchemaType);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_OPEN_DATE)
-					.setDefaultRequirement(true).setType(MetadataValueType.DATE);
+				  .setDefaultRequirement(true).setType(MetadataValueType.DATE);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_COPY_STATUS)
-					.setDefaultRequirement(true).defineAsEnum(CopyType.class);
+				  .setDefaultRequirement(true).defineAsEnum(CopyType.class);
 		}
 	}
 
 	private void configureClassifyInTaxonomyParametersForm(String collection,
-			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+														   MigrationResourcesProvider migrationResourcesProvider,
+														   AppLayerFactory appLayerFactory) {
 
 		Language language = migrationResourcesProvider.getLanguage();
 
@@ -190,35 +184,35 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 		)));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DEFAULT_ADMIN_UNIT)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DEFAULT_CATEGORY)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DEFAULT_RETENTION_RULE)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DEFAULT_COPY_STATUS)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DEFAULT_OPEN_DATE)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, DOCUMENT_MAPPING)
-				.withMetadataGroup(advancedTab));
+											 .withMetadataGroup(advancedTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, FOLDER_MAPPING)
-				.withMetadataGroup(advancedTab));
+											 .withMetadataGroup(advancedTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema, ACTION_AFTER_CLASSIFICATION)
-				.withMetadataGroup(optionsTab));
+											 .withMetadataGroup(optionsTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, DEFAULT_PARENT_FOLDER)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, DEFAULT_OPEN_DATE)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, DOCUMENT_MAPPING)
-				.withMetadataGroup(advancedTab));
+											 .withMetadataGroup(advancedTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, FOLDER_MAPPING)
-				.withMetadataGroup(advancedTab));
+											 .withMetadataGroup(advancedTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, ACTION_AFTER_CLASSIFICATION)
-				.withMetadataGroup(optionsTab));
+											 .withMetadataGroup(optionsTab));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, "robotLog_default")
-				.withNewTableMetadatas("robotLog_default_count"));
+											 .withNewTableMetadatas("robotLog_default_count"));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

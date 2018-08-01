@@ -1,22 +1,5 @@
 package com.constellio.model.services.users.sync;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalTime;
-import org.joda.time.format.DateTimeFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
@@ -31,7 +14,6 @@ import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -45,6 +27,15 @@ import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserUtils;
 import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
@@ -72,7 +63,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
 		this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
 		if (!(userSyncConfiguration == null || (userSyncConfiguration.getDurationBetweenExecution() == null
-				&& userSyncConfiguration.getScheduleTime() == null))) {
+												&& userSyncConfiguration.getScheduleTime() == null))) {
 			configureAndScheduleJob();
 		}
 	}
@@ -113,7 +104,7 @@ public class LDAPUserSyncManager implements StatefulService {
 								@Override
 								public Object transform(Object input) {
 									return DateTimeFormat.forPattern(LDAPUserSyncConfiguration.TIME_PATTERN)
-											.parseLocalTime((String) input);
+														 .parseLocalTime((String) input);
 								}
 							}
 					)
@@ -172,7 +163,7 @@ public class LDAPUserSyncManager implements StatefulService {
 					.importUsersAndGroups(serverConfiguration, userSyncConfiguration, url);
 			if (ldapSynchProgressionInfo != null) {
 				ldapSynchProgressionInfo.totalGroupsAndUsers = importedUsersAndgroups.getUsers().size() +
-						importedUsersAndgroups.getGroups().size();
+															   importedUsersAndgroups.getGroups().size();
 			}
 			Set<LDAPGroup> ldapGroups = importedUsersAndgroups.getGroups();
 			Set<LDAPUser> ldapUsers = importedUsersAndgroups.getUsers();
@@ -197,14 +188,15 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private List<String> getNonEmptyUrls(LDAPServerConfiguration serverConfiguration) {
 		if (serverConfiguration.getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
-			return Arrays.asList(new String[] { null });
+			return Arrays.asList(new String[]{null});
 		} else {
 			return serverConfiguration.getUrls();
 		}
 	}
 
 	private UpdatedUsersAndGroups updateUsersAndGroups(Set<LDAPUser> ldapUsers, Set<LDAPGroup> ldapGroups,
-			List<String> selectedCollectionsCodes, LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
+													   List<String> selectedCollectionsCodes,
+													   LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
 		for (LDAPGroup ldapGroup : ldapGroups) {
 			GlobalGroup group = createGlobalGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);

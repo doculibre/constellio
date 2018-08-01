@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.io.File;
-
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.annotations.SlowTest;
+
+import java.io.File;
 
 @SlowTest
 public class RMMigrationTo5_1_3_AcceptanceTest extends ConstellioTest {

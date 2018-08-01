@@ -1,13 +1,5 @@
 package com.constellio.app.api;
 
-import java.security.Principal;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.data.utils.AuthCache;
 import com.constellio.model.entities.records.wrappers.User;
@@ -16,6 +8,12 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 
 public class HttpServletRequestAuthenticator {
 
@@ -129,7 +127,7 @@ public class HttpServletRequestAuthenticator {
 					return userServices.getUserInCollection(userCredential.getUsername(), collection);
 				} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
 					LOGGER.warn("Cannot authenticate : User '" + userCredential.getUsername() + "' is not in collection '"
-							+ collection + "'");
+								+ collection + "'");
 					return null;
 				}
 			}

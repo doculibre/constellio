@@ -1,12 +1,12 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static java.util.Arrays.asList;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
+import static java.util.Arrays.asList;
 
 public class OngoingAddMetadatasToSchemas {
 
@@ -19,8 +19,9 @@ public class OngoingAddMetadatasToSchemas {
 	List<String> metadatasLocalCodes;
 
 	public OngoingAddMetadatasToSchemas(MetadataSchemaType schemaType, SchemasDisplayManager schemasDisplayManager,
-			List<String> metadatasLocalCodes, SchemaTypesDisplayTransactionBuilder transaction,
-			OngoingAddMetadatasToSchemasMode mode) {
+										List<String> metadatasLocalCodes,
+										SchemaTypesDisplayTransactionBuilder transaction,
+										OngoingAddMetadatasToSchemasMode mode) {
 		this.transaction = transaction;
 		this.schemaType = schemaType;
 		this.schemasDisplayManager = schemasDisplayManager;
@@ -153,17 +154,17 @@ public class OngoingAddMetadatasToSchemas {
 	public List<String> getList(SchemaDisplayConfig schemaDisplayConfig) {
 		switch (mode) {
 
-		case FORM:
-			return new ArrayList<>(schemaDisplayConfig.getFormMetadataCodes());
+			case FORM:
+				return new ArrayList<>(schemaDisplayConfig.getFormMetadataCodes());
 
-		case DISPLAY:
-			return new ArrayList<>(schemaDisplayConfig.getDisplayMetadataCodes());
+			case DISPLAY:
+				return new ArrayList<>(schemaDisplayConfig.getDisplayMetadataCodes());
 
-		case SEARCH:
-			return new ArrayList<>(schemaDisplayConfig.getSearchResultsMetadataCodes());
+			case SEARCH:
+				return new ArrayList<>(schemaDisplayConfig.getSearchResultsMetadataCodes());
 
-		case TABLE:
-			return new ArrayList<>(schemaDisplayConfig.getTableMetadataCodes());
+			case TABLE:
+				return new ArrayList<>(schemaDisplayConfig.getTableMetadataCodes());
 
 		}
 		return null;
@@ -172,17 +173,17 @@ public class OngoingAddMetadatasToSchemas {
 	public SchemaDisplayConfig withList(SchemaDisplayConfig schemaDisplayConfig, List<String> newValue) {
 		switch (mode) {
 
-		case FORM:
-			return schemaDisplayConfig.withFormMetadataCodes(newValue);
+			case FORM:
+				return schemaDisplayConfig.withFormMetadataCodes(newValue);
 
-		case DISPLAY:
-			return schemaDisplayConfig.withDisplayMetadataCodes(newValue);
+			case DISPLAY:
+				return schemaDisplayConfig.withDisplayMetadataCodes(newValue);
 
-		case SEARCH:
-			return schemaDisplayConfig.withSearchResultsMetadataCodes(newValue);
+			case SEARCH:
+				return schemaDisplayConfig.withSearchResultsMetadataCodes(newValue);
 
-		case TABLE:
-			return schemaDisplayConfig.withTableMetadataCodes(newValue);
+			case TABLE:
+				return schemaDisplayConfig.withTableMetadataCodes(newValue);
 
 		}
 		return null;

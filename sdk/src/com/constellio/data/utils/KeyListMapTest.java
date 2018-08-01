@@ -1,9 +1,9 @@
 package com.constellio.data.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KeyListMapTest {
 

@@ -1,11 +1,20 @@
 package com.constellio.model.extensions;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.*;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -14,29 +23,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.services.extensions.ModelLayerExtensions;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
@@ -73,9 +66,9 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 		existingAnotherSchemaRecord = new TestRecord(anotherSchema, "existingAnotherSchemaRecord").set(TITLE, "My second record");
 		existingZeSchemaRecord = new TestRecord(zeSchema, "existingZeSchemaRecord").set(TITLE, "My first record")
-				.set(zeSchema.firstReferenceToAnotherSchema(), existingAnotherSchemaRecord);
+																				   .set(zeSchema.firstReferenceToAnotherSchema(), existingAnotherSchemaRecord);
 		existingZeSchemaChildRecord = new TestRecord(zeSchema, "existingZeSchemaChildRecord").set(TITLE, "Child record")
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), existingZeSchemaRecord);
+																							 .set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), existingZeSchemaRecord);
 
 		logicallyDeletedZeSchemaRecord = new TestRecord(zeSchema, "logicallyDeletedZeSchemaRecord")
 				.set(TITLE, "Parent record");

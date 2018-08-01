@@ -1,37 +1,13 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.model.entities.schemas.MetadataNetwork;
-import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.RegexConfig;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
@@ -40,6 +16,17 @@ import com.constellio.model.services.records.extractions.MetadataPopulatorPersis
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
 import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class MetadataSchemaXMLWriter3 {
 
@@ -61,7 +48,8 @@ public class MetadataSchemaXMLWriter3 {
 		return document;
 	}
 
-	private void writeCustomSchemas(MetadataSchemaType schemaType, Element schemaTypeElement, MetadataSchema collectionSchema) {
+	private void writeCustomSchemas(MetadataSchemaType schemaType, Element schemaTypeElement,
+									MetadataSchema collectionSchema) {
 		Element customSchemasElement = new Element("customSchemas");
 		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			Element schemaElement = toXMLElement(schema, collectionSchema);
@@ -70,7 +58,8 @@ public class MetadataSchemaXMLWriter3 {
 		schemaTypeElement.addContent(customSchemasElement);
 	}
 
-	private void writeDefaultSchema(MetadataSchemaType schemaType, Element schemaTypeElement, MetadataSchema collectionSchema) {
+	private void writeDefaultSchema(MetadataSchemaType schemaType, Element schemaTypeElement,
+									MetadataSchema collectionSchema) {
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		Element defaultSchemaElement = new Element("defaultSchema");
 		defaultSchemaElement.setAttribute("code", "" + defaultSchema.getLocalCode());
@@ -85,11 +74,11 @@ public class MetadataSchemaXMLWriter3 {
 	}
 
 	private void addAllMetadataToSchema(MetadataSchema collectionSchema, MetadataSchema defaultSchema,
-			Element defaultSchemaElement) {
+										Element defaultSchemaElement) {
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
-					&& collectionSchema.hasMetadataWithCode(metadata.getLocalCode())) {
+				&& collectionSchema.hasMetadataWithCode(metadata.getLocalCode())) {
 				metadataInCollectionSchema = collectionSchema.getMetadata(metadata.getLocalCode());
 			}
 
@@ -185,7 +174,8 @@ public class MetadataSchemaXMLWriter3 {
 		}
 	}
 
-	private void addMetadataToSchema(Element schemaElement, Metadata metadata, Metadata globalMetadataInCollectionSchema) {
+	private void addMetadataToSchema(Element schemaElement, Metadata metadata,
+									 Metadata globalMetadataInCollectionSchema) {
 		ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
 		Element metadataElement = new Element("m");
 		metadataElement.setAttribute("code", metadata.getLocalCode());
@@ -214,8 +204,9 @@ public class MetadataSchemaXMLWriter3 {
 		}
 	}
 
-	private void writeMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils, Element metadataElement,
-			boolean notUserDefinedMetadata) {
+	private void writeMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
+												 Element metadataElement,
+												 boolean notUserDefinedMetadata) {
 		writeLabels(metadataElement, metadata.getLabels());
 
 		if (!metadata.isEnabled()) {
@@ -328,7 +319,8 @@ public class MetadataSchemaXMLWriter3 {
 	}
 
 	private boolean writeGlobalMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
-			Element metadataElement, boolean notUserDefinedMetadata, Metadata globalMetadataInCollection) {
+														  Element metadataElement, boolean notUserDefinedMetadata,
+														  Metadata globalMetadataInCollection) {
 
 		boolean different = false;
 		if (!globalMetadataInCollection.getLabels().equals(metadata.getLabels())) {
@@ -427,27 +419,27 @@ public class MetadataSchemaXMLWriter3 {
 			different = true;
 		}
 		if (metadata.getStructureFactory() != null && !metadata.getStructureFactory().getClass()
-				.equals(globalMetadataInCollection.getStructureFactory().getClass())) {
+															   .equals(globalMetadataInCollection.getStructureFactory().getClass())) {
 			metadataElement.setAttribute("structureFactory", metadata.getStructureFactory().getClass().getName());
 			different = true;
 		}
 		if (metadata.getEnumClass() != null && !metadata.getEnumClass()
-				.equals(globalMetadataInCollection.getEnumClass())) {
+														.equals(globalMetadataInCollection.getEnumClass())) {
 			metadataElement.setAttribute("enumClass", metadata.getEnumClass().getName());
 			different = true;
 		}
 		if (metadata.getAccessRestrictions() != null
-				&& !metadata.getAccessRestrictions().equals(globalMetadataInCollection.getAccessRestrictions())) {
+			&& !metadata.getAccessRestrictions().equals(globalMetadataInCollection.getAccessRestrictions())) {
 			metadataElement.addContent(toAccessRestrictionsElement(metadata.getAccessRestrictions()));
 			different = true;
 		}
 		if (metadata.getAllowedReferences() != null
-				&& !metadata.getAllowedReferences().equals(globalMetadataInCollection.getAccessRestrictions())) {
+			&& !metadata.getAllowedReferences().equals(globalMetadataInCollection.getAccessRestrictions())) {
 			metadataElement.addContent(toRefencesElement(metadata.getAllowedReferences()));
 			different = true;
 		}
 		if (metadata.getDefaultValue() != null
-				&& !metadata.getDefaultValue().equals(globalMetadataInCollection.getDefaultValue())) {
+			&& !metadata.getDefaultValue().equals(globalMetadataInCollection.getDefaultValue())) {
 			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
 			different = true;
 		}
@@ -460,7 +452,7 @@ public class MetadataSchemaXMLWriter3 {
 
 		}
 		if (metadata.getValidators() != null
-				&& !ClassListBuilder.isSameValues(metadata.getValidators(), globalMetadataInCollection.getValidators())) {
+			&& !ClassListBuilder.isSameValues(metadata.getValidators(), globalMetadataInCollection.getValidators())) {
 			metadataElement.addContent(writeRecordMetadataValidators(metadata));
 			different = true;
 		}
@@ -499,12 +491,12 @@ public class MetadataSchemaXMLWriter3 {
 			differentFromInheritance = true;
 		}
 		if (metadata.getLabels() != null && !metadata.getLabels().isEmpty() && !metadata.getLabels()
-				.equals(metadata.getInheritance().getLabels())) {
+																						.equals(metadata.getInheritance().getLabels())) {
 			writeLabels(metadataElement, metadata.getLabels());
 			differentFromInheritance = true;
 		}
 		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue()
-				.equals(metadata.getInheritance().getDefaultValue())) {
+														   .equals(metadata.getInheritance().getDefaultValue())) {
 			ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
 			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
 			differentFromInheritance = true;
@@ -550,7 +542,7 @@ public class MetadataSchemaXMLWriter3 {
 	private Element toPopulateConfigsElement(MetadataPopulateConfigs populateConfigs) {
 		Element populateConfigsElement = new Element("populateConfigs");
 
-		if(Boolean.TRUE.equals(populateConfigs.isAddOnly())) {
+		if (Boolean.TRUE.equals(populateConfigs.isAddOnly())) {
 			populateConfigsElement.setAttribute("isAddOnly", "true");
 		}
 

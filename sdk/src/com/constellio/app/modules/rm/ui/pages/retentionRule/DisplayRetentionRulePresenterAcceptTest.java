@@ -1,20 +1,18 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.when;
-
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.sdk.tests.ConstellioTest;
-
 import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Patrick on 2015-11-25.
@@ -32,7 +30,7 @@ public class DisplayRetentionRulePresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+								  .withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		when(view.getSessionContext()).thenReturn(sessionContext);
@@ -52,9 +50,9 @@ public class DisplayRetentionRulePresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(records.ruleId_1);
 
 		assertThat(presenter.getOpenActivePeriodsDDVList()).extracting("code", "title")
-				.containsOnly(
-						tuple("888", "Ouvert"),
-						tuple("42", "Ze 42")
-				);
+														   .containsOnly(
+																   tuple("888", "Ouvert"),
+																   tuple("42", "Ze 42")
+														   );
 	}
 }

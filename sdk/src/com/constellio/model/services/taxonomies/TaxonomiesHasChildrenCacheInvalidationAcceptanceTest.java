@@ -1,24 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -37,6 +18,19 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.*;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends ConstellioTest {
@@ -62,8 +56,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] {
-				{ "testingInvalidationsOnLocalCache" }, { "testingInvalidationsOnRemoteCache" } });
+		return Arrays.asList(new Object[][]{
+				{"testingInvalidationsOnLocalCache"}, {"testingInvalidationsOnRemoteCache"}});
 	}
 
 	@Before
@@ -102,11 +96,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		Transaction tx = new Transaction();
 
 		tx.add(rm.newFolderWithId(FOLDER1)
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X110)
-				.setRetentionRuleEntered(records.ruleId_1)
-				.setOpenDate(aDate())
-				.setTitle(FOLDER1));
+				 .setAdministrativeUnitEntered(records.unitId_10a)
+				 .setCategoryEntered(records.categoryId_X110)
+				 .setRetentionRuleEntered(records.ruleId_1)
+				 .setOpenDate(aDate())
+				 .setTitle(FOLDER1));
 
 		recordServices.execute(tx);
 
@@ -122,11 +116,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			throws Exception {
 
 		recordServices.add(rm.newFolderWithId("newFolder")
-				.setAdministrativeUnitEntered(records.unitId_30)
-				.setCategoryEntered(records.categoryId_Z100)
-				.setRetentionRuleEntered(records.ruleId_1)
-				.setOpenDate(aDate())
-				.setTitle("New folder"));
+							 .setAdministrativeUnitEntered(records.unitId_30)
+							 .setCategoryEntered(records.categoryId_Z100)
+							 .setRetentionRuleEntered(records.ruleId_1)
+							 .setOpenDate(aDate())
+							 .setTitle("New folder"));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
@@ -144,11 +138,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		recordServices.add(rm.newFolderWithId("newFolder2")
-				.setAdministrativeUnitEntered(records.unitId_30c)
-				.setCategoryEntered(records.categoryId_Z120)
-				.setRetentionRuleEntered(records.ruleId_1)
-				.setOpenDate(aDate())
-				.setTitle("New folder 2"));
+							 .setAdministrativeUnitEntered(records.unitId_30c)
+							 .setCategoryEntered(records.categoryId_Z120)
+							 .setRetentionRuleEntered(records.ruleId_1)
+							 .setOpenDate(aDate())
+							 .setTitle("New folder 2"));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
@@ -166,9 +160,9 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		recordServices.add(rm.newFolderWithId("newFolder3")
-				.setParentFolder("newFolder2")
-				.setOpenDate(aDate())
-				.setTitle("New folder 2"));
+							 .setParentFolder("newFolder2")
+							 .setOpenDate(aDate())
+							 .setTitle("New folder 2"));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
@@ -215,7 +209,7 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		recordServices.update(folder1.setCategoryEntered(records.categoryId_Z120)
-				.setAdministrativeUnitEntered(records.unitId_30c));
+									 .setAdministrativeUnitEntered(records.unitId_30c));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
@@ -983,18 +977,18 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 				TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(100);
 				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
-						.getVisibleRootConcept(user, zeCollection, taxonomy.getCode(), options)) {
+																		 .getVisibleRootConcept(user, zeCollection, taxonomy.getCode(), options)) {
 					navigateVisible(user, taxonomy.getCode(), record.getRecord(), options);
 				}
 
 				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
-						.getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Folder.SCHEMA_TYPE, options)) {
+																		 .getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Folder.SCHEMA_TYPE, options)) {
 
 					navigateLinkableSelectingAFolder(user, taxonomy.getCode(), record.getRecord(), options);
 				}
 
 				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
-						.getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Document.SCHEMA_TYPE, options)) {
+																		 .getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Document.SCHEMA_TYPE, options)) {
 
 					navigateLinkableSelectingADocument(user, taxonomy.getCode(), record.getRecord(), options);
 				}
@@ -1012,7 +1006,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 	}
 
-	private void navigateLinkableSelectingAFolder(User user, String taxonomy, Record record, TaxonomiesSearchOptions options) {
+	private void navigateLinkableSelectingAFolder(User user, String taxonomy, Record record,
+												  TaxonomiesSearchOptions options) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
 		for (TaxonomySearchRecord child : taxonomiesSearchServices
@@ -1022,7 +1017,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 	}
 
-	private void navigateLinkableSelectingADocument(User user, String taxonomy, Record record, TaxonomiesSearchOptions options) {
+	private void navigateLinkableSelectingADocument(User user, String taxonomy, Record record,
+													TaxonomiesSearchOptions options) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
 		for (TaxonomySearchRecord child : taxonomiesSearchServices

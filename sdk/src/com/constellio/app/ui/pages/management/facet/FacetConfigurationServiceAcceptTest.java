@@ -1,18 +1,5 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -32,6 +19,18 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 	@Mock AddEditFacetConfigurationView view;
@@ -73,10 +72,10 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 
 		List<AvailableFacetFieldMetadata> availableDataStoreCodes = service.getAvailableDataStoreCodes();
 		assertThat(availableDataStoreCodes).extracting("code")
-				.containsOnlyOnce("createdById_s", "retentionRuleId_s", "keywords_ss", "copyStatus_s", "borrowed_s", "schema_s")
-				.doesNotContain(Schemas.TITLE.getDataStoreCode(), Schemas.CREATED_ON.getDataStoreCode(),
-						Schemas.TOKENS.getDataStoreCode(), "title_s", "createdOn_dt", "content_s", "tokens_ss", "username_s",
-						"description_txt", "pendingAlerts_ss");
+										   .containsOnlyOnce("createdById_s", "retentionRuleId_s", "keywords_ss", "copyStatus_s", "borrowed_s", "schema_s")
+										   .doesNotContain(Schemas.TITLE.getDataStoreCode(), Schemas.CREATED_ON.getDataStoreCode(),
+												   Schemas.TOKENS.getDataStoreCode(), "title_s", "createdOn_dt", "content_s", "tokens_ss", "username_s",
+												   "description_txt", "pendingAlerts_ss");
 
 	}
 

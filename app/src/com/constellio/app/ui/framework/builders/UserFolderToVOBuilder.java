@@ -1,13 +1,13 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserFolderVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
+
+import java.util.List;
 
 public class UserFolderToVOBuilder extends RecordToVOBuilder {
 

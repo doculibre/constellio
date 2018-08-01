@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.ui.builders;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -18,6 +15,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.io.IOException;
+import java.util.List;
 
 public class DocumentToVOBuilder extends RecordToVOBuilder {
 

@@ -1,12 +1,12 @@
 package com.constellio.model.conf.email;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class EmailConfigurationManagerReader {
 	private static final Logger LOGGER = LogManager.getLogger(EmailConfigurationManagerReader.class);

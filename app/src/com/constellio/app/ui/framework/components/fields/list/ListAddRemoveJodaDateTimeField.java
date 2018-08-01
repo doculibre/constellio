@@ -1,10 +1,9 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateTimeField;
 import com.vaadin.ui.DateField;
+import org.joda.time.LocalDateTime;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveJodaDateTimeField extends ListAddRemoveField<LocalDateTime, DateField> {

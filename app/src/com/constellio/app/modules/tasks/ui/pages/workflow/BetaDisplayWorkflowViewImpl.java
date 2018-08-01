@@ -1,22 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.dialogs.DefaultConfirmDialogFactory;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskVO;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowVO;
@@ -48,22 +31,22 @@ import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.AbstractSelectTargetDetails;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table.TableDragMode;
 import com.vaadin.ui.Table.TableTransferable;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.TreeTable;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.ObjectUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BetaDisplayWorkflowViewImpl extends BaseViewImpl implements BetaDisplayWorkflowView, NoDragAndDrop {
 
@@ -224,7 +207,8 @@ public class BetaDisplayWorkflowViewImpl extends BaseViewImpl implements BetaDis
 	}
 
 	@SuppressWarnings("unchecked")
-	private void addToTable(BetaWorkflowTaskVO workflowTaskVO, HierarchicalContainer container, BetaWorkflowTaskVO parentWorkflowTaskVO) {
+	private void addToTable(BetaWorkflowTaskVO workflowTaskVO, HierarchicalContainer container,
+							BetaWorkflowTaskVO parentWorkflowTaskVO) {
 		if (container.getItem(workflowTaskVO) != null) {
 			BetaWorkflowTaskVO newWorkflowTaskVO = new BetaWorkflowTaskVO();
 			String title = $("DisplayWorkflowView.redirect", workflowTaskVO.getTitle());
@@ -478,7 +462,8 @@ public class BetaDisplayWorkflowViewImpl extends BaseViewImpl implements BetaDis
 
 	}
 
-	protected Component buildExistingTasksContent(final BetaWorkflowTaskVO workflowTaskVO, List<BetaWorkflowTaskVO> availableTaskVOs) {
+	protected Component buildExistingTasksContent(final BetaWorkflowTaskVO workflowTaskVO,
+												  List<BetaWorkflowTaskVO> availableTaskVOs) {
 
 		final ComboBox workflowTaskVOField = new BaseComboBox();
 		workflowTaskVOField.setCaption($("DisplayWorkflowView.addTaskWindow.availableTasks"));

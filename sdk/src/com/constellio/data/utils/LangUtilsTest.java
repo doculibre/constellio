@@ -1,18 +1,17 @@
 package com.constellio.data.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.LangUtils.MapComparisonResults;
+import com.constellio.data.utils.LangUtils.ModifiedEntry;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-
-import com.constellio.data.utils.LangUtils.ListComparisonResults;
-import com.constellio.data.utils.LangUtils.MapComparisonResults;
-import com.constellio.data.utils.LangUtils.ModifiedEntry;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LangUtilsTest extends ConstellioTest {
 

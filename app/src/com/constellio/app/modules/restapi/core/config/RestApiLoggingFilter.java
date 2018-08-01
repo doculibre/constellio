@@ -11,40 +11,40 @@ import java.util.regex.Pattern;
 @Slf4j
 public class RestApiLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
-    private static final Pattern TOKEN_PATTERN = Pattern.compile("token=([^&]+)");
-    private static final Pattern SIGNATURE_PATTERN = Pattern.compile("signature=([^&]+)");
+	private static final Pattern TOKEN_PATTERN = Pattern.compile("token=([^&]+)");
+	private static final Pattern SIGNATURE_PATTERN = Pattern.compile("signature=([^&]+)");
 
-    private static final String TOKEN = "token=XXX";
-    private static final String SIGNATURE = "signature=XXX";
+	private static final String TOKEN = "token=XXX";
+	private static final String SIGNATURE = "signature=XXX";
 
-    @Override
-    public void filter(ContainerRequestContext requestContext) {
-        requestContext.setProperty("timestamp", System.currentTimeMillis());
+	@Override
+	public void filter(ContainerRequestContext requestContext) {
+		requestContext.setProperty("timestamp", System.currentTimeMillis());
 
-        log.info("HTTP request: "
-                .concat(requestContext.getMethod()).concat(" ")
-                .concat(getQuery(requestContext)));
-    }
+		log.info("HTTP request: "
+				.concat(requestContext.getMethod()).concat(" ")
+				.concat(getQuery(requestContext)));
+	}
 
-    @Override
-    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        long start = (long) requestContext.getProperty("timestamp");
-        long ms = System.currentTimeMillis() - start;
+	@Override
+	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+		long start = (long) requestContext.getProperty("timestamp");
+		long ms = System.currentTimeMillis() - start;
 
-        log.info("HTTP response: "
-                .concat(String.valueOf(responseContext.getStatus()).concat(" ")
-                .concat(requestContext.getMethod().concat(" "))
-                .concat(getQuery(requestContext))).concat(" ")
-                .concat(ms + "ms"));
-    }
+		log.info("HTTP response: "
+				.concat(String.valueOf(responseContext.getStatus()).concat(" ")
+							  .concat(requestContext.getMethod().concat(" "))
+							  .concat(getQuery(requestContext))).concat(" ")
+				.concat(ms + "ms"));
+	}
 
-    private String getQuery(ContainerRequestContext requestContext) {
-        String query = requestContext.getUriInfo().getRequestUri().getQuery();
-        if (query != null) {
-            query = TOKEN_PATTERN.matcher(query).replaceAll(TOKEN);
-            query = SIGNATURE_PATTERN.matcher(query).replaceAll(SIGNATURE);
-        }
+	private String getQuery(ContainerRequestContext requestContext) {
+		String query = requestContext.getUriInfo().getRequestUri().getQuery();
+		if (query != null) {
+			query = TOKEN_PATTERN.matcher(query).replaceAll(TOKEN);
+			query = SIGNATURE_PATTERN.matcher(query).replaceAll(SIGNATURE);
+		}
 
-        return requestContext.getUriInfo().getRequestUri().getPath().concat(query != null ? "?" + query : "");
-    }
+		return requestContext.getUriInfo().getRequestUri().getPath().concat(query != null ? "?" + query : "");
+	}
 }

@@ -1,11 +1,5 @@
 package com.constellio.app.modules.robots.migrations;
 
-import static com.constellio.data.utils.LangUtils.withoutDuplicates;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -32,6 +26,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static java.util.Arrays.asList;
+
 public class RobotsMigrationTo5_1_2 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -39,14 +39,16 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor5_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setupDisplayConfig(collection, appLayerFactory, migrationResourcesProvider);
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
 	}
 
-	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory, MigrationResourcesProvider provider) {
+	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
+									MigrationResourcesProvider provider) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
@@ -60,7 +62,7 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 		transaction.add(type.withMetadataGroup(provider.getLanguageMap(asList(definition, criteria, action))));
 
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.PARENT)
-				.withInputType(MetadataInputType.HIDDEN));
+							   .withInputType(MetadataInputType.HIDDEN));
 
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.SCHEMA_FILTER).withMetadataGroup(criteria));
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.SEARCH_CRITERIA).withMetadataGroup(criteria));
@@ -68,13 +70,13 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.ACTION).withMetadataGroup(action));
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.ACTION_PARAMETERS).withMetadataGroup(action));
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.EXCLUDE_PROCESSED_BY_CHILDREN)
-				.withMetadataGroup(action));
+							   .withMetadataGroup(action));
 
 		manager.execute(transaction);
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 		transactionBuilder.in(Robot.SCHEMA_TYPE)
-				.addToForm(Robot.ACTION, Robot.ACTION_PARAMETERS, Robot.EXCLUDE_PROCESSED_BY_CHILDREN).atTheEnd();
+						  .addToForm(Robot.ACTION, Robot.ACTION_PARAMETERS, Robot.EXCLUDE_PROCESSED_BY_CHILDREN).atTheEnd();
 		transactionBuilder.in(ActionParameters.SCHEMA_TYPE).removeFromDisplay(
 				CommonMetadataBuilder.CREATED_BY, CommonMetadataBuilder.CREATED_ON,
 				CommonMetadataBuilder.MODIFIED_BY, CommonMetadataBuilder.MODIFIED_ON);
@@ -94,8 +96,8 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 
 	static class SchemaAlterationFor5_1_2 extends MetadataSchemasAlterationHelper {
 		protected SchemaAlterationFor5_1_2(String collection,
-				MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   MigrationResourcesProvider migrationResourcesProvider,
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -113,7 +115,8 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 			return type;
 		}
 
-		private void createRobotSchemaType(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder actionParameters) {
+		private void createRobotSchemaType(MetadataSchemaTypesBuilder types,
+										   MetadataSchemaTypeBuilder actionParameters) {
 			MetadataSchemaTypeBuilder robots = types.createNewSchemaType(Robot.SCHEMA_TYPE);
 			MetadataSchemaBuilder schema = robots.getDefaultSchema();
 
@@ -123,11 +126,11 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 			schema.createUndeletable(Robot.PARENT).defineChildOfRelationshipToType(robots).setEssential(true);
 			schema.createUndeletable(Robot.SCHEMA_FILTER).setType(MetadataValueType.STRING).setEssential(true).required();
 			schema.createUndeletable(Robot.SEARCH_CRITERIA).setMultivalue(true).setEssential(true).required()
-					.defineStructureFactory(CriterionFactory.class);
+				  .defineStructureFactory(CriterionFactory.class);
 			schema.createUndeletable(Robot.ACTION).setType(MetadataValueType.STRING).setEssential(true);
 			schema.createUndeletable(Robot.ACTION_PARAMETERS).defineReferencesTo(actionParameters).setEssential(true);
 			schema.createUndeletable(Robot.EXCLUDE_PROCESSED_BY_CHILDREN).setType(MetadataValueType.BOOLEAN)
-					.setEssential(true).setDefaultValue(false).required();
+				  .setEssential(true).setDefaultValue(false).required();
 		}
 	}
 }

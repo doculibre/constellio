@@ -1,16 +1,15 @@
 package com.constellio.app.modules.rm.model;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_CannotModifyId;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CopyRetentionRuleTest extends ConstellioTest {
 

@@ -1,9 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.utils.MaskUtils;
 import com.constellio.model.utils.MaskUtilsException;
@@ -36,13 +34,13 @@ public class ListAddRemoveTextField extends ListAddRemoveField<String, TextField
 	@Override
 	protected TextField newAddEditField() {
 		BaseTextField baseTextField = new BaseTextField();
-		if(inputMask != null) {
+		if (inputMask != null) {
 			baseTextField.setInputMask(inputMask);
 			baseTextField.addValidator(new Validator() {
 				@Override
 				public void validate(Object value) throws InvalidValueException {
 					try {
-						if(value != null) {
+						if (value != null) {
 							MaskUtils.validate(inputMask, (String) value);
 						}
 					} catch (MaskUtilsException e) {
@@ -74,7 +72,7 @@ public class ListAddRemoveTextField extends ListAddRemoveField<String, TextField
 		notification.show(Page.getCurrent());
 	}
 
-	class MultivalueMaskInvalidValueException extends Validator.InvalidValueException{
+	class MultivalueMaskInvalidValueException extends Validator.InvalidValueException {
 		private ValidationError validationError;
 
 		public MultivalueMaskInvalidValueException(String message, ValidationError validationError) {

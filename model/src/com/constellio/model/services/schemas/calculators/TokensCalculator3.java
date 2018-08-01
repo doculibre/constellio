@@ -1,19 +1,17 @@
 package com.constellio.model.services.schemas.calculators;
 
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
 
 public class TokensCalculator3 implements MetadataValueCalculator<List<String>> {
 

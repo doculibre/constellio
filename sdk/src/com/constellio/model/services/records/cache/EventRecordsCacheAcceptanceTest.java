@@ -1,25 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.ComparisonFailure;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
@@ -44,6 +24,23 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.junit.Before;
+import org.junit.ComparisonFailure;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
@@ -88,7 +85,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata()
-						.withAStringMetadataInAnotherSchema(whichIsUnique));
+										  .withAStringMetadataInAnotherSchema(whichIsUnique));
 		defineSchemasManager().using(anotherCollectionSchemas.withAStringMetadataInAnotherSchema(whichIsUnique));
 
 		adminInZeCollection = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
@@ -139,7 +136,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitlePath()));
+																			 .setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitlePath()));
 
 		for (Record record : records) {
 			assertThat(record.isFullyLoaded()).isFalse();
@@ -183,8 +180,8 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
-				.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(Schemas.TITLE)).isEqualTo("original title");
+								.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+								.get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
@@ -196,7 +193,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		recordsCaches.getCache(zeCollection).getAllValues(type).get(0).set(Schemas.TITLE, "test");
 
 		assertThat(recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type)).extracting("id")
-				.containsOnly("un1");
+																							  .containsOnly("un1");
 		try {
 			recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type).get(0).set(Schemas.TITLE, "test");
 			fail("Record should be unmodifiable");
@@ -224,8 +221,8 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
-				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(Schemas.TITLE)).isEqualTo("original title");
+								.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+								.get(Schemas.TITLE)).isEqualTo("original title");
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
@@ -880,19 +877,19 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		Transaction tx = new Transaction();
 
 		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("x")
-				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p1Code"));
+																						 .set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p1Code"));
 
 		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("b")
-				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p2Code"));
+																						 .set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p2Code"));
 
 		tx.add(volatileRecord1 = newRecordOf("v1", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
+																					   .set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
 
 		tx.add(volatileRecord2 = newRecordOf("v2", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
+																					   .set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
 
 		tx.add(volatileRecord3 = newRecordOf("v3", zeCollectionSchemaWithVolatileCache).withTitle("c")
-				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
+																					   .set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
 
 		tx.add(uncachedRecord1 = newRecordOf("un1", zeCollectionSchemaWithoutCache).withTitle("a"));
 		recordServices.execute(tx);

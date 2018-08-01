@@ -6,12 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-@Data @Builder
+@Data
+@Builder
 @JsonRootName("DocumentType")
 public class DocumentTypeDto {
-    @Schema(description="When adding/updating a document, specify either the id or the code, not both.")
-    private String id;
-    private String code;
-    @JsonProperty(access=JsonProperty.Access.READ_ONLY)
-    private String title;
+	@Schema(description = "When adding/updating a document, specify either the id or the code, not both.")
+	private String id;
+	private String code;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	private String title;
 }

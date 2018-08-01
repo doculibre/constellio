@@ -17,7 +17,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 
 public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
-	
+
 	private FolderDocumentBreadcrumbTrailPresenter presenter;
 
 	public FolderDocumentBreadcrumbTrail(String recordId, String taxonomyCode, BaseView view) {

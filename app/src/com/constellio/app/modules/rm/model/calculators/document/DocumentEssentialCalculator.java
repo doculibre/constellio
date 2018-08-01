@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -14,10 +10,14 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 public class DocumentEssentialCalculator implements MetadataValueCalculator<Boolean> {
 
 	LocalDependency<CopyRetentionRule> mainCopyRuleParam = LocalDependency.toAStructure(Document.MAIN_COPY_RULE)
-			.whichIsRequired();
+																		  .whichIsRequired();
 	ReferenceDependency<Boolean> retentionRuleEssentialParam = ReferenceDependency.toABoolean(Document.FOLDER_RETENTION_RULE,
 			RetentionRule.ESSENTIAL_DOCUMENTS);
 

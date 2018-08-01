@@ -10,32 +10,38 @@ import com.constellio.model.entities.schemas.Schemas;
 
 public abstract class BaseService {
 
-    protected abstract BaseDao getDao();
+	protected abstract BaseDao getDao();
 
-    protected <T> T getMetadataValue(Record record, String metadataCode) {
-        return getDao().getMetadataValue(record, metadataCode);
-    }
+	protected <T> T getMetadataValue(Record record, String metadataCode) {
+		return getDao().getMetadataValue(record, metadataCode);
+	}
 
-    protected Record getRecord(String id, boolean checkLogicallyDeleted) {
-        Record record = getDao().getRecordById(id);
-        if (record == null) throw new RecordNotFoundException(id);
+	protected Record getRecord(String id, boolean checkLogicallyDeleted) {
+		Record record = getDao().getRecordById(id);
+		if (record == null) {
+			throw new RecordNotFoundException(id);
+		}
 
-        if (checkLogicallyDeleted) {
-            if (isLogicallyDeleted(record)) throw new RecordLogicallyDeletedException(id);
-        }
+		if (checkLogicallyDeleted) {
+			if (isLogicallyDeleted(record)) {
+				throw new RecordLogicallyDeletedException(id);
+			}
+		}
 
-        return record;
-    }
+		return record;
+	}
 
-    protected User getUser(String serviceKey, String collection) {
-        User user = getDao().getUser(serviceKey, collection);
-        if (user == null) throw new UnauthenticatedUserException();
+	protected User getUser(String serviceKey, String collection) {
+		User user = getDao().getUser(serviceKey, collection);
+		if (user == null) {
+			throw new UnauthenticatedUserException();
+		}
 
-        return user;
-    }
+		return user;
+	}
 
-    protected boolean isLogicallyDeleted(Record record) {
-        return (Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS)));
-    }
+	protected boolean isLogicallyDeleted(Record record) {
+		return (Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS)));
+	}
 
 }

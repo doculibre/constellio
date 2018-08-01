@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.ldap;
 
-import org.joda.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
@@ -12,6 +8,9 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.joda.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
 
 @UiTest
 @InDevelopmentTest
@@ -34,7 +33,7 @@ public class LDAPConfigManagementViewAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig
 				.getLDAPUserSyncConfiguration(new Duration(1000 * 60 * 12));
 		getModelLayerFactory().getLdapConfigurationManager()
-				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	@Test

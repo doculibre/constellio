@@ -1,17 +1,17 @@
 package com.constellio.sdk.dev.tools;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RemoveFieldUtils {
 
@@ -39,7 +39,7 @@ public class RemoveFieldUtils {
 			QueryResponse queryResponse = server.query(params);
 			List<SolrDocument> documentsWithZeField = queryResponse.getResults();
 			System.out.println("Handling the next " + documentsWithZeField.size() + " (total of " + queryResponse.getResults()
-					.getNumFound());
+																												 .getNumFound());
 
 			for (SolrDocument document : documentsWithZeField) {
 				String id = (String) document.getFieldValue("id");

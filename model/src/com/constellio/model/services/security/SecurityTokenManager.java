@@ -1,13 +1,13 @@
 package com.constellio.model.services.security;
 
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class SecurityTokenManager implements StatefulService {
 	List<TokenProvider> providers = new ArrayList<>();
@@ -76,7 +76,7 @@ public class SecurityTokenManager implements StatefulService {
 	public boolean hasGlobalTypeAccess(User user, String typeCode, String access) {
 		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurizedSchemaTypes) {
 			if (publicTypeWithCondition.schemaType.equals(typeCode)
-					&& publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
+				&& publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
 				return true;
 			}
 		}
@@ -98,7 +98,8 @@ public class SecurityTokenManager implements StatefulService {
 		}
 
 		public UserTokens(
-				List<String> allowTokens, List<String> denyTokens, List<String> shareAllowTokens, List<String> shareDenyTokens) {
+				List<String> allowTokens, List<String> denyTokens, List<String> shareAllowTokens,
+				List<String> shareDenyTokens) {
 			this.allowTokens = allowTokens;
 			this.denyTokens = denyTokens;
 			this.shareAllowTokens = shareAllowTokens;

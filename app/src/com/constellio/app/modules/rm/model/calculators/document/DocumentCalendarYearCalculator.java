@@ -1,17 +1,15 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class DocumentCalendarYearCalculator implements MetadataValueCalculator<LocalDate> {
 	LocalDependency<String> calendarYearParam = LocalDependency.toAString(Schemas.LEGACY_ID.getLocalCode());

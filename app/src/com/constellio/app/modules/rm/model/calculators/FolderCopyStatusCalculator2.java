@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -14,6 +11,9 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class FolderCopyStatusCalculator2 implements MetadataValueCalculator<CopyType> {
 
 	LocalDependency<CopyType> folderCopyTypeManualParam = LocalDependency.toAnEnum(Folder.COPY_STATUS_ENTERED);
@@ -21,7 +21,7 @@ public class FolderCopyStatusCalculator2 implements MetadataValueCalculator<Copy
 	LocalDependency<String> folderUnitParam = LocalDependency.toAReference(Folder.ADMINISTRATIVE_UNIT);
 
 	LocalDependency<List<String>> folderUnitAncestorsParam = LocalDependency.toAReference(Folder.ADMINISTRATIVE_UNIT_ANCESTORS)
-			.whichIsMultivalue();
+																			.whichIsMultivalue();
 
 	ReferenceDependency<List<CopyRetentionRule>> ruleCopyRulesParam = ReferenceDependency.toAStructure(Folder.RETENTION_RULE,
 			RetentionRule.COPY_RETENTION_RULES).whichIsMultivalue().whichIsRequired();

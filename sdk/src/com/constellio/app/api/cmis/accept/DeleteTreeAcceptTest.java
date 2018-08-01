@@ -1,19 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static java.util.Arrays.asList;
-import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
@@ -28,6 +14,18 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.junit.Before;
+import org.junit.Test;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @DriverTest
 public class DeleteTreeAcceptTest extends ConstellioTest {
@@ -73,7 +71,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		userServices.addUserToCollection(users.admin(), zeCollection);
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-				.build();
+											 .build();
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 
@@ -87,7 +85,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		CmisObject object = cmisSession.getObject(zeCollectionRecords.folder1.getId());
 
 		cmisSession.getBinding().getObjectService()
-				.deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
+				   .deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
 
 		try {
 			recordServices.getDocumentById(zeCollectionRecords.folder1.getId());
@@ -104,7 +102,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		CmisObject object = cmisSession.getObject(zeCollectionRecords.folder1.getId());
 
 		cmisSession.getBinding().getObjectService()
-				.deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
+				   .deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
 
 		recordServices.refresh(zeCollectionRecords.folder1);
 		assertThat(zeCollectionRecords.folder1.isActive()).isTrue();

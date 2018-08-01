@@ -11,30 +11,30 @@ import java.util.List;
 public class PriorityOrderedList<T> implements Iterable<T> {
 
 
-    List<OrderedItems<T>> items = new ArrayList<>();
+	List<OrderedItems<T>> items = new ArrayList<>();
 
-    public void add(T extension) {
+	public void add(T extension) {
 
-        add(100, extension);
-    }
+		add(100, extension);
+	}
 
-    public void add(int priority, T extension) {
-        items.add(new OrderedItems<>(extension, priority));
-        Collections.sort(items);
-    }
+	public void add(int priority, T extension) {
+		items.add(new OrderedItems<>(extension, priority));
+		Collections.sort(items);
+	}
 
-    public List<T> getItems() {
-        List<T> returnedItems = new ArrayList<>();
-        for (OrderedItems<T> item : items) {
-            returnedItems.add(item .behavior);
-        }
+	public List<T> getItems() {
+		List<T> returnedItems = new ArrayList<>();
+		for (OrderedItems<T> item : items) {
+			returnedItems.add(item.behavior);
+		}
 
-        return returnedItems;
-    }
+		return returnedItems;
+	}
 
-    @Override
-    public Iterator<T> iterator() {
-        return getItems().iterator();
-    }
+	@Override
+	public Iterator<T> iterator() {
+		return getItems().iterator();
+	}
 
 }

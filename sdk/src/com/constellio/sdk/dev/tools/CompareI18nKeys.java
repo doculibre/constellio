@@ -1,19 +1,18 @@
 package com.constellio.sdk.dev.tools;
 
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.data.utils.LangUtils;
-import com.constellio.data.utils.LangUtils.ListComparisonResults;
-import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.Language;
 
 public class CompareI18nKeys {
 

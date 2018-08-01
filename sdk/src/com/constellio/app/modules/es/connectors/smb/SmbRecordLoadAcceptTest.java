@@ -1,15 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -24,6 +14,15 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static java.util.Arrays.asList;
 
 @UiTest
 public class SmbRecordLoadAcceptTest extends ConstellioTest {
@@ -43,7 +42,7 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+										.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -51,9 +50,9 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
-				.setTitle("ze connector").setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain(
+															   .setTitle("ze connector").setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain(
 						"domain")
-				.setTraversalCode("zeTraversal"));
+															   .setTraversalCode("zeTraversal"));
 	}
 
 	@Test
@@ -133,21 +132,21 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		System.out.println(folderUrl);
 		ConnectorSmbFolder newConnectorSmbFolder = es.newConnectorSmbFolderWithId(folderId, connectorInstance);
 		newConnectorSmbFolder.setTitle(folderName).setUrl(folderUrl).setParentUrl(parentFolder.getUrl())
-				.setManualTokens(
-						PUBLIC_TOKEN);
+							 .setManualTokens(
+									 PUBLIC_TOKEN);
 		return newConnectorSmbFolder;
 	}
 
 	private void createDocuments(List<Record> smbRecords, List<Record> referenceRecords, int folderNumber,
-			ConnectorSmbFolder connectorSmbFolder) {
+								 ConnectorSmbFolder connectorSmbFolder) {
 		String documentName = connectorSmbFolder.getTitle() + DOCUMENT + folderNumber;
 		String documentId = UUID.randomUUID().toString();
 		String documentUrl = connectorSmbFolder.getUrl() + documentName + ".txt";
 
 		ConnectorSmbDocument connectorSmbDocument = es.newConnectorSmbDocumentWithId(documentId, connectorInstance);
 		connectorSmbDocument.setTitle(documentName).setUrl(documentUrl).setParentUrl(connectorSmbFolder.getUrl())
-				.setManualTokens(
-						PUBLIC_TOKEN);
+							.setManualTokens(
+									PUBLIC_TOKEN);
 		smbRecords.add(connectorSmbDocument.getWrappedRecord());
 		if (!referenceRecords.contains(connectorSmbFolder.getWrappedRecord())) {
 			referenceRecords.add(connectorSmbFolder.getWrappedRecord());

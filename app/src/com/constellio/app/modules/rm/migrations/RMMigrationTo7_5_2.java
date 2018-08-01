@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -20,6 +18,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.MaskUtils;
 
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled;
+
 /**
  * Created by constellios on 2017-07-13.
  */
@@ -36,7 +36,8 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
@@ -48,7 +49,7 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 	class SchemaAlterationFor7_5_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_5_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -63,16 +64,16 @@ public class RMMigrationTo7_5_2 extends MigrationHelper implements MigrationScri
 					.setSecurity(false);
 
 			MetadataBuilder yearEnd = dateTypeSchemaType.getDefaultSchema().create(YearType.YEAR_END)
-					.setType(MetadataValueType.STRING).setDefaultRequirement(true).setInputMask(MaskUtils.MM_DD);
+														.setType(MetadataValueType.STRING).setDefaultRequirement(true).setInputMask(MaskUtils.MM_DD);
 
 			MetadataSchemaBuilder retentionRuleSchema = typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE).getDefaultSchema();
 
 			MetadataBuilder dateTypes = retentionRuleSchema.create(RetentionRule.YEAR_TYPES)
-					.defineReferencesTo(dateTypeSchemaType).setMultivalue(true)
-					.defineDataEntry().asCalculated(RuleYearTypesCalculator.class);
+														   .defineReferencesTo(dateTypeSchemaType).setMultivalue(true)
+														   .defineDataEntry().asCalculated(RuleYearTypesCalculator.class);
 
 			retentionRuleSchema.create(RetentionRule.YEAR_TYPES_YEAR_END).setType(MetadataValueType.STRING).setMultivalue(true)
-					.defineDataEntry().asCopied(dateTypes, yearEnd);
+							   .defineDataEntry().asCopied(dateTypes, yearEnd);
 
 		}
 	}

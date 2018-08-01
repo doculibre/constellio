@@ -1,18 +1,5 @@
 package com.constellio.model.services.collections;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -22,6 +9,13 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class CollectionsListManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -131,7 +125,8 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		};
 	}
 
-	private DocumentAlteration addCollectionDocumentAlteration(final String collectionCode, final List<String> languages) {
+	private DocumentAlteration addCollectionDocumentAlteration(final String collectionCode,
+															   final List<String> languages) {
 		return new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
@@ -203,7 +198,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public String getMainDataLanguage() {
-		return  getCollectionInfo(Collection.SYSTEM_COLLECTION).getMainSystemLanguage().getCode();
+		return getCollectionInfo(Collection.SYSTEM_COLLECTION).getMainSystemLanguage().getCode();
 
 	}
 }

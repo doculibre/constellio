@@ -1,8 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
@@ -15,6 +12,9 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SmbSchemaDisplayConfiguration {
 	private ESSchemasRecordsServices es;
@@ -50,8 +50,8 @@ public class SmbSchemaDisplayConfiguration {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(connectorInstance.getCollection());
 
 		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.LAST_MODIFIED)
-				.afterMetadata(ConnectorSmbDocument.TITLE);
+						  .addToSearchResult(ConnectorSmbDocument.LAST_MODIFIED)
+						  .afterMetadata(ConnectorSmbDocument.TITLE);
 
 		String modifiedOn = Schemas.MODIFIED_ON.getLocalCode();
 
@@ -60,11 +60,12 @@ public class SmbSchemaDisplayConfiguration {
 		manager.execute(transactionBuilder.build());
 	}
 
-	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type, SchemaDisplayConfig schema, String... localCodes) {
+	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
+										SchemaDisplayConfig schema, String... localCodes) {
 
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory()
-				.getMetadataSchemasManager()
-				.getSchemaTypes(collection);
+														 .getMetadataSchemasManager()
+														 .getSchemaTypes(collection);
 
 		List<String> visibleMetadataCodes = new ArrayList<>();
 		for (String localCode : localCodes) {
@@ -84,7 +85,7 @@ public class SmbSchemaDisplayConfiguration {
 			if (index != -1) {
 				metadataCodes.set(index, retrievedMetadataCode);
 			} else if (!schemaTypes.getMetadata(retrievedMetadataCode)
-					.isSystemReserved()) {
+								   .isSystemReserved()) {
 				otherMetadatas.add(retrievedMetadataCode);
 			}
 		}
@@ -96,7 +97,7 @@ public class SmbSchemaDisplayConfiguration {
 			SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 			for (String invisible : otherMetadatas) {
 				manager.saveMetadata(manager.getMetadata(collection, invisible)
-						.withInputType(MetadataInputType.HIDDEN));
+											.withInputType(MetadataInputType.HIDDEN));
 			}
 		} else {
 			newSchema = schema.withDisplayMetadataCodes(metadataCodes);

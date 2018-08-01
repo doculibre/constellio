@@ -1,12 +1,11 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import org.joda.time.LocalDate;
+
+import java.util.List;
 
 public class FolderExpectedDestructionDateCalculator2
 		extends AbstractFolderExpectedDateCalculator

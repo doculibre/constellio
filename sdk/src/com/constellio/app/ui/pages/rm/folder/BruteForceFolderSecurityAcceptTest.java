@@ -1,16 +1,7 @@
 package com.constellio.app.ui.pages.rm.folder;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,6 +13,14 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @UiTest
 public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
@@ -32,10 +31,10 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
 
-	private String[] folderButtons = new String[] { "Ajouter un document", "Ajouter un sous-dossier", "Modifier la fiche dossier",
-			"Partager ce dossier" };
+	private String[] folderButtons = new String[]{"Ajouter un document", "Ajouter un sous-dossier", "Modifier la fiche dossier",
+												  "Partager ce dossier"};
 
-	private String[] documentButtons = new String[] { "Éditer la fiche du document", "Partager ce document" };
+	private String[] documentButtons = new String[]{"Éditer la fiche du document", "Partager ce document"};
 
 	private void prepare()
 			throws Exception {
@@ -43,7 +42,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus()
-						.withEvents()
+								  .withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -90,23 +89,23 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 				driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderId);
 				if (foldersWithReadAccess.contains(folderId)) {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
-							+ " should be able to view folder '" + folderId + "'")
-							.isFalse();
+														   + " should be able to view folder '" + folderId + "'")
+											  .isFalse();
 
 					for (String folderButton : folderButtons) {
 						ButtonWebElement button = getButtonIfEnabled(folderButton);
 						if (button != null) {
 							if (!clickValidateNotHomePageAndReturn(button)) {
 								fail("User " + user.getUsername() + " can click on the button '" + folderButton + "' on folder '"
-										+ folderId + "', but has no access to the page");
+									 + folderId + "', but has no access to the page");
 							}
 						}
 					}
 
 				} else {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
-							+ " should not be able to view folder '" + folderId + "'")
-							.isTrue();
+														   + " should not be able to view folder '" + folderId + "'")
+											  .isTrue();
 				}
 			}
 		}
@@ -143,24 +142,24 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 				driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + documentId);
 				if (documentsWithReadAccess.contains(documentId)) {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
-							+ " should be able to view document '" + documentId + "'")
-							.isFalse();
+														   + " should be able to view document '" + documentId + "'")
+											  .isFalse();
 
 					for (String folderButton : documentButtons) {
 						ButtonWebElement button = getButtonIfEnabled(folderButton);
 						if (button != null) {
 							if (!clickValidateNotHomePageAndReturn(button)) {
 								fail("User " + user.getUsername() + " can click on the button '" + folderButton
-										+ "' on document '"
-										+ documentId + "', but has no access to the page");
+									 + "' on document '"
+									 + documentId + "', but has no access to the page");
 							}
 						}
 					}
 
 				} else {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
-							+ " should not be able to view document '" + documentId + "'")
-							.isTrue();
+														   + " should not be able to view document '" + documentId + "'")
+											  .isTrue();
 				}
 			}
 		}

@@ -1,10 +1,10 @@
 package com.constellio.sdk.load.script.utils;
 
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 
 public class LinkableIdsList {
 

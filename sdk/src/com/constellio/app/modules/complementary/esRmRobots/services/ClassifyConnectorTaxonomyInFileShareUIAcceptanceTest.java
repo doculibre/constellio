@@ -1,27 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
@@ -60,6 +38,27 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 
 @UiTest
 public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends ConstellioTest {
@@ -119,7 +118,7 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+										.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -166,19 +165,19 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 		}).when(connectorSmb).getInputStream(any(ConnectorSmbDocument.class), anyString());
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setTitle("zeConnector")
-				.setCode("zeConnector")
-				.setEnabled(false)
-				.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
-				.setTraversalCode("zeTraversal"));
+															   .setTitle("zeConnector")
+															   .setCode("zeConnector")
+															   .setEnabled(false)
+															   .setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+															   .setTraversalCode("zeTraversal"));
 
 		anotherConnectorInstance = connectorManager
 				.createConnector(es.newConnectorSmbInstance()
-						.setTitle("anotherConnector")
-						.setCode("anotherConnector")
-						.setEnabled(false)
-						.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
-						.setTraversalCode("anotherConnectorTraversal"));
+								   .setTitle("anotherConnector")
+								   .setCode("anotherConnector")
+								   .setEnabled(false)
+								   .setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+								   .setTraversalCode("anotherConnectorTraversal"));
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -193,10 +192,10 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("aCustomRequiredMetadata").setType(MetadataValueType.STRING)
-						.setDefaultRequirement(
-								true);
+					 .setDefaultRequirement(
+							 true);
 				types.getSchema(Document.DEFAULT_SCHEMA).create("aCustomRequiredMetadata").setType(MetadataValueType.STRING)
-						.setDefaultRequirement(true);
+					 .setDefaultRequirement(true);
 			}
 		});
 	}
@@ -214,14 +213,14 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
 				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(EXCLUDE_DOCUMENTS)
-				.setDelimiter(" ").setDocumentMapping(documentMapping).setFolderMapping(folderMapping)
-				.setDefaultCategory(records.categoryId_X));
+									 .setDelimiter(" ").setDocumentMapping(documentMapping).setFolderMapping(folderMapping)
+									 .setDefaultCategory(records.categoryId_X));
 
 		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
-				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+										.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+										.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		newWebDriver().logUserInCollection("admin", zeCollection);
 		waitUntilICloseTheBrowsers();
@@ -256,30 +255,30 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 
 		Transaction transaction = new Transaction();
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
-				.setTitle("1.txt").setUrl(folderATaxoURL + "1.txt").setParsedContent("Document A1 content").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("1.txt").setUrl(folderATaxoURL + "1.txt").setParsedContent("Document A1 content").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl(folderATaxoURL + "2.txt").setParsedContent("Document A2 content").setParentUrl("smb://A/")
-				.setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("2.txt").setUrl(folderATaxoURL + "2.txt").setParsedContent("Document A2 content").setParentUrl("smb://A/")
+				   .setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl(folderBTaxoURL + "3.txt").setParsedContent("Document B3 content").setParentUrl("smb://B/")
-				.setManualTokens("rtoken1");
+				   .setTitle("3.txt").setUrl(folderBTaxoURL + "3.txt").setParsedContent("Document B3 content").setParentUrl("smb://B/")
+				   .setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3JustDeleted, connectorInstance))
-				.setTitle("7.txt").setUrl(folderBTaxoURL + "7.txt").setParsedContent("Document B7")
-                .setParentUrl("smb://B/")
-				.setManualTokens("rtoken1");
+				   .setTitle("7.txt").setUrl(folderBTaxoURL + "7.txt").setParsedContent("Document B7")
+				   .setParentUrl("smb://B/")
+				   .setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl(folderAATaxoURL + "4.txt").setParsedContent("Document AA4 content").setParentUrl("smb://A/A/")
-				.setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("4.txt").setUrl(folderAATaxoURL + "4.txt").setParsedContent("Document AA4 content").setParentUrl("smb://A/A/")
+				   .setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
-				.setTitle("5.txt").setUrl(folderAATaxoURL + "5.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("5.txt").setUrl(folderAATaxoURL + "5.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAA6, connectorInstance))
-				.setTitle("6.txt").setUrl(folderAAATaxoURL + "6.txt").setParentUrl("smb://A/A/A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("6.txt").setUrl(folderAAATaxoURL + "6.txt").setParentUrl("smb://A/A/A/").setManualTokens(PUBLIC_TOKEN);
 		recordServices.execute(transaction);
 	}
 
@@ -299,13 +298,13 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance)).setTitle("A").setUrl(folderATaxoURL);
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance)).setTitle("AA").setUrl(folderAATaxoURL)
-                .setParentUrl("smb://A/");
+				   .setParentUrl("smb://A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance)).setTitle("AB").setUrl(folderABTaxoURL)
-                .setParentUrl("smb://A/");
+				   .setParentUrl("smb://A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance)).setTitle("AAA").setUrl(folderAAATaxoURL)
-                .setParentUrl("smb://A/A/");
+				   .setParentUrl("smb://A/A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance)).setTitle("AAB").setUrl(folderAABTaxoURL)
-                .setParentUrl("smb://A/A/");
+				   .setParentUrl("smb://A/A/");
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance)).setTitle("B").setUrl(folderBTaxoURL);
 
 		recordServices.execute(transaction);
@@ -321,7 +320,8 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 		}
 	}
 
-	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorFolderInTaxonomyActionParameters params) {
+	void classifyConnectorFolderInTaxonomy(Record connectorFolder,
+										   ClassifyConnectorFolderInTaxonomyActionParameters params) {
 		ClassifyConnectorRecordInTaxonomyExecutor builder = new ClassifyConnectorRecordInTaxonomyExecutor(
 				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId, new ArrayList<Record>(), false);
 		builder.execute();

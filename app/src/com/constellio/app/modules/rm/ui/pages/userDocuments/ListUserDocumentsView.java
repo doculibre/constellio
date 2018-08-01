@@ -9,7 +9,7 @@ import com.constellio.data.utils.Builder;
 import java.util.List;
 
 public interface ListUserDocumentsView extends BaseView, UserDocumentsViewGroup {
-	
+
 	void setUserContent(List<RecordVODataProvider> dataProviders);
 
 	void setClassifyButtonFactory(Builder<ContainerButton> classifyButtonFactory);

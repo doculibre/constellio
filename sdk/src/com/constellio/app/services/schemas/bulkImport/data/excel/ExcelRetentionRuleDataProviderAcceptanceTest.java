@@ -1,21 +1,20 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
+import com.constellio.data.io.services.facades.IOServices;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
-import com.constellio.data.io.services.facades.IOServices;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 public class ExcelRetentionRuleDataProviderAcceptanceTest extends ImportDataIteratorTest {
 
@@ -69,24 +68,24 @@ public class ExcelRetentionRuleDataProviderAcceptanceTest extends ImportDataIter
 		documentTypeDetailOne.put("code", "1234");
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(2))
-				.has(field("description", firstDescription))
-				.has(field("approved", "true"))
-				.has(field("approvalDate", localDate))
-				.has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
-				.has(field("essentialDocuments", "true"))
-				.has(field("confidentialDocuments", "false"))
-				.has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
-				.has(field("administrativeUnits", singletonList("1")));
+											 .has(field("description", firstDescription))
+											 .has(field("approved", "true"))
+											 .has(field("approvalDate", localDate))
+											 .has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
+											 .has(field("essentialDocuments", "true"))
+											 .has(field("confidentialDocuments", "false"))
+											 .has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
+											 .has(field("administrativeUnits", singletonList("1")));
 
 		assertThat(importDataIterator.next()).has(id("2")).has(index(3))
-				.has(field("code", "111200"))
-				.has(field("description", secondDescription))
-				.has(field("approved", "true"))
-				.has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
-				.has(field("essentialDocuments", "false"))
-				.has(field("confidentialDocuments", "true"))
-				.has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
-				.has(field("administrativeUnits", asList("1", "2")));
+											 .has(field("code", "111200"))
+											 .has(field("description", secondDescription))
+											 .has(field("approved", "true"))
+											 .has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
+											 .has(field("essentialDocuments", "false"))
+											 .has(field("confidentialDocuments", "true"))
+											 .has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
+											 .has(field("administrativeUnits", asList("1", "2")));
 
 	}
 }

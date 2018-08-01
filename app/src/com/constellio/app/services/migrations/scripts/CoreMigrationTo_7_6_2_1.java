@@ -18,7 +18,8 @@ public class CoreMigrationTo_7_6_2_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_7_6_2_1_deleteStep(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		new CoreSchemaAlterationFor_7_6_2_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -27,8 +28,8 @@ public class CoreMigrationTo_7_6_2_1 implements MigrationScript {
 	class CoreSchemaAlterationFor_7_6_2_1_deleteStep extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_7_6_2_1_deleteStep(String collection,
-				MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+															 MigrationResourcesProvider migrationResourcesProvider,
+															 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -41,19 +42,20 @@ public class CoreMigrationTo_7_6_2_1 implements MigrationScript {
 
 	class CoreSchemaAlterationFor_7_6_2_1 extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_7_6_2_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+		protected CoreSchemaAlterationFor_7_6_2_1(String collection,
+												  MigrationResourcesProvider migrationResourcesProvider,
+												  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA)
-					.addLabel(Language.French, "Audits d'importation");
+																  .addLabel(Language.French, "Audits d'importation");
 			importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true);
 
 			MetadataSchemaBuilder exportAuditSchema = typesBuilder.getSchema(ExportAudit.FULL_SCHEMA)
-					.addLabel(Language.French, "Audits d'exportation");
+																  .addLabel(Language.French, "Audits d'exportation");
 
 		}
 	}

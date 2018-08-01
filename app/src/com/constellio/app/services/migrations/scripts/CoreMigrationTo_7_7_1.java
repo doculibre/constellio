@@ -1,21 +1,21 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.OVERRIDE_INHERITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.records.DataStore;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.ScriptReport;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.OVERRIDE_INHERITED;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 public class CoreMigrationTo_7_7_1 implements MigrationScript {
 	@Override
@@ -24,7 +24,8 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_7_7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -32,8 +33,8 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 	class CoreSchemaAlterationFor_7_7_1 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_7_7_1(String collection,
-				MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -43,11 +44,11 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 			if (!temporaryRecord.hasSchema(BatchProcessReport.SCHEMA)) {
 				MetadataSchemaBuilder batchProcessReportSchema = temporaryRecord.createCustomSchema(BatchProcessReport.SCHEMA);
 				batchProcessReportSchema.createUndeletable(BatchProcessReport.ERRORS).setType(MetadataValueType.TEXT)
-						.setSystemReserved(true);
+										.setSystemReserved(true);
 				batchProcessReportSchema.createUndeletable(BatchProcessReport.SKIPPED_RECORDS).setType(MetadataValueType.STRING)
-						.setMultivalue(true).setSystemReserved(true);
+										.setMultivalue(true).setSystemReserved(true);
 				batchProcessReportSchema.createUndeletable(BatchProcessReport.LINKED_BATCH_PROCESS)
-						.setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
+										.setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
 			}
 
 			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA);

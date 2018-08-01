@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.management.thesaurus;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -40,6 +28,14 @@ import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.constellio.model.services.thesaurus.ThesaurusServiceBuilder;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
 import com.vaadin.server.Page;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConfigurationView> {
 
@@ -114,7 +110,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 			}
 
 			modelLayerFactory.getContentManager().getContentDao()
-					.moveFileToVault(tempFileUpload.getTempFile(), contentVersionDataSummary.getHash());
+							 .moveFileToVault(tempFileUpload.getTempFile(), contentVersionDataSummary.getHash());
 			view.setSKOSSaveButtonEnabled(false);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -346,7 +342,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		SPEQueryResponse response = searchService.query(query);
 		return response.getFieldFacetValues().get("thesaurusMatch_ss");
 	}
-	
+
 	InputStream getMostUsedConceptsInputStream(List<FacetValue> mostUsedConcepts) {
 		StringBuilder csv = new StringBuilder();
 		csv.append("\"À propos\"");
@@ -358,16 +354,16 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		csv.append("\"Fréquence\"");
 		csv.append("\n");
 
-		for (FacetValue concept: mostUsedConcepts) {
+		for (FacetValue concept : mostUsedConcepts) {
 			SkosConcept skosConcept = thesaurusManager.get(collection).getSkosConcept(concept.getValue());
 			if (skosConcept != null) {
-				csv.append("\""+skosConcept.getRdfAbout()+"\"");
+				csv.append("\"" + skosConcept.getRdfAbout() + "\"");
 				csv.append(",");
-				csv.append("\""+skosConcept.getPrefLabel(Locale.FRENCH)+"\"");
+				csv.append("\"" + skosConcept.getPrefLabel(Locale.FRENCH) + "\"");
 				csv.append(",");
-				csv.append("\""+skosConcept.getPrefLabel(Locale.ENGLISH)+"\"");
+				csv.append("\"" + skosConcept.getPrefLabel(Locale.ENGLISH) + "\"");
 				csv.append(",");
-				csv.append("\""+concept.getQuantity()+"\"");
+				csv.append("\"" + concept.getQuantity() + "\"");
 				csv.append("\n");
 			}
 		}
@@ -376,7 +372,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 	List<SkosConcept> getUnusedConcepts() {
 		List<SkosConcept> result = new ArrayList<>();
-		
+
 		// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -392,17 +388,17 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 		Map<String, SkosConcept> allConcept = thesaurusManager.get(collection).getAllConcepts();
 
-		for (FacetValue value: usedConcept) {
+		for (FacetValue value : usedConcept) {
 			allConcept.remove(value.getValue());
 		}
 
-		for(String conceptKey: allConcept.keySet()) {
+		for (String conceptKey : allConcept.keySet()) {
 			SkosConcept concept = allConcept.get(conceptKey);
 			result.add(concept);
-		}	
+		}
 		return result;
 	}
-	
+
 	public InputStream getUnusedConceptsInputStream(final List<SkosConcept> unusedConcepts) {
 		StringBuilder csv = new StringBuilder();
 		csv.append("\"À propos\"");
@@ -412,12 +408,12 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		csv.append("\"Anglais (skos:prefLabel)\"");
 		csv.append("\n");
 
-		for(SkosConcept unusedConcept: unusedConcepts) {
-			csv.append("\""+unusedConcept.getRdfAbout()+"\"");
+		for (SkosConcept unusedConcept : unusedConcepts) {
+			csv.append("\"" + unusedConcept.getRdfAbout() + "\"");
 			csv.append(",");
-			csv.append("\""+unusedConcept.getPrefLabel(Locale.FRENCH)+"\"");
+			csv.append("\"" + unusedConcept.getPrefLabel(Locale.FRENCH) + "\"");
 			csv.append(",");
-			csv.append("\""+unusedConcept.getPrefLabel(Locale.ENGLISH)+"\"");
+			csv.append("\"" + unusedConcept.getPrefLabel(Locale.ENGLISH) + "\"");
 			csv.append("\n");
 		}
 		return new ByteArrayInputStream(csv.toString().getBytes(StandardCharsets.ISO_8859_1));

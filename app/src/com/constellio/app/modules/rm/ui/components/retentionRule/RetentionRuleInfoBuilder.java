@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -16,6 +9,12 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.entities.records.Record;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RetentionRuleInfoBuilder {
 
@@ -89,7 +88,7 @@ public class RetentionRuleInfoBuilder {
 	}
 
 	private void appendCopyRetentionRule(CopyRetentionRule copyRetentionRule, StringBuilder sb, boolean addLabelAndCode,
-			RMSchemasRecordsServices rmSchemasRecordsServices) {
+										 RMSchemasRecordsServices rmSchemasRecordsServices) {
 		CopyType copyType = copyRetentionRule.getCopyType();
 		List<String> mediumTypeIds = copyRetentionRule.getMediumTypeIds();
 		RetentionPeriod activeRetentionPeriod = copyRetentionRule.getActiveRetentionPeriod();

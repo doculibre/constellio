@@ -1,32 +1,9 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.rm.wrappers.RMTask.LINKED_FOLDERS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
+import com.constellio.app.modules.tasks.model.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
@@ -39,6 +16,23 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.RMTask.LINKED_FOLDERS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 	TasksSchemasRecordsServices tasks;
@@ -53,7 +47,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withTasksModule().withAllTest(users).withConstellioRMModule().withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus());
+										.withFoldersAndContainersOfEveryStatus());
 		services = new BetaWorkflowServices(zeCollection, getAppLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();
 		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -371,7 +365,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(currentTask.setStatus(closedStatus).setDecision("true"));
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance)
-				.setStatus(closedStatus));
+									  .setStatus(closedStatus));
 
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Demande d'approbation", closedStatus),
@@ -382,7 +376,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance)
-				.setStatus(closedStatus));
+									  .setStatus(closedStatus));
 
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Demande d'approbation", closedStatus),
@@ -656,7 +650,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		assertThat(services.getChildModelTasks(simpleWorkflowRoots.get(2), sessionContext)).isEmpty();
 
 		assertThat(services.getChildModelTasks(simpleWorkflowRoots.get(6), sessionContext)).extracting("title")
-				.containsOnly("New decision task - decision1", "New decision task - decision2");
+																						   .containsOnly("New decision task - decision1", "New decision task - decision2");
 	}
 
 	@Test
@@ -761,7 +755,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
 		recordServices.update(approval.addNextTaskDecision("true", approvedFirstTask.getId())
-				.addNextTaskDecision("false", refusalFirstTask.getId()));
+									  .addNextTaskDecision("false", refusalFirstTask.getId()));
 		recordServices.update(approvedFirstTask.setNextTask(approvedSecondTask.getId()));
 		//recordServices.update(refusalFirstTask.setNextTask(approval.getId()));
 		recordServices.update(details.setNextTask(approval.getId()));
@@ -796,7 +790,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		task2.setTitle("Task 2").setAssigneeUsersCandidates(asList(dakota, gandalf));
 		task3.setTitle("Task 3").setAssigneeUsersCandidates(asList(dakota, edouard));
 		task4.setTitle("Task 4").setAssignee(chuckNorris).setAssignationDate(new LocalDate()).setAssignedOn(new LocalDate())
-				.setAssigner(chuckNorris);
+			 .setAssigner(chuckNorris);
 		taskZ.setTitle("Task Z").setAssigneeGroupsCandidates(asList(heroes));
 		recordServices.execute(transaction);
 

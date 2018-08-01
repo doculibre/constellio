@@ -1,7 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.model;
 
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -9,6 +7,7 @@ import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
 
 public class ClassifyConnectorFolderInParentFolderActionParameters extends ActionParameters
 		implements ClassifyConnectorFolderActionParameters {
@@ -25,7 +24,7 @@ public class ClassifyConnectorFolderInParentFolderActionParameters extends Actio
 	public static final String DEFAULT_OPEN_DATE = "defaultOpenDate";
 
 	public ClassifyConnectorFolderInParentFolderActionParameters(Record record,
-			MetadataSchemaTypes types) {
+																 MetadataSchemaTypes types) {
 		super(record, types);
 	}
 

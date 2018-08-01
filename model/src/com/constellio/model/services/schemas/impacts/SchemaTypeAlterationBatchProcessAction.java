@@ -1,10 +1,5 @@
 package com.constellio.model.services.schemas.impacts;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -17,21 +12,28 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordProvider;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 public class SchemaTypeAlterationBatchProcessAction implements BatchProcessAction {
 
 	List<String> reindexedMetadataForSearch = new ArrayList<>();
 	List<String> convertedToSingleValue = new ArrayList<>();
 	List<String> convertedToMultiValue = new ArrayList<>();
 
-	public SchemaTypeAlterationBatchProcessAction(List<String> reindexedMetadataForSearch, List<String> convertedToSingleValue,
-			List<String> convertedToMultiValue) {
+	public SchemaTypeAlterationBatchProcessAction(List<String> reindexedMetadataForSearch,
+												  List<String> convertedToSingleValue,
+												  List<String> convertedToMultiValue) {
 		this.convertedToSingleValue = convertedToSingleValue;
 		this.convertedToMultiValue = convertedToMultiValue;
 		this.reindexedMetadataForSearch = reindexedMetadataForSearch;
 	}
 
 	@Override
-	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
+	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes,
+							   RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
 		Transaction transaction = new Transaction();
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.getRecordUpdateOptions().setFullRewrite(true);
@@ -70,6 +72,6 @@ public class SchemaTypeAlterationBatchProcessAction implements BatchProcessActio
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { reindexedMetadataForSearch, convertedToSingleValue, convertedToMultiValue };
+		return new Object[]{reindexedMetadataForSearch, convertedToSingleValue, convertedToMultiValue};
 	}
 }

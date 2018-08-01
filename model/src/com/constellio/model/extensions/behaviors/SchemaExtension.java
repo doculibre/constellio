@@ -6,7 +6,6 @@ import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.NOT_APPLICABLE;

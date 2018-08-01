@@ -1,28 +1,5 @@
 package com.constellio.app.api.search;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.Content;
@@ -57,7 +34,10 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -465,7 +445,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeCollectionSchema, "00000042666");
 		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1)
-				.set(zeCollectionSchema.numberMetadata(), asList(475.0, 333)));
+								 .set(zeCollectionSchema.numberMetadata(), asList(475.0, 333)));
 
 		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475.0d))).isNotEmpty();
 		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475))).isNotEmpty();
@@ -524,7 +504,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeCollectionSchema, "00000042666");
 		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1)
-				.set(zeCollectionSchema.dateMetadata(), asList(date, date2)));
+								 .set(zeCollectionSchema.dateMetadata(), asList(date, date2)));
 
 		reindex();
 
@@ -680,20 +660,20 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 			if (expectedFoundWords.contains(aSearchableQuoteWord)) {
 				if (aSearchableQuoteWord.english) {
 					assertThat(resultsIdsOf(paramsWithQ(englishSearchField + ":" + word))).describedAs(wordsNotFoundDescription)
-							.hasSize(1);
+																						  .hasSize(1);
 					assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + word))).describedAs(wordsFoundDescription)
-							.isEmpty();
+																						 .isEmpty();
 				} else {
 					assertThat(resultsIdsOf(paramsWithQ(englishSearchField + ":" + word))).describedAs(wordsFoundDescription)
-							.isEmpty();
+																						  .isEmpty();
 					assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + word))).describedAs(wordsNotFoundDescription)
-							.hasSize(1);
+																						 .hasSize(1);
 				}
 			} else {
 				assertThat(resultsIdsOf(paramsWithQ(englishSearchField + ":" + word))).describedAs(wordsFoundDescription)
-						.isEmpty();
+																					  .isEmpty();
 				assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + word))).describedAs(wordsFoundDescription)
-						.isEmpty();
+																					 .isEmpty();
 			}
 		}
 	}

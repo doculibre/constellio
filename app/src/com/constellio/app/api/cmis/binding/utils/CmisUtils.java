@@ -1,25 +1,16 @@
 package com.constellio.app.api.cmis.binding.utils;
 
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
-
+import com.constellio.app.api.cmis.CmisExceptions.*;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
-import org.apache.chemistry.opencmis.commons.data.PropertyDateTime;
-import org.apache.chemistry.opencmis.commons.data.PropertyId;
-import org.apache.chemistry.opencmis.commons.data.PropertyString;
+import org.apache.chemistry.opencmis.commons.data.*;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ConstraintCannotBeUpdated;
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ConstraintReadOnly;
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ConstraintUnknown;
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidArgument;
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ObjectNotFound;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TimeZone;
 
 public class CmisUtils {
 
@@ -136,7 +127,8 @@ public class CmisUtils {
 	/**
 	 * Checks if the property belong to the type and are settable.
 	 */
-	public static void checkTypeProperties(TypeDefinition type, Properties properties, String typeId, boolean isCreate) {
+	public static void checkTypeProperties(TypeDefinition type, Properties properties, String typeId,
+										   boolean isCreate) {
 		// check type
 		if (type == null) {
 			throw new CmisExceptions_ObjectNotFound("type", typeId);

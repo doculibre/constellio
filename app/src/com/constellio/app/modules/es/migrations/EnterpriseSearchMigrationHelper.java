@@ -1,20 +1,7 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
-import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
-import com.constellio.app.modules.es.model.connectors.ConnectorType;
-import com.constellio.app.modules.es.model.connectors.NextFetchCalculator;
+import com.constellio.app.modules.es.model.connectors.*;
 import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -27,6 +14,10 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+
 public class EnterpriseSearchMigrationHelper {
 
 	public final AppLayerFactory appLayerFactory;
@@ -36,7 +27,7 @@ public class EnterpriseSearchMigrationHelper {
 	public final MigrationResourcesProvider resourcesProvider;
 
 	public EnterpriseSearchMigrationHelper(AppLayerFactory appLayerFactory, String collection,
-			MigrationResourcesProvider migrationResourcesProvider) {
+										   MigrationResourcesProvider migrationResourcesProvider) {
 		this.es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		this.resourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
@@ -49,7 +40,7 @@ public class EnterpriseSearchMigrationHelper {
 		Map<Language, String> titles = resourcesProvider
 				.getLanguagesString("init." + schema.getCode().replace("-", ".").replace("_", "."));
 		return es.newConnectorType().setCode(connectorTypeCode).setTitles(titles).setLinkedSchema(schema.getCode())
-				.setConnectorClassName(connectorClass.getName());
+				 .setConnectorClassName(connectorClass.getName());
 	}
 
 	public static class ESSchemaTypesMigrationHelper {
@@ -61,7 +52,7 @@ public class EnterpriseSearchMigrationHelper {
 		}
 
 		public MetadataSchemaTypeBuilder newConnectorDocumentSchemaType(String schemaType,
-				String connectorInstanceSchemaCode) {
+																		String connectorInstanceSchemaCode) {
 
 			MetadataSchemaBuilder connectorInstanceSchema = types.getSchema(connectorInstanceSchemaCode);
 			MetadataSchemaBuilder connectorTypeSchemaType = types.getDefaultSchema(ConnectorType.SCHEMA_TYPE);
@@ -73,11 +64,11 @@ public class EnterpriseSearchMigrationHelper {
 			MetadataSchemaBuilder schemaBuilder = typeBuilder.getDefaultSchema();
 			typeBuilder.setInTransactionLog(false);
 			MetadataBuilder connectorDocConnector = schemaBuilder.createUndeletable(ConnectorDocument.CONNECTOR)
-					.setType(REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorInstanceSchema);
+																 .setType(REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorInstanceSchema);
 
 			schemaBuilder.createUndeletable(ConnectorDocument.TRAVERSAL_CODE).setType(STRING).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.CONNECTOR_TYPE).setType(REFERENCE)
-					.defineReferencesTo(connectorTypeSchemaType).setDefaultRequirement(true);
+						 .defineReferencesTo(connectorTypeSchemaType).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.URL).setType(STRING).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.MIMETYPE).setType(STRING);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCHED).setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
@@ -87,7 +78,7 @@ public class EnterpriseSearchMigrationHelper {
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCH_FREQUENCY).defineAsEnum(FetchFrequency.class);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCH_DELAY).setType(NUMBER).setDefaultValue(10);
 			schemaBuilder.createUndeletable(ConnectorDocument.NEXT_FETCH).setType(DATE_TIME)
-					.defineDataEntry().asCalculated(NextFetchCalculator.class);
+						 .defineDataEntry().asCalculated(NextFetchCalculator.class);
 			schemaBuilder.createUndeletable(ConnectorDocument.NEVER_FETCH).setType(BOOLEAN);
 			schemaBuilder.createUndeletable(ConnectorDocument.ERROR_CODE).setType(STRING);
 			schemaBuilder.createUndeletable(ConnectorDocument.ERROR_MESSAGE).setType(STRING);

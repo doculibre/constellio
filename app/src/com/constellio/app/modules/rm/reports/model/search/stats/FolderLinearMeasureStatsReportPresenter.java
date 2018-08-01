@@ -21,7 +21,8 @@ public class FolderLinearMeasureStatsReportPresenter {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public FolderLinearMeasureStatsReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean withUsers) {
+	public FolderLinearMeasureStatsReportPresenter(String collection, ModelLayerFactory modelLayerFactory,
+												   boolean withUsers) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;

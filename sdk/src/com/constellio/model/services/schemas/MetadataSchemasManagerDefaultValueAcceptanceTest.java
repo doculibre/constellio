@@ -1,17 +1,7 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.constellio.model.entities.Language;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.utils.Delayed;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -26,9 +16,18 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataSchemasManagerDefaultValueAcceptanceTest extends ConstellioTest {
 
@@ -62,7 +61,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(record1Id);
+					 .setDefaultValue(record1Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record1Id);
@@ -73,7 +72,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(record2Id);
+					 .setDefaultValue(record2Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
@@ -95,7 +94,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(record2Id);
+					 .setDefaultValue(record2Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
@@ -117,7 +116,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(record2Id);
+					 .setDefaultValue(record2Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
@@ -143,7 +142,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(asList(record1Id, record2Id));
+					 .setDefaultValue(asList(record1Id, record2Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -155,7 +154,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(asList(record1Id, record3Id));
+					 .setDefaultValue(asList(record1Id, record3Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -178,7 +177,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(asList(record1Id, record2Id));
+					 .setDefaultValue(asList(record1Id, record2Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -206,7 +205,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-						.setDefaultValue(asList(record1Id, record3Id));
+					 .setDefaultValue(asList(record1Id, record3Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -459,6 +458,6 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		Record parentOfRecord3 = new TestRecord(zeSchema, parentOfRecord3Id);
 
 		getModelLayerFactory().newRecordServices()
-				.execute(new Transaction().addAll(record1, record2, record3, parentOfRecord12, parentOfRecord3));
+							  .execute(new Transaction().addAll(record1, record2, record3, parentOfRecord12, parentOfRecord3));
 	}
 }

@@ -1,24 +1,17 @@
 package com.constellio.app.modules.rm.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMCachingAcceptTest extends ConstellioTest {
 
@@ -30,7 +23,7 @@ public class RMCachingAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers()
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+										.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		cache.invalidateAll();

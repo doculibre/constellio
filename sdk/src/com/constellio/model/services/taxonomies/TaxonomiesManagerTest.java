@@ -1,26 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jdom2.Document;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
@@ -42,6 +21,18 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager.TaxonomiesManagerCache;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.jdom2.Document;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class TaxonomiesManagerTest extends ConstellioTest {
 
@@ -106,7 +97,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(schema.getCollection()).thenReturn(zeCollection);
 		inOrder = inOrder(configManager, taxonomiesManager, reader, writer, oneXMLConfigPerCollectionManager);
 		doNothing().when(taxonomiesManager)
-				.createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
+				   .createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
 
 		labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "1");

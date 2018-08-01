@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -23,6 +13,15 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	DecommissioningService service;
@@ -39,7 +38,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -200,8 +199,8 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(rm.PA()), "3-888-D");
 		CopyRetentionRule secondary_MD_3_888_C = copyBuilder.newSecondary(asList(rm.DM()), "3-888-C");
 		recordServices.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("Ze rule!")
-				.setAdministrativeUnits(asList(records.unitId_12)).setApproved(true)
-				.setCopyRetentionRules(asList(principal_PA_3_888_D, secondary_MD_3_888_C)));
+							 .setAdministrativeUnits(asList(records.unitId_12)).setApproved(true)
+							 .setCopyRetentionRules(asList(principal_PA_3_888_D, secondary_MD_3_888_C)));
 		recordServices.logicallyDelete(recordServices.getDocumentById("zeRule"), User.GOD);
 		List<RetentionRule> retentionRules = service.getRetentionRulesForAdministrativeUnit("unitId_12b");
 		assertThat(retentionRules).hasSize(3).extracting("id").containsOnly("ruleId_2", "ruleId_1", "ruleId_4");

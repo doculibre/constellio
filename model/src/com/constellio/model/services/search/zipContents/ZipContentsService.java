@@ -1,34 +1,12 @@
 package com.constellio.model.services.search.zipContents;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -38,6 +16,18 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
 
 public class ZipContentsService {
 	private static Logger LOGGER = Logger.getLogger(ZipContentsService.class);
@@ -231,7 +221,8 @@ public class ZipContentsService {
 	}
 
 	//TODO test me
-	private void putContentInAdequateNode(RecordToZipNode tree, RelatedContent relatedContent, String relativePathInTree) {
+	private void putContentInAdequateNode(RecordToZipNode tree, RelatedContent relatedContent,
+										  String relativePathInTree) {
 		String[] recordsIds = StringUtils.split(relativePathInTree, "/");
 		RecordToZipNode currentNode = tree;
 		for (String recordId : recordsIds) {
@@ -302,7 +293,7 @@ public class ZipContentsService {
 			return new ArrayList<>();
 		}
 		LogicalSearchCondition recordContentQuery = fromAllSchemasInExceptEvents(collection).where(Schemas.PRINCIPAL_PATH)
-				.isContainingText(recordPrincipalPath).andWhereAny(contentDataStoreFields).isNotNull();
+																							.isContainingText(recordPrincipalPath).andWhereAny(contentDataStoreFields).isNotNull();
 		return searchServices.search(new LogicalSearchQuery(recordContentQuery));
 	}
 
@@ -317,13 +308,13 @@ public class ZipContentsService {
 	public boolean canHaveChildren(MetadataSchema schema) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(schema.getCode());
 		return !metadataSchemaManager.getSchemaTypes(schema.getCollection()).getAllMetadatas()
-				.onlyParentReferenceToSchemaType(schemaType).isEmpty();
+									 .onlyParentReferenceToSchemaType(schemaType).isEmpty();
 	}
 
 	List<RelatedContent> getRecordDirectContents(Record record) {
 		List<RelatedContent> returnList = new ArrayList<>();
 		MetadataSchema schema = metadataSchemaManager.getSchemaTypes(collection)
-				.getSchema(record.getSchemaCode());
+													 .getSchema(record.getSchemaCode());
 		String containerRecordId, containerRecordPrincipalPath;
 		if (canHaveChildren(schema)) {
 			containerRecordId = record.getId();
@@ -388,7 +379,7 @@ public class ZipContentsService {
 					}
 					for (RecordDescription recordDescription : recordDescriptions) {
 						if (!elementToEvaluate.getId().equals(recordDescription.getId()) &&
-								elementToEvaluate.getPrincipalPath().contains(recordDescription.getPrincipalPath())) {
+							elementToEvaluate.getPrincipalPath().contains(recordDescription.getPrincipalPath())) {
 							return false;
 						}
 					}

@@ -1,8 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -19,6 +16,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+
 public class CoreMigrationTo_7_6 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -26,7 +26,8 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_7_6_deleteStep(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		new CoreSchemaAlterationFor_7_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -40,7 +41,7 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.add(manager.getMetadata(collection, Capsule.DEFAULT_SCHEMA + "_" + Capsule.HTML)
-				.withInputType(MetadataInputType.RICHTEXT));
+									  .withInputType(MetadataInputType.RICHTEXT));
 		manager.execute(transactionBuilder.build());
 	}
 
@@ -60,8 +61,9 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 
 	class CoreSchemaAlterationFor_7_6_deleteStep extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_7_6_deleteStep(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+		protected CoreSchemaAlterationFor_7_6_deleteStep(String collection,
+														 MigrationResourcesProvider migrationResourcesProvider,
+														 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -75,7 +77,7 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 	class CoreSchemaAlterationFor_7_6 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_7_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

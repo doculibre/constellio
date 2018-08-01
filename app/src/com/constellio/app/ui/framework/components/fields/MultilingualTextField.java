@@ -83,15 +83,15 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 	private List<String> getCollectionLanguages() {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		return ConstellioFactories.getInstance().getModelLayerFactory().getCollectionsListManager()
-				.getCollectionLanguages(collection);
+								  .getCollectionLanguages(collection);
 	}
 
 	public void validateFields() throws Validator.InvalidValueException {
-		if(areFieldsSetToRequired) {
+		if (areFieldsSetToRequired) {
 			Iterator<Component> componentIterator = layout.iterator();
-			while(componentIterator.hasNext()) {
+			while (componentIterator.hasNext()) {
 				BaseTextField field = (BaseTextField) componentIterator.next();
-				field.setRequiredError($("MultilingualTextField.requiredError", $("Language."+field.getId()).toLowerCase()));
+				field.setRequiredError($("MultilingualTextField.requiredError", $("Language." + field.getId()).toLowerCase()));
 				field.validate();
 			}
 		}

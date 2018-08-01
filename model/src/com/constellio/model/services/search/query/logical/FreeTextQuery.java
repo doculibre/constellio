@@ -1,8 +1,7 @@
 package com.constellio.model.services.search.query.logical;
 
-import org.apache.solr.common.params.SolrParams;
-
 import com.constellio.model.entities.security.global.UserCredential;
+import org.apache.solr.common.params.SolrParams;
 
 public class FreeTextQuery {
 

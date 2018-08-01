@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.buttons.report;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -21,12 +15,13 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportGeneratorButton extends WindowButton {
 	//Window property
@@ -45,8 +40,9 @@ public class ReportGeneratorButton extends WindowButton {
 	private PrintableReportListPossibleType currentSchema;
 	private BaseView view;
 
-	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
-			PrintableReportListPossibleType currentSchema) {
+	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
+								 String collection,
+								 PrintableReportListPossibleType currentSchema) {
 		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
@@ -54,8 +50,9 @@ public class ReportGeneratorButton extends WindowButton {
 		this.view = view;
 	}
 
-	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
-			PrintableReportListPossibleType currentSchema, RecordVO... elements) {
+	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
+								 String collection,
+								 PrintableReportListPossibleType currentSchema, RecordVO... elements) {
 		this(caption, windowCaption, view, factory, collection, currentSchema);
 		this.setElements(elements);
 	}
@@ -77,7 +74,7 @@ public class ReportGeneratorButton extends WindowButton {
 		MetadataSchema metadataSchema = null;
 		if (this.elements != null && this.elements.length >= 1) {
 			metadataSchema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchema(this.elements[0].getSchema().getCode());
+									.getSchema(this.elements[0].getSchema().getCode());
 		}
 		return metadataSchema;
 	}
@@ -143,7 +140,8 @@ public class ReportGeneratorButton extends WindowButton {
 	private class ReportGeneratorButtonForm extends BaseForm<LabelParametersVO> {
 		private ReportGeneratorButton parent;
 
-		public ReportGeneratorButtonForm(LabelParametersVO viewObject, Serializable objectWithMemberFields, Field... fields) {
+		public ReportGeneratorButtonForm(LabelParametersVO viewObject, Serializable objectWithMemberFields,
+										 Field... fields) {
 			super(viewObject, objectWithMemberFields, fields);
 			parent = ReportGeneratorButton.this;
 		}

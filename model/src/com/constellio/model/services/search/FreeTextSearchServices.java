@@ -1,12 +1,5 @@
 package com.constellio.model.services.search;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -16,6 +9,12 @@ import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FreeTextSearchServices {
 	Logger LOGGER = LoggerFactory.getLogger(FreeTextSearchServices.class);

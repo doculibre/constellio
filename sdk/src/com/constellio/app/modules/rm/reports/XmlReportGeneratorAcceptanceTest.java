@@ -1,25 +1,5 @@
 package com.constellio.app.modules.rm.reports;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.assertj.core.groups.Tuple;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
@@ -34,6 +14,25 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
@@ -50,7 +49,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		saxBuilder = new SAXBuilder();
@@ -120,7 +119,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 			}
 			List<Tuple> listOfMetadataInFolder = new ArrayList<>();
 			for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getFolder_A11().getWrappedRecord())
-					.getMetadatas()) {
+														   .getMetadatas()) {
 				List<Element> elementOfMetadata = printableReportXmlGenerator
 						.createMetadataTagsFromMetadata(metadata, records.getFolder_A11().getWrappedRecord());
 				for (Element element : elementOfMetadata) {
@@ -166,7 +165,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 			}
 			List<Tuple> listOfMetadataInFolder = new ArrayList<>();
 			for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getDocumentWithContent_A19().getWrappedRecord())
-					.getMetadatas()) {
+														   .getMetadatas()) {
 				List<Element> elementOfMetadata = printableReportXmlGenerator
 						.createMetadataTagsFromMetadata(metadata, records.getDocumentWithContent_A19().getWrappedRecord());
 				for (Element element : elementOfMetadata) {
@@ -263,7 +262,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 			Document xmlDocument = saxBuilder.build(inputStream);
 
 			Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS)
-					.getChild("metadatas");
+												  .getChild("metadatas");
 			assertThat(xmlRecordElement.getChild("ref_folder_mediumTypes_code").getText()).contains(",");
 		} catch (Exception e) {
 			e.printStackTrace();

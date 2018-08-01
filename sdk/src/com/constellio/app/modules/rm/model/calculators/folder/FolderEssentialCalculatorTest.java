@@ -1,15 +1,14 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class FolderEssentialCalculatorTest extends ConstellioTest {
 

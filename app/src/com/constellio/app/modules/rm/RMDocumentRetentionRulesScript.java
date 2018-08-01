@@ -15,14 +15,15 @@ public class RMDocumentRetentionRulesScript implements SystemConfigurationScript
 		}
 	}
 
-	private void setFolderMainCopyRuleRequirement(final boolean value, ModelLayerFactory modelLayerFactory, String collection) {
+	private void setFolderMainCopyRuleRequirement(final boolean value, ModelLayerFactory modelLayerFactory,
+												  String collection) {
 		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 
 				if (types.hasSchemaType(Folder.SCHEMA_TYPE)) {
 					types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().get(Folder.MAIN_COPY_RULE)
-							.setDefaultRequirement(!value);
+						 .setDefaultRequirement(!value);
 				}
 			}
 		});
@@ -38,7 +39,8 @@ public class RMDocumentRetentionRulesScript implements SystemConfigurationScript
 	}
 
 	@Override
-	public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory, String collection) {
+	public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory,
+							   String collection) {
 		setFolderMainCopyRuleRequirement(newValue, modelLayerFactory, collection);
 	}
 }

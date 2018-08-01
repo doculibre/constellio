@@ -27,76 +27,76 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ValidationDaoTest {
 
-    @Mock private RecordServices recordServices;
-    @Mock private UserServices userServices;
-    @Mock private UserCredential userCredential;
-    @Mock private SchemasRecordsServices schemas;
-    @Mock private MetadataSchemasManager metadataSchemasManager;
+	@Mock private RecordServices recordServices;
+	@Mock private UserServices userServices;
+	@Mock private UserCredential userCredential;
+	@Mock private SchemasRecordsServices schemas;
+	@Mock private MetadataSchemasManager metadataSchemasManager;
 
-    @Mock private User user;
-    @Mock private Record record;
-    @Mock private Metadata metadata;
-    @Mock private MetadataSchema metadataSchema;
-    @InjectMocks private ValidationDao validationDao;
+	@Mock private User user;
+	@Mock private Record record;
+	@Mock private Metadata metadata;
+	@Mock private MetadataSchema metadataSchema;
+	@InjectMocks private ValidationDao validationDao;
 
-    private String serviceKey = "serviceKey";
-    private String username = "username";
-    private String collection = "collection";
-    private String token = "token";
+	private String serviceKey = "serviceKey";
+	private String username = "username";
+	private String collection = "collection";
+	private String token = "token";
 
-    @Before
-    public void setUp() {
-        initMocks(this);
+	@Before
+	public void setUp() {
+		initMocks(this);
 
-        when(userServices.getUser(username)).thenReturn(userCredential);
-        when(userServices.getUserInCollection(username, collection)).thenReturn(user);
+		when(userServices.getUser(username)).thenReturn(userCredential);
+		when(userServices.getUserInCollection(username, collection)).thenReturn(user);
 
-        when(recordServices.getRecordByMetadata(metadata, serviceKey)).thenReturn(record);
+		when(recordServices.getRecordByMetadata(metadata, serviceKey)).thenReturn(record);
 
-        Map<String, LocalDateTime> tokens = Maps.newHashMap();
-        tokens.put(token, TimeProvider.getLocalDateTime().minusDays(5));
-        tokens.put("zyxwv", TimeProvider.getLocalDateTime());
-        when(userCredential.getAccessTokens()).thenReturn(tokens);
+		Map<String, LocalDateTime> tokens = Maps.newHashMap();
+		tokens.put(token, TimeProvider.getLocalDateTime().minusDays(5));
+		tokens.put("zyxwv", TimeProvider.getLocalDateTime());
+		when(userCredential.getAccessTokens()).thenReturn(tokens);
 
-        when(schemas.credentialServiceKey()).thenReturn(metadata);
+		when(schemas.credentialServiceKey()).thenReturn(metadata);
 
-        when(metadataSchemasManager.getSchemaOf(record)).thenReturn(metadataSchema);
+		when(metadataSchemasManager.getSchemaOf(record)).thenReturn(metadataSchema);
 
-        when(record.get(any(Metadata.class))).thenReturn(username);
-    }
+		when(record.get(any(Metadata.class))).thenReturn(username);
+	}
 
-    @Test
-    public void testGetUserTokens() {
-        List<String> tokens = validationDao.getUserTokens(serviceKey);
-        assertThat(tokens).containsOnly(token, "zyxwv");
-    }
+	@Test
+	public void testGetUserTokens() {
+		List<String> tokens = validationDao.getUserTokens(serviceKey);
+		assertThat(tokens).containsOnly(token, "zyxwv");
+	}
 
-    @Test
-    public void testGetUserTokensByDescDate() {
-        List<String> tokens = validationDao.getUserTokens(serviceKey, true);
-        assertThat(tokens).containsExactly("zyxwv", token);
-    }
+	@Test
+	public void testGetUserTokensByDescDate() {
+		List<String> tokens = validationDao.getUserTokens(serviceKey, true);
+		assertThat(tokens).containsExactly("zyxwv", token);
+	}
 
-    @Test
-    public void testGetUserTokensUsernameNull() {
-        when(recordServices.getRecordByMetadata(metadata, serviceKey)).thenReturn(null);
+	@Test
+	public void testGetUserTokensUsernameNull() {
+		when(recordServices.getRecordByMetadata(metadata, serviceKey)).thenReturn(null);
 
-        List<String> tokens = validationDao.getUserTokens(serviceKey);
-        assertThat(tokens).isEmpty();
-    }
+		List<String> tokens = validationDao.getUserTokens(serviceKey);
+		assertThat(tokens).isEmpty();
+	}
 
-    @Test
-    public void testGetUserTokensUserCredentialNull() {
-        when(userServices.getUser(username)).thenReturn(null);
+	@Test
+	public void testGetUserTokensUserCredentialNull() {
+		when(userServices.getUser(username)).thenReturn(null);
 
-        List<String> tokens = validationDao.getUserTokens(serviceKey);
-        assertThat(tokens).isEmpty();
-    }
+		List<String> tokens = validationDao.getUserTokens(serviceKey);
+		assertThat(tokens).isEmpty();
+	}
 
-    @Test
-    public void testIsUserAuthenticated() {
-        boolean authenticated = validationDao.isUserAuthenticated(token, serviceKey);
-        assertThat(authenticated).isTrue();
-    }
+	@Test
+	public void testIsUserAuthenticated() {
+		boolean authenticated = validationDao.isUserAuthenticated(token, serviceKey);
+		assertThat(authenticated).isTrue();
+	}
 
 }

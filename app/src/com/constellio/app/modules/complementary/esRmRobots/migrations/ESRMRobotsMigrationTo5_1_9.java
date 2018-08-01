@@ -1,12 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.IN_FOLDER;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.MAJOR_VERSIONS;
-import static java.util.Arrays.asList;
-
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -20,6 +13,11 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.Map;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.*;
+import static java.util.Arrays.asList;
+
 public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 
 	@Override
@@ -28,7 +26,8 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor5_1_9(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -40,7 +39,7 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 	class SchemaAlterationFor5_1_9 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor5_1_9(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -57,21 +56,21 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 
 		private void setupClassifyConnectorDocumentInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
+													   .getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
 			//
 			// schema.createUndeletable(ClassifyConnectorDocumentInFolderActionParameters.VERSIONS)
 			// .setType(MetadataValueType.STRING);
 
 			schema.createUndeletable(ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION)
-					.setDefaultRequirement(true)
-					.defineAsEnum(ActionAfterClassification.class)
-					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
+				  .setDefaultRequirement(true)
+				  .defineAsEnum(ActionAfterClassification.class)
+				  .setDefaultValue(ActionAfterClassification.DO_NOTHING);
 		}
 	}
 
 	private void updateClassifyDocumentInFolderParametersForm(String collection,
-			MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+															  MigrationResourcesProvider migrationResourcesProvider,
+															  AppLayerFactory appLayerFactory) {
 
 		String defaultValuesTab = "tab.defaultValues";
 		String optionsTab = "tab.options";
@@ -85,7 +84,7 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE)
-				.withNewMetadataGroup(groups));
+											 .withNewMetadataGroup(groups));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema).withFormMetadataCodes(asList(
 				parametersSchema + "_" + IN_FOLDER,
@@ -94,13 +93,13 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 		)));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, IN_FOLDER)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, MAJOR_VERSIONS)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, ACTION_AFTER_CLASSIFICATION)
-				.withMetadataGroup(optionsTab));
+											 .withMetadataGroup(optionsTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

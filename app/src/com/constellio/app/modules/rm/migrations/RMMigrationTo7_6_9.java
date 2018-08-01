@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -15,6 +13,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static java.util.Arrays.asList;
+
 public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -22,7 +22,8 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_6_9(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
@@ -45,17 +46,17 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 		)));
 
 		manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.RESTRICTION_ACCESSIBILITE)
-				.withInputType(MetadataInputType.RICHTEXT));
+									.withInputType(MetadataInputType.RICHTEXT));
 		manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.NOTE)
-				.withInputType(MetadataInputType.RICHTEXT));
+									.withInputType(MetadataInputType.RICHTEXT));
 		manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.DESCRIPTION_SOMMAIRE)
-				.withInputType(MetadataInputType.RICHTEXT));
+									.withInputType(MetadataInputType.RICHTEXT));
 	}
 
 	class SchemaAlterationFor7_6_9 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_6_9(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -85,7 +86,7 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 			}
 			if (!defaultSchemaBuilder.hasMetadata(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR)) {
 				defaultSchemaBuilder.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR)
-						.setType(MetadataValueType.STRING);
+									.setType(MetadataValueType.STRING);
 			}
 			if (!defaultSchemaBuilder.hasMetadata(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR)) {
 				defaultSchemaBuilder.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);

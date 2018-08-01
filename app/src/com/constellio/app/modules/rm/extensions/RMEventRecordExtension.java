@@ -21,53 +21,49 @@ import org.slf4j.LoggerFactory;
  */
 public class RMEventRecordExtension extends RecordExtension {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(RMEventRecordExtension.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(RMEventRecordExtension.class);
 
-    private final RMSchemasRecordsServices rmSchema;
-    final String collection;
+	private final RMSchemasRecordsServices rmSchema;
+	final String collection;
 
-    final ModelLayerFactory modelLayerFactory;
-    final RecordServices recordServices;
-    final SearchServices searchServices;
-    final TaxonomiesSearchServices taxonomiesSearchServices;
-    final TaxonomiesManager taxonomyManager;
-    final RMSchemasRecordsServices rm;
-    final RMConfigs configs;
+	final ModelLayerFactory modelLayerFactory;
+	final RecordServices recordServices;
+	final SearchServices searchServices;
+	final TaxonomiesSearchServices taxonomiesSearchServices;
+	final TaxonomiesManager taxonomyManager;
+	final RMSchemasRecordsServices rm;
+	final RMConfigs configs;
 
-    public RMEventRecordExtension(String collection, ModelLayerFactory modelLayerFactory) {
-        this.collection = collection;
-        this.modelLayerFactory = modelLayerFactory;
-        rmSchema = new RMSchemasRecordsServices(collection, modelLayerFactory);
-        recordServices = modelLayerFactory.newRecordServices();
-        searchServices = modelLayerFactory.newSearchServices();
-        taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-        taxonomyManager = modelLayerFactory.getTaxonomiesManager();
-        this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-        this.configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-    }
+	public RMEventRecordExtension(String collection, ModelLayerFactory modelLayerFactory) {
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		rmSchema = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		recordServices = modelLayerFactory.newRecordServices();
+		searchServices = modelLayerFactory.newSearchServices();
+		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
+		taxonomyManager = modelLayerFactory.getTaxonomiesManager();
+		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		this.configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+	}
 
-    @Override
-    public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
-        if (event.isSchemaType(Event.SCHEMA_TYPE)) {
-            Event wrappedEvent = rmSchema.wrapEvent(event.getRecord());
+	@Override
+	public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+		if (event.isSchemaType(Event.SCHEMA_TYPE)) {
+			Event wrappedEvent = rmSchema.wrapEvent(event.getRecord());
 
-            if (wrappedEvent.getType().equals(EventType.FOLDER_DESTRUCTION) || wrappedEvent.getType().equals(EventType.FOLDER_DEPOSIT)
-                    || wrappedEvent.getType().equals(EventType.FOLDER_RELOCATION) || wrappedEvent.getType().equals(EventType.RECEIVE_FOLDER)
-                    || wrappedEvent.getType().equals(EventType.RECEIVE_CONTAINER))
-            {
-                try
-                {
-                    DecommissioningList decommissioningList = rm.getDecommissioningList(wrappedEvent.getRecordId());
+			if (wrappedEvent.getType().equals(EventType.FOLDER_DESTRUCTION) || wrappedEvent.getType().equals(EventType.FOLDER_DEPOSIT)
+				|| wrappedEvent.getType().equals(EventType.FOLDER_RELOCATION) || wrappedEvent.getType().equals(EventType.RECEIVE_FOLDER)
+				|| wrappedEvent.getType().equals(EventType.RECEIVE_CONTAINER)) {
+				try {
+					DecommissioningList decommissioningList = rm.getDecommissioningList(wrappedEvent.getRecordId());
 
-                    AdministrativeUnit administrativeUnit = rmSchema.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
-                    wrappedEvent.setEventPrincipalPath(administrativeUnit.getPaths().get(0) + wrappedEvent.getPaths().get(0));
-                }
-                catch(Exception e)
-                {
-                    // When event are created before the DecommissioningList.
-                    LOGGER.warn("recordInCreationBeforeSave, When event are created before the DecommissioningList, Should not happen in production only in unit testing.");
-                }
-            }
-        }
-    }
+					AdministrativeUnit administrativeUnit = rmSchema.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
+					wrappedEvent.setEventPrincipalPath(administrativeUnit.getPaths().get(0) + wrappedEvent.getPaths().get(0));
+				} catch (Exception e) {
+					// When event are created before the DecommissioningList.
+					LOGGER.warn("recordInCreationBeforeSave, When event are created before the DecommissioningList, Should not happen in production only in unit testing.");
+				}
+			}
+		}
+	}
 }

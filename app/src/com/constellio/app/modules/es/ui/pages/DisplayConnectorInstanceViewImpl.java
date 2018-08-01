@@ -1,11 +1,5 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -18,14 +12,16 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements DisplayConnectorInstanceView {
 	public static final String STYLE_NAME = "display-connectorInstance";

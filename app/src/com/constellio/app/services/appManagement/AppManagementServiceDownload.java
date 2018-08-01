@@ -1,10 +1,10 @@
 package com.constellio.app.services.appManagement;
 
+import com.constellio.data.io.streamFactories.StreamFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.constellio.data.io.streamFactories.StreamFactory;
 
 public class AppManagementServiceDownload extends Thread {
 	private boolean result;
@@ -12,7 +12,8 @@ public class AppManagementServiceDownload extends Thread {
 	private InputStream download;
 	private AppManagementService receiver;
 
-	public AppManagementServiceDownload(InputStream download, StreamFactory<OutputStream> destination, AppManagementService receiver) {
+	public AppManagementServiceDownload(InputStream download, StreamFactory<OutputStream> destination,
+										AppManagementService receiver) {
 		super();
 		this.destination = destination;
 		this.download = download;

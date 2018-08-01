@@ -1,11 +1,11 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
-import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow.CODE;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
 
 import java.util.List;
 
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow.CODE;
 
 public class BetaWorkflowVO extends RecordVO {
 

@@ -1,20 +1,15 @@
 package com.constellio.app.ui.pages.user;
 
-import java.util.List;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.BackButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.List;
 
 public class ListUserCredentialPage extends PageHelper {
 
@@ -25,21 +20,21 @@ public class ListUserCredentialPage extends PageHelper {
 	void navigateToListUserCredentialsPage() {
 
 		driver.navigateTo()
-				.url(NavigatorConfigurationService.USER_LIST);
+			  .url(NavigatorConfigurationService.USER_LIST);
 		try {
 			getAddButton();
 
 		} catch (Exception e) {
 			driver.printHierarchy();
 			driver.navigateTo()
-					.url(NavigatorConfigurationService.USER_LIST);
+				  .url(NavigatorConfigurationService.USER_LIST);
 			try {
 				getAddButton();
 
 			} catch (Exception e2) {
 				driver.printHierarchy();
 				driver.navigateTo()
-						.url(NavigatorConfigurationService.USER_LIST);
+					  .url(NavigatorConfigurationService.USER_LIST);
 			}
 		}
 	}

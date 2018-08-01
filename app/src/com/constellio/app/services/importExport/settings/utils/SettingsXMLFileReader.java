@@ -1,15 +1,10 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import com.constellio.model.entities.Language;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -20,23 +15,15 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jetbrains.annotations.NotNull;
 
-import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import com.constellio.model.entities.Language;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -117,9 +104,9 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		return new ImportedCollectionSettings().setCode(collectionCode)
-				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
-				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
-				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES), language));
+											   .setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
+											   .setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
+											   .setTypes(getCollectionTypes(collectionElement.getChild(TYPES), language));
 	}
 
 	private List<ImportedType> getCollectionTypes(Element typesElement, List<String> language) {
@@ -164,7 +151,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return importedMetadataSchema;
 	}
 
-	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema, List<String> language) {
+	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema,
+							List<String> language) {
 		String label = schemaElement.getAttributeValue(LABEL);
 		Map<Language, String> languageTitleMap = getLanguageStringMap(schemaElement, language, label, LABEL);
 		if (languageTitleMap.size() > 0) {
@@ -266,12 +254,12 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(ENABLED_IN) != null &&
-				isNotBlank(element.getAttributeValue(ENABLED_IN))) {
+			isNotBlank(element.getAttributeValue(ENABLED_IN))) {
 			importedMetadata.setEnabledIn(toListOfString(element.getAttributeValue(ENABLED_IN)));
 		}
 
 		if (element.getAttribute(INPUT_MASK) != null &&
-				isNotBlank(element.getAttributeValue(INPUT_MASK))) {
+			isNotBlank(element.getAttributeValue(INPUT_MASK))) {
 			importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
 		}
 
@@ -284,7 +272,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(REQUIRED_IN) != null &&
-				isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
+			isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
 			importedMetadata.setRequiredIn(toListOfString(element.getAttributeValue(REQUIRED_IN)));
 		}
 
@@ -309,7 +297,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(VISIBLE_IN_RESULT_IN) != null &&
-				isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
+			isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
 			importedMetadata.setVisibleInResultIn(toListOfString(element.getAttributeValue(VISIBLE_IN_RESULT_IN)));
 		}
 
@@ -322,7 +310,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(VISIBLE_IN_TABLES_IN) != null &&
-				isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
+			isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
 			importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
 		}
 
@@ -351,7 +339,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private ImportedTab readTab(Element element) {
 		return new ImportedTab().setCode(element.getAttributeValue(CODE))
-				.setValue(element.getAttributeValue("value"));
+								.setValue(element.getAttributeValue("value"));
 	}
 
 	private List<ImportedTaxonomy> getCollectionTaxonomies(Element element, List<String> languageList) {
@@ -394,7 +382,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	@NotNull
 	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String label,
-			String labelFinal) {
+													   String labelFinal) {
 		Map<Language, String> languageTitleMap = new HashMap<>();
 		int numberOfLang = 0;
 
@@ -440,33 +428,33 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		if (dataEntryElem != null && dataEntryElem.getAttributeValue("type") != null) {
 			switch (dataEntryElem.getAttributeValue("type")) {
-			case "calculated":
-				dataEntry = ImportedDataEntry.asCalculated(dataEntryElem.getAttributeValue("calculator"));
-				break;
+				case "calculated":
+					dataEntry = ImportedDataEntry.asCalculated(dataEntryElem.getAttributeValue("calculator"));
+					break;
 
-			case "copied":
-				dataEntry = ImportedDataEntry.asCopied(
-						dataEntryElem.getAttributeValue("referenceMetadata"),
-						dataEntryElem.getAttributeValue("copiedMetadata"));
-				break;
+				case "copied":
+					dataEntry = ImportedDataEntry.asCopied(
+							dataEntryElem.getAttributeValue("referenceMetadata"),
+							dataEntryElem.getAttributeValue("copiedMetadata"));
+					break;
 
-			case "jexl":
-				dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getText());
-				break;
+				case "jexl":
+					dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getText());
+					break;
 
-			case "sequence":
-				String fixedSequenceCode = dataEntryElem.getAttributeValue("fixedSequenceCode");
-				String metadataProvidingSequenceCode = dataEntryElem.getAttributeValue("metadataProvidingSequenceCode");
-				if (fixedSequenceCode != null) {
-					dataEntry = ImportedDataEntry.asFixedSequence(fixedSequenceCode);
-				} else {
-					dataEntry = ImportedDataEntry.asMetadataProvidingSequence(metadataProvidingSequenceCode);
-				}
+				case "sequence":
+					String fixedSequenceCode = dataEntryElem.getAttributeValue("fixedSequenceCode");
+					String metadataProvidingSequenceCode = dataEntryElem.getAttributeValue("metadataProvidingSequenceCode");
+					if (fixedSequenceCode != null) {
+						dataEntry = ImportedDataEntry.asFixedSequence(fixedSequenceCode);
+					} else {
+						dataEntry = ImportedDataEntry.asMetadataProvidingSequence(metadataProvidingSequenceCode);
+					}
 
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 		return dataEntry;

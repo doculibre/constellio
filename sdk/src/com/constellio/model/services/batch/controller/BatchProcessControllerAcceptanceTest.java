@@ -1,24 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
@@ -39,6 +20,21 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 //@SlowTest
 public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
@@ -90,7 +86,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		doReturn(new AddToBatchProcessImpactHandler(batchProcessManager, searchServices)).when(recordServices)
-				.addToBatchProcessModificationImpactHandler();
+																						 .addToBatchProcessModificationImpactHandler();
 
 		givenWaitForBatchProcessAfterTestIsDisabled();
 	}
@@ -129,7 +125,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		batchProcessManager = spy(batchProcessManager);
 		doThrow(Error.class).when(batchProcessManager)
-				.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class), anyString());
+							.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class), anyString());
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessManager);
 		recordServices = new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory,
 				getDataLayerFactory().newTypesFactory(), getDataLayerFactory().getUniqueIdGenerator(), recordsCaches);
@@ -179,7 +175,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		givenWaitForBatchProcessAfterTestIsDisabled();
 		// A really bad day...
 		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
-				.doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
+														   .doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
 
 		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
 		try {
@@ -205,7 +201,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		// A bad day...
 		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
-				.doCallRealMethod().when(recordDao).execute(any(TransactionDTO.class));
+														   .doCallRealMethod().when(recordDao).execute(any(TransactionDTO.class));
 
 		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
 		List<BatchProcess> batchProcesses = recordServices.updateAsync(zeSchemaRecord);

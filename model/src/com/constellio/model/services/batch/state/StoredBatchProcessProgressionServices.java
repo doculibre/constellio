@@ -1,22 +1,17 @@
 package com.constellio.model.services.batch.state;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServicesException.BatchProcessProgressionServicesException_OptimisticLocking;
+import org.jdom2.Document;
+
+import java.util.*;
 
 public class StoredBatchProcessProgressionServices implements BatchProcessProgressionServices, StatefulService,
-															  ConfigUpdatedEventListener {
+		ConfigUpdatedEventListener {
 
 	private static final String BATCH_PROCESS_PROGRESSION_CONFIG = "/batchProcessProgression.xml";
 
@@ -73,7 +68,8 @@ public class StoredBatchProcessProgressionServices implements BatchProcessProgre
 				newAddUpdateBatchProcessPartDocumentAlteration(storedBatchProcessPart));
 	}
 
-	DocumentAlteration newAddUpdateBatchProcessPartDocumentAlteration(final StoredBatchProcessPart storedBatchProcessPart) {
+	DocumentAlteration newAddUpdateBatchProcessPartDocumentAlteration(
+			final StoredBatchProcessPart storedBatchProcessPart) {
 		return new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {

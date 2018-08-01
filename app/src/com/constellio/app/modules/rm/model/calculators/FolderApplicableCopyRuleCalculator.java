@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.data.utils.LangUtils.isEqual;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -16,6 +10,12 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.isEqual;
 
 public class FolderApplicableCopyRuleCalculator implements MetadataValueCalculator<List<CopyRetentionRule>> {
 
@@ -58,7 +58,8 @@ public class FolderApplicableCopyRuleCalculator implements MetadataValueCalculat
 		}
 	}
 
-	protected List<CopyRetentionRule> filterUsingFolderMediumTypes(List<CopyRetentionRule> copies, List<String> mediumTypes) {
+	protected List<CopyRetentionRule> filterUsingFolderMediumTypes(List<CopyRetentionRule> copies,
+																   List<String> mediumTypes) {
 
 		if (mediumTypes.isEmpty()) {
 			return copies;

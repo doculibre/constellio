@@ -1,21 +1,20 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 	@Mock
@@ -62,7 +61,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder fixedDateReminder = new TaskReminder().setFixedDate(now.plusDays(1))
-				.setProcessed(true);
+														   .setProcessed(true);
 		reminders.add(fixedDateReminder);
 
 		assertThat(calculate()).isNull();
@@ -95,7 +94,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder reminderWithTodayDate = new TaskReminder().setFixedDate(now)
-				.setProcessed(true);
+															   .setProcessed(true);
 		reminders.add(reminderWithTodayDate);
 		TaskReminder reminderWithTomorrowDate = new TaskReminder().setFixedDate(now.plusDays(1));
 		reminders.add(reminderWithTomorrowDate);
@@ -108,7 +107,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(2)
-				.setRelativeDateMetadataCode(Task.DUE_DATE);
+													  .setRelativeDateMetadataCode(Task.DUE_DATE);
 		reminders.add(taskReminder);
 
 		assertThat(calculate()).isEqualTo(endDate.plusDays(2));
@@ -119,7 +118,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(3)
-				.setRelativeDateMetadataCode(Task.START_DATE);
+													  .setRelativeDateMetadataCode(Task.START_DATE);
 		reminders.add(taskReminder);
 
 		assertThat(calculate()).isEqualTo(startDate.minusDays(3));

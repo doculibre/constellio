@@ -1,15 +1,6 @@
 package com.constellio.app.modules.rm.constants;
 
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 
 import java.util.List;
 

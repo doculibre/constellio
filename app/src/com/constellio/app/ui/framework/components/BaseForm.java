@@ -1,21 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -33,20 +17,19 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -273,7 +256,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 	/**
 	 * If this method is overriden and doesn't return null anymore, a tab sheet will be used to display the fields.
 	 *
-	 * @param field The field that will be added under the tab
+	 * @param field      The field that will be added under the tab
 	 * @param propertyId The property id attached to the field
 	 * @return The caption of the tab under which the field will be added
 	 */
@@ -341,9 +324,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 								.hasNext(); ) {
 							ValidationError validationError = it.next();
 							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
-									&& validationError.getParameters().size() > 0
-									&& validationError.getParameters().get(METADATA_CODE)
-									.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
+								&& validationError.getParameters().size() > 0
+								&& validationError.getParameters().get(METADATA_CODE)
+												  .equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
 								Map<String, Object> params = new HashMap<String, Object>();
 
 								ValidationError newValidationError = new ValidationError(validatorClass,
@@ -533,7 +516,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	}
 
-	public Button getSaveButton(){
+	public Button getSaveButton() {
 		return saveButton;
 	}
 

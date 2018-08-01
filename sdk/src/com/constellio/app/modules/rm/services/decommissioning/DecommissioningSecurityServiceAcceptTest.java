@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.sdk.tests.TestUtils.comparingRecordWrapperIds;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -23,6 +13,15 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.sdk.tests.TestUtils.comparingRecordWrapperIds;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 	Users users = new Users();
@@ -40,7 +39,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus());
+										.withFoldersAndContainersOfEveryStatus());
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

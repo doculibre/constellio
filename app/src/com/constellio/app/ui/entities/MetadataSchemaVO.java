@@ -1,15 +1,14 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.ui.application.ConstellioUI;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaVO implements Serializable {
@@ -34,8 +33,10 @@ public class MetadataSchemaVO implements Serializable {
 		this(code, collection, localCode, null, null, null, null, labels);
 	}
 
-	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes, List<String> displayMetadataCodes,
-			List<String> tableMetadataCodes, List<String> searchMetadataCodes, Map<Locale, String> labels) {
+	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes,
+							List<String> displayMetadataCodes,
+							List<String> tableMetadataCodes, List<String> searchMetadataCodes,
+							Map<Locale, String> labels) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -188,23 +189,30 @@ public class MetadataSchemaVO implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		MetadataSchemaVO other = (MetadataSchemaVO) obj;
 		if (code == null) {
-			if (other.code != null)
+			if (other.code != null) {
 				return false;
-		} else if (!code.equals(other.code))
+			}
+		} else if (!code.equals(other.code)) {
 			return false;
+		}
 		if (collection == null) {
-			if (other.collection != null)
+			if (other.collection != null) {
 				return false;
-		} else if (!collection.equals(other.collection))
+			}
+		} else if (!collection.equals(other.collection)) {
 			return false;
+		}
 		return true;
 	}
 

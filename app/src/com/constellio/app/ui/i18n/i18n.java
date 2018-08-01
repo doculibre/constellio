@@ -1,24 +1,5 @@
 package com.constellio.app.ui.i18n;
 
-import java.io.File;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import org.apache.commons.jexl3.JexlBuilder;
-import org.apache.commons.jexl3.JexlContext;
-import org.apache.commons.jexl3.JexlEngine;
-import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.MapContext;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -27,6 +8,14 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+import org.apache.commons.jexl3.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.text.MessageFormat;
+import java.util.*;
 
 public class i18n {
 

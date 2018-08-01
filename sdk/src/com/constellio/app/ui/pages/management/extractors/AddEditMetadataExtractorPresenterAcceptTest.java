@@ -1,22 +1,8 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.regex.Pattern;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataExtractorVO;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -28,15 +14,23 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.extractors.builders.RegexConfigToVOBuilder;
 import com.constellio.app.ui.pages.management.extractors.entities.RegexConfigVO;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.regex.Pattern;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest {
 
@@ -146,7 +140,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 		assertThat(types().getMetadata(schemaVo.getCode() + "_" + Email.DESCRIPTION).getPopulateConfigs().getRegexes())
 				.hasSize(1);
 		RegexConfig regexConfig = types().getMetadata(schemaVo.getCode() + "_" + Email.DESCRIPTION).getPopulateConfigs()
-				.getRegexes().get(0);
+										 .getRegexes().get(0);
 		assertThat(regexConfig.getInputMetadata()).isEqualTo(regexConfigVO.getInputMetadata());
 		assertThat(regexConfig.getValue()).isEqualTo(regexConfigVO.getValue());
 		assertThat(regexConfig.getRegex().toString()).isEqualTo(Pattern.compile(regexConfigVO.getRegex()).toString());
@@ -186,7 +180,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 		presenter.forParams(metadataCode);
 
 		assertThat(presenter.getMetadataVOsForRegexes(Document.DEFAULT_SCHEMA, presenter.getMetadataVO())).extracting("code")
-				.doesNotContain(metadataCode);
+																										  .doesNotContain(metadataCode);
 
 	}
 

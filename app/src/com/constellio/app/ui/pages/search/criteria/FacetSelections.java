@@ -1,11 +1,10 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.util.Set;
-
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.schemas.ModifiableStructure;
+import java.util.Set;
 
 public class FacetSelections implements ModifiableStructure {
 
@@ -51,10 +50,10 @@ public class FacetSelections implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "SelectedFacets{" +
-				"facetField='" + facetField + '\'' +
-				", selectedValues=" + selectedValues +
-				", dirty=" + dirty +
-				'}';
+			   "facetField='" + facetField + '\'' +
+			   ", selectedValues=" + selectedValues +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

@@ -1,9 +1,5 @@
 package com.constellio.model.services.logging;
 
-import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
@@ -20,6 +16,9 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import org.joda.time.LocalDateTime;
+
+import static com.constellio.model.entities.records.wrappers.EventType.MODIFY_PERMISSION;
 
 public class LoggingServices {
 
@@ -75,7 +74,8 @@ public class LoggingServices {
 		executeTransaction(event);
 	}
 
-	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record, User user) {
+	public void modifyPermission(Authorization authorization, Authorization authorizationBefore, Record record,
+								 User user) {
 		String recordId = record == null ? null : record.getId();
 		Event event = eventFactory.eventPermission(authorization, authorizationBefore, user, recordId, MODIFY_PERMISSION);
 		executeTransaction(event);
@@ -94,10 +94,11 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.VIEW, null, dateTime));
 	}
 
-	public void borrowExtensionOnRecord(Record record, User currentUser, LocalDateTime dateTime, LocalDateTime oldReturnDate,
-			LocalDateTime newReturnDate) {
+	public void borrowExtensionOnRecord(Record record, User currentUser, LocalDateTime dateTime,
+										LocalDateTime oldReturnDate,
+										LocalDateTime newReturnDate) {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.BORROWING_TIME_EXTENSIONS, null, dateTime)
-				.setDelta(eventFactory.getBorrowDurationDelta(oldReturnDate, newReturnDate)));
+									   .setDelta(eventFactory.getBorrowDurationDelta(oldReturnDate, newReturnDate)));
 	}
 
 	public void reactivateRecord(Record record, User currentUser, LocalDateTime dateTime) {
@@ -209,29 +210,32 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, user, EventType.DELETE, reason));
 	}
 
-	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant,
-			String reason, String delta) {
+	public void completeBorrowRequestTask(Record record, String taskId, boolean isAccepted, User applicant,
+										  User respondant,
+										  String reason, String delta) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.BORROW_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
+									   .setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 
-	public void completeReturnRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant,
-			String reason) {
+	public void completeReturnRequestTask(Record record, String taskId, boolean isAccepted, User applicant,
+										  User respondant,
+										  String reason) {
 		executeTransaction(eventFactory.newRecordEvent(record, applicant, EventType.RETURN_REQUEST, reason, LocalDateTime.now())
-				.setTask(taskId).setReceiver(respondant).setAccepted(isAccepted));
+									   .setTask(taskId).setReceiver(respondant).setAccepted(isAccepted));
 	}
 
-	public void completeReactivationRequestTask(Record record, String taskId, boolean isAccepted, User applicant, User respondant,
-			String reason, String delta) {
+	public void completeReactivationRequestTask(Record record, String taskId, boolean isAccepted, User applicant,
+												User respondant,
+												String reason, String delta) {
 		executeTransaction(
 				eventFactory.newRecordEvent(record, applicant, EventType.REACTIVATION_REQUEST, reason, LocalDateTime.now())
-						.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
+							.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 
 	public void completeBorrowExtensionRequestTask(Record record, String taskId, boolean isAccepted, User applicant,
-			User respondant, String reason, String delta) {
+												   User respondant, String reason, String delta) {
 		executeTransaction(
 				eventFactory.newRecordEvent(record, applicant, EventType.BORROW_EXTENSION_REQUEST, reason, LocalDateTime.now())
-						.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
+							.setTask(taskId).setReceiver(respondant).setDelta(delta).setAccepted(isAccepted));
 	}
 }

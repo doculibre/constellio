@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.*;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -24,6 +18,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class ConservationRulesReportPresenter {
 
@@ -43,12 +42,12 @@ public class ConservationRulesReportPresenter {
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-			boolean byAdministrativeUnit, Locale locale) {
+											boolean byAdministrativeUnit, Locale locale) {
 		this(collection, appLayerFactory, byAdministrativeUnit, null, locale);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-			boolean byAdministrativeUnit, String administrativeUnitId, Locale locale) {
+											boolean byAdministrativeUnit, String administrativeUnitId, Locale locale) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -146,7 +145,8 @@ public class ConservationRulesReportPresenter {
 
 	}
 
-	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit(String administrativeUnitId) {
+	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit(
+			String administrativeUnitId) {
 
 		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
 		MetadataSchemaType retentionRuleSchemaType = rm.retentionRule.schemaType();
@@ -161,13 +161,13 @@ public class ConservationRulesReportPresenter {
 	}
 
 	private List<RetentionRule> getRetentionRulesByAdministrativeUnit(AdministrativeUnit administrativeUnit,
-			MetadataSchemaType retentionRuleSchemaType) {
+																	  MetadataSchemaType retentionRuleSchemaType) {
 		//List<RetentionRule> newRetentionRules = new ArrayList<>();
 
 		LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
-						.where(rm.retentionRule.administrativeUnits())
-						.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+														 .where(rm.retentionRule.administrativeUnits())
+														 .isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
 
 		List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
 				.search(retentionRulesQuery));
@@ -346,7 +346,7 @@ public class ConservationRulesReportPresenter {
 	}
 
 	private void appendObservation(StringBuilder builder, String commentCode, Map<String, String> commentMap,
-			String label) {
+								   String label) {
 		String observation = "";
 		if (StringUtils.isNotBlank(commentCode)) {
 			if (commentMap != null) {

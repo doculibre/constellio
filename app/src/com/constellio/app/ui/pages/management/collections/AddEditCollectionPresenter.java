@@ -1,18 +1,5 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
@@ -35,6 +22,13 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionView> {
 	transient UserServices userServices;
@@ -197,7 +191,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	Set<String> updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode,
-			Set<String> modules) {
+										Set<String> modules) {
 		List<String> roles = new ArrayList<>();
 		Set<String> invalidModules = new HashSet<>();
 		for (String currentModule : modules) {
@@ -214,7 +208,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		String organizationNumber = isRMCollection ? entity.getOrganizationNumber() : null;
 		try {
 			recordServices().update(coreSchemas(collectionRecord.getCollection()).wrapCollection(collectionRecord)
-					.setConservationCalendarNumber(conservationCalendarNumber).setOrganizationNumber(organizationNumber));
+																				 .setConservationCalendarNumber(conservationCalendarNumber).setOrganizationNumber(organizationNumber));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}

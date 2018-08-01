@@ -63,7 +63,8 @@ public class EventFactory {
 		return newRecordEvent(record, currentUser, eventType, reason, null);
 	}
 
-	public Event newRecordEvent(Record record, User currentUser, String eventType, String reason, LocalDateTime eventDateTime) {
+	public Event newRecordEvent(Record record, User currentUser, String eventType, String reason,
+								LocalDateTime eventDateTime) {
 		if (currentUser != User.GOD && record.getCollection().endsWith(currentUser.getCollection())) {
 			return createRecordEvent(record, currentUser, eventType, reason, eventDateTime, currentUser.getCollection());
 		} else {
@@ -71,13 +72,15 @@ public class EventFactory {
 		}
 	}
 
-	public Event newRecordEvent(Record record, User currentUser, String eventType, String reason, LocalDateTime eventDateTime,
-			String collection) {
+	public Event newRecordEvent(Record record, User currentUser, String eventType, String reason,
+								LocalDateTime eventDateTime,
+								String collection) {
 		return createRecordEvent(record, currentUser, eventType, reason, eventDateTime, collection);
 	}
 
-	private Event createRecordEvent(Record record, User currentUser, String eventType, String reason, LocalDateTime eventDateTime,
-			String collection) {
+	private Event createRecordEvent(Record record, User currentUser, String eventType, String reason,
+									LocalDateTime eventDateTime,
+									String collection) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory);
 		Event event = schemasRecords.newEvent();
 		setDefaultMetadata(event, currentUser);
@@ -166,7 +169,7 @@ public class EventFactory {
 				String metadataDatastoreCode = modifiedValueEntry.getKey();
 				String metadataLocalCode = new SchemaUtils().getLocalCodeFromDataStoreCode(metadataDatastoreCode);
 				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(record.getCollection())
-						.getSchema(record.getSchemaCode());
+															  .getSchema(record.getSchemaCode());
 				if (schema.hasMetadataWithCode(metadataLocalCode)) {
 					Metadata metadata = schema.getMetadata(metadataLocalCode);
 					if (notAccepted(metadata)) {
@@ -210,7 +213,7 @@ public class EventFactory {
 	}
 
 	public Event eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
-			String recordId, String eventPermissionType) {
+								 String recordId, String eventPermissionType) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 
 		if (recordId == null) {

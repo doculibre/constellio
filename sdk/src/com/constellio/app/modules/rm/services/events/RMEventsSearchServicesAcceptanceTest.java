@@ -53,7 +53,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
@@ -225,7 +225,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 				.add(createFolderInFilingSpace(filingSpacePath3).setCreatedOn(testDate));
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		String[] nonAcceptedPaths = { "/c", "/ab", "/b", "/a/b/c/a/b/c" };
+		String[] nonAcceptedPaths = {"/c", "/ab", "/b", "/a/b/c/a/b/c"};
 		LogicalSearchQuery createdFoldersInFilingSpaceQuery;
 		for (String currentNonAcceptedPath : nonAcceptedPaths) {
 			createdFoldersInFilingSpaceQuery = services
@@ -235,7 +235,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 			assertThat(count).isEqualTo(0l);
 		}
 
-		String[] acceptedPaths = { "/a/b/c/a/b", "/a/b/c/a/b/", "/a/b/c" };
+		String[] acceptedPaths = {"/a/b/c/a/b", "/a/b/c/a/b/", "/a/b/c"};
 		for (String currentNonAcceptedPath : acceptedPaths) {
 			createdFoldersInFilingSpaceQuery = services
 					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate,

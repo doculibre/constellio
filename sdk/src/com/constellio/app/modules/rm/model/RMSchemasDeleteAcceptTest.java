@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -16,6 +11,10 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Test;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
@@ -29,7 +28,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -64,7 +63,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		User admin = records.getAdmin();
@@ -117,7 +116,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -150,7 +149,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		User admin = users.adminIn(zeCollection);
@@ -188,13 +187,13 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyDeletable(RecordWrapper recordWrapper,
-			User user) {
+																			User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		return assertThat(recordServices.isLogicallyDeletable(recordWrapper.getWrappedRecord(), user));
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyThenPhysicallyDeletable(RecordWrapper recordWrapper,
-			User user) {
+																						  User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		return assertThat(recordServices.isLogicallyThenPhysicallyDeletable(recordWrapper.getWrappedRecord(), user));
 	}
@@ -205,7 +204,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -228,13 +227,13 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isTrue();
 
 		CopyRetentionRule principal42_666_T = copyBuilder.newPrincipal(asList(rm.PA()))
-				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
-				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
-				.setInactiveDisposalType(DisposalType.SORT);
+														 .setActiveRetentionPeriod(RetentionPeriod.variable(period42))
+														 .setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
+														 .setInactiveDisposalType(DisposalType.SORT);
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA()), "2-0-D");
 		RetentionRule rule = rm.newRetentionRule().setCode("2").setTitle("Rule #2")
-				.setResponsibleAdministrativeUnits(true).setApproved(true)
-				.setCopyRetentionRules(asList(principal42_666_T, secondary2_0_D));
+							   .setResponsibleAdministrativeUnits(true).setApproved(true)
+							   .setCopyRetentionRules(asList(principal42_666_T, secondary2_0_D));
 		recordServices.add(rule);
 
 		assertThat(recordServices.isLogicallyDeletable(period888.getWrappedRecord(), admin)).isFalse();

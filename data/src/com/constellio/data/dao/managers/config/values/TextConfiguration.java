@@ -9,20 +9,20 @@ import java.io.Serializable;
 public class TextConfiguration implements Serializable {
 	private final String version;
 	private final String text;
-	
+
 	public TextConfiguration(String version, String text) {
 		this.version = version;
 		this.text = text;
 	}
-	
+
 	public String getVersion() {
 		return version;
 	}
-	
+
 	public String getText() {
 		return text;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);

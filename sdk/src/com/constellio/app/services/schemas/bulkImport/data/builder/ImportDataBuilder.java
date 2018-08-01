@@ -1,10 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport.data.builder;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 
 public class ImportDataBuilder {
 

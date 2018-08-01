@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -16,6 +9,12 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by constellios on 2017-04-06.
@@ -39,7 +38,7 @@ public class FolderValidatorAcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -71,8 +70,8 @@ public class FolderValidatorAcceptanceTest extends ConstellioTest {
 
 	public Folder buildDefaultFolder() {
 		return rm.newFolderWithId(FOLDER_ID).setTitle(FOLDER_TITLE).setAdministrativeUnitEntered(records.getUnit10())
-				.setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
-				.setCategoryEntered(records.categoryId_X);
+				 .setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
+				 .setCategoryEntered(records.categoryId_X);
 	}
 
 }

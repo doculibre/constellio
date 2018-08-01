@@ -1,15 +1,14 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaTypeToVOBuilder implements Serializable {
@@ -17,7 +16,7 @@ public class MetadataSchemaTypeToVOBuilder implements Serializable {
 	public MetadataSchemaTypeVO build(MetadataSchemaType type) {
 		Map<Locale, String> labels = new HashMap<>();
 
-		for(Language currentLanguage : type.getLabels().keySet()) {
+		for (Language currentLanguage : type.getLabels().keySet()) {
 			labels.put(Locale.forLanguageTag(currentLanguage.getCode()), type.getLabel(currentLanguage));
 		}
 

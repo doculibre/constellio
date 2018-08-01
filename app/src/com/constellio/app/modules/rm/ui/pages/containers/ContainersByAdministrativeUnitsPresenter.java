@@ -1,14 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsView.ContainersViewTab;
@@ -23,6 +16,12 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<ContainersByAdministrativeUnitsView> {
 
@@ -130,5 +129,5 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 	public void backButtonClicked() {
 		view.navigate().to(RMViews.class).archiveManagement();
 	}
-	
+
 }

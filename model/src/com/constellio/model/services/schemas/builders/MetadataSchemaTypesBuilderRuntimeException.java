@@ -58,45 +58,47 @@ public class MetadataSchemaTypesBuilderRuntimeException extends RuntimeException
 	}
 
 	public static class CannotCopyMultiValueInSingleValueMetadata extends MetadataSchemaTypesBuilderRuntimeException {
-		public CannotCopyMultiValueInSingleValueMetadata(String metadata, String referenceMetadata, String copiedMetadata) {
+		public CannotCopyMultiValueInSingleValueMetadata(String metadata, String referenceMetadata,
+														 String copiedMetadata) {
 			super("Cannot copy a multi value metadata '" + copiedMetadata + "' or a multi value reference '" + referenceMetadata
-					+ "' in a single value metadata '" + metadata + "'");
+				  + "' in a single value metadata '" + metadata + "'");
 		}
 	}
 
 	public static class CannotCopySingleValueInMultiValueMetadata extends MetadataSchemaTypesBuilderRuntimeException {
-		public CannotCopySingleValueInMultiValueMetadata(String metadata, String referenceMetadata, String copiedMetadata) {
+		public CannotCopySingleValueInMultiValueMetadata(String metadata, String referenceMetadata,
+														 String copiedMetadata) {
 			super("Cannot copy a single value metadata '" + copiedMetadata + "' and a single value reference '"
-					+ referenceMetadata + "' in a multi value metadata '" + metadata + "'");
+				  + referenceMetadata + "' in a multi value metadata '" + metadata + "'");
 		}
 	}
 
 	public static class CannotCopyADifferentTypeInMetadata extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotCopyADifferentTypeInMetadata(String metadata, String typeMetadata, String copiedMetadata,
-				String typeCopiedMetadata) {
+												  String typeCopiedMetadata) {
 			super("Cannot copy the value of metadata '" + copiedMetadata + "' with type '" + typeCopiedMetadata
-					+ "' in the metadata '" + metadata + "' with type '" + typeMetadata + "'");
+				  + "' in the metadata '" + metadata + "' with type '" + typeMetadata + "'");
 		}
 	}
 
 	public static class CannotCopyACustomMetadata extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotCopyACustomMetadata(String copiedMetadata) {
 			super("Cannot copy the value of '" + copiedMetadata
-					+ "' because it is a custom metadata. Refer to a default metadata.");
+				  + "' because it is a custom metadata. Refer to a default metadata.");
 		}
 	}
 
 	public static class CannotCopyUsingACustomMetadata extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotCopyUsingACustomMetadata(String referenceMetadata, String schema) {
 			super("Cannot copy a value in '" + referenceMetadata
-					+ "' using schema '" + schema + "'. Refer to the default metadata.");
+				  + "' using schema '" + schema + "'. Refer to the default metadata.");
 		}
 	}
 
 	public static class CannotUseACustomMetadataForCalculation extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotUseACustomMetadataForCalculation(String dependencyMetadata) {
 			super("Cannot use the value of '" + dependencyMetadata
-					+ "' for calculation because it is a custom metadata. Refer to a default metadata.");
+				  + "' for calculation because it is a custom metadata. Refer to a default metadata.");
 		}
 	}
 
@@ -107,27 +109,28 @@ public class MetadataSchemaTypesBuilderRuntimeException extends RuntimeException
 	}
 
 	public static class CannotCalculateDifferentValueTypeInValueMetadata extends MetadataSchemaTypesBuilderRuntimeException {
-		public CannotCalculateDifferentValueTypeInValueMetadata(String calculatedMetadata, MetadataValueType expectedType,
-				MetadataValueType wasType) {
+		public CannotCalculateDifferentValueTypeInValueMetadata(String calculatedMetadata,
+																MetadataValueType expectedType,
+																MetadataValueType wasType) {
 			super("Calculator of '" + calculatedMetadata + "' was expected to calculate a value of type '" + expectedType
-					+ "' but is '" + wasType + "'");
+				  + "' but is '" + wasType + "'");
 		}
 	}
 
 	public static class CalculatorDependencyHasInvalidValueType extends MetadataSchemaTypesBuilderRuntimeException {
 		public CalculatorDependencyHasInvalidValueType(String calculatedMetadata, String dependencyMetadata,
-				MetadataValueType expectedType,
-				MetadataValueType wasType) {
+													   MetadataValueType expectedType,
+													   MetadataValueType wasType) {
 			super("Calculator of '" + calculatedMetadata + "' has an invalid dependency on metadata '" + dependencyMetadata
-					+ "': Expected type was '" + expectedType + "' but is '" + wasType + "'");
+				  + "': Expected type was '" + expectedType + "' but is '" + wasType + "'");
 		}
 	}
 
 	public static class CalculatorHasInvalidMetadataDependency extends MetadataSchemaTypesBuilderRuntimeException {
 		public CalculatorHasInvalidMetadataDependency(Class<?> calculatorClass, String calculatedMetadata,
-				String dependencyMetadata, Exception e) {
+													  String dependencyMetadata, Exception e) {
 			super("Calculator '" + calculatorClass.getSimpleName() + "' of '" + calculatedMetadata
-					+ "' has an dependency to an inexistent metadata '" + dependencyMetadata + "'", e);
+				  + "' has an dependency to an inexistent metadata '" + dependencyMetadata + "'", e);
 		}
 	}
 
@@ -152,14 +155,14 @@ public class MetadataSchemaTypesBuilderRuntimeException extends RuntimeException
 	public static class CannotCalculateASingleValueInAMultiValueMetadata extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotCalculateASingleValueInAMultiValueMetadata(String metadataCode, String calculator) {
 			super("Cannot calculate a single value in a multi value metadata " + metadataCode + ". Single value calculator : "
-					+ calculator);
+				  + calculator);
 		}
 	}
 
 	public static class CannotCalculateAMultiValueInASingleValueMetadata extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotCalculateAMultiValueInASingleValueMetadata(String metadataCode, String calculator) {
 			super("Cannot calculate a multi value in a single value metadata " + metadataCode + ". Multi value calculator : "
-					+ calculator);
+				  + calculator);
 		}
 	}
 

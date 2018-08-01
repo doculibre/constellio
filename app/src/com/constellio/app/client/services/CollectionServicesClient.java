@@ -1,12 +1,12 @@
 package com.constellio.app.client.services;
 
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.CollectionResource;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.CollectionResource;
 
 public class CollectionServicesClient {
 
@@ -26,6 +26,6 @@ public class CollectionServicesClient {
 
 	private Builder requestString(String service) {
 		return target.path(service).request(MediaType.TEXT_PLAIN).header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+					 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 }

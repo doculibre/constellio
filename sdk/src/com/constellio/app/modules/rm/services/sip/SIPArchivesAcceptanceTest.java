@@ -1,26 +1,5 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jdom2.input.SAXBuilder;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -47,6 +26,26 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SIPArchivesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -63,7 +62,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		InputStream bagInfoIn = new FileInputStream(getTestResourceFile("baginfo.txt"));
@@ -170,13 +169,13 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		MetadataSchema sipArchiveSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
+																.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
 		LogicalSearchCondition allCondition = LogicalSearchQueryOperators.from(sipArchiveSchema).where(ALL);
 		SIParchive records = rm.wrapSIParchive(searchServices.searchSingleResult(allCondition));
 		Content zipContent = records.getContent();
 		InputStream is = getModelLayerFactory().getContentManager()
-				.getContentInputStream(zipContent.getLastMajorContentVersion().getHash(),
-						"com.constellio.app.modules.rm.services.sip.ConstellioSIPObjectsProviderAcceptanceTest.testSIPGenerationWithEmail");
+											   .getContentInputStream(zipContent.getLastMajorContentVersion().getHash(),
+													   "com.constellio.app.modules.rm.services.sip.ConstellioSIPObjectsProviderAcceptanceTest.testSIPGenerationWithEmail");
 		nonConventionalClosingZipInputStream zis = new nonConventionalClosingZipInputStream(is);
 
 		ZipEntry ze;
@@ -209,10 +208,10 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaType type = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getSchemaType(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE);
+														.getSchemaType(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE);
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(type)
-				.where(type.getDefaultSchema().getMetadata(com.constellio.app.modules.rm.wrappers.Document.FOLDER))
-				.isEqualTo(folderId);
+																	  .where(type.getDefaultSchema().getMetadata(com.constellio.app.modules.rm.wrappers.Document.FOLDER))
+																	  .isEqualTo(folderId);
 		List<com.constellio.app.modules.rm.wrappers.Document> documents = rm
 				.wrapDocuments(searchServices.search(new LogicalSearchQuery(condition)));
 		List<String> documentsIds = new ArrayList<>();

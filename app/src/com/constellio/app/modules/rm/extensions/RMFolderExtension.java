@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice.ENABLED;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -36,6 +26,15 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice.ENABLED;
 
 public class RMFolderExtension extends RecordExtension {
 	private final RMSchemasRecordsServices rmSchema;
@@ -99,7 +98,7 @@ public class RMFolderExtension extends RecordExtension {
 
 	private void completeMissingActualDates(Folder folder) {
 		if (configs.getAllowModificationOfArchivisticStatusAndExpectedDates().isAlwaysEnabledOrDuringImportOnly()
-				&& configs.getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() == ENABLED) {
+			&& configs.getCompleteDecommissioningDateWhenCreatingFolderWithManualStatus() == ENABLED) {
 
 			FolderStatus status = folder.getManualArchivisticStatus();
 			if (status == FolderStatus.SEMI_ACTIVE && folder.getActualTransferDate() == null) {
@@ -175,10 +174,10 @@ public class RMFolderExtension extends RecordExtension {
 	}
 
 	private void setFolderStatusAsPrincipalIfUserInRuleAdministrativeUnitsOrSubUnits(Folder folder, User user,
-			RetentionRule rule) {
+																					 RetentionRule rule) {
 		List<String> creatorAdminUnits = getUserAdminUnits(user);
 		boolean creatorInRuleAdminUnits = !CollectionUtils.intersection(creatorAdminUnits, getRuleHierarchyUnits(rule))
-				.isEmpty();
+														  .isEmpty();
 		if (creatorInRuleAdminUnits) {
 			folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		}
@@ -199,9 +198,9 @@ public class RMFolderExtension extends RecordExtension {
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema())
-				.returnAll();
+																	  .returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
+																						   .setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {
 			returnList.add(record.getId());
 		}

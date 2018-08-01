@@ -1,17 +1,16 @@
 package com.constellio.app.reports.builders.administration.plan;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
+import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public abstract class ReportBuilderTestFramework extends ConstellioTest {
 
@@ -94,7 +93,7 @@ public abstract class ReportBuilderTestFramework extends ConstellioTest {
 		if (SystemUtils.IS_OS_WINDOWS) {
 			return Runtime.getRuntime().exec(command);
 		} else {
-			String[] arguments = new String[] { "/bin/sh", "-c", command };
+			String[] arguments = new String[]{"/bin/sh", "-c", command};
 			return Runtime.getRuntime().exec(arguments);
 		}
 	}
@@ -122,9 +121,9 @@ public abstract class ReportBuilderTestFramework extends ConstellioTest {
 
 		String text =
 				"Cette sous-série regroupe les dossiers relatifs à la planification stratégique et la veille. Les dossiers portant sur les\n"
-						+ "objectifs de planification administrative, les orientations prises par Services Québec, les plans directeurs et les plans\n"
-						+ "d'action sont classés dans cette sous-série.\n"
-						+ "Elle comprend aussi les orientations en matière d'éthique.";
+				+ "objectifs de planification administrative, les orientations prises par Services Québec, les plans directeurs et les plans\n"
+				+ "d'action sont classés dans cette sous-série.\n"
+				+ "Elle comprend aussi les orientations en matière d'éthique.";
 		return text;
 	}
 }

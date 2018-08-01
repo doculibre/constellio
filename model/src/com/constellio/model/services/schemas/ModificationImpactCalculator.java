@@ -1,22 +1,5 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -30,12 +13,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -46,6 +24,19 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
+import static java.util.Arrays.asList;
 
 //AFTER : Move in com.constellio.model.services.records.
 public class ModificationImpactCalculator {
@@ -63,12 +54,13 @@ public class ModificationImpactCalculator {
 	SchemaUtils schemaUtils;
 
 	public ModificationImpactCalculator(MetadataSchemaTypes metadataSchemaTypes, List<Taxonomy> taxonomies,
-			SearchServices searchServices, RecordServices recordServices) {
+										SearchServices searchServices, RecordServices recordServices) {
 		this(metadataSchemaTypes, taxonomies, searchServices, recordServices, new SchemaUtils());
 	}
 
 	public ModificationImpactCalculator(MetadataSchemaTypes metadataSchemaTypes, List<Taxonomy> taxonomies,
-			SearchServices searchServices, RecordServices recordServices, SchemaUtils schemaUtils) {
+										SearchServices searchServices, RecordServices recordServices,
+										SchemaUtils schemaUtils) {
 		this.taxonomies = taxonomies;
 		this.searchServices = searchServices;
 		this.recordServices = recordServices;
@@ -77,7 +69,7 @@ public class ModificationImpactCalculator {
 	}
 
 	public ModificationImpactCalculatorResponse findTransactionImpact(Transaction transaction,
-			boolean executedAfterTransaction) {
+																	  boolean executedAfterTransaction) {
 
 		List<String> idsToReindex = new ArrayList<>();
 		List<ModificationImpact> recordsModificationImpacts = new ArrayList<>();
@@ -126,7 +118,8 @@ public class ModificationImpactCalculator {
 	}
 
 	List<ModificationImpact> findImpactOfARecordsModification(RecordsModification recordsModification,
-			List<String> transactionRecordIds, String transactionTitle) {
+															  List<String> transactionRecordIds,
+															  String transactionTitle) {
 		List<ModificationImpact> impacts = new ArrayList<>();
 
 		for (MetadataSchemaType type : metadataSchemaTypes.getSchemaTypes()) {
@@ -137,7 +130,9 @@ public class ModificationImpactCalculator {
 	}
 
 	List<ModificationImpact> findImpactsOfARecordsModificationInSchemaType(MetadataSchemaType schemaType,
-			RecordsModification recordsModification, List<String> transactionRecordIds, String transactionTitle) {
+																		   RecordsModification recordsModification,
+																		   List<String> transactionRecordIds,
+																		   String transactionTitle) {
 
 		List<ModificationImpact> recordsModificationImpactsInType = new ArrayList<>();
 
@@ -169,7 +164,9 @@ public class ModificationImpactCalculator {
 	}
 
 	private LogicalSearchCondition getLogicalSearchConditionFor(MetadataSchemaType schemaType,
-			List<Record> modifiedRecordsBatch, List<String> transactionRecordIds, List<Metadata> references) {
+																List<Record> modifiedRecordsBatch,
+																List<String> transactionRecordIds,
+																List<Metadata> references) {
 		LogicalSearchCondition condition = from(schemaType).whereAny(references).isIn(modifiedRecordsBatch);
 		if (transactionRecordIds != null) {
 			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(transactionRecordIds);
@@ -179,9 +176,12 @@ public class ModificationImpactCalculator {
 	}
 
 	private List<ModificationImpact> findRealImpactsOfPotentialMetadataToReindex(MetadataSchemaType schemaType,
-			RecordsModification recordsModification, List<String> transactionRecordIds,
-			List<ModificationImpact> recordsModificationImpactsInType, List<Metadata> references,
-			List<Metadata> reindexedMetadatas, String transactionTitle) {
+																				 RecordsModification recordsModification,
+																				 List<String> transactionRecordIds,
+																				 List<ModificationImpact> recordsModificationImpactsInType,
+																				 List<Metadata> references,
+																				 List<Metadata> reindexedMetadatas,
+																				 String transactionTitle) {
 		if (!references.isEmpty()) {
 			Iterator<List<Record>> batchIterator = splitModifiedRecordsInBatchOf1000(recordsModification);
 			while (batchIterator.hasNext()) {
@@ -200,7 +200,9 @@ public class ModificationImpactCalculator {
 	}
 
 	void findPotentialMetadataToReindexAndTheirReferencesToAModifiedMetadata(MetadataSchemaType schemaType,
-			RecordsModification recordsModification, MetadataList references, List<Metadata> reindexedMetadatas) {
+																			 RecordsModification recordsModification,
+																			 MetadataList references,
+																			 List<Metadata> reindexedMetadatas) {
 		List<Metadata> automaticMetadatas = schemaType.getAutomaticMetadatas();
 		List<Metadata> modifiedMetadatas = recordsModification.getModifiedMetadatas();
 
@@ -215,7 +217,7 @@ public class ModificationImpactCalculator {
 	}
 
 	List<Metadata> getReferenceMetadatasLinkingToModifiedMetadatas(Metadata automaticMetadata,
-			List<Metadata> modifiedMetadatas) {
+																   List<Metadata> modifiedMetadatas) {
 		MetadataList returnedReferences = new MetadataList();
 		for (Metadata modifiedMetadata : modifiedMetadatas) {
 			returnedReferences.addAll(getReferencesToMetadata(automaticMetadata, modifiedMetadata));
@@ -247,7 +249,7 @@ public class ModificationImpactCalculator {
 	}
 
 	private boolean isCopiedMetadataReferencingTheGivenModifiedMetadata(Metadata automaticMetadata,
-			Metadata modifiedMetadata) {
+																		Metadata modifiedMetadata) {
 
 		CopiedDataEntry dataEntry = (CopiedDataEntry) automaticMetadata.getDataEntry();
 		String modifiedMetadataCode = modifiedMetadata.getCode();
@@ -282,7 +284,7 @@ public class ModificationImpactCalculator {
 					automaticMetadata, modifiedMetadata, (ReferenceDependency) dependency);
 
 		} else if (SpecialDependencies.HIERARCHY.equals(dependency)
-				&& modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(automaticMetadata, modifiedMetadata)) {
+				   && modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(automaticMetadata, modifiedMetadata)) {
 			return getReferenceMetadatasUsedByTheGivenHierarchyDependencyToObtainValuesOfTheModifiedMetadata(
 					automaticMetadata, modifiedMetadata);
 
@@ -292,15 +294,15 @@ public class ModificationImpactCalculator {
 	}
 
 	private boolean modifiedMetadataHasPotentialHierarchyImpactOnAutomaticMetadata(Metadata automaticMeta,
-			Metadata modifiedMeta) {
+																				   Metadata modifiedMeta) {
 
 		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
-				|| (modifiedMeta.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS) && automaticMeta
+			   || (modifiedMeta.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS) && automaticMeta
 				.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS))
-				|| (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
-				|| (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
-				|| (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))
-				|| (modifiedMeta.isLocalCode(ALL_REMOVED_AUTHS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));
+			   || (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
+			   || (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
+			   || (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))
+			   || (modifiedMeta.isLocalCode(ALL_REMOVED_AUTHS) && automaticMeta.isLocalCode(ALL_REMOVED_AUTHS));
 	}
 
 	private List<Metadata> getReferenceMetadatasUsedByTheGivenReferenceDependencyToObtainValuesOfTheModifiedMetadata(
@@ -333,13 +335,13 @@ public class ModificationImpactCalculator {
 	}
 
 	private Metadata getDependencyReferenceMetadata(Metadata automaticMetadata,
-			ReferenceDependency<?> referenceDependency) {
+													ReferenceDependency<?> referenceDependency) {
 		String referenceCode = schemaUtils.getReferenceCode(automaticMetadata, referenceDependency);
 		return metadataSchemaTypes.getMetadata(referenceCode);
 	}
 
 	boolean isDependencyReferencingAnySchemaMetadataWithCode(ReferenceDependency<?> referenceDependency,
-			String metadataCode) {
+															 String metadataCode) {
 
 		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataCode);
 

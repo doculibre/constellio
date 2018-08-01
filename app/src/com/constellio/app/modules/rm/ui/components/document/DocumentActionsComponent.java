@@ -67,6 +67,6 @@ public interface DocumentActionsComponent extends ViewComponent {
 	void setBorrowedMessage(String borrowedMessageKey, String... args);
 
 	void openAgentURL(String agentURL);
-	
+
 	void refreshParent();
 }

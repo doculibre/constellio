@@ -1,16 +1,5 @@
 package com.constellio.model.services.search.cache;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -26,6 +15,13 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends ConstellioTest {
 
@@ -56,9 +52,9 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 		givenTestRecords();
 
 		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default").andWhere(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default")
-				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet"));
+																   .andWhere(Schemas.SCHEMA).isNot(startingWithText("facet"));
 		fromAllSchemasWhereNumberIs42 = fromAllSchemasIn(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default").andWhere(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default")
-				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet")).andWhere(zeSchema.numberMetadata()).isEqualTo(42);
+																	  .andWhere(Schemas.SCHEMA).isNot(startingWithText("facet")).andWhere(zeSchema.numberMetadata()).isEqualTo(42);
 		fromZeSchema = from(zeSchema.instance()).where(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default");
 
 		thirdSchema_3 = record("thirdSchema_3");
@@ -318,7 +314,7 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 		//This class was created to respond to this extreme usecase
 		queriesListener.clear();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE)
-				.setHighlighting(true).setFreeTextQuery("banane");
+																		 .setHighlighting(true).setFreeTextQuery("banane");
 		SPEQueryResponse response = searchServices.query(query, 12);
 		assertThat(response.getRecords()).hasSize(12);
 
@@ -336,7 +332,7 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 		//This class was created to respond to this extreme usecase
 		queriesListener.clear();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE)
-				.setHighlighting(true).setFreeTextQuery("banane");
+																		 .setHighlighting(true).setFreeTextQuery("banane");
 		SPEQueryResponse response = searchServices.query(query, 4);
 		assertThat(response.getRecords()).hasSize(12);
 
@@ -367,7 +363,7 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 		//This class was created to respond to this extreme usecase
 		queriesListener.clear();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE)
-				.setHighlighting(true).setFreeTextQuery("banane");
+																		 .setHighlighting(true).setFreeTextQuery("banane");
 		SPEQueryResponse response = searchServices.query(query, 4);
 		assertThat(response.getRecords()).hasSize(12);
 
@@ -659,19 +655,19 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 		Transaction transaction = new Transaction();
 		//By asc_title=4
 		transaction.add(new TestRecord(zeSchema, "zeSchema_1").set(Schemas.TITLE, "Canard pomme banane zeSchema_1")
-				.set(zeSchema.stringMetadata(), "value A").set(zeSchema.numberMetadata(), 1));
+															  .set(zeSchema.stringMetadata(), "value A").set(zeSchema.numberMetadata(), 1));
 
 		//By asc_title=3
 		transaction.add(new TestRecord(zeSchema, "zeSchema_2").set(Schemas.TITLE, "Boeuf pomme banane zeSchema_2")
-				.set(zeSchema.stringMetadata(), "value B").set(zeSchema.numberMetadata(), 1));
+															  .set(zeSchema.stringMetadata(), "value B").set(zeSchema.numberMetadata(), 1));
 
 		//By asc_title=11
 		transaction.add(new TestRecord(zeSchema, "zeSchema_3").set(Schemas.TITLE, "Ghibou pomme banane zeSchema_3")
-				.set(zeSchema.stringMetadata(), "value D").set(zeSchema.numberMetadata(), 42));
+															  .set(zeSchema.stringMetadata(), "value D").set(zeSchema.numberMetadata(), 42));
 
 		//By asc_title=2
 		transaction.add(new TestRecord(zeSchema, "zeSchema_4").set(Schemas.TITLE, "Aligator pomme banane zeSchema_4")
-				.set(zeSchema.stringMetadata(), "value C").set(zeSchema.numberMetadata(), 42));
+															  .set(zeSchema.stringMetadata(), "value C").set(zeSchema.numberMetadata(), 42));
 
 		//--
 

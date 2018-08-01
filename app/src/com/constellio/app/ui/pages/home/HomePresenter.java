@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -41,6 +31,15 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomePresenter extends BasePresenter<HomeView> {
 
@@ -243,7 +242,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		Record record = searchServices
 				.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
-						.where(Schemas.IDENTIFIER).isEqualTo(recordId));
+															   .where(Schemas.IDENTIFIER).isEqualTo(recordId));
 		String schemaTypeCode = record == null ? null : record.getTypeCode();
 		if (selected) {
 			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);

@@ -1,12 +1,12 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static java.util.Arrays.asList;
-
-import java.util.Iterator;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
+
+import java.util.Iterator;
+
+import static java.util.Arrays.asList;
 
 public class ClassifyConnectorHelper {
 
@@ -38,11 +38,11 @@ public class ClassifyConnectorHelper {
 		@Override
 		public String toString() {
 			return "ClassifiedRecordPathInfo{" +
-					"conceptWhereRecordIsCreated=" + (conceptWhereRecordIsCreated == null ?
-					null :
-					conceptWhereRecordIsCreated.getId()) +
-					", lastPathSegment='" + lastPathSegment + '\'' +
-					'}';
+				   "conceptWhereRecordIsCreated=" + (conceptWhereRecordIsCreated == null ?
+													 null :
+													 conceptWhereRecordIsCreated.getId()) +
+				   ", lastPathSegment='" + lastPathSegment + '\'' +
+				   '}';
 		}
 	}
 
@@ -56,7 +56,7 @@ public class ClassifyConnectorHelper {
 	 * @return
 	 */
 	public ClassifiedRecordPathInfo extractInfoFromPath(String path, String pathPrefix, String delimiter,
-			Metadata codeMetadata) {
+														Metadata codeMetadata) {
 
 		String[] rawPathParts = path.replace(pathPrefix, "").split("/");
 

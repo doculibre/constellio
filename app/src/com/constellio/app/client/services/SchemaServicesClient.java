@@ -1,16 +1,15 @@
 package com.constellio.app.client.services;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.MetadataResource;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.MetadataResource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SchemaServicesClient {
 
@@ -122,12 +121,12 @@ public class SchemaServicesClient {
 
 	private Builder requestJson(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request(MediaType.APPLICATION_JSON_TYPE)
-				.header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+										 .header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder request(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request(MediaType.TEXT_PLAIN).header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+										 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private WebTarget path(String service, Map<String, String> queryParams) {

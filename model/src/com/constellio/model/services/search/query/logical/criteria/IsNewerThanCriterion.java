@@ -1,13 +1,12 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDateTime;
 
 public class IsNewerThanCriterion extends LogicalSearchValueCondition {
 
@@ -27,7 +26,7 @@ public class IsNewerThanCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean isValidFor(DataStoreField dataStoreField) {
 		return dataStoreField.getType().equals(MetadataValueType.DATE) || dataStoreField.getType()
-				.equals(MetadataValueType.DATE_TIME);
+																						.equals(MetadataValueType.DATE_TIME);
 	}
 
 	@Override

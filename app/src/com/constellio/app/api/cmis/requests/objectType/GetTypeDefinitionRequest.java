@@ -1,14 +1,13 @@
 package com.constellio.app.api.cmis.requests.objectType;
 
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GetTypeDefinitionRequest extends CmisCollectionRequest<TypeDefinition> {
 
@@ -16,7 +15,7 @@ public class GetTypeDefinitionRequest extends CmisCollectionRequest<TypeDefiniti
 	private String typeId;
 
 	public GetTypeDefinitionRequest(ConstellioCollectionRepository constellioCollectionRepository,
-			AppLayerFactory appLayerFactory, CallContext callContext, String typeId) {
+									AppLayerFactory appLayerFactory, CallContext callContext, String typeId) {
 		super(callContext, constellioCollectionRepository, appLayerFactory);
 
 		this.typeId = typeId;
@@ -36,8 +35,8 @@ public class GetTypeDefinitionRequest extends CmisCollectionRequest<TypeDefiniti
 	@Override
 	public String toString() {
 		return "GetTypeDefinitionRequest{" +
-				"typeId='" + typeId + '\'' +
-				", repository='" + repository + '\'' +
-				'}';
+			   "typeId='" + typeId + '\'' +
+			   ", repository='" + repository + '\'' +
+			   '}';
 	}
 }

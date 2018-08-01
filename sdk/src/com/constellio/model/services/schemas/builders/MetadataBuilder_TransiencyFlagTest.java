@@ -1,11 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import org.junit.Test;
 
-import com.constellio.model.entities.schemas.MetadataTransiency;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 
@@ -13,7 +12,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagUndefinedOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -24,7 +23,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagUndefinedOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -35,7 +34,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagSetToFalseOnMetadataWithoutInheritanceWhenBuildingThenSingleValue()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTransiency(MetadataTransiency.PERSISTED)
-				.defineDataEntry().asJexlScript("title");
+										 .defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -46,7 +45,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagSetToFalseOnMetadataWithoutInheritanceWhenModifyingThenSingleValue()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTransiency(MetadataTransiency.PERSISTED)
-				.defineDataEntry().asJexlScript("title");
+										 .defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -57,7 +56,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagSetToTransiencyLazyOnMetadataWithoutInheritanceWhenBuildingThenTransiency()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_LAZY)
-				.defineDataEntry().asJexlScript("title");
+										 .defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -68,7 +67,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagSetToTransiencyEagerOnMetadataWithoutInheritanceWhenBuildingThenTransiency()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_EAGER)
-				.defineDataEntry().asJexlScript("title");
+										 .defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -79,7 +78,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagSetToTransiencyLazyOnMetadataWithoutInheritanceWhenModifyingThenTransiency()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_LAZY)
-				.defineDataEntry().asJexlScript("title");
+										 .defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -90,7 +89,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagSetToTransiencyEagerOnMetadataWithoutInheritanceWhenModifyingThenTransiency()
 			throws Exception {
 		metadataWithoutInheritanceBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_EAGER)
-				.defineDataEntry().asJexlScript("title");
+										 .defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -101,7 +100,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagOnMetadataWithInheritanceWhenBuildingThenSetToInheritedValue()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_LAZY)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		build();
 
@@ -112,7 +111,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyFlagOnMetadataWithInheritanceWhenModifyingThenSetToInheritedValue()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_LAZY)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		buildAndModify();
 
@@ -123,7 +122,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyLazyFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_LAZY)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		assertThat(metadataWithInheritanceBuilder.getTransiency()).isEqualTo(MetadataTransiency.TRANSIENT_LAZY);
 
@@ -133,7 +132,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenTransiencyEagerFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setTransiency(MetadataTransiency.TRANSIENT_EAGER)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		assertThat(metadataWithInheritanceBuilder.getTransiency()).isEqualTo(MetadataTransiency.TRANSIENT_EAGER);
 
@@ -143,7 +142,7 @@ public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 	public void givenFalseFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).setTransiency(MetadataTransiency.PERSISTED)
-				.defineDataEntry().asJexlScript("title");
+								.defineDataEntry().asJexlScript("title");
 
 		assertThat(metadataWithInheritanceBuilder.getTransiency()).isEqualTo(MetadataTransiency.PERSISTED);
 

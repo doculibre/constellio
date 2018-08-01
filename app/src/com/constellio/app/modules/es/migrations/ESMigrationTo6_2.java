@@ -24,12 +24,12 @@ public class ESMigrationTo6_2 implements MigrationScript {
 	private void configureDisplayConfig(SchemasDisplayManager manager, String collection) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 		transaction.add(manager.getMetadata(collection, ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.CONNECTOR)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.CONNECTOR)
-				.withVisibleInAdvancedSearchStatus(true));
+							   .withVisibleInAdvancedSearchStatus(true));
 		transaction.add(
 				manager.getMetadata(collection, ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.CONNECTOR)
-						.withVisibleInAdvancedSearchStatus(true));
+					   .withVisibleInAdvancedSearchStatus(true));
 		manager.execute(transaction.build());
 	}
 }

@@ -1,5 +1,19 @@
 package com.constellio.model.services.emails;
 
+import com.constellio.model.conf.email.EmailServerConfiguration;
+import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
+import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
+import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.*;
+import javax.mail.internet.*;
+import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,42 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.AuthenticationFailedException;
-import javax.mail.Authenticator;
-import javax.mail.BodyPart;
-import javax.mail.FolderNotFoundException;
-import javax.mail.MessageRemovedException;
-import javax.mail.MessagingException;
-import javax.mail.MethodNotSupportedException;
-import javax.mail.Multipart;
-import javax.mail.NoSuchProviderException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.ReadOnlyFolderException;
-import javax.mail.SendFailedException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
-import javax.mail.util.ByteArrayDataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.model.conf.email.EmailServerConfiguration;
-import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
-import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
-import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
-
 public class EmailServices {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailQueueManager.class);
 
 	public void sendEmail(MimeMessage message)
@@ -60,13 +40,13 @@ public class EmailServices {
 			throws EmailServerException, EmailTempException, EmailPermanentException {
 		LOGGER.warn(e.getMessage(), e);
 		if (e instanceof AuthenticationFailedException ||
-				e instanceof NoSuchProviderException) {
+			e instanceof NoSuchProviderException) {
 			return new EmailServerException(e);
 		} else if (e instanceof MessageRemovedException
-				|| e instanceof MethodNotSupportedException
-				|| e instanceof ReadOnlyFolderException
-				|| e instanceof FolderNotFoundException
-				|| e instanceof SendFailedException) {
+				   || e instanceof MethodNotSupportedException
+				   || e instanceof ReadOnlyFolderException
+				   || e instanceof FolderNotFoundException
+				   || e instanceof SendFailedException) {
 			return new EmailPermanentException(e);
 		} else {//FolderClosedException, MailConnectException, ParseException, SendFailedException,
 			// StoreClosedException, IllegalWriteException, SearchException, SMTPAddressSucceededException
@@ -148,12 +128,12 @@ public class EmailServices {
 			BodyPart bodyPart = multipart.getBodyPart(x);
 			String disposition = bodyPart.getDisposition();
 			if (disposition != null
-					&& (disposition.equals(BodyPart.ATTACHMENT))) {
+				&& (disposition.equals(BodyPart.ATTACHMENT))) {
 				DataHandler handler = bodyPart.getDataHandler();
 
 				returnList.add(new MessageAttachment().setAttachmentName(handler.getName())
-						.setInputStream(handler.getInputStream())
-						.setMimeType(handler.getContentType()));
+													  .setInputStream(handler.getInputStream())
+													  .setMimeType(handler.getContentType()));
 			}
 		}
 		return returnList;
@@ -167,7 +147,7 @@ public class EmailServices {
 			BodyPart bodyPart = multipart.getBodyPart(x);
 			String disposition = bodyPart.getDisposition();
 			if (disposition == null
-					|| !(disposition.equals(BodyPart.ATTACHMENT))) {
+				|| !(disposition.equals(BodyPart.ATTACHMENT))) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				bodyPart.writeTo(baos);
 				return new String(baos.toByteArray());
@@ -175,17 +155,17 @@ public class EmailServices {
 		}
 		return "";
 	}
-    
-    public static class EmailMessage {
-    	
-    	String filename;
-    	
-    	InputStream inputStream;
-    	
-    	public EmailMessage(String filename, InputStream inputStream) {
-    		this.filename = filename;
-    		this.inputStream = inputStream;
-    	}
+
+	public static class EmailMessage {
+
+		String filename;
+
+		InputStream inputStream;
+
+		public EmailMessage(String filename, InputStream inputStream) {
+			this.filename = filename;
+			this.inputStream = inputStream;
+		}
 
 		public String getFilename() {
 			return filename;
@@ -194,8 +174,8 @@ public class EmailServices {
 		public InputStream getInputStream() {
 			return inputStream;
 		}
-    	
-    }
+
+	}
 
 	public static class MessageAttachment {
 		InputStream inputStream;

@@ -1,18 +1,22 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.*;
-
 import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ImportedType {
 
 	private String code;
 	private String label;
-	private Map<Language, String> labels = new HashMap<>();;
+	private Map<Language, String> labels = new HashMap<>();
+	;
 	private List<ImportedTab> tabs = new ArrayList<>();
 	private ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
 	private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();

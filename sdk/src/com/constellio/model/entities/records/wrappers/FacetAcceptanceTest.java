@@ -1,15 +1,14 @@
 package com.constellio.model.entities.records.wrappers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FacetAcceptanceTest extends ConstellioTest {
 	SchemasRecordsServices recordsServices;
@@ -40,22 +39,22 @@ public class FacetAcceptanceTest extends ConstellioTest {
 		queryValues.put("zeLabel1", "zeUltimateSolrQuery1");
 
 		Facet facetField = recordsServices.newFacetField("zeFacet")
-				.setTitle("My document")
-				.setElementPerPage(2)
-				.setPages(5)
-				.setFieldDataStoreCode("aField")
-				.setOrder(1)
-				.setOrderResult(FacetOrderType.ALPHABETICAL)
-				.setFieldValuesLabel(fieldValuesLabel);
+										  .setTitle("My document")
+										  .setElementPerPage(2)
+										  .setPages(5)
+										  .setFieldDataStoreCode("aField")
+										  .setOrder(1)
+										  .setOrderResult(FacetOrderType.ALPHABETICAL)
+										  .setFieldValuesLabel(fieldValuesLabel);
 
 		Facet facetQuery = recordsServices.newFacetQuery("zeFacetQuery")
-				.setTitle("My document")
-				.setElementPerPage(5)
-				.setPages(10)
-				.setFieldDataStoreCode("aFieldCode")
-				.setOrder(2)
-				.setOrderResult(FacetOrderType.RELEVANCE)
-				.setListQueries(queryValues);
+										  .setTitle("My document")
+										  .setElementPerPage(5)
+										  .setPages(10)
+										  .setFieldDataStoreCode("aFieldCode")
+										  .setOrder(2)
+										  .setOrderResult(FacetOrderType.RELEVANCE)
+										  .setListQueries(queryValues);
 
 		recordServices.add(facetField);
 		recordServices.add(facetQuery);

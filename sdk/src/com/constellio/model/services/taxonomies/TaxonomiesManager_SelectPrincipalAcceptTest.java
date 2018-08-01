@@ -1,11 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -22,6 +16,11 @@ import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeExceptio
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1SecondSchemaType;
+import org.junit.Before;
+import org.junit.Test;
+
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest {
 
@@ -81,7 +80,7 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaTypeBuilder taxo1Type2Builder = typesBuilder.getSchemaType("taxo1Type2");
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref")
-				.defineReferencesTo(taxo1Type2Builder).setMultivalue(false);
+					.defineReferencesTo(taxo1Type2Builder).setMultivalue(false);
 		MetadataSchemaTypes types = schemasManager
 				.saveUpdateSchemaTypes(typesBuilder);
 
@@ -117,8 +116,8 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaBuilder taxo1Type2Builder = typesBuilder.getSchemaType("taxo1Type2").getDefaultSchema();
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref")
-				.defineReferencesTo(taxo1Type2Builder)
-				.setMultivalue(false);
+					.defineReferencesTo(taxo1Type2Builder)
+					.setMultivalue(false);
 		MetadataSchemaTypes types = schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("anotherSchema_default_ref").getAllowedReferences().getAllowedSchemas())
@@ -135,7 +134,7 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.getSchemaType("taxo1Type2");
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").setSecurity(true).getDefaultSchema().create("ref")
-				.defineTaxonomyRelationshipToType(taxo1Type2).setMultivalue(true);
+					.defineTaxonomyRelationshipToType(taxo1Type2).setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 
@@ -148,7 +147,7 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.getSchemaType("taxo1Type2");
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").setSecurity(false).getDefaultSchema().create("ref")
-				.defineTaxonomyRelationshipToType(taxo1Type2).setMultivalue(true);
+					.defineTaxonomyRelationshipToType(taxo1Type2).setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 
@@ -161,7 +160,7 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaBuilder taxo1Type2 = typesBuilder.getSchemaType("taxo1Type2").getDefaultSchema();
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref").defineReferencesTo(taxo1Type2)
-				.setMultivalue(true);
+					.setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 
@@ -173,7 +172,7 @@ public class TaxonomiesManager_SelectPrincipalAcceptTest extends ConstellioTest 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		MetadataSchemaBuilder taxo1Type2 = typesBuilder.getSchemaType("taxo1Type2").getDefaultSchema();
 		typesBuilder.getOrCreateNewSchemaType("anotherSchema").getDefaultSchema().create("ref").defineReferencesTo(taxo1Type2)
-				.setMultivalue(true);
+					.setMultivalue(true);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 	}
 

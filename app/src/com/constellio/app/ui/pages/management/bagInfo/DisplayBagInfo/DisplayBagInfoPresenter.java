@@ -9,19 +9,19 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class DisplayBagInfoPresenter extends BasePresenter<DisplayBagInfoView> {
-    private SchemaPresenterUtils utils;
+	private SchemaPresenterUtils utils;
 
-    public DisplayBagInfoPresenter(DisplayBagInfoView view) {
-        super(view);
-        utils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-    }
+	public DisplayBagInfoPresenter(DisplayBagInfoView view) {
+		super(view);
+		utils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
 
-    protected RecordVO getRecordVO(String id) {
-        return new RecordToVOBuilder().build(utils.getRecord(id), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
-    }
+	protected RecordVO getRecordVO(String id) {
+		return new RecordToVOBuilder().build(utils.getRecord(id), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
 }

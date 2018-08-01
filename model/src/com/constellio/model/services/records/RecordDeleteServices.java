@@ -1,30 +1,6 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
-import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
-import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.lang.Boolean.TRUE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -38,12 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
@@ -73,6 +44,21 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.lang.Boolean.TRUE;
 
 public class RecordDeleteServices {
 
@@ -127,7 +113,7 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 		return parentActiveOrNull && (!schemaType.hasSecurity() || user == User.GOD ||
-				authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy));
+									  authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy));
 	}
 
 	public void restore(Record record, User user) {
@@ -203,7 +189,8 @@ public class RecordDeleteServices {
 
 	}
 
-	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user, RecordPhysicalDeleteOptions options) {
+	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user,
+														   RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -304,7 +291,7 @@ public class RecordDeleteServices {
 			for (final Record recordInHierarchy : records) {
 				String type = new SchemaUtils().getSchemaTypeCode(recordInHierarchy.getSchemaCode());
 				final List<Metadata> metadatas = types.getAllMetadatas().onlyReferencesToType(type).onlyNonParentReferences()
-						.onlyManuals();
+													  .onlyManuals();
 
 				if (!metadatas.isEmpty()) {
 					try {
@@ -411,7 +398,7 @@ public class RecordDeleteServices {
 			if (options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM) {
 				includeRecords = true;
 			} else if (taxonomy.hasSameCode(principalTaxonomy)
-					&& options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
+					   && options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
 				includeRecords = true;
 			}
 		}
@@ -423,7 +410,8 @@ public class RecordDeleteServices {
 		}
 	}
 
-	private List<Record> getAllRecordsInHierarchyForPhysicalDeletion(Record record, RecordPhysicalDeleteOptions options) {
+	private List<Record> getAllRecordsInHierarchyForPhysicalDeletion(Record record,
+																	 RecordPhysicalDeleteOptions options) {
 
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
@@ -433,7 +421,7 @@ public class RecordDeleteServices {
 			if (options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM) {
 				includeRecords = true;
 			} else if (taxonomy.hasSameCode(principalTaxonomy)
-					&& options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
+					   && options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
 				includeRecords = true;
 			}
 		}
@@ -604,7 +592,7 @@ public class RecordDeleteServices {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
-					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+																				 .getSchemaTypesWithCode(taxonomy.getSchemaTypes());
 			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isStartingWithText(paths.get(0)));
 			return searchServices.search(query);
 		}
@@ -614,7 +602,7 @@ public class RecordDeleteServices {
 		List<Record> records = new ArrayList<>();
 		for (String schemaTypeCode : principalTaxonomy.getSchemaTypes()) {
 			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(principalConcept.getCollection())
-					.getSchemaType(schemaTypeCode);
+																  .getSchemaType(schemaTypeCode);
 
 			List<String> paths = principalConcept.getList(Schemas.PATH);
 			LogicalSearchQuery query = new LogicalSearchQuery();
@@ -632,7 +620,7 @@ public class RecordDeleteServices {
 		LogicalSearchQuery query = new LogicalSearchQuery().filteredByStatus(StatusFilter.ACTIVES);
 		if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
-					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+																				 .getSchemaTypesWithCode(taxonomy.getSchemaTypes());
 			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
 		} else {
 			query.setCondition(
@@ -645,7 +633,8 @@ public class RecordDeleteServices {
 		return new RecordUtils();
 	}
 
-	List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user, List<Record> recordHierarchy) {
+	List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user,
+																   List<Record> recordHierarchy) {
 		//1 - Find all hierarchy records (including the given record) that are referenced (using the counter index)
 		List<Record> returnedRecords = new ArrayList<>();
 		List<String> recordsWithReferences = new ArrayList<>(getRecordsInHierarchyWithDependency(record, recordHierarchy));
@@ -664,7 +653,7 @@ public class RecordDeleteServices {
 	}
 
 	List<Record> getRecordsInTypeWithReferenceTo(User user, List<String> recordsWithReferences, MetadataSchemaType type,
-			List<Metadata> references) {
+												 List<Metadata> references) {
 
 		LogicalSearchQuery query = new LogicalSearchQuery().filteredWithUser(user);
 		query.setCondition(from(type).whereAny(references).isIn(recordsWithReferences));
@@ -686,7 +675,7 @@ public class RecordDeleteServices {
 			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 
 				List<Metadata> referencesMetadata = schemaType.getDefaultSchema().getMetadatas()
-						.onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences();
+															  .onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences();
 				mayBeReferencedOutsideHierarchy |= !referencesMetadata.isEmpty();
 			}
 

@@ -1,16 +1,5 @@
 package com.constellio.app.api.cmis.builders.object;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
@@ -25,6 +14,16 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 public class RecordBuilder {
 
@@ -45,7 +44,7 @@ public class RecordBuilder {
 	public void setMetadataFromProperties(Record record) {
 		String collection = context.get(ConstellioCmisContextParameters.COLLECTION).toString();
 		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(collection).getSchema(record.getSchemaCode());
+												 .getSchemaTypes(collection).getSchema(record.getSchemaCode());
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 				setMetadataFromProperty(record, metadata);

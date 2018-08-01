@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.connectors.spi;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.model.entities.records.Record;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Connector {
 
@@ -37,7 +37,7 @@ public abstract class Connector {
 	public abstract void onAllDocumentsDeleted();
 
 	public Connector initialize(ConnectorLogger logger, Record instance, ConnectorEventObserver eventObserver,
-			ESSchemasRecordsServices es) {
+								ESSchemasRecordsServices es) {
 		this.logger = logger;
 		this.instance = instance;
 		this.eventObserver = eventObserver;

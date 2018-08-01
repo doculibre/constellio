@@ -1,23 +1,5 @@
 package com.constellio.model.services.configs;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
@@ -26,7 +8,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
-import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationScript;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -37,6 +19,17 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 	@Mock MetadataSchemasManager metadataSchemasManager;
@@ -77,7 +70,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		doReturn(asList("firstCollection", "secondCollection")).when(collectionsListManager).getCollections();
 		doReturn(script).when(systemConfigurationsManager).getInstanciatedScriptFor(aSystemConfiguration);
 		doReturn(asList(aBatchProcess, anotherBatchProcess)).when(systemConfigurationsManager)
-				.startBatchProcessesToReindex(aSystemConfiguration);
+															.startBatchProcessesToReindex(aSystemConfiguration);
 		doReturn("currentValue").when(systemConfigurationsManager).getValue(aSystemConfiguration);
 
 		systemConfigurationsManager.setValue(aSystemConfiguration, "theNewValue");
@@ -90,7 +83,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		inOrder.verify(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory, "firstCollection");
 		inOrder.verify(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory, "secondCollection");
 		inOrder.verify(configManager)
-				.updateProperties(eq(SystemConfigurationsManager.CONFIG_FILE_PATH), any(PropertiesAlteration.class));
+			   .updateProperties(eq(SystemConfigurationsManager.CONFIG_FILE_PATH), any(PropertiesAlteration.class));
 		inOrder.verify(batchProcessesManager).markAsPending(aBatchProcess);
 		inOrder.verify(batchProcessesManager).markAsPending(anotherBatchProcess);
 	}
@@ -102,7 +95,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		doReturn(asList("firstCollection", "secondCollection")).when(collectionsListManager).getCollections();
 		doReturn(script).when(systemConfigurationsManager).getInstanciatedScriptFor(aSystemConfiguration);
 		doReturn(asList(aBatchProcess, anotherBatchProcess)).when(systemConfigurationsManager)
-				.startBatchProcessesToReindex(aSystemConfiguration);
+															.startBatchProcessesToReindex(aSystemConfiguration);
 		doReturn("currentValue").when(systemConfigurationsManager).getValue(aSystemConfiguration);
 		doThrow(RuntimeException.class).when(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory,
 				"secondCollection");
@@ -125,7 +118,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		inOrder.verify(script).onValueChanged("theNewValue", "currentValue", modelLayerFactory, "firstCollection");
 		inOrder.verify(script).onValueChanged("theNewValue", "currentValue", modelLayerFactory, "secondCollection");
 		inOrder.verify(configManager, never())
-				.updateProperties(anyString(), any(PropertiesAlteration.class));
+			   .updateProperties(anyString(), any(PropertiesAlteration.class));
 		inOrder.verify(batchProcessesManager).cancelStandByBatchProcess(aBatchProcess);
 		inOrder.verify(batchProcessesManager).cancelStandByBatchProcess(anotherBatchProcess);
 	}

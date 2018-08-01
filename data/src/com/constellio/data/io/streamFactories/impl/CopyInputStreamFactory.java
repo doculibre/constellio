@@ -1,17 +1,16 @@
 package com.constellio.data.io.streamFactories.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactoryRuntimeException.InputStreamIsNull;
 import com.constellio.data.utils.Octets;
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class CopyInputStreamFactory implements CloseableStreamFactory<InputStream>, StreamFactoryWithFilename<InputStream> {
 

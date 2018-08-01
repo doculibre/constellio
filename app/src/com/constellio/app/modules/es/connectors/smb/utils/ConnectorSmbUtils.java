@@ -1,18 +1,16 @@
 package com.constellio.app.modules.es.connectors.smb.utils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.LinkedHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ConnectorSmbUtils {
 	private ConnectorLogger logger = new ConsoleConnectorLogger();
@@ -40,7 +38,7 @@ public class ConnectorSmbUtils {
 		}
 
 		if (smbRetrievalConfiguration.getExclusions() != null && !smbRetrievalConfiguration.getExclusions()
-				.isEmpty()) {
+																						   .isEmpty()) {
 			for (String blackRegEx : smbRetrievalConfiguration.getExclusions()) {
 				if (StringUtils.isNotBlank(blackRegEx)) {
 					if (url.startsWith(blackRegEx)) {
@@ -56,7 +54,7 @@ public class ConnectorSmbUtils {
 		}
 
 		if (smbRetrievalConfiguration.getInclusions() != null && !smbRetrievalConfiguration.getInclusions()
-				.isEmpty()) {
+																						   .isEmpty()) {
 			for (String whiteRegEx : smbRetrievalConfiguration.getInclusions()) {
 				if (StringUtils.isNotBlank(whiteRegEx)) {
 					if (url.startsWith(whiteRegEx)) {

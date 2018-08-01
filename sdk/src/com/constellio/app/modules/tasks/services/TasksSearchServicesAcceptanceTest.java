@@ -1,18 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.model.entities.records.Record;
@@ -27,6 +14,18 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	TasksSearchServices tasksSearchServices;
@@ -83,18 +82,18 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		taskAssignedByChuckToAlice = tasksSchemas.newTask().setTitle("taskAssignedByChuckToAlice").setAssigner(chuck.getId())
-				.setAssignationDate(now).setAssignee(alice.getId());
+												 .setAssignationDate(now).setAssignee(alice.getId());
 		transaction.add(taskAssignedByChuckToAlice.setCreatedBy(chuck.getId()));
 
 		taskAssignedByChuckToAliceClosed = tasksSchemas.newTask().setTitle("taskAssignedByChuckToAliceClosed")
-				.setAssigner(chuck.getId())
-				.setAssignationDate(now).setAssignee(alice.getId()).setStatus(closedStatus.getId());
+													   .setAssigner(chuck.getId())
+													   .setAssignationDate(now).setAssignee(alice.getId()).setStatus(closedStatus.getId());
 		transaction.add(taskAssignedByChuckToAliceClosed.setCreatedBy(chuck.getId()));
 
 		taskAssignedByChuckToAliceFinished = tasksSchemas.newTask().setTitle("taskAssignedByChuckToAliceFinished")
-				.setAssigner(chuck.getId())
-				.setAssignationDate(now).setAssignee(alice.getId())
-				.setStatus(taskSearchServices.getFirstFinishedStatus().getId());
+														 .setAssigner(chuck.getId())
+														 .setAssignationDate(now).setAssignee(alice.getId())
+														 .setStatus(taskSearchServices.getFirstFinishedStatus().getId());
 		transaction.add(taskAssignedByChuckToAliceFinished.setCreatedBy(chuck.getId()));
 
 		nonAssignedTaskCreatedByChuck = tasksSchemas.newTask().setTitle("nonAssignedTaskCreatedByChuck");
@@ -104,26 +103,26 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(nonAssignedTaskClosed);
 
 		subTaskOfNonAssignedTaskClosed = tasksSchemas.newTask().setTitle("subTaskOfNonAssignedTaskClosed")
-				.setParentTask(nonAssignedTaskClosed.getId());
+													 .setParentTask(nonAssignedTaskClosed.getId());
 		transaction.add(subTaskOfNonAssignedTaskClosed
 		);
 
 		taskAssignedByBobToChuckClosed = tasksSchemas.newTask().setTitle("taskAssignedByBobToChuckClosed")
-				.setAssigner(bob.getId())
-				.setAssignationDate(now).setAssignee(chuck.getId())
-				.setStatus(closedStatus.getId());
+													 .setAssigner(bob.getId())
+													 .setAssignationDate(now).setAssignee(chuck.getId())
+													 .setStatus(closedStatus.getId());
 		transaction.add(taskAssignedByBobToChuckClosed.setCreatedBy(bob.getId()));
 
 		taskAssignedByBobToChuckFinished = tasksSchemas.newTask().setTitle("taskAssignedByBobToChuckFinished")
-				.setAssigner(bob.getId())
-				.setAssignationDate(now).setAssignee(chuck.getId())
-				.setStatus(taskSearchServices.getFirstFinishedStatus().getId());
+													   .setAssigner(bob.getId())
+													   .setAssignationDate(now).setAssignee(chuck.getId())
+													   .setStatus(taskSearchServices.getFirstFinishedStatus().getId());
 		transaction.add(taskAssignedByBobToChuckFinished.setCreatedBy(bob.getId()));
 
 		String sasquatchId = users.sasquatchIn(zeCollection).getId();
 		taskWithDakotaInAssignationUsersCandidates = tasksSchemas.newTask().setTitle("taskWithDakotaInAssignationUsersCandidates")
-				.setAssigner(sasquatchId)
-				.setAssignationDate(now).setAssigneeUsersCandidates(asList(dakotaIndien.getId()));
+																 .setAssigner(sasquatchId)
+																 .setAssignationDate(now).setAssigneeUsersCandidates(asList(dakotaIndien.getId()));
 		transaction.add(taskWithDakotaInAssignationUsersCandidates);
 
 		userServices = getModelLayerFactory().newUserServices();
@@ -142,9 +141,9 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateUserCredential(users.charles().withGlobalGroups(asList(newGlobalGroup, charlesNewGlobalGroup)));
 		charles = users.charlesIn(zeCollection);
 		taskWithCharlesInAssignationGroupCandidates = tasksSchemas.newTaskWithId("taskWithCharlesInAssignationGroupCandidates")
-				.setTitle("taskWithCharlesInAssignationGroupCandidates")
-				.setAssigner(sasquatchId)
-				.setAssignationDate(now).setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()));
+																  .setTitle("taskWithCharlesInAssignationGroupCandidates")
+																  .setAssigner(sasquatchId)
+																  .setAssignationDate(now).setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()));
 		transaction.add(taskWithCharlesInAssignationGroupCandidates);
 
 		recordServices.execute(transaction);
@@ -212,7 +211,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 				.search(tasksSearchServices.getRecentlyCompletedTasks(bob));
 		assertThat(results.size()).isEqualTo(2);
 		assertThat(results).extracting("title")
-				.containsAll(asList("taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
+						   .containsAll(asList("taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
 	}
 
 	@Test
@@ -232,7 +231,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.add(taskCreatedByChuckHavingSubTaskCreatedByAlice.setCreatedBy(chuck.getId()));
 		Task subTaskCreatedByAlice = tasksSchemas.newTask().setTitle("zeSubTask")
-				.setParentTask(taskCreatedByChuckHavingSubTaskCreatedByAlice.getId());
+												 .setParentTask(taskCreatedByChuckHavingSubTaskCreatedByAlice.getId());
 		transaction.add(subTaskCreatedByAlice.setCreatedBy(alice.getId()));
 		recordServices.execute(transaction);
 

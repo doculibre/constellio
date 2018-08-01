@@ -1,16 +1,15 @@
 package com.constellio.data.conf;
 
-import static com.constellio.data.conf.SolrServerType.HTTP;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import org.apache.solr.common.SolrInputDocument;
+import org.joda.time.Duration;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.solr.common.SolrInputDocument;
-import org.joda.time.Duration;
-
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import static com.constellio.data.conf.SolrServerType.HTTP;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -25,7 +24,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	private boolean backgroundThreadsEnable = true;
 
 	public PropertiesDataLayerConfiguration(Map<String, String> configs, File defaultTempFolder,
-			File defaultFileSystemBaseFolder, File constellioProperties) {
+											File defaultFileSystemBaseFolder, File constellioProperties) {
 		super(configs, constellioProperties);
 		this.defaultTempFolder = defaultTempFolder;
 		this.defaultFileSystemBaseFolder = defaultFileSystemBaseFolder;
@@ -321,8 +320,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public boolean isLocalHttpSolrServer() {
 		return getRecordsDaoSolrServerType().equals(HTTP) &&
-				(getRecordsDaoHttpSolrServerUrl().contains("localhost") || getRecordsDaoHttpSolrServerUrl()
-						.contains("127.0.0.1"));
+			   (getRecordsDaoHttpSolrServerUrl().contains("localhost") || getRecordsDaoHttpSolrServerUrl()
+					   .contains("127.0.0.1"));
 	}
 
 	@Override

@@ -1,20 +1,19 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.Language;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.CollectionInfo;
-import com.constellio.model.entities.Language;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class MetadataSchemaTypeTest extends ConstellioTest {
 

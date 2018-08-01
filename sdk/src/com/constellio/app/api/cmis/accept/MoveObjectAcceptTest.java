@@ -1,19 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.FolderSchema;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
@@ -29,6 +15,19 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @DriverTest
 public class MoveObjectAcceptTest extends ConstellioTest {
@@ -73,7 +72,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-				.build();
+											 .build();
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
@@ -136,7 +135,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		Holder<String> objectIdHolder = new Holder<String>(object.getId());
 
 		cmisSession.getBinding().getObjectService()
-				.moveObject(cmisSession.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
+				   .moveObject(cmisSession.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
 
 		recordServices.refresh(record);
 	}

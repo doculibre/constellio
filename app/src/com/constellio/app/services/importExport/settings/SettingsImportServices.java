@@ -1,25 +1,5 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static java.util.Arrays.asList;
-import static java.util.regex.Pattern.compile;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -28,20 +8,8 @@ import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -51,23 +19,28 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static java.util.Arrays.asList;
+import static java.util.regex.Pattern.compile;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 public class SettingsImportServices {
 
@@ -166,7 +139,7 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionTypes(final ImportedCollectionSettings settings,
-			final String collection, final MetadataSchemaTypes schemaTypes) {
+									   final String collection, final MetadataSchemaTypes schemaTypes) {
 
 		final KeyListMap<String, String> newMetadatas = new KeyListMap<>();
 
@@ -194,7 +167,7 @@ public class SettingsImportServices {
 
 					importCustomSchemata(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 
-					importSchemaMetadatas(typeBuilder,importedDefaultSchema, defaultSchemaBuilder, types,
+					importSchemaMetadatas(typeBuilder, importedDefaultSchema, defaultSchemaBuilder, types,
 							newMetadatas);
 
 					importCustomSchemataMetadatas(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
@@ -211,7 +184,7 @@ public class SettingsImportServices {
 	}
 
 	private void applySchemasLists(SchemaTypesDisplayTransactionBuilder transactionBuilder,
-			ImportedMetadataSchema importedSchema, MetadataSchema schema) {
+								   ImportedMetadataSchema importedSchema, MetadataSchema schema) {
 		SchemaDisplayConfig schemaDisplayConfig = transactionBuilder.updateSchemaDisplayConfig(schema);
 
 		if (!importedSchema.getFormMetadatas().isEmpty()) {
@@ -259,7 +232,7 @@ public class SettingsImportServices {
 		List<String> specifiedLocalCodes = toCodes(localCodes, schema);
 
 		for (Metadata metadata : schema.getMetadatas().onlyEssentialMetadatasAndCodeTitle().onlyNonSystemReserved()
-				.onlyManuals()) {
+									   .onlyManuals()) {
 			if (!specifiedLocalCodes.contains(metadata.getCode())) {
 				if (metadata.isDefaultRequirement()) {
 					requiredEssentialMetadatas.add(metadata.getCode());
@@ -276,7 +249,7 @@ public class SettingsImportServices {
 	}
 
 	private void updateSettingsMetadata(ImportedCollectionSettings settings, MetadataSchemaTypes schemaTypes,
-			KeyListMap<String, String> newMetadatas) {
+										KeyListMap<String, String> newMetadatas) {
 
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = new SchemaTypesDisplayTransactionBuilder(schemaTypes,
@@ -300,7 +273,8 @@ public class SettingsImportServices {
 	}
 
 	private void setupTypeDisplayConfig(SchemaTypesDisplayTransactionBuilder transactionBuilder,
-			ImportedType importedType, MetadataSchemaType type, KeyListMap<String, String> newMetadatas) {
+										ImportedType importedType, MetadataSchemaType type,
+										KeyListMap<String, String> newMetadatas) {
 
 		SchemaTypeDisplayConfig schemaTypeDisplayConfig = transactionBuilder.updateSchemaTypeDisplayConfig(type);
 		Map<String, Map<Language, String>> allTabs = new HashMap<>(schemaTypeDisplayConfig.getMetadataGroup());
@@ -351,7 +325,8 @@ public class SettingsImportServices {
 	}
 
 	private void configureMetadataDisplay(Metadata metadata, ImportedMetadata importedMetadata,
-			SchemaTypesDisplayTransactionBuilder transactionBuilder, Map<String, Map<Language, String>> allTabs) {
+										  SchemaTypesDisplayTransactionBuilder transactionBuilder,
+										  Map<String, Map<Language, String>> allTabs) {
 
 		MetadataDisplayConfig displayConfig = transactionBuilder.updateMetadataDisplayConfig(metadata);
 		String tab = importedMetadata.getTab();
@@ -403,7 +378,8 @@ public class SettingsImportServices {
 	}
 
 	private Map<String, Map<String, Boolean>> getSchemasMetasVisibility(MetadataSchemaType type,
-			ImportedType importedType, ListType listType, KeyListMap<String, String> newMetadatas) {
+																		ImportedType importedType, ListType listType,
+																		KeyListMap<String, String> newMetadatas) {
 
 		Map<String, Map<String, Boolean>> schemasMetadatas = new HashMap<>();
 
@@ -479,8 +455,9 @@ public class SettingsImportServices {
 		return schemasMetadatas;
 	}
 
-	private void importCustomSchemata(MetadataSchemaTypesBuilder types, List<ImportedMetadataSchema> importedMetadataSchemata,
-			MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
+	private void importCustomSchemata(MetadataSchemaTypesBuilder types,
+									  List<ImportedMetadataSchema> importedMetadataSchemata,
+									  MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
 		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
 			importSchema(types, typeBuilder, importedMetadataSchema, newMetadatas);
 		}
@@ -488,8 +465,9 @@ public class SettingsImportServices {
 	}
 
 	private void importCustomSchemataMetadatas(MetadataSchemaTypesBuilder types,
-			List<ImportedMetadataSchema> importedMetadataSchemata,
-			MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
+											   List<ImportedMetadataSchema> importedMetadataSchemata,
+											   MetadataSchemaTypeBuilder typeBuilder,
+											   KeyListMap<String, String> newMetadatas) {
 		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
 			MetadataSchemaBuilder customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
 			importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types, newMetadatas);
@@ -497,22 +475,24 @@ public class SettingsImportServices {
 	}
 
 	private void importSchema(MetadataSchemaTypesBuilder types,
-			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
-			KeyListMap<String, String> newMetadatas) {
+							  MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
+							  KeyListMap<String, String> newMetadatas) {
 		MetadataSchemaBuilder schemaBuilder;
-        if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
-            schemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
-        } else {
-            schemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
-        }
-        if (importedMetadataSchema != null && importedMetadataSchema.getLabels().size() > 0) {
-            schemaBuilder.setLabels(importedMetadataSchema.getLabels());
-        }
+		if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
+			schemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
+		} else {
+			schemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+		}
+		if (importedMetadataSchema != null && importedMetadataSchema.getLabels().size() > 0) {
+			schemaBuilder.setLabels(importedMetadataSchema.getLabels());
+		}
 	}
 
 	private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder,
-			ImportedMetadataSchema importedMetadataSchema, MetadataSchemaBuilder schemaBuilder,
-			MetadataSchemaTypesBuilder typesBuilder, KeyListMap<String, String> newMetadatas) {
+									   ImportedMetadataSchema importedMetadataSchema,
+									   MetadataSchemaBuilder schemaBuilder,
+									   MetadataSchemaTypesBuilder typesBuilder,
+									   KeyListMap<String, String> newMetadatas) {
 		for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
 			createAndAddMetadata(typeBuilder, schemaBuilder, importedMetadata, typesBuilder);
 			newMetadatas.add(schemaBuilder.getCode(), importedMetadata.getCode());
@@ -520,7 +500,7 @@ public class SettingsImportServices {
 	}
 
 	private void createAndAddMetadata(MetadataSchemaTypeBuilder typeBuilder, MetadataSchemaBuilder schemaBuilder,
-			ImportedMetadata importedMetadata, MetadataSchemaTypesBuilder typesBuilder) {
+									  ImportedMetadata importedMetadata, MetadataSchemaTypesBuilder typesBuilder) {
 		MetadataBuilder metadataBuilder;
 		try {
 			metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
@@ -631,37 +611,37 @@ public class SettingsImportServices {
 	}
 
 	private void setMetadataDataEntry(MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder schemaBuilder,
-			ImportedMetadata importedMetadata, MetadataBuilder metadataBuilder) {
+									  ImportedMetadata importedMetadata, MetadataBuilder metadataBuilder) {
 		ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
 		if (dataEntry != null) {
 			switch (dataEntry.getType().toLowerCase()) {
-			case "sequence":
-				setSequenceDataEntry(metadataBuilder, dataEntry);
-				break;
+				case "sequence":
+					setSequenceDataEntry(metadataBuilder, dataEntry);
+					break;
 
-			case "jexl":
-				metadataBuilder.defineDataEntry().asJexlScript(dataEntry.getPattern());
-				break;
+				case "jexl":
+					metadataBuilder.defineDataEntry().asJexlScript(dataEntry.getPattern());
+					break;
 
-			case "calculated":
-				metadataBuilder.defineDataEntry().asCalculated(dataEntry.getCalculator());
-				break;
+				case "calculated":
+					metadataBuilder.defineDataEntry().asCalculated(dataEntry.getCalculator());
+					break;
 
-			case "copied":
-				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
-					MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
-					MetadataSchemaTypeBuilder referencedSchemaType = typesBuilder
-							.getSchemaType(referenceMetadataBuilder.getAllowedReferencesBuilder().getSchemaType());
-					MetadataBuilder copiedMetadataBuilder = referencedSchemaType.getDefaultSchema()
-							.getMetadata(dataEntry.getCopiedMetadata());
+				case "copied":
+					if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
+						MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
+						MetadataSchemaTypeBuilder referencedSchemaType = typesBuilder
+								.getSchemaType(referenceMetadataBuilder.getAllowedReferencesBuilder().getSchemaType());
+						MetadataBuilder copiedMetadataBuilder = referencedSchemaType.getDefaultSchema()
+																					.getMetadata(dataEntry.getCopiedMetadata());
 
-					metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
+						metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
 
-				}
-				break;
+					}
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 	}
@@ -675,7 +655,8 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionTaxonomies(final ImportedCollectionSettings settings,
-			final String collectionCode, final MetadataSchemaTypes schemaTypes, final boolean isMultiLingual) {
+											final String collectionCode, final MetadataSchemaTypes schemaTypes,
+											final boolean isMultiLingual) {
 
 		final Map<Taxonomy, ImportedTaxonomy> taxonomies = new HashMap<>();
 		valueListServices = new ValueListServices(appLayerFactory, collectionCode);
@@ -701,8 +682,8 @@ public class SettingsImportServices {
 						}
 
 						taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle())
-								.withUserIds(importedTaxonomy.getUserIds())
-								.withGroupIds(importedTaxonomy.getGroupIds());
+										   .withUserIds(importedTaxonomy.getUserIds())
+										   .withGroupIds(importedTaxonomy.getGroupIds());
 
 						taxonomies.put(taxonomy, importedTaxonomy);
 
@@ -762,7 +743,7 @@ public class SettingsImportServices {
 			ImportedTaxonomy importedTaxonomy = entry.getValue();
 
 			appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-					.addTaxonomy(taxonomy, schemasManager);
+						   .addTaxonomy(taxonomy, schemasManager);
 
 			String groupLabel = CLASSIFIED_IN_GROUP_LABEL;
 			for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
@@ -774,11 +755,13 @@ public class SettingsImportServices {
 
 	private Taxonomy getTaxonomyFor(String collectionCode, ImportedTaxonomy importedTaxonomy) {
 		return appLayerFactory.getModelLayerFactory()
-				.getTaxonomiesManager().getTaxonomyFor(collectionCode, importedTaxonomy.getCode() + "Type");
+							  .getTaxonomiesManager().getTaxonomyFor(collectionCode, importedTaxonomy.getCode() + "Type");
 	}
 
 	private void importCollectionsValueLists(final ImportedCollectionSettings collectionSettings,
-			final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes, final boolean isMultiLingual) {
+											 final String collectionCode,
+											 final MetadataSchemaTypes collectionSchemaTypes,
+											 final boolean isMultiLingual) {
 		schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder schemaTypesBuilder) {
@@ -807,11 +790,11 @@ public class SettingsImportServices {
 							builder.createValueListItemSchema(code,
 									importedValueList.getTitle(),
 									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode)
-											.setMultilingual(isMultiLingual));
+																		 .setMultilingual(isMultiLingual));
 						} else {
 							builder.createHierarchicalValueListItemSchema(code, importedValueList.getTitle(),
 									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode)
-											.setMultilingual(isMultiLingual));
+																		 .setMultilingual(isMultiLingual));
 						}
 
 					} else {
@@ -825,17 +808,17 @@ public class SettingsImportServices {
 
 							MetadataBuilder metadataBuilder = builder.getDefaultSchema().getMetadata("code");
 							if (ValueListItemSchemaTypeBuilder
-									.ValueListItemSchemaTypeCodeMode.DISABLED == schemaTypeCodeMode) {
+										.ValueListItemSchemaTypeCodeMode.DISABLED == schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
 								metadataBuilder.setUniqueValue(false);
 								metadataBuilder.setEnabled(false);
 							} else if (ValueListItemSchemaTypeBuilder
-									.ValueListItemSchemaTypeCodeMode.FACULTATIVE == schemaTypeCodeMode) {
+											   .ValueListItemSchemaTypeCodeMode.FACULTATIVE == schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
 								metadataBuilder.setUniqueValue(false);
 								metadataBuilder.setEnabled(true);
 							} else if (ValueListItemSchemaTypeBuilder
-									.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE == schemaTypeCodeMode) {
+											   .ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE == schemaTypeCodeMode) {
 								metadataBuilder.setEnabled(true);
 								metadataBuilder.setDefaultRequirement(true);
 								metadataBuilder.setUniqueValue(true);
@@ -849,7 +832,7 @@ public class SettingsImportServices {
 
 	private void importSequences(ImportedSettings settings) {
 		SequencesManager sequenceManager = appLayerFactory.getModelLayerFactory()
-				.getDataLayerFactory().getSequencesManager();
+														  .getDataLayerFactory().getSequencesManager();
 		for (ImportedSequence sequence : settings.getSequences()) {
 			sequenceManager.set(sequence.getKey(), Integer.parseInt(sequence.getValue()));
 		}
@@ -979,7 +962,8 @@ public class SettingsImportServices {
 		}
 	}
 
-	private void validateCollectionTaxonomies(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
+	private void validateCollectionTaxonomies(ValidationErrors validationErrors,
+											  ImportedCollectionSettings collectionSettings) {
 		for (ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
 			validateTaxonomyCode(validationErrors, importedTaxonomy);
 		}
@@ -1007,13 +991,15 @@ public class SettingsImportServices {
 		//		}
 	}
 
-	private void validateCollectionValueLists(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
+	private void validateCollectionValueLists(ValidationErrors validationErrors,
+											  ImportedCollectionSettings collectionSettings) {
 		for (ImportedValueList importedValueList : collectionSettings.getValueLists()) {
 			validateValueListCode(validationErrors, importedValueList);
 		}
 	}
 
-	private void validateCollectionCode(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
+	private void validateCollectionCode(ValidationErrors validationErrors,
+										ImportedCollectionSettings collectionSettings) {
 		String collectionCode = collectionSettings.getCode();
 		if (StringUtils.isBlank(collectionCode)) {
 			Map<String, Object> parameters = new HashMap<>();
@@ -1034,7 +1020,7 @@ public class SettingsImportServices {
 
 	private void validateValueListCode(ValidationErrors validationErrors, ImportedValueList importedValueList) {
 		if (StringUtils.isBlank(importedValueList.getCode()) ||
-				!importedValueList.getCode().startsWith(DDV_PREFIX)) {
+			!importedValueList.getCode().startsWith(DDV_PREFIX)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, importedValueList.getCode());
 			parameters.put(VALUE, importedValueList.getTitle());

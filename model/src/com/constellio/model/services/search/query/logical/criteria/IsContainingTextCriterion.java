@@ -1,14 +1,11 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-
+import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 public class IsContainingTextCriterion extends LogicalSearchValueCondition {
 

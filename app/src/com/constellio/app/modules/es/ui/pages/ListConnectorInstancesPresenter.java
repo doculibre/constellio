@@ -1,11 +1,5 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorDeleteService;
@@ -27,6 +21,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class ListConnectorInstancesPresenter extends BasePresenter<ListConnectorInstancesView> {
 
 	private transient MetadataSchemasManager metadataSchemasManager;
@@ -46,7 +46,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	public List<Metadata> columnToRemove() {
 		List<Metadata> toRemove = new ArrayList<>();
 		MetadataSchema connectorInstanceDefaultSchema = metadataSchemasManager.getSchemaTypes(collection)
-				.getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
+																			  .getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
 		toRemove.add(connectorInstanceDefaultSchema.get(ConnectorInstance.TRAVERSAL_CODE));
 		return toRemove;
 	}
@@ -59,7 +59,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	public RecordVODataProvider getDataProvider() {
 
 		MetadataSchema connectorInstanceDefaultSchema = metadataSchemasManager.getSchemaTypes(collection)
-				.getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
+																			  .getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
 
 		List<String> metadataCodes = Arrays
 				.asList(ConnectorInstance.TITLE, ConnectorInstance.CODE, ConnectorInstance.CONNECTOR_TYPE,
@@ -72,8 +72,8 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchemaType connectorInstanceSchemaType = modelLayerFactory.getMetadataSchemasManager()
-						.getSchemaTypes(collection)
-						.getSchemaType(ConnectorInstance.SCHEMA_TYPE);
+																				  .getSchemaTypes(collection)
+																				  .getSchemaType(ConnectorInstance.SCHEMA_TYPE);
 				LogicalSearchQuery query = new LogicalSearchQuery(
 						from(connectorInstanceSchemaType).returnAll())
 						.sortAsc(Schemas.TITLE)

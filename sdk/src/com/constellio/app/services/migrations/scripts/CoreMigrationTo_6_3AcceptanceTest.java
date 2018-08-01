@@ -1,24 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
-
-import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -38,6 +19,24 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
 public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 	@Before
@@ -54,14 +53,14 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(zeCollection);
 		MetadataList populated = types.getAllMetadatas().onlyPopulated();
 		assertThat(populated).extracting("localCode")
-				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
+							 .containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
 		MetadataSchemaTypesBuilder builder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
 		builder.getMetadata("document_default_author")
-				.setLabels(asMap(Language.French, "zAuthor fr", Language.English, "zAuthor en"));
+			   .setLabels(asMap(Language.French, "zAuthor fr", Language.English, "zAuthor en"));
 		schemasManager.saveUpdateSchemaTypes(builder);
 		MetadataList allMetadata = schemasManager.getSchemaTypes(zeCollection).getAllMetadatas();
 		assertThat(allMetadata.onlyPopulated()).extracting("localCode")
-				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
+											   .containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
 		assertThat(allMetadata.getMetadataWithLocalCode("author").getLabels()).containsOnly(
 				entry(Language.French, "zAuthor fr"),
 				entry(Language.English, "zAuthor en")
@@ -71,18 +70,18 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("zMeta").setType(MetadataValueType.STRING)
-						.getPopulateConfigsBuilder()
-						.setStyles(asList("zStyle")).setRegexes(
+					 .getPopulateConfigsBuilder()
+					 .setStyles(asList("zStyle")).setRegexes(
 						asList(new RegexConfig(Schemas.TITLE_CODE, Pattern.compile("title"), "zTitle",
 								RegexConfig.RegexConfigType.SUBSTITUTION)));
 				types.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_USER).getPopulateConfigsBuilder()
-						.setStyles(asList("zStyle"));
+					 .setStyles(asList("zStyle"));
 			}
 		});
 		allMetadata = schemasManager.getSchemaTypes(zeCollection).getAllMetadatas();
 		assertThat(allMetadata.onlyPopulated()).extracting("localCode")
-				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title",
-						"borrowUser", "zMeta");
+											   .containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title",
+													   "borrowUser", "zMeta");
 
 	}
 
@@ -134,7 +133,7 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 				.isEqualTo(BASE64);
 
 		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
-				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
+										 .getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
 	}
 
 	private void givenSystemAtVersion5_1_2withTokens() {

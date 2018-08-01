@@ -1,30 +1,10 @@
 package com.constellio.app.modules.rm.ui.util;
 
-import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
-import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
-import static com.constellio.app.utils.HttpRequestUtils.isWindows;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserDocumentVO;
-import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.HttpRequestUtils;
 import com.constellio.data.utils.UnicodeUtils;
@@ -44,9 +24,21 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
+import static com.constellio.app.utils.HttpRequestUtils.*;
 
 public class ConstellioAgentUtils {
-	
+
 	public static final String URL_SEP = "agentURLSep";
 
 	public static final String AGENT_DOWNLOAD_URL = "http://constellio.com/agent/";
@@ -128,12 +120,13 @@ public class ConstellioAgentUtils {
 		return getAgentURL(recordVO, contentVersionVO, null, sessionContext);
 	}
 
-	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, SessionContext sessionContext) {
+	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO,
+									 SessionContext sessionContext) {
 		return getAgentURL(recordVO, contentVersionVO, null, sessionContext);
 	}
 
 	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request,
-			SessionContext sessionContext) {
+									 SessionContext sessionContext) {
 		String agentURL;
 		if (recordVO != null && contentVersionVO != null && isAgentSupported(request)) {
 			// FIXME Should not obtain ConstellioFactories through singleton
@@ -166,7 +159,7 @@ public class ConstellioAgentUtils {
 		}
 		return addConstellioProtocol(agentURL, request);
 	}
-	
+
 	public static String appendAgentURL(String agentURL, String appendedAgentURL) {
 		StringBuilder sb = new StringBuilder();
 		if (StringUtils.isNotBlank(agentURL)) {
@@ -197,14 +190,14 @@ public class ConstellioAgentUtils {
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
-//		String passthroughPath;
-//		if (isWindows(request)) {
-//			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
-//			passthroughPath = StringUtils.removeStart(passthroughPath, "smb:");
-//		} else {
-//			passthroughPath = smbPath;
-//		}
-//		passthroughPath = UnicodeUtils.unicodeEscape(passthroughPath);
+		//		String passthroughPath;
+		//		if (isWindows(request)) {
+		//			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
+		//			passthroughPath = StringUtils.removeStart(passthroughPath, "smb:");
+		//		} else {
+		//			passthroughPath = smbPath;
+		//		}
+		//		passthroughPath = UnicodeUtils.unicodeEscape(passthroughPath);
 		String passthroughPath = recordVO.getId() + "/" + metadataVO.getCode();
 
 		String agentBaseURL = getAgentBaseURL();
@@ -217,7 +210,8 @@ public class ConstellioAgentUtils {
 		return addConstellioProtocol(agentSmbURL, request);
 	}
 
-	private static String getResourcePath(RecordVO recordVO, ContentVersionVO contentVersionVO, SessionContext sessionContext) {
+	private static String getResourcePath(RecordVO recordVO, ContentVersionVO contentVersionVO,
+										  SessionContext sessionContext) {
 		String resourcePath;
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
@@ -250,8 +244,8 @@ public class ConstellioAgentUtils {
 				sb.append("/userDocuments");
 				sb.append("/");
 				sb.append(userDocument.getId());
-//				sb.append("/");
-//				sb.append(filename);
+				//				sb.append("/");
+				//				sb.append(filename);
 				resourcePath = sb.toString();
 			} else {
 				resourcePath = null;
@@ -270,8 +264,8 @@ public class ConstellioAgentUtils {
 				sb.append("/checkedOutDocuments");
 				sb.append("/");
 				sb.append(document.getId());
-//				sb.append("/");
-//				sb.append(filename);
+				//				sb.append("/");
+				//				sb.append(filename);
 				resourcePath = sb.toString();
 			} else {
 				StringBuffer sb = new StringBuffer();
@@ -282,8 +276,8 @@ public class ConstellioAgentUtils {
 				sb.append("/notCheckedOutDocuments");
 				sb.append("/");
 				sb.append(document.getId());
-//				sb.append("/");
-//				sb.append(filename);
+				//				sb.append("/");
+				//				sb.append(filename);
 				resourcePath = sb.toString();
 			}
 		} else {
@@ -292,7 +286,7 @@ public class ConstellioAgentUtils {
 
 		return resourcePath;
 	}
-	
+
 	private static final MetadataSchemaTypes types(SessionContext sessionContext) {
 		String collectionName = sessionContext.getCurrentCollection();
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();

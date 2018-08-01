@@ -1,5 +1,14 @@
 package com.constellio.app.api.cmis.requests.object;
 
+import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_CannotUpdateCollection;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.builders.object.RecordBuilder;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.records.RecordServicesException;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
@@ -11,19 +20,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_CannotUpdateCollection;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.api.cmis.builders.object.RecordBuilder;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordServicesException;
-
 public class UpdatePropertiesRequest extends CmisCollectionRequest<ObjectData> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
@@ -32,7 +28,8 @@ public class UpdatePropertiesRequest extends CmisCollectionRequest<ObjectData> {
 	private final ObjectInfoHandler objectInfos;
 
 	public UpdatePropertiesRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, Holder<String> objectId, Properties properties, ObjectInfoHandler objectInfos) {
+								   CallContext context, Holder<String> objectId, Properties properties,
+								   ObjectInfoHandler objectInfos) {
 		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.properties = properties;
@@ -61,7 +58,7 @@ public class UpdatePropertiesRequest extends CmisCollectionRequest<ObjectData> {
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-//		UpdateFolderParams updateFolderParams = new UpdateFolderParams(user, updatedRecord);
+		//		UpdateFolderParams updateFolderParams = new UpdateFolderParams(user, updatedRecord);
 		//		appLayerFactory.getExtensions().forCollection(collection).onUpdateCMISFolder(updateFolderParams);
 		recordServices.refresh(updatedRecord);
 		return newObjectDataBuilder().build(updatedRecord, null, false, false, objectInfos);

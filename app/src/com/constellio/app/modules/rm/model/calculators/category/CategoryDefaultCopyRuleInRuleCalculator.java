@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.category;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.SortedMap;
-
-import org.apache.poi.ss.formula.functions.T;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -19,6 +11,12 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+
+import static java.util.Arrays.asList;
 
 public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements MetadataValueCalculator<T> {
 
@@ -35,7 +33,7 @@ public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements Meta
 
 			for (CopyRetentionRule copy : copies) {
 				if (copy != null && copy.getCopyType() == CopyType.PRINCIPAL && copy.getId() != null && copy.getId()
-						.equals(input.copyRuleId)) {
+																											.equals(input.copyRuleId)) {
 					//Level is not important, sice the returned object is not persisted, but only used by
 					// other calculators which are not using the level attribute
 					return new CopyRetentionRuleInRule(ruleId, parameters.getId(), 0, copy);

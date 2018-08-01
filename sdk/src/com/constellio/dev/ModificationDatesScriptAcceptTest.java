@@ -1,11 +1,6 @@
 package com.constellio.dev;
 
-import com.constellio.app.entities.modules.VaultMigrationScript;
 import com.constellio.app.extensions.api.scripts.ResetRMModificationDatesFromEventsScript;
-import com.constellio.app.extensions.api.scripts.ScriptParameter;
-import com.constellio.app.extensions.api.scripts.ScriptParameterValues;
-import com.constellio.app.extensions.api.scripts.StringBuilderActionLogger;
-import com.constellio.app.extensions.impl.VaultVerificationScript;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -21,15 +16,12 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -39,12 +31,10 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModificationDatesScriptAcceptTest extends ConstellioTest {
 	public static final LocalDate DEFAULT_OPENING_DATE = new LocalDate(2001, 01, 05);
@@ -202,8 +192,8 @@ public class ModificationDatesScriptAcceptTest extends ConstellioTest {
 
 	public Folder buildDefaultFolder() {
 		return rm.newFolderWithId(FOLDER_ID).setTitle(FOLDER_TITLE).setAdministrativeUnitEntered(records.getUnit10())
-				.setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
-				.setCategoryEntered(records.categoryId_X);
+				 .setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
+				 .setCategoryEntered(records.categoryId_X);
 	}
 
 	@Test
@@ -211,18 +201,18 @@ public class ModificationDatesScriptAcceptTest extends ConstellioTest {
 			throws Exception {
 		createDocuments();
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes("zeCollection");
+																		.getSchemaTypes("zeCollection");
 		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes("zeCollection").getSchemaType("document");
+															.getSchemaTypes("zeCollection").getSchemaType("document");
 		ResetRMModificationDatesFromEventsScript.execute(getAppLayerFactory());
 
-//		List<Record> newRecords = searchServices.search(new LogicalSearchQuery(from(schemaType).returnAll()));
-//		for (Record record : newRecords) {
-//			Document document = new Document(record, metadataSchemaTypes);
-//			for (String hash : document.getContent().getHashOfAllVersions()) {
-//				assertThat(hash).doesNotContain("/");
-//				assertThat(hash).doesNotContain("+");
-//			}
-//		}
+		//		List<Record> newRecords = searchServices.search(new LogicalSearchQuery(from(schemaType).returnAll()));
+		//		for (Record record : newRecords) {
+		//			Document document = new Document(record, metadataSchemaTypes);
+		//			for (String hash : document.getContent().getHashOfAllVersions()) {
+		//				assertThat(hash).doesNotContain("/");
+		//				assertThat(hash).doesNotContain("+");
+		//			}
+		//		}
 	}
 }

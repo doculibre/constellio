@@ -1,18 +1,16 @@
 package com.constellio.model.services.encrypt;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.Key;
-
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.io.FileUtils;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.io.File;
+import java.io.IOException;
+import java.security.Key;
 
 public class EncryptionKeyFactory {
 	private static final String KEY_CLASS_PART = "constellio_class_key_part";
@@ -54,7 +52,7 @@ public class EncryptionKeyFactory {
 		File encryptionFile = modelLayerFactory.getConfiguration().getConstellioEncryptionFile();
 
 		if (modelLayerFactory.getConfiguration().getDataLayerConfiguration().getSettingsConfigType()
-				.equals(ConfigManagerType.ZOOKEEPER)) {
+							 .equals(ConfigManagerType.ZOOKEEPER)) {
 			String path = encryptionFile.getName();
 			return modelLayerFactory.getDataLayerFactory().getConfigManager().getText(path).getText();
 		} else {

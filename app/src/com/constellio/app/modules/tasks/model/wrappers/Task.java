@@ -1,12 +1,6 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -14,7 +8,12 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Task extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userTask";
@@ -357,7 +356,7 @@ public class Task extends RecordWrapper {
 
 	public int getNumberOfReminders() {
 		Double number = get(NUMBER_OF_REMINDERS);
-		return number == null? 0: number.intValue();
+		return number == null ? 0 : number.intValue();
 	}
 
 	public Task setNumberOfReminders(int numberOfReminder) {
@@ -376,7 +375,7 @@ public class Task extends RecordWrapper {
 
 	public void addStarredBy(String userId) {
 		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
-		if(!list.contains(userId)) {
+		if (!list.contains(userId)) {
 			list.add(userId);
 			set(STARRED_BY_USERS, list);
 		}
@@ -384,9 +383,9 @@ public class Task extends RecordWrapper {
 
 	public void removeStarredBy(String userId) {
 		ArrayList<Object> list = new ArrayList<>(getList(STARRED_BY_USERS));
-		if(list.contains(userId)) {
+		if (list.contains(userId)) {
 			list.remove(userId);
-			if(list.isEmpty()) {
+			if (list.isEmpty()) {
 				set(STARRED_BY_USERS, null);
 			} else {
 				set(STARRED_BY_USERS, list);

@@ -1,31 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-import static java.util.Arrays.asList;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -44,11 +18,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessPossibleImpact;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordFieldModification;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.*;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
@@ -65,18 +35,10 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -90,6 +52,19 @@ import com.constellio.model.services.schemas.ModificationImpactCalculatorRespons
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+
+import java.io.*;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static java.util.Arrays.asList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class BatchProcessingPresenterService {
 	private static final String TMP_BATCH_FILE = "BatchProcessingPresenterService-formatBatchProcessingResults";
@@ -122,7 +97,7 @@ public class BatchProcessingPresenterService {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
 		Map<String, List<FacetValue>> typeId_s = searchServices.query(query.setNumberOfRows(0).addFieldFacet("typeId_s"))
-				.getFieldFacetValues();
+															   .getFieldFacetValues();
 		Set<String> types = new HashSet<>();
 		for (FacetValue facetValue : typeId_s.get("typeId_s")) {
 			if (facetValue.getQuantity() == resultsCount) {
@@ -169,7 +144,7 @@ public class BatchProcessingPresenterService {
 			String currentSchemaType = getSchemaType(schemaCode);
 			if (!currentSchemaType.equals(firstType)) {
 				throw new ImpossibleRuntimeException("Batch processing should be done on the same schema type :" +
-						StringUtils.join(recordsSchemata, ";"));
+													 StringUtils.join(recordsSchemata, ";"));
 			}
 		}
 	}
@@ -177,16 +152,17 @@ public class BatchProcessingPresenterService {
 	public List<String> getDestinationSchemata(String schemaType) {
 		List<String> schemataCodes = new ArrayList<>();
 		List<MetadataSchema> schemata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaType(schemaType).getAllSchemas();
+														 .getSchemaType(schemaType).getAllSchemas();
 		for (MetadataSchema currentSchema : schemata) {
 			schemataCodes.add(currentSchema.getCode());
 		}
 		return schemataCodes;
 	}
 
-	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext, final List<String> selectedRecordIds) {
+	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext,
+								final List<String> selectedRecordIds) {
 		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(schemaCode);
+													   .getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
@@ -196,13 +172,19 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, boolean unmodifiable,
-							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-							String schemaTypeCode, MetadataInputType metadataInputType,
-							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
-							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale, Map<String,Object> customParameters) {
+													   MetadataValueType type, String collection,
+													   MetadataSchemaVO schemaVO, boolean required,
+													   boolean multivalue, boolean readOnly, boolean unmodifiable,
+													   Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
+													   String[] taxonomyCodes,
+													   String schemaTypeCode, MetadataInputType metadataInputType,
+													   MetadataDisplayType metadataDisplayType,
+													   AllowedReferences allowedReferences,
+													   boolean enabled, StructureFactory structureFactory,
+													   String metadataGroup,
+													   Object defaultValue, String inputMask,
+													   Set<String> customAttributes, boolean isMultiLingual,
+													   Locale locale, Map<String, Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -215,13 +197,13 @@ public class BatchProcessingPresenterService {
 						defaultValue = null;
 						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
 						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
-								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
-										readOnly,
-										unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-										metadataDisplayType,
-										allowedReferences,
-										enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters) :
-								null;
+							   super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+									   readOnly,
+									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
+									   metadataDisplayType,
+									   allowedReferences,
+									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters) :
+							   null;
 					}
 				};
 			}
@@ -290,9 +272,10 @@ public class BatchProcessingPresenterService {
 		return results;
 	}
 
-	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext, final LogicalSearchQuery query) {
+	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext,
+								final LogicalSearchQuery query) {
 		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(schemaCode);
+													   .getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
@@ -302,13 +285,19 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, boolean unmodifiable,
-							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-							String schemaTypeCode, MetadataInputType metadataInputType,
-							MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences,
-							boolean enabled, StructureFactory structureFactory, String metadataGroup,
-							Object defaultValue, String inputMask, Set<String> customAttributes, boolean isMultiLingual, Locale locale, Map<String,Object> customParameters) {
+													   MetadataValueType type, String collection,
+													   MetadataSchemaVO schemaVO, boolean required,
+													   boolean multivalue, boolean readOnly, boolean unmodifiable,
+													   Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
+													   String[] taxonomyCodes,
+													   String schemaTypeCode, MetadataInputType metadataInputType,
+													   MetadataDisplayType metadataDisplayType,
+													   AllowedReferences allowedReferences,
+													   boolean enabled, StructureFactory structureFactory,
+													   String metadataGroup,
+													   Object defaultValue, String inputMask,
+													   Set<String> customAttributes, boolean isMultiLingual,
+													   Locale locale, Map<String, Object> customParameters) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -635,10 +624,10 @@ public class BatchProcessingPresenterService {
 
 
 			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
-					.forCollection(collection)
-					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
-			if(temporaryMetadataChangeHash.size() > 0) {
-				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+																			   .forCollection(collection)
+																			   .batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
+			if (temporaryMetadataChangeHash.size() > 0) {
+				specialCaseModificationByRecordId.put(record.getId(), temporaryMetadataChangeHash);
 			}
 		}
 
@@ -687,10 +676,10 @@ public class BatchProcessingPresenterService {
 			}
 
 			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
-					.forCollection(collection)
-					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
-			if(temporaryMetadataChangeHash.size() > 0) {
-				specialCaseModificationByRecordId.put(record.getId(),temporaryMetadataChangeHash);
+																			   .forCollection(collection)
+																			   .batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
+			if (temporaryMetadataChangeHash.size() > 0) {
+				specialCaseModificationByRecordId.put(record.getId(), temporaryMetadataChangeHash);
 			}
 		}
 
@@ -754,7 +743,7 @@ public class BatchProcessingPresenterService {
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
-				.forCollection(collection).recordFieldFactoryExtensions;
+																									  .forCollection(collection).recordFieldFactoryExtensions;
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			recordFieldFactory = extension.newRecordFieldFactory(params);
 			if (recordFieldFactory != null) {
@@ -764,7 +753,8 @@ public class BatchProcessingPresenterService {
 		return recordFieldFactory;
 	}
 
-	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType,
+													List<String> selectedRecordIds) {
 		BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams params =
 				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(
 						BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType,
@@ -773,7 +763,7 @@ public class BatchProcessingPresenterService {
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
-				.forCollection(collection).recordFieldFactoryExtensions;
+																									  .forCollection(collection).recordFieldFactoryExtensions;
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			recordFieldFactory = extension.newRecordFieldFactory(params);
 			if (recordFieldFactory != null) {
@@ -812,10 +802,10 @@ public class BatchProcessingPresenterService {
 
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+				&& value != null
+				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
@@ -843,10 +833,10 @@ public class BatchProcessingPresenterService {
 
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+				&& value != null
+				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
@@ -873,10 +863,10 @@ public class BatchProcessingPresenterService {
 
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+				&& value != null
+				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);

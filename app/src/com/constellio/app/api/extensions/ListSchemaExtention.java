@@ -6,8 +6,9 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import java.util.List;
 
 public class ListSchemaExtention {
-    public List<ListSchemaExtraCommandReturnParams> getExtraCommands(ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
+	public List<ListSchemaExtraCommandReturnParams> getExtraCommands(
+			ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
 
-        return null;
-    }
+		return null;
+	}
 }

@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -32,6 +23,10 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class MetadataToVOBuilder implements Serializable {
@@ -54,7 +49,8 @@ public class MetadataToVOBuilder implements Serializable {
 		return build(metadata, null, schemaVO, sessionContext);
 	}
 
-	public MetadataVO build(Metadata metadata, Locale locale, MetadataSchemaVO schemaVO, SessionContext sessionContext) {
+	public MetadataVO build(Metadata metadata, Locale locale, MetadataSchemaVO schemaVO,
+							SessionContext sessionContext) {
 		String metadataCode = metadata.getCode();
 		String collection = metadata.getCollection();
 		String datastoreCode = metadata.getDataStoreCode();
@@ -118,7 +114,7 @@ public class MetadataToVOBuilder implements Serializable {
 			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
 			String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
 			Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
-					.getMetadataGroup();
+																			 .getMetadataGroup();
 			if (StringUtils.isBlank(metadataGroup)) {
 				if (groups.keySet().isEmpty()) {
 					metadataGroup = null;
@@ -143,10 +139,9 @@ public class MetadataToVOBuilder implements Serializable {
 		Map<Locale, String> labels = new HashMap<Locale, String>();
 
 		//TODO FIXME Vincent est-ce necessaire?
-		for(Language keyset : metadata.getLabels().keySet()) {
+		for (Language keyset : metadata.getLabels().keySet()) {
 			labels.put(keyset.getLocale(), metadata.getLabels().get(keyset));
 		}
-
 
 
 		//labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
@@ -190,7 +185,7 @@ public class MetadataToVOBuilder implements Serializable {
 			Object defaultValue,
 			String inputMask, Set<String> customAttributes,
 			boolean isMultiLingual, Locale locale,
-			Map<String,Object> customParameters) {
+			Map<String, Object> customParameters) {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,

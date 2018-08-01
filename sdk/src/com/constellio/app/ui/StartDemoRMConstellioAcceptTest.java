@@ -1,14 +1,5 @@
 package com.constellio.app.ui;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.io.File;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -34,6 +25,12 @@ import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 @UiTest
 @MainTest
@@ -54,7 +51,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -69,7 +66,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		String serviceKey = userServices.getUser("admin").getServiceKey();
 		System.out.println("Admin token : \"" + token + "\", Admin service key \"" + serviceKey + "\"");
 		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
-				+ "&fq=-type_s:index" + "&q=*:*");
+						   + "&fq=-type_s:index" + "&q=*:*");
 
 		//givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 
@@ -77,11 +74,11 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE)
-						.addLabel(Language.French, "Date metadata 1");
+					 .addLabel(Language.French, "Date metadata 1");
 				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE)
-						.addLabel(Language.French, "Date metadata 2");
+					 .addLabel(Language.French, "Date metadata 2");
 				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME)
-						.addLabel(Language.French, "Datetime metadata");
+					 .addLabel(Language.French, "Datetime metadata");
 			}
 		});
 
@@ -98,7 +95,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		setup();
 
 		MetadataNetwork network = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getMetadataNetwork();
+														.getMetadataNetwork();
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -141,12 +138,12 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "folder_test2").withNewFormMetadata("toto"));
 
 		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "document_test").withNewFormMetadata("toto")
-				.withNewFormMetadata("metadataOnlyInTest"));
+															.withNewFormMetadata("metadataOnlyInTest"));
 		schemaDisplayManager
 				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "document_test2").withNewFormMetadata("toto"));
 
 		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test").withNewFormMetadata("toto")
-				.withNewFormMetadata("metadataOnlyInTest"));
+															.withNewFormMetadata("metadataOnlyInTest"));
 		schemaDisplayManager
 				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test2").withNewFormMetadata("toto"));
 

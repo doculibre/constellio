@@ -1,10 +1,10 @@
 package com.constellio.model.services.appManagement;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class PlatformService {
 
@@ -30,7 +30,7 @@ public class PlatformService {
 	}
 
 	String[] getShellCommandToLaunchScript(String command) {
-		return new String[] { "/bin/sh", "-c", command };
+		return new String[]{"/bin/sh", "-c", command};
 	}
 
 	public String getProcessID() {

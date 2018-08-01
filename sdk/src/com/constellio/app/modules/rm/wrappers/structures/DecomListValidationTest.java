@@ -1,12 +1,11 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecomListValidationTest extends ConstellioTest {
 	public static final String THE_USER = "theUserId";

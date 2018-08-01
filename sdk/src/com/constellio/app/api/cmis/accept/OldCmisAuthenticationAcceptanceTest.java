@@ -1,14 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.junit.Before;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.utils.hashing.HashingService;
@@ -22,6 +13,14 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.junit.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @DriverTest
 public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
@@ -178,7 +177,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 	private void givenWrongPasswordThenChuckCannotConnectInZeCollection() {
 		try {
 			Session cmisSessionChuck = newCmisSessionBuilder().authenticatedBy(chuckNorris, "wrongPassword")
-					.onCollection(anotherCollection).build();
+															  .onCollection(anotherCollection).build();
 			cmisSessionChuck.getRootFolder().getProperty("cmis:path").getValue();
 			fail();
 		} catch (Exception e) {
@@ -188,14 +187,14 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 	private void thenChuckCanConnectInAnotherCollection() {
 		cmisSessionChuck = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(anotherCollection)
-				.build();
+												  .build();
 		assertThat(cmisSessionChuck.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
 	}
 
 	private void thenBobCannotConnectInAnotherCollection() {
 		try {
 			cmisSessionBob = newCmisSessionBuilder().authenticatedBy(bobGratton, "xsw21qaz").onCollection(anotherCollection)
-					.build();
+													.build();
 			cmisSessionBob.getRootFolder().getProperty("cmis:path").getValue();
 			fail();
 		} catch (Exception e) {
@@ -207,7 +206,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		try {
 			cmisSessionChuck = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(
 					"inexistentCollection")
-					.build();
+													  .build();
 			cmisSessionChuck.getRootFolder().getProperty("cmis:path").getValue();
 			fail();
 		} catch (Exception e) {
@@ -221,7 +220,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), thirdCollection);
 
 		Session cmisSessionChuckThirdCollection = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx")
-				.onCollection(thirdCollection).build();
+																		 .onCollection(thirdCollection).build();
 		assertThat(cmisSessionChuckThirdCollection.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
 	}
 
@@ -237,10 +236,10 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		@Override
 		public void run() {
 			cmisSessionChuck = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection)
-					.build();
+													  .build();
 			assertThat(cmisSessionChuck.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
 			cmisSessionBob = newCmisSessionBuilder().authenticatedBy(bobGratton, "xsw21qaz").onCollection(zeCollection)
-					.build();
+													.build();
 			assertThat(cmisSessionBob.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
 		}
 	}

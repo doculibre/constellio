@@ -1,20 +1,5 @@
 package com.constellio.model.services.configs;
 
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -47,6 +32,20 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @SlowTest
 public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
@@ -73,7 +72,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	static SystemConfiguration numberWithDefaultValue = aGroup.createInteger("numberWithDefaultValue").withDefaultValue(42);
 	static SystemConfiguration enumValue = anOtherGroup.createEnum("enumValue", AValidEnum.class);
 	static SystemConfiguration enumWithDefaultValue = anOtherGroup.createEnum("enumWithDefaultValue", AValidEnum.class)
-			.withDefaultValue(AValidEnum.FIRST_VALUE);
+																  .withDefaultValue(AValidEnum.FIRST_VALUE);
 	static SystemConfigurationsManager manager, managerOfOtherInstance;
 
 	@Before
@@ -331,7 +330,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	private long countUsersWithFavoriteNumberInCollection(double number, String collection) {
 		MetadataSchema userSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(User.DEFAULT_SCHEMA);
+														  .getSchema(User.DEFAULT_SCHEMA);
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(userSchema).where(
 				userSchema.getMetadata("favoriteNumber")).isEqualTo(number);
 		return getModelLayerFactory().newSearchServices().getResultsCount(condition);
@@ -339,19 +338,19 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 	private Metadata getUsernameMetadataIn(String collection) {
 		MetadataSchema userSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(User.DEFAULT_SCHEMA);
+														  .getSchema(User.DEFAULT_SCHEMA);
 		return userSchema.getMetadata(User.USERNAME);
 	}
 
 	private Metadata getFirstnameMetadataIn(String collection) {
 		MetadataSchema userSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(User.DEFAULT_SCHEMA);
+														  .getSchema(User.DEFAULT_SCHEMA);
 		return userSchema.getMetadata(User.FIRSTNAME);
 	}
 
 	private Record findUserByTitleInCollection(String collection, String title) {
 		MetadataSchema userSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(User.DEFAULT_SCHEMA);
+														  .getSchema(User.DEFAULT_SCHEMA);
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(userSchema).where(Schemas.TITLE).isEqualTo(title);
 		return getModelLayerFactory().newSearchServices().searchSingleResult(condition);
 	}
@@ -385,12 +384,12 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 				@Override
 				public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-						AppLayerFactory appLayerFactory) {
+									AppLayerFactory appLayerFactory) {
 					ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 					MetadataSchemaTypesBuilder typesBuilder = modelLayerFactory.getMetadataSchemasManager().modify(collection);
 
 					typesBuilder.getSchema(User.DEFAULT_SCHEMA).create("favoriteNumber").setType(MetadataValueType.NUMBER)
-							.defineDataEntry().asCalculated(FavoriteNumberCalculator.class);
+								.defineDataEntry().asCalculated(FavoriteNumberCalculator.class);
 
 					try {
 						modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
@@ -466,7 +465,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public void onValueChanged(String previousValue, String newValue, ModelLayerFactory modelLayerFactory,
-				String collection) {
+								   String collection) {
 			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(collection);
 

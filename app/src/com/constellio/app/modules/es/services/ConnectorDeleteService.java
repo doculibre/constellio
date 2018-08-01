@@ -1,14 +1,14 @@
 package com.constellio.app.modules.es.services;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConnectorDeleteService {
 

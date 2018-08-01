@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.management.extractors.entities;
 
-import java.io.Serializable;
-
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+
+import java.io.Serializable;
 
 public class RegexConfigVO implements Serializable {
 

@@ -1,11 +1,11 @@
 package com.constellio.app.services.importExport.records.writers;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class ImportRecordOfSameCollectionWriter {
 

@@ -1,19 +1,10 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.vaadin.ui.*;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayWindowButton;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -30,12 +21,19 @@ import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickListener;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
 
 public class EventViewImpl extends BaseViewImpl implements EventView {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(EventViewImpl.class);
-	
+
 	public static final String EVENT_TABLE_STYLE = "selenium-event-table";
 	private EventPresenter presenter;
 	private Table table;
@@ -65,8 +63,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		Container container = new RecordVOLazyContainer(dataProvider, false);
 
 		String eventTypeCaption;
-    	try {
-    		eventTypeCaption = EventTypeUtils.getEventTypeCaption(eventType);
+		try {
+			eventTypeCaption = EventTypeUtils.getEventTypeCaption(eventType);
 		} catch (UnsupportedEventTypeRuntimeException e) {
 			LOGGER.error("Error while retrieving event type caption", e);
 			eventTypeCaption = eventType;
@@ -78,17 +76,17 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
 					return displayButton(metadataValue);
-				} else if(presenter.isTypeMetadata(metadataValue)) {
+				} else if (presenter.isTypeMetadata(metadataValue)) {
 					return newEventTypeLabel(metadataValue);
 				} else {
 					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
-					if(presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
-                        ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedRecordVO, true);
-                        referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
-                        return referenceDisplay;
-                    } else {
-                        return super.buildMetadataComponent(metadataValue, recordVO);
-                    }
+					if (presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
+						ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedRecordVO, true);
+						referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
+						return referenceDisplay;
+					} else {
+						return super.buildMetadataComponent(metadataValue, recordVO);
+					}
 				}
 			}
 
@@ -164,7 +162,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				}
 			});
 		}
-//		table.setPageLength(table.getItemIds().size());
+		//		table.setPageLength(table.getItemIds().size());
 		table.setWidth("100%");
 		table.addStyleName(EVENT_TABLE_STYLE);
 		return table;
@@ -201,8 +199,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	protected String getTitle() {
 		String eventType = presenter.getEventType();
 		String eventTypeCaption;
-    	try {
-    		eventTypeCaption = EventTypeUtils.getEventTypeCaption(eventType);
+		try {
+			eventTypeCaption = EventTypeUtils.getEventTypeCaption(eventType);
 		} catch (UnsupportedEventTypeRuntimeException e) {
 			LOGGER.error("Error while retrieving event type caption", e);
 			eventTypeCaption = eventType;
@@ -210,8 +208,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return eventTypeCaption;
 	}
 
-	public Table getTable()
-	{
+	public Table getTable() {
 		return table;
 	}
 

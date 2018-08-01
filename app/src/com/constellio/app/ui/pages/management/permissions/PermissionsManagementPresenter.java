@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.permissions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
@@ -12,6 +7,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class PermissionsManagementPresenter extends BasePresenter<PermissionsManagementView> {
 
@@ -49,7 +49,7 @@ public class PermissionsManagementPresenter extends BasePresenter<PermissionsMan
 	public void saveRequested(List<RoleVO> modifiedRoles) {
 		for (RoleVO roleVO : modifiedRoles) {
 			Role role = roleManager().getRole(view.getCollection(), roleVO.getCode())
-					.withPermissions(roleVO.getPermissions());
+									 .withPermissions(roleVO.getPermissions());
 			roleManager().updateRole(role);
 			roleVO.markClean();
 		}

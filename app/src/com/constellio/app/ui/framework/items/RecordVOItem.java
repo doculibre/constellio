@@ -1,13 +1,13 @@
 package com.constellio.app.ui.framework.items;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+
+import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class RecordVOItem implements Item {

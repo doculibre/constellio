@@ -73,10 +73,10 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 	}
 
 	private void validateContainerRecord(ValidationErrors errors, StorageSpace storageSpace,
-			List<ContainerRecord> containerRecords) {
+										 List<ContainerRecord> containerRecords) {
 
 		if (storageSpace.getCapacity() != null && storageSpace.getLinearSizeEntered() == null
-				&& Toggle.STORAGE_SPACE_CAPACITIY_VALIDATION.isEnabled()) {
+			&& Toggle.STORAGE_SPACE_CAPACITIY_VALIDATION.isEnabled()) {
 			long totalCapacity = 0;
 
 			List<ContainerRecord> containerRecordsAtSameLevel = rm.searchContainerRecords(from(rm.containerRecord.schemaType())
@@ -114,7 +114,7 @@ public class RMAvailableCapacityExtension extends RecordExtension {
 			StorageSpace parentStorageSpace = rm.getStorageSpace(storageSpace.getParentStorageSpace());
 
 			if (parentStorageSpace.getCapacity() != null && parentStorageSpace.getLinearSizeEntered() == null
-					&& storageSpace.getCapacity() != null && Toggle.STORAGE_SPACE_CAPACITIY_VALIDATION.isEnabled()) {
+				&& storageSpace.getCapacity() != null && Toggle.STORAGE_SPACE_CAPACITIY_VALIDATION.isEnabled()) {
 
 				List<StorageSpace> storageSpacesAtSameLevel = rm.searchStorageSpaces(from(rm.storageSpace.schemaType())
 						.where(rm.storageSpace.parentStorageSpace()).isEqualTo(parentStorageSpace.getId())

@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
-import static com.constellio.model.services.search.StatusFilter.ACTIVES;
-import static com.constellio.model.services.search.StatusFilter.DELETED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.util.Iterator;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -33,6 +22,16 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Iterator;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
+import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+import static com.constellio.model.services.search.StatusFilter.DELETED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<ListValueDomainRecordsView> {
 
@@ -73,7 +72,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		};
 		return dataProvider;
 	}
-	
+
 	private boolean isHierarchical() {
 		MetadataSchema schema = schema(schemaCode);
 		return schema.hasMetadataWithCode(HierarchicalValueListItem.PARENT);

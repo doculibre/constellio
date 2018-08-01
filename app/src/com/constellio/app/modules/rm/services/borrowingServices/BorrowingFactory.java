@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import java.util.StringTokenizer;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+import org.joda.time.LocalDateTime;
+
+import java.util.StringTokenizer;
 
 public class BorrowingFactory implements StructureFactory {
 
@@ -37,14 +36,14 @@ public class BorrowingFactory implements StructureFactory {
 		Borrowing borrowing = (Borrowing) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, borrowing.getBorrowingType() == null ?
-				NULL :
-				"" + borrowing.getBorrowingType());
+								   NULL :
+								   "" + borrowing.getBorrowingType());
 		writeString(stringBuilder, "" + borrowing.getBorrowerId() == null ?
-				NULL :
-				borrowing.getBorrowerId());
+								   NULL :
+								   borrowing.getBorrowerId());
 		writeString(stringBuilder, "" + borrowing.getBorrowerUsername() == null ?
-				"" :
-				borrowing.getBorrowerUsername());
+								   "" :
+								   borrowing.getBorrowerUsername());
 		if (borrowing.getBorrowDateTime() != null) {
 			writeString(stringBuilder, borrowing.getBorrowDateTime().toString("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
 		} else {

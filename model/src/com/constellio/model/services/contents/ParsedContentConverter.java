@@ -1,13 +1,13 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.records.ParsedContent;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.constellio.data.utils.KeyListMap;
-import com.constellio.model.entities.records.ParsedContent;
 
 public class ParsedContentConverter {
 

@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
-import static com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator.splitInLowerCasedTermsRemovingAccents;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -18,6 +9,11 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator.LocalAutocompleteMetadatasDependency;
+
+import java.util.*;
+
+import static com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator.splitInLowerCasedTermsRemovingAccents;
+import static java.util.Arrays.asList;
 
 public class FolderAutocompleteFieldCalculator implements MetadataValueCalculator<List<String>> {
 

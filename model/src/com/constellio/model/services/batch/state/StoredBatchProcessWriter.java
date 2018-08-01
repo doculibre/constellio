@@ -1,10 +1,10 @@
 package com.constellio.model.services.batch.state;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StoredBatchProcessWriter {
 
@@ -39,7 +39,7 @@ public class StoredBatchProcessWriter {
 		if (batchProcessIdElements != null) {
 			for (Element batchProcessIdElement : batchProcessIdElements) {
 				if (!batchProcessIdElement.getAttributeValue(BATCH_PROCESS_ID)
-						.equals(storedBatchProcessPart.getBatchProcessId())) {
+										  .equals(storedBatchProcessPart.getBatchProcessId())) {
 					elementsToRemove.add(batchProcessIdElement);
 				}
 			}

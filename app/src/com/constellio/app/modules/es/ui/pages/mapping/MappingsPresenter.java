@@ -1,9 +1,5 @@
 package com.constellio.app.modules.es.ui.pages.mapping;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.extensions.api.params.CustomTargetFlagsParams;
@@ -18,6 +14,10 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class MappingsPresenter<T extends BaseView> extends SingleSchemaBasePresenter<T> {
 	private transient ConnectorInstance connectorInstance;

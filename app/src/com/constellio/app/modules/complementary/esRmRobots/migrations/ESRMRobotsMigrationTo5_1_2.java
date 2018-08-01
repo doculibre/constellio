@@ -1,7 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -13,6 +11,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+
 public class ESRMRobotsMigrationTo5_1_2 implements MigrationScript {
 
 	@Override
@@ -21,7 +21,8 @@ public class ESRMRobotsMigrationTo5_1_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor5_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -31,7 +32,7 @@ public class ESRMRobotsMigrationTo5_1_2 implements MigrationScript {
 	class SchemaAlterationFor5_1_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor5_1_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -47,20 +48,20 @@ public class ESRMRobotsMigrationTo5_1_2 implements MigrationScript {
 
 		private void setupClassifySmbDocumentInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.createCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
+													   .createCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
 			schema.create(ClassifyConnectorDocumentInFolderActionParameters.IN_FOLDER).setDefaultRequirement(true)
-					.defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
+				  .defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
 			schema.create(ClassifyConnectorDocumentInFolderActionParameters.MAJOR_VERSIONS).setDefaultRequirement(true)
-					.setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
+				  .setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
 		}
 
 		private void setupClassifySmbFolderInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.createCustomSchema(ClassifySmbFolderInFolderActionParameters.SCHEMA_LOCAL_CODE);
+													   .createCustomSchema(ClassifySmbFolderInFolderActionParameters.SCHEMA_LOCAL_CODE);
 			schema.create(ClassifySmbFolderInFolderActionParameters.IN_FOLDER).setDefaultRequirement(true)
-					.defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
+				  .defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
 			schema.create(ClassifySmbFolderInFolderActionParameters.MAJOR_VERSIONS).setDefaultRequirement(true)
-					.setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
+				  .setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
 		}
 
 	}

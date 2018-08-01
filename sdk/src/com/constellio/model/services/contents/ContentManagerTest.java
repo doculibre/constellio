@@ -1,34 +1,5 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -66,6 +37,26 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
 public class ContentManagerTest extends ConstellioTest {
@@ -161,7 +152,7 @@ public class ContentManagerTest extends ConstellioTest {
 		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);
 		when(streamFactory.create(anyString())).thenReturn(firstCreatedStream).thenReturn(secondCreatedStream)
-				.thenThrow(new Error());
+											   .thenThrow(new Error());
 		doReturn(addOperation).when(contentManager).addInContentDaoOperation(newContentId);
 		doReturn(addParsedContentOperation).when(contentManager).addInContentDaoOperation(newContentId);
 		doReturn(addWithEmptyContentOperation).when(contentManager).addInContentDaoOperation(newContentId);
@@ -321,7 +312,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doThrow(new FileParserException_CannotParse(mock(Exception.class), "zeMimetype")).when(fileParser)
-				.parse(eq(closeableStreamFactory), anyInt());
+																						 .parse(eq(closeableStreamFactory), anyInt());
 
 		ParsedContent parsedContent = contentManager.tryToParse(closeableStreamFactory);
 
@@ -353,7 +344,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(ContentManagerRuntimeException.class).when(contentManager)
-				.saveContent(aContentHash, closeableStreamFactory);
+													 .saveContent(aContentHash, closeableStreamFactory);
 
 		try {
 			contentManager.upload(aContentNewVersionInputStream);
@@ -376,7 +367,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(IOException.class).when(contentManager)
-				.getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
+								  .getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
 
 		try {
 			contentManager.upload(aContentNewVersionInputStream);
@@ -437,7 +428,7 @@ public class ContentManagerTest extends ConstellioTest {
 		inOrder.verify(contentManager).isReferenced("hash2");
 		inOrder.verify(contentManager).isReferenced("hash3");
 		inOrder.verify(contentDao)
-				.delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash3", "hash3__parsed", "hash3.preview"));
+			   .delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash3", "hash3__parsed", "hash3.preview"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO2, recordDTO3)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash5");
@@ -462,7 +453,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsingResults).when(contentManager).getParsedContent(aContentHash);
 
 		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
-				.getParsedContent();
+													.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager, never()).saveParsedContent(aContentHash, parsingResults);
@@ -479,7 +470,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsingResults).when(contentManager).tryToParse(streamFactory);
 
 		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
-				.getParsedContent();
+													.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager).saveParsedContent(aContentHash, parsingResults);

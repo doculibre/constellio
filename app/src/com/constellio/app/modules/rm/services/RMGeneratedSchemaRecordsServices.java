@@ -1,28 +1,6 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
-import com.constellio.app.modules.rm.wrappers.PrintableReport;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.SIParchive;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
@@ -35,22 +13,31 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public RMGeneratedSchemaRecordsServices(String collection,
-			ModelLayerFactory modelLayerFactory) {
+											ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);
 	}
 
 	public RMGeneratedSchemaRecordsServices(String collection,
-			ModelLayerFactory modelLayerFactory, Locale locale) {
+											ModelLayerFactory modelLayerFactory, Locale locale) {
 		super(collection, modelLayerFactory, locale);
 	}
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 	public AdministrativeUnit wrapAdministrativeUnit(Record record) {
 		return record == null ? null : new AdministrativeUnit(record, getTypes(), locale);
@@ -88,7 +75,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public AdministrativeUnit getAdministrativeUnitWithLegacyId(String legacyId) {
-		return wrapAdministrativeUnit(getByLegacyId(administrativeUnit.schemaType(),  legacyId));
+		return wrapAdministrativeUnit(getByLegacyId(administrativeUnit.schemaType(), legacyId));
 	}
 
 	public AdministrativeUnit newAdministrativeUnit() {
@@ -101,6 +88,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_administrativeUnit_default administrativeUnit
 			= new SchemaTypeShortcuts_administrativeUnit_default("administrativeUnit_default");
+
 	public class SchemaTypeShortcuts_administrativeUnit_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_administrativeUnit_default(String schemaCode) {
 			super(schemaCode);
@@ -142,6 +130,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("unitAncestors");
 		}
 	}
+
 	public Cart wrapCart(Record record) {
 		return record == null ? null : new Cart(record, getTypes());
 	}
@@ -174,7 +163,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Cart getCartWithLegacyId(String legacyId) {
-		return wrapCart(getByLegacyId(cart.schemaType(),  legacyId));
+		return wrapCart(getByLegacyId(cart.schemaType(), legacyId));
 	}
 
 	public Cart newCart() {
@@ -187,6 +176,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_cart_default cart
 			= new SchemaTypeShortcuts_cart_default("cart_default");
+
 	public class SchemaTypeShortcuts_cart_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_cart_default(String schemaCode) {
 			super(schemaCode);
@@ -212,6 +202,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("sharedWithUsers");
 		}
 	}
+
 	public Category wrapCategory(Record record) {
 		return record == null ? null : new Category(record, getTypes(), locale);
 	}
@@ -248,7 +239,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Category getCategoryWithLegacyId(String legacyId) {
-		return wrapCategory(getByLegacyId(category.schemaType(),  legacyId));
+		return wrapCategory(getByLegacyId(category.schemaType(), legacyId));
 	}
 
 	public Category newCategory() {
@@ -261,6 +252,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_category_default category
 			= new SchemaTypeShortcuts_category_default("category_default");
+
 	public class SchemaTypeShortcuts_category_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_category_default(String schemaCode) {
 			super(schemaCode);
@@ -302,6 +294,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRules");
 		}
 	}
+
 	public ContainerRecord wrapContainerRecord(Record record) {
 		return record == null ? null : new ContainerRecord(record, getTypes());
 	}
@@ -334,7 +327,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ContainerRecord getContainerRecordWithLegacyId(String legacyId) {
-		return wrapContainerRecord(getByLegacyId(containerRecord.schemaType(),  legacyId));
+		return wrapContainerRecord(getByLegacyId(containerRecord.schemaType(), legacyId));
 	}
 
 	public ContainerRecord newContainerRecord() {
@@ -347,6 +340,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_containerRecord_default containerRecord
 			= new SchemaTypeShortcuts_containerRecord_default("containerRecord_default");
+
 	public class SchemaTypeShortcuts_containerRecord_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_containerRecord_default(String schemaCode) {
 			super(schemaCode);
@@ -472,6 +466,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
+
 	public DocumentType wrapDocumentType(Record record) {
 		return record == null ? null : new DocumentType(record, getTypes());
 	}
@@ -508,7 +503,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public DocumentType getDocumentTypeWithLegacyId(String legacyId) {
-		return wrapDocumentType(getByLegacyId(ddvDocumentType.schemaType(),  legacyId));
+		return wrapDocumentType(getByLegacyId(ddvDocumentType.schemaType(), legacyId));
 	}
 
 	public DocumentType newDocumentType() {
@@ -521,6 +516,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvDocumentType_default ddvDocumentType
 			= new SchemaTypeShortcuts_ddvDocumentType_default("ddvDocumentType_default");
+
 	public class SchemaTypeShortcuts_ddvDocumentType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvDocumentType_default(String schemaCode) {
 			super(schemaCode);
@@ -534,6 +530,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("templates");
 		}
 	}
+
 	public FolderType wrapFolderType(Record record) {
 		return record == null ? null : new FolderType(record, getTypes());
 	}
@@ -570,7 +567,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public FolderType getFolderTypeWithLegacyId(String legacyId) {
-		return wrapFolderType(getByLegacyId(ddvFolderType.schemaType(),  legacyId));
+		return wrapFolderType(getByLegacyId(ddvFolderType.schemaType(), legacyId));
 	}
 
 	public FolderType newFolderType() {
@@ -583,6 +580,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvFolderType_default ddvFolderType
 			= new SchemaTypeShortcuts_ddvFolderType_default("ddvFolderType_default");
+
 	public class SchemaTypeShortcuts_ddvFolderType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvFolderType_default(String schemaCode) {
 			super(schemaCode);
@@ -592,6 +590,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
+
 	public StorageSpaceType wrapStorageSpaceType(Record record) {
 		return record == null ? null : new StorageSpaceType(record, getTypes());
 	}
@@ -628,7 +627,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public StorageSpaceType getStorageSpaceTypeWithLegacyId(String legacyId) {
-		return wrapStorageSpaceType(getByLegacyId(ddvStorageSpaceType.schemaType(),  legacyId));
+		return wrapStorageSpaceType(getByLegacyId(ddvStorageSpaceType.schemaType(), legacyId));
 	}
 
 	public StorageSpaceType newStorageSpaceType() {
@@ -641,6 +640,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvStorageSpaceType_default ddvStorageSpaceType
 			= new SchemaTypeShortcuts_ddvStorageSpaceType_default("ddvStorageSpaceType_default");
+
 	public class SchemaTypeShortcuts_ddvStorageSpaceType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvStorageSpaceType_default(String schemaCode) {
 			super(schemaCode);
@@ -650,6 +650,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
+
 	public YearType wrapYearType(Record record) {
 		return record == null ? null : new YearType(record, getTypes());
 	}
@@ -686,7 +687,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public YearType getYearTypeWithLegacyId(String legacyId) {
-		return wrapYearType(getByLegacyId(ddvYearType.schemaType(),  legacyId));
+		return wrapYearType(getByLegacyId(ddvYearType.schemaType(), legacyId));
 	}
 
 	public YearType newYearType() {
@@ -699,6 +700,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvYearType_default ddvYearType
 			= new SchemaTypeShortcuts_ddvYearType_default("ddvYearType_default");
+
 	public class SchemaTypeShortcuts_ddvYearType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvYearType_default(String schemaCode) {
 			super(schemaCode);
@@ -708,6 +710,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearEnd");
 		}
 	}
+
 	public DecommissioningList wrapDecommissioningList(Record record) {
 		return record == null ? null : new DecommissioningList(record, getTypes());
 	}
@@ -740,7 +743,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public DecommissioningList getDecommissioningListWithLegacyId(String legacyId) {
-		return wrapDecommissioningList(getByLegacyId(decommissioningList.schemaType(),  legacyId));
+		return wrapDecommissioningList(getByLegacyId(decommissioningList.schemaType(), legacyId));
 	}
 
 	public DecommissioningList newDecommissioningList() {
@@ -753,6 +756,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_decommissioningList_default decommissioningList
 			= new SchemaTypeShortcuts_decommissioningList_default("decommissioningList_default");
+
 	public class SchemaTypeShortcuts_decommissioningList_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_decommissioningList_default(String schemaCode) {
 			super(schemaCode);
@@ -886,6 +890,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("validations");
 		}
 	}
+
 	public Document wrapDocument(Record record) {
 		return record == null ? null : new Document(record, getTypes());
 	}
@@ -918,7 +923,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Document getDocumentWithLegacyId(String legacyId) {
-		return wrapDocument(getByLegacyId(document.schemaType(),  legacyId));
+		return wrapDocument(getByLegacyId(document.schemaType(), legacyId));
 	}
 
 	public Document newDocument() {
@@ -931,6 +936,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_document_default document
 			= new SchemaTypeShortcuts_document_default("document_default");
+
 	public class SchemaTypeShortcuts_document_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_document_default(String schemaCode) {
 			super(schemaCode);
@@ -1100,6 +1106,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("version");
 		}
 	}
+
 	public Email wrapEmail(Record record) {
 		return record == null ? null : new Email(record, getTypes());
 	}
@@ -1132,7 +1139,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Email getEmailWithLegacyId(String legacyId) {
-		return wrapEmail(getByLegacyId(document.schemaType(),  legacyId));
+		return wrapEmail(getByLegacyId(document.schemaType(), legacyId));
 	}
 
 	public Email newEmail() {
@@ -1145,6 +1152,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_document_email document_email
 			= new SchemaTypeShortcuts_document_email("document_email");
+
 	public class SchemaTypeShortcuts_document_email extends SchemaTypeShortcuts_document_default {
 		protected SchemaTypeShortcuts_document_email(String schemaCode) {
 			super(schemaCode);
@@ -1194,6 +1202,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
+
 	public Folder wrapFolder(Record record) {
 		return record == null ? null : new Folder(record, getTypes());
 	}
@@ -1226,7 +1235,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Folder getFolderWithLegacyId(String legacyId) {
-		return wrapFolder(getByLegacyId(folder.schemaType(),  legacyId));
+		return wrapFolder(getByLegacyId(folder.schemaType(), legacyId));
 	}
 
 	public Folder newFolder() {
@@ -1239,6 +1248,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_folder_default folder
 			= new SchemaTypeShortcuts_folder_default("folder_default");
+
 	public class SchemaTypeShortcuts_folder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_folder_default(String schemaCode) {
 			super(schemaCode);
@@ -1556,6 +1566,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("uniformSubdivisionEntered");
 		}
 	}
+
 	public PrintableLabel wrapPrintableLabel(Record record) {
 		return record == null ? null : new PrintableLabel(record, getTypes());
 	}
@@ -1588,7 +1599,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public PrintableLabel getPrintableLabelWithLegacyId(String legacyId) {
-		return wrapPrintableLabel(getByLegacyId(printable.schemaType(),  legacyId));
+		return wrapPrintableLabel(getByLegacyId(printable.schemaType(), legacyId));
 	}
 
 	public PrintableLabel newPrintableLabel() {
@@ -1601,6 +1612,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_label printable_label
 			= new SchemaTypeShortcuts_printable_label("printable_label");
+
 	public class SchemaTypeShortcuts_printable_label extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_label(String schemaCode) {
 			super(schemaCode);
@@ -1618,6 +1630,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("typelabel");
 		}
 	}
+
 	public PrintableReport wrapPrintableReport(Record record) {
 		return record == null ? null : new PrintableReport(record, getTypes());
 	}
@@ -1650,7 +1663,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public PrintableReport getPrintableReportWithLegacyId(String legacyId) {
-		return wrapPrintableReport(getByLegacyId(printable.schemaType(),  legacyId));
+		return wrapPrintableReport(getByLegacyId(printable.schemaType(), legacyId));
 	}
 
 	public PrintableReport newPrintableReport() {
@@ -1663,6 +1676,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_report printable_report
 			= new SchemaTypeShortcuts_printable_report("printable_report");
+
 	public class SchemaTypeShortcuts_printable_report extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_report(String schemaCode) {
 			super(schemaCode);
@@ -1676,6 +1690,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("recordType");
 		}
 	}
+
 	public RetentionRule wrapRetentionRule(Record record) {
 		return record == null ? null : new RetentionRule(record, getTypes(), locale);
 	}
@@ -1712,7 +1727,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RetentionRule getRetentionRuleWithLegacyId(String legacyId) {
-		return wrapRetentionRule(getByLegacyId(retentionRule.schemaType(),  legacyId));
+		return wrapRetentionRule(getByLegacyId(retentionRule.schemaType(), legacyId));
 	}
 
 	public RetentionRule newRetentionRule() {
@@ -1725,6 +1740,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_retentionRule_default retentionRule
 			= new SchemaTypeShortcuts_retentionRule_default("retentionRule_default");
+
 	public class SchemaTypeShortcuts_retentionRule_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_retentionRule_default(String schemaCode) {
 			super(schemaCode);
@@ -1830,6 +1846,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearTypesYearEnd");
 		}
 	}
+
 	public StorageSpace wrapStorageSpace(Record record) {
 		return record == null ? null : new StorageSpace(record, getTypes());
 	}
@@ -1866,7 +1883,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public StorageSpace getStorageSpaceWithLegacyId(String legacyId) {
-		return wrapStorageSpace(getByLegacyId(storageSpace.schemaType(),  legacyId));
+		return wrapStorageSpace(getByLegacyId(storageSpace.schemaType(), legacyId));
 	}
 
 	public StorageSpace newStorageSpace() {
@@ -1879,6 +1896,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_storageSpace_default storageSpace
 			= new SchemaTypeShortcuts_storageSpace_default("storageSpace_default");
+
 	public class SchemaTypeShortcuts_storageSpace_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_storageSpace_default(String schemaCode) {
 			super(schemaCode);
@@ -1944,6 +1962,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
+
 	public SIParchive wrapSIParchive(Record record) {
 		return record == null ? null : new SIParchive(record, getTypes());
 	}
@@ -1976,7 +1995,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public SIParchive getSIParchiveWithLegacyId(String legacyId) {
-		return wrapSIParchive(getByLegacyId(temporaryRecord.schemaType(),  legacyId));
+		return wrapSIParchive(getByLegacyId(temporaryRecord.schemaType(), legacyId));
 	}
 
 	public SIParchive newSIParchive() {
@@ -1989,6 +2008,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_temporaryRecord_sipArchive temporaryRecord_sipArchive
 			= new SchemaTypeShortcuts_temporaryRecord_sipArchive("temporaryRecord_sipArchive");
+
 	public class SchemaTypeShortcuts_temporaryRecord_sipArchive extends SchemaTypeShortcuts_temporaryRecord_default {
 		protected SchemaTypeShortcuts_temporaryRecord_sipArchive(String schemaCode) {
 			super(schemaCode);
@@ -2006,6 +2026,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("user");
 		}
 	}
+
 	public UniformSubdivision wrapUniformSubdivision(Record record) {
 		return record == null ? null : new UniformSubdivision(record, getTypes());
 	}
@@ -2042,7 +2063,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public UniformSubdivision getUniformSubdivisionWithLegacyId(String legacyId) {
-		return wrapUniformSubdivision(getByLegacyId(uniformSubdivision.schemaType(),  legacyId));
+		return wrapUniformSubdivision(getByLegacyId(uniformSubdivision.schemaType(), legacyId));
 	}
 
 	public UniformSubdivision newUniformSubdivision() {
@@ -2055,6 +2076,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_uniformSubdivision_default uniformSubdivision
 			= new SchemaTypeShortcuts_uniformSubdivision_default("uniformSubdivision_default");
+
 	public class SchemaTypeShortcuts_uniformSubdivision_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_uniformSubdivision_default(String schemaCode) {
 			super(schemaCode);
@@ -2076,6 +2098,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
+
 	public RMUserFolder wrapRMUserFolder(Record record) {
 		return record == null ? null : new RMUserFolder(record, getTypes());
 	}
@@ -2108,7 +2131,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RMUserFolder getRMUserFolderWithLegacyId(String legacyId) {
-		return wrapRMUserFolder(getByLegacyId(userFolder.schemaType(),  legacyId));
+		return wrapRMUserFolder(getByLegacyId(userFolder.schemaType(), legacyId));
 	}
 
 	public RMUserFolder newRMUserFolder() {
@@ -2121,6 +2144,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_userFolder_default userFolder
 			= new SchemaTypeShortcuts_userFolder_default("userFolder_default");
+
 	public class SchemaTypeShortcuts_userFolder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userFolder_default(String schemaCode) {
 			super(schemaCode);
@@ -2142,6 +2166,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
+
 	public RMTask wrapRMTask(Record record) {
 		return record == null ? null : new RMTask(record, getTypes());
 	}
@@ -2174,7 +2199,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RMTask getRMTaskWithLegacyId(String legacyId) {
-		return wrapRMTask(getByLegacyId(userTask.schemaType(),  legacyId));
+		return wrapRMTask(getByLegacyId(userTask.schemaType(), legacyId));
 	}
 
 	public RMTask newRMTask() {
@@ -2187,6 +2212,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_userTask_default userTask
 			= new SchemaTypeShortcuts_userTask_default("userTask_default");
+
 	public class SchemaTypeShortcuts_userTask_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userTask_default(String schemaCode) {
 			super(schemaCode);

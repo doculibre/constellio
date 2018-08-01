@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -18,6 +14,9 @@ import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 @UiTest
 @InDevelopmentTest
@@ -58,7 +57,7 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		// This doesn't work because the taxonomy isn't created at that moment.
 		driver.navigateTo()
-				.url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_CREATION);
+			  .url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_CREATION);
 		waitUntilICloseTheBrowsers();
 	}
 

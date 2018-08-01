@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.capsule.addEdit;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -26,6 +19,12 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsuleView {
 

@@ -1,23 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentCaptor.forClass;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.AuthorizationVO;
@@ -38,6 +20,18 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.SDKViewNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest {
 	public static final String ZE_SECURED_OBJECT = "zeObject";

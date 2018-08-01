@@ -1,34 +1,5 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.model.connectors.ConnectorDocument.URL;
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.DISTINGUISHED_NAME;
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.EMAIL;
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.WORK_TITLE;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import com.constellio.sdk.tests.annotations.SlowTest;
-import org.assertj.core.api.Assertions;
-import org.eclipse.jetty.server.Server;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidDocumentsBatchRuntimeException;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidJobsBatchRuntimeException;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -38,7 +9,6 @@ import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
-import com.constellio.app.modules.es.sdk.TestConnectorEvent;
 import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
@@ -46,8 +16,23 @@ import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.eclipse.jetty.server.Server;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.UUID;
+
+import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.*;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.*;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 	Server server;
@@ -90,11 +75,11 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 
 	private ConnectorLDAPInstance newConnectorLDAPInstance(String code) {
 		String newTraversalCode = UUID.randomUUID()
-				.toString();
+									  .toString();
 		return (ConnectorLDAPInstance) es.newConnectorLDAPInstance().setPassword("pass").setUrls(asList("url"))
-				.setUsersBaseContextList(asList("url"))
-				.setNumberOfJobsInParallel(2).setDocumentsPerJobs(1)
-				.setConnectionUsername("username").setTitle("title").setCode(code).setTraversalCode(newTraversalCode);
+										 .setUsersBaseContextList(asList("url"))
+										 .setNumberOfJobsInParallel(2).setDocumentsPerJobs(1)
+										 .setConnectionUsername("username").setTitle("title").setCode(code).setTraversalCode(newTraversalCode);
 	}
 
 	@Test
@@ -117,7 +102,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-		 public void whenServerNotAvailableAfterACompleteTraversalThenDoNotDeleteExistingDocuments()
+	public void whenServerNotAvailableAfterACompleteTraversalThenDoNotDeleteExistingDocuments()
 			throws Exception {
 		connectorDocuments = fullyFetchConnectorDocuments();
 		assertThat(connectorDocuments.size()).isEqualTo(3);
@@ -163,7 +148,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 		// phase 1 : get documents 1 and 2
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(ADD_EVENT, ADD_EVENT);
+											 .containsOnly(ADD_EVENT, ADD_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1", "mailid1"),
 				tuple("id2", "titleid2", "mailid2")
@@ -188,7 +173,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(MODIFY_EVENT, MODIFY_EVENT);
+											 .containsOnly(MODIFY_EVENT, MODIFY_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1_", "mailid1_"),
 				tuple("id2", "titleid2_", "mailid2_")
@@ -197,7 +182,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 		// phase 4: server on fetch document 4
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(ADD_EVENT);
+											 .containsOnly(ADD_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1_", "mailid1_"),
 				tuple("id2", "titleid2_", "mailid2_"),
@@ -224,7 +209,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 		// phase 1 : get documents 1 and 2
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(ADD_EVENT, ADD_EVENT);
+											 .containsOnly(ADD_EVENT, ADD_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1", "mailid1"),
 				tuple("id2", "titleid2", "mailid2")
@@ -234,7 +219,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 		givenTimeIs(ONE_WEEKS_AFTER_TIME1);
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(ADD_EVENT);
+											 .containsOnly(ADD_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1", "mailid1"),
 				tuple("id2", "titleid2", "mailid2"),
@@ -253,7 +238,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 		// phase 4: refetch 1, 2
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(MODIFY_EVENT, MODIFY_EVENT);
+											 .containsOnly(MODIFY_EVENT, MODIFY_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1_", "mailid1_"),
 				tuple("id2", "titleid2_", "mailid2_"),
@@ -263,7 +248,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 		// phase 5: refetch 3
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(eventObserver.newEvents()).extracting("eventType")
-				.containsOnly(DELETE_EVENT, ADD_EVENT);
+											 .containsOnly(DELETE_EVENT, ADD_EVENT);
 		assertThat(connectorDocuments).extracting(DISTINGUISHED_NAME, WORK_TITLE, EMAIL).containsOnly(
 				tuple("id1", "titleid1_", "mailid1_"),
 				tuple("id2", "titleid2_", "mailid2_"),
@@ -299,7 +284,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 		connectorInstanceWith0JobsPerBatch = connectorInstanceWith0JobsPerBatch.setDocumentsPerJobs(0)
-				.setNumberOfJobsInParallel(2);
+																			   .setNumberOfJobsInParallel(2);
 		connectorLDAP.initialize(null, connectorInstanceWith0JobsPerBatch.getWrappedRecord(), eventObserver, es);
 		try {
 			connectorLDAP.initFetch();

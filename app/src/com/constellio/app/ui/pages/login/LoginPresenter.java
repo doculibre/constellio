@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.login;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -39,6 +28,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class LoginPresenter extends BasePresenter<LoginView> {
 
@@ -100,7 +99,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 							userInLastCollection = userInCollection;
 							lastLogin = userInCollection.getLastLogin();
 						} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
-								.isAfter(lastLogin)) {
+																												   .isAfter(lastLogin)) {
 							lastCollection = collection;
 							userInLastCollection = userInCollection;
 							lastLogin = userInCollection.getLastLogin();
@@ -161,7 +160,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 			return getLocale(systemLanguage);
 		} else {
 			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager()
-					.getCollectionLanguages(userInLastCollection.getCollection());
+																.getCollectionLanguages(userInLastCollection.getCollection());
 			if (collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages
 					.contains(userPreferredLanguage)) {
 				return getLocale(systemLanguage);

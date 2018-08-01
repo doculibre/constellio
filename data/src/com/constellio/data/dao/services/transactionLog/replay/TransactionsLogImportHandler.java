@@ -1,20 +1,19 @@
 package com.constellio.data.dao.services.transactionLog.replay;
 
-import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.solr.client.solrj.SolrServerException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.utils.ThreadList;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TransactionsLogImportHandler {
 
@@ -28,7 +27,8 @@ public class TransactionsLogImportHandler {
 	private Semaphore availableThreads;
 	private BigVaultServer bigVaultServer;
 
-	public TransactionsLogImportHandler(BigVaultServer bigVaultServer, DataLayerLogger dataLayerLogger, int parallelism) {
+	public TransactionsLogImportHandler(BigVaultServer bigVaultServer, DataLayerLogger dataLayerLogger,
+										int parallelism) {
 		this.dataLayerLogger = dataLayerLogger;
 		this.bigVaultServer = bigVaultServer;
 		this.parallelism = parallelism;

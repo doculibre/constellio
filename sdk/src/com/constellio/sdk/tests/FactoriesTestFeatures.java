@@ -1,30 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static com.constellio.sdk.tests.SaveStateFeature.loadStateFrom;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.mockito.Mockito.spy;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.utils.CloseableUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -55,6 +30,30 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.FakeEncryptionServices;
+import org.apache.commons.io.FileUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.CloseableUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static com.constellio.sdk.tests.SaveStateFeature.loadStateFrom;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.mockito.Mockito.spy;
 
 public class FactoriesTestFeatures {
 
@@ -81,7 +80,7 @@ public class FactoriesTestFeatures {
 	private String systemLanguage;
 
 	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties,
-			boolean checkRollback) {
+								 boolean checkRollback) {
 		this.fileSystemTestFeatures = fileSystemTestFeatures;
 		this.checkRollback = checkRollback;
 		//		this.sdkProperties = sdkProperties;
@@ -166,7 +165,7 @@ public class FactoriesTestFeatures {
 	private void deleteFromCaches() {
 		try {
 			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory()
-					.getSettingsCacheManager();
+																				  .getSettingsCacheManager();
 			if (settingsCacheManager != null) {
 				for (String cacheName : settingsCacheManager.getCacheNames()) {
 					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
@@ -284,13 +283,14 @@ public class FactoriesTestFeatures {
 					}
 
 					dataLayerFactory.getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
-							.add(new TransactionLogExtension() {
-								@Override
-								public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
-										String collection) {
-									return ExtensionBooleanResult.FORCE_TRUE;
-								}
-							});
+									.add(new TransactionLogExtension() {
+										@Override
+										public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(
+												String field, String schema,
+												String collection) {
+											return ExtensionBooleanResult.FORCE_TRUE;
+										}
+									});
 
 					if (spiedClasses.isEmpty()) {
 						return dataLayerFactory;
@@ -324,7 +324,7 @@ public class FactoriesTestFeatures {
 										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
 									}
 									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-											.getSettingsFileSystemBaseFolder();
+																		   .getSettingsFileSystemBaseFolder();
 									File authenticationFile = new File(settingsFolder, "authentification.properties");
 									try {
 										FileUtils.write(authenticationFile, passwordFileContent.toString());
@@ -415,7 +415,7 @@ public class FactoriesTestFeatures {
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
 			decorator.setPluginsFolder(pluginsFolder)
-					.setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
+					 .setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
 			decorator.setTransactionLogWorkFolder(tlogWorkFolder);
 			decorator.setSystemLanguage(systemLanguage);
 

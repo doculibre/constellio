@@ -1,8 +1,8 @@
 package com.constellio.model.conf.ldap;
 
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.regex.Pattern;
 
 public class RegexFilter implements Filter {
 	private String acceptedRegex;

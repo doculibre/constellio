@@ -1,27 +1,5 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.model.entities.Language;
-import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
@@ -39,9 +17,24 @@ import com.constellio.app.modules.es.services.mapping.ConnectorMappingServiceRun
 import com.constellio.app.modules.es.services.mapping.ConnectorMappingServiceRuntimeException.ConnectorMappingServiceRuntimeException_MetadataAlreadyExist;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.*;
 
 public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 
@@ -84,16 +77,16 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		smbConnectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setCode("smb").setTitle("Smb connector").setEnabled(false)
-				.setDomain("domain").setSeeds(asList("seeds")).setUsername("username").setPassword("password"));
+																  .setCode("smb").setTitle("Smb connector").setEnabled(false)
+																  .setDomain("domain").setSeeds(asList("seeds")).setUsername("username").setPassword("password"));
 
 		httpConnectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance()
-				.setCode("http").setTitle("Http connector").setEnabled(false)
-				.setSeeds("seeds").setIncludePatterns("username"));
+																   .setCode("http").setTitle("Http connector").setEnabled(false)
+																   .setSeeds("seeds").setIncludePatterns("username"));
 
 		anotherHttpConnectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance()
-				.setCode("http2").setTitle("Http connector").setEnabled(false)
-				.setSeeds("seeds").setIncludePatterns("username"));
+																		  .setCode("http2").setTitle("Http connector").setEnabled(false)
+																		  .setSeeds("seeds").setIncludePatterns("username"));
 
 		httpConnectorDocumentSchema = ConnectorHttpDocument.SCHEMA_TYPE + "_" + httpConnectorInstance.getId();
 		smbConnectorDocumentSchema = ConnectorSmbDocument.SCHEMA_TYPE + "_" + smbConnectorInstance.getId();
@@ -218,7 +211,7 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		assertThat(manager.getAdvancedSearchMetadatas(zeCollection, ConnectorHttpDocument.SCHEMA_TYPE)).extracting("metadataCode")
-				.contains(httpConnectorDocumentSchema + "_MAPmeta1").doesNotContain(httpConnectorDocumentSchema + "_MAPmeta2");
+																									   .contains(httpConnectorDocumentSchema + "_MAPmeta1").doesNotContain(httpConnectorDocumentSchema + "_MAPmeta2");
 		assertThat(manager.getSchema(zeCollection, smbConnectorDocumentSchema).getSearchResultsMetadataCodes())
 				.contains(smbConnectorDocumentSchema + "_MAPmeta3").doesNotContain(smbConnectorDocumentSchema + "_MAPmeta4");
 	}
@@ -468,25 +461,25 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 
 	private ConnectorSmbFolder newValidSmbFolder() {
 		return es.newConnectorSmbFolder(smbConnectorInstance)
-				.setUrl("/" + UUIDV1Generator.newRandomId())
-				.setTraversalCode(UUIDV1Generator.newRandomId());
+				 .setUrl("/" + UUIDV1Generator.newRandomId())
+				 .setTraversalCode(UUIDV1Generator.newRandomId());
 	}
 
 	private ConnectorSmbDocument newValidSmbDocumentInFolder(ConnectorSmbFolder folder) {
 		return es.newConnectorSmbDocument(smbConnectorInstance)
-                .setParentUrl(folder.getUrl())
-				.setUrl("/" + UUIDV1Generator.newRandomId())
-				.setTraversalCode(UUIDV1Generator.newRandomId());
+				 .setParentUrl(folder.getUrl())
+				 .setUrl("/" + UUIDV1Generator.newRandomId())
+				 .setTraversalCode(UUIDV1Generator.newRandomId());
 	}
 
 	private ConnectorHttpDocument newValidHttpDocument() {
 		return es.newConnectorHttpDocument(httpConnectorInstance)
-				.setUrl("/" + UUIDV1Generator.newRandomId())
-				.setTraversalCode(UUIDV1Generator.newRandomId());
+				 .setUrl("/" + UUIDV1Generator.newRandomId())
+				 .setTraversalCode(UUIDV1Generator.newRandomId());
 	}
 
 	private ListAssert<ConnectorField> assertThatConnectorFields(ConnectorInstance<?> connectorInstance,
-			String connectorDocumentSchemaType) {
+																 String connectorDocumentSchemaType) {
 		return assertThat(service.getConnectorFields(connectorInstance, connectorDocumentSchemaType))
 				.usingFieldByFieldElementComparator();
 	}

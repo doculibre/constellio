@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class UnauthorizedAccessException extends BaseRestApiException {
 
-    private static final String CODE = "unauthorizedAccess";
+	private static final String CODE = "unauthorizedAccess";
 
-    public UnauthorizedAccessException() {
-        status = Response.Status.FORBIDDEN;
+	public UnauthorizedAccessException() {
+		status = Response.Status.FORBIDDEN;
 
-        buildValidationError(CODE);
-    }
+		buildValidationError(CODE);
+	}
 }

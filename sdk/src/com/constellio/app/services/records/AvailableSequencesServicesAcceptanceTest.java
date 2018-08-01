@@ -1,26 +1,9 @@
 package com.constellio.app.services.records;
 
-import static com.constellio.model.entities.Language.English;
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.extensions.AppLayerSystemExtensions;
-import com.constellio.app.extensions.sequence.AvailableSequence;
-import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
-import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
-import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
-import com.constellio.app.extensions.sequence.SystemSequenceExtension;
+import com.constellio.app.extensions.sequence.*;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -30,6 +13,18 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.Language.English;
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AvailableSequencesServicesAcceptanceTest extends ConstellioTest {
 
@@ -131,7 +126,7 @@ public class AvailableSequencesServicesAcceptanceTest extends ConstellioTest {
 				.usingFieldByFieldElementComparator().isEmpty();
 
 		assertThat(services.getAvailableGlobalSequences()).usingFieldByFieldElementComparator()
-				.containsOnly(sequence1, sequence2, sequence3);
+														  .containsOnly(sequence1, sequence2, sequence3);
 	}
 
 	@Test
@@ -142,32 +137,32 @@ public class AvailableSequencesServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("sequentialNumber").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel de la rubrique"))
-						.defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY);
+					 .setLabels(asMap(French, "Numéro séquentiel de la rubrique"))
+					 .defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY);
 
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("sequentialNumberNotBasedOnAReferemce").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel de la rubrique non-basé sur une référence"))
-						.defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY_CODE);
+					 .setLabels(asMap(French, "Numéro séquentiel de la rubrique non-basé sur une référence"))
+					 .defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY_CODE);
 
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("sequentialNumber2").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel de l'unité "))
-						.defineDataEntry().asSequenceDefinedByMetadata(Folder.ADMINISTRATIVE_UNIT);
+					 .setLabels(asMap(French, "Numéro séquentiel de l'unité "))
+					 .defineDataEntry().asSequenceDefinedByMetadata(Folder.ADMINISTRATIVE_UNIT);
 
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("globalSequentialNumber").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel global"))
-						.defineDataEntry().asFixedSequence("globalSequence");
+					 .setLabels(asMap(French, "Numéro séquentiel global"))
+					 .defineDataEntry().asFixedSequence("globalSequence");
 
 				types.getSchema(RetentionRule.DEFAULT_SCHEMA).create("globalSequentialNumber").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel global"))
-						.defineDataEntry().asFixedSequence("globalSequence");
+					 .setLabels(asMap(French, "Numéro séquentiel global"))
+					 .defineDataEntry().asFixedSequence("globalSequence");
 
 				types.getSchema(RetentionRule.DEFAULT_SCHEMA).create("globalSequentialNumber2").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel global"))
-						.defineDataEntry().asFixedSequence("globalSequence2");
+					 .setLabels(asMap(French, "Numéro séquentiel global"))
+					 .defineDataEntry().asFixedSequence("globalSequence2");
 
 				types.getSchema(Document.DEFAULT_SCHEMA).create("sequentialNumber").setType(STRING)
-						.setLabels(asMap(French, "Numéro séquentiel de l'unité"))
-						.defineDataEntry().asSequenceDefinedByMetadata(Document.FOLDER_ADMINISTRATIVE_UNIT);
+					 .setLabels(asMap(French, "Numéro séquentiel de l'unité"))
+					 .defineDataEntry().asSequenceDefinedByMetadata(Document.FOLDER_ADMINISTRATIVE_UNIT);
 			}
 		});
 

@@ -1,20 +1,5 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -42,6 +27,20 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
@@ -96,8 +95,8 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		Record record666 = new TestRecord(zeSchema, "000666")
 				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
@@ -125,11 +124,11 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
+				   .set(zeSchema.metadata("referenceToZeSchema"), "000042");
 		recordServices.execute(transaction);
 
 		RecordDao recordDao = getDataLayerFactory().newRecordDao();
@@ -171,10 +170,10 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("stringMetadata"), "value1");
+				   .set(zeSchema.metadata("stringMetadata"), "value1");
 
 		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("stringMetadata"), "value2");
+				   .set(zeSchema.metadata("stringMetadata"), "value2");
 		recordServices.execute(transaction);
 
 		RecordDao recordDao = getDataLayerFactory().newRecordDao();
@@ -206,11 +205,11 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
+				   .set(zeSchema.metadata("referenceToZeSchema"), "000042");
 		recordServices.execute(transaction);
 
 		assertThatRecord(withId("000666"))
@@ -260,11 +259,11 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
+				   .set(zeSchema.metadata("referenceToZeSchema"), "000042");
 		recordServices.execute(transaction);
 
 		assertThatRecord(withId("000666"))
@@ -316,11 +315,11 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
-				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+				   .set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				   .set(zeSchema.metadata("calculatedMetadataInput"), "value2");
 
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				.set(zeSchema.metadata("referenceToZeSchema"), "000666");
+				   .set(zeSchema.metadata("referenceToZeSchema"), "000666");
 		recordServices.execute(transaction);
 
 		assertThatRecord(withId("000042"))
@@ -375,7 +374,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 				//MetadataSchemaBuilder anotherSchema = schemaTypes.getDefaultSchema("anotherSchemaType");
 				MetadataBuilder referenceToZeSchema = zeSchema.create("referenceToZeSchema")
-						.defineReferencesTo(asList(zeSchema));
+															  .defineReferencesTo(asList(zeSchema));
 				zeSchema.create("copiedMetadata").setType(STRING)
 						.defineDataEntry().asCopied(referenceToZeSchema, copiedMetadataInput);
 				zeSchema.create("calculatedMetadata").setType(STRING)

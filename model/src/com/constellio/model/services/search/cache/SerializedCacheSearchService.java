@@ -7,7 +7,6 @@ import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +31,7 @@ public class SerializedCacheSearchService {
 	SearchServices searchServices;
 
 	public SerializedCacheSearchService(ModelLayerFactory modelLayerFactory,
-			SerializableSearchCache cache, boolean serializeRecords) {
+										SerializableSearchCache cache, boolean serializeRecords) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.cache = cache;

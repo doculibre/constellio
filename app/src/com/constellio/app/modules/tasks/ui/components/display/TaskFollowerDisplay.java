@@ -5,7 +5,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.vaadin.ui.Label;
 
 public class TaskFollowerDisplay extends Label {
-	
+
 	private TaskFollowerVOToStringConverter converter = new TaskFollowerVOToStringConverter();
 
 	public TaskFollowerDisplay(TaskFollowerVO taskFollowerVO) {

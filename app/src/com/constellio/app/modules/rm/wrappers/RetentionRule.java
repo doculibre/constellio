@@ -163,7 +163,7 @@ public class RetentionRule extends RecordWrapper {
 	}
 
 	public RetentionRule setDescription(Locale locale, String description) {
-		set(DESCRIPTION,locale, description);
+		set(DESCRIPTION, locale, description);
 		return this;
 	}
 

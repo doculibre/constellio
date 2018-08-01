@@ -1,15 +1,5 @@
 package com.constellio.app.entities.calculators;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
@@ -17,21 +7,22 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.calculators.dependencies.*;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 import com.google.common.base.Strings;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class SummaryColumnCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
 	DynamicLocalDependency dynamicMetadatasDependency = new DynamicMetadatasDependency();
@@ -188,47 +179,48 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		return itemShown;
 	}
 
-	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata, Object value) {
+	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata,
+						   Object value) {
 		String returnValue = "";
 		if (value != null) {
 			switch (metadata.getType()) {
-			case DATE:
-				if (value instanceof LocalDate) {
-					LocalDate localDateJoda = (LocalDate) value;
-					value = localDateJoda.toDateTimeAtStartOfDay().toDate();
-				}
+				case DATE:
+					if (value instanceof LocalDate) {
+						LocalDate localDateJoda = (LocalDate) value;
+						value = localDateJoda.toDateTimeAtStartOfDay().toDate();
+					}
 
-				returnValue = SimpleDateFormatSingleton
-						.getSimpleDateFormat(parameters.get
-								(dateformat)).format(value);
-				break;
-			case DATE_TIME:
-				if (value instanceof LocalDateTime) {
-					LocalDateTime localDateTimeJoda = (LocalDateTime) value;
-					returnValue = DateFormatUtils.format(localDateTimeJoda);
-				}
-				break;
-			case STRING:
-				returnValue = value.toString();
-				break;
-			case TEXT:
-				returnValue = value.toString();
-				break;
-			case INTEGER:
-				returnValue = value + "";
-				break;
-			case NUMBER:
-				returnValue = value + "";
-				break;
-			case BOOLEAN:
-				returnValue = value + "";
-				break;
-			case CONTENT:
-				returnValue = values.getValue(Schemas.TITLE.getLocalCode());
-				break;
-			case ENUM:
-				returnValue = $(value.toString());
-				break;
+					returnValue = SimpleDateFormatSingleton
+							.getSimpleDateFormat(parameters.get
+									(dateformat)).format(value);
+					break;
+				case DATE_TIME:
+					if (value instanceof LocalDateTime) {
+						LocalDateTime localDateTimeJoda = (LocalDateTime) value;
+						returnValue = DateFormatUtils.format(localDateTimeJoda);
+					}
+					break;
+				case STRING:
+					returnValue = value.toString();
+					break;
+				case TEXT:
+					returnValue = value.toString();
+					break;
+				case INTEGER:
+					returnValue = value + "";
+					break;
+				case NUMBER:
+					returnValue = value + "";
+					break;
+				case BOOLEAN:
+					returnValue = value + "";
+					break;
+				case CONTENT:
+					returnValue = values.getValue(Schemas.TITLE.getLocalCode());
+					break;
+				case ENUM:
+					returnValue = $(value.toString());
+					break;
 			}
 		}
 
@@ -266,8 +258,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 			if (list != null) {
 				for (Map listItem : (List<Map>) list) {
 					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE))
-							.equals(metadata.getLocalCode()) || metadata.getLocalCode()
-							.equals(Schemas.TITLE.getLocalCode())) {
+										  .equals(metadata.getLocalCode()) || metadata.getLocalCode()
+																					  .equals(Schemas.TITLE.getLocalCode())) {
 						return true;
 					}
 				}
@@ -283,8 +275,9 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 	}
 
-	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, String metadataCode,
-			String metadataLocalCode) {
+	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema,
+													  String metadataCode,
+													  String metadataLocalCode) {
 		Metadata referenceMetadata = schema.getMetadata(metadataCode);
 		String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);

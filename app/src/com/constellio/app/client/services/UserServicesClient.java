@@ -1,19 +1,18 @@
 package com.constellio.app.client.services;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.GlobalGroupResource;
+import com.constellio.app.client.entities.GroupResource;
+import com.constellio.app.client.entities.UserResource;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.GlobalGroupResource;
-import com.constellio.app.client.entities.GroupResource;
-import com.constellio.app.client.entities.UserResource;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserServicesClient {
 
@@ -114,32 +113,32 @@ public class UserServicesClient {
 
 	private Builder requestJson(String service) {
 		return target.path(service).request(MediaType.APPLICATION_JSON_TYPE).header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+					 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder requestString(String service) {
 		return target.path(service).request(MediaType.TEXT_PLAIN).header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+					 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder request(String service) {
 		return target.path(service).request().header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+					 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder requestJson(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request(MediaType.APPLICATION_JSON_TYPE)
-				.header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+										 .header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder requestString(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request(MediaType.TEXT_PLAIN).header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+										 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder request(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request().header(AdminServicesConstants.AUTH_TOKEN, token)
-				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+										 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private WebTarget path(String service, Map<String, String> queryParams) {

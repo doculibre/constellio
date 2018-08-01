@@ -22,7 +22,8 @@ public class BulkImportParams {
 		return warningsForRequiredUSRMetadatasWithoutValue;
 	}
 
-	public BulkImportParams setWarningsForRequiredUSRMetadatasWithoutValue(boolean warningsForRequiredUSRMetadatasWithoutValue) {
+	public BulkImportParams setWarningsForRequiredUSRMetadatasWithoutValue(
+			boolean warningsForRequiredUSRMetadatasWithoutValue) {
 		this.warningsForRequiredUSRMetadatasWithoutValue = warningsForRequiredUSRMetadatasWithoutValue;
 		return this;
 	}
@@ -76,7 +77,8 @@ public class BulkImportParams {
 		return importValidationErrorsBehavior;
 	}
 
-	public BulkImportParams setImportValidationErrorsBehavior(ImportValidationErrorsBehavior importValidationErrorsBehavior) {
+	public BulkImportParams setImportValidationErrorsBehavior(
+			ImportValidationErrorsBehavior importValidationErrorsBehavior) {
 		this.importValidationErrorsBehavior = importValidationErrorsBehavior;
 		return this;
 	}
@@ -91,8 +93,8 @@ public class BulkImportParams {
 
 	public static BulkImportParams PERMISSIVE() {
 		return new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true).setImportErrorsBehavior(CONTINUE)
-				.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS)
-				.setWarningsForRequiredUSRMetadatasWithoutValue(true);
+									 .setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS)
+									 .setWarningsForRequiredUSRMetadatasWithoutValue(true);
 	}
 
 	public static BulkImportParams STRICT() {

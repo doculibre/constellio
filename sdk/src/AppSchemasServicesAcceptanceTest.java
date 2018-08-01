@@ -1,3 +1,31 @@
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.services.metadata.AppSchemasServices;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeFromOrToDefault;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeToOtherSchemaType;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LINKED_SCHEMA;
@@ -8,35 +36,6 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifi
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.users.UserServices;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.services.metadata.AppSchemasServices;
-import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeFromOrToDefault;
-import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeToOtherSchemaType;
-import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
@@ -60,13 +59,13 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-		userServices=getModelLayerFactory().newUserServices();
+		userServices = getModelLayerFactory().newUserServices();
 
 		schemasDisplayManager.saveSchema(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom")
-				.withDisplayMetadataCodes(asList("zeSchemaType_custom_title")));
+															  .withDisplayMetadataCodes(asList("zeSchemaType_custom_title")));
 
 		schemasDisplayManager.saveMetadata(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-				.withVisibleInAdvancedSearchStatus(true));
+																.withVisibleInAdvancedSearchStatus(true));
 
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -98,13 +97,13 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString").isUnmodifiable())
 				.isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-				.isVisibleInAdvancedSearch()).isTrue();
+										.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
@@ -146,11 +145,11 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas())
 				.extracting("code").containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString")
-				.isUnmodifiable()).isTrue();
+								 .isUnmodifiable()).isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-				.isVisibleInAdvancedSearch()).isTrue();
+										.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
@@ -215,17 +214,17 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(thirdSchemas.code()).create("zeProblematicReference")
-						.defineReferencesTo(types.getSchema("zeSchemaType_custom"));
+					 .defineReferencesTo(types.getSchema("zeSchemaType_custom"));
 			}
 		});
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
-				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
+								 .getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
 				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par la métadonnée zeProblematicReference du schéma aThirdSchemaType du type aThirdSchemaType.");
 
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
-				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom2");
+								 .getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom2");
 
 	}
 
@@ -245,13 +244,13 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default", "zeSchemaType_custom2");
+																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom2_customString").isUnmodifiable())
 				.isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom2").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom2_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom2_customString")
-				.isVisibleInAdvancedSearch()).isTrue();
+										.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.English))
@@ -291,7 +290,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo("custom value 1999");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default", "zeSchemaType_custom", "zeSchemaType_custom2");
+																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom", "zeSchemaType_custom2");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getFrenchLabel())
 				.isEqualTo("Ze french label (À supprimer)");
@@ -303,7 +302,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom2").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom2_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom2_customString")
-				.isVisibleInAdvancedSearch()).isTrue();
+										.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.English))
@@ -335,7 +334,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 
@@ -351,14 +350,14 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 
 		appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-				.containsOnly("zeSchemaType_default");
+																											 .containsOnly("zeSchemaType_default");
 
 		try {
 			schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom");
@@ -378,7 +377,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.getVisibleRecords(zeCollection,"zeSchemaType_custom",admin,1)).hasSize(1);
+		assertThat(appSchemasServices.getVisibleRecords(zeCollection, "zeSchemaType_custom", admin, 1)).hasSize(1);
 	}
 
 	@Test
@@ -390,7 +389,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.getVisibleRecords(zeCollection,"zeSchemaType_custom",admin,3)).hasSize(2);
+		assertThat(appSchemasServices.getVisibleRecords(zeCollection, "zeSchemaType_custom", admin, 3)).hasSize(2);
 	}
 
 	@Test
@@ -401,7 +400,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		User admin = userServices.getUserInCollection("admin", zeCollection);
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection,"zeSchemaType_custom",admin)).isFalse();
+		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection, "zeSchemaType_custom", admin)).isFalse();
 	}
 
 	@Test
@@ -413,12 +412,12 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection,"zeSchemaType_custom",admin)).isTrue();
+		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection, "zeSchemaType_custom", admin)).isTrue();
 	}
 
 	long countRecordsInSchema(String schemaCode) {
 		MetadataSchema schema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchema(schemaCode);
+													  .getSchema(schemaCode);
 		return getModelLayerFactory().newSearchServices().getResultsCount(new LogicalSearchQuery(from(schema).returnAll()));
 	}
 }

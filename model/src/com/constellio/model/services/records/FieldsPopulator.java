@@ -1,9 +1,9 @@
 package com.constellio.model.services.records;
 
-import java.util.Map;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
+
+import java.util.Map;
 
 public interface FieldsPopulator {
 

@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationTo7_2_0_1AcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
+
 	@Test
 	public void givenPreviousSystemWhereUniformSubdivisionDescriptionIsAStringThenMigrateToText()
 			throws Exception {

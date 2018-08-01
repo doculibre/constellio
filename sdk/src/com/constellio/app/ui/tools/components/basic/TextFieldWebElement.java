@@ -1,10 +1,9 @@
 package com.constellio.app.ui.tools.components.basic;
 
-import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.Keys;
-
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
+import org.apache.commons.lang3.StringUtils;
+import org.openqa.selenium.Keys;
 
 public class TextFieldWebElement {
 

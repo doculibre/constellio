@@ -1,20 +1,5 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.assertj.core.api.BooleanAssert;
-import org.joda.time.LocalDate;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -29,6 +14,20 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.BooleanAssert;
+import org.joda.time.LocalDate;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class TaskAcceptTest extends ConstellioTest {
 
@@ -166,7 +165,7 @@ public class TaskAcceptTest extends ConstellioTest {
 		zeTask.setStatus(zeStatus.getId());
 		TaskReminder reminder1 = new TaskReminder().setFixedDate(now.plusDays(1000));
 		TaskReminder reminder2 = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1)
-				.setRelativeDateMetadataCode(Task.DUE_DATE);
+												   .setRelativeDateMetadataCode(Task.DUE_DATE);
 		zeTask.setReminders(asList(reminder1, reminder2));
 		TaskFollower aliceFollowingTask = new TaskFollower().setFollowerId(users.aliceIn(zeCollection).getId());
 
@@ -424,13 +423,13 @@ public class TaskAcceptTest extends ConstellioTest {
 		TaskStatus status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
 		System.out.println(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).getDefaultValue());
 		assertThat(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS)
-				.getDefaultValue()).isEqualTo(status.getId());
+						.getDefaultValue()).isEqualTo(status.getId());
 
 		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
 		System.out.println(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).getDefaultValue());
 		assertThat(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS)
-				.getDefaultValue()).isEqualTo(status.getId());
+						.getDefaultValue()).isEqualTo(status.getId());
 
 	}
 

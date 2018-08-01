@@ -1,10 +1,5 @@
 package com.constellio.app.modules.robots;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -23,6 +18,11 @@ import com.constellio.app.modules.robots.services.RobotsManager;
 import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "robots";
@@ -120,7 +120,7 @@ public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWi
 		extensions.systemCheckExtensions.add(new RobotSystemCheckExtension(collection, appLayerFactory));
 	}
 
-		@Override
+	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 
 	}

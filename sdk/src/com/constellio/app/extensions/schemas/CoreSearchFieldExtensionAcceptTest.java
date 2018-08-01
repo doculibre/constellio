@@ -1,17 +1,5 @@
 package com.constellio.app.extensions.schemas;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.assertj.core.data.MapEntry;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -29,6 +17,17 @@ import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.assertj.core.data.MapEntry;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by Patrick on 2015-11-19.
@@ -50,16 +49,16 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		descriptionDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.getMetadata(zeCollection, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION);
+													   .getMetadata(zeCollection, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION);
 		descriptionMetadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION);
+													.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION);
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -72,7 +71,7 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.TEXTAREA));
+							.saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.TEXTAREA));
 
 		Folder folder = records.getFolder_A01().setDescription(DESCRIPTION_WITH_XML_TAGS);
 
@@ -85,7 +84,7 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 		recordServices.update(folder);
 
 		List<String> foldersFound = getModelLayerFactory().newSearchServices()
-				.searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("strong"));
+														  .searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("strong"));
 		assertThat(foldersFound).contains(records.folder_A01);
 	}
 
@@ -101,7 +100,7 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 		//		});
 
 		getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.RICHTEXT));
+							.saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.RICHTEXT));
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		Folder folder = records.getFolder_A01().setDescription(DESCRIPTION_WITH_XML_TAGS);
@@ -114,18 +113,18 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 		recordServices.update(folder);
 
 		List<String> foldersFound = getModelLayerFactory().newSearchServices()
-				.searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("éléphants"));
+														  .searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("éléphants"));
 		assertThat(foldersFound).contains(records.folder_A01);
 
 		foldersFound = getModelLayerFactory().newSearchServices()
-				.searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("strong"));
+											 .searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("strong"));
 		assertThat(foldersFound).doesNotContain(records.folder_A01);
 	}
 
 	private SearchFieldsPopulator getSearchFieldPopulator() {
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 		List<String> collectionLanguages = getModelLayerFactory().getCollectionsListManager()
-				.getCollectionLanguages(zeCollection);
+																 .getCollectionLanguages(zeCollection);
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		ConstellioEIMConfigs systemConfigs = getModelLayerFactory().getSystemConfigs();
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,

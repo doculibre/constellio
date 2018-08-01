@@ -1,10 +1,10 @@
 package com.constellio.data.io.services.zip;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipServiceException.*;
+import org.apache.commons.io.IOUtils;
+
+import java.io.*;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -13,23 +13,13 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.IOUtils;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipServiceException.CannotAddFileToZipException;
-import com.constellio.data.io.services.zip.ZipServiceException.CannotCreateZipOutputStreamException;
-import com.constellio.data.io.services.zip.ZipServiceException.FileToZipNotFound;
-import com.constellio.data.io.services.zip.ZipServiceException.ZipFileCannotBeParsed;
-import com.constellio.data.io.services.zip.ZipServiceException.ZipFileInvalidExtension;
-import com.constellio.data.io.services.zip.ZipServiceException.ZippedFilesInDifferentParentFolder;
-
 public class ZipService {
 
 	private static final String WRITE_CONTENT_TO_ZIP_FILE = "ZipService-WriteContentToZipFile";
 	private static final String UNZIP_FILE_ENTRY_TO_FILE = "ZipService-UnzipFileEntryToFile";
 	private static final String ZIP_FILE_STREAM = "ZipService-ZipFileStream";
 
-	private static final String[] VALID_ZIP_EXTENSIONS = { ".zip", ".war", ".jar" };
+	private static final String[] VALID_ZIP_EXTENSIONS = {".zip", ".war", ".jar"};
 
 	private final IOServices ioServices;
 
@@ -209,9 +199,9 @@ public class ZipService {
 		try {
 			if (zippedFile.isDirectory()) {
 				File[] children = zippedFile.listFiles();
-				if(children.length == 0){
+				if (children.length == 0) {
 					createEmptyDirectoryInZip(zippedFile, zipOutputStream, parent);
-				}else{
+				} else {
 					addFilestoZip(Arrays.asList(children), zipOutputStream, parent);
 				}
 			} else {

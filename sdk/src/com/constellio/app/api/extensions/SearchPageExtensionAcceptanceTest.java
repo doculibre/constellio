@@ -1,20 +1,5 @@
 package com.constellio.app.api.extensions;
 
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -33,6 +18,18 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
+import java.util.List;
+
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Constelio on 2016-10-19.
@@ -56,7 +53,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		appLayerFactory = getAppLayerFactory();
 		rm = new RMSchemasRecordsServices(zeCollection, appLayerFactory);
@@ -84,7 +81,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 		appLayerFactory.getExtensions().forCollection(zeCollection).searchPageExtensions.add(searchPageExtension2);
 
 		final LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schema()).where(rm.folder.title())
-				.isEqualTo("Abeille"));
+																						.isEqualTo("Abeille"));
 		SimpleSearchPresenter simpleSearchPresenter = new SimpleSearchPresenter(simpleSearchView) {
 			@Override
 			protected LogicalSearchQuery getSearchQuery() {

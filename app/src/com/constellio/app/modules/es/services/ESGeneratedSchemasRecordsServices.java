@@ -1,11 +1,5 @@
 package com.constellio.app.modules.es.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -23,6 +17,12 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	AppLayerFactory appLayerFactory;
@@ -32,10 +32,12 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 		this.appLayerFactory = appLayerFactory;
 	}
 
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 
 	public ConnectorHttpDocument wrapConnectorHttpDocument(Record record) {
@@ -62,15 +64,15 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorHttpDocument getConnectorHttpDocument(String id) {
-		return wrapConnectorHttpDocument(get(connectorHttpDocument.schemaType(),id));
+		return wrapConnectorHttpDocument(get(connectorHttpDocument.schemaType(), id));
 	}
 
 	public List<ConnectorHttpDocument> getConnectorHttpDocuments(List<String> ids) {
-		return wrapConnectorHttpDocuments(get(connectorHttpDocument.schemaType(),ids));
+		return wrapConnectorHttpDocuments(get(connectorHttpDocument.schemaType(), ids));
 	}
 
 	public ConnectorHttpDocument getConnectorHttpDocumentWithLegacyId(String legacyId) {
-		return wrapConnectorHttpDocument(getByLegacyId(connectorHttpDocument.schemaType(),  legacyId));
+		return wrapConnectorHttpDocument(getByLegacyId(connectorHttpDocument.schemaType(), legacyId));
 	}
 
 	public ConnectorHttpDocument newConnectorHttpDocument() {
@@ -83,6 +85,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorHttpDocument_default connectorHttpDocument
 			= new SchemaTypeShortcuts_connectorHttpDocument_default("connectorHttpDocument_default");
+
 	public class SchemaTypeShortcuts_connectorHttpDocument_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorHttpDocument_default(String schemaCode) {
 			super(schemaCode);
@@ -208,6 +211,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("url");
 		}
 	}
+
 	public ConnectorInstance wrapConnectorInstance(Record record) {
 		return record == null ? null : new ConnectorInstance(record, getTypes());
 	}
@@ -232,11 +236,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorInstance getConnectorInstance(String id) {
-		return wrapConnectorInstance(get(connectorInstance.schemaType(),id));
+		return wrapConnectorInstance(get(connectorInstance.schemaType(), id));
 	}
 
 	public List<ConnectorInstance> getConnectorInstances(List<String> ids) {
-		return wrapConnectorInstances(get(connectorInstance.schemaType(),ids));
+		return wrapConnectorInstances(get(connectorInstance.schemaType(), ids));
 	}
 
 	public ConnectorInstance getConnectorInstanceWithCode(String code) {
@@ -244,7 +248,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorInstance getConnectorInstanceWithLegacyId(String legacyId) {
-		return wrapConnectorInstance(getByLegacyId(connectorInstance.schemaType(),  legacyId));
+		return wrapConnectorInstance(getByLegacyId(connectorInstance.schemaType(), legacyId));
 	}
 
 	public ConnectorInstance newConnectorInstance() {
@@ -257,6 +261,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorInstance_default connectorInstance
 			= new SchemaTypeShortcuts_connectorInstance_default("connectorInstance_default");
+
 	public class SchemaTypeShortcuts_connectorInstance_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorInstance_default(String schemaCode) {
 			super(schemaCode);
@@ -294,6 +299,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("traversalSchedule");
 		}
 	}
+
 	public ConnectorHttpInstance wrapConnectorHttpInstance(Record record) {
 		return record == null ? null : new ConnectorHttpInstance(record, getTypes());
 	}
@@ -318,11 +324,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorHttpInstance getConnectorHttpInstance(String id) {
-		return wrapConnectorHttpInstance(get(connectorInstance.schemaType(),id));
+		return wrapConnectorHttpInstance(get(connectorInstance.schemaType(), id));
 	}
 
 	public List<ConnectorHttpInstance> getConnectorHttpInstances(List<String> ids) {
-		return wrapConnectorHttpInstances(get(connectorInstance.schemaType(),ids));
+		return wrapConnectorHttpInstances(get(connectorInstance.schemaType(), ids));
 	}
 
 	public ConnectorHttpInstance getConnectorHttpInstanceWithCode(String code) {
@@ -330,7 +336,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorHttpInstance getConnectorHttpInstanceWithLegacyId(String legacyId) {
-		return wrapConnectorHttpInstance(getByLegacyId(connectorInstance.schemaType(),  legacyId));
+		return wrapConnectorHttpInstance(getByLegacyId(connectorInstance.schemaType(), legacyId));
 	}
 
 	public ConnectorHttpInstance newConnectorHttpInstance() {
@@ -343,6 +349,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorInstance_http connectorInstance_http
 			= new SchemaTypeShortcuts_connectorInstance_http("connectorInstance_http");
+
 	public class SchemaTypeShortcuts_connectorInstance_http extends SchemaTypeShortcuts_connectorInstance_default {
 		protected SchemaTypeShortcuts_connectorInstance_http(String schemaCode) {
 			super(schemaCode);
@@ -396,6 +403,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("username");
 		}
 	}
+
 	public ConnectorLDAPInstance wrapConnectorLDAPInstance(Record record) {
 		return record == null ? null : new ConnectorLDAPInstance(record, getTypes());
 	}
@@ -420,11 +428,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorLDAPInstance getConnectorLDAPInstance(String id) {
-		return wrapConnectorLDAPInstance(get(connectorInstance.schemaType(),id));
+		return wrapConnectorLDAPInstance(get(connectorInstance.schemaType(), id));
 	}
 
 	public List<ConnectorLDAPInstance> getConnectorLDAPInstances(List<String> ids) {
-		return wrapConnectorLDAPInstances(get(connectorInstance.schemaType(),ids));
+		return wrapConnectorLDAPInstances(get(connectorInstance.schemaType(), ids));
 	}
 
 	public ConnectorLDAPInstance getConnectorLDAPInstanceWithCode(String code) {
@@ -432,7 +440,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorLDAPInstance getConnectorLDAPInstanceWithLegacyId(String legacyId) {
-		return wrapConnectorLDAPInstance(getByLegacyId(connectorInstance.schemaType(),  legacyId));
+		return wrapConnectorLDAPInstance(getByLegacyId(connectorInstance.schemaType(), legacyId));
 	}
 
 	public ConnectorLDAPInstance newConnectorLDAPInstance() {
@@ -445,6 +453,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorInstance_ldap connectorInstance_ldap
 			= new SchemaTypeShortcuts_connectorInstance_ldap("connectorInstance_ldap");
+
 	public class SchemaTypeShortcuts_connectorInstance_ldap extends SchemaTypeShortcuts_connectorInstance_default {
 		protected SchemaTypeShortcuts_connectorInstance_ldap(String schemaCode) {
 			super(schemaCode);
@@ -550,6 +559,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("usersBaseContextList");
 		}
 	}
+
 	public ConnectorSmbInstance wrapConnectorSmbInstance(Record record) {
 		return record == null ? null : new ConnectorSmbInstance(record, getTypes());
 	}
@@ -574,11 +584,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbInstance getConnectorSmbInstance(String id) {
-		return wrapConnectorSmbInstance(get(connectorInstance.schemaType(),id));
+		return wrapConnectorSmbInstance(get(connectorInstance.schemaType(), id));
 	}
 
 	public List<ConnectorSmbInstance> getConnectorSmbInstances(List<String> ids) {
-		return wrapConnectorSmbInstances(get(connectorInstance.schemaType(),ids));
+		return wrapConnectorSmbInstances(get(connectorInstance.schemaType(), ids));
 	}
 
 	public ConnectorSmbInstance getConnectorSmbInstanceWithCode(String code) {
@@ -586,7 +596,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbInstance getConnectorSmbInstanceWithLegacyId(String legacyId) {
-		return wrapConnectorSmbInstance(getByLegacyId(connectorInstance.schemaType(),  legacyId));
+		return wrapConnectorSmbInstance(getByLegacyId(connectorInstance.schemaType(), legacyId));
 	}
 
 	public ConnectorSmbInstance newConnectorSmbInstance() {
@@ -599,6 +609,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorInstance_smb connectorInstance_smb
 			= new SchemaTypeShortcuts_connectorInstance_smb("connectorInstance_smb");
+
 	public class SchemaTypeShortcuts_connectorInstance_smb extends SchemaTypeShortcuts_connectorInstance_default {
 		protected SchemaTypeShortcuts_connectorInstance_smb(String schemaCode) {
 			super(schemaCode);
@@ -636,6 +647,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("username");
 		}
 	}
+
 	public ConnectorLDAPUserDocument wrapConnectorLDAPUserDocument(Record record) {
 		return record == null ? null : new ConnectorLDAPUserDocument(record, getTypes());
 	}
@@ -660,15 +672,15 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorLDAPUserDocument getConnectorLDAPUserDocument(String id) {
-		return wrapConnectorLDAPUserDocument(get(connectorLdapUserDocument.schemaType(),id));
+		return wrapConnectorLDAPUserDocument(get(connectorLdapUserDocument.schemaType(), id));
 	}
 
 	public List<ConnectorLDAPUserDocument> getConnectorLDAPUserDocuments(List<String> ids) {
-		return wrapConnectorLDAPUserDocuments(get(connectorLdapUserDocument.schemaType(),ids));
+		return wrapConnectorLDAPUserDocuments(get(connectorLdapUserDocument.schemaType(), ids));
 	}
 
 	public ConnectorLDAPUserDocument getConnectorLDAPUserDocumentWithLegacyId(String legacyId) {
-		return wrapConnectorLDAPUserDocument(getByLegacyId(connectorLdapUserDocument.schemaType(),  legacyId));
+		return wrapConnectorLDAPUserDocument(getByLegacyId(connectorLdapUserDocument.schemaType(), legacyId));
 	}
 
 	public ConnectorLDAPUserDocument newConnectorLDAPUserDocument() {
@@ -681,6 +693,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorLdapUserDocument_default connectorLdapUserDocument
 			= new SchemaTypeShortcuts_connectorLdapUserDocument_default("connectorLdapUserDocument_default");
+
 	public class SchemaTypeShortcuts_connectorLdapUserDocument_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorLdapUserDocument_default(String schemaCode) {
 			super(schemaCode);
@@ -798,6 +811,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("workTitle");
 		}
 	}
+
 	public ConnectorSmbDocument wrapConnectorSmbDocument(Record record) {
 		return record == null ? null : new ConnectorSmbDocument(record, getTypes());
 	}
@@ -822,15 +836,15 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbDocument getConnectorSmbDocument(String id) {
-		return wrapConnectorSmbDocument(get(connectorSmbDocument.schemaType(),id));
+		return wrapConnectorSmbDocument(get(connectorSmbDocument.schemaType(), id));
 	}
 
 	public List<ConnectorSmbDocument> getConnectorSmbDocuments(List<String> ids) {
-		return wrapConnectorSmbDocuments(get(connectorSmbDocument.schemaType(),ids));
+		return wrapConnectorSmbDocuments(get(connectorSmbDocument.schemaType(), ids));
 	}
 
 	public ConnectorSmbDocument getConnectorSmbDocumentWithLegacyId(String legacyId) {
-		return wrapConnectorSmbDocument(getByLegacyId(connectorSmbDocument.schemaType(),  legacyId));
+		return wrapConnectorSmbDocument(getByLegacyId(connectorSmbDocument.schemaType(), legacyId));
 	}
 
 	public ConnectorSmbDocument newConnectorSmbDocument() {
@@ -843,6 +857,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorSmbDocument_default connectorSmbDocument
 			= new SchemaTypeShortcuts_connectorSmbDocument_default("connectorSmbDocument_default");
+
 	public class SchemaTypeShortcuts_connectorSmbDocument_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorSmbDocument_default(String schemaCode) {
 			super(schemaCode);
@@ -908,6 +923,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("url");
 		}
 	}
+
 	public ConnectorSmbFolder wrapConnectorSmbFolder(Record record) {
 		return record == null ? null : new ConnectorSmbFolder(record, getTypes());
 	}
@@ -932,15 +948,15 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorSmbFolder getConnectorSmbFolder(String id) {
-		return wrapConnectorSmbFolder(get(connectorSmbFolder.schemaType(),id));
+		return wrapConnectorSmbFolder(get(connectorSmbFolder.schemaType(), id));
 	}
 
 	public List<ConnectorSmbFolder> getConnectorSmbFolders(List<String> ids) {
-		return wrapConnectorSmbFolders(get(connectorSmbFolder.schemaType(),ids));
+		return wrapConnectorSmbFolders(get(connectorSmbFolder.schemaType(), ids));
 	}
 
 	public ConnectorSmbFolder getConnectorSmbFolderWithLegacyId(String legacyId) {
-		return wrapConnectorSmbFolder(getByLegacyId(connectorSmbFolder.schemaType(),  legacyId));
+		return wrapConnectorSmbFolder(getByLegacyId(connectorSmbFolder.schemaType(), legacyId));
 	}
 
 	public ConnectorSmbFolder newConnectorSmbFolder() {
@@ -953,6 +969,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorSmbFolder_default connectorSmbFolder
 			= new SchemaTypeShortcuts_connectorSmbFolder_default("connectorSmbFolder_default");
+
 	public class SchemaTypeShortcuts_connectorSmbFolder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorSmbFolder_default(String schemaCode) {
 			super(schemaCode);
@@ -994,6 +1011,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("url");
 		}
 	}
+
 	public ConnectorType wrapConnectorType(Record record) {
 		return record == null ? null : new ConnectorType(record, getTypes());
 	}
@@ -1018,11 +1036,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorType getConnectorType(String id) {
-		return wrapConnectorType(get(connectorType.schemaType(),id));
+		return wrapConnectorType(get(connectorType.schemaType(), id));
 	}
 
 	public List<ConnectorType> getConnectorTypes(List<String> ids) {
-		return wrapConnectorTypes(get(connectorType.schemaType(),ids));
+		return wrapConnectorTypes(get(connectorType.schemaType(), ids));
 	}
 
 	public ConnectorType getConnectorTypeWithCode(String code) {
@@ -1030,7 +1048,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ConnectorType getConnectorTypeWithLegacyId(String legacyId) {
-		return wrapConnectorType(getByLegacyId(connectorType.schemaType(),  legacyId));
+		return wrapConnectorType(getByLegacyId(connectorType.schemaType(), legacyId));
 	}
 
 	public ConnectorType newConnectorType() {
@@ -1043,6 +1061,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_connectorType_default connectorType
 			= new SchemaTypeShortcuts_connectorType_default("connectorType_default");
+
 	public class SchemaTypeShortcuts_connectorType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorType_default(String schemaCode) {
 			super(schemaCode);
@@ -1064,7 +1083,7 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
-/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 }

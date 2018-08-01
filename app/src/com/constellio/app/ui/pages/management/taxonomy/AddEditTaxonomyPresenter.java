@@ -59,8 +59,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	}
 
 	private boolean isTitleChanged(Map<Language, String> mapLang, Map<Language, String> mapLang2) {
-		for(Language language : mapLang.keySet()) {
-			if(!mapLang.get(language).equals(mapLang2.get(language))) {
+		for (Language language : mapLang.keySet()) {
+			if (!mapLang.get(language).equals(mapLang2.get(language))) {
 				return true;
 			}
 		}
@@ -77,7 +77,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		if (isActionEdit()) {
 			Taxonomy taxonomy = fetchTaxonomy(taxonomyVO.getCode());
 			boolean wasTitleChanged = isTitleChanged(taxonomy.getTitle(), taxonomyVO.getTitleMap());
-			if(wasTitleChanged) {
+			if (wasTitleChanged) {
 				languageInError = canAlterOrCreateLabels(taxonomyVO.getTitleMap(), taxonomy.getTitle());
 
 				if (languageInError.size() > 0) {
@@ -86,9 +86,9 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			}
 
 			taxonomy = taxonomy.withTitle(taxonomyVO.getTitleMap())
-					.withUserIds(taxonomyVO.getUserIds())
-					.withGroupIds(taxonomyVO.getGroupIds())
-					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
+							   .withUserIds(taxonomyVO.getUserIds())
+							   .withGroupIds(taxonomyVO.getGroupIds())
+							   .withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
 
 			renameTaxonomyType(taxonomy, wasTitleChanged);
 
@@ -98,7 +98,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		} else {
 			languageInError = canAlterOrCreateLabels(taxonomyVO.getTitleMap(), null);
 
-			if(languageInError.size() > 0) {
+			if (languageInError.size() > 0) {
 				return languageInError;
 			}
 
@@ -114,23 +114,22 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	}
 
 
-
-	public List<Language> canAlterOrCreateLabels(Map<Language, String> newMapTitle, Map<Language,String> oldValues) {
+	public List<Language> canAlterOrCreateLabels(Map<Language, String> newMapTitle, Map<Language, String> oldValues) {
 		List<Language> listUnvalidValueForLanguage = new ArrayList<>();
 
 		if (titles == null || titles.size() == 0) {
 			getTaxonomies();
 		}
 
-		for(Language language : newMapTitle.keySet()) {
+		for (Language language : newMapTitle.keySet()) {
 			String newCurrentTitle = newMapTitle.get(language);
-			if(Strings.isBlank(newCurrentTitle)){
+			if (Strings.isBlank(newCurrentTitle)) {
 				listUnvalidValueForLanguage.add(language);
 			}
-			for(Map<Language, String> existingTitleMap : titles) {
+			for (Map<Language, String> existingTitleMap : titles) {
 				String existingTitleInCurrentLanguage = existingTitleMap.get(language);
-				if(Strings.isNotBlank(existingTitleInCurrentLanguage) && existingTitleInCurrentLanguage.equals(newCurrentTitle)
-						&& (oldValues == null ||  oldValues != null && !existingTitleInCurrentLanguage.equals(oldValues.get(language)))) {
+				if (Strings.isNotBlank(existingTitleInCurrentLanguage) && existingTitleInCurrentLanguage.equals(newCurrentTitle)
+					&& (oldValues == null || oldValues != null && !existingTitleInCurrentLanguage.equals(oldValues.get(language)))) {
 					listUnvalidValueForLanguage.add(language);
 				}
 			}
@@ -139,7 +138,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	}
 
 	void renameTaxonomyType(Taxonomy taxonomy, boolean wasTitleChanged) {
-		if(wasTitleChanged) {
+		if (wasTitleChanged) {
 			MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
 			MetadataSchemaTypeBuilder taxonomyType = types.getSchemaType(taxonomy.getSchemaTypes().get(0));
 			MetadataSchemaBuilder defaultSchema = taxonomyType.getDefaultSchema();
@@ -157,7 +156,8 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		}
 	}
 
-	void createMetadatasInClassifiedObjects(Taxonomy taxonomy, List<String> classifiedObjects, boolean wasTitleChanged) {
+	void createMetadatasInClassifiedObjects(Taxonomy taxonomy, List<String> classifiedObjects,
+											boolean wasTitleChanged) {
 
 		if (classifiedObjects != null) {
 			if (classifiedObjects.contains("folderObject")) {
@@ -170,14 +170,15 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 		}
 	}
 
-	void createOrRenameMetadatasInDefaultSchemaIfInexistent(Taxonomy taxonomy, String schemaType, boolean wasTitleChanged) {
+	void createOrRenameMetadatasInDefaultSchemaIfInexistent(Taxonomy taxonomy, String schemaType,
+															boolean wasTitleChanged) {
 
 		if (!getClassifiedSchemaTypes(taxonomy).contains(schemaType)) {
 			//TODO Patrick - code instead label
 			String groupLabel = $("classifiedInGroupLabel");
 			valueListServices()
 					.createAMultivalueClassificationMetadataInGroup(taxonomy, schemaType, "classifiedInGroupLabel", groupLabel);
-		} else if(wasTitleChanged) {
+		} else if (wasTitleChanged) {
 			MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
 			String localCode = taxonomy.getCode() + "Ref";
 			MetadataBuilder metadataBuilder = types.getSchemaType(schemaType).getDefaultSchema().get(localCode);
@@ -246,14 +247,14 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			getTaxonomies();
 		}
 		boolean exits = false;
-		for(Language lang : taxonomy.keySet()) {
-			if(Strings.isBlank(taxonomy.get(lang))){
+		for (Language lang : taxonomy.keySet()) {
+			if (Strings.isBlank(taxonomy.get(lang))) {
 				return true;
 			}
-			for(Map<Language, String> existingTitleMap : titles) {
-				if(existingTitleMap.get(lang).equals(taxonomy.get(lang))) {
-				    return true;
-                }
+			for (Map<Language, String> existingTitleMap : titles) {
+				if (existingTitleMap.get(lang).equals(taxonomy.get(lang))) {
+					return true;
+				}
 			}
 		}
 		return exits;

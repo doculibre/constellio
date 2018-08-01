@@ -1,12 +1,11 @@
 package com.constellio.app.ui.framework.components.converters;
 
+import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.vaadin.data.util.converter.Converter;
 
 @SuppressWarnings("serial")
 public class RecordIdListToStringConverter implements Converter<String, List<String>> {
@@ -18,6 +17,7 @@ public class RecordIdListToStringConverter implements Converter<String, List<Str
 	public RecordIdListToStringConverter() {
 		this(", ");
 	}
+
 	public RecordIdListToStringConverter(String separator) {
 		this.separator = separator;
 	}
@@ -58,7 +58,7 @@ public class RecordIdListToStringConverter implements Converter<String, List<Str
 		return presentation;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Class getModelType() {
 		return List.class;

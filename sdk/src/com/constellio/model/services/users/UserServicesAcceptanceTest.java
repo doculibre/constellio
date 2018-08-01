@@ -1,29 +1,5 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.usernamesOf;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-
-import java.security.Key;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -39,12 +15,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
@@ -57,17 +28,30 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+import com.constellio.model.services.users.UserServicesRuntimeException.*;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.security.Key;
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.usernamesOf;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 public class UserServicesAcceptanceTest extends ConstellioTest {
 
@@ -245,7 +229,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.removeUserFromCollection(user, collection1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
-				.where(userServices.usernameMetadata(collection1)).is(user.getUsername());
+																	  .where(userServices.usernameMetadata(collection1)).is(user.getUsername());
 		Record userCredentialRecord = searchServices.searchSingleResult(condition);
 		assertThat(userCredentialRecord.isActive()).isFalse();
 		assertThatUserIsOnlyInCollections(user, collection2);
@@ -263,7 +247,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection)
-					.where(userServices.usernameMetadata(collection)).is(user.getUsername());
+																		  .where(userServices.usernameMetadata(collection)).is(user.getUsername());
 			Record userCredentialRecord = searchServices.searchSingleResult(condition);
 			User userRecord = new User(userCredentialRecord,
 					getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection),
@@ -292,7 +276,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection)
-					.where(userServices.usernameMetadata(collection1)).is(user.getUsername());
+																		  .where(userServices.usernameMetadata(collection1)).is(user.getUsername());
 			Record userCredentialRecord = searchServices.searchSingleResult(condition);
 			User userRecord = new User(userCredentialRecord,
 					getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection),
@@ -318,7 +302,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection)
-					.where(userServices.usernameMetadata(collection1)).is(user.getUsername());
+																		  .where(userServices.usernameMetadata(collection1)).is(user.getUsername());
 			Record userCredentialRecord = searchServices.searchSingleResult(condition);
 			User userRecord = new User(userCredentialRecord,
 					getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection),
@@ -345,7 +329,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		Map<String, User> userInCollection = new HashMap<>();
 		for (String collection : Arrays.asList(collection1, collection2)) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection)
-					.where(userServices.usernameMetadata(collection1)).is(user.getUsername());
+																		  .where(userServices.usernameMetadata(collection1)).is(user.getUsername());
 			Record userCredentialRecord = searchServices.searchSingleResult(condition);
 			User userRecord = new User(userCredentialRecord,
 					getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection),
@@ -587,7 +571,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				.containsOnlyOnce("role1", "role2", "role3");
 
 		userServices.addUpdateUserCredential(userServices.getUser(chuckNorris).withFirstName("CHUCK").withLastName("NORRIS")
-				.withEmail("chuck@norris.com"));
+														 .withEmail("chuck@norris.com"));
 
 		user = userServices.getUserInCollection(chuckNorris, collection1);
 		assertThat(user.getTitle()).isEqualTo("CHUCK NORRIS");
@@ -880,7 +864,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.removeGroupFromCollections(admin, "group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
-				.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+							   .get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 		assertThat(userServices.getChildrenOfGroupInCollection("group1", "collection1")).isEmpty();
 		assertThat(userServices.getChildrenOfGroupInCollection("group1_1", "collection1")).isEmpty();
 		assertThat(userServices.getChildrenOfGroupInCollection("group1_1_1", "collection1")).isEmpty();
@@ -906,7 +890,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.logicallyRemoveGroupHierarchy(admin, group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
-				.where(userServices.groupCodeMetadata(collection1)).isIn(Arrays.asList(group1.getCode(), group1_1.getCode(),
+																	  .where(userServices.groupCodeMetadata(collection1)).isIn(Arrays.asList(group1.getCode(), group1_1.getCode(),
 						group1_1_1.getCode()));
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
@@ -947,7 +931,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.activateGlobalGroupHierarchy(admin, group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
-				.where(userServices.groupCodeMetadata(collection1)).isIn(Arrays.asList(group1.getCode(), group1_1.getCode(),
+																	  .where(userServices.groupCodeMetadata(collection1)).isIn(Arrays.asList(group1.getCode(), group1_1.getCode(),
 						group1_1_1.getCode()));
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
@@ -1028,7 +1012,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(userServices.safePhysicalDeleteAllUnusedUserCredentials()).extracting("username")
-				.containsExactly(chuck.getUsername());
+																			 .containsExactly(chuck.getUsername());
 	}
 
 	@Test
@@ -1320,7 +1304,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	private List<Record> getRecordsInGroupInCollection(Record groupRecord, String collection) {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection)
-				.where(userServices.userGroupsMetadata(collection)).isEqualTo(groupRecord.getId());
+																	  .where(userServices.userGroupsMetadata(collection)).isEqualTo(groupRecord.getId());
 		query.setCondition(condition);
 		List<Record> recordsInGroupInCollection = searchServices.search(query);
 		return recordsInGroupInCollection;
@@ -1329,7 +1313,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	private Record getRecordGroupInCollection(GlobalGroup legendsGroup, String collection) {
 		LogicalSearchCondition condition;
 		condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(userServices.groupCodeMetadata(collection))
-				.isEqualTo(legendsGroup.getCode());
+											   .isEqualTo(legendsGroup.getCode());
 		Record recordGroupInCollection = searchServices.searchSingleResult(condition);
 		return recordGroupInCollection;
 	}

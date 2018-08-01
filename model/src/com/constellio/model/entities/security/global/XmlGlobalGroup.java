@@ -1,11 +1,11 @@
 package com.constellio.model.entities.security.global;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class XmlGlobalGroup implements GlobalGroup {
 	final String parent;
@@ -13,15 +13,16 @@ public class XmlGlobalGroup implements GlobalGroup {
 	final String name;
 	final List<String> usersAutomaticallyAddedToCollections;
 	final GlobalGroupStatus status;
-    final boolean locallyCreated;
+	final boolean locallyCreated;
 
-	public XmlGlobalGroup(String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+	public XmlGlobalGroup(String code, String name, List<String> collections, String parent, GlobalGroupStatus status,
+						  boolean locallyCreated) {
 		this.code = code;
 		this.name = name;
 		this.usersAutomaticallyAddedToCollections = Collections.unmodifiableList(collections);
 		this.parent = parent;
 		this.status = status;
-        this.locallyCreated = locallyCreated;
+		this.locallyCreated = locallyCreated;
 	}
 
 	public XmlGlobalGroup(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
@@ -53,7 +54,7 @@ public class XmlGlobalGroup implements GlobalGroup {
 		return status;
 	}
 
-    @Override
+	@Override
 	public GlobalGroup withName(String name) {
 		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
 	}
@@ -75,17 +76,17 @@ public class XmlGlobalGroup implements GlobalGroup {
 		return new XmlGlobalGroup(code, name, collections, parent, status, locallyCreated);
 	}
 
-    @Override
-    public boolean isLocallyCreated() {
-        return locallyCreated;
-    }
+	@Override
+	public boolean isLocallyCreated() {
+		return locallyCreated;
+	}
 
-    @Override
-    public GlobalGroup withLocallyCreated(boolean locallyCreated) {
-        return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
-    }
+	@Override
+	public GlobalGroup withLocallyCreated(boolean locallyCreated) {
+		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
+	}
 
-    @Override
+	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
 	}

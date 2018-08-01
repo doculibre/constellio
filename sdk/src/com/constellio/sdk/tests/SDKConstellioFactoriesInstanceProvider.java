@@ -1,15 +1,14 @@
 package com.constellio.sdk.tests;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.factories.ConstellioFactoriesInstanceProvider;
 import com.constellio.app.services.factories.SingletonConstellioFactoriesInstanceProvider;
 import com.constellio.data.utils.Factory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactoriesInstanceProvider {
 

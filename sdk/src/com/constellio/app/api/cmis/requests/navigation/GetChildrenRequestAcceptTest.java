@@ -1,25 +1,5 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
@@ -41,6 +21,21 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest
 public class GetChildrenRequestAcceptTest extends ConstellioTest {
@@ -125,8 +120,8 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 			throws Exception {
 		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject(zeCollectionRecords.folder2_2.getId());
 		validateThat(obtainedChildren).hasChildrenIds("folder2_2_doc1", "folder2_2_doc2")
-				.withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc2",
-						"/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc1");
+									  .withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc2",
+											  "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc1");
 	}
 
 	@Test
@@ -137,12 +132,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo1_fond1.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo1_fond1_1", "zetaxo1_category2")
-				.withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2");
+									  .withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2");
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo1_category2.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo1_category2_1", "folder4")
-				.withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4",
-						"/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1");
+									  .withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4",
+											  "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1");
 
 	}
 
@@ -154,12 +149,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo2_unit1.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo2_unit1_1", "zetaxo2_station2")
-				.withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_unit1_1", "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2");
+									  .withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_unit1_1", "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2");
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo2_station2.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo2_station2_1", "folder1")
-				.withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1",
-						"/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
+									  .withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1",
+											  "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
 	}
 
 	@Test
@@ -167,7 +162,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 			throws Exception {
 		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject("@root@");
 		validateThat(obtainedChildren).hasChildrenIds("taxo_taxo1", "taxo_taxo2")
-				.withPaths("/taxo_taxo1", "/taxo_taxo2");
+									  .withPaths("/taxo_taxo1", "/taxo_taxo2");
 	}
 
 	@Test
@@ -236,17 +231,17 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-				.build();
+									  .build();
 	}
 
 	private Session givenBobSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(bobKey, bobToken).onCollection(zeCollection)
-				.build();
+									  .build();
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			String grantedOnRecord) {
+														   String grantedOnRecord) {
 
 		String id = getModelLayerFactory().newAuthorizationsServices().add(authorizationInCollection(zeCollection)
 				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecord).giving(roles));

@@ -1,18 +1,5 @@
 package com.constellio.model.services.parser;
 
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Date;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
@@ -21,6 +8,18 @@ import com.constellio.model.services.parser.FileParserException.FileParserExcept
 import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Date;
+
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
 //@SlowTest
 public class FileParserAcceptanceTest extends ConstellioTest {
@@ -157,7 +156,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("Feuille1").contains("This is the content of")
-				.contains("the xsl file");
+													.contains("the xsl file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/vnd.ms-excel");
 		assertThat(parsedContent.getLength()).isEqualTo(23552L);
@@ -176,7 +175,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("Sheet1").contains("This is the content of")
-				.contains("the xslx file");
+													.contains("the xslx file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 		assertThat(parsedContent.getLength()).isEqualTo(8022L);
@@ -436,7 +435,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 				System.out.println("Original file length : " + originalLength);
 				System.out.println("New file length : " + newLenght);
 				System.out.println("Difference : " + (originalLength - newLenght) + " ( "
-						+ (100f * (originalLength - newLenght)) / originalLength + " % )");
+								   + (100f * (originalLength - newLenght)) / originalLength + " % )");
 				System.out.println("\n\n\n-----------------------------------\n\n\n");
 			} catch (Exception e) {
 				e.printStackTrace();

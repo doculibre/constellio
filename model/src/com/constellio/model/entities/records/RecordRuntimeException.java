@@ -37,8 +37,8 @@ public class RecordRuntimeException extends RuntimeException {
 
 		public CannotMerge(String schema, String id, String metadataCode, Object newValue, Object value) {
 			super("Record of schema '" + schema + "' with id '" + id + "' cannot merge metadata '" + metadataCode
-					+ "' because it was modified to '" + newValue
-					+ "' at the same time it was modified to '" + value + "'");
+				  + "' because it was modified to '" + newValue
+				  + "' at the same time it was modified to '" + value + "'");
 		}
 
 	}
@@ -87,7 +87,7 @@ public class RecordRuntimeException extends RuntimeException {
 
 		public CannotSetNonListValueInMultivalueMetadata(Metadata metadata, Class<?> clazz) {
 			super("Cannot set non-collection value of type '" + clazz.getName() + "' in multivalue value metadata '"
-					+ metadata.getCode() + "'");
+				  + metadata.getCode() + "'");
 		}
 
 	}

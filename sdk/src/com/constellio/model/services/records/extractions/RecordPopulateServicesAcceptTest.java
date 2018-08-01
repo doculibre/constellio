@@ -1,22 +1,5 @@
 package com.constellio.model.services.records.extractions;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.REMOVE_EXTENSION_FROM_RECORD_TITLE;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -32,12 +15,8 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -58,6 +37,20 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapter;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.*;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
@@ -156,16 +149,16 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 				MetadataSchemaBuilder defaultSchema = types.getSchema(zeSchemas.code());
 				defaultSchema.get(zeSchemas.stringMeta().getLocalCode()).getPopulateConfigsBuilder()
-						.setStyles(asList(titleStyle));
+							 .setStyles(asList(titleStyle));
 				defaultSchema.get(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
-						.setStyles(asList(titleStyle));
+							 .setStyles(asList(titleStyle));
 
 			}
 		});
 
 		//run action
 		recordServices.add(robotsSchemas.newRobot().setActionParameters((ActionParameters) null)
-				.setSchemaFilter(zeSchemas.typeCode()).setSearchCriteria(asList(
+										.setSchemaFilter(zeSchemas.typeCode()).setSearchCriteria(asList(
 						new CriterionBuilder(zeSchemas.typeCode()).where(Schemas.TITLE).isEqualTo("contract").build()
 				)).setAction(RunExtractorsActionExecutor.ID).setCode("robocop").setTitle("robocop"));
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
@@ -557,11 +550,11 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 		Content recordContent = contentManager.createMajor(admin, "contract.docx", documentWithStylesAndProperties1);
 		Record record = new TestRecord(zeSchemas).set(zeSchemas.requiredContent(), recordContent)
-				.set(Schemas.TITLE, "My custom title")
-				.set(zeSchemas.stringMeta(), "My custom title")
-				.set(zeSchemas.textMeta(), "My custom text")
-				.set(zeSchemas.stringsMeta(), asList("first value", "second value"))
-				.set(zeSchemas.textsMeta(), asList("first value", "second value"));
+												 .set(Schemas.TITLE, "My custom title")
+												 .set(zeSchemas.stringMeta(), "My custom title")
+												 .set(zeSchemas.textMeta(), "My custom text")
+												 .set(zeSchemas.stringsMeta(), asList("first value", "second value"))
+												 .set(zeSchemas.textsMeta(), asList("first value", "second value"));
 		recordServices.add(record);
 
 		services.populate(record);
@@ -643,7 +636,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		schemas.refresh();
 
 		assertThat(zeSchemas.type().getAllMetadatas().onlyWithType(MetadataValueType.CONTENT)
-				.sortedUsing(new MetadataSchemaBuilder.ContentsComparator()).toLocalCodesList()).isEqualTo(asList(
+							.sortedUsing(new MetadataSchemaBuilder.ContentsComparator()).toLocalCodesList()).isEqualTo(asList(
 				zeSchemas.requiredContent().getLocalCode(), zeSchemas.requiredContents().getLocalCode(),
 				zeSchemas.facultativeContent().getLocalCode(), zeSchemas.facultativeContents().getLocalCode()
 		));
@@ -712,14 +705,14 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getMetadata(zeSchemas.code() + "_" + Schemas.TITLE_CODE).getPopulateConfigsBuilder()
-						.setProperties(asList(authorProperty))
-						.setStyles(new ArrayList<String>());
+					 .setProperties(asList(authorProperty))
+					 .setStyles(new ArrayList<String>());
 				types.getMetadata(zeSchemas.stringMeta().getCode()).getPopulateConfigsBuilder()
-						.setProperties(asList(authorProperty))
-						.setStyles(new ArrayList<String>());
+					 .setProperties(asList(authorProperty))
+					 .setStyles(new ArrayList<String>());
 				types.getMetadata(zeSchemas.textMeta().getCode()).getPopulateConfigsBuilder()
-						.setProperties(new ArrayList<String>())
-						.setStyles(asList(clientNameStyle));
+					 .setProperties(new ArrayList<String>())
+					 .setStyles(asList(clientNameStyle));
 			}
 		});
 
@@ -1026,14 +1019,14 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 				MetadataSchemaBuilder schema = types.getSchemaType(Document.SCHEMA_TYPE).createCustomSchema("zeUltimateSchema");
 				schema.create("aCustomMetadata").setType(STRING).getPopulateConfigsBuilder()
-						.setStyles(asList(clientNameStyle));
+					  .setStyles(asList(clientNameStyle));
 				schema.get(Schemas.TITLE.getCode()).getPopulateConfigsBuilder().setStyles(asList(companyNameStyle));
 			}
 		});
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.newDocumentTypeWithId("type1").setTitle("Ze ultimate document type")
-				.setCode("ultimateDocument").setLinkedSchema("zeUltimateSchema"));
+						  .setCode("ultimateDocument").setLinkedSchema("zeUltimateSchema"));
 		transaction.add(rm.newDocumentTypeWithId("type2").setTitle("An other document type").setCode("anotherDocument"));
 		recordServices.execute(transaction);
 
@@ -1058,9 +1051,9 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
 				.withStringMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
+												   .settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
+												   .settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
 				)
 				.withTextMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1068,9 +1061,9 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				)
 				.withStringsMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
+												   .settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).build(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
+												   .settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).build()
 				)
 				.withTextsMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1082,7 +1075,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.set(Schemas.TITLE, "Ze A-39!")
 				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndProperties1));
 		MetadataList populated = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(record.getCollection())
-				.getSchema(record.getSchemaCode()).getMetadatas().onlyPopulated();
+													   .getSchema(record.getSchemaCode()).getMetadatas().onlyPopulated();
 		assertThat(populated).isNotEmpty();
 		services.populate(record);
 
@@ -1121,9 +1114,9 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
 				.withStringMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
+												   .settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
+												   .settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
 				)
 				.withTextMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1131,9 +1124,9 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				)
 				.withStringsMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
+												   .settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
+												   .settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
 				)
 				.withTextsMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1180,9 +1173,9 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
 				.withStringMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
+												   .settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
+												   .settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
 				)
 				.withTextMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1190,9 +1183,9 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				)
 				.withStringsMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
+												   .settingValue("Édouard Lechat").settingRegexConfigType(RegexConfigType.SUBSTITUTION),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
+												   .settingValue("Gandalf Leblanc").settingRegexConfigType(RegexConfigType.SUBSTITUTION)
 				)
 				.withTextsMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1340,8 +1333,8 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 		withSpiedServices(ContentManager.class);
 		prepareSystem(withZeCollection().withConstellioRMModule().withRobotsModule().withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus()
-				.withAllTest(users));
+										.withFoldersAndContainersOfEveryStatus()
+										.withAllTest(users));
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 		admin = users.adminIn(zeCollection);
 
@@ -1354,32 +1347,32 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		documentWithStylesAndProperties1 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties1.docx"),
 						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
-								.setFileName("DocumentWithStylesAndProperties1.docx")).getContentVersionDataSummary();
+										   .setFileName("DocumentWithStylesAndProperties1.docx")).getContentVersionDataSummary();
 		documentWithStylesAndProperties2 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties2.docx"),
 						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
-								.setFileName("DocumentWithStylesAndProperties2.docx")).getContentVersionDataSummary();
+										   .setFileName("DocumentWithStylesAndProperties2.docx")).getContentVersionDataSummary();
 		documentWithStylesAndProperties3 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties3.docx"),
 						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
-								.setFileName("DocumentWithStylesAndProperties3.docx")).getContentVersionDataSummary();
+										   .setFileName("DocumentWithStylesAndProperties3.docx")).getContentVersionDataSummary();
 		documentWithStylesAndProperties4 = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndProperties4.docx"),
 						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
-								.setFileName("DocumentWithStylesAndProperties4.docx")).getContentVersionDataSummary();
+										   .setFileName("DocumentWithStylesAndProperties4.docx")).getContentVersionDataSummary();
 		documentWithEmptyStylesAndNoProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndNoProperties.docx"),
 						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
-								.setFileName("DocumentWithEmptyStylesAndNoProperties.docx"))
+										   .setFileName("DocumentWithEmptyStylesAndNoProperties.docx"))
 				.getContentVersionDataSummary();
 		documentWithEmptyStylesAndProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithEmptyStylesAndWithProperties.docx"),
 						new UploadOptions().setHandleDeletionOfUnreferencedHashes(false)
-								.setFileName("DocumentWithEmptyStylesAndWithProperties.docx"))
+										   .setFileName("DocumentWithEmptyStylesAndWithProperties.docx"))
 				.getContentVersionDataSummary();
 		onlyWithRegex = contentManager.upload(getTestResourceInputStream("onlyWithRegex.docx"),
 				new UploadOptions().setHandleDeletionOfUnreferencedHashes(false).setFileName("OnlyWithRegex.docx"))
-				.getContentVersionDataSummary();
+									  .getContentVersionDataSummary();
 		documentWithStylesAndNoProperties = contentManager
 				.upload(getTestResourceInputStream("DocumentWithStylesAndNoProperties.docx"));
 		withoutStylesAndProperties = contentManager.upload(getTestResourceInputStream("withoutStylesAndProperties.docx"));
@@ -1452,7 +1445,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			}
 
 			MetadataBuilder stringsMeta = zeSchemaBuilder.create("stringsMeta").setType(STRING)
-					.setMultivalue(true);
+														 .setMultivalue(true);
 			for (MetadataBuilderConfigurator configurator : stringsMetaConfigurators) {
 				configurator.configure(stringsMeta, schemaTypes);
 			}

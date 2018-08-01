@@ -1,15 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.model.entities.security.Role.READ;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
@@ -17,6 +7,15 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.After;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.security.Role.READ;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {

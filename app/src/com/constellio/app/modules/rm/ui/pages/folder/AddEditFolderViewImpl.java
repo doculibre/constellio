@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.ui.components.folder.FolderForm;
 import com.constellio.app.modules.rm.ui.components.folder.FolderFormImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
@@ -15,6 +13,8 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolderView {
 
@@ -112,7 +112,7 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 				});
 			}
 		}
-		
+
 		return recordForm;
 	}
 

@@ -1,13 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.*;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -22,11 +14,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -34,6 +22,13 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
@@ -296,7 +291,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			}
 			metadataLocalCodes.add((metadata.getLocalCode()));
 		}
-		assertThat(metadataLocalCodes).containsAll(Arrays.asList(new String[] { "USRregex" }));
+		assertThat(metadataLocalCodes).containsAll(Arrays.asList(new String[]{"USRregex"}));
 	}
 
 	private void validateDDVImport(MetadataSchemaTypes types) {
@@ -315,9 +310,9 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 		while (it.hasNext()) {
 			taxoDomaineHierarchiqueTypeLocalCodes.add((it.next().getLocalCode()));
 		}
-		assertThat(taxoDomaineHierarchiqueTypeLocalCodes).containsAll(Arrays.asList(new String[] { "USRmd1Taxo", "USRmd2Taxo" }));
+		assertThat(taxoDomaineHierarchiqueTypeLocalCodes).containsAll(Arrays.asList(new String[]{"USRmd1Taxo", "USRmd2Taxo"}));
 		Taxonomy taxonomy = getModelLayerFactory().getTaxonomiesManager()
-				.getTaxonomyFor(zeCollection, "taxoDomaineHierarchiqueType");
+												  .getTaxonomyFor(zeCollection, "taxoDomaineHierarchiqueType");
 		assertThat(taxonomy).isNotNull();
 		assertThat(taxonomy.getSchemaTypes()).containsOnly(schemaType.getCode());
 	}

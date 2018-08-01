@@ -1,36 +1,12 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
-import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.idsArray;
-import static com.constellio.sdk.tests.TestUtils.recordsIds;
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-import java.util.List;
-
-import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.carrotsearch.junitbenchmarks.annotation.LabelType;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -65,6 +41,23 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.Condition;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class RecordsDeleteAcceptTest extends ConstellioTest {
 
@@ -101,7 +94,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		withMostReferencesRemoved = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
 		withMostReferencesRemovedPhysicallyDeletingRecords = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true)
-				.setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
+																							  .setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
 		withMostReferencesRemovedPhysicallyDeletingRecordsIfPrincipalTaxonomy = new RecordPhysicalDeleteOptions()
 				.setMostReferencesToNull(true)
 				.setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY);
@@ -172,10 +165,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		valueListItem3 = recordServices.newRecordWithSchema(valueListItemSchema, "value3ListItem").set(TITLE, "Ze item 3");
 
 		rootUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "rootUnclassifiedItem")
-				.set(TITLE, "rootUnclassifiedItem");
+											 .set(TITLE, "rootUnclassifiedItem");
 
 		childUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "childUnclassifiedItem")
-				.set(TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
+											  .set(TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
 
 		recordServices.execute(
 				new Transaction(valueListItem1, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem));
@@ -411,7 +404,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(records.folder3().getSchemaCode()).get("valueListRef")
-						.setDefaultValue(asList(valueListItem1.getId()));
+					 .setDefaultValue(asList(valueListItem1.getId()));
 			}
 		});
 		assertThat(valueListItem1).isNot(logicallyDeletableBy(userWithDeletePermission));
@@ -1532,7 +1525,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		// Search only root folders (Folder1, 2, 3 and 4)
 		LogicalSearchQuery query = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchema.instance())
-				.where(folderSchema.taxonomy1()).isNotNull());
+																					 .where(folderSchema.taxonomy1()).isNotNull());
 
 		assertThat(searchServices.searchRecordIds(query))
 				.containsOnly(idsArray(records.folder1(), records.folder2(), records.folder3(), records.folder4()));
@@ -1611,7 +1604,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user,
-			final RecordPhysicalDeleteOptions options) {
+																		 final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1626,7 +1619,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user,
-			final RecordPhysicalDeleteOptions options) {
+																			final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1730,7 +1723,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return physicallyDeletableBy(user, new RecordPhysicalDeleteOptions());
 	}
 
-	private Condition<? super Record> physicallyDeletableBy(final User user, final RecordPhysicalDeleteOptions options) {
+	private Condition<? super Record> physicallyDeletableBy(final User user,
+															final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1743,7 +1737,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return notPhysicallyDeletableBy(user, new RecordPhysicalDeleteOptions());
 	}
 
-	private Condition<? super Record> notPhysicallyDeletableBy(final User user, final RecordPhysicalDeleteOptions options) {
+	private Condition<? super Record> notPhysicallyDeletableBy(final User user,
+															   final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -2041,7 +2036,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				MetadataSchemaTypeBuilder securedUnclassifiedSchemaType = schemaTypes.createNewSchemaType("securedUnclassified");
 				securedUnclassifiedSchemaType.setSecurity(true);
 				securedUnclassifiedSchemaType.getDefaultSchema().create("parent")
-						.defineChildOfRelationshipToType(securedUnclassifiedSchemaType);
+											 .defineChildOfRelationshipToType(securedUnclassifiedSchemaType);
 
 				MetadataSchemaBuilder folderSchema = schemaTypes.getSchemaType("folder").getDefaultSchema();
 				folderSchema.create("valueListRef").defineReferencesTo(aValueListType).setMultivalue(true);
@@ -2049,7 +2044,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				folderSchema.create("securedUnclassified").defineReferencesTo(securedUnclassifiedSchemaType);
 
 				MetadataSchemaTypeBuilder typeSupportingRawDelete = schemaTypes.createNewSchemaType("typeSupportingRawDelete")
-						.setInTransactionLog(false);
+																			   .setInTransactionLog(false);
 			}
 		};
 	}
@@ -2074,7 +2069,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 	public static class InvalidMetadataValidator implements RecordMetadataValidator<String> {
 		@Override
-		public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+		public void validate(Metadata metadata, String value, ConfigProvider configProvider,
+							 ValidationErrors validationErrors) {
 			if (value.equals("test")) {
 				validationErrors.add(getClass(), "test");
 			}

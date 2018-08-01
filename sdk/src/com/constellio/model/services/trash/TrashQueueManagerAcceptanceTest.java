@@ -1,15 +1,5 @@
 package com.constellio.model.services.trash;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.utils.TimeProvider;
@@ -20,6 +10,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TrashQueueManagerAcceptanceTest extends ConstellioTest {
 	String recordDeletedLogicallyBefore30DaysInZeCollection, recordDeletedLogicallyBefore29DaysInZeCollection, recordDeletedLogicallyNowInZeCollection,
@@ -59,44 +58,44 @@ public class TrashQueueManagerAcceptanceTest extends ConstellioTest {
 		givenTimeIs(beforeNow30Days);
 
 		Task task = zeCollectionTaskSchemas.newTask()
-				.setTitle("recordDeletedLogicallyBefore30DaysInZeCollection");
+										   .setTitle("recordDeletedLogicallyBefore30DaysInZeCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyBefore30DaysInZeCollection = task.getId();
 
 		task = businessTaskSchemas.newTask()
-				.setTitle("recordDeletedLogicallyBefore30DaysInBusinessCollection");
+								  .setTitle("recordDeletedLogicallyBefore30DaysInBusinessCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyBefore30DaysInBusinessCollection = task.getId();
 
 		givenTimeIs(beforeNow29Days);
 		task = zeCollectionTaskSchemas.newTask()
-				.setTitle("recordDeletedLogicallyBefore29DaysInZeCollection");
+									  .setTitle("recordDeletedLogicallyBefore29DaysInZeCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyBefore29DaysInZeCollection = task.getId();
 
 		givenTimeIs(now);
 		task = zeCollectionTaskSchemas.newTask()
-				.setTitle("recordDeletedLogicallyNowInZeCollection");
+									  .setTitle("recordDeletedLogicallyNowInZeCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyNowInZeCollection = task.getId();
 
 		task = zeCollectionTaskSchemas.newTask()
-				.setTitle("recordInZeCollection");
+									  .setTitle("recordInZeCollection");
 		recordServices.add(task);
 		recordInZeCollection = task.getId();
 
 		task = businessTaskSchemas.newTask()
-				.setTitle("recordDeletedLogicallyNowInBusinessCollection");
+								  .setTitle("recordDeletedLogicallyNowInBusinessCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyNowInBusinessCollection = task.getId();
 
 		task = businessTaskSchemas.newTask()
-				.setTitle("recordInBusinessCollection");
+								  .setTitle("recordInBusinessCollection");
 		recordServices.add(task);
 		recordInBusinessCollection = task.getId();
 	}

@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document.fields;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -24,6 +15,14 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 
 public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvider {
 
@@ -33,7 +32,7 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 	private transient RMSchemasRecordsServices rm;
 
 	public DocumentTypeTextInputDataProvider(ConstellioFactories constellioFactories,
-			SessionContext sessionContext, String folderId, String currentType) {
+											 SessionContext sessionContext, String folderId, String currentType) {
 		super(constellioFactories, sessionContext, DocumentType.SCHEMA_TYPE, false);
 		this.folderId = folderId;
 		this.currentType = currentType;
@@ -55,7 +54,7 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 	@Override
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(getCurrentCollection()).getSchemaType(DocumentType.SCHEMA_TYPE);
+														.getSchemaTypes(getCurrentCollection()).getSchemaType(DocumentType.SCHEMA_TYPE);
 
 		LogicalSearchCondition condition;
 		if (StringUtils.isNotBlank(text)) {
@@ -73,8 +72,8 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			}
 			newDocumentTypes.addAll(documentTypes);
 			if (rmConfigs.getDocumentsTypesChoice()
-					== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
-					|| (rmConfigs.getDocumentsTypesChoice()
+				== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
+				|| (rmConfigs.getDocumentsTypesChoice()
 					== DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES && !newDocumentTypes.isEmpty())) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
 			}

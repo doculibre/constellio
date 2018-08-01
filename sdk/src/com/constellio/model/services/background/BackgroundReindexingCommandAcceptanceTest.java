@@ -1,23 +1,5 @@
 package com.constellio.model.services.background;
 
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.common.SolrInputDocument;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -36,6 +18,23 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.common.SolrInputDocument;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
@@ -178,8 +177,8 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("aStringMetadataContainingReferences").setType(STRING);
 				types.getSchema(zeSchema.code()).create("calculatedRef").setType(REFERENCE)
-						.defineReferencesTo(types.getSchemaType(anotherSchema.typeCode()))
-						.defineDataEntry().asJexlScript("aStringMetadataContainingReferences");
+					 .defineReferencesTo(types.getSchemaType(anotherSchema.typeCode()))
+					 .defineDataEntry().asJexlScript("aStringMetadataContainingReferences");
 			}
 		});
 
@@ -204,7 +203,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		command.run();
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(zeSchema.metadata("calculatedRef"))
-				.isEqualTo(anotherSchemaRecord.getId()))).isEqualTo(100);
+																	   .isEqualTo(anotherSchemaRecord.getId()))).isEqualTo(100);
 
 	}
 

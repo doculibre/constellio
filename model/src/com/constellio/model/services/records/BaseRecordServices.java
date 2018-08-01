@@ -1,8 +1,5 @@
 package com.constellio.model.services.records;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -13,6 +10,9 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class BaseRecordServices implements RecordServices {
 
@@ -129,7 +129,7 @@ public abstract class BaseRecordServices implements RecordServices {
 	public final Record getDocumentById(String id, User user) {
 		Record record = getDocumentById(id);
 		if (!metadataSchemasManager.getSchemaTypeOf(record).hasSecurity()
-				|| modelLayerFactory.newAuthorizationsServices().canRead(user, record)) {
+			|| modelLayerFactory.newAuthorizationsServices().canRead(user, record)) {
 			return record;
 		} else {
 			throw new RecordServicesRuntimeException.UserCannotReadDocument(id, user.getUsername());

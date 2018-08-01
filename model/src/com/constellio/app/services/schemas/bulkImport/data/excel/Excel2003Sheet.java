@@ -1,10 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jxl.Cell;
 import jxl.Sheet;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Excel2003Sheet implements ExcelSheet {
 

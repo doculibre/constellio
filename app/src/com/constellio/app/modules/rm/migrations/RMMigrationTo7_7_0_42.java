@@ -1,13 +1,11 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 
 import java.io.IOException;
@@ -20,7 +18,8 @@ public class RMMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 	}
@@ -29,7 +28,7 @@ public class RMMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 											MigrationResourcesProvider migrationResourcesProvider,
 											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-				.equals("fr")) {
+						   .equals("fr")) {
 			reloadEmailTemplate("approvalRequestForDecomListTemplate.html",
 					RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, appLayerFactory, migrationResourcesProvider,
 					collection);
@@ -46,7 +45,7 @@ public class RMMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-					.replaceCollectionTemplate(templateId, collection, templateInputStream);
+						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {

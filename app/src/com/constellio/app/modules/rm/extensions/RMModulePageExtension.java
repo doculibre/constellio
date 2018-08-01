@@ -14,9 +14,10 @@ import com.constellio.model.entities.records.wrappers.User;
 public class RMModulePageExtension extends PageExtension {
 
 	@Override
-	public ExtensionBooleanResult hasRestrictedRecordAccess(Class<? extends BasePresenter> presenterClass, String params,
-			User user,
-			Record restrictedRecord) {
+	public ExtensionBooleanResult hasRestrictedRecordAccess(Class<? extends BasePresenter> presenterClass,
+															String params,
+															User user,
+															Record restrictedRecord) {
 
 		if (presenterClass.equals(ListContentAccessAuthorizationsPresenter.class)) {
 			return hasAccessToListContentAuthorizationPage(user, restrictedRecord);
@@ -24,8 +25,9 @@ public class RMModulePageExtension extends PageExtension {
 		} else if (presenterClass.equals(ShareContentPresenter.class)) {
 			return shareContent(user, restrictedRecord);
 
-		} else
+		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
+		}
 	}
 
 	private ExtensionBooleanResult hasAccessToListContentAuthorizationPage(User user, Record restrictedRecord) {
@@ -50,7 +52,7 @@ public class RMModulePageExtension extends PageExtension {
 		} else if (restrictedRecord.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
 			return ExtensionBooleanResult
 					.trueIf(user.hasAny(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.SHARE_DOCUMENT)
-							.on(restrictedRecord));
+								.on(restrictedRecord));
 
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;

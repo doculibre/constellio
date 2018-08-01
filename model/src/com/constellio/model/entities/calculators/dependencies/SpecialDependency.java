@@ -56,7 +56,7 @@ public class SpecialDependency<T> implements Dependency {
 	@Override
 	public String toString() {
 		return "SpecialDependency{" +
-				"code='" + code + '\'' +
-				'}';
+			   "code='" + code + '\'' +
+			   '}';
 	}
 }

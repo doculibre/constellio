@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -24,6 +13,16 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MainLayoutPresenter implements Serializable {
 
@@ -40,7 +39,7 @@ public class MainLayoutPresenter implements Serializable {
 	public List<NavigationItem> getNavigationItems() {
 		List<NavigationItem> items = new ArrayList<>();
 		ConstellioModulesManagerImpl manager = (ConstellioModulesManagerImpl) mainLayout.getHeader().getConstellioFactories()
-				.getAppLayerFactory().getModulesManager();
+																						.getAppLayerFactory().getModulesManager();
 		NavigationConfig config = manager.getNavigationConfig(mainLayout.getHeader().getCollection());
 		items.addAll(config.getNavigation(MainLayout.MAIN_LAYOUT_NAVIGATION));
 

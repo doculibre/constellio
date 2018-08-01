@@ -1,7 +1,7 @@
 package com.constellio.data.utils;
 
 public class FactoryWithCache<T> implements Factory
-													<T> {
+		<T> {
 	private boolean calculated;
 	private T cachedValue;
 

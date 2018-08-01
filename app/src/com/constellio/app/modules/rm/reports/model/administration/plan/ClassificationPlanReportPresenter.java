@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.*;
-
-import com.constellio.model.services.records.SchemasRecordsServices;
-import net.sf.cglib.core.Local;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -26,6 +19,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class ClassificationPlanReportPresenter {
 
@@ -47,18 +44,19 @@ public class ClassificationPlanReportPresenter {
 		this(collection, modelLayerFactory, false, locale);
 	}
 
-	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed, Locale locale) {
+	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
+											 Locale locale) {
 		this(collection, modelLayerFactory, detailed, null, locale);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-		String administrativeUnitId, Locale locale) {
+											 String administrativeUnitId, Locale locale) {
 
-			this.collection = collection;
-			this.modelLayerFactory = modelLayerFactory;
-			this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
-			this.administrativeUnitId = administrativeUnitId;
-			this.locale = locale;
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
+		this.administrativeUnitId = administrativeUnitId;
+		this.locale = locale;
 	}
 
 	public ClassificationPlanReportModel build() {
@@ -80,8 +78,8 @@ public class ClassificationPlanReportPresenter {
 
 			LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
 					.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
-							.where(rm.retentionRule.administrativeUnits())
-							.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+															 .where(rm.retentionRule.administrativeUnits())
+															 .isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
 			List<String> retentionRulesIds = searchServices.searchRecordIds(retentionRulesQuery);
 
 			for (String retentionRulesId : retentionRulesIds) {
@@ -89,8 +87,8 @@ public class ClassificationPlanReportPresenter {
 				MetadataSchemaType categorySchemaType = rm.category.schemaType();
 				LogicalSearchQuery categoriesQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(categorySchemaType)
-								.where(rm.category.retentionRules())
-								.isContaining(Arrays.asList(retentionRulesId)))
+																 .where(rm.category.retentionRules())
+																 .isContaining(Arrays.asList(retentionRulesId)))
 						.sortAsc(Schemas.CODE);
 
 				List<Record> categoryRecords = searchServices.search(categoriesQuery);
@@ -165,7 +163,7 @@ public class ClassificationPlanReportPresenter {
 	private void init() {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
-				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+													 .setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		searchServices = modelLayerFactory.newSearchServices();

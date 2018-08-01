@@ -88,11 +88,12 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash, Locale currentLocale) {
+	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
+								  Locale currentLocale) {
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
 			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
+													.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaType", schemaTypeLabel);
 			final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
@@ -103,7 +104,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				final ClickListener clickListener = new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						if(isRecordInTrash) {
+						if (isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
 						} else {
 							navigateToView(navigationParams.setOpenInNewTab(referenceDisplay.isOpenLinkInNewTab()));
@@ -114,7 +115,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				referenceDisplay.addClickListener(clickListener);
 			} else if (component instanceof Table) {
 				// FIXME Assumes that it is called by an item click listener
-				if(isRecordInTrash) {
+				if (isRecordInTrash) {
 					RecordNavigationExtensionUtils.showMessage(errorMessage);
 				} else {
 					navigateToView(navigationParams);

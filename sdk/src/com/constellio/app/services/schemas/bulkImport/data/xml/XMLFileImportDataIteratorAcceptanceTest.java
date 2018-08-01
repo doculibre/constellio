@@ -1,28 +1,27 @@
 package com.constellio.app.services.schemas.bulkImport.data.xml;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
-import java.io.FileNotFoundException;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.records.ContentImportVersion;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorTest {
 
@@ -50,18 +49,18 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 
 		ImportData record = importDataIterator.next();
 		assertThat(record).has(id("1")).has(index(1)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("title", "Ze title"))
-				.has(field("createdOn", localDateTime))
-				.has(field("referenceToAnotherSchema", "42"));
+						  .has(noField("id")).has(noField("schema"))
+						  .has(field("title", "Ze title"))
+						  .has(field("createdOn", localDateTime))
+						  .has(field("referenceToAnotherSchema", "42"));
 		assertThat(record.getOptions()).isEmpty();
 
 		record = importDataIterator.next();
 		assertThat(record).has(id("42")).has(index(2)).has(schema("default"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("title", "Another title"))
-				.has(field("referenceToAThirdSchema", "666"))
-				.has(noField("zeEmptyField"));
+						  .has(noField("id")).has(noField("schema"))
+						  .has(field("title", "Another title"))
+						  .has(field("referenceToAThirdSchema", "666"))
+						  .has(noField("zeEmptyField"));
 		assertThat(record.getOptions()).containsOnly(
 				entry("zeOption", "1"),
 				entry("anotherOption", "2")
@@ -69,12 +68,12 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 
 		record = importDataIterator.next();
 		assertThat(record).has(id("666")).has(index(3)).has(schema("customSchema"))
-				.has(noField("id")).has(noField("schema"))
-				.has(field("createdOn", localDate))
-				.has(field("modifyOn", asList(anOtherLocalDate, aThirdLocalDate)))
-				.has(field("keywords", asList("keyword1", "keyword2")))
-				.has(noField("zeNullField"))
-				.has(field("title", "A third title"));
+						  .has(noField("id")).has(noField("schema"))
+						  .has(field("createdOn", localDate))
+						  .has(field("modifyOn", asList(anOtherLocalDate, aThirdLocalDate)))
+						  .has(field("keywords", asList("keyword1", "keyword2")))
+						  .has(noField("zeNullField"))
+						  .has(field("title", "A third title"));
 		assertThat(record.getOptions()).containsOnly(
 				entry("devil", "true")
 		);
@@ -103,10 +102,10 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("calendrierConservationTest.xml"), ioServices);
 
 		String firstDescription = "Documents produits ou reçus relatifs à la gestion des documents constitutifs. "
-				+ "Les documents peuvent comprendre les certifications, les lettres patentes, la charte et les statuts.";
+								  + "Les documents peuvent comprendre les certifications, les lettres patentes, la charte et les statuts.";
 		String secondDescription =
 				"Documents produits ou reçus relatifs à l'historique de l'Ordre et aux événements qui ont marqué le cours de son développement. "
-						+ "Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.";
+				+ "Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.";
 
 		LocalDate localDate = new LocalDate(2015, 5, 1);
 
@@ -139,24 +138,24 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 		documentTypeDetailOne.put("code", "1234");
 
 		assertThat(importDataIterator.next()).has(id("2")).has(index(1))
-				.has(field("description", firstDescription))
-				.has(field("approved", "true"))
-				.has(field("approvalDate", localDate))
-				.has(structure("documentTypeDetails", singletonList(documentTypeDetailOne)))
-				.has(field("essentialDocuments", "true"))
-				.has(field("confidentialDocuments", "false"))
-				.has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
-				.has(field("administrativeUnits", singletonList("1")));
+											 .has(field("description", firstDescription))
+											 .has(field("approved", "true"))
+											 .has(field("approvalDate", localDate))
+											 .has(structure("documentTypeDetails", singletonList(documentTypeDetailOne)))
+											 .has(field("essentialDocuments", "true"))
+											 .has(field("confidentialDocuments", "false"))
+											 .has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
+											 .has(field("administrativeUnits", singletonList("1")));
 
 		assertThat(importDataIterator.next()).has(id("3")).has(index(2))
-				.has(field("code", "111200"))
-				.has(field("description", secondDescription))
-				.has(field("approved", "true"))
-				.has(structure("documentTypeDetails", singletonList(documentTypeDetailOne)))
-				.has(field("essentialDocuments", "false"))
-				.has(field("confidentialDocuments", "false"))
-				.has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
-				.has(field("administrativeUnits", asList("1", "2")));
+											 .has(field("code", "111200"))
+											 .has(field("description", secondDescription))
+											 .has(field("approved", "true"))
+											 .has(structure("documentTypeDetails", singletonList(documentTypeDetailOne)))
+											 .has(field("essentialDocuments", "false"))
+											 .has(field("confidentialDocuments", "false"))
+											 .has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
+											 .has(field("administrativeUnits", asList("1", "2")));
 
 	}
 
@@ -171,11 +170,11 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("content.xml"), ioServices);
 		assertThat(importDataIterator.next()).has(id("1")).has(index(1)).has(contentSize(1))
-				.has(content(new ContentImportVersion(url, "aName", true, null, null)));
+											 .has(content(new ContentImportVersion(url, "aName", true, null, null)));
 
 		assertThat(importDataIterator.next()).has(id("2")).has(index(2)).has(contentSize(2))
-				.has(content(new ContentImportVersion(url, fileName, true, null, null),
-						new ContentImportVersion(url2, fileName, false, null, null)));
+											 .has(content(new ContentImportVersion(url, fileName, true, null, null),
+													 new ContentImportVersion(url2, fileName, false, null, null)));
 
 	}
 

@@ -27,7 +27,8 @@ public class OngoingLogicalSearchConditionWithDataStoreFields {
 	private final LogicalOperator metadataLogicalOperator;
 
 	public OngoingLogicalSearchConditionWithDataStoreFields(DataStoreFilters filters,
-			List<DataStoreField> dataStoreFields, LogicalOperator metadataLogicalOperator) {
+															List<DataStoreField> dataStoreFields,
+															LogicalOperator metadataLogicalOperator) {
 		super();
 		this.filters = filters;
 		this.dataStoreFields = dataStoreFields;
@@ -37,8 +38,10 @@ public class OngoingLogicalSearchConditionWithDataStoreFields {
 	}
 
 	public OngoingLogicalSearchConditionWithDataStoreFields(DataStoreFilters filters,
-			List<DataStoreField> dataStoreFields, LogicalOperator metadataLogicalOperator, LogicalSearchCondition otherCondition,
-			LogicalOperator otherConditionLogicalOperator) {
+															List<DataStoreField> dataStoreFields,
+															LogicalOperator metadataLogicalOperator,
+															LogicalSearchCondition otherCondition,
+															LogicalOperator otherConditionLogicalOperator) {
 		super();
 		this.filters = filters;
 		this.dataStoreFields = dataStoreFields;
@@ -69,7 +72,7 @@ public class OngoingLogicalSearchConditionWithDataStoreFields {
 
 	public LogicalSearchCondition isStartingWithTextFromAny(List<String> values) {
 		List<LogicalSearchValueCondition> logicalSearchValueConditionList = new ArrayList<>();
-		for(String value: values) {
+		for (String value : values) {
 			logicalSearchValueConditionList.add(LogicalSearchQueryOperators.startingWithText(value));
 		}
 		return isAny(logicalSearchValueConditionList);

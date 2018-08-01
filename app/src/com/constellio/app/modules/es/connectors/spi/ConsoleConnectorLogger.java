@@ -1,13 +1,12 @@
 package com.constellio.app.modules.es.connectors.spi;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map;
-
+import com.constellio.data.utils.dev.Toggle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.utils.dev.Toggle;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
 
 public class ConsoleConnectorLogger implements ConnectorLogger {
 

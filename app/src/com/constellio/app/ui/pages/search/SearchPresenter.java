@@ -1,31 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -71,11 +45,7 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -103,6 +73,24 @@ import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.vaadin.server.StreamResource.StreamSource;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 
@@ -157,44 +145,44 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	private void initSortParameters() {
 		SearchSortType searchSortType = modelLayerFactory.getSystemConfigs().getSearchSortType();
 		switch (searchSortType) {
-		case RELEVENCE:
-			sortOrder = SortOrder.DESCENDING;
-			this.sortCriterion = null;
-			break;
-		case PATH_ASC:
-			this.sortCriterion = Schemas.PATH.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case PATH_DES:
-			this.sortCriterion = Schemas.PATH.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		case ID_ASC:
-			this.sortCriterion = Schemas.IDENTIFIER.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case ID_DES:
-			this.sortCriterion = Schemas.IDENTIFIER.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		case CREATION_DATE_ASC:
-			this.sortCriterion = Schemas.CREATED_ON.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case CREATION_DATE_DES:
-			this.sortCriterion = Schemas.CREATED_ON.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		case MODIFICATION_DATE_ASC:
-			this.sortCriterion = Schemas.MODIFIED_ON.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case MODIFICATION_DATE_DES:
-			this.sortCriterion = Schemas.MODIFIED_ON.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		default:
-			throw new RuntimeException("Unsupported type " + searchSortType);
+			case RELEVENCE:
+				sortOrder = SortOrder.DESCENDING;
+				this.sortCriterion = null;
+				break;
+			case PATH_ASC:
+				this.sortCriterion = Schemas.PATH.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case PATH_DES:
+				this.sortCriterion = Schemas.PATH.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			case ID_ASC:
+				this.sortCriterion = Schemas.IDENTIFIER.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case ID_DES:
+				this.sortCriterion = Schemas.IDENTIFIER.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			case CREATION_DATE_ASC:
+				this.sortCriterion = Schemas.CREATED_ON.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case CREATION_DATE_DES:
+				this.sortCriterion = Schemas.CREATED_ON.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			case MODIFICATION_DATE_ASC:
+				this.sortCriterion = Schemas.MODIFIED_ON.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case MODIFICATION_DATE_DES:
+				this.sortCriterion = Schemas.MODIFIED_ON.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			default:
+				throw new RuntimeException("Unsupported type " + searchSortType);
 		}
 	}
 
@@ -209,7 +197,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					language);
 
 			if (responseSkosConcept.getSuggestions() != null
-					&& responseSkosConcept.getSuggestions().size() > 0) {
+				&& responseSkosConcept.getSuggestions().size() > 0) {
 
 				result = responseSkosConcept.getSuggestions().get(language.getLocale());
 			}
@@ -232,7 +220,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			ResponseSkosConcept responseSkosConcept = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
 					language);
 			if (responseSkosConcept.getDisambiguations() != null
-					&& responseSkosConcept.getDisambiguations().size() > 0) {
+				&& responseSkosConcept.getDisambiguations().size() > 0) {
 				result = responseSkosConcept.getDisambiguations().get(language.getLocale());
 				if (result.size() > 10) {
 					result = result.subList(0, 10);
@@ -338,7 +326,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider,
-			List<String> disambiguationSuggestions) {
+													  List<String> disambiguationSuggestions) {
 		if (dataProvider.size() != 0 || !disambiguationSuggestions.isEmpty()) {
 			return false;
 		}
@@ -403,7 +391,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					UserSearchEvent param = new UserSearchEvent(response, query, search, queryDateTime, language, username);
 
 					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
-							.notifyNewUserSearch(param);
+								   .notifyNewUserSearch(param);
 				}
 			}
 
@@ -434,7 +422,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			query.setNumberOfRows(rows);
 
 			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-					.addSolrModifiableParams(query);
+																		 .addSolrModifiableParams(query);
 
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
@@ -592,10 +580,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	@Override
 	public NewReportWriterFactory getReport(String report) {
 		switch (report) {
-		case "Reports.fakeReport":
-			return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
-		case "Reports.FolderLinearMeasureStats":
-			return getRmReportBuilderFactories().statsBuilderFactory.getValue();
+			case "Reports.fakeReport":
+				return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
+			case "Reports.FolderLinearMeasureStats":
+				return getRmReportBuilderFactories().statsBuilderFactory.getValue();
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -609,7 +597,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			@Override
 			public InputStream getStream() {
 				File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
-						.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
+											   .newTemporaryFolder(ZIP_CONTENT_RESOURCE);
 				File file = new File(folder, getZippedContentsFilename());
 				try {
 					new ZipContentsService(modelLayerFactory, collection)
@@ -714,7 +702,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 				.setNumberOfRows(0)
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-				.getFieldFacetValues("schema_s");
+													 .getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
 		if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
 			if (schema_s != null) {
@@ -748,11 +736,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() &&
-						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
-						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
-								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
+					isMetadataVisibleForUser(metadata, getCurrentUser()) &&
+					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+					 ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+					 ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
@@ -764,7 +752,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-					.getTaxonomyFor(collection, referencedSchemaType);
+											   .getTaxonomyFor(collection, referencedSchemaType);
 			if (taxonomy != null) {
 				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 				List<String> taxonomyUserIds = taxonomy.getUserIds();
@@ -852,10 +840,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	@Override
 	public Object getReportParameters(String report) {
 		switch (report) {
-		case "Reports.fakeReport":
-			return new ExampleReportParameters(view.getSelectedRecordIds());
-		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+			case "Reports.fakeReport":
+				return new ExampleReportParameters(view.getSelectedRecordIds());
+			case "Reports.FolderLinearMeasureStats":
+				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -897,7 +885,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			boolean found = false;
 			for (CorrectorExclusion correctorExclusion : allExclusion) {
 				if (correctorExclusion.getCollection().equals(collection) &&
-						corrected.equals(correctorExclusion.getExclusion())) {
+					corrected.equals(correctorExclusion.getExclusion())) {
 					found = true;
 					break;
 				}

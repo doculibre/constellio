@@ -1,18 +1,7 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.ListSequencesButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -27,6 +16,12 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements DisplaySchemaRecordView {

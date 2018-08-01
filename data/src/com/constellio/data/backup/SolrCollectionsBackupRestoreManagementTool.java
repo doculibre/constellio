@@ -1,9 +1,5 @@
 package com.constellio.data.backup;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Optional;
-
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
@@ -11,6 +7,10 @@ import org.apache.solr.client.solrj.request.CollectionAdminRequest.Delete;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest.Restore;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.common.params.CollectionAdminParams;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Optional;
 
 public class SolrCollectionsBackupRestoreManagementTool implements Closeable {
 	private final CloudSolrClient solrClient;
@@ -34,7 +34,8 @@ public class SolrCollectionsBackupRestoreManagementTool implements Closeable {
 		return new CollectionAdminRequest.ListSnapshots(collectionName).process(solrClient);
 	}
 
-	public CollectionAdminResponse backupCollectionMetaData(String collectionName, String snapshotName, String backupLoc)
+	public CollectionAdminResponse backupCollectionMetaData(String collectionName, String snapshotName,
+															String backupLoc)
 			throws SolrServerException, IOException {
 		// Backup the collection meta-data
 		CollectionAdminRequest.Backup backup = new CollectionAdminRequest.Backup(collectionName, snapshotName);
@@ -45,7 +46,7 @@ public class SolrCollectionsBackupRestoreManagementTool implements Closeable {
 
 	@SuppressWarnings("deprecation")
 	public CollectionAdminResponse exportSnapshot(String collectionName, String snapshotName, String destPath,
-			Optional<String> repositoryName, Optional<String> asyncReqId)
+												  Optional<String> repositoryName, Optional<String> asyncReqId)
 			throws SolrServerException, IOException {
 		CollectionAdminRequest.Backup backup = new CollectionAdminRequest.Backup(collectionName, snapshotName);
 		backup.setIndexBackupStrategy(CollectionAdminParams.COPY_FILES_STRATEGY);
@@ -61,18 +62,18 @@ public class SolrCollectionsBackupRestoreManagementTool implements Closeable {
 	}
 
 	public CollectionAdminResponse exportSnapshot(String collectionName, String snapshotName, String destPath,
-			Optional<String> repositoryName)
+												  Optional<String> repositoryName)
 			throws SolrServerException, IOException {
-		return exportSnapshot(collectionName, snapshotName, destPath, repositoryName, Optional.<String> ofNullable(null));
+		return exportSnapshot(collectionName, snapshotName, destPath, repositoryName, Optional.<String>ofNullable(null));
 	}
 
 	public CollectionAdminResponse exportSnapshot(String collectionName, String snapshotName, String destPath)
 			throws SolrServerException, IOException {
-		return exportSnapshot(collectionName, snapshotName, destPath, Optional.<String> ofNullable(null));
+		return exportSnapshot(collectionName, snapshotName, destPath, Optional.<String>ofNullable(null));
 	}
 
 	public CollectionAdminResponse restoreSnapshot(String collectionName, String snapshotName, String directory,
-			Optional<String> repositoryName)
+												   Optional<String> repositoryName)
 			throws SolrServerException, IOException {
 		CollectionAdminRequest.Restore restore = new Restore(collectionName, snapshotName);
 		restore.setLocation(directory);
@@ -86,9 +87,9 @@ public class SolrCollectionsBackupRestoreManagementTool implements Closeable {
 
 	public CollectionAdminResponse restoreSnapshot(String collectionName, String snapshotName, String directory)
 			throws SolrServerException, IOException {
-		return restoreSnapshot(collectionName, snapshotName, directory, Optional.<String> ofNullable(null));
+		return restoreSnapshot(collectionName, snapshotName, directory, Optional.<String>ofNullable(null));
 	}
-	
+
 	public CollectionAdminResponse deleteCollection(String collectionName)
 			throws SolrServerException, IOException {
 		Delete delete = CollectionAdminRequest.deleteCollection(collectionName);

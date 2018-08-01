@@ -1,16 +1,15 @@
 package com.constellio.data.dao.services.solr;
 
+import com.constellio.data.utils.ThreadList;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrInputDocument;
-
-import com.constellio.data.utils.ThreadList;
 
 public class QueuedSolrClient {
 

@@ -1,6 +1,6 @@
 package com.constellio.data.io.streams.factories;
 
-@SuppressWarnings({ "serial" })
+@SuppressWarnings({"serial"})
 public class StreamsServicesRuntimeException extends RuntimeException {
 
 	public StreamsServicesRuntimeException() {

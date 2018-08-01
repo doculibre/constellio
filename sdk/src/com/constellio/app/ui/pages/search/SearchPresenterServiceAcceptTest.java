@@ -1,23 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -39,6 +21,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	LocalDateTime threeYearsAgo = new LocalDateTime().minusYears(3);
@@ -58,7 +50,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+										.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -76,22 +68,22 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	public void givenFieldAndQueryFacetsConfiguredWhenSearchingFoldersThenReturnThoseWithValues()
 			throws Exception {
 		recordServices.add(rm.newFacetQuery().setOrder(0).setTitle("Type")
-				.withQuery("schema_s:folder*", "Dossiers")
-				.withQuery("schema_s:document*", "Documents")
-				.withQuery("schema_s:containerRecord*", "Contenants"));
+							 .withQuery("schema_s:folder*", "Dossiers")
+							 .withQuery("schema_s:document*", "Documents")
+							 .withQuery("schema_s:containerRecord*", "Contenants"));
 
 		recordServices.add(rm.newFacetField().setOrder(1).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations"));
+							 .setTitle("Règles de conservations"));
 		recordServices.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("copyStatus_s").setTitle("Statut d'exemplaire"));
 		recordServices.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("keywords_ss").setTitle("Mots-clés"));
 		recordServices.add(rm.newFacetField().setOrder(4).setFieldDataStoreCode("type_s").setTitle("Type"));
 		recordServices.add(rm.newFacetQuery().setOrder(5).setTitle("Création/Modification")
-				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
-				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
-				.withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
-				.withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
+							 .withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
+							 .withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
+							 .withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
+							 .withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
 		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitle("Unités administratives"));
+							 .setTitle("Unités administratives"));
 
 		List<FacetVO> facets = searchPresenterService.getFacets(allFolders, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(1)).has(label("Règles de conservations")).has(
@@ -111,23 +103,23 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	public void givenFieldAndQueryFacetsConfiguredWhenSearchingEverySchemaTypesThenReturnThoseWithValuesAndSchemas()
 			throws Exception {
 		recordServices.add(rm.newFacetQuery().setOrder(0).setTitle("Type")
-				.withQuery("schema_s:folder*", "Dossiers")
-				.withQuery("schema_s:document*", "Documents")
-				.withQuery("schema_s:containerRecord*", "Contenants"));
+							 .withQuery("schema_s:folder*", "Dossiers")
+							 .withQuery("schema_s:document*", "Documents")
+							 .withQuery("schema_s:containerRecord*", "Contenants"));
 
 		recordServices.add(rm.newFacetField().setOrder(1).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations"));
+							 .setTitle("Règles de conservations"));
 		recordServices.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("copyStatus_s").setTitle("Statut d'exemplaire"));
 		recordServices.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("keywords_ss").setTitle("Mots-clés"));
 		recordServices.add(rm.newFacetField().setOrder(4).setFieldDataStoreCode("type_s").setTitle("Schéma"));
 
 		recordServices.add(rm.newFacetQuery().setOrder(5).setTitle("Création/Modification")
-				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
-				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
-				.withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
-				.withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
+							 .withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
+							 .withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
+							 .withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
+							 .withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
 		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitle("Unités administratives"));
+							 .setTitle("Unités administratives"));
 
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 
@@ -153,11 +145,11 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.ALPHABETICAL));
+							 .setTitle("Règles de conservations").setOrderResult(FacetOrderType.ALPHABETICAL));
 		recordServices.add(rm.newFacetField().setOrder(1).setFieldDataStoreCode("copyStatus_s").setTitle("Statut d'exemplaire")
-				.setOrderResult(FacetOrderType.ALPHABETICAL));
+							 .setOrderResult(FacetOrderType.ALPHABETICAL));
 		recordServices.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitle("Unités administratives").setOrderResult(FacetOrderType.ALPHABETICAL));
+							 .setTitle("Unités administratives").setOrderResult(FacetOrderType.ALPHABETICAL));
 
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 
@@ -199,7 +191,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	public void givenFacetOpenByDefaultAndNoUserOverrideThenFacetIsOpen()
 			throws Exception {
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+							 .setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isTrue();
 	}
@@ -208,7 +200,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	public void givenFacetNotOpenByDefaultAndNoUserOverrideThenFacetIsNotOpen()
 			throws Exception {
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
+							 .setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isFalse();
 	}
@@ -218,7 +210,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 		Facet facet;
 		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+									 .setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
 		facetStatus.put(facet.getId(), false);
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isFalse();
@@ -229,7 +221,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 		Facet facet;
 		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
+									 .setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
 		facetStatus.put(facet.getId(), true);
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isTrue();

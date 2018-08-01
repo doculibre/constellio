@@ -1,23 +1,19 @@
 package com.constellio.app.api.admin.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.data.io.services.facades.FileService;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class TLSConfigUtilsAcceptTest extends ConstellioTest {
 	private @Mock FileService fileService;
@@ -26,7 +22,7 @@ public class TLSConfigUtilsAcceptTest extends ConstellioTest {
 	private File missingWrapper;
 
 	@Before
-	public void	setup() throws Exception {
+	public void setup() throws Exception {
 		missingWrapper = getTestResourceFile("wrapper-missing.conf");
 		correctWrapper = getTestResourceFile("wrapper-correct.conf");
 		newTempFile = newTempFileWithContent("newWrapper.conf", "");
@@ -60,7 +56,7 @@ public class TLSConfigUtilsAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenMissingLineNothingChanged() throws Exception  {
+	public void whenMissingLineNothingChanged() throws Exception {
 		LineIterator originalIterator = FileUtils.lineIterator(missingWrapper, "UTF-8");
 
 		TLSConfigUtils.setAdditionalSettings(missingWrapper, fileService);

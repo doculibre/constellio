@@ -1,26 +1,5 @@
 package com.constellio.model.services.event;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
@@ -36,6 +15,25 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EventServiceAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -167,14 +165,14 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		findZipFileAndAssertXml(Arrays.asList(event7),
 				FOLDER_NAME + "/" +
-						eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
+				eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
+									   .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
 
 		// Verify solar state.
 		assertThat(searchServices.search(eventService.getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery())
-				.size()).isEqualTo(0);
+								 .size()).isEqualTo(0);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(
 				fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_"));
 		// Check for remaning event in solr
@@ -182,17 +180,17 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 		//DELETE HAS BEEN DISABLED FOR THE MOMENT assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(3);
 
 		eventService.getLastDayTimeArchived().toString(EventService.DATE_TIME_FORMAT)
-				.equals(eventService.getDeletetionDateCutOff().toString(EventService.DATE_TIME_FORMAT));
+					.equals(eventService.getDeletetionDateCutOff().toString(EventService.DATE_TIME_FORMAT));
 
 		givenTimeIs(LocalDateTime.now().plusDays(2));
 		eventService.backupAndRemove();
 
 		findZipFileAndAssertXml(Arrays.asList(event8),
 				FOLDER_NAME + "/" +
-						eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
+				eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
+									   .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
 
 		// Event 7 is not deleted
 		//DELETE HAS BEEN DISABLED FOR THE MOMENT assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(2);
@@ -202,7 +200,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 	private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected)
 			throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
 		InputStream zipInputStream = getAppLayerFactory().getModelLayerFactory().getContentManager()
-				.getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
+														 .getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
 
 		File zipTEmpFile1 = ioServices.newTemporaryFile(ZIP_TEMP_FILE_1);
 

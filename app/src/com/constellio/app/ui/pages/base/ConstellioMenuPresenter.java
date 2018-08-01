@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
@@ -22,6 +11,16 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConstellioMenuPresenter implements Serializable {
 
@@ -65,7 +64,7 @@ public class ConstellioMenuPresenter implements Serializable {
 			return getLocale(systemLanguage);
 		} else {
 			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager()
-					.getCollectionLanguages(userInLastCollection.getCollection());
+																.getCollectionLanguages(userInLastCollection.getCollection());
 			if (collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages
 					.contains(userPreferredLanguage)) {
 				return getLocale(systemLanguage);
@@ -164,19 +163,21 @@ public class ConstellioMenuPresenter implements Serializable {
 
 	public void languageSelected(String languageText, String collection) {
 		List<String> allLanguagesCodes = getCollectionLanguagesOrderedByCode(collection);
-		for (String code : allLanguagesCodes)
+		for (String code : allLanguagesCodes) {
 			if ($("Language." + code).equals(languageText)) {
 				Locale locale = new Locale(code);
 				i18n.setLocale(locale);
 				constellioMenu.setLocale(locale);
 				constellioMenu.updateUIContent();
 			}
+		}
 	}
 
 	public List<String> getCollectionLanguages(String collection) {
 		List<String> returnList = new ArrayList<>();
-		for (String code : getCollectionLanguagesOrderedByCode(collection))
+		for (String code : getCollectionLanguagesOrderedByCode(collection)) {
 			returnList.add($("Language." + code));
+		}
 		return returnList;
 	}
 }

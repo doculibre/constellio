@@ -31,71 +31,71 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class DocumentServiceTest {
 
-    @Mock ValidationService validationService;
-    @Mock AceService aceService;
-    @Mock DocumentDao documentDao;
+	@Mock ValidationService validationService;
+	@Mock AceService aceService;
+	@Mock DocumentDao documentDao;
 
-    @Mock User user;
-    @Mock Record documentRecord;
-    @Mock Record documentTypeRecord;
-    @Mock MetadataSchema metadataSchema;
-    @Mock MetadataList metadataList;
+	@Mock User user;
+	@Mock Record documentRecord;
+	@Mock Record documentTypeRecord;
+	@Mock MetadataSchema metadataSchema;
+	@Mock MetadataList metadataList;
 
-    @InjectMocks DocumentService documentService;
+	@InjectMocks DocumentService documentService;
 
-    private String documentId = "id";
-    private String documentTitle = "title";
-    private String eTag = "12345";
+	private String documentId = "id";
+	private String documentTitle = "title";
+	private String eTag = "12345";
 
-    private String host = "localhost";
-    private String serviceKey = "serviceKey";
-    private String method = HttpMethods.GET;
-    private String date = DateUtils.formatIsoNoMillis(new DateTime());
-    private int expiration = 3600;
-    private String signature = "signature";
+	private String host = "localhost";
+	private String serviceKey = "serviceKey";
+	private String method = HttpMethods.GET;
+	private String date = DateUtils.formatIsoNoMillis(new DateTime());
+	private int expiration = 3600;
+	private String signature = "signature";
 
-    @Before
-    public void setUp() {
-        initMocks(this);
+	@Before
+	public void setUp() {
+		initMocks(this);
 
-        when(documentDao.getUser(anyString(), anyString())).thenReturn(user);
-        when(documentDao.getRecordById(documentId)).thenReturn(documentRecord);
-        when(documentDao.getMetadataSchema(documentRecord)).thenReturn(metadataSchema);
-        when(aceService.getAces(documentRecord)).thenReturn(AceListDto.builder()
-                .directAces(Collections.<AceDto>emptyList())
-                .inheritedAces(Collections.<AceDto>emptyList())
-                .build());
+		when(documentDao.getUser(anyString(), anyString())).thenReturn(user);
+		when(documentDao.getRecordById(documentId)).thenReturn(documentRecord);
+		when(documentDao.getMetadataSchema(documentRecord)).thenReturn(metadataSchema);
+		when(aceService.getAces(documentRecord)).thenReturn(AceListDto.builder()
+																	  .directAces(Collections.<AceDto>emptyList())
+																	  .inheritedAces(Collections.<AceDto>emptyList())
+																	  .build());
 
-        when(documentRecord.getId()).thenReturn(documentId);
-        when(documentRecord.getTitle()).thenReturn(documentTitle);
-        when(documentRecord.getVersion()).thenReturn(Long.valueOf(eTag));
-        when(documentRecord.get(any(Metadata.class))).thenReturn(null);
-        when(documentTypeRecord.get(any(Metadata.class))).thenReturn(null);
+		when(documentRecord.getId()).thenReturn(documentId);
+		when(documentRecord.getTitle()).thenReturn(documentTitle);
+		when(documentRecord.getVersion()).thenReturn(Long.valueOf(eTag));
+		when(documentRecord.get(any(Metadata.class))).thenReturn(null);
+		when(documentTypeRecord.get(any(Metadata.class))).thenReturn(null);
 
-        when(metadataSchema.getMetadatas()).thenReturn(metadataList);
-        when(metadataList.onlyUSR()).thenReturn(new MetadataList());
-    }
+		when(metadataSchema.getMetadatas()).thenReturn(metadataList);
+		when(metadataList.onlyUSR()).thenReturn(new MetadataList());
+	}
 
-    @Test
-    public void testGet() throws Exception {
-        DocumentDto documentDto = documentService.get(host, documentId, serviceKey, method, date, expiration,
-                signature, Collections.<String>emptySet());
+	@Test
+	public void testGet() throws Exception {
+		DocumentDto documentDto = documentService.get(host, documentId, serviceKey, method, date, expiration,
+				signature, Collections.<String>emptySet());
 
-        assertThat(documentDto).isNotNull().isEqualTo(DocumentDto.builder()
-                .id(documentId)
-                .title(documentTitle)
-                .directAces(Collections.<AceDto>emptyList())
-                .inheritedAces(Collections.<AceDto>emptyList())
-                .extendedAttributes(Collections.<ExtendedAttributeDto>emptyList())
-                .eTag(eTag)
-                .build());
-    }
+		assertThat(documentDto).isNotNull().isEqualTo(DocumentDto.builder()
+																 .id(documentId)
+																 .title(documentTitle)
+																 .directAces(Collections.<AceDto>emptyList())
+																 .inheritedAces(Collections.<AceDto>emptyList())
+																 .extendedAttributes(Collections.<ExtendedAttributeDto>emptyList())
+																 .eTag(eTag)
+																 .build());
+	}
 
-    @Test(expected=RecordNotFoundException.class)
-    public void testGetWithInvalidId() throws Exception {
-        when(documentDao.getRecordById(documentId)).thenReturn(null);
+	@Test(expected = RecordNotFoundException.class)
+	public void testGetWithInvalidId() throws Exception {
+		when(documentDao.getRecordById(documentId)).thenReturn(null);
 
-        documentService.get(host, documentId, serviceKey, method, date, expiration, signature, Collections.<String>emptySet());
-    }
+		documentService.get(host, documentId, serviceKey, method, date, expiration, signature, Collections.<String>emptySet());
+	}
 
 }

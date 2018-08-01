@@ -1,19 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.records.Record;
@@ -35,6 +21,13 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
+import java.util.ArrayList;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordAcceptTest extends ConstellioTest {
 
@@ -196,8 +189,8 @@ public class RecordAcceptTest extends ConstellioTest {
 						new MapStringStringStructure().with("key3", "value3").with("key4", "value4"));
 
 		assertThat(record.getModifiedMetadatas(setup.getTypes()).only(startingWithMeta)).extracting("localCode")
-				.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta3", "meta13",
-						"meta2", "meta12");
+																						.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta3", "meta13",
+																								"meta2", "meta12");
 		record.set(schema2.get("meta3"), "34");
 		record.changeSchema(schema2, schema2);
 
@@ -211,8 +204,8 @@ public class RecordAcceptTest extends ConstellioTest {
 		assertThat(record.changeSchema(schema2, schema1)).isTrue();
 
 		assertThat(record.getModifiedMetadatas(setup.getTypes()).only(startingWithMeta)).extracting("localCode")
-				.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta1", "meta13",
-						"meta2", "meta12");
+																						.containsOnly("meta9", "meta8", "meta7", "meta6", "meta5", "meta11", "meta4", "meta10", "meta1", "meta13",
+																								"meta2", "meta12");
 		assertThatRecord(record)
 				.hasNoMetadataValue(schema1.get("meta1"))
 				.hasMetadataValue(schema1.get("meta2"), "23")

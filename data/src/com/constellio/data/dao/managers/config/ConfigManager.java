@@ -1,17 +1,16 @@
 package com.constellio.data.dao.managers.config;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import org.jdom2.Document;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 public interface ConfigManager {
 
@@ -82,5 +81,5 @@ public interface ConfigManager {
 	void keepInCache(String path);
 
 	void notifyChanged(String path);
-	
+
 }

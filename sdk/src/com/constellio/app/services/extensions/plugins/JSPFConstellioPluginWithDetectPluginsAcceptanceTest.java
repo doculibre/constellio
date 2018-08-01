@@ -1,18 +1,8 @@
 package com.constellio.app.services.extensions.plugins;
 
-import static com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager.PREVIOUS_PLUGINS;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.ID_MISMATCH;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.MORE_THAN_ONE_INSTALLABLE_MODULE_PER_JAR;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_INSTALLABLE_MODULE_DETECTED_FROM_JAR;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SDKFoldersLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
@@ -20,9 +10,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.SDKFoldersLocator;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager.PREVIOUS_PLUGINS;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.*;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends ConstellioTest {
 	private JSPFConstellioPluginManager pluginManager;
@@ -33,8 +30,8 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		notAUnitItest = true;
 		File stateFile = getTestResourceFile("saveStateWithPlugins.zip");
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile).withFakeEncryptionServices()
-				.withPasswordsReset()
-				.withSDKPluginFolder();
+							   .withPasswordsReset()
+							   .withSDKPluginFolder();
 		pluginManager = (JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager();
 		deletePreviousPluginsFolder();
 	}
@@ -47,7 +44,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 
 	private static void createJarsFromZip(File pluginsJarsFolder)
 			throws IOException {
-		for (File zip : FileUtils.listFiles(pluginsJarsFolder, new String[] { "zip" }, false)) {
+		for (File zip : FileUtils.listFiles(pluginsJarsFolder, new String[]{"zip"}, false)) {
 			String zipNameWithoutExtension = StringUtils.substringBeforeLast(zip.getName(), ".zip");
 			FileUtils.copyFile(zip, new File(pluginsJarsFolder, zipNameWithoutExtension + ".jar"));
 		}

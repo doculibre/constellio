@@ -22,7 +22,8 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor7_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -33,7 +34,7 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 	class SchemaAlterationFor7_0_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -51,21 +52,22 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 			MetadataSchemaTypeBuilder subdivisionSchemaType = typesBuilder.getSchemaType(UniformSubdivision.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
+													   .getCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-					.setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
+				  .setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
 
 			schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+								 .getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-					.setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
+				  .setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
 		}
 	}
 
 	private void configureClassifyInTaxonomyParametersForm(String collection,
-			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+														   MigrationResourcesProvider migrationResourcesProvider,
+														   AppLayerFactory appLayerFactory) {
 
 		String defaultValuesTab = "tab.defaultValues";
 
@@ -80,7 +82,7 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema,
 				ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		inPlanSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 
@@ -90,7 +92,7 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema,
 				ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-				.withMetadataGroup(defaultValuesTab));
+											 .withMetadataGroup(defaultValuesTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

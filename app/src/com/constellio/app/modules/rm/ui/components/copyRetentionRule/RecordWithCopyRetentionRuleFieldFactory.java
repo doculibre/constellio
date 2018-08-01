@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copy
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.DocumentCopyRetentionRuleDependencyFieldImpl;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.FolderCopyRetentionruleDependencyFieldImpl;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -46,7 +45,8 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 	private final LogicalSearchQuery query;
 
 	public RecordWithCopyRetentionRuleFieldFactory(String schemaType, String recordIdThatCopyRetentionRuleDependantOn,
-												   String selectedTypeId, LogicalSearchQuery query, List<String> selectedRecords) {
+												   String selectedTypeId, LogicalSearchQuery query,
+												   List<String> selectedRecords) {
 		this.presenter = new RecordWithCopyRetentionRuleParametersPresenter(this);
 		this.schemaType = schemaType;
 		this.recordIdThatCopyRetentionRuleDependantOn = recordIdThatCopyRetentionRuleDependantOn;
@@ -60,11 +60,11 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		Field<?> field;
 		String code = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
 		if (schemaType.equals(Folder.SCHEMA_TYPE) &&
-				folderSpecificFieldsMetadataLocaleCodes.contains(code)) {
+			folderSpecificFieldsMetadataLocaleCodes.contains(code)) {
 			field = buildFolderSpecificFields(recordVO, metadataVO);
 			super.postBuild(field, recordVO, metadataVO);
 		} else if (schemaType.equals(Document.SCHEMA_TYPE) &&
-				documentSpecificMetadataLocaleCodes.contains(code)) {
+				   documentSpecificMetadataLocaleCodes.contains(code)) {
 			field = buildDocumentSpecificFields(recordVO, metadataVO);
 			super.postBuild(field, recordVO, metadataVO);
 		} else {
@@ -110,7 +110,7 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		}
 		if (Folder.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {
 			field = copyRetentionRuleField;
-		} else if(Folder.COPY_STATUS_ENTERED.equals(metadataVO.getLocalCode())) {
+		} else if (Folder.COPY_STATUS_ENTERED.equals(metadataVO.getLocalCode())) {
 			field = folderCopyStatusEnteredField;
 		} else {
 			field = folderCopyRetentionRuleDependencyField;
@@ -139,16 +139,16 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 		}
 	}
 
-//	@Override
-//	public CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField() {
-//		if (schemaType.equals(Folder.SCHEMA_TYPE)) {
-//			return folderCopyRetentionRuleDependencyField;
-//		} else if (schemaType.equals(Document.SCHEMA_TYPE)) {
-//			return documentCopyRetentionRuleDependencyField;
-//		} else {
-//			throw new RuntimeException("Unsupported for record type " + schemaType);
-//		}
-//	}
+	//	@Override
+	//	public CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField() {
+	//		if (schemaType.equals(Folder.SCHEMA_TYPE)) {
+	//			return folderCopyRetentionRuleDependencyField;
+	//		} else if (schemaType.equals(Document.SCHEMA_TYPE)) {
+	//			return documentCopyRetentionRuleDependencyField;
+	//		} else {
+	//			throw new RuntimeException("Unsupported for record type " + schemaType);
+	//		}
+	//	}
 
 	@Override
 	public CopyRetentionRuleField getCopyRetentionRuleField() {

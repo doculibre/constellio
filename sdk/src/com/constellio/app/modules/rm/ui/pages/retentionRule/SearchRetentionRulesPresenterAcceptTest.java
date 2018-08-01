@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Locale;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -17,6 +8,14 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SearchRetentionRulesPresenterAcceptTest extends ConstellioTest {
 
@@ -35,7 +34,7 @@ public class SearchRetentionRulesPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+								  .withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 

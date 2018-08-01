@@ -23,9 +23,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +53,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+								  .withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -132,7 +129,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked();
 		verify(view, never()).showErrorMessage(any(String.class));
 
-		presenter.forParams("id%3D"+folderVO.getId());
+		presenter.forParams("id%3D" + folderVO.getId());
 		folderVO = buildFolderVO();
 		folderVO.setContainer("testBoite100");
 		folderVO.setLinearSize(50.0);
@@ -150,7 +147,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked();
 		verify(view, never()).showErrorMessage(any(String.class));
 
-		presenter.forParams("id%3D"+folderVO.getId());
+		presenter.forParams("id%3D" + folderVO.getId());
 		folderVO = buildFolderVO();
 		folderVO.setContainer("testBoite100");
 		folderVO.setLinearSize(101.0);
@@ -168,7 +165,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked();
 		verify(view, never()).showErrorMessage(any(String.class));
 
-		presenter.forParams("id%3D"+folderVO.getId());
+		presenter.forParams("id%3D" + folderVO.getId());
 		folderVO = buildFolderVO();
 		folderVO.setContainer("testBoite100");
 		folderVO.setLinearSize(100.0);
@@ -186,7 +183,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked();
 		verify(view, never()).showErrorMessage(any(String.class));
 
-		presenter.forParams("id%3D"+folderVO.getId());
+		presenter.forParams("id%3D" + folderVO.getId());
 		folderVO = buildFolderVO();
 		folderVO.setContainer("testBoite100");
 		folderVO.setLinearSize(101.0);
@@ -269,8 +266,8 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.from(rmSchemasRecordsServices.folder.schemaType()).returnAll());
 		List<String> queriesWithResults = new ArrayList<>();
-		for(String freeText: possibleQueries) {
-			if(searchServices.searchRecordIds(query.setFreeTextQuery(freeText)).contains(records.getFolder_A01().getId())) {
+		for (String freeText : possibleQueries) {
+			if (searchServices.searchRecordIds(query.setFreeTextQuery(freeText)).contains(records.getFolder_A01().getId())) {
 				queriesWithResults.add(freeText);
 			}
 		}
@@ -290,7 +287,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 	private void buildDefaultContainer() throws RecordServicesException {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices.add(rm.newContainerRecordWithId("testBoite100").setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE)
-				.setAdministrativeUnit(records.getUnit10a()).setTitle("testBoite100").setTemporaryIdentifier("testBoite100")
-				.setCapacity(100D).setType(recordServices.getDocumentById(records.containerTypeId_boite22x22)));
+							 .setAdministrativeUnit(records.getUnit10a()).setTitle("testBoite100").setTemporaryIdentifier("testBoite100")
+							 .setCapacity(100D).setType(recordServices.getDocumentById(records.containerTypeId_boite22x22)));
 	}
 }

@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.management;
 
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
+import java.util.List;
+
 public class AdminPresenter extends BasePresenter<AdminView> {
-	
+
 	public AdminPresenter(AdminView view) {
 		super(view);
 	}

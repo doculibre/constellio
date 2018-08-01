@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -13,17 +12,21 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ConstellioAgentLink extends HorizontalLayout {
 
 	public ConstellioAgentLink(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
 		this(agentURL, recordVO, contentVersionVO, caption, true);
 	}
 
-	public ConstellioAgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption, boolean downloadLink) {
+	public ConstellioAgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption,
+							   boolean downloadLink) {
 		this(agentURL, null, contentVersionVO, caption, downloadLink);
 	}
 
-	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO, String caption, boolean downloadLink) {
+	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO,
+							   String caption, boolean downloadLink) {
 		addStyleName("agent-link");
 		AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption);
 		agentLink.addClickListener(new ClickListener() {
@@ -41,7 +44,7 @@ public class ConstellioAgentLink extends HorizontalLayout {
 	}
 
 	public static class AgentLink extends Button {
-		
+
 		public static final String STYLE_NAME = "agent-action-link";
 
 		public AgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption) {

@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.builders;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -38,6 +26,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 	private final RMSchemasRecordsServices rm;
@@ -48,7 +41,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	private SessionContext sessionContext;
 
 	public RetentionRuleToVOBuilder(AppLayerFactory appLayerFactory, MetadataSchema categorySchema,
-			MetadataSchema subdivisionSchema) {
+									MetadataSchema subdivisionSchema) {
 		this.categorySchema = categorySchema;
 		this.subdivisionSchema = subdivisionSchema;
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
@@ -56,8 +49,9 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		rm = new RMSchemasRecordsServices(categorySchema.getCollection(), appLayerFactory);
 	}
 
-	public RetentionRuleToVOBuilder(SessionContext sessionContext, AppLayerFactory appLayerFactory, MetadataSchema categorySchema,
-			MetadataSchema subdivisionSchema) {
+	public RetentionRuleToVOBuilder(SessionContext sessionContext, AppLayerFactory appLayerFactory,
+									MetadataSchema categorySchema,
+									MetadataSchema subdivisionSchema) {
 		this.categorySchema = categorySchema;
 		this.subdivisionSchema = subdivisionSchema;
 		this.sessionContext = sessionContext;
@@ -93,7 +87,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 	private List<String> getCategories(String id) {
 		LogicalSearchCondition condition = from(rm.category.schemaType()).where(rm.category.retentionRules())
-				.isEqualTo(id);
+																		 .isEqualTo(id);
 		List<Record> categoryRecords = searchServices.cachedSearch(new LogicalSearchQuery(condition));
 		List<Category> categories = new ArrayList<>();
 		for (Record categoryRecord : categoryRecords) {
@@ -128,7 +122,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private MetadataVO getSynteticMetadata(MetadataSchemaVO schema, String label, String referencedSchemaType,
-			String referencedSchema) {
+										   String referencedSchema) {
 		Map<Locale, String> labels = new HashMap<>();
 		labels.put(sessionContext.getCurrentLocale(), $("RetentionRules." + label));
 
@@ -140,7 +134,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		String typeCode = SchemaUtils.getSchemaTypeCode(schema.getCode());
 
 		Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode)
-				.getMetadataGroup();
+																		 .getMetadataGroup();
 		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 		String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
 
@@ -149,7 +143,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
-				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null, new HashMap<String,Object>());
+				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
 	}
 
 	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {

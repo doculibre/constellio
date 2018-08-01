@@ -1,63 +1,55 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
-import com.constellio.app.ui.framework.components.RecordForm;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.jgoodies.common.base.Strings;
-import com.vaadin.ui.Field;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
-import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
-import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.request.*;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.jgoodies.common.base.Strings;
+import com.vaadin.ui.Field;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
-import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	public static final String ASSIGNATION_MODES = "assignationModes";
@@ -89,7 +81,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		initTransientObjects();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
-		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection,appLayerFactory);
+		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	private List<String> getFinishedOrClosedStatuses() {
@@ -149,7 +141,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 
-
 	public void saveButtonClicked(RecordVO recordVO) {
 		if (recordVO == null) {
 			return;
@@ -158,19 +149,19 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 		try {
 
-			if(isEditMode() && finishedOrClosedStatuses.contains(task.getStatus())) {
+			if (isEditMode() && finishedOrClosedStatuses.contains(task.getStatus())) {
 				if (inclusideDecision) {
 					List<String> decisionList = listAddRemoveWorkflowInclusiveDecision.getValue();
-					if(decisionList == null && decisionList.size() <= 0) {
+					if (decisionList == null && decisionList.size() <= 0) {
 						view.showErrorMessage($("AddEditTaskPresenter.error.decision"));
-						return ;
+						return;
 					}
 				}
 
-				if(exclusiveDecision && finishedOrClosedStatuses.contains(task.getStatus())) {
+				if (exclusiveDecision && finishedOrClosedStatuses.contains(task.getStatus())) {
 					String decision = field.getFieldValue();
 
-					if(decision == null && Strings.isBlank(decision)) {
+					if (decision == null && Strings.isBlank(decision)) {
 						view.showErrorMessage($("AddEditTaskPresenter.error.decision"));
 						return;
 					}
@@ -181,24 +172,24 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.set(RequestTask.RESPONDANT, getCurrentUser().getId());
 			}
 
-			if(task.getAssigner() == null) {
+			if (task.getAssigner() == null) {
 
 				if ((task.getAssigneeUsersCandidates() != null && task.getAssigneeUsersCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeUsersCandidates()))
-						|| task.getAssigneeGroupsCandidates() != null && task.getAssigneeGroupsCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
-						|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+					|| task.getAssigneeGroupsCandidates() != null && task.getAssigneeGroupsCandidates().size() != 0 && task.getWrappedRecord().isModified(tasksSchemas.userTask.assigneeGroupsCandidates())
+					|| task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
 					task.setAssignationDate(TimeProvider.getLocalDate());
 					task.setAssigner(getCurrentUser().getId());
 
 					Field<?> field = getAssignerField();
-					if(originalAssigner == null && field != null && field.getValue() != null ||
-							field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+					if (originalAssigner == null && field != null && field.getValue() != null ||
+						field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
 						task.setAssigner((String) field.getValue());
 					}
 				}
 			} else {
 				if (task.getAssignee() == null
-						&& (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().size() == 0)
-						&&  (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().size() == 0)) {
+					&& (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().size() == 0)
+					&& (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().size() == 0)) {
 					task.setAssignationDate(null);
 					task.setAssigner(null);
 				} else {
@@ -206,8 +197,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						task.setAssignationDate(TimeProvider.getLocalDate());
 						task.setAssigner(getCurrentUser().getId());
 						Field<?> field = getAssignerField();
-						 if (originalAssigner == null && field != null && field.getValue() != null
-								 || field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
+						if (originalAssigner == null && field != null && field.getValue() != null
+							|| field != null && field.getValue() != null && originalAssigner != null && !originalAssigner.equals(field.getValue())) {
 							task.setAssigner((String) field.getValue());
 						}
 					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
@@ -221,7 +212,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
 			}
 
-			if(task.isModel()) {
+			if (task.isModel()) {
 				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
 			} else {
 				addOrUpdate(task.getWrappedRecord());
@@ -241,7 +232,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private Field getAssignerField() {
 		TaskForm form = view.getForm();
-		if(form instanceof TaskFormImpl) {
+		if (form instanceof TaskFormImpl) {
 			return ((TaskFormImpl) form).getField(Task.ASSIGNER);
 		}
 		return null;
@@ -313,14 +304,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		try {
 			TaskVO taskVO = getTask();
 			Task task = taskPresenterServices.toTask(new TaskVO(taskVO), toRecord(taskVO));
-			if(task.isModel()) {
+			if (task.isModel()) {
 				TaskForm form = view.getForm();
-				if(form != null && form instanceof RecordForm) {
+				if (form != null && form instanceof RecordForm) {
 					MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 					MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(taskVO.getSchema().getCode());
-					for(Metadata metadata: schema.getMetadatas().onlyUSR().onlyAlwaysRequired()) {
+					for (Metadata metadata : schema.getMetadatas().onlyUSR().onlyAlwaysRequired()) {
 						Field<?> field = ((RecordForm) form).getField(metadata.getLocalCode());
-						if(field != null) {
+						if (field != null) {
 							field.setRequired(false);
 						}
 					}
@@ -334,7 +325,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public boolean isCompletedOrClosedStatus(RecordVO recordVO) {
 		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
 		TaskStatus statusType = tasksSchemasRecordsServices.getTaskStatus(task.getStatus());
-		if(statusType == null || statusType.getStatusType() == null) {
+		if (statusType == null || statusType.getStatusType() == null) {
 			return false;
 		}
 
@@ -347,8 +338,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustQuestionField() {
 		TaskQuestionFieldImpl questionField = (TaskQuestionFieldImpl) view.getForm().getCustomField(Task.QUESTION);
-		if(questionField != null) {
-			if(field != null) {
+		if (questionField != null) {
+			if (field != null) {
 				questionField.setVisible(field.isVisible());
 			}
 			questionField.setReadOnly(true);
@@ -357,14 +348,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if(assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
 
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
-				.getCustomField(Task.PROGRESS_PERCENTAGE);
+																								.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
 	}
 
@@ -376,8 +367,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				BetaWorkflowTask task = loadTask();
 				boolean isInclusiveDecision;
 
-				try
-				{
+				try {
 					isInclusiveDecision = Boolean.TRUE.equals(task.get(IS_INCLUSIVE_DECISION));
 				} catch (Exception exception) {
 					isInclusiveDecision = false;
@@ -391,7 +381,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					exclusiveDecision = true;
 					field.setVisible(true);
 
-					if(completeMode) {
+					if (completeMode) {
 						field.setRequired(true);
 					}
 				}
@@ -407,35 +397,34 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void adjustInclusiveDecisionField() {
-		listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecisionFieldImpl) ((RecordForm)view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
+		listAddRemoveWorkflowInclusiveDecision = (ListAddRemoveWorkflowInclusiveDecisionFieldImpl) ((RecordForm) view.getForm()).getField(TaskFieldFactory.INCLUSIVE_DECISION);
 
-		if(listAddRemoveWorkflowInclusiveDecision != null) {
+		if (listAddRemoveWorkflowInclusiveDecision != null) {
 
 			try {
 				BetaWorkflowTask task = loadTask();
 				boolean isInclusiveDecision;
 
-				try
-				{
+				try {
 					isInclusiveDecision = Boolean.TRUE.equals(task.get(IS_INCLUSIVE_DECISION));
 				} catch (Exception exception) {
 					isInclusiveDecision = true;
 				}
 
-			if (!task.hasDecisions() || task.getModelTask() == null || !isInclusiveDecision) {
+				if (!task.hasDecisions() || task.getModelTask() == null || !isInclusiveDecision) {
 					listAddRemoveWorkflowInclusiveDecision.setVisible(false);
 					return;
-			} else {
+				} else {
 					listAddRemoveWorkflowInclusiveDecision.setVisible(true);
 					inclusideDecision = true;
-					if(completeMode) {
+					if (completeMode) {
 						listAddRemoveWorkflowInclusiveDecision.setRequired(true);
 					}
-			}
+				}
 
-			for (String code : task.getNextTasksDecisionsCodes()) {
-				listAddRemoveWorkflowInclusiveDecision.addItem(code);
-			}
+				for (String code : task.getNextTasksDecisionsCodes()) {
+					listAddRemoveWorkflowInclusiveDecision.addItem(code);
+				}
 			} catch (NoSuchRecordWithId e) {
 				listAddRemoveWorkflowInclusiveDecision.setVisible(false);
 			}
@@ -540,8 +529,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	void adjustTypeField() {
 		Field typeField = getTypeField();
-		if(typeField != null) {
-			if(tasksSchemas.isRequestTask(getTask())) {
+		if (typeField != null) {
+			if (tasksSchemas.isRequestTask(getTask())) {
 				typeField.setReadOnly(true);
 			}
 		}
@@ -549,7 +538,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private Field getTypeField() {
 		TaskForm form = view.getForm();
-		if(form instanceof TaskFormImpl) {
+		if (form instanceof TaskFormImpl) {
 			return ((TaskFormImpl) form).getField(Task.TYPE);
 		}
 		return null;
@@ -558,14 +547,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	boolean isReloadRequiredAfterTaskTypeChange() {
 		boolean reload = false;
 		String currentSchemaCode = getSchemaCode();
-		if(isTaskTypeFieldVisible()) {
+		if (isTaskTypeFieldVisible()) {
 			String taskTypeRecordId = getTypeFieldValue();
 			if (StringUtils.isNotBlank(taskTypeRecordId)) {
 				String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
 				if (schemaCodeForTaskTypeRecordId != null) {
 					reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
-				} else
+				} else {
 					reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+				}
 			} else {
 				reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
 			}
@@ -623,7 +613,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
-				.getCustomField(Task.PROGRESS_PERCENTAGE);
+																								.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
 		return tasksSchemas.getBetaWorkflowTask(taskVO.getId());
 	}
@@ -641,8 +631,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public List<String> getUnavailableTaskTypes() {
-		return !tasksSchemas.isRequestTask(getTask())? searchServices().searchRecordIds(
+		return !tasksSchemas.isRequestTask(getTask()) ? searchServices().searchRecordIds(
 				LogicalSearchQueryOperators.from(tasksSchemas.taskTypeSchemaType()).where(Schemas.CODE)
-						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))): null;
+										   .isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 }

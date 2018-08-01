@@ -1,13 +1,4 @@
-
 package com.constellio.model.services.records;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
-import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import org.junit.Test;
 
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -21,6 +12,13 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
+import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class RecordServicesAgregatedRefCountMetadatasAcceptTest extends ConstellioTest {
 
@@ -44,10 +42,10 @@ public class RecordServicesAgregatedRefCountMetadatasAcceptTest extends Constell
 				MetadataBuilder zeSchema_zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchema_refCount = anotherType.getDefaultSchema().create("refCount")
-						.setType(NUMBER).defineDataEntry().asReferenceCount(zeSchema_zeRef);
+																	.setType(NUMBER).defineDataEntry().asReferenceCount(zeSchema_zeRef);
 				MetadataBuilder anotherSchema_zeRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder thirdSchema_refCount = thirdType.getDefaultSchema().create("refCount")
-						.setType(NUMBER).defineDataEntry().asReferenceCount(anotherSchema_zeRef);
+																.setType(NUMBER).defineDataEntry().asReferenceCount(anotherSchema_zeRef);
 
 			}
 		}));

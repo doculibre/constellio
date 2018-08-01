@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -15,6 +8,13 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.data.Item;
 import com.vaadin.ui.Field;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class RecordForm extends BaseForm<RecordVO> {
@@ -32,7 +32,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	}
 
 	public RecordForm(final RecordVO recordVO, List<FieldAndPropertyId> fieldsAndPropertyIds,
-			RecordFieldFactory formFieldFactory) {
+					  RecordFieldFactory formFieldFactory) {
 		super(recordVO, fieldsAndPropertyIds);
 		this.formFieldFactory = formFieldFactory;
 	}
@@ -63,8 +63,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	private static boolean isVisibleField(MetadataVO metadataVO, RecordVO recordVO) {
 		return ConstellioFactories.getInstance().getAppLayerFactory().getExtensions()
-				.forCollection(recordVO.getSchema().getCollection())
-				.isMetadataEnabledInRecordForm(recordVO, metadataVO);
+								  .forCollection(recordVO.getSchema().getCollection())
+								  .isMetadataEnabledInRecordForm(recordVO, metadataVO);
 	}
 
 	protected RecordFieldFactory getFormFieldFactory() {
@@ -116,7 +116,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		for (ValidationError validationError : validationErrors.getValidationErrors()) {
 			String errorMessage = $(validationError);
 			Object metadataCode = validationError.getParameters()
-					.get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
+												 .get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
 			if (metadataCode != null) {
 				MetadataVO metadata = viewObject.getMetadataOrNull((String) metadataCode);
 				if (metadata != null) {

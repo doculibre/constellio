@@ -1,19 +1,10 @@
 package com.constellio.app.ui.pages.rm.folder;
 
-import static java.lang.Thread.sleep;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -23,6 +14,14 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import static java.lang.Thread.sleep;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class CreateFolderAcceptanceTest extends ConstellioTest {
@@ -59,7 +58,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus().withEvents(),
 				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
-						.withFoldersAndContainersOfEveryStatus()
+													.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");

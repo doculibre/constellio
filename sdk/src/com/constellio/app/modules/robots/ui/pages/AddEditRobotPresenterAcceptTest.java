@@ -1,33 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.model.entities.Language;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.modules.complementary.esRmRobots.services.SmbClassifyServices;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDownloadSmbDocument;
@@ -52,6 +24,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -69,6 +42,25 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.File;
+import java.util.*;
+
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Patrick on 2015-12-15.
@@ -122,7 +114,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+										.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
@@ -181,19 +173,19 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		}).when(connectorSmb).getInputStream(any(ConnectorSmbDocument.class), anyString());
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-				.setTitle("zeConnector")
-				.setCode("zeConnector")
-				.setEnabled(false)
-				.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
-				.setTraversalCode("zeTraversal"));
+															   .setTitle("zeConnector")
+															   .setCode("zeConnector")
+															   .setEnabled(false)
+															   .setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+															   .setTraversalCode("zeTraversal"));
 
 		anotherConnectorInstance = connectorManager
 				.createConnector(es.newConnectorSmbInstance()
-						.setTitle("anotherConnector")
-						.setCode("anotherConnector")
-						.setEnabled(false)
-						.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
-						.setTraversalCode("anotherConnectorTraversal"));
+								   .setTitle("anotherConnector")
+								   .setCode("anotherConnector")
+								   .setEnabled(false)
+								   .setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+								   .setTraversalCode("anotherConnectorTraversal"));
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -201,10 +193,10 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("aCustomRequiredMetadata").setType(MetadataValueType.STRING)
-						.setDefaultRequirement(
-								true);
+					 .setDefaultRequirement(
+							 true);
 				types.getSchema(Document.DEFAULT_SCHEMA).create("aCustomRequiredMetadata").setType(MetadataValueType.STRING)
-						.setDefaultRequirement(true);
+					 .setDefaultRequirement(true);
 			}
 		});
 
@@ -215,10 +207,10 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		Criterion criterion = criterionFactory.build(
 				"{\"schemaType\":\"connectorSmbDocument\",\"metadataCode\":\"connectorSmbDocument_default_title\",\"metadataType\":\"STRING\",\"searchOperator\":\"EQUALS\",\"value\":\"1.txt\",\"leftParens\":false,\"rightParens\":false,\"booleanOperator\":\"AND\",\"dirty\":true,\"relativeCriteria\":{}}");
 		robot = robotsService.newRobot((String) null)
-				.setSearchCriteria(Arrays.asList(criterion))
-				.setSchemaFilter("connectorSmbDocument")
-				.setCode("robot1")
-				.setTitle("robot1");
+							 .setSearchCriteria(Arrays.asList(criterion))
+							 .setSchemaFilter("connectorSmbDocument")
+							 .setCode("robot1")
+							 .setTitle("robot1");
 		recordServices.add(robot.getWrappedRecord());
 
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
@@ -257,19 +249,19 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customSchema").create("newSearchableMetadata")
-						.setType(MetadataValueType.STRING).setSearchable(true);
+					 .setType(MetadataValueType.STRING).setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
-						.withVisibleInAdvancedSearchStatus(true));
+														   .withVisibleInAdvancedSearchStatus(true));
 
 		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
 		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
 		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true)
-				.set(AUTHORIZATIONS, new ArrayList<>()));
+											.set(AUTHORIZATIONS, new ArrayList<>()));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
@@ -301,7 +293,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 
 		recordServices.add((RecordWrapper) rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01")
-				.set(Schemas.TITLE, "J01"));
+											 .set(Schemas.TITLE, "J01"));
 
 		connectWithAdmin();
 		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInCriteria();
@@ -310,15 +302,15 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("newSearchableMetadata")
-						.setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
-						.setSearchable(true);
+					 .setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
+					 .setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
-						.withVisibleInAdvancedSearchStatus(true));
+														   .withVisibleInAdvancedSearchStatus(true));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);
@@ -337,7 +329,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
-						.setEnabled(false);
+					 .setEnabled(false);
 			}
 		});
 
@@ -347,7 +339,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
-						.setEnabled(true);
+					 .setEnabled(true);
 			}
 		});
 
@@ -375,11 +367,11 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 	private Folder newFolder(String title) {
 		return rm.newFolderWithId("testFolder").setTitle(title).setOpenDate(LocalDate.now())
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X110)
-				.setRetentionRuleEntered(records.getRule2())
-				.setCopyStatusEntered(CopyType.PRINCIPAL)
-				.set("aCustomRequiredMetadata", "test");
+				 .setAdministrativeUnitEntered(records.unitId_10a)
+				 .setCategoryEntered(records.categoryId_X110)
+				 .setRetentionRuleEntered(records.getRule2())
+				 .setCopyStatusEntered(CopyType.PRINCIPAL)
+				 .set("aCustomRequiredMetadata", "test");
 	}
 
 	// ---------------------------------------
@@ -389,25 +381,25 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance))
-				.setTitle("A").setUrl("smb://A/");
+				   .setTitle("A").setUrl("smb://A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance))
-				.setTitle("B").setUrl("smb://B/");
+				   .setTitle("B").setUrl("smb://B/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance))
-				.setTitle("AA").setUrl("smb://A/A/").setParentUrl("smb://A/");
+				   .setTitle("AA").setUrl("smb://A/A/").setParentUrl("smb://A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAA, connectorInstance))
-				.setTitle("AAA").setUrl("smb://A/A/A/").setParentUrl("smb://A/A/");
+				   .setTitle("AAA").setUrl("smb://A/A/A/").setParentUrl("smb://A/A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAAB, connectorInstance))
-				.setTitle("AAB").setUrl("smb://A/A/B/").setParentUrl("smb://A/A/");
+				   .setTitle("AAB").setUrl("smb://A/A/B/").setParentUrl("smb://A/A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance))
-				.setTitle("AB").setUrl("smb://A/B/").setParentUrl("smb://A/");
+				   .setTitle("AB").setUrl("smb://A/B/").setParentUrl("smb://A/");
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderABA, connectorInstance))
-				.setTitle("ABA").setUrl("smb://A/B/A/").setParentUrl("smb://A/B/");
+				   .setTitle("ABA").setUrl("smb://A/B/A/").setParentUrl("smb://A/B/");
 
 		//		SmbFile localfile;
 		//		try {
@@ -419,39 +411,39 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		String url = "smb://A/1.txt";
 		//		String url = localfile.getURL().getFile();
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
-				.setTitle("1.txt").setUrl(url).setParsedContent("Document A1 content").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("1.txt").setUrl(url).setParsedContent("Document A1 content").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				.setTitle("2.txt").setUrl("smb://A/2.txt").setParsedContent("Document A2 content").setParentUrl("smb://A/")
-				.setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("2.txt").setUrl("smb://A/2.txt").setParsedContent("Document A2 content").setParentUrl("smb://A/")
+				   .setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				.setTitle("3.txt").setUrl("smb://B/3.txt").setParsedContent("Document B3 content").setParentUrl("smb://B/")
-				.setManualTokens("rtoken1");
+				   .setTitle("3.txt").setUrl("smb://B/3.txt").setParsedContent("Document B3 content").setParentUrl("smb://B/")
+				   .setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3JustDeleted, connectorInstance))
-				.setTitle("justDeleted.txt").setUrl("smb://B/justDeleted.txt").setParsedContent("Document B3")
-                .setParentUrl("smb://B/")
-				.setManualTokens("rtoken1");
+				   .setTitle("justDeleted.txt").setUrl("smb://B/justDeleted.txt").setParsedContent("Document B3")
+				   .setParentUrl("smb://B/")
+				   .setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance))
-				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setParsedContent("Document AA4 content").setParentUrl("smb://A/A/")
-				.setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("4.txt").setUrl("smb://A/A/4.txt").setParsedContent("Document AA4 content").setParentUrl("smb://A/A/")
+				   .setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance))
-				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("5.txt").setUrl("smb://A/A/5.txt").setParentUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAA6, connectorInstance))
-				.setTitle("6.txt").setUrl("smb://A/A/A/6.txt").setParentUrl("smb://A/A/A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("6.txt").setUrl("smb://A/A/A/6.txt").setParentUrl("smb://A/A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAAB7, connectorInstance))
-				.setTitle("7.txt").setUrl("smb://A/A/B/7.txt").setParentUrl("smb://A/A/B").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("7.txt").setUrl("smb://A/A/B/7.txt").setParentUrl("smb://A/A/B").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAB8, connectorInstance))
-				.setTitle("8.txt").setUrl("smb://A/B/8.txt").setParentUrl("smb://A/B/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("8.txt").setUrl("smb://A/B/8.txt").setParentUrl("smb://A/B/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentABA9, connectorInstance))
-				.setTitle("9.txt").setUrl("smb://A/B/A/9.txt").setParentUrl("smb://A/B/A/").setManualTokens(PUBLIC_TOKEN);
+				   .setTitle("9.txt").setUrl("smb://A/B/A/9.txt").setParentUrl("smb://A/B/A/").setManualTokens(PUBLIC_TOKEN);
 
 		recordServices.execute(transaction);
 	}

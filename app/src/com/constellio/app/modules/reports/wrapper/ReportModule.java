@@ -15,74 +15,74 @@ import java.util.List;
 import java.util.Map;
 
 public class ReportModule implements InstallableModule {
-    public static final String ID = "ReportModule";
-    public static final String TITLE = "Module de rapport";
+	public static final String ID = "ReportModule";
+	public static final String TITLE = "Module de rapport";
 
-    @Override
-    public List<MigrationScript> getMigrationScripts() {
-        List<MigrationScript> scripts = new ArrayList<>();
-        scripts.add(new CoreMigrationTo_7_1());
-        scripts.add(new RMMigrationTo7_1());
-        return scripts;
-    }
+	@Override
+	public List<MigrationScript> getMigrationScripts() {
+		List<MigrationScript> scripts = new ArrayList<>();
+		scripts.add(new CoreMigrationTo_7_1());
+		scripts.add(new RMMigrationTo7_1());
+		return scripts;
+	}
 
-    @Override
-    public void configureNavigation(NavigationConfig config) {
-        ReportNavigationConfiguration.configureNavigation(config);
-    }
+	@Override
+	public void configureNavigation(NavigationConfig config) {
+		ReportNavigationConfiguration.configureNavigation(config);
+	}
 
-    @Override
-    public void start(String collection, AppLayerFactory appLayerFactory) {
+	@Override
+	public void start(String collection, AppLayerFactory appLayerFactory) {
 
-    }
+	}
 
-    @Override
-    public void stop(String collection, AppLayerFactory appLayerFactory) {
+	@Override
+	public void stop(String collection, AppLayerFactory appLayerFactory) {
 
-    }
+	}
 
-    @Override
-    public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
+	@Override
+	public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
 
-    }
+	}
 
-    @Override
-    public boolean isComplementary() {
-        return false;
-    }
+	@Override
+	public boolean isComplementary() {
+		return false;
+	}
 
-    @Override
-    public List<String> getDependencies() {
-        return Arrays.asList(ConstellioRMModule.ID);
-    }
+	@Override
+	public List<String> getDependencies() {
+		return Arrays.asList(ConstellioRMModule.ID);
+	}
 
-    @Override
-    public List<SystemConfiguration> getConfigurations() {
-        return new ArrayList<>();
-    }
+	@Override
+	public List<SystemConfiguration> getConfigurations() {
+		return new ArrayList<>();
+	}
 
-    @Override
-    public Map<String, List<String>> getPermissions() {
-        return null;
-    }
+	@Override
+	public Map<String, List<String>> getPermissions() {
+		return null;
+	}
 
-    @Override
-    public List<String> getRolesForCreator() {
-        return null;
-    }
+	@Override
+	public List<String> getRolesForCreator() {
+		return null;
+	}
 
-    @Override
-    public String getId() {
-        return ID;
-    }
+	@Override
+	public String getId() {
+		return ID;
+	}
 
-    @Override
-    public String getName() {
-        return TITLE;
-    }
+	@Override
+	public String getName() {
+		return TITLE;
+	}
 
-    @Override
-    public String getPublisher() {
-        return "Constellio";
-    }
+	@Override
+	public String getPublisher() {
+		return "Constellio";
+	}
 }

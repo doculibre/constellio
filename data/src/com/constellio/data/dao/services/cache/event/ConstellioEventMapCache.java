@@ -1,15 +1,5 @@
 package com.constellio.data.dao.services.cache.event;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
@@ -17,6 +7,9 @@ import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class ConstellioEventMapCache implements ConstellioCache, EventBusListener {
 
@@ -125,22 +118,22 @@ public class ConstellioEventMapCache implements ConstellioCache, EventBusListene
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
-		case PUT_EVENT_TYPE:
-			map.put(event.<String>getData("key"), event.getData("value"));
-			break;
+			case PUT_EVENT_TYPE:
+				map.put(event.<String>getData("key"), event.getData("value"));
+				break;
 
-		case REMOVE_EVENT_TYPE:
-			for (String key : event.<Set<String>>getData()) {
-				map.remove(key);
-			}
-			break;
+			case REMOVE_EVENT_TYPE:
+				for (String key : event.<Set<String>>getData()) {
+					map.remove(key);
+				}
+				break;
 
-		case CLEAR_EVENT_TYPE:
-			map.clear();
-			break;
+			case CLEAR_EVENT_TYPE:
+				map.clear();
+				break;
 
-		default:
-			throw new ImpossibleRuntimeException("Unsupported type : " + event.getType());
+			default:
+				throw new ImpossibleRuntimeException("Unsupported type : " + event.getType());
 
 		}
 	}

@@ -1,10 +1,10 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import java.net.MalformedURLException;
-
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
+
+import java.net.MalformedURLException;
 
 public class SmbFileFactoryImpl implements SmbFileFactory {
 	@Override

@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -20,6 +14,12 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFacetConfigurationView> {
 
@@ -81,12 +81,12 @@ public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFac
 	public MapStringStringStructure getValues() {
 		FacetType type = recordVO.get(Facet.FACET_TYPE);
 		switch (type) {
-		case FIELD:
-			return recordVO.get(Facet.FIELD_VALUES_LABEL);
-		case QUERY:
-			return recordVO.get(Facet.LIST_QUERIES);
-		default:
-			throw new ImpossibleRuntimeException("Unknown type");
+			case FIELD:
+				return recordVO.get(Facet.FIELD_VALUES_LABEL);
+			case QUERY:
+				return recordVO.get(Facet.LIST_QUERIES);
+			default:
+				throw new ImpossibleRuntimeException("Unknown type");
 		}
 	}
 

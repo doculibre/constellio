@@ -1,8 +1,5 @@
 package com.constellio.app.extensions.api.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -15,6 +12,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Script {
 

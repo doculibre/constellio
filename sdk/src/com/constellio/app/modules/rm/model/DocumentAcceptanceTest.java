@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.model.entities.enums.TitleMetadataPopulatePriority.PROPERTIES_FILENAME_STYLES;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.joda.time.LocalDate.now;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -32,6 +24,13 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.entities.enums.TitleMetadataPopulatePriority.PROPERTIES_FILENAME_STYLES;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.joda.time.LocalDate.now;
 
 public class DocumentAcceptanceTest extends ConstellioTest {
 
@@ -48,7 +47,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withAllTest(users)
+								  .withFoldersAndContainersOfEveryStatus().withAllTest(users)
 		);
 
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
@@ -78,7 +77,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Document document = rm.newDocumentWithId("zeDocument").setTitle("My document").setDescription("test")
-				.setFolder(records.folder_A03);
+							  .setFolder(records.folder_A03);
 		recordServices.add(document);
 
 		assertThat(document.getList(Schemas.PATH)).containsOnly(
@@ -101,9 +100,9 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 				getTestResourceInputStreamFactory("test.msg").create(SDK_STREAM));
 
 		Document document = rm.newDocumentWithId("zeId")
-				.setFolder(records.folder_A05)
-				.setTitle("a dummy title")
-				.setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
+							  .setFolder(records.folder_A05)
+							  .setTitle("a dummy title")
+							  .setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
 
 		recordServices.add(document);
 
@@ -133,9 +132,9 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 				getTestResourceInputStreamFactory("test.msg").create(SDK_STREAM));
 
 		Document document = rm.newDocumentWithId("zeId")
-				.setFolder(records.folder_A05)
-				.setTitle("a dummy title")
-				.setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
+							  .setFolder(records.folder_A05)
+							  .setTitle("a dummy title")
+							  .setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
 		document.changeSchemaTo("aCustomSchema");
 		recordServices.add(document);
 
@@ -153,7 +152,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 				getTestResourceInputStreamFactory("test.msg").create(SDK_STREAM));
 
 		UserDocument userDocument = rm.newUserDocumentWithId("zeId")
-				.setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
+									  .setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
 
 		recordServices.add(userDocument);
 
@@ -173,7 +172,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 				getTestResourceInputStreamFactory("test.msg").create(SDK_STREAM));
 
 		UserDocument userDocument = rm.newUserDocumentWithId("zeId")
-				.setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
+									  .setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
 
 		recordServices.add(userDocument);
 

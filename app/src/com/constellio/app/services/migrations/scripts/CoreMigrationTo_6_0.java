@@ -1,14 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
-import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -17,11 +8,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
@@ -37,6 +24,15 @@ import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigratio
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
+import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+
 public class CoreMigrationTo_6_0 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -51,7 +47,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 			if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-					.hasType(SolrUserCredential.SCHEMA_TYPE)) {
+								  .hasType(SolrUserCredential.SCHEMA_TYPE)) {
 
 				new CoreSchemaAlterationFor6_0(collection, provider, appLayerFactory).migrate();
 
@@ -110,7 +106,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_0 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -129,27 +125,27 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			credentials.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCalculated(UserTitleCalculator.class);
 
 			credentials.createUndeletable(SolrUserCredential.USERNAME).setType(MetadataValueType.STRING)
-					.setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
+					   .setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
 			credentials.createUndeletable(SolrUserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
 			credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
 			credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
-					.setUniqueValue(false).addValidator(EmailValidator.class);
+					   .setUniqueValue(false).addValidator(EmailValidator.class);
 			credentials.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
-					.setMultivalue(true);
+					   .setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
 			credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
-					.setEncrypted(true);
+					   .setEncrypted(true);
 			credentials.createUndeletable(SolrUserCredential.TOKEN_EXPIRATIONS).setType(MetadataValueType.DATE_TIME)
-					.setMultivalue(true);
+					   .setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.SYSTEM_ADMIN).setType(MetadataValueType.BOOLEAN)
-					.setDefaultRequirement(true).setDefaultValue(false);
+					   .setDefaultRequirement(true).setDefaultValue(false);
 			credentials.createUndeletable(SolrUserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class)
-					.setDefaultRequirement(true);
+					   .setDefaultRequirement(true);
 			credentials.createUndeletable(SolrUserCredential.DOMAIN).setType(MetadataValueType.STRING);
 			credentials.createUndeletable(SolrUserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
-					.setMultivalue(true);
+					   .setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.DN).setType(MetadataValueType.STRING);
 		}
 

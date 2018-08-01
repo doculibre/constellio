@@ -1,17 +1,17 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class HierarchicalValueListItem extends ValueListItem {
 
 	public static final String PARENT = "parent";
 
 	public HierarchicalValueListItem(Record record,
-			MetadataSchemaTypes types, String schemaType) {
+									 MetadataSchemaTypes types, String schemaType) {
 		super(record, types, schemaType);
 	}
 

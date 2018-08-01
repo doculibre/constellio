@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -26,20 +16,18 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class ListAddRemoveField<T extends Serializable, F extends AbstractField<?>> extends CustomField<List<T>> {
 	public static final String STYLE_NAME = "list-add-remove";
@@ -106,8 +94,9 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		boolean valid;
 		if (!addEditField.isValid() || !super.isValid()) {
 			valid = false;
-		} else
+		} else {
 			valid = !(isRequired() && isRequiredValueMissing());
+		}
 		return valid;
 	}
 
@@ -164,7 +153,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Override
 	public Class getType() {
 		return List.class;
@@ -250,7 +239,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		return -1;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	protected Component initContent() {
 		addStyleName(STYLE_NAME);
@@ -373,7 +362,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	protected boolean isAddEditFieldVisible() {
 		return true;
 	}
-	
+
 	protected void setMainLayoutWidth(VerticalLayout mainLayout) {
 		mainLayout.setWidth("99%");
 	}
@@ -514,7 +503,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		captionLabel.setContentMode(ContentMode.HTML);
 		return captionLabel;
 	}
-	
+
 	protected String getItemCaption(Object itemId) {
 		String caption;
 		if (itemConverter != null) {

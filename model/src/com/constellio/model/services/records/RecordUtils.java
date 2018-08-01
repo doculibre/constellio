@@ -1,20 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
@@ -23,12 +8,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataListFilter;
@@ -36,6 +16,13 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsParams;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static java.util.Arrays.asList;
 
 public class RecordUtils {
 
@@ -82,6 +69,7 @@ public class RecordUtils {
 	/**
 	 * This method is far, very far from being complete!
 	 * Since the most important part of the data are strings
+	 *
 	 * @param object
 	 * @return
 	 */
@@ -270,7 +258,7 @@ public class RecordUtils {
 		for (MetadataSchema schema : schemaType.getAllSchemas()) {
 			for (Metadata metadata : schema.getMetadatas()) {
 				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().isAllowed(schemaType)
-						&& metadata.getInheritance() == null) {
+					&& metadata.getInheritance() == null) {
 					metadatas.add(metadata);
 				}
 			}
@@ -395,11 +383,11 @@ public class RecordUtils {
 				if (sourceMetadataLocalCode.equals(destMetadataLocalCode)) {
 					Object value = source.get(sourceMetadata);
 					if (destinationMetadata.getDataEntry().getType() == DataEntryType.MANUAL
-							&& destinationMetadata.getType() == sourceMetadata.getType()
-							&& destinationMetadata.isMultivalue() == sourceMetadata.isMultivalue()
-							&& !destinationMetadata.isSystemReserved()
-							&& value != null
-							&& !excludedMetadatas.contains(destinationMetadata.getLocalCode())) {
+						&& destinationMetadata.getType() == sourceMetadata.getType()
+						&& destinationMetadata.isMultivalue() == sourceMetadata.isMultivalue()
+						&& !destinationMetadata.isSystemReserved()
+						&& value != null
+						&& !excludedMetadatas.contains(destinationMetadata.getLocalCode())) {
 
 						destination.set(destinationMetadata, value);
 					}
@@ -409,7 +397,7 @@ public class RecordUtils {
 	}
 
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
-			RecordProvider recordProvider) {
+																   RecordProvider recordProvider) {
 		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
 
 		for (Metadata metadata : recordSchema.getMetadatas()) {
@@ -421,7 +409,8 @@ public class RecordUtils {
 	}
 
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
-			RecordProvider recordProvider, Metadata typeMetadata) {
+																   RecordProvider recordProvider,
+																   Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
 		String newSchemaCode = getSchemaAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, typeMetadata);
 		if (!record.getSchemaCode().equals(newSchemaCode)) {
@@ -432,7 +421,7 @@ public class RecordUtils {
 	}
 
 	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
-			RecordProvider recordProvider, Metadata typeMetadata) {
+															  RecordProvider recordProvider, Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
 		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -504,7 +493,7 @@ public class RecordUtils {
 		if (hasInterdependency) {
 			List<Record> sorted = new ArrayList<>();
 			DependencyUtilsParams params = new DependencyUtilsParams().withToleratedCyclicDepencies()
-					.sortUsingDefaultComparator();
+																	  .sortUsingDefaultComparator();
 			for (String recordId : new DependencyUtils<String>().sortByDependency(dependencies, params)) {
 				sorted.add(recordMap.get(recordId));
 			}
@@ -528,8 +517,9 @@ public class RecordUtils {
 		return parentPaths;
 	}
 
-	public static void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types, RecordProvider recordProvider,
-			TaxonomiesSearchServicesCache cache) {
+	public static void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types,
+												 RecordProvider recordProvider,
+												 TaxonomiesSearchServicesCache cache) {
 
 		Set<String> idsWithPossibleNewChildren = new HashSet<>();
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();
@@ -577,9 +567,9 @@ public class RecordUtils {
 				MetadataSchema userSchema = types.getSchema(User.DEFAULT_SCHEMA);
 
 				if (record.isModified(userSchema.getMetadata(User.COLLECTION_READ_ACCESS))
-						|| record.isModified(userSchema.getMetadata(User.COLLECTION_WRITE_ACCESS))
-						|| record.isModified(userSchema.getMetadata(User.COLLECTION_DELETE_ACCESS))
-						|| record.isModified(userSchema.getMetadata(User.GROUPS))) {
+					|| record.isModified(userSchema.getMetadata(User.COLLECTION_WRITE_ACCESS))
+					|| record.isModified(userSchema.getMetadata(User.COLLECTION_DELETE_ACCESS))
+					|| record.isModified(userSchema.getMetadata(User.GROUPS))) {
 					cache.invalidateUser(record.<String>get(userSchema.getMetadata(User.USERNAME)));
 				}
 			}
@@ -616,7 +606,8 @@ public class RecordUtils {
 		return new HashSet<>(ids);
 	}
 
-	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types, RecordProvider recordProvider) {
+	private static List<String> getHierarchyIdsTo(String newReference, MetadataSchemaTypes types,
+												  RecordProvider recordProvider) {
 		List<String> ids = new ArrayList<>();
 
 		Record record = recordProvider.getRecord(newReference);

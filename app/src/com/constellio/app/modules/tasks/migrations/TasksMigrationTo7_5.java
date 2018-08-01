@@ -18,21 +18,22 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new TaskSchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.add(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
-				.withNewTableMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS));
+											 .withNewTableMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS));
 		displayManager.execute(transactionBuilder.build());
 	}
 
 	private class TaskSchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
 
 		public TaskSchemaAlterationFor7_5(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -40,7 +41,7 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder taskSchema = typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE);
 			taskSchema.createUndeletable(Task.STARRED_BY_USERS).setSystemReserved(true)
-					.setType(MetadataValueType.STRING).setMultivalue(true);
+					  .setType(MetadataValueType.STRING).setMultivalue(true);
 		}
 	}
 }

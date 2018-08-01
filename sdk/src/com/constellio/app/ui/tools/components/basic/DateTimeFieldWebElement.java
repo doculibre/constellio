@@ -1,12 +1,11 @@
 package com.constellio.app.ui.tools.components.basic;
 
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.openqa.selenium.By;
-
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 
 public class DateTimeFieldWebElement {
 

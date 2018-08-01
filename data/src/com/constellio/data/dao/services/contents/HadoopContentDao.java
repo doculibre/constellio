@@ -1,20 +1,19 @@
 package com.constellio.data.dao.services.contents;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.contents.HadoopContentDaoRuntimeException.HadoopContentDaoRuntimeException_DatastoreFailure;
+import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
-import com.constellio.data.dao.services.contents.HadoopContentDaoRuntimeException.HadoopContentDaoRuntimeException_DatastoreFailure;
-import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 public class HadoopContentDao implements StatefulService, ContentDao {
 	private Configuration hadoopConfig;
@@ -143,7 +142,7 @@ public class HadoopContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
-	public File getFileOf(String contentId){
+	public File getFileOf(String contentId) {
 		throw new UnsupportedOperationException("getFileOf(contentId) is not yet supported for HadoopContentDao");
 	}
 

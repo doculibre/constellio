@@ -1,8 +1,5 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -10,6 +7,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.security.AuthorizationsServices;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RecordPermissionValidator implements Validator<Record> {
 
@@ -28,7 +28,7 @@ public class RecordPermissionValidator implements Validator<Record> {
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
 		if (transaction.getUser() != null && record.isDirty()
-				&& !(record.isModified(Schemas.LOGICALLY_DELETED_STATUS) || record.isModified(Schemas.LOGICALLY_DELETED_ON))) {
+			&& !(record.isModified(Schemas.LOGICALLY_DELETED_STATUS) || record.isModified(Schemas.LOGICALLY_DELETED_ON))) {
 			if (!authorizationsServices.canWrite(transaction.getUser(), record)) {
 				addValidationErrors(validationErrors, UNAUTHORIZED, record, transaction.getUser());
 			}

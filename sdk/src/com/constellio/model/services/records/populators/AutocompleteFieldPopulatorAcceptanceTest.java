@@ -1,14 +1,5 @@
 package com.constellio.model.services.records.populators;
 
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -16,6 +7,14 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.ListAssert;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 
@@ -52,7 +51,7 @@ public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 		tx.add(records.getCategory_X().setTitle("chat"));
 
 		Folder heroesFolder = tx.add(records.newFolderWithValuesAndId("heroesFolderId").setTitle("Super héros")
-				.setCategoryEntered(records.categoryId_X));
+											.setCategoryEntered(records.categoryId_X));
 		Folder chuckFolder = tx.add(records.newChildFolderWithIdIn("chuckFolderId", heroesFolder).setTitle("Chuck Norris"));
 		Folder dakotaFolder = tx.add(records.newChildFolderWithIdIn("dakotaFolderId", heroesFolder).setTitle("Dakota l'indien"));
 		tx.add(records.newDocumentWithIdIn("roundhousekick", chuckFolder).setTitle("Round house kick"));

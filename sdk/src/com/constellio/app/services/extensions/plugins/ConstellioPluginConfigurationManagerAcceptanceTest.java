@@ -1,19 +1,5 @@
 package com.constellio.app.services.extensions.plugins;
 
-import static com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager.PLUGINS_CONFIG_PATH;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.CANNOT_INSTALL_OLDER_VERSION;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManagerRuntimeException.ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableInvalidPlugin;
@@ -26,6 +12,16 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager.PLUGINS_CONFIG_PATH;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.CANNOT_INSTALL_OLDER_VERSION;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioPluginConfigurationManagerAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -146,15 +142,15 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 	}
 
 	ConstellioPluginInfo pluginWithDisabledStatus = new ConstellioPluginInfo().setCode("pluginWithDisabledStatus")
-			.setPluginStatus(DISABLED).setTitle("pluginWithDisabledStatus");
+																			  .setPluginStatus(DISABLED).setTitle("pluginWithDisabledStatus");
 	ConstellioPluginInfo pluginWithEnabledStatus = new ConstellioPluginInfo().setCode("pluginWithEnabledStatus")
-			.setPluginStatus(ENABLED).setTitle("pluginWithEnabledStatus");
+																			 .setPluginStatus(ENABLED).setTitle("pluginWithEnabledStatus");
 	ConstellioPluginInfo pluginWithReadyToInstallStatus = new ConstellioPluginInfo().setCode("pluginWithReadyToInstallStatus")
-			.setPluginStatus(READY_TO_INSTALL).setTitle("pluginWithReadyToInstallStatus");
+																					.setPluginStatus(READY_TO_INSTALL).setTitle("pluginWithReadyToInstallStatus");
 	ConstellioPluginInfo pluginWithInvalidStatus = new ConstellioPluginInfo().setCode("pluginWithInvalidStatus")
-			.setPluginStatus(INVALID).setTitle("pluginWithInvalidStatus");
+																			 .setPluginStatus(INVALID).setTitle("pluginWithInvalidStatus");
 	ConstellioPluginInfo pluginWithNullStatus = new ConstellioPluginInfo().setCode("pluginWithNullStatus")
-			.setTitle("pluginWithNullStatus");
+																		  .setTitle("pluginWithNullStatus");
 
 	@Test
 	public void whenSaveSeveralPluginsThenSavedCorrectly()
@@ -186,10 +182,10 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 			throws Exception {
 		saveTestPlugins();
 		pluginWithDisabledStatus = pluginWithDisabledStatus.setPluginStatus(ENABLED)
-				.setPluginActivationFailureCause(CANNOT_INSTALL_OLDER_VERSION)
-				.setLastInstallDate(LocalDate.now())
-				.setRequiredConstellioVersion("dd")
-				.setVersion("aa");
+														   .setPluginActivationFailureCause(CANNOT_INSTALL_OLDER_VERSION)
+														   .setLastInstallDate(LocalDate.now())
+														   .setRequiredConstellioVersion("dd")
+														   .setVersion("aa");
 		pluginConfigManger.addOrUpdatePlugin(pluginWithDisabledStatus);
 		ConstellioPluginInfo reLoadedPluginWithDisabledStatus = pluginConfigManger
 				.getPluginInfo(pluginWithDisabledStatus.getCode());

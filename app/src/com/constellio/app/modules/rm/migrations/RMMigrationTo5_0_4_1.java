@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.Iterator;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -25,6 +20,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class RMMigrationTo5_0_4_1 implements MigrationScript {
 
 	@Override
@@ -34,7 +34,7 @@ public class RMMigrationTo5_0_4_1 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();

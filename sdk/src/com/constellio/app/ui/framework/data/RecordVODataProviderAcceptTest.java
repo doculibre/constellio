@@ -1,18 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -24,6 +11,18 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class RecordVODataProviderAcceptTest extends ConstellioTest {
 
@@ -92,7 +91,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus());
+										.withFoldersAndContainersOfEveryStatus());
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);

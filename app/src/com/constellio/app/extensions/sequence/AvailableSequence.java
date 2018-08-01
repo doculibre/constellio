@@ -1,12 +1,11 @@
 package com.constellio.app.extensions.sequence;
 
-import java.util.Map;
-
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.constellio.model.entities.Language;
+import java.util.Map;
 
 public class AvailableSequence {
 

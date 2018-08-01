@@ -61,7 +61,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 
 	public List<RecordVODataProvider> getDataProviders() {
 		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(taxonomy.getCollection());
+														   .getSchemaTypes(taxonomy.getCollection());
 		List<RecordVODataProvider> dataProviders = createDataProvidersForSchemas(schemaTypes);
 		return dataProviders;
 	}

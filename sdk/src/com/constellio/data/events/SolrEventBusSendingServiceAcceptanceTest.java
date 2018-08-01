@@ -1,17 +1,10 @@
 package com.constellio.data.events;
 
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -20,11 +13,17 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
-import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 
@@ -168,7 +167,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		remoteThread.join();
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 10000
-				|| localReceivedEventExtensionCalledCounter.get() < 20000) {
+			   || localReceivedEventExtensionCalledCounter.get() < 20000) {
 			System.out.println(remoteReceivedEventExtensionCalledCounter.get());
 			System.out.println(localReceivedEventExtensionCalledCounter.get());
 			Thread.sleep(50);
@@ -221,7 +220,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		localEventBus1.send("anEvent4");
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 2
-				|| localReceivedEventExtensionCalledCounter.get() < 2) {
+			   || localReceivedEventExtensionCalledCounter.get() < 2) {
 			Thread.sleep(50);
 		}
 
@@ -233,14 +232,14 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		remoteEventBus1.send("anEvent6");
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 2
-				|| localReceivedEventExtensionCalledCounter.get() < 4) {
+			   || localReceivedEventExtensionCalledCounter.get() < 4) {
 			Thread.sleep(50);
 		}
 
 		assertThat(localEventBus1ReceivedEvents).extracting("type")
-				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
+												.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
 		assertThat(remoteEventBus1ReceivedEvents).extracting("type")
-				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
+												 .containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
 	}
@@ -254,7 +253,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		localEventBus1.send("anEvent4");
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 2
-				|| localReceivedEventExtensionCalledCounter.get() < 2) {
+			   || localReceivedEventExtensionCalledCounter.get() < 2) {
 			Thread.sleep(50);
 		}
 
@@ -272,14 +271,14 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		remoteEventBus1.send("anEvent6");
 
 		while (remoteReceivedEventExtensionCalledCounter.get() < 2
-				|| localReceivedEventExtensionCalledCounter.get() < 4) {
+			   || localReceivedEventExtensionCalledCounter.get() < 4) {
 			Thread.sleep(50);
 		}
 
 		assertThat(localEventBus1ReceivedEvents).extracting("type")
-				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
+												.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
 		assertThat(remoteEventBus1ReceivedEvents).extracting("type")
-				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
+												 .containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
 	}
@@ -327,16 +326,17 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		Thread.sleep(4000);
 
 		assertThat(thirdInstanceBus1ReceivedEvents).extracting("type")
-				.containsOnly("anEvent5", "anEvent7", "anEvent10", "anEvent11");
+												   .containsOnly("anEvent5", "anEvent7", "anEvent10", "anEvent11");
 		assertThat(thirdInstanceBus2ReceivedEvents).extracting("type").containsOnly("anEvent6", "anEvent8", "anEvent9");
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
 		assertThat(countSolrDocumentWithBus("bus2")).isEqualTo(5);
 	}
 
-	protected EventBusManager setupPausedThirdInstance(final List<Event> bus1ReceivedEvents, final List<Event> bus2ReceivedEvents,
-			final AtomicInteger localReceivedEventExtensionCalledCounter,
-			final AtomicInteger localSentEventExtensionCalledCounter) {
+	protected EventBusManager setupPausedThirdInstance(final List<Event> bus1ReceivedEvents,
+													   final List<Event> bus2ReceivedEvents,
+													   final AtomicInteger localReceivedEventExtensionCalledCounter,
+													   final AtomicInteger localSentEventExtensionCalledCounter) {
 		EventBusManager thirdInstanceEventBusManager = getDataLayerFactory("third-instance").getEventBusManager();
 		thirdInstanceEventBusManager.pause();
 		thirdInstanceEventBusManager.eventDataSerializer.register(new EventDataSerializerExtensionFailingToSerialize());

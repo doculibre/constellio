@@ -1,65 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
-import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedReferenceFromDummyCalculatorUsingOtherMetadata;
-import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
-import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
-import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculatorReturningInvalidType;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.entities.CollectionInfo;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.ArgumentCaptor;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
@@ -75,14 +15,11 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -94,6 +31,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.RecordServicesRuntimeException.SchemaTypeOfARecordHasReadOnlyLock;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -108,6 +46,39 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.mockito.ArgumentCaptor;
+
+import java.io.IOException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
+import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.*;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAcceptanceTest extends ConstellioTest {
@@ -376,13 +347,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		assertThatRecord(record1).extracting(zeSchema.stringMetadata(), zeSchema.anotherStringMetadata())
-				.isEqualTo(asList("value2", "mouahahaha"));
+								 .isEqualTo(asList("value2", "mouahahaha"));
 
 		assertThatRecord(record2).extracting(zeSchema.stringMetadata())
-				.isEqualTo(asList("value2"));
+								 .isEqualTo(asList("value2"));
 
 		assertThatRecord(record("record3")).extracting(zeSchema.stringMetadata(), Schemas.MARKED_FOR_REINDEXING)
-				.isEqualTo(asList("value1", true));
+										   .isEqualTo(asList("value1", true));
 
 	}
 
@@ -408,13 +379,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		assertThatRecord(record1).extracting(zeSchema.stringMetadata(), zeSchema.anotherStringMetadata())
-				.isEqualTo(asList("value2", "mouahahaha"));
+								 .isEqualTo(asList("value2", "mouahahaha"));
 
 		assertThatRecord(record2).extracting(zeSchema.stringMetadata())
-				.isEqualTo(asList("value2"));
+								 .isEqualTo(asList("value2"));
 
 		assertThatRecord(record("record3")).extracting(zeSchema.stringMetadata(), Schemas.MARKED_FOR_REINDEXING)
-				.isEqualTo(asList("value1", true));
+										   .isEqualTo(asList("value1", true));
 
 	}
 
@@ -430,7 +401,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
 				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
-						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+					 .defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
 		});
@@ -581,7 +552,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-		@Test()
+	@Test()
 	public void givenSchemaWithFixedSequenceMetadataWithPatternWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {
 
@@ -594,7 +565,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
 				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
-						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+					 .defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
 		});
@@ -815,7 +786,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeSchema, "zeUltimateRecord");
 		recordServices.add(record.set(zeSchema.title(), "title")
-				.set(zeSchema.largeTextMetadata(), asList("firstValue", "secondValue")));
+								 .set(zeSchema.largeTextMetadata(), asList("firstValue", "secondValue")));
 		assertThat(reloadRecord(record.getId()).get(zeSchema.largeTextMetadata())).isEqualTo(asList("firstValue", "secondValue"));
 
 		recordServices.update(reloadRecord(record.getId()).set(zeSchema.largeTextMetadata(), asList("secondValue", "thirdValue")));
@@ -908,7 +879,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(schemas.withATitle().withAStringMetadata(whichIsEncrypted)
-						.withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
+							  .withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
 
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotNull();
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotInstanceOf(FakeEncryptionServices.class);
@@ -935,7 +906,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo(asList("2xz/K3dNfajma8DJQVMBnQ==", "0d6Amw6w/rOUYwTrjNK4LQ=="));
 
 		record.set(zeSchema.stringMetadata(), "decryptedValue2")
-				.set(zeSchema.anotherStringMetadata(), asList("decryptedValue3", "decryptedValue4"));
+			  .set(zeSchema.anotherStringMetadata(), asList("decryptedValue3", "decryptedValue4"));
 		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
 		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue2");
 		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue3", "decryptedValue4"));
@@ -1204,7 +1175,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
-				.saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
+				   .saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
 
 		recordServices.execute(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE));
@@ -1251,7 +1222,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
-				.executeWithImpactHandler(any(Transaction.class), any(RecordModificationImpactHandler.class));
+				   .executeWithImpactHandler(any(Transaction.class), any(RecordModificationImpactHandler.class));
 
 		recordServices.executeHandlingImpactsAsync(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(
@@ -1329,7 +1300,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 				MetadataSchemaTypeBuilder zeSchemaTypeBuilder = schemaTypes.getSchemaType(zeSchema.typeCode());
 				schemaTypes.getSchema(anotherSchema.code()).create("referenceFromAnotherSchemaToZeSchema")
-						.defineReferencesTo(zeSchemaTypeBuilder).setMultivalue(true);
+						   .defineReferencesTo(zeSchemaTypeBuilder).setMultivalue(true);
 			}
 		};
 	}
@@ -2005,12 +1976,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
-				.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
+											.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
 		recordServices.execute(transaction);
 
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
@@ -2042,20 +2013,20 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
-				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+											.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
 						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
 						anotherSchemaType.getMetadata("stringMetadata").defineDataEntry()
-								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+										 .asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
 					}
 				}));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
 		recordServices.execute(transaction);
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
 				"Pointeur d'", "L'ours"));
@@ -2087,20 +2058,20 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+											.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
 						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
 						anotherSchemaType.getMetadata("stringMetadata").setMultivalue(true).defineDataEntry()
-								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+										 .asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
 					}
 				}));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
@@ -2133,12 +2104,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+											.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "d'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur ")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
 		recordServices.execute(transaction);
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
 				"Pointeur ", "Pointeur [d'ours]"));
@@ -2245,9 +2216,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 				anotherSchemaBuilder.create("aStringMetadata").setType(MetadataValueType.STRING);
 				anotherSchemaBuilder.create("aCalculatedMetadataToAReference").setType(MetadataValueType.REFERENCE)
-						.setMultivalue(true)
-						.defineReferencesTo(zeSchemaTypeBuilder)
-						.defineDataEntry().asCalculated(RecordServicesAcceptanceTestCalculator.class);
+									.setMultivalue(true)
+									.defineReferencesTo(zeSchemaTypeBuilder)
+									.defineDataEntry().asCalculated(RecordServicesAcceptanceTestCalculator.class);
 			}
 		};
 	}

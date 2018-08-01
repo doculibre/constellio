@@ -1,17 +1,5 @@
 package com.constellio.model.entities.schemas;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -19,6 +7,12 @@ import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationS
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class MetadataSchema implements Serializable {
 
@@ -49,9 +43,9 @@ public class MetadataSchema implements Serializable {
 	private final CollectionInfo collectionInfo;
 
 	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
-			List<Metadata> metadatas,
-			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			MetadataSchemaCalculatedInfos calculatedInfos, String dataStore) {
+						  List<Metadata> metadatas,
+						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
+						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore) {
 		super();
 		this.localCode = localCode;
 		this.code = code;

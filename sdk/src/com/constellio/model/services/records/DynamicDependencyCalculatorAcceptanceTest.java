@@ -1,24 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -39,6 +20,24 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
@@ -87,7 +86,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(CalculatorDependentOfSomeMetadatas.class);
+					 .defineDataEntry().asCalculated(CalculatorDependentOfSomeMetadatas.class);
 			}
 		});
 
@@ -131,7 +130,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(BadCalculator.class);
+					 .defineDataEntry().asCalculated(BadCalculator.class);
 			}
 		});
 
@@ -155,7 +154,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
+					 .defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
 			}
 		});
 
@@ -201,7 +200,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataLocalCodes.class);
+					 .defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataLocalCodes.class);
 			}
 		});
 
@@ -223,7 +222,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataWithValueLocalCodes.class);
+					 .defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataWithValueLocalCodes.class);
 			}
 		});
 
@@ -250,9 +249,9 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
+					 .defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
 				types.getSchema(zeSchema.code()).create(anotherCalculatedMetadata).setType(STRING)
-						.defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
+					 .defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
 			}
 		});
 
@@ -266,19 +265,19 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
-						.defineDataEntry().asCalculated(Metadata1CalculatorDependingOn2_3_4.class);
+					 .defineDataEntry().asCalculated(Metadata1CalculatorDependingOn2_3_4.class);
 
 				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
-						.defineDataEntry().asCalculated(Metadata2CalculatorDependingOnD_5.class);
+					 .defineDataEntry().asCalculated(Metadata2CalculatorDependingOnD_5.class);
 
 				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
-						.defineDataEntry().asCalculated(Metadata3CalculatorDependingOn2_4.class);
+					 .defineDataEntry().asCalculated(Metadata3CalculatorDependingOn2_4.class);
 
 				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
-						.defineDataEntry().asCalculated(Metadata4CalculatorDependingOnA_5.class);
+					 .defineDataEntry().asCalculated(Metadata4CalculatorDependingOnA_5.class);
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
-						.defineDataEntry().asCalculated(Metadata5CalculatorDependingOnB_C.class);
+					 .defineDataEntry().asCalculated(Metadata5CalculatorDependingOnB_C.class);
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);
@@ -311,19 +310,19 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
-						.defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
+					 .defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
-						.defineDataEntry().asJexlScript("metadataD+calculated5");
+					 .defineDataEntry().asJexlScript("metadataD+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
-						.defineDataEntry().asJexlScript("calculated2+calculated4");
+					 .defineDataEntry().asJexlScript("calculated2+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
-						.defineDataEntry().asJexlScript("metadataA+calculated5");
+					 .defineDataEntry().asJexlScript("metadataA+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
-						.defineDataEntry().asJexlScript("metadataB+metadataC+calculated1");
+					 .defineDataEntry().asJexlScript("metadataB+metadataC+calculated1");
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 
@@ -343,19 +342,19 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
-						.defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
+					 .defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
-						.defineDataEntry().asJexlScript("metadataD+calculated5");
+					 .defineDataEntry().asJexlScript("metadataD+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
-						.defineDataEntry().asJexlScript("calculated2+calculated4");
+					 .defineDataEntry().asJexlScript("calculated2+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
-						.defineDataEntry().asJexlScript("metadataA+calculated5");
+					 .defineDataEntry().asJexlScript("metadataA+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
-						.defineDataEntry().asJexlScript("metadataB+metadataC");
+					 .defineDataEntry().asJexlScript("metadataB+metadataC");
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);
@@ -400,8 +399,8 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			Boolean booleanMetadataValue = values.getValue(zeSchema.booleanMetadata().getLocalCode());
 			String referenceMetadataValue = values.getValue(zeSchema.referenceMetadata().getLocalCode());
 			recalculationCounter.incrementAndGet();
-			return StringUtils.join(new Object[] { stringMetadataValue, anotherStringMetadataValue, dateMetadataValue,
-					dateTimeMetadataValue, booleanMetadataValue, referenceMetadataValue }, ",");
+			return StringUtils.join(new Object[]{stringMetadataValue, anotherStringMetadataValue, dateMetadataValue,
+												 dateTimeMetadataValue, booleanMetadataValue, referenceMetadataValue}, ",");
 		}
 
 		@Override
@@ -431,7 +430,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 				return metadata.getLocalCode().equals(zeSchema.stringMetadata().getLocalCode())
-						|| metadata.getLocalCode().equals(zeSchema.booleanMetadata().getLocalCode());
+					   || metadata.getLocalCode().equals(zeSchema.booleanMetadata().getLocalCode());
 			}
 		};
 
@@ -442,7 +441,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			String stringMetadataValue = values.getValue(zeSchema.stringMetadata().getLocalCode());
 			Boolean booleanMetadataValue = values.getValue(zeSchema.booleanMetadata().getLocalCode());
 			recalculationCounter.incrementAndGet();
-			return StringUtils.join(new Object[] { stringMetadataValue, booleanMetadataValue }, ",");
+			return StringUtils.join(new Object[]{stringMetadataValue, booleanMetadataValue}, ",");
 		}
 
 		@Override
@@ -481,7 +480,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			DynamicDependencyValues values = parameters.get(dynamicLocalDependency);
 			String stringMetadataValue = values.getValue(zeSchema.stringMetadata().getLocalCode());
 			Boolean booleanMetadataValue = values.getValue(zeSchema.booleanMetadata().getLocalCode());
-			return StringUtils.join(new Object[] { stringMetadataValue, booleanMetadataValue }, ",");
+			return StringUtils.join(new Object[]{stringMetadataValue, booleanMetadataValue}, ",");
 		}
 
 		@Override

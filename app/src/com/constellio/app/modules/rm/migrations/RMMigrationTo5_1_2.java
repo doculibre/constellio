@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.data.utils.LangUtils.withoutDuplicates;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -33,6 +23,15 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo5_1_2 implements MigrationScript {
 
@@ -43,7 +42,7 @@ public class RMMigrationTo5_1_2 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor5_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -104,7 +103,7 @@ public class RMMigrationTo5_1_2 implements MigrationScript {
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_1_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -116,8 +115,9 @@ public class RMMigrationTo5_1_2 implements MigrationScript {
 		}
 	}
 
-	private void reloadEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void reloadEmailTemplates(AppLayerFactory appLayerFactory,
+									  MigrationResourcesProvider migrationResourcesProvider,
+									  String collection) {
 		reloadEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "remindReturnBorrowedFolderTemplate.html",
 				RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		reloadEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "approvalRequestForDecomListTemplate.html",
@@ -128,12 +128,13 @@ public class RMMigrationTo5_1_2 implements MigrationScript {
 				RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 	}
 
-	private void reloadEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void reloadEmailTemplate(AppLayerFactory appLayerFactory,
+									 MigrationResourcesProvider migrationResourcesProvider,
+									 String collection,
+									 String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-				.getEmailTemplatesManager();
+																	.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

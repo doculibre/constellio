@@ -1,26 +1,10 @@
 package com.constellio.data.io;
 
-import static java.io.File.createTempFile;
-import static java.util.Arrays.asList;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
+import com.constellio.data.io.services.facades.IOServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
@@ -44,11 +28,16 @@ import org.jodconverter.office.OnlineOfficeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
-import com.constellio.data.io.services.facades.IOServices;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static java.io.File.createTempFile;
+import static java.util.Arrays.asList;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 /**
  * Using https://github.com/sbraconnier/jodconverter
@@ -166,7 +155,7 @@ public class ConversionManager implements StatefulService {
 
 	static {
 		try {
-//			OfficeManager officeManager = LocalOfficeManager.builder().maxTasksPerProcess(10).install().build();
+			//			OfficeManager officeManager = LocalOfficeManager.builder().maxTasksPerProcess(10).install().build();
 			OfficeManager officeManager = LocalOfficeManager.install();
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 
@@ -223,7 +212,7 @@ public class ConversionManager implements StatefulService {
 	private static DataLayerSystemExtensions extensions;
 
 	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl,
-			DataLayerSystemExtensions extensions) {
+							 DataLayerSystemExtensions extensions) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
@@ -249,21 +238,21 @@ public class ConversionManager implements StatefulService {
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
 				officeManager = OnlineOfficeManager.builder().poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
-						.build();
+												   .build();
 
 				delegate = OnlineConverter.builder()
-						.officeManager(officeManager)
-						.formatRegistry(formatRegistry)
-						.build();
+										  .officeManager(officeManager)
+										  .formatRegistry(formatRegistry)
+										  .build();
 			} else {
 				int[] portNumbers = getPortNumbers();
 				officeManager = LocalOfficeManager.builder().install().portNumbers(portNumbers).build();
 
 				delegate =
 						LocalConverter.builder()
-								.officeManager(officeManager)
-								.formatRegistry(formatRegistry)
-								.build();
+									  .officeManager(officeManager)
+									  .formatRegistry(formatRegistry)
+									  .build();
 			}
 			try {
 				officeManager.start();
@@ -285,7 +274,8 @@ public class ConversionManager implements StatefulService {
 		return ports;
 	}
 
-	public Future<File> convertToPDFAsync(final InputStream inputStream, final String originalName, final File workingFolder) {
+	public Future<File> convertToPDFAsync(final InputStream inputStream, final String originalName,
+										  final File workingFolder) {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
 			return executor.submit(new Callable<File>() {

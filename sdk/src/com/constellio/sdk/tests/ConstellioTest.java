@@ -1,15 +1,14 @@
 package com.constellio.sdk.tests;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.mockito.MockitoAnnotations;
-
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
+import org.junit.Before;
+import org.mockito.MockitoAnnotations;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ConstellioTest extends AbstractConstellioTest {
 	protected Transaction tx;
@@ -67,7 +66,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 			PreserveState preserveStateAnnotation = getClass().getAnnotation(PreserveState.class);
 			if (preserveStateAnnotation.enabled()) {
 				testSession.getFileSystemTestFeatures()
-						.setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
+						   .setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
 			}
 		}
 		currentInstance = this;

@@ -1,12 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -24,6 +17,12 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 @MainTest
 public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
@@ -48,7 +47,7 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaTypes()) {
+															 .getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
 				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel(Language.French) + "' ");
 
@@ -68,13 +67,13 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 
 							if (typesVisibleInSearch.contains(type.getCode())) {
 								System.out.println(metadata.getCode() + " : " + metadataDisplayConfig.getInputType().name() + " "
-										+ metadataDisplayConfig.getDisplayType().name()
-										+ (metadataDisplayConfig.isVisibleInAdvancedSearch() ? " visibleInAdvancedSearch" : "")
-										+ (metadataDisplayConfig.isHighlight() ? " highlighted" : "")
+												   + metadataDisplayConfig.getDisplayType().name()
+												   + (metadataDisplayConfig.isVisibleInAdvancedSearch() ? " visibleInAdvancedSearch" : "")
+												   + (metadataDisplayConfig.isHighlight() ? " highlighted" : "")
 								);
 							} else {
 								System.out.println(metadata.getCode() + " : " + metadataDisplayConfig.getInputType().name() + " "
-										+ metadataDisplayConfig.getDisplayType().name() + " "
+												   + metadataDisplayConfig.getDisplayType().name() + " "
 								);
 							}
 

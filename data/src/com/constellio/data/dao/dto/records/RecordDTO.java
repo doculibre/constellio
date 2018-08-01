@@ -1,16 +1,11 @@
 package com.constellio.data.dao.dto.records;
 
-import static java.util.Arrays.asList;
+import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException;
+import static java.util.Arrays.asList;
 
 public class RecordDTO implements RecordsOperationDTO, Serializable {
 
@@ -33,7 +28,7 @@ public class RecordDTO implements RecordsOperationDTO, Serializable {
 	}
 
 	public RecordDTO(String id, long version, List<String> loadedFields, Map<String, Object> fields,
-			Map<String, Object> copyfields) {
+					 Map<String, Object> copyfields) {
 		super();
 		if (id == null) {
 			throw new RecordDaoRuntimeException("DTO Cannot have a null id");

@@ -103,7 +103,8 @@ public class RecordUpdateOptions {
 		return allowSchemaTypeLockedRecordsModification;
 	}
 
-	public RecordUpdateOptions setAllowSchemaTypeLockedRecordsModification(boolean allowSchemaTypeLockedRecordsModification) {
+	public RecordUpdateOptions setAllowSchemaTypeLockedRecordsModification(
+			boolean allowSchemaTypeLockedRecordsModification) {
 		this.allowSchemaTypeLockedRecordsModification = allowSchemaTypeLockedRecordsModification;
 		return this;
 	}
@@ -112,7 +113,8 @@ public class RecordUpdateOptions {
 		return skipUSRMetadatasRequirementValidations;
 	}
 
-	public RecordUpdateOptions setSkipUSRMetadatasRequirementValidations(boolean skipUSRMetadatasRequirementValidations) {
+	public RecordUpdateOptions setSkipUSRMetadatasRequirementValidations(
+			boolean skipUSRMetadatasRequirementValidations) {
 		this.skipUSRMetadatasRequirementValidations = skipUSRMetadatasRequirementValidations;
 		return this;
 	}
@@ -126,7 +128,8 @@ public class RecordUpdateOptions {
 		return this;
 	}
 
-	public RecordUpdateOptions setForcedReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {
+	public RecordUpdateOptions setForcedReindexationOfMetadatas(
+			TransactionRecordsReindexation transactionRecordsReindexation) {
 		this.transactionRecordsReindexation = transactionRecordsReindexation;
 		return this;
 	}
@@ -224,9 +227,9 @@ public class RecordUpdateOptions {
 
 	public static RecordUpdateOptions validationExceptionSafeOptions() {
 		return new RecordUpdateOptions().setSkipReferenceValidation(true).setValidationsEnabled(false)
-				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
-				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
-				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
+										.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
+										.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
+										.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
 	}
 
 	public static RecordUpdateOptions userModificationsSafeOptions() {

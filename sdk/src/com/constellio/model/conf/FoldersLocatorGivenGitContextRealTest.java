@@ -1,15 +1,8 @@
 package com.constellio.model.conf;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.conf.FoldersLocatorRuntimeException.NotAvailableInGitMode;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.FileAssert;
@@ -20,9 +13,15 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 
-import com.constellio.data.utils.LangUtils;
-import com.constellio.model.conf.FoldersLocatorRuntimeException.NotAvailableInGitMode;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -51,12 +50,12 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] {
-				{ givenJavaRootFolderIsConstellioProject }, { givenJavaRootFolderIsUIProject },
-				{ givenJavaRootFolderIsServicesProject }, { givenJavaRootFolderIsDaoProject },
-				{ givenJavaRootFolderIsCustomProject }, { givenJavaRootFolderIsSDKProject },
-				{ givenJavaRootFolderIsPluginsSDKProject }, { givenClassInBuildClassesMain },
-				{ givenClassInBin } });
+		return Arrays.asList(new Object[][]{
+				{givenJavaRootFolderIsConstellioProject}, {givenJavaRootFolderIsUIProject},
+				{givenJavaRootFolderIsServicesProject}, {givenJavaRootFolderIsDaoProject},
+				{givenJavaRootFolderIsCustomProject}, {givenJavaRootFolderIsSDKProject},
+				{givenJavaRootFolderIsPluginsSDKProject}, {givenClassInBuildClassesMain},
+				{givenClassInBin}});
 	}
 
 	@Before
@@ -142,7 +141,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	}
 
 	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder,
-			File customSettingsFolder) {
+											 File customSettingsFolder) {
 		FoldersLocator locator = spy(new FoldersLocator());
 		if (testCase == givenJavaRootFolderIsConstellioProject) {
 			doReturn(constellio).when(locator).getJavaRootFolder();

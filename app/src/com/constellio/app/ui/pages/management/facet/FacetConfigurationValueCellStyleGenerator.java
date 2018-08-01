@@ -1,9 +1,9 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import java.util.List;
-
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
+
+import java.util.List;
 
 public class FacetConfigurationValueCellStyleGenerator implements CellStyleGenerator {
 

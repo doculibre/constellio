@@ -1,11 +1,5 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -24,6 +18,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class CoreNavigationConfiguration implements Serializable {
 
@@ -140,7 +140,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
 			}
 		});
@@ -154,7 +154,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP));
 			}
 		});
@@ -168,7 +168,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS));
 			}
 		});
@@ -181,7 +181,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS));
 			}
 		});
@@ -194,7 +194,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS));
 			}
 		});
@@ -207,7 +207,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
 			}
 		});
@@ -220,7 +220,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS));
 			}
 		});
@@ -233,7 +233,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -246,7 +246,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -260,7 +260,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -276,7 +276,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_UPDATES));
 			}
 		});
@@ -290,7 +290,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
-						|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+								 || userServices.has(user).allGlobalPermissionsInAnyCollection(
 						CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY));
 			}
 		});
@@ -349,7 +349,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(user.hasAny(CorePermissions.MANAGE_LABELS, CorePermissions.MANAGE_EXCEL_REPORT,
 						CorePermissions.MANAGE_PRINTABLE_REPORT).globally());
 			}
@@ -442,7 +442,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
-						.has(user.getUsername());
+																		 .has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -480,8 +480,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
-						|| user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
-						.globally());
+								 || user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
+										.globally());
 			}
 		});
 	}
@@ -540,7 +540,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 						UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 						boolean canManageSystem = userServices.has(user.getUsername())
-								.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
+															  .anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
 						return visibleIf(canManageCollection || canManageSystem);
 					}
 				});

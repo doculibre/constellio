@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -10,17 +9,17 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import java.util.List;
 
 public interface RecordWithCopyRetentionRuleParametersFields extends SessionContextProvider {
-    CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField();
+	CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField();
 
-    CopyRetentionRuleField getCopyRetentionRuleField();
+	CopyRetentionRuleField getCopyRetentionRuleField();
 
-    String getSchemaType();
+	String getSchemaType();
 
-    LogicalSearchQuery getQuery();
+	LogicalSearchQuery getQuery();
 
-    List<String> getSelectedRecords();
+	List<String> getSelectedRecords();
 
-    String getType();
+	String getType();
 
-    FolderCopyStatusEnteredFieldImpl getFolderCopyStatusEnteredField();
+	FolderCopyStatusEnteredFieldImpl getFolderCopyStatusEnteredField();
 }

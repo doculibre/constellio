@@ -1,11 +1,5 @@
 package com.constellio.model.services.batch.actions;
 
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -16,7 +10,12 @@ import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.sun.star.xforms.Model;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 
 public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessAction {
 	final Map<String, Object> metadataChangedValues;
@@ -26,7 +25,8 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 	}
 
 	@Override
-	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
+	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes,
+							   RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
 		SchemaUtils utils = new SchemaUtils();
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 		for (Record record : batch) {
@@ -49,7 +49,7 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 				}
 			}
 			modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
-					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, user));
+							 .batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, user));
 		}
 		transaction.addUpdate(batch);
 		return transaction;
@@ -57,6 +57,6 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { metadataChangedValues };
+		return new Object[]{metadataChangedValues};
 	}
 }

@@ -1,36 +1,10 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY;
-import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ObjectAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.model.entities.records.Record;
@@ -50,6 +24,27 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ObjectAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAcceptTest extends ConstellioTest {
 
@@ -78,7 +73,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 		prepareSystem(
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
@@ -657,7 +652,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = toTitle(i);
 			rootCategories.add(rm.newCategoryWithId(code).setCode(code).setTitle("Title " + toTitle((20000 - i)))
-					.setRetentionRules(asList(records.ruleId_1)));
+								 .setRetentionRules(asList(records.ruleId_1)));
 		}
 		Category category42 = rootCategories.get(41);
 		addRecordsInRandomOrder(rootCategories);
@@ -666,7 +661,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = "42_" + toTitle(i);
 			childCategories.add(rm.newCategoryWithId(code).setRetentionRules(asList(records.ruleId_1))
-					.setParent(category42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
+								  .setParent(category42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
 		}
 		Category category42_42 = childCategories.get(41);
 		addRecordsInRandomOrder(childCategories);
@@ -724,7 +719,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = toTitle(1000 + i);
 			rootAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code).setCode(code)
-					.setTitle("Title " + toTitle(20000 - i)));
+										  .setTitle("Title " + toTitle(20000 - i)));
 		}
 		AdministrativeUnit unit42 = rootAdministrativeUnits.get(41);
 		addRecordsInRandomOrder(rootAdministrativeUnits);
@@ -733,7 +728,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = "42_" + toTitle(i);
 			childAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code)
-					.setParent(unit42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
+										   .setParent(unit42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
 		}
 		AdministrativeUnit unit42_666 = childAdministrativeUnits.get(41);
 		addRecordsInRandomOrder(childAdministrativeUnits);
@@ -784,12 +779,12 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	private Folder newFolderInCategory(Category category, String title) {
 		return rm.newFolder().setCategoryEntered(category).setTitle(title).setOpenDate(new LocalDate())
-				.setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(records.unitId_10a);
+				 .setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(records.unitId_10a);
 	}
 
 	private Folder newFolderInUnit(AdministrativeUnit unit, String title) {
 		return rm.newFolder().setCategoryEntered(records.categoryId_X100).setTitle(title).setOpenDate(new LocalDate())
-				.setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(unit);
+				 .setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(unit);
 	}
 
 	private String toTitle(int i) {
@@ -822,14 +817,14 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " NumFound")
-						.isEqualTo(expectedCount);
+															 .isEqualTo(expectedCount);
 				assertThat(value.firstAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
-						.isEqualTo(expectedCount);
+																   .isEqualTo(expectedCount);
 
 				assertThat(value.secondAnswer().getNumFound()).describedAs(description().toString() + " NumFound")
-						.isEqualTo(expectedCount);
+															  .isEqualTo(expectedCount);
 				assertThat(value.secondAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
-						.isEqualTo(expectedCount);
+																	.isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -1031,11 +1026,13 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	private ConditionTemplate withoutFilters = null;
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(
+			User user) {
 		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final int start,
 			final int rows) {
 		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
@@ -1060,7 +1057,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final TaxonomiesSearchOptions options) {
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 
@@ -1095,12 +1093,14 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(
+			User user,
 			String category) {
 		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, 10000);
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final String category,
 			final int start, final int rows) {
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
@@ -1110,7 +1110,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				LinkableTaxonomySearchResponse response = service
 						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
 								new TaxonomiesSearchOptions().setStartRow(start).setRows(rows)
-										.setHasChildrenFlagCalculated(NEVER));
+															 .setHasChildrenFlagCalculated(NEVER));
 
 				if (rows == 10000) {
 					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
@@ -1121,7 +1121,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingPlanTaxonomy(
+			final User user,
 			final String category, final TaxonomiesSearchOptions options) {
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 			@Override
@@ -1212,8 +1213,9 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries, final int queryResults,
-			final int facets) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
+																					final int queryResults,
+																					final int facets) {
 
 		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
@@ -1224,7 +1226,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
+									   .isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);
@@ -1236,8 +1238,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 	}
 
 	private Condition<? super LinkableTaxonomySearchResponseCaller> secondSolrQueryCounts(final int queries,
-			final int queryResults,
-			final int facets) {
+																						  final int queryResults,
+																						  final int facets) {
 
 		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
@@ -1248,7 +1250,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
+									   .isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);

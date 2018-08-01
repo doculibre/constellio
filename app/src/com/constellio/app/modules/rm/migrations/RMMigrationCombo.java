@@ -1,22 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.Language.French;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -25,11 +8,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -39,11 +18,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -60,6 +35,18 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.IOUtils;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.Language.French;
+import static java.util.Arrays.asList;
 
 public class RMMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -138,7 +125,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 	GeneratedRMMigrationCombo generatedComboMigration;
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		generatedComboMigration = new GeneratedRMMigrationCombo(collection, appLayerFactory,
@@ -202,7 +190,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		SchemaDisplayConfig userDocument = manager.getSchema(collection, "userDocument_default");
 		transaction.add(userDocument.withRemovedDisplayMetadatas("userDocument_default_folder")
-				.withRemovedFormMetadatas("userDocument_default_folder"));
+									.withRemovedFormMetadatas("userDocument_default_folder"));
 
 		SchemaDisplayConfig container = manager.getSchema(collection, ContainerRecord.DEFAULT_SCHEMA);
 		//container = container.withNewFormMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FILL_RATIO_ENTRED);
@@ -211,47 +199,48 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		manager.execute(transaction.build());
 	}
 
-	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
+	private Transaction createRecordTransaction(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
 		Transaction transaction = new Transaction();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
-				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
-				.setAnalogical(true));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
+						  .setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
-				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
-				.setAnalogical(true));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
+						  .setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
-				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
-				.setAnalogical(false));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
+						  .setAnalogical(false));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
-				.setLinkedSchema(Email.SCHEMA));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
+						  .setLinkedSchema(Email.SCHEMA));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("888")
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888")));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888")));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("999")
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999")));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999")));
 
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
 		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
-				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
+						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
 
 		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.folderType"))
-				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
+						  .setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
 		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.documentType"))
-				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
+						  .setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
 		try {
 			transaction = createDefaultLabel(collection, appLayerFactory, migrationResourcesProvider, transaction);
@@ -268,8 +257,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		return transaction;
 	}
 
-	public Transaction createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider,
-			Transaction trans)
+	public Transaction createDefaultLabel(String collection, AppLayerFactory factory,
+										  MigrationResourcesProvider provider,
+										  Transaction trans)
 			throws FileNotFoundException {
 		Map<String, Integer> map = new HashMap<>();
 		map.put("5159", 7);
@@ -280,7 +270,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		RecordServices rs = model.newRecordServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, factory);
 		MetadataSchemaType metaBuilder = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaType(Printable.SCHEMA_TYPE);
+												.getSchemaType(Printable.SCHEMA_TYPE);
 		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
 		ContentManager contentManager = model.getContentManager();
 		UserServices userServices = model.newUserServices();
@@ -298,8 +288,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 			if (type.equals(Folder.SCHEMA_TYPE)) {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
-						provider.getDefaultLanguageString("Migration.typeAveryDroite") :
-						provider.getDefaultLanguageString("Migration.typeAveryGauche"));
+																								   provider.getDefaultLanguageString("Migration.typeAveryDroite") :
+																								   provider.getDefaultLanguageString("Migration.typeAveryGauche"));
 			} else {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
 			}
@@ -309,9 +299,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), true);
 			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type).setParse(false)
-					.setHandleDeletionOfUnreferencedHashes(false);
+																								.setHandleDeletionOfUnreferencedHashes(false);
 			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), options)
-					.getContentVersionDataSummary();
+															 .getContentVersionDataSummary();
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
 					contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
@@ -337,7 +327,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlteration(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -372,10 +363,10 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
 
 			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).getMetadata(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
-					.addProperty("subject").addProperty("title");
+						.addProperty("subject").addProperty("title");
 
 			typesBuilder.getSchema(Email.SCHEMA).getMetadata(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
-					.addProperty("subject");
+						.addProperty("subject");
 
 			for (String metadata : asList("administrativeUnit_default_description", "administrativeUnit_default_title",
 					"category_default_description", "category_default_keywords", "category_default_title",
@@ -398,8 +389,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection) {
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "remindReturnBorrowedFolderTemplate.html",
 				RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "approvalRequestForDecomListTemplate.html",
@@ -413,12 +405,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection,
+								   String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-				.getEmailTemplatesManager();
+																	.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

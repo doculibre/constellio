@@ -1,12 +1,5 @@
 package com.constellio.app.services.factories;
 
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
 import com.constellio.app.services.appManagement.GetWarVersionUtils;
@@ -24,6 +17,12 @@ import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConstellioFactories {
 
@@ -73,7 +72,7 @@ public class ConstellioFactories {
 	}
 
 	public static ConstellioFactories getInstance(final File propertyFile,
-			final ConstellioFactoriesDecorator decorator) {
+												  final ConstellioFactoriesDecorator decorator) {
 		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
 			@Override
 			public ConstellioFactories get() {
@@ -103,7 +102,8 @@ public class ConstellioFactories {
 	//		getInstance(propertyFile, decorator);
 	//	}
 
-	public static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator, String instanceName) {
+	public static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator,
+											   String instanceName) {
 		ConstellioFactories factories = new ConstellioFactories();
 
 		factories.propertyFile = propertyFile;

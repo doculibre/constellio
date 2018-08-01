@@ -1,15 +1,11 @@
 package com.constellio.app.ui.framework.data.trees;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -18,6 +14,9 @@ import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.users.UserServices;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchemaTitlePath;
 
 public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 
@@ -28,14 +27,15 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize, FastContinueInfos infos) {
+	public LinkableTaxonomySearchResponse getChildrenNodes(String parentId, int start, int maxSize,
+														   FastContinueInfos infos) {
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		User currentUser = getCurrentUser(modelLayerFactory);
 		Record record = getRecord(modelLayerFactory, parentId);
 
 		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
 		return modelLayerFactory.newTaxonomiesSearchService()
-				.getVisibleChildConceptResponse(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
+								.getVisibleChildConceptResponse(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
 	}
 
 	@Override
@@ -57,10 +57,10 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
-						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+																	  .withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		Boolean showOnlyTriangleIfContent = modelLayerFactory.getSystemConfigurationsManager().<Boolean>getValue(ConstellioEIMConfigs.SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT);
-		if(showOnlyTriangleIfContent) {
+		if (showOnlyTriangleIfContent) {
 			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.ALWAYS);
 		} else {
 			options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.CONCEPTS_ONLY);

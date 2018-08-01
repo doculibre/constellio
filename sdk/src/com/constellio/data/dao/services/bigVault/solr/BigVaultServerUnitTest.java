@@ -1,22 +1,12 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.LATER;
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static com.constellio.data.dao.dto.records.RecordsFlushing.WITHIN_MILLISECONDS;
-import static com.constellio.data.dao.dto.records.RecordsFlushing.WITHIN_SECONDS;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
+import com.constellio.data.dao.services.solr.SolrServerFactory;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
@@ -32,13 +22,14 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
-import com.constellio.data.dao.services.solr.SolrServerFactory;
-import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.data.dao.dto.records.RecordsFlushing.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class BigVaultServerUnitTest extends ConstellioTest {
 	@Mock DataLayerSystemExtensions extensions;
@@ -82,9 +73,9 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		BigVaultServerTransaction t1, t2, t3, t4;
 
 		bigVaultServer.addAll(t1 = new BigVaultServerTransaction(LATER).setNewDocuments(transaction1NewDocs)
-				.setUpdatedDocuments(transaction1UpdatedDocs));
+																	   .setUpdatedDocuments(transaction1UpdatedDocs));
 		bigVaultServer.addAll(t2 = new BigVaultServerTransaction(NOW).setNewDocuments(transaction2NewDocs)
-				.setDeletedRecords(deletedDocs1));
+																	 .setDeletedRecords(deletedDocs1));
 		bigVaultServer.addAll(t3 = new BigVaultServerTransaction(WITHIN_SECONDS(1))
 				.setUpdatedDocuments(transaction3UpdatedDocs).setDeletedRecords(deletedDocs2));
 		bigVaultServer.addAll(t4 = new BigVaultServerTransaction(WITHIN_MILLISECONDS(2)).setDeletedRecords(deletedDocs3));
@@ -197,7 +188,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(e.code()).thenReturn(500);
 		when(e.getMessage()).thenReturn("Ze message");
 		doThrow(e).when(bigVaultServer)
-				.addAndCommit(transaction);
+				  .addAndCommit(transaction);
 
 		bigVaultServer.tryAddAll(transaction, 3);
 
@@ -215,7 +206,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(e.getMessage()).thenReturn(
 				"version conflict for e80fda8a-f842-48de-9ccf-c6ec847a18f7 expected=1487130319535472640 actual=1487130319704293376");
 		doThrow(e).when(bigVaultServer)
-				.addAndCommit(transaction);
+				  .addAndCommit(transaction);
 
 		bigVaultServer.tryAddAll(transaction, 3);
 
@@ -232,7 +223,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(e.code()).thenReturn(500);
 		when(e.getMessage()).thenReturn("Document not found for update.  id=idx_act_idOfAnotherNonExistentIndex");
 		doThrow(e).when(bigVaultServer)
-				.addAndCommit(transaction);
+				  .addAndCommit(transaction);
 
 		bigVaultServer.tryAddAll(transaction, 3);
 

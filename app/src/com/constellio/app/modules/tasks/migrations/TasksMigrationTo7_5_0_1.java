@@ -19,7 +19,8 @@ public class TasksMigrationTo7_5_0_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new TaskSchemaAlterationFor7_5_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
@@ -32,30 +33,30 @@ public class TasksMigrationTo7_5_0_1 implements MigrationScript {
 		String remindersTab = "init.userTask.remindersTab";
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.REMINDER_FREQUENCY)
-				.withMetadataGroup(remindersTab));
+							   .withMetadataGroup(remindersTab));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ESCALATION_ASSIGNEE)
-				.withMetadataGroup(remindersTab));
+							   .withMetadataGroup(remindersTab));
 		manager.execute(transaction);
 	}
 
 	private class TaskSchemaAlterationFor7_5_0_1 extends MetadataSchemasAlterationHelper {
 
 		public TaskSchemaAlterationFor7_5_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-											AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING)
-					.addLabel(Language.French,"Fréquence de rappel").addLabel(Language.English,"Reminder frequency");
+						.addLabel(Language.French, "Fréquence de rappel").addLabel(Language.English, "Reminder frequency");
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.LAST_REMINDER).setType(MetadataValueType.DATE_TIME)
-					.setSystemReserved(true);
+						.setSystemReserved(true);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.NUMBER_OF_REMINDERS).setType(MetadataValueType.NUMBER)
-					.setSystemReserved(true).setDefaultValue(0);
+						.setSystemReserved(true).setDefaultValue(0);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.ESCALATION_ASSIGNEE).setType(MetadataValueType.REFERENCE)
-					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE))
-					.addLabel(Language.French,"Personne assignée à l'escalade").addLabel(Language.English,"Escalation assignee");
+						.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE))
+						.addLabel(Language.French, "Personne assignée à l'escalade").addLabel(Language.English, "Escalation assignee");
 		}
 	}
 }

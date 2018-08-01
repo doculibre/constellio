@@ -63,7 +63,8 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	@Override
-	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(GetTaxonomyManagementClassifiedTypesParams params) {
+	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(
+			GetTaxonomyManagementClassifiedTypesParams params) {
 		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
 		SessionContextProvider sessionContextProvider = params.getSessionContextProvider();
 		String conceptId = params.getRecord().getId();
@@ -109,7 +110,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	@Override
 	public ExtensionBooleanResult displayTaxonomy(User user, Taxonomy taxonomy) {
 		if (taxonomy.getCode().equals(RMTaxonomies.ADMINISTRATIVE_UNITS) || taxonomy.getCode()
-				.equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
+																					.equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
 			return ExtensionBooleanResult.FALSE;
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
@@ -140,7 +141,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedFolderInAdministrativeUnits(final String conceptId,
-			final SessionContextProvider sessionContextProvider) {
+																					  final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
 			@Override
 			public MetadataSchemaTypeVO getSchemaType() {
@@ -168,7 +169,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedRetentionRuleWithAdministrativeUnit(final String conceptId,
-			final SessionContextProvider sessionContextProvider) {
+																							  final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
 			@Override
 			public MetadataSchemaTypeVO getSchemaType() {
@@ -196,7 +197,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedFolderInCategory(final String conceptId,
-			final SessionContextProvider sessionContextProvider) {
+																		   final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
 			@Override
 			public MetadataSchemaTypeVO getSchemaType() {
@@ -223,7 +224,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private RecordVODataProvider newRuleDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
-			SessionContextProvider sessionContextProvider) {
+													 SessionContextProvider sessionContextProvider) {
 
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
@@ -241,7 +242,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
-			SessionContextProvider sessionContextProvider) {
+													   SessionContextProvider sessionContextProvider) {
 
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();

@@ -7,28 +7,28 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import java.util.List;
 
 public class ThesaurusConfig extends RecordWrapper {
-    public static final String SCHEMA_TYPE = "thesaurusConfig";
-    public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-    public static final String CONTENT = "content";
-    public static final String DENINED_WORDS = "deniedWord";
+	public static final String SCHEMA_TYPE = "thesaurusConfig";
+	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String CONTENT = "content";
+	public static final String DENINED_WORDS = "deniedWord";
 
-    public ThesaurusConfig(Record record, MetadataSchemaTypes types) {
-        super(record, types, SCHEMA_TYPE);
-    }
+	public ThesaurusConfig(Record record, MetadataSchemaTypes types) {
+		super(record, types, SCHEMA_TYPE);
+	}
 
-    public Content getContent() {
-        return get(CONTENT);
-    }
+	public Content getContent() {
+		return get(CONTENT);
+	}
 
-    public void setContent(Content content) {
-        set(CONTENT, content);
-    }
+	public void setContent(Content content) {
+		set(CONTENT, content);
+	}
 
-    public List<String> getDenidedWords() {
-        return get(DENINED_WORDS);
-    }
+	public List<String> getDenidedWords() {
+		return get(DENINED_WORDS);
+	}
 
-    public void setDenidedWords(List<String> denidedWords) {
-        set(DENINED_WORDS, denidedWords);
-    }
+	public void setDenidedWords(List<String> denidedWords) {
+		set(DENINED_WORDS, denidedWords);
+	}
 }

@@ -5,20 +5,18 @@ import com.constellio.app.services.records.SystemCheckManager;
 import com.constellio.app.services.records.SystemCheckReportBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.server.StreamResource;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.List;
 
 
@@ -31,7 +29,7 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 	}
 
 	public SystemCheckPresenter(SystemCheckView view, ConstellioFactories constellioFactories,
-			SessionContext sessionContext) {
+								SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 	}
 
@@ -39,7 +37,7 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 	protected boolean hasPageAccess(String params, User user) {
 		UserServices userServices = userServices();
 		return userServices.getUser(user.getUsername()).isSystemAdmin()
-				|| userServices.has(user).allGlobalPermissionsInAnyCollection(
+			   || userServices.has(user).allGlobalPermissionsInAnyCollection(
 				CorePermissions.MANAGE_SYSTEM_COLLECTIONS, CorePermissions.MANAGE_SECURITY);
 	}
 

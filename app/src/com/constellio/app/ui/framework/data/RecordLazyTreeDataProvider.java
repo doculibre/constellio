@@ -5,9 +5,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.app.ui.framework.data.trees.VisibleRecordTreeNodesDataProvider;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 
 public class RecordLazyTreeDataProvider extends BaseRecordTreeDataProvider implements LazyTreeDataProvider<String> {
@@ -16,7 +13,7 @@ public class RecordLazyTreeDataProvider extends BaseRecordTreeDataProvider imple
 
 
 	public RecordLazyTreeDataProvider(String taxonomyCode, String collection) {
-		super(getTreeDataProvider(taxonomyCode,collection));
+		super(getTreeDataProvider(taxonomyCode, collection));
 		this.taxonomyCode = taxonomyCode;
 	}
 
@@ -25,20 +22,20 @@ public class RecordLazyTreeDataProvider extends BaseRecordTreeDataProvider imple
 	}
 
 
-	public static RecordTreeNodesDataProvider getTreeDataProvider(String taxnomieCode,String collection) {
+	public static RecordTreeNodesDataProvider getTreeDataProvider(String taxnomieCode, String collection) {
 		AppLayerFactory appLayerFactory = getInstance().getAppLayerFactory();
 
 		RecordTreeNodesDataProvider recordTreeNodesDataProvider = null;
 
-		for(TreeNodeExtension treeNodeAppExtension : appLayerFactory.getExtensions()
-				.forCollection(collection).treeNodeAppExtension) {
+		for (TreeNodeExtension treeNodeAppExtension : appLayerFactory.getExtensions()
+																	 .forCollection(collection).treeNodeAppExtension) {
 			recordTreeNodesDataProvider = treeNodeAppExtension.getTreeNodeFor(taxnomieCode, appLayerFactory);
-			if(recordTreeNodesDataProvider != null){
+			if (recordTreeNodesDataProvider != null) {
 				break;
 			}
 		}
 
-		if(recordTreeNodesDataProvider == null) {
+		if (recordTreeNodesDataProvider == null) {
 			recordTreeNodesDataProvider = new VisibleRecordTreeNodesDataProvider(taxnomieCode);
 		}
 

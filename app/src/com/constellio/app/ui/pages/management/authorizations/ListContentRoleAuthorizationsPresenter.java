@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -18,6 +12,12 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 
 public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPresenter {
 

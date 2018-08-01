@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.navigation;
 
-import java.io.Serializable;
-
 import com.constellio.app.ui.entities.RecordVO;
+
+import java.io.Serializable;
 
 public interface RecordNavigationHandler extends Serializable {
 

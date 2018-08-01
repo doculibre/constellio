@@ -1,11 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.WorkflowTask;
@@ -15,6 +9,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import org.junit.Test;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 @MainTest
 public class PrintRMSchemasAcceptTest extends ConstellioTest {
@@ -35,7 +34,7 @@ public class PrintRMSchemasAcceptTest extends ConstellioTest {
 		System.out.println("Utiliser http://yuml.me pour générer le diagramme.");
 
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaTypes()) {
+															 .getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
 				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel(Language.French) + "' ");
 				for (Metadata metadata : type.getAllMetadatas()) {

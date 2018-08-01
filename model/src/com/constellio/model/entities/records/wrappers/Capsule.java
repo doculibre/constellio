@@ -1,12 +1,12 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Capsule extends RecordWrapper {
 
@@ -19,9 +19,9 @@ public class Capsule extends RecordWrapper {
 	public static final String HTML = "html";
 
 	public static final String KEYWORDS = "keywords";
-	
+
 	public static final String LANGUAGE = "language";
-	
+
 	public static final String IMAGES = "images";
 
 	public Capsule(Record record, MetadataSchemaTypes types) {

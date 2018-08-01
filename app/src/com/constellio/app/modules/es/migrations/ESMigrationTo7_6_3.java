@@ -19,7 +19,8 @@ public class ESMigrationTo7_6_3 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
@@ -39,7 +40,7 @@ public class ESMigrationTo7_6_3 extends MigrationHelper implements MigrationScri
 			MetadataList metadataList = schema.getMetadatas().onlySearchable();
 			for (Metadata metadata : metadataList) {
 				transaction.add(metadataSchemasDisplayManager.getMetadata(collection, metadata.getCode())
-						.withHighlightStatus(true));
+															 .withHighlightStatus(true));
 			}
 		}
 		metadataSchemasDisplayManager.execute(transaction);

@@ -1,37 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.assertj.core.api.BooleanAssert;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -47,18 +15,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
-import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
-import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
-import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.records.RecordDeleteServices;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.*;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -72,6 +32,28 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.BooleanAssert;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+import org.joda.time.LocalDate;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
+import static com.constellio.model.entities.security.Role.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
@@ -116,7 +98,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected String auth1, auth2, auth3, auth4, auth5, auth6, auth7;
 
-	String[] allUsers = new String[] { alice, bob, charles, dakota, edouard, gandalf, chuck, sasquatch, robin };
+	String[] allUsers = new String[]{alice, bob, charles, dakota, edouard, gandalf, chuck, sasquatch, robin};
 
 	@Before
 	public void setUp()
@@ -207,9 +189,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		recordServices.getRecordsCaches().getCache(zeCollection)
-				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
+					  .configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
 		recordServices.getRecordsCaches().getCache(anotherCollection)
-				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
+					  .configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
 	}
 
 	protected ListAssert<String> assertThatBatchProcessDuringTest() {
@@ -367,7 +349,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 					.extracting("username");
 		}
 
-		public ListAssert<Object> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission) {
+		public ListAssert<Object> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(
+				String permission) {
 			return assertThat(
 					services.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(permission, get(recordId)))
 					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")
@@ -445,16 +428,16 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
-				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+																							   .setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
-					+ "' using wrapper method, but not using search");
+				 + "' using wrapper method, but not using search");
 		}
 
 		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
-					+ "' using search, but not using wrapper method");
+				 + "' using search, but not using wrapper method");
 		}
 		return hasAccessUsingWrapperMethod;
 	}
@@ -463,16 +446,16 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserWrite(user)
-				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+																							   .setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
-					+ "' using wrapper method, but not using search");
+				 + "' using wrapper method, but not using search");
 		}
 
 		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
-					+ "' using search, but not using wrapper method");
+				 + "' using search, but not using wrapper method");
 		}
 		return hasAccessUsingWrapperMethod;
 	}
@@ -481,16 +464,16 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasDeleteAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserDelete(user)
-				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+																							   .setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
-					+ "' using wrapper method, but not using search");
+				 + "' using wrapper method, but not using search");
 		}
 
 		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
-					+ "' using search, but not using wrapper method");
+				 + "' using search, but not using wrapper method");
 		}
 		return hasAccessUsingWrapperMethod;
 	}
@@ -533,7 +516,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected AuthorizationAddRequest authorizationForUser(String username) {
 
-		User[] usersArray = new User[] { userServices.getUserInCollection(username, zeCollection) };
+		User[] usersArray = new User[]{userServices.getUserInCollection(username, zeCollection)};
 		return authorizationInCollection(zeCollection).forUsers(usersArray);
 	}
 
@@ -550,7 +533,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected AuthorizationAddRequest authorizationForGroup(String group) {
 
-		Group[] groupsArray = new Group[] { userServices.getGroupInCollection(group, zeCollection) };
+		Group[] groupsArray = new Group[]{userServices.getGroupInCollection(group, zeCollection)};
 		return authorizationInCollection(zeCollection).forGroups(groupsArray);
 	}
 
@@ -602,7 +585,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public VerifiedAuthorization forPrincipalIds(List<String> principals) {
-			this.principals = new HashSet<>(toPrincipalCodes(principals.toArray(new String[] {})));
+			this.principals = new HashSet<>(toPrincipalCodes(principals.toArray(new String[]{})));
 			return this;
 		}
 
@@ -683,12 +666,12 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		@Override
 		public String toString() {
 			return "{recordId='" + recordId + '\'' +
-					",  principals=" + principals +
-					",  removedOnRecords=" + removedOnRecords +
-					",  roles=" + roles +
-					",  start=" + start +
-					",  end=" + end +
-					'}';
+				   ",  principals=" + principals +
+				   ",  removedOnRecords=" + removedOnRecords +
+				   ",  roles=" + roles +
+				   ",  start=" + start +
+				   ",  end=" + end +
+				   '}';
 		}
 	}
 
@@ -696,7 +679,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		List<String> authorizations = new ArrayList<>();
 		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-				.getAuthorizationsDetails(zeCollection).values()) {
+																  .getAuthorizationsDetails(zeCollection).values()) {
 			authorizations.add(details.getId());
 		}
 
@@ -825,7 +808,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			Authorization authorization = services
 					.getAuthorization(zeCollection, authId);
 			assertThat(authorization.getGrantedToPrincipals()).describedAs("principals")
-					.containsOnly(expectedPrincipals.toArray(new String[0]));
+															  .containsOnly(expectedPrincipals.toArray(new String[0]));
 			return this;
 		}
 
@@ -1030,17 +1013,18 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	@Deprecated
 	protected Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			String grantedOnRecord) {
+															 String grantedOnRecord) {
 		return addAuthorizationWithoutDetaching(aString(), roles, grantedToPrincipals, grantedOnRecord);
 	}
 
 	@Deprecated
-	protected Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
-			String grantedOnRecord) {
+	protected Authorization addAuthorizationWithoutDetaching(String id, List<String> roles,
+															 List<String> grantedToPrincipals,
+															 String grantedOnRecord) {
 
 		id = services.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
-				.on(grantedOnRecord)
-				.giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
+																		   .on(grantedOnRecord)
+																		   .giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
 
 		return services.getAuthorization(zeCollection, id);
 	}

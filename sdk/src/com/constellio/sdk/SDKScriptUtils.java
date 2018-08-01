@@ -1,10 +1,5 @@
 package com.constellio.sdk;
 
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -15,6 +10,11 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.authentification.AuthenticationService;
+
+import java.io.File;
+
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by dakota on 11/9/15.
@@ -30,7 +30,8 @@ public class SDKScriptUtils {
 			}
 
 			@Override
-			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+			public ModelLayerConfiguration decorateModelLayerConfiguration(
+					ModelLayerConfiguration modelLayerConfiguration) {
 
 				File keyTxt = new File(modelLayerConfiguration.getDataLayerConfiguration().getSettingsFileSystemBaseFolder(),
 						"key.txt");
@@ -49,7 +50,8 @@ public class SDKScriptUtils {
 			}
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 
 				dataLayerConfiguration.setBackgroundThreadsEnabled(false);
 				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
@@ -100,13 +102,15 @@ public class SDKScriptUtils {
 			}
 
 			@Override
-			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+			public ModelLayerConfiguration decorateModelLayerConfiguration(
+					ModelLayerConfiguration modelLayerConfiguration) {
 				modelLayerConfiguration.setBatchProcessesEnabled(true);
 				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
 			}
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 				dataLayerConfiguration.setBackgroundThreadsEnabled(false);
 				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
 			}
@@ -156,13 +160,15 @@ public class SDKScriptUtils {
 			}
 
 			@Override
-			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+			public ModelLayerConfiguration decorateModelLayerConfiguration(
+					ModelLayerConfiguration modelLayerConfiguration) {
 				modelLayerConfiguration.setBatchProcessesEnabled(true);
 				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
 			}
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 				dataLayerConfiguration.setBackgroundThreadsEnabled(true);
 				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
 			}

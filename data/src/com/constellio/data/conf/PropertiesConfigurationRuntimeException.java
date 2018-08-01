@@ -29,9 +29,9 @@ public class PropertiesConfigurationRuntimeException extends RuntimeException {
 		}
 
 		public PropertiesConfigurationRuntimeException_InvalidConfigValue(String key, String value,
-				String supportedValuesString) {
+																		  String supportedValuesString) {
 			super("Invalid property '" + key + "' value '" + value + "' is invalid. Supported values are : "
-					+ supportedValuesString);
+				  + supportedValuesString);
 		}
 	}
 

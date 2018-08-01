@@ -13,7 +13,7 @@ public class CoreMigrationTo_5_0_2 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 	}
 }

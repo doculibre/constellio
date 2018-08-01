@@ -1,13 +1,5 @@
 package com.constellio.model.services.records.validators;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -16,6 +8,13 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.validators.RecordPermissionValidator;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 public class RecordPermissionValidatorTest extends ConstellioTest {
 

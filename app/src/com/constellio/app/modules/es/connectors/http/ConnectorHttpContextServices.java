@@ -1,22 +1,15 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import org.apache.commons.io.FileUtils;
+
+import java.io.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ConnectorHttpContextServices {
 
@@ -53,7 +46,7 @@ public class ConnectorHttpContextServices {
 				String vaultFilePath = "connectors/" + context.getConnectorId() + "/fetchedUrls.txt";
 
 				tempFileInputStream = es.getIOServices()
-						.newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
+										.newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
 				//String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
 				contentDao.add(vaultFilePath, tempFileInputStream);
 				//			if (add) {

@@ -1,10 +1,8 @@
 package com.constellio.app.ui.tools.components.listAddRemove;
 
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.tools.components.basic.DateFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.joda.time.LocalDateTime;
 
 public class ListAddRemoveDateTimeFieldWebElement extends ListAddRemoveFieldWebElement<DateFieldWebElement> {
 
@@ -16,9 +14,10 @@ public class ListAddRemoveDateTimeFieldWebElement extends ListAddRemoveFieldWebE
 	protected DateFieldWebElement wrapInputElement(ConstellioWebElement element) {
 		return new DateFieldWebElement(element, "yyyy-MM-dd hh:mm:ss");
 	}
-	
+
 	public ListAddRemoveDateTimeFieldWebElement add(LocalDateTime value) {
-		getInputComponent().setValueWithTime(value);;
+		getInputComponent().setValueWithTime(value);
+		;
 		super.clickAdd();
 		return this;
 	}
@@ -32,6 +31,6 @@ public class ListAddRemoveDateTimeFieldWebElement extends ListAddRemoveFieldWebE
 	public ListAddRemoveDateTimeFieldWebElement remove(int index) {
 		super.remove(index);
 		return this;
-	}	
+	}
 }
 

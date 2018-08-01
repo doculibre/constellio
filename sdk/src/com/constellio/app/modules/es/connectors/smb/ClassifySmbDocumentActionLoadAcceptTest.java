@@ -1,19 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
-import org.apache.tools.ant.filters.StringInputStream;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
@@ -38,6 +24,19 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.tools.ant.filters.StringInputStream;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 @UiTest
 public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
@@ -56,7 +55,7 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
-				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+										.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -78,9 +77,9 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
-				.setTitle("ze connector").setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain(
+															   .setTitle("ze connector").setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain(
 						"domain")
-				.setTraversalCode("zeTraversal"));
+															   .setTraversalCode("zeTraversal"));
 	}
 
 	@Test
@@ -102,9 +101,9 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 
 		recordServices.add(parameters);
 		recordServices.add(robotsSchemas.newRobot().setActionParameters(parameters)
-				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriteria(asList(
+										.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriteria(asList(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE).booleanOperator(OR)
-								.where(es.connectorSmbFolder.url()).isContainingText("smb").build()
+																			.where(es.connectorSmbFolder.url()).isContainingText("smb").build()
 				)).setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("robocop").setTitle("robocop"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
@@ -124,31 +123,31 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 		}
 
 		ConnectorSmbFolder x = (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
-				.setTitle("X")
-				.setUrl(SMB + "X/")
-				.setFetched(true)
-				.setManualTokens(PUBLIC_TOKEN);
+													  .setTitle("X")
+													  .setUrl(SMB + "X/")
+													  .setFetched(true)
+													  .setManualTokens(PUBLIC_TOKEN);
 
 		ConnectorSmbFolder x100 = (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
-				.setTitle("X100")
-				.setUrl(SMB + "X/X100/")
-				.setFetched(true)
-				.setParentUrl(x.getUrl())
-				.setManualTokens(PUBLIC_TOKEN);
+														 .setTitle("X100")
+														 .setUrl(SMB + "X/X100/")
+														 .setFetched(true)
+														 .setParentUrl(x.getUrl())
+														 .setManualTokens(PUBLIC_TOKEN);
 
 		ConnectorSmbFolder x110 = (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
-				.setTitle("X110")
-				.setUrl(SMB + "X/X100/X110/")
-				.setFetched(true)
-				.setParentUrl(x100.getUrl())
-				.setManualTokens(PUBLIC_TOKEN);
+														 .setTitle("X110")
+														 .setUrl(SMB + "X/X100/X110/")
+														 .setFetched(true)
+														 .setParentUrl(x100.getUrl())
+														 .setManualTokens(PUBLIC_TOKEN);
 
 		ConnectorSmbFolder baleine = (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
-				.setTitle("Baleine")
-				.setUrl(SMB + "X/X100/X110/Baleine/")
-				.setFetched(true)
-				.setParentUrl(x110.getUrl())
-				.setManualTokens(PUBLIC_TOKEN);
+															.setTitle("Baleine")
+															.setUrl(SMB + "X/X100/X110/Baleine/")
+															.setFetched(true)
+															.setParentUrl(x110.getUrl())
+															.setManualTokens(PUBLIC_TOKEN);
 
 		Folder baleineRMFolder = (Folder) records.getFolder_A04().setLegacyId("smb://X/X100/X110/Baleine/");
 
@@ -160,7 +159,7 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 	}
 
 	public void createLevel(List<ConnectorSmbFolder> parents,
-			Stack<Integer> numberOfFoldersForEachLevel, int numberOfDocuments) {
+							Stack<Integer> numberOfFoldersForEachLevel, int numberOfDocuments) {
 
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions().withRecordsPerBatch(5000);
 		BulkRecordTransactionHandler bulkTransactionsHandler = new BulkRecordTransactionHandler(recordServices,
@@ -211,30 +210,30 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 
 	private ConnectorSmbDocument createDocument(ConnectorSmbFolder parent, int position) {
 		return (ConnectorSmbDocument) es.newConnectorSmbDocument(connectorInstance)
-				.setTitle("Document #" + parent.getTitle() + "-" + position)
-				.setUrl(parent.getUrl() + position + ".txt")
-				.setParentUrl(parent.getUrl())
-				.setFetched(true)
-				.setSearchable(true)
-				.setManualTokens(PUBLIC_TOKEN);
+										.setTitle("Document #" + parent.getTitle() + "-" + position)
+										.setUrl(parent.getUrl() + position + ".txt")
+										.setParentUrl(parent.getUrl())
+										.setFetched(true)
+										.setSearchable(true)
+										.setManualTokens(PUBLIC_TOKEN);
 	}
 
 	private ConnectorSmbFolder createFolder(ConnectorSmbFolder parent, int position) {
 		if (parent == null) {
 			return (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
-					.setTitle("Root folder #" + position)
-					.setUrl(SMB + position + "/")
-					.setFetched(true)
-					.setSearchable(true)
-					.setManualTokens(PUBLIC_TOKEN);
+										  .setTitle("Root folder #" + position)
+										  .setUrl(SMB + position + "/")
+										  .setFetched(true)
+										  .setSearchable(true)
+										  .setManualTokens(PUBLIC_TOKEN);
 		} else {
 			return (ConnectorSmbFolder) es.newConnectorSmbFolder(connectorInstance)
-					.setTitle("Folder #" + parent.getTitle() + "-" + position)
-					.setUrl(parent.getUrl() + position + "/")
-					.setParentUrl(parent.getUrl())
-					.setFetched(true)
-					.setSearchable(true)
-					.setManualTokens(PUBLIC_TOKEN);
+										  .setTitle("Folder #" + parent.getTitle() + "-" + position)
+										  .setUrl(parent.getUrl() + position + "/")
+										  .setParentUrl(parent.getUrl())
+										  .setFetched(true)
+										  .setSearchable(true)
+										  .setManualTokens(PUBLIC_TOKEN);
 		}
 	}
 

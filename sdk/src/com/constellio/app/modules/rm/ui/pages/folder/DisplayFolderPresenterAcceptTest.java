@@ -1,25 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -60,6 +40,21 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
@@ -88,7 +83,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+								  .withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -401,7 +396,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.reminderReturnFolder();
 
 		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+														 .getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
 		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
 				.where(subjectMetadata).isContainingText($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -587,7 +582,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		EmailToSend emailToSend = rmSchemasRecordsServices.wrapEmailToSend(emailToSendRecords.get(0));
 		assertThat(emailToSend.getTo()).extracting("email")
-				.containsOnly(rmRecords.getBob_userInAC().getEmail());
+									   .containsOnly(rmRecords.getBob_userInAC().getEmail());
 
 		Folder folder = rmSchemasRecordsServices.getFolder("C30");
 		assertThat(folder.getAlertUsersWhenAvailable()).isEmpty();
@@ -610,9 +605,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.returnFolder(shishOClock.toLocalDate());
 
 		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+														 .getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
 		Metadata sendOnMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SEND_ON);
+														.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SEND_ON);
 		User chuck = rmRecords.getChuckNorris();
 		Folder folderC30 = rmRecords.getFolder_C30();
 		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
@@ -710,9 +705,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("refToDocument")
-						.defineReferencesTo(types.getSchemaType(Document.SCHEMA_TYPE));
+					 .defineReferencesTo(types.getSchemaType(Document.SCHEMA_TYPE));
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("refToDocuments")
-						.defineReferencesTo(types.getSchemaType(Document.SCHEMA_TYPE)).setMultivalue(true);
+					 .defineReferencesTo(types.getSchemaType(Document.SCHEMA_TYPE)).setMultivalue(true);
 			}
 		});
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -726,7 +721,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		tx.add(rm.newDocumentWithId("documentInA54").setTitle("Document in folder A54").setFolder(rmRecords.folder_A54));
 		tx.add(rm.newDocumentWithId("documentInA55").setTitle("Document in folder A55").setFolder(rmRecords.folder_A55));
 		tx.add(rmRecords.getFolder_A49().set("refToDocument", "documentInA51")
-				.set("refToDocuments", asList("documentInA53", "documentInA54")));
+						.set("refToDocuments", asList("documentInA53", "documentInA54")));
 		recordServices.execute(tx);
 
 		presenter.forParams(rmRecords.folder_A49);
@@ -801,7 +796,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	private void searchEmailsToSend(LogicalSearchQuery query) {
 		Folder folderC30 = rmRecords.getFolder_C30();
 		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+														 .getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
 		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
 				.where(subjectMetadata).isContainingText(folderC30.getTitle());
 

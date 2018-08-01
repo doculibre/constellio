@@ -1,7 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import java.util.List;
-
 public class RecordsImportServicesRuntimeException extends RuntimeException {
 
 	public RecordsImportServicesRuntimeException(Throwable t) {

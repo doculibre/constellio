@@ -1,12 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
@@ -17,22 +10,31 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices {
 
 	public GeneratedSchemasRecordsServices(String collection,
-			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+										   Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 		super(collection, modelLayerFactoryFactory);
 	}
 
 	public GeneratedSchemasRecordsServices(String collection,
-			Factory<ModelLayerFactory> modelLayerFactoryFactory, Locale locale) {
+										   Factory<ModelLayerFactory> modelLayerFactoryFactory, Locale locale) {
 		super(collection, modelLayerFactoryFactory, locale);
 	}
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 	public SolrAuthorizationDetails wrapSolrAuthorizationDetails(Record record) {
 		return record == null ? null : new SolrAuthorizationDetails(record, getTypes());

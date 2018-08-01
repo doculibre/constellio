@@ -1,21 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -31,8 +15,19 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
@@ -55,7 +50,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
-						.withAStringMetadata(whichIsSortable, whichIsEnabled));
+							.withAStringMetadata(whichIsSortable, whichIsEnabled));
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
@@ -180,12 +175,12 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL,
 				false, false, true, "default",
-				null, null, false,true, new HashSet<String>(), view.getSessionContext(), false);
+				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, false);
 
 		Metadata result = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getMetadata(zeSchema.code() + "_USRzeMetadataCode");
+												.getMetadata(zeSchema.code() + "_USRzeMetadataCode");
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(zeSchema.code() + "_USRzeMetadataCode");
@@ -214,7 +209,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.preSaveButtonClicked(newMetadataForm, false);
 
 		Metadata result = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getMetadata(zeCustomSchema.code() + "_USRzeMetadataCode");
+												.getMetadata(zeCustomSchema.code() + "_USRzeMetadataCode");
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(zeCustomSchema.code() + "_USRzeMetadataCode");
@@ -297,9 +292,9 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("fr", "zeNewSchema");
 		types.getDefaultSchema("zeSchemaType").create("zeMask").setInputMask("9999-9999").addLabel(Language.French, "Mask")
-				.setType(MetadataValueType.STRING);
+			 .setType(MetadataValueType.STRING);
 		types.getSchemaType("zeSchemaType").createCustomSchema("zeNewSchema", labels)
-				.setDefaultSchema(types.getDefaultSchema("zeSchemaType"));
+			 .setDefaultSchema(types.getDefaultSchema("zeSchemaType"));
 		schemasManager.saveUpdateSchemaTypes(types);
 
 		Metadata zeNewSchemaMetadata = rm.schema("zeSchemaType_zeNewSchema").getMetadata("zeMask");
@@ -335,7 +330,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.HORIZONTAL,
 				false, false, true, "default",
-				null, null, false, true,  new HashSet<String>(), view.getSessionContext(), false);
+				null, null, false, true, new HashSet<String>(), view.getSessionContext(), false);
 
 		presenter.preSaveButtonClicked(newMetadataForm, true);
 

@@ -5,20 +5,20 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class DocumentViewButtonExtensionParam {
 
-    private Record record;
+	private Record record;
 
-    private User user;
+	private User user;
 
-    public DocumentViewButtonExtensionParam(Record record, User user) {
-        this.record = record;
-        this.user = user;
-    }
+	public DocumentViewButtonExtensionParam(Record record, User user) {
+		this.record = record;
+		this.user = user;
+	}
 
-    public User getUser(){
-        return user;
-    }
+	public User getUser() {
+		return user;
+	}
 
-    public Record getRecord() {
-        return record;
-    }
+	public Record getRecord() {
+		return record;
+	}
 }

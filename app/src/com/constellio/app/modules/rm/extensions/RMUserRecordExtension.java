@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static java.util.Arrays.asList;
-
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
@@ -11,6 +9,8 @@ import com.constellio.model.extensions.events.records.RecordInCreationBeforeVali
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
+
+import static java.util.Arrays.asList;
 
 public class RMUserRecordExtension extends RecordExtension {
 

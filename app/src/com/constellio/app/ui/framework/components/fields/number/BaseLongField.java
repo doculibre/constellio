@@ -29,7 +29,7 @@ public class BaseLongField extends BaseTextField {
 		super(caption);
 		init();
 	}
-	
+
 	private void init() {
 		setConverter(new StringToLongConverter());
 	}

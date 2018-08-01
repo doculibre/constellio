@@ -1,40 +1,5 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.START_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.*;
-
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.structures.EmailAddress;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -42,8 +7,10 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -52,6 +19,22 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.START_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	private TaskRecordExtension taskRecordExtension;
@@ -101,15 +84,15 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	private void initTasks()
 			throws RecordServicesException {
 		zeTaskDeletionFollower = new TaskFollower().setFollowerId(users.aliceIn(zeCollection).getId())
-				.setFollowTaskDeleted(true);
+												   .setFollowTaskDeleted(true);
 		zeTaskFinishedEventFollower = new TaskFollower().setFollowerId(users.charlesIn(zeCollection).getId())
-				.setFollowTaskCompleted(true);
+														.setFollowTaskCompleted(true);
 		zeTaskStatusModificationFollower = new TaskFollower().setFollowerId(users.chuckNorrisIn(zeCollection).getId())
-				.setFollowTaskStatusModified(true);
+															 .setFollowTaskStatusModified(true);
 		zeTaskAssigneeModificationFollower = new TaskFollower().setFollowerId(users.bobIn(zeCollection).getId())
-				.setFollowTaskAssigneeModified(true);
+															   .setFollowTaskAssigneeModified(true);
 		zeTaskSubTasksModificationFollower = new TaskFollower().setFollowerId(users.adminIn(zeCollection).getId())
-				.setFollowSubTasksModified(true);
+															   .setFollowSubTasksModified(true);
 		zeFollowers = new ArrayList<>(asList(zeTaskDeletionFollower, zeTaskFinishedEventFollower,
 				zeTaskStatusModificationFollower, zeTaskAssigneeModificationFollower, zeTaskSubTasksModificationFollower));
 
@@ -119,11 +102,11 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 
 		zeTask = tasksSchemas.newTask();
 		recordServices.add(zeTask.setTitle("taskTitle")
-						.setTaskFollowers(zeFollowers)
-						.setAssignee(users.chuckNorrisIn(zeCollection).getId())
-						.setAssigner(users.aliceIn(zeCollection).getId())
-						.setAssignationDate(now.toLocalDate())
-						.setParentTask(validParentTaskFollowingSubTasks.getId())
+								 .setTaskFollowers(zeFollowers)
+								 .setAssignee(users.chuckNorrisIn(zeCollection).getId())
+								 .setAssigner(users.aliceIn(zeCollection).getId())
+								 .setAssignationDate(now.toLocalDate())
+								 .setParentTask(validParentTaskFollowingSubTasks.getId())
 		);
 		recordServices.flush();
 
@@ -143,11 +126,11 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(emailToSend.getTo().size()).isEqualTo(2);
 		assertThat(tasksSchemas.getTask(zeTask.getId()).getEndDate()).isEqualTo(now.toLocalDate());
 
-        final Set<String> expectedRecipients = new HashSet<>();
-        for (EmailAddress emailAddress : emailToSend.getTo()) {
-            expectedRecipients.add(emailAddress.getEmail());
-        }
-        assertThat(expectedRecipients).isEqualTo(new HashSet<>(Arrays.asList(getUserEmail(users.aliceIn(zeCollection).getId()), getUserEmail(zeTaskFinishedEventFollower.getFollowerId()))));
+		final Set<String> expectedRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			expectedRecipients.add(emailAddress.getEmail());
+		}
+		assertThat(expectedRecipients).isEqualTo(new HashSet<>(Arrays.asList(getUserEmail(users.aliceIn(zeCollection).getId()), getUserEmail(zeTaskFinishedEventFollower.getFollowerId()))));
 	}
 
 	@Test
@@ -293,11 +276,11 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		Task newTask = tasksSchemas.newTask();
 		recordServices.add(newTask.setTitle("new task")
-						.setParentTask(validParentTaskFollowingSubTasks.getId())
-						.setTaskFollowers(zeFollowers)
-						.setAssigner(users.adminIn(zeCollection).getId())
-						.setAssignee(users.adminIn(zeCollection).getId())
-						.setAssignationDate(now.plusDays(1).toLocalDate())
+								  .setParentTask(validParentTaskFollowingSubTasks.getId())
+								  .setTaskFollowers(zeFollowers)
+								  .setAssigner(users.adminIn(zeCollection).getId())
+								  .setAssignee(users.adminIn(zeCollection).getId())
+								  .setAssignationDate(now.plusDays(1).toLocalDate())
 		);
 
 		recordServices.add(newTask.setParentTask((String) null));
@@ -506,23 +489,23 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	private List<TaskReminder> initReminders() {
 		List<TaskReminder> reminders = new ArrayList<>();
 		processedReminderWithRelativeDateBeforeStartDate_0 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
-				.setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1).setProcessed(true);
+																			   .setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateBeforeStartDate_0);
 
 		processedReminderWithRelativeDateAfterStartDate_1 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
-				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(3).setProcessed(true);
+																			  .setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(3).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateAfterStartDate_1);
 
 		processedReminderWithRelativeDateEqualsStartDate_2 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
-				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0).setProcessed(true);
+																			   .setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateEqualsStartDate_2);
 
 		processedReminderWithFixedDateAfterNewStartDate_3 = new TaskReminder().setFixedDate(newStartDate.plusDays(3))
-				.setProcessed(true);
+																			  .setProcessed(true);
 		reminders.add(processedReminderWithFixedDateAfterNewStartDate_3);
 
 		processedReminderWithRelativeDateAfterEndDate_4 = new TaskReminder().setRelativeDateMetadataCode(Task.DUE_DATE)
-				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
+																			.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateAfterEndDate_4);
 
 		return reminders;
@@ -572,14 +555,14 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 
 	private void assertThatParametersAreOk(Task task, EmailToSend emailToSend) {
 		String assignerFullName = getUserFullNameById(task.getAssigner());
-        assertThat(assignerFullName).isNotEmpty();
+		assertThat(assignerFullName).isNotEmpty();
 
 		String assigneeFullName = getUserFullNameById(task.getAssignee());
-        assertThat(assigneeFullName).isNotEmpty();
+		assertThat(assigneeFullName).isNotEmpty();
 
-        assertThat(task.getAssignedOn()).isNotNull();
+		assertThat(task.getAssignedOn()).isNotNull();
 
-        String parentTaskTitle = "";
+		String parentTaskTitle = "";
 		if (task.getParentTask() != null) {
 			Task parentTask = tasksSchemas.getTask(task.getParentTask());
 			parentTaskTitle = parentTask.getTitle();
@@ -616,30 +599,30 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 			return "";
 		}
 		return tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
-				tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
+			   tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	@Test
 	public void givenTaskCreatedThenAssignerIsAddedByDefaultToCompletionEventFollowers()
 			throws RecordServicesException {
-        // Given
-        final User someAssigner = users.aliceIn(zeCollection);
-        final User someAssignee = users.bobIn(zeCollection);
+		// Given
+		final User someAssigner = users.aliceIn(zeCollection);
+		final User someAssignee = users.bobIn(zeCollection);
 
 		final Task someTask = tasksSchemas.newTask().
-                setTitle("title").
-                setAssigner(someAssigner.getId()).
-                setAssignee(someAssignee.getId()).
-                setAssignationDate(now.toLocalDate()).
-                setAssignedOn(now.toLocalDate());
+				setTitle("title").
+												  setAssigner(someAssigner.getId()).
+												  setAssignee(someAssignee.getId()).
+												  setAssignationDate(now.toLocalDate()).
+												  setAssignedOn(now.toLocalDate());
 
-        // When
+		// When
 		recordServices.add(someTask);
 		recordServices.flush();
 
-        // Then
+		// Then
 		assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).isNotEmpty();
-        assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).contains(new TaskFollower().setFollowerId(someAssigner.getId()).setFollowTaskCompleted(true));
+		assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).contains(new TaskFollower().setFollowerId(someAssigner.getId()).setFollowTaskCompleted(true));
 	}
 
 }

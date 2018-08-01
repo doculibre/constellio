@@ -1,12 +1,5 @@
 package com.constellio.app.ui.acceptation.appManagement;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
-import org.junit.Before;
-import org.openqa.selenium.By;
-
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -16,6 +9,12 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import com.constellio.sdk.tests.selenium.components.vaadin.VaadinUpload;
 import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
+import org.junit.Before;
+import org.openqa.selenium.By;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class AppManagementUpdateClientUIAcceptanceTest extends ConstellioTest {

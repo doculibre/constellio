@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.management.ExcelReport;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -33,6 +23,11 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelReportView {
 	public static final String TYPE_TABLE = "types";
@@ -71,7 +66,7 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
 		super.initBeforeCreateComponents(event);
 		MetadataSchemasManager metadataSchemasManager = getConstellioFactories().getAppLayerFactory().getModelLayerFactory()
-				.getMetadataSchemasManager();
+																				.getMetadataSchemasManager();
 		presenter = new ListExcelReportPresenter(this);
 		POSSIBLE_TAB = presenter.initPossibleTab();
 	}

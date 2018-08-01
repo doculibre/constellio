@@ -14,33 +14,33 @@ import com.constellio.model.entities.records.wrappers.User;
 import java.io.Serializable;
 
 public class ReportNavigationConfiguration implements Serializable {
-    public static final String LABEL_MANAGEMENT = "labelManagement";
-    public static final String ADD_LABEL_TEMPLATE = "addLabelTemplate";
-    public static final String EDIT_LABEL_TEMPLATE = "editLabelTemplate";
-    public static final String LABEL_MANAGEMENT_ICON = "icon";
+	public static final String LABEL_MANAGEMENT = "labelManagement";
+	public static final String ADD_LABEL_TEMPLATE = "addLabelTemplate";
+	public static final String EDIT_LABEL_TEMPLATE = "editLabelTemplate";
+	public static final String LABEL_MANAGEMENT_ICON = "icon";
 
-    public static void configureNavigation(NavigationConfig config) {
-        configureCollectionAdmin(config);
-    }
+	public static void configureNavigation(NavigationConfig config) {
+		configureCollectionAdmin(config);
+	}
 
-    public static void configureNavigation(NavigatorConfigurationService service) {
-        service.register(LABEL_MANAGEMENT, ListLabelViewImpl.class);
-        service.register(ADD_LABEL_TEMPLATE, AddEditLabelViewImpl.class);
-        service.register(EDIT_LABEL_TEMPLATE, AddEditLabelViewImpl.class);
-    }
+	public static void configureNavigation(NavigatorConfigurationService service) {
+		service.register(LABEL_MANAGEMENT, ListLabelViewImpl.class);
+		service.register(ADD_LABEL_TEMPLATE, AddEditLabelViewImpl.class);
+		service.register(EDIT_LABEL_TEMPLATE, AddEditLabelViewImpl.class);
+	}
 
 
-    private static void configureCollectionAdmin(NavigationConfig config) {
-        config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(LABEL_MANAGEMENT, LABEL_MANAGEMENT_ICON) {
-            @Override
-            public void activate(Navigation navigate) {
-                navigate.to().manageLabels();
-            }
+	private static void configureCollectionAdmin(NavigationConfig config) {
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(LABEL_MANAGEMENT, LABEL_MANAGEMENT_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().manageLabels();
+			}
 
-            @Override
-            public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-                return ComponentState.ENABLED;
-            }
-        });
-    }
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return ComponentState.ENABLED;
+			}
+		});
+	}
 }

@@ -1,11 +1,11 @@
 package com.constellio.app.services.systemSetup;
 
-import java.util.Map;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+
+import java.util.Map;
 
 public class SystemGlobalConfigsManager implements StatefulService {
 

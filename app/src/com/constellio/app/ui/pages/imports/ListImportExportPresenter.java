@@ -13,9 +13,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ListImportExportPresenter extends BasePresenter<ListImportExportView> {
 
@@ -39,10 +38,10 @@ public class ListImportExportPresenter extends BasePresenter<ListImportExportVie
 
 				return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(ImportAudit.SCHEMA))
 						.returnAll())
-						.sortDesc(Schemas.CREATED_ON);
+											   .sortDesc(Schemas.CREATED_ON);
 			}
 		};
-		return  dataProvider;
+		return dataProvider;
 	}
 
 	public RecordVODataProvider getExportDataProvider() {
@@ -56,9 +55,9 @@ public class ListImportExportPresenter extends BasePresenter<ListImportExportVie
 
 				return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(ExportAudit.SCHEMA))
 						.returnAll())
-						.sortDesc(Schemas.CREATED_ON);
+											   .sortDesc(Schemas.CREATED_ON);
 			}
 		};
-		return  dataProvider;
+		return dataProvider;
 	}
 }

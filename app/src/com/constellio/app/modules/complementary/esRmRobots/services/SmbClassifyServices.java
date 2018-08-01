@@ -1,22 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyServicesRuntimeException.ClassifyServicesRuntimeException_CannotClassifyAsDocument;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
 import com.constellio.app.modules.es.connectors.ConnectorServicesRuntimeException;
@@ -50,6 +33,17 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SmbClassifyServices {
 
@@ -77,14 +71,15 @@ public class SmbClassifyServices {
 	}
 
 	public SmbClassifyServices(String collection, AppLayerFactory appLayerFactory, User currentUser,
-			ConnectorServicesFactory connectorServicesFactory) {
+							   ConnectorServicesFactory connectorServicesFactory) {
 		this(collection, appLayerFactory, currentUser);
 		this.connectorServicesFactory = connectorServicesFactory;
 	}
 
-	public List<String> classifyConnectorDocuments(String inRmFolder, String documentType, List<String> connectorDocumentIds,
-			Boolean majorVersions,
-			boolean excludeDocuments) {
+	public List<String> classifyConnectorDocuments(String inRmFolder, String documentType,
+												   List<String> connectorDocumentIds,
+												   Boolean majorVersions,
+												   boolean excludeDocuments) {
 
 		List<String> createdRecordIds = new ArrayList<>();
 		for (String connectorDocumentId : connectorDocumentIds) {
@@ -100,7 +95,7 @@ public class SmbClassifyServices {
 	}
 
 	public String classifyDocument(ConnectorDocument connectorDocument, String inRmFolder, String documentTypeId,
-			Boolean majorVersions, boolean excludeDocuments, String versions) {
+								   Boolean majorVersions, boolean excludeDocuments, String versions) {
 
 		ContentVersionDataSummary newVersionDataSummary = null;
 
@@ -186,8 +181,8 @@ public class SmbClassifyServices {
 	}
 
 	private Map<String, ContentVersion> getContentVersions(ConnectorDocument connectorDocument,
-			ConnectorUtilsServices<?> connectorUtilsServices,
-			List<String> availableVersions) {
+														   ConnectorUtilsServices<?> connectorUtilsServices,
+														   List<String> availableVersions) {
 		Map<String, ContentVersion> historyMap = new HashMap<>();
 		for (String availableVersion : availableVersions) {
 			// TODO Filter which version make it to the record
@@ -199,7 +194,7 @@ public class SmbClassifyServices {
 					.setHandleDeletionOfUnreferencedHashes(false);
 
 			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(availableVersionInputStream, options)
-					.getContentVersionDataSummary();
+																				.getContentVersionDataSummary();
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();
@@ -230,7 +225,7 @@ public class SmbClassifyServices {
 	}
 
 	private List<String> classifyFolder(String smbFolderId, String rmFolderId, List<String> createdDocumentsIds,
-			Boolean majorVersions) {
+										Boolean majorVersions) {
 
 		ConnectorSmbFolder parentSmbFolder = es
 				.getConnectorSmbFolder(smbFolderId);

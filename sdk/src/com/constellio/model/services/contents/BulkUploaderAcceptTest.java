@@ -1,17 +1,5 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.data.conf.HashingEncoding.BASE32;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BigFileIterator;
 import com.constellio.data.utils.hashing.HashingService;
@@ -21,6 +9,13 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.*;
+
+import static com.constellio.data.conf.HashingEncoding.BASE32;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BulkUploaderAcceptTest extends ConstellioTest {
 
@@ -106,7 +101,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 			ParsedContent parsedContent = getModelLayerFactory().getContentManager().getParsedContent(expectedHash);
 			assertThat(parsedContent).isEqualTo(expectedParsedContent);
 			InputStream contentInputStream = getModelLayerFactory().getContentManager()
-					.getContentInputStream(expectedHash, SDK_STREAM);
+																   .getContentInputStream(expectedHash, SDK_STREAM);
 			assertThat(contentInputStream).describedAs("Content of " + key).hasContentEqualTo(new ByteArrayInputStream(bytes));
 		}
 	}
@@ -154,7 +149,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 			ParsedContent parsedContent = getModelLayerFactory().getContentManager().getParsedContent(expectedHash);
 			assertThat(parsedContent).isEqualTo(expectedParsedContent);
 			InputStream contentInputStream = getModelLayerFactory().getContentManager()
-					.getContentInputStream(expectedHash, SDK_STREAM);
+																   .getContentInputStream(expectedHash, SDK_STREAM);
 			assertThat(contentInputStream).describedAs("Content of " + key).hasContentEqualTo(new ByteArrayInputStream(bytes));
 		}
 	}

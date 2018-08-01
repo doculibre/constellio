@@ -1,14 +1,13 @@
 package com.constellio.app.utils;
 
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class LoggerDecoratedValidationErrors extends DecoratedValidationsErrors {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoggerDecoratedValidationErrors.class);

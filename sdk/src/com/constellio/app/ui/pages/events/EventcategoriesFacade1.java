@@ -1,13 +1,12 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EventcategoriesFacade1 {
 	private final ConstellioWebDriver driver;
@@ -19,7 +18,7 @@ public class EventcategoriesFacade1 {
 
 
 	public List<BaseEventCategoryFacade> getCategories() {
-		if(categories == null){
+		if (categories == null) {
 			initCategories();
 		}
 		return categories;
@@ -27,7 +26,7 @@ public class EventcategoriesFacade1 {
 
 	private void initCategories() {
 		this.categories = new ArrayList<>();
-		for(WebElement webElement : driver.findElements(By.className(EventCategoriesViewImpl.CATEGORY_BUTTON))){
+		for (WebElement webElement : driver.findElements(By.className(EventCategoriesViewImpl.CATEGORY_BUTTON))) {
 			this.categories.add(new BaseEventCategoryFacade(driver));
 		}
 	}
@@ -37,18 +36,18 @@ public class EventcategoriesFacade1 {
 	}
 
 	public BaseEventCategoryFacade loadCategory(String categoryTitle, String byIdFieldValue) {
-		for(WebElement webElement : driver.findElements(By.className(EventCategoriesViewImpl.CATEGORY_BUTTON))){
-			if(getCaption(webElement).equals(categoryTitle)){
+		for (WebElement webElement : driver.findElements(By.className(EventCategoriesViewImpl.CATEGORY_BUTTON))) {
+			if (getCaption(webElement).equals(categoryTitle)) {
 				webElement.click();
 				waitForPageReload(10);
 				clear();
-				if (StringUtils.isNotBlank(byIdFieldValue)){
+				if (StringUtils.isNotBlank(byIdFieldValue)) {
 					ByIdEventCategoryFacade returnFacade = new ByIdEventCategoryFacade(driver);
 					returnFacade.selectElement(byIdFieldValue);
 					returnFacade.validateSelection();
 					waitForPageReload(10);
 					return returnFacade;
-				}else{
+				} else {
 					return new BaseEventCategoryFacade(driver);
 				}
 			}

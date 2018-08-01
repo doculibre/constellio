@@ -5,24 +5,24 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public abstract class DecommissioningBuilderPresenterExtension {
 
-    public abstract LogicalSearchCondition addAdditionalSearchFilters(AddAdditionalSearchFiltersParams params);
+	public abstract LogicalSearchCondition addAdditionalSearchFilters(AddAdditionalSearchFiltersParams params);
 
-    public static class AddAdditionalSearchFiltersParams {
-        private SearchType searchType;
-        private LogicalSearchCondition condition;
+	public static class AddAdditionalSearchFiltersParams {
+		private SearchType searchType;
+		private LogicalSearchCondition condition;
 
-        public AddAdditionalSearchFiltersParams(SearchType searchType, LogicalSearchCondition condition) {
-            this.searchType = searchType;
-            this.condition = condition;
-        }
+		public AddAdditionalSearchFiltersParams(SearchType searchType, LogicalSearchCondition condition) {
+			this.searchType = searchType;
+			this.condition = condition;
+		}
 
-        public SearchType getSearchType() {
-            return searchType;
-        }
+		public SearchType getSearchType() {
+			return searchType;
+		}
 
-        public LogicalSearchCondition getCondition() {
-            return condition;
-        }
-    }
+		public LogicalSearchCondition getCondition() {
+			return condition;
+		}
+	}
 
 }

@@ -1,26 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import org.apache.commons.collections4.CollectionUtils;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -37,6 +16,8 @@ import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
 import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -60,6 +41,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
+import org.joda.time.LocalDate;
+
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
@@ -139,7 +128,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(tasksSchemasRecordsServices.taskSchemaType())
-						.where(tasksSchemasRecordsServices.userTask.parentTask()).isEqualTo(record.getId())));
+										   .where(tasksSchemasRecordsServices.userTask.parentTask()).isEqualTo(record.getId())));
 
 		final String STAND_BY = "S";
 		final String IN_PROGRESS = "I";
@@ -149,7 +138,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		for (Record taskAsRecord : tasksSearchServices) {
 			Task currentTask = tasksSchemasRecordsServices.wrapTask(taskAsRecord);
 			if (!currentTask.isLogicallyDeletedStatus() && currentTask.getStatusType() != null
-					&& (currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
+				&& (currentTask.getStatusType().getCode().equalsIgnoreCase(STAND_BY)
 					|| currentTask.getStatusType().getCode().equalsIgnoreCase(IN_PROGRESS))) {
 				isSubTaskWithRequiredStatusFound = true;
 				break;
@@ -309,89 +298,89 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				.build(defaultSchema(), VIEW_MODE.TABLE, getMetadataForTab(tabId), view.getSessionContext(), true);
 
 		switch (tabId) {
-		case TASKS_ASSIGNED_TO_CURRENT_USER:
-			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-				@Override
-				protected LogicalSearchQuery getQuery() {
-					LogicalSearchQuery query = tasksSearchServices.getTasksAssignedToUserQuery(getCurrentUser());
-					addTimeStampToQuery(query);
-					addStarredSortToQuery(query);
-					return query;
-				}
+			case TASKS_ASSIGNED_TO_CURRENT_USER:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					protected LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getTasksAssignedToUserQuery(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
 
-				@Override
-				protected void clearSort(LogicalSearchQuery query) {
-					super.clearSort(query);
-					addStarredSortToQuery(query);
-				}
-			};
-		case TASKS_ASSIGNED_BY_CURRENT_USER:
-			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-				@Override
-				protected LogicalSearchQuery getQuery() {
-					LogicalSearchQuery query = tasksSearchServices.getTasksAssignedByUserQuery(getCurrentUser());
-					addTimeStampToQuery(query);
-					addStarredSortToQuery(query);
-					return query;
-				}
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
+			case TASKS_ASSIGNED_BY_CURRENT_USER:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					protected LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getTasksAssignedByUserQuery(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
 
-				@Override
-				protected void clearSort(LogicalSearchQuery query) {
-					super.clearSort(query);
-					addStarredSortToQuery(query);
-				}
-			};
-		case TASKS_NOT_ASSIGNED:
-			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-				@Override
-				protected LogicalSearchQuery getQuery() {
-					LogicalSearchQuery query = tasksSearchServices.getUnassignedTasksQuery(getCurrentUser());
-					addTimeStampToQuery(query);
-					addStarredSortToQuery(query);
-					return query;
-				}
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
+			case TASKS_NOT_ASSIGNED:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					protected LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getUnassignedTasksQuery(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
 
-				@Override
-				protected void clearSort(LogicalSearchQuery query) {
-					super.clearSort(query);
-					addStarredSortToQuery(query);
-				}
-			};
-		case TASKS_RECENTLY_COMPLETED:
-			return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-				@Override
-				protected LogicalSearchQuery getQuery() {
-					LogicalSearchQuery query = tasksSearchServices.getRecentlyCompletedTasks(getCurrentUser());
-					addTimeStampToQuery(query);
-					addStarredSortToQuery(query);
-					return query;
-				}
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
+			case TASKS_RECENTLY_COMPLETED:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					protected LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getRecentlyCompletedTasks(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
 
-				@Override
-				protected void clearSort(LogicalSearchQuery query) {
-					super.clearSort(query);
-					addStarredSortToQuery(query);
-				}
-			};
-		default:
-			throw new RuntimeException("BUG: Unknown tabId + " + tabId);
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
+			default:
+				throw new RuntimeException("BUG: Unknown tabId + " + tabId);
 		}
 	}
 
 	private void addTimeStampToQuery(LogicalSearchQuery query) {
 		TaskManagementViewImpl.Timestamp timestamp = view.getTimestamp();
 		switch (timestamp) {
-		case ALL:
-			break;
-		case TODAY:
-			tasksSearchServices.addDateFilterToQuery(query, LocalDate.now());
-			break;
-		case WEEK:
-			tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusWeeks(1));
-			break;
-		case MONTH:
-			tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusMonths(1));
-			break;
+			case ALL:
+				break;
+			case TODAY:
+				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now());
+				break;
+			case WEEK:
+				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusWeeks(1));
+				break;
+			case MONTH:
+				tasksSearchServices.addDateFilterToQuery(query, LocalDate.now().plusMonths(1));
+				break;
 		}
 	}
 
@@ -400,28 +389,28 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				.build(schema(BetaWorkflowInstance.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 
 		switch (tabId) {
-		case WORKFLOWS_STARTED:
-			return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-				@Override
-				protected LogicalSearchQuery getQuery() {
-					return workflowServices.getCurrentWorkflowInstancesQuery();
-				}
-			};
-		default:
-			throw new RuntimeException("BUG: Unknown tabId + " + tabId);
+			case WORKFLOWS_STARTED:
+				return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					protected LogicalSearchQuery getQuery() {
+						return workflowServices.getCurrentWorkflowInstancesQuery();
+					}
+				};
+			default:
+				throw new RuntimeException("BUG: Unknown tabId + " + tabId);
 		}
 	}
 
 	private List<String> getMetadataForTab(String tabId) {
 		switch (tabId) {
-		case TASKS_ASSIGNED_TO_CURRENT_USER:
-			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNER, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
-		case TASKS_ASSIGNED_BY_CURRENT_USER:
-			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNEE, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
-		case TASKS_NOT_ASSIGNED:
-			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+DUE_DATE, Task.DEFAULT_SCHEMA+"_"+STATUS);
-		default:
-			return Arrays.asList(Task.DEFAULT_SCHEMA+"_"+STARRED_BY_USERS, Task.DEFAULT_SCHEMA+"_"+TITLE, Task.DEFAULT_SCHEMA+"_"+ASSIGNER, Task.DEFAULT_SCHEMA+"_"+END_DATE);
+			case TASKS_ASSIGNED_TO_CURRENT_USER:
+				return Arrays.asList(Task.DEFAULT_SCHEMA + "_" + STARRED_BY_USERS, Task.DEFAULT_SCHEMA + "_" + TITLE, Task.DEFAULT_SCHEMA + "_" + ASSIGNER, Task.DEFAULT_SCHEMA + "_" + DUE_DATE, Task.DEFAULT_SCHEMA + "_" + STATUS);
+			case TASKS_ASSIGNED_BY_CURRENT_USER:
+				return Arrays.asList(Task.DEFAULT_SCHEMA + "_" + STARRED_BY_USERS, Task.DEFAULT_SCHEMA + "_" + TITLE, Task.DEFAULT_SCHEMA + "_" + ASSIGNEE, Task.DEFAULT_SCHEMA + "_" + DUE_DATE, Task.DEFAULT_SCHEMA + "_" + STATUS);
+			case TASKS_NOT_ASSIGNED:
+				return Arrays.asList(Task.DEFAULT_SCHEMA + "_" + STARRED_BY_USERS, Task.DEFAULT_SCHEMA + "_" + TITLE, Task.DEFAULT_SCHEMA + "_" + DUE_DATE, Task.DEFAULT_SCHEMA + "_" + STATUS);
+			default:
+				return Arrays.asList(Task.DEFAULT_SCHEMA + "_" + STARRED_BY_USERS, Task.DEFAULT_SCHEMA + "_" + TITLE, Task.DEFAULT_SCHEMA + "_" + ASSIGNER, Task.DEFAULT_SCHEMA + "_" + END_DATE);
 		}
 	}
 
@@ -431,13 +420,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private boolean isTaskTab(String tabId) {
 		switch (tabId) {
-		case TASKS_ASSIGNED_TO_CURRENT_USER:
-		case TASKS_ASSIGNED_BY_CURRENT_USER:
-		case TASKS_NOT_ASSIGNED:
-		case TASKS_RECENTLY_COMPLETED:
-			return true;
-		default:
-			return false;
+			case TASKS_ASSIGNED_TO_CURRENT_USER:
+			case TASKS_ASSIGNED_BY_CURRENT_USER:
+			case TASKS_NOT_ASSIGNED:
+			case TASKS_RECENTLY_COMPLETED:
+				return true;
+			default:
+				return false;
 		}
 	}
 
@@ -475,8 +464,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
 
-		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty() && task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
-				|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
+		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty() && task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
+			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
@@ -524,8 +513,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public String getDueDateCaption() {
 		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getDefaultSchema(SCHEMA_TYPE).getMetadata(DUE_DATE)
-				.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+								.getDefaultSchema(SCHEMA_TYPE).getMetadata(DUE_DATE)
+								.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {

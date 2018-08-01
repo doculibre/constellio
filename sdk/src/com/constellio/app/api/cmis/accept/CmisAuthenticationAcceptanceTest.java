@@ -1,21 +1,20 @@
 package com.constellio.app.api.cmis.accept;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.client.api.Repository;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Repository;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 
@@ -65,7 +64,7 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		userServices
 				.addUpdateUserCredential(users.chuckNorris().withServiceKey(chuckNorrisServiceKey).withSystemAdminPermission()
-						.withCollections(asList(zeCollection)));
+											  .withCollections(asList(zeCollection)));
 		chuckNorrisToken = userServices.generateToken(users.chuckNorris().getUsername());
 
 		userServices.addUserToCollection(users.admin(), zeCollection);

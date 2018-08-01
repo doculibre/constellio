@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 
 public class ConservationRulesReportModel {
 

@@ -1,14 +1,13 @@
 package com.constellio.app.services.records;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SystemCheckReportBuilder {
 
@@ -25,7 +24,7 @@ public class SystemCheckReportBuilder {
 
 		reportBuilder.append(label("startedOn") + " : " + results.dateTime + "\n");
 		reportBuilder.append(label("status") + " : " +
-				(manager.isSystemCheckResultsRunning() ? label("running") : label("finished")) + "\n");
+							 (manager.isSystemCheckResultsRunning() ? label("running") : label("finished")) + "\n");
 		reportBuilder.append(label("repairedRecordsCount") + " : " + results.getRepairedRecords().size() + "\n");
 		if (!results.getMetrics().isEmpty()) {
 			List<String> keys = new ArrayList<>(results.getMetrics().keySet());

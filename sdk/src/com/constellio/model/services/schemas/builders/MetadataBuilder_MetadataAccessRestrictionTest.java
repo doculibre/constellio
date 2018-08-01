@@ -1,10 +1,9 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.junit.Test;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_MetadataAccessRestrictionTest extends MetadataBuilderTest {
 
@@ -13,7 +12,7 @@ public class MetadataBuilder_MetadataAccessRestrictionTest extends MetadataBuild
 			throws Exception {
 
 		metadataWithoutInheritanceBuilder.setType(MetadataValueType.STRING).defineAccessRestrictions()
-				.withRequiredReadRole("zeRole");
+										 .withRequiredReadRole("zeRole");
 
 		build();
 
@@ -25,7 +24,7 @@ public class MetadataBuilder_MetadataAccessRestrictionTest extends MetadataBuild
 			throws Exception {
 
 		metadataWithoutInheritanceBuilder.setType(MetadataValueType.STRING).defineAccessRestrictions()
-				.withRequiredReadRole("zeRole");
+										 .withRequiredReadRole("zeRole");
 
 		buildAndModify();
 
@@ -37,7 +36,7 @@ public class MetadataBuilder_MetadataAccessRestrictionTest extends MetadataBuild
 			throws Exception {
 
 		inheritedMetadataBuilder.setType(MetadataValueType.STRING).defineAccessRestrictions()
-				.withRequiredReadRole("zeRole");
+								.withRequiredReadRole("zeRole");
 
 		build();
 
@@ -49,7 +48,7 @@ public class MetadataBuilder_MetadataAccessRestrictionTest extends MetadataBuild
 			throws Exception {
 
 		metadataWithoutInheritanceBuilder.setType(MetadataValueType.STRING).defineAccessRestrictions()
-				.withRequiredReadRole("zeRole");
+										 .withRequiredReadRole("zeRole");
 
 		buildAndModify();
 

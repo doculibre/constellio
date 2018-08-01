@@ -1,9 +1,17 @@
 package com.constellio.app.services.extensions.plugins;
 
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.CANNOT_INSTALL_OLDER_VERSION;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_VERSION;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoCode;
+import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoVersion;
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
+import com.constellio.app.services.migrations.VersionsComparator;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,19 +26,8 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoCode;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoVersion;
-import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
-import com.constellio.app.services.migrations.VersionsComparator;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.io.services.zip.ZipServiceException;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.*;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
 
 public class JSPFPluginServices implements PluginServices {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFPluginServices.class);
@@ -101,7 +98,7 @@ public class JSPFPluginServices implements PluginServices {
 				}
 			}
 			if (key.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME) ||
-					key.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME_WITH_TYPO)) {
+				key.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME_WITH_TYPO)) {
 				requiredConstellioVersionFound = true;
 				if (att.getValue() != null && StringUtils.isNotBlank(att.getValue().toString())) {
 					requiredConstellioVersion = att.getValue().toString();
@@ -128,12 +125,12 @@ public class JSPFPluginServices implements PluginServices {
 		}
 
 		return new ConstellioPluginInfo().setCode(code).setTitle(title).setRequiredConstellioVersion(requiredConstellioVersion)
-				.setVersion(version);
+										 .setVersion(version);
 	}
 
 	@Override
 	public PluginActivationFailureCause validatePlugin(ConstellioPluginInfo newPluginInfo,
-			ConstellioPluginInfo previousPluginInfo) {
+													   ConstellioPluginInfo previousPluginInfo) {
 		if (StringUtils.isBlank(newPluginInfo.getCode())) {
 			return INVALID_EXISTING_ID;
 		}
@@ -154,7 +151,7 @@ public class JSPFPluginServices implements PluginServices {
 		Matcher matcher = pattern.matcher(version);
 		if (matcher.matches()) {
 			if (oldVersion != null &&
-					VersionsComparator.isFirstVersionBeforeSecond(version, oldVersion)) {
+				VersionsComparator.isFirstVersionBeforeSecond(version, oldVersion)) {
 				return CANNOT_INSTALL_OLDER_VERSION;
 			}
 		} else {
@@ -172,7 +169,7 @@ public class JSPFPluginServices implements PluginServices {
 	public void replaceOldPluginVersionsByNewOnes(File pluginsDirectory, File oldVersionsDestinationDirectory)
 			throws PluginsReplacementException {
 		List<String> pluginsWithReplacementException = new ArrayList<>();
-		for (File newJarVersionFile : FileUtils.listFiles(pluginsDirectory, new String[] { NEW_JAR_EXTENSION }, false)) {
+		for (File newJarVersionFile : FileUtils.listFiles(pluginsDirectory, new String[]{NEW_JAR_EXTENSION}, false)) {
 			String newVersionFilePath = newJarVersionFile.getPath();
 			String previousVersionFilePath = newVersionFilePath.substring(0, newVersionFilePath.length() - 4);
 			File previousVersionFile = new File(previousVersionFilePath);

@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.management.email;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.log4j.Logger;
-
 import com.constellio.app.ui.entities.EmailServerConfigVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.email.EmailServerConfiguration;
@@ -20,6 +9,16 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailServicesException;
 import com.sun.mail.smtp.SMTPMessage;
+import org.apache.log4j.Logger;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EmailServerConfigPresenter extends BasePresenter<EmailServerConfigView> {
 	public static Logger LOGGER = Logger.getLogger(EmailServerConfigPresenter.class);

@@ -1,7 +1,5 @@
 package com.constellio.app.services.extensions.plugins;
 
-import java.io.FileNotFoundException;
-
 public class InvalidPluginJarException extends Exception {
 	public InvalidPluginJarException(Exception e) {
 		super(e);

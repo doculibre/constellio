@@ -1,25 +1,5 @@
 package com.constellio.app.modules.es.services;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -54,6 +34,17 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
 
 public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices implements ConnectorInstanciator {
 
@@ -75,8 +66,8 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 			@Override
 			public AppLayerFactory get() {
 				return requestAppLayerFactory ?
-						ConstellioFactories.getInstance().getAppLayerFactory() :
-						ConstellioFactories.getInstance().getUncachedAppLayerFactory();
+					   ConstellioFactories.getInstance().getAppLayerFactory() :
+					   ConstellioFactories.getInstance().getUncachedAppLayerFactory();
 			}
 		};
 	}
@@ -390,7 +381,8 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return query;
 	}
 
-	public LogicalSearchQuery connectorDocumentsToFetchWithNoDelayAndNoDeletedQuery(ConnectorInstance<?> connectorInstance) {
+	public LogicalSearchQuery connectorDocumentsToFetchWithNoDelayAndNoDeletedQuery(
+			ConnectorInstance<?> connectorInstance) {
 		LogicalSearchQuery query = connectorDocumentsToFetchWithNoDelayAndNoDeletedQueryUnsorted(connectorInstance);
 		query.sortAsc(connectorDocument.fetched());
 		query.sortAsc(Schemas.MODIFIED_ON);

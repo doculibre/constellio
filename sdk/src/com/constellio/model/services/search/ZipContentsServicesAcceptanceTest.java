@@ -1,19 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -37,6 +23,19 @@ import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 	private static final String TEST_ID = "ZipSearchResultsContentsServicesAcceptanceTest-inputStreams";
@@ -74,7 +73,7 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -224,13 +223,13 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 		MetadataSchemasManager metadataSchemaManager = getModelLayerFactory()
 				.getMetadataSchemasManager();
 		MetadataSchema schema = metadataSchemaManager.getSchemaTypes(zeCollection)
-				.getSchema(Folder.SCHEMA_TYPE + "_default");
+													 .getSchema(Folder.SCHEMA_TYPE + "_default");
 		assertThat(zipSearchResultsContentsServices.canHaveChildren(schema)).isTrue();
 		schema = metadataSchemaManager.getSchemaTypes(zeCollection)
-				.getSchema(Task.SCHEMA_TYPE + "_default");
+									  .getSchema(Task.SCHEMA_TYPE + "_default");
 		assertThat(zipSearchResultsContentsServices.canHaveChildren(schema)).isTrue();
 		schema = metadataSchemaManager.getSchemaTypes(zeCollection)
-				.getSchema(Document.SCHEMA_TYPE + "_default");
+									  .getSchema(Document.SCHEMA_TYPE + "_default");
 		assertThat(zipSearchResultsContentsServices.canHaveChildren(schema)).isFalse();
 	}
 
@@ -255,12 +254,12 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 		content2File = createFileFromContent(content2_title2, folder.getPath() + "/2");
 		content3File = createFileFromContent(content3_title1, folder.getPath() + "/3");
 		documentWithContent1HavingTitle1 = rm.newDocument().setType(records.documentTypeId_1)
-				.setFolder(records.getFolder_A01().getId());
+											 .setFolder(records.getFolder_A01().getId());
 		transaction.add(documentWithContent1HavingTitle1.setContent(content1_title1).setTitle(title1));
 
 		folderA2WithDocument1AndSubFolder1WithContent2AndSubFolder2 = records.getFolder_A02();
 		document11WithContent1HavingTitle1InFolderA2 = rm.newDocument().setType(records.documentTypeId_1)
-				.setFolder(folderA2WithDocument1AndSubFolder1WithContent2AndSubFolder2);
+														 .setFolder(folderA2WithDocument1AndSubFolder1WithContent2AndSubFolder2);
 		transaction.add(document11WithContent1HavingTitle1InFolderA2.setContent(content1_title1).setTitle(title1));
 
 		document12WithContent1HavingTitle2 = rm.newDocument().setType(records.documentTypeId_1).setFolder(
@@ -284,7 +283,7 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(document31WithContent3HavingTitle1.setTitle(title1).setContent(content3_title1));
 
 		taskWithContent1AndContent2 = taskSchemas.newTask().setTitle("zeTask")
-				.setContent(asList(content1_title1, content2_title2));
+												 .setContent(asList(content1_title1, content2_title2));
 		transaction.add(taskWithContent1AndContent2);
 
 		subFolder1WithDocumentHavingContent2 = records.getFolder_A03();

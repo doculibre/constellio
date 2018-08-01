@@ -1,33 +1,6 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
-import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.utils.MaskUtils.format;
-import static java.util.Arrays.asList;
-import static net.jcores.CoreKeeper.$;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.dto.records.TransactionDTO;
-import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.dto.records.*;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -46,43 +19,16 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordMigrationScript;
-import com.constellio.model.entities.records.RecordRuntimeException;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
-import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModificationUsersAndDateRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.*;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
@@ -96,12 +42,7 @@ import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
-import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
-import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
+import com.constellio.model.services.records.RecordServicesRuntimeException.*;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -120,6 +61,21 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.utils.MaskUtils.format;
+import static java.util.Arrays.asList;
+import static net.jcores.CoreKeeper.$;
 
 public class RecordServicesImpl extends BaseRecordServices {
 
@@ -133,8 +89,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 	private final RecordsCaches recordsCaches;
 
 	public RecordServicesImpl(RecordDao recordDao, RecordDao eventsDao, RecordDao notificationsDao,
-			ModelLayerFactory modelFactory, DataStoreTypesFactory typesFactory, UniqueIdGenerator uniqueIdGenerator,
-			RecordsCaches recordsCaches) {
+							  ModelLayerFactory modelFactory, DataStoreTypesFactory typesFactory,
+							  UniqueIdGenerator uniqueIdGenerator,
+							  RecordsCaches recordsCaches) {
 		super(modelFactory);
 		this.recordDao = recordDao;
 		this.eventsDao = eventsDao;
@@ -204,7 +161,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			Transaction newTransaction = new Transaction(transaction);
 			for (ModificationImpact impact : impacts.getImpacts()) {
 				LOGGER.debug("Handling modification impact. Reindexing " + impact.getMetadataToReindex() + " for records of "
-						+ impact.getLogicalSearchCondition().toString());
+							 + impact.getLogicalSearchCondition().toString());
 				LogicalSearchQuery searchQuery = new LogicalSearchQuery(impact.getLogicalSearchCondition());
 				List<Record> recordsFound = modelFactory.newSearchServices().search(searchQuery);
 				for (Record record : recordsFound) {
@@ -214,7 +171,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 
 				newTransaction.getRecordUpdateOptions().getTransactionRecordsReindexation()
-						.addReindexedMetadatas(impact.getMetadataToReindex());
+							  .addReindexedMetadatas(impact.getMetadataToReindex());
 			}
 			execute(newTransaction);
 		}
@@ -259,8 +216,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	void handleOptimisticLocking(TransactionDTO transactionDTO, Transaction transaction, RecordModificationImpactHandler handler,
-			OptimisticLocking e, int attempt)
+	void handleOptimisticLocking(TransactionDTO transactionDTO, Transaction transaction,
+								 RecordModificationImpactHandler handler,
+								 OptimisticLocking e, int attempt)
 			throws RecordServicesException {
 
 		if (attempt > 35) {
@@ -335,7 +293,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					if (newRecordVersion != null && record.getVersion() != newRecordVersion.getVersion()) {
 						MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
-								.getSchemaTypes(transaction.getCollection());
+																.getSchemaTypes(transaction.getCollection());
 						MetadataSchema metadataSchema = types.getSchema(newRecordVersion.getSchemaCode());
 						try {
 							((RecordImpl) record).merge((RecordImpl) newRecordVersion, metadataSchema);
@@ -348,7 +306,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					}
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
-							.getSchemaTypes(transaction.getCollection());
+															.getSchemaTypes(transaction.getCollection());
 					MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
 				}
 			} else {
@@ -378,7 +336,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : transaction.getRecords()) {
 			if (record.isSaved()) {
 				conditions.add(LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).isEqualTo(record.getId())
-						.andWhere(Schemas.VERSION).isNotEqual(record.getVersion()));
+														  .andWhere(Schemas.VERSION).isNotEqual(record.getVersion()));
 			}
 		}
 
@@ -514,13 +472,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	private RecordDao dao(String dataStore) {
 		switch (dataStore) {
-		case DataStore.RECORDS:
-			return recordDao;
-		case DataStore.EVENTS:
-			return eventsDao;
+			case DataStore.RECORDS:
+				return recordDao;
+			case DataStore.EVENTS:
+				return eventsDao;
 
-		default:
-			throw new ImpossibleRuntimeException("Unsupported datastore : " + dataStore);
+			default:
+				throw new ImpossibleRuntimeException("Unsupported datastore : " + dataStore);
 		}
 	}
 
@@ -613,7 +571,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
 				} else {
 					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
-							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
+																				.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
 				}
 
 			}
@@ -738,8 +696,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 								// if user did not changed seqNumber AND reference changed
 								if (!record.isModified(metadata) && record.isModified(metadataProvidingReference)) {
 									String value = sequenceCode == null ?
-											null :
-											format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+												   null :
+												   format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
 									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							}
@@ -768,10 +726,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 
 				if (transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll()
-						&& transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()
-						&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
-						&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
-						&& !transaction.getIdsToReindex().contains(record.getId())) {
+					&& transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()
+					&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
+					&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
+					&& !transaction.getIdsToReindex().contains(record.getId())) {
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
 				}
 			}
@@ -780,7 +738,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
 				for (Content aContent : record.<Content>getValues(contentMetadata)) {
 					allParsed &= parsedContentProvider
-							.getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
+										 .getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
 				}
 			}
 
@@ -856,10 +814,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 		prepareRecords(transaction);
 	}
 
-	private void updateCreationModificationUsersAndDates(Record record, Transaction transaction, MetadataSchema metadataSchema) {
+	private void updateCreationModificationUsersAndDates(Record record, Transaction transaction,
+														 MetadataSchema metadataSchema) {
 		String type = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		boolean userGroupOrCollection = User.SCHEMA_TYPE.equals(type) || Group.SCHEMA_TYPE.equals(type)
-				|| Collection.SCHEMA_TYPE.equals(type);
+										|| Collection.SCHEMA_TYPE.equals(type);
 
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		String currentUserId = transaction.getUser() == null ? null : transaction.getUser().getId();
@@ -890,7 +849,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	ModificationImpactCalculatorResponse getModificationImpacts(Transaction transaction, boolean executedAfterTransaction) {
+	ModificationImpactCalculatorResponse getModificationImpacts(Transaction transaction,
+																boolean executedAfterTransaction) {
 		SearchServices searchServices = modelFactory.newSearchServices();
 		TaxonomiesManager taxonomiesManager = modelFactory.getTaxonomiesManager();
 		MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
@@ -901,7 +861,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	void refreshRecordsAndCaches(String collection, List<Record> records, TransactionResponseDTO transactionResponseDTO,
-			MetadataSchemaTypes types, RecordProvider recordProvider) {
+								 MetadataSchemaTypes types, RecordProvider recordProvider) {
 
 		invalidateTaxonomiesCache(records, types, recordProvider, modelLayerFactory.getTaxonomiesSearchServicesCache());
 
@@ -923,7 +883,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	void saveContentsAndRecords(Transaction transaction, RecordModificationImpactHandler modificationImpactHandler, int attempt)
+	void saveContentsAndRecords(Transaction transaction, RecordModificationImpactHandler modificationImpactHandler,
+								int attempt)
 			throws RecordServicesException {
 		ContentManager contentManager = modelFactory.getContentManager();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
@@ -948,7 +909,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return new ContentModificationsBuilder(types).buildForModifiedRecords(transaction.getRecords());
 	}
 
-	void saveTransactionDTO(Transaction transaction, RecordModificationImpactHandler modificationImpactHandler, int attempt)
+	void saveTransactionDTO(Transaction transaction, RecordModificationImpactHandler modificationImpactHandler,
+							int attempt)
 			throws RecordServicesException {
 
 		List<Record> modifiedOrUnsavedRecords = transaction.getModifiedRecords();
@@ -987,7 +949,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						modificationImpactHandler.cancel();
 					}
 					LOGGER.trace("Optimistic locking, handling with specified resolution {}", transaction.getRecordUpdateOptions()
-							.getOptimisticLockingResolution().name(), e);
+																										 .getOptimisticLockingResolution().name(), e);
 					handleOptimisticLocking(transactionDTOEntry.getValue(), transaction, modificationImpactHandler, e, attempt);
 				}
 			}
@@ -1101,7 +1063,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			boolean isSupportingReindexing = "records".equals(dataStore);
 
 			boolean isChangingSomething = !addedRecords.isEmpty() || !modifiedRecordDTOs.isEmpty() ||
-					(isSupportingReindexing && !markedForReindexing.isEmpty());
+										  (isSupportingReindexing && !markedForReindexing.isEmpty());
 
 			if (isChangingSomething) {
 				TransactionDTO datastoreTransaction = new TransactionDTO(transaction.getId(), options.getRecordsFlushing(),
@@ -1265,8 +1227,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction,
-			TaxonomiesManager taxonomiesManager,
-			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction) {
+																			  TaxonomiesManager taxonomiesManager,
+																			  SearchServices searchServices,
+																			  MetadataSchemaTypes metadataSchemaTypes,
+																			  boolean executedAfterTransaction) {
 
 		if (transaction.getRecords().isEmpty()) {
 			return new ModificationImpactCalculatorResponse(new ArrayList<ModificationImpact>(), new ArrayList<String>());
@@ -1284,7 +1248,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public ModificationImpactCalculator newModificationImpactCalculator(TaxonomiesManager taxonomiesManager,
-			MetadataSchemaTypes metadataSchemaTypes, SearchServices searchServices) {
+																		MetadataSchemaTypes metadataSchemaTypes,
+																		SearchServices searchServices) {
 		List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(metadataSchemaTypes.getCollection());
 		return new ModificationImpactCalculator(metadataSchemaTypes, taxonomies, searchServices, this);
 

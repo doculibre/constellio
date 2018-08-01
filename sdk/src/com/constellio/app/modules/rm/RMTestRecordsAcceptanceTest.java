@@ -1,30 +1,10 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.UNKNOWN;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilderWithDefinedIds;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
-import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -37,6 +17,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
@@ -72,7 +63,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		assertThat(records.getAdmin().has(CorePermissions.DELETE_CONTENT_VERSION).globally()).isTrue();
@@ -92,7 +83,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat("_M_3cd468d8-ddc4-46ae-b7ab-9bdf5d9d5a7a".split("_").length).isEqualTo(3);
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus()
+										.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -106,7 +97,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-				.withFoldersAndContainersOfEveryStatus()
+										.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
@@ -139,7 +130,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				.isEqualTo(unit10FolderCount + unit11FolderCount + unit12FolderCount + unit30FolderCount);
 
 		assertThat(records.getFolder_A01()).has(openDate(2000, 10, 4)).has(noCloseDate()).has(noPlanifiedTransferDate())
-				.has(noPlanifiedDepositDate()).has(noPlanifiedDestructionDate());
+										   .has(noPlanifiedDepositDate()).has(noPlanifiedDestructionDate());
 	}
 
 	private org.assertj.core.api.LongAssert assertThatCountOfFoldersVisibleBy(User user) {
@@ -155,7 +146,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		assertThat(records.getStorageSpaceS01().getCode()).isEqualTo("S01");
@@ -187,7 +178,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 
 		DecommissioningList list01 = records.getList01();
@@ -248,7 +239,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		assertThat(records.getContainerBac01().getId()).isEqualTo("bac01");
@@ -375,7 +366,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 		assertThat(records.getRule1().getCopyRulesComment())
 				.isEqualTo(Arrays.asList("R1:comment1", "R2:comment2", "R3:comment3", "R4:comment4"));
@@ -391,7 +382,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+								  .withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
@@ -1176,7 +1167,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+								  .withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 

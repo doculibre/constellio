@@ -1,6 +1,5 @@
 package com.constellio.model.extensions.events.recordsImport;
 
-import com.constellio.app.services.schemas.bulkImport.ImportDataErrors;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 

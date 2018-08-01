@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -26,9 +20,6 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-
-import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
@@ -57,7 +48,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -105,7 +96,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 
 	public Folder getTestFolder() {
 		return newFolder("Test").setOpenDate(aDate()).setRetentionRuleEntered(records.getRule1())
-				.setAdministrativeUnitEntered(records.getUnit10a());
+								.setAdministrativeUnitEntered(records.getUnit10a());
 	}
 
 	@Test
@@ -164,8 +155,8 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 	public void givenFolderWithParentAndEnteredFieldsThenEnteredFieldsDeleted()
 			throws Exception {
 		Folder folder = newFolder("Test").setOpenDate(aDate()).setRetentionRuleEntered(records.getRule1())
-				.setAdministrativeUnitEntered(records.getUnit10a()).setCategoryEntered(records.categoryId_X13)
-				.setParentFolder(records.folder_A06).setCopyStatusEntered(CopyType.PRINCIPAL);
+										 .setAdministrativeUnitEntered(records.getUnit10a()).setCategoryEntered(records.categoryId_X13)
+										 .setParentFolder(records.folder_A06).setCopyStatusEntered(CopyType.PRINCIPAL);
 		recordServices.add(folder);
 
 		assertThat(folder.getAdministrativeUnitEntered()).isNull();
@@ -174,8 +165,8 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getCopyStatusEntered()).isNull();
 
 		folder.setOpenDate(aDate()).setRetentionRuleEntered(records.getRule1())
-				.setAdministrativeUnitEntered(records.getUnit10a()).setCategoryEntered(records.categoryId_X13)
-				.setParentFolder(records.folder_A06).setCopyStatusEntered(CopyType.PRINCIPAL);
+			  .setAdministrativeUnitEntered(records.getUnit10a()).setCategoryEntered(records.categoryId_X13)
+			  .setParentFolder(records.folder_A06).setCopyStatusEntered(CopyType.PRINCIPAL);
 		recordServices.update(folder);
 
 		assertThat(folder.getAdministrativeUnitEntered()).isNull();
@@ -234,7 +225,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 
 	private Folder newFolder(String title) {
 		return rm.newFolder().setTitle(title).setOpenDate(LocalDate.now())
-				.setAdministrativeUnitEntered(records.unitId_10a)
-				.setCategoryEntered(records.categoryId_X110);
+				 .setAdministrativeUnitEntered(records.unitId_10a)
+				 .setCategoryEntered(records.categoryId_X110);
 	}
 }

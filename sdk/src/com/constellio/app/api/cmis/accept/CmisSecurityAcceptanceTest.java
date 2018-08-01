@@ -1,29 +1,27 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static java.util.Arrays.asList;
-import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
-import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
-import static org.apache.commons.io.IOUtils.toByteArray;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Document;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ObjectId;
-import org.apache.chemistry.opencmis.client.api.Session;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
+import com.constellio.model.services.contents.ContentManagementAcceptTest;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.taxonomies.*;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -43,31 +41,20 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.services.contents.ContentManagementAcceptTest;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.*;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static java.util.Arrays.asList;
+import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
+import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
+import static org.apache.commons.io.IOUtils.toByteArray;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Created by Constelio on 2016-10-26.
@@ -945,7 +932,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 	private void givenFolderInheritingTaxonomyAuthorizations() {
 		AuthorizationAddRequest authorization = authorizationInCollection(zeCollection).forUsers(users.edouardIn(zeCollection))
-				.on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
+																					   .on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, users.adminIn(zeCollection));
 		try {
 			waitForBatchProcess();
@@ -1110,7 +1097,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		Holder<String> objectIdHolder = new Holder<String>(object.getId());
 
 		session.getBinding().getObjectService()
-				.moveObject(session.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
+			   .moveObject(session.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
 
 		recordServices.refresh(record);
 	}
@@ -1122,7 +1109,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			moveObject(record, parentTargetId);
 		} catch (CmisRuntimeException e) {
 			if (e.getMessage().contains("permission CMIS CAN_MOVE_OBJECT") ||
-					e.getMessage().contains("permission CMIS CAN_CREATE_FOLDER")) {
+				e.getMessage().contains("permission CMIS CAN_CREATE_FOLDER")) {
 				return false;
 			} else {
 				throw e;
@@ -1141,7 +1128,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			moveObject(record, parentTargetId);
 		} catch (CmisRuntimeException e) {
 			if (e.getMessage().contains("permission CMIS CAN_MOVE_OBJECT") ||
-					e.getMessage().contains("permission CMIS CAN_CREATE_FOLDER")) {
+				e.getMessage().contains("permission CMIS CAN_CREATE_FOLDER")) {
 				return true;
 			}
 		}
@@ -1160,7 +1147,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			}
 		}
 		boolean isMovable = !record.get(Schemas.PATH).toString()
-				.equals(oldParent.get(Schemas.PATH).toString() + "/" + record.getId());
+								   .equals(oldParent.get(Schemas.PATH).toString() + "/" + record.getId());
 		moveObject(record, oldParent.getId());
 
 		return isMovable;

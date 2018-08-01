@@ -1,14 +1,5 @@
 package com.constellio.app.modules.es.services.mapping.connectors;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.services.ConnectorManager;
@@ -17,6 +8,14 @@ import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.ConnectorMappingService;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorLdapMappingServiceAcceptanceTest extends ConstellioTest {
 
@@ -39,9 +38,9 @@ public class ConnectorLdapMappingServiceAcceptanceTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		ldapConnectorInstance = connectorManager.createConnector(es.newConnectorLDAPInstance()
-				.setUsername("bob").setPassword("marley").setUrls(asList("url")).setConnectionUsername("user")
-				.setUsersBaseContextList(asList("user1"))
-				.setCode("http").setTitle("Http connector").setEnabled(false));
+																   .setUsername("bob").setPassword("marley").setUrls(asList("url")).setConnectionUsername("user")
+																   .setUsersBaseContextList(asList("user1"))
+																   .setCode("http").setTitle("Http connector").setEnabled(false));
 		ldapConnectorInstance = es.wrapConnectorInstance(ldapConnectorInstance.getWrappedRecord());
 	}
 
@@ -78,7 +77,7 @@ public class ConnectorLdapMappingServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private ListAssert<ConnectorField> assertThatConnectorFields(ConnectorInstance<?> connectorInstance,
-			String connectorDocumentSchemaType) {
+																 String connectorDocumentSchemaType) {
 		return assertThat(service.getConnectorFields(connectorInstance, connectorDocumentSchemaType))
 				.usingFieldByFieldElementComparator();
 	}

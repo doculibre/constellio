@@ -23,7 +23,7 @@ public class FileSystemContentDaoRuntimeException extends ContentDaoRuntimeExcep
 		}
 	}
 
-	public static class FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication extends  FileSystemContentDaoRuntimeException {
+	public static class FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication extends FileSystemContentDaoRuntimeException {
 
 		public FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(File file) {
 			this(file.getAbsolutePath());
@@ -132,7 +132,7 @@ public class FileSystemContentDaoRuntimeException extends ContentDaoRuntimeExcep
 
 	public static class FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault extends FileSystemContentDaoRuntimeException {
 		public FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault(File file) {
-			super("Une erreur sait produite pendant la copie du fichier : " + file.getAbsolutePath() + " vers la voûte." );
+			super("Une erreur sait produite pendant la copie du fichier : " + file.getAbsolutePath() + " vers la voûte.");
 		}
 	}
 
