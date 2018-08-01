@@ -1,24 +1,5 @@
 package com.constellio.model.services.configs;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.EnumUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -62,6 +43,17 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.InstanciationUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.EnumUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SystemConfigurationsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -81,7 +73,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	//boolean readPropertiesFileRequired = true;
 
 	public SystemConfigurationsManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager,
-			Delayed<ConstellioModulesManager> constellioModulesManagerDelayed, ConstellioCacheManager cacheManager) {
+									   Delayed<ConstellioModulesManager> constellioModulesManagerDelayed,
+									   ConstellioCacheManager cacheManager) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.configManager = configManager;
 		this.constellioModulesManagerDelayed = constellioModulesManagerDelayed;
@@ -102,7 +95,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	private synchronized void clearCache() {
 		cache2.clear();
-//		readPropertiesFileRequired = true;
+		//		readPropertiesFileRequired = true;
 	}
 
 	@Override
@@ -305,7 +298,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	}
 
 	List<RecordBatchProcess> startBatchProcessesToReindex(List<Metadata> metadatasToReindex, MetadataSchemaType type,
-			SystemConfiguration config) {
+														  SystemConfiguration config) {
 
 		List<RecordBatchProcess> batchProcesses = new ArrayList<>();
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
@@ -320,7 +313,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		return batchProcesses;
 	}
 
-	private List<Metadata> findMetadatasToReindex(MetadataSchemaType schemaType, SystemConfiguration systemConfiguration) {
+	private List<Metadata> findMetadatasToReindex(MetadataSchemaType schemaType,
+												  SystemConfiguration systemConfiguration) {
 		Set<Metadata> reindexedMetadatas = new HashSet<>();
 		for (Metadata metadata : schemaType.getCalculatedMetadatas()) {
 			for (Dependency dependency : ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().getDependencies()) {
@@ -360,14 +354,14 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		}
 		switch (config.getType()) {
 
-		case STRING:
-			return value.toString();
-		case BOOLEAN:
-			return ((Boolean) value) ? "true" : "false";
-		case INTEGER:
-			return "" + value;
-		case ENUM:
-			return ((Enum<?>) value).name();
+			case STRING:
+				return value.toString();
+			case BOOLEAN:
+				return ((Boolean) value) ? "true" : "false";
+			case INTEGER:
+				return "" + value;
+			case ENUM:
+				return ((Enum<?>) value).name();
 		}
 		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
@@ -378,14 +372,14 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		}
 		switch (config.getType()) {
 
-		case STRING:
-			return value;
-		case BOOLEAN:
-			return "true".equals(value);
-		case INTEGER:
-			return Integer.valueOf(value);
-		case ENUM:
-			return EnumUtils.getEnum((Class) config.getEnumClass(), value);
+			case STRING:
+				return value;
+			case BOOLEAN:
+				return "true".equals(value);
+			case INTEGER:
+				return Integer.valueOf(value);
+			case ENUM:
+				return EnumUtils.getEnum((Class) config.getEnumClass(), value);
 		}
 		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
@@ -546,7 +540,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		return configs;
 	}
 
-	public List<SystemConfiguration> getNonHiddenGroupConfigurationsWithCodeOrderedByName(String groupCode, boolean showHidden) {
+	public List<SystemConfiguration> getNonHiddenGroupConfigurationsWithCodeOrderedByName(String groupCode,
+																						  boolean showHidden) {
 		List<SystemConfiguration> nonHidden = new ArrayList<>();
 		for (SystemConfiguration config : getAllConfigurations()) {
 			SystemConfigurationGroup group = new SystemConfigurationGroup(config.getModule(), config.getConfigGroupCode());

@@ -1,60 +1,12 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_6_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_7;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_1_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_7;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_14;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_19;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_21;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_22;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_42;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_5_50;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_0_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_1_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_1_3_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_3_0_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_4;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_4_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_4_3;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_5;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_8_8;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_0_1;
+import com.constellio.app.services.migrations.scripts.*;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
@@ -66,6 +18,12 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class CoreMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -127,7 +85,8 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		generatedFastCoreMigration = new GeneratedCoreMigrationCombo(collection, appLayerFactory,
@@ -193,8 +152,9 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 	}
 
-	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
+	private Transaction createRecordTransaction(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
 		Transaction transaction = new Transaction();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
@@ -219,7 +179,8 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlteration(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

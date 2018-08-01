@@ -16,7 +16,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-import com.sun.star.form.runtime.FeatureState;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
@@ -24,13 +23,10 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.ltr.feature.SolrFeature;
-import org.apache.solr.ltr.store.FeatureStore;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,9 +164,9 @@ public class SolrFeatureViewImpl extends BaseViewImpl implements SolrFeatureView
 				queryTypeField.addStyleName("queryTypeField");
 				queryTypeField.setWidth("100%");
 				if (feature != null) {
-					if(StringUtils.isNotBlank(feature.getQ())) {
+					if (StringUtils.isNotBlank(feature.getQ())) {
 						queryTypeField.setValue("q");
-					} else if(!CollectionUtils.isEmpty(feature.getFq())) {
+					} else if (!CollectionUtils.isEmpty(feature.getFq())) {
 						queryTypeField.setValue("fq");
 					}
 				}
@@ -181,9 +177,9 @@ public class SolrFeatureViewImpl extends BaseViewImpl implements SolrFeatureView
 				queryField.addStyleName("queryField");
 				queryField.setWidth("90%");
 				if (feature != null) {
-					if(!CollectionUtils.isEmpty(feature.getFq())) {
+					if (!CollectionUtils.isEmpty(feature.getFq())) {
 						queryField.setValue(StringUtils.join(feature.getFq(), "; "));
-					} else if(StringUtils.isNotBlank(feature.getQ())) {
+					} else if (StringUtils.isNotBlank(feature.getQ())) {
 						queryField.setValue(feature.getQ());
 					}
 				}
@@ -191,18 +187,18 @@ public class SolrFeatureViewImpl extends BaseViewImpl implements SolrFeatureView
 				BaseButton addButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						if(StringUtils.isBlank(labelField.getValue())) {
+						if (StringUtils.isBlank(labelField.getValue())) {
 							showErrorMessage($("SolrFeatureView.invalidName"));
 							return;
 						}
 
-						if(StringUtils.isBlank((String)queryTypeField.getValue())) {
+						if (StringUtils.isBlank((String) queryTypeField.getValue())) {
 							// SolrFeature: Q or FQ must be provided
 							showErrorMessage($("SolrFeatureView.invalidQueryType"));
 							return;
 						}
 
-						if(StringUtils.isBlank(queryField.getValue())) {
+						if (StringUtils.isBlank(queryField.getValue())) {
 							// SolrFeature: Q or FQ must be provided
 							showErrorMessage($("SolrFeatureView.invalidQorFQ"));
 							return;
@@ -210,11 +206,11 @@ public class SolrFeatureViewImpl extends BaseViewImpl implements SolrFeatureView
 
 						SolrFeature newFeature = new SolrFeature(labelField.getValue(), null);
 
-						if("fq".equals(queryTypeField.getValue())) {
+						if ("fq".equals(queryTypeField.getValue())) {
 							Splitter splitter = Splitter.on(CharMatcher.anyOf(";")).trimResults().omitEmptyStrings();
 							Iterable<String> split = splitter.split(StringUtils.trimToEmpty(queryField.getValue()));
 							newFeature.setFq(Lists.newArrayList(split));
-						} else if("q".equals(queryTypeField.getValue())) {
+						} else if ("q".equals(queryTypeField.getValue())) {
 							newFeature.setQ(queryField.getValue());
 						}
 

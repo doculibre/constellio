@@ -1,14 +1,13 @@
 package com.constellio.model.services.records.aggregations;
 
-import java.util.Iterator;
-import java.util.Set;
-
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+import java.util.Iterator;
+import java.util.Set;
 
 public class MaxMetadataAggregationHandler extends SolrStatMetadataAggregationHandler {
 
@@ -32,28 +31,28 @@ public class MaxMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 
 			if (valueType == MetadataValueType.NUMBER) {
 				if (value instanceof Number
-						&& (max == null || ((Double) max).doubleValue() < ((Number) value).doubleValue())) {
+					&& (max == null || ((Double) max).doubleValue() < ((Number) value).doubleValue())) {
 					max = ((Number) value).doubleValue();
 				}
 			} else if (valueType == MetadataValueType.DATE) {
 				if (value instanceof LocalDate
-						&& (max == null || ((LocalDate) max).isBefore((LocalDate) value))) {
+					&& (max == null || ((LocalDate) max).isBefore((LocalDate) value))) {
 					max = value;
 
 				} else if (value instanceof LocalDateTime
-						&& (max == null || ((LocalDate) max).isBefore(((LocalDateTime) value).toLocalDate()))) {
+						   && (max == null || ((LocalDate) max).isBefore(((LocalDateTime) value).toLocalDate()))) {
 					max = ((LocalDateTime) value).toLocalDate();
 
 				}
 
 			} else if (valueType == MetadataValueType.DATE_TIME) {
 				if (value instanceof LocalDate
-						&& (max == null || ((LocalDateTime) max)
+					&& (max == null || ((LocalDateTime) max)
 						.isBefore(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT)))) {
 					max = ((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT);
 
 				} else if (value instanceof LocalDateTime
-						&& (max == null || ((LocalDateTime) max).isBefore((LocalDateTime) value))) {
+						   && (max == null || ((LocalDateTime) max).isBefore((LocalDateTime) value))) {
 					max = value;
 
 				}

@@ -1,16 +1,6 @@
 package com.constellio.app.start;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-
+import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.bio.SocketConnector;
@@ -20,15 +10,13 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.Configuration;
-import org.eclipse.jetty.webapp.FragmentConfiguration;
-import org.eclipse.jetty.webapp.MetaInfConfiguration;
-import org.eclipse.jetty.webapp.TagLibConfiguration;
-import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebInfConfiguration;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
+import org.eclipse.jetty.webapp.*;
 
-import com.constellio.model.conf.FoldersLocator;
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
+import java.io.File;
+import java.util.*;
 
 public class ApplicationStarter {
 
@@ -62,8 +50,8 @@ public class ApplicationStarter {
 
 		// Static file handler
 		handler = new WebAppContext();
-		handler.setConfigurations(new Configuration[] { new WebXmlConfiguration(), new WebInfConfiguration(),
-				new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration() });
+		handler.setConfigurations(new Configuration[]{new WebXmlConfiguration(), new WebInfConfiguration(),
+													  new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration()});
 		handler.setContextPath("/constellio");
 
 		handler.setBaseResource(new ResourceCollection(resources.toArray(new String[0])));
@@ -111,7 +99,7 @@ public class ApplicationStarter {
 			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			Server server = new Server();
-			server.setConnectors(new Connector[] { connector });
+			server.setConnectors(new Connector[]{connector});
 			return server;
 		}
 	}
@@ -163,7 +151,7 @@ public class ApplicationStarter {
 
 		connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
-		sslServer.setConnectors(new Connector[] { connector });
+		sslServer.setConnectors(new Connector[]{connector});
 
 		return sslServer;
 	}

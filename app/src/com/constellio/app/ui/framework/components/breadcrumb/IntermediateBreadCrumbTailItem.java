@@ -4,13 +4,13 @@ import com.constellio.app.ui.application.Navigation;
 
 public abstract class IntermediateBreadCrumbTailItem implements BreadcrumbItem {
 
-    public abstract String getTitle();
+	public abstract String getTitle();
 
-    @Override
-    public String getLabel() {
-        return getTitle();
-    }
+	@Override
+	public String getLabel() {
+		return getTitle();
+	}
 
-    public abstract void activate(Navigation navigate);
+	public abstract void activate(Navigation navigate);
 
 }

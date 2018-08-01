@@ -5,7 +5,7 @@ import com.constellio.app.ui.framework.data.BatchProcessDataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 
 public interface ListBatchProcessesView extends BaseView, RecordsManagementViewGroup {
-	
+
 	void setUserBatchProcesses(BatchProcessDataProvider dataProvider);
 
 	void setSystemBatchProcesses(BatchProcessDataProvider dataProvider);

@@ -12,7 +12,7 @@ public class FastContinueInfos {
 	List<String> shownRecordsWithVisibleChildren;
 
 	public FastContinueInfos(boolean finishedConceptsIteration, int lastReturnRecordIndex,
-			List<String> shownRecordsWithVisibleChildren) {
+							 List<String> shownRecordsWithVisibleChildren) {
 
 		//TODO : Remove the shownRecordsWithVisibleChildren parameter
 

@@ -17,7 +17,8 @@ public class ESMigrationTo7_6_2 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_6_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -25,7 +26,7 @@ public class ESMigrationTo7_6_2 extends MigrationHelper implements MigrationScri
 	static class SchemaAlterationFor7_6_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_6_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

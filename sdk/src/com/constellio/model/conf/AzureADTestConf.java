@@ -1,14 +1,13 @@
 package com.constellio.model.conf;
 
-import static java.util.Arrays.asList;
-
-import org.joda.time.Duration;
-
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.sdk.SDKPasswords;
+import org.joda.time.Duration;
+
+import static java.util.Arrays.asList;
 
 public class AzureADTestConf {
 	public static LDAPServerConfiguration getLDAPServerConfiguration() {

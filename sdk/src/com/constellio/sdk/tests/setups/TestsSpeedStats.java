@@ -1,11 +1,11 @@
 package com.constellio.sdk.tests.setups;
 
+import com.constellio.sdk.tests.AbstractConstellioTest;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.sdk.tests.AbstractConstellioTest;
 
 public class TestsSpeedStats {
 
@@ -24,7 +24,7 @@ public class TestsSpeedStats {
 		for (TestSpeedStat stat : stats.values()) {
 			System.out.println(
 					stat.task + " was called " + stat.count + " times (total of " + stat.total + "ms, average of " + (stat.total
-							/ stat.count) + "ms)");
+																													  / stat.count) + "ms)");
 		}
 	}
 

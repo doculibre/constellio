@@ -1,21 +1,9 @@
 package com.constellio.model.services.batch.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ForkJoinPool;
-
-import com.constellio.model.entities.records.wrappers.BatchProcessReport;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -23,6 +11,17 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class BatchProcessTasksFactoryAcceptanceTest extends ConstellioTest {
 

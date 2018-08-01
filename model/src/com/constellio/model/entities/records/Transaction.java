@@ -1,16 +1,5 @@
 package com.constellio.model.entities.records;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
@@ -20,6 +9,8 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordUtils;
+
+import java.util.*;
 
 public class Transaction {
 
@@ -302,7 +293,8 @@ public class Transaction {
 		return this;
 	}
 
-	public Transaction setSkippingReferenceToLogicallyDeletedValidation(boolean skippingReferenceToLogicallyDeletedValidation) {
+	public Transaction setSkippingReferenceToLogicallyDeletedValidation(
+			boolean skippingReferenceToLogicallyDeletedValidation) {
 		recordUpdateOptions.setSkippingReferenceToLogicallyDeletedValidation(skippingReferenceToLogicallyDeletedValidation);
 		return this;
 	}

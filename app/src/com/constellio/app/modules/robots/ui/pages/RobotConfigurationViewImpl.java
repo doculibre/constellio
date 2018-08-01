@@ -1,11 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.robots.ui.components.breadcrumb.RobotBreadcrumbTrail;
 import com.constellio.app.modules.robots.ui.data.RobotTreeNodesDataProvider;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -32,6 +26,11 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotConfigurationView {
 	private final RobotConfigurationPresenter presenter;
@@ -165,7 +164,7 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 				if (resource == null) {
 					resource = new DownloadStreamResource(presenter.getResource(), presenter.getReportTitle());
 				}
-				
+
 				Page.getCurrent().open(resource, null, false);
 			}
 		};

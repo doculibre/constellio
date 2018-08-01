@@ -1,6 +1,16 @@
 package com.constellio.model.services.users;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,18 +19,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 

@@ -1,18 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import com.google.common.base.Strings;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionInfo;
@@ -26,6 +13,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRunti
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaSinceItHasRecords;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
+import com.google.common.base.Strings;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataSchemaTypeBuilder {
 
@@ -51,12 +44,12 @@ public class MetadataSchemaTypeBuilder {
 	}
 
 	static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
-			MetadataSchemaTypesBuilder typesBuilder) {
+														 MetadataSchemaTypesBuilder typesBuilder) {
 		return createNewSchemaType(collectionInfo, code, typesBuilder, true);
 	}
 
 	static MetadataSchemaTypeBuilder createNewSchemaType(CollectionInfo collectionInfo, String code,
-			MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
+														 MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
 		builder.classProvider = typesBuilder.getClassProvider();
 		builder.code = code;
@@ -77,7 +70,8 @@ public class MetadataSchemaTypeBuilder {
 		return label;
 	}
 
-	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType, ClassProvider classProvider) {
+	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType,
+															 ClassProvider classProvider) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
 		builder.readOnlyLocked = schemaType.isReadOnlyLocked();
 		builder.classProvider = classProvider;
@@ -284,7 +278,7 @@ public class MetadataSchemaTypeBuilder {
 	@Override
 	public String toString() {
 		return "MetadataSchemaTypeBuilder [code=" + code + ", label=" + labels + ", defaultSchema=" + defaultSchema
-				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
+			   + ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
 	}
 
 	public Set<MetadataBuilder> getAllMetadatas() {

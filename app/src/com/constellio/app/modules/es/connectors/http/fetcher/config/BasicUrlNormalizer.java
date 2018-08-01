@@ -1,28 +1,28 @@
 /**
  * Copyright © 2010 DocuLibre inc.
- *
+ * <p>
  * This file is part of Constellio.
- *
+ * <p>
  * Constellio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * Constellio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with Constellio.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.constellio.app.modules.es.connectors.http.fetcher.config;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * A simple and basic URL path normalizer.
@@ -34,7 +34,7 @@ public class BasicUrlNormalizer implements UrlNormalizer {
 	@Override
 	public String normalize(String url)
 			throws MalformedURLException,
-			URISyntaxException {
+				   URISyntaxException {
 		String trimmedUrl = StringUtils.trim(url);
 		String noFragmentUrl = StringUtils.substringBefore(trimmedUrl, "#");
 		if (StringUtils.isEmpty(new URL(noFragmentUrl).getFile())) {

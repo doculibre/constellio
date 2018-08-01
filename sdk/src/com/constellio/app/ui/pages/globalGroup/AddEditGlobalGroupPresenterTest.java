@@ -1,20 +1,5 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
@@ -25,6 +10,15 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import org.junit.Before;
+import org.mockito.Mock;
+
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 

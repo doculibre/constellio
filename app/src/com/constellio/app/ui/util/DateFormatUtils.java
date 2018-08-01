@@ -1,15 +1,14 @@
 package com.constellio.app.ui.util;
 
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class DateFormatUtils implements Serializable {
 	public static String format(Date date) {

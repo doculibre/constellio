@@ -1,23 +1,22 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import org.assertj.core.api.ListAssert;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.assertj.core.api.ListAssert;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 

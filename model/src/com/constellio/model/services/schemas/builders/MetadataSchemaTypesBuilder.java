@@ -1,19 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
@@ -22,14 +8,8 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataNetwork;
-import com.constellio.model.entities.schemas.MetadataNetworkBuilder;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -41,6 +21,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataSchemaTypesBuilder {
 
@@ -55,7 +42,7 @@ public class MetadataSchemaTypesBuilder {
 	private List<Language> languages = new ArrayList<>();
 
 	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
-			List<Language> languages) {
+									   List<Language> languages) {
 		super();
 		this.collectionInfo = collectionInfo;
 		this.version = version;
@@ -73,8 +60,8 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo, int version,
-			ClassProvider classProvider,
-			List<Language> languages) {
+															   ClassProvider classProvider,
+															   List<Language> languages) {
 		return new MetadataSchemaTypesBuilder(collectionInfo, version, classProvider, languages);
 	}
 
@@ -387,7 +374,8 @@ public class MetadataSchemaTypesBuilder {
 		}
 	}
 
-	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder, CalculatedDataEntry calculatedDataEntry) {
+	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder,
+											  CalculatedDataEntry calculatedDataEntry) {
 		if (metadataBuilder.isMultivalue() && !calculatedDataEntry.getCalculator().isMultiValue()) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata(
 					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
@@ -445,7 +433,7 @@ public class MetadataSchemaTypesBuilder {
 					throw new MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata(dependencyMetaCompleteCode, e);
 				}
 				if (dependencyMetadata.getType() != referenceDependency.getReturnType()
-						|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
+					|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
 					throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
 							calculatedMetadataBuilder.getCode(), dependencyMetadata.getCode(), dependencyMetadata.getType(),
 							referenceDependency.getReturnType());
@@ -471,7 +459,8 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	private void validateCopiedMetadataMultiValues(MetadataBuilder metadataBuilder, String referenceMetadataCode,
-			MetadataBuilder referenceMetadata, String copiedMetadataCode, MetadataBuilder copiedMetadata) {
+												   MetadataBuilder referenceMetadata, String copiedMetadataCode,
+												   MetadataBuilder copiedMetadata) {
 
 		if (!metadataBuilder.isMultivalue() && (referenceMetadata.isMultivalue() || copiedMetadata.isMultivalue())) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyMultiValueInSingleValueMetadata(

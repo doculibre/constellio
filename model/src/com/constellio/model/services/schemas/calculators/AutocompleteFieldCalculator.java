@@ -1,13 +1,5 @@
 package com.constellio.model.services.schemas.calculators;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -16,6 +8,10 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class AutocompleteFieldCalculator implements MetadataValueCalculator<List<String>> {
 
@@ -31,7 +27,7 @@ public class AutocompleteFieldCalculator implements MetadataValueCalculator<List
 	}
 
 	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words,
-			DynamicDependencyValues autocompleteMetadatasValues) {
+															 DynamicDependencyValues autocompleteMetadatasValues) {
 		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
 			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.getValue(metadata));
 		}

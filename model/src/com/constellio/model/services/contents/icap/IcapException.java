@@ -2,68 +2,68 @@ package com.constellio.model.services.contents.icap;
 
 public class IcapException extends RuntimeException {
 
-    public static class CommunicationFailure extends IcapException {
+	public static class CommunicationFailure extends IcapException {
 
-        private static final String MESSAGE_KEY = "icap.analysis.communicationFailure";
+		private static final String MESSAGE_KEY = "icap.analysis.communicationFailure";
 
-        public CommunicationFailure(final Throwable cause, final String fileName) {
-            super(MESSAGE_KEY, cause, fileName);
-        }
+		public CommunicationFailure(final Throwable cause, final String fileName) {
+			super(MESSAGE_KEY, cause, fileName);
+		}
 
-    }
+	}
 
-    public static class TimeoutException extends IcapException {
+	public static class TimeoutException extends IcapException {
 
-        private static final String MESSAGE_KEY = "icap.analysis.timedout";
+		private static final String MESSAGE_KEY = "icap.analysis.timedout";
 
-        public TimeoutException(final String fileName) {
-            super(MESSAGE_KEY, fileName);
-        }
+		public TimeoutException(final String fileName) {
+			super(MESSAGE_KEY, fileName);
+		}
 
-    }
+	}
 
-    public static class ThreatFoundException extends IcapException {
+	public static class ThreatFoundException extends IcapException {
 
-        private static final String MESSAGE_KEY = "icap.analysis.threatFound";
+		private static final String MESSAGE_KEY = "icap.analysis.threatFound";
 
-        private final String threatName;
+		private final String threatName;
 
-        public ThreatFoundException(final String threatName, final String fileName) {
-            super(MESSAGE_KEY, fileName);
+		public ThreatFoundException(final String threatName, final String fileName) {
+			super(MESSAGE_KEY, fileName);
 
-            this.threatName = threatName;
-        }
+			this.threatName = threatName;
+		}
 
-        public String getThreatName() {
-            return threatName;
-        }
+		public String getThreatName() {
+			return threatName;
+		}
 
-    }
+	}
 
-    private String fileName;
+	private String fileName;
 
-    IcapException(final String message, final String fileName) {
-        super(message);
+	IcapException(final String message, final String fileName) {
+		super(message);
 
-        this.fileName = fileName;
-    }
+		this.fileName = fileName;
+	}
 
-    IcapException(final String message, final Throwable cause, final String fileName) {
-        super(message, cause);
+	IcapException(final String message, final Throwable cause, final String fileName) {
+		super(message, cause);
 
-        this.fileName = fileName;
+		this.fileName = fileName;
 	}
 
 	public IcapException(final String message) {
 		super(message);
 	}
 
-    public IcapException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
+	public IcapException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
 
-    public String getFileName() {
-        return fileName;
-    }
+	public String getFileName() {
+		return fileName;
+	}
 
 }

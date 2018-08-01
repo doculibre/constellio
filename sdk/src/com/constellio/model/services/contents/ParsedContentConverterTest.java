@@ -1,18 +1,15 @@
 package com.constellio.model.services.contents;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
+import com.constellio.model.entities.records.ParsedContent;
+import org.junit.Test;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-
-import com.constellio.model.entities.records.ParsedContent;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
 public class ParsedContentConverterTest {
 

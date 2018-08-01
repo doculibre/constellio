@@ -14,35 +14,35 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 
 public class AddEditBagInfoPresenter extends BasePresenter<AddEditBagInfoView> {
-    RecordServices recordServices;
-    AddEditBagInfoView view;
-    SchemaPresenterUtils presenterUtils;
+	RecordServices recordServices;
+	AddEditBagInfoView view;
+	SchemaPresenterUtils presenterUtils;
 
-    public AddEditBagInfoPresenter(AddEditBagInfoView view) {
-        super(view);
-        recordServices = recordServices();
-        presenterUtils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-        this.view = view;
-    }
+	public AddEditBagInfoPresenter(AddEditBagInfoView view) {
+		super(view);
+		recordServices = recordServices();
+		presenterUtils = new SchemaPresenterUtils(BagInfo.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+		this.view = view;
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
 
-    public RecordVO getRecordVO(String id ) throws RecordServicesRuntimeException.NoSuchRecordWithId {
-        return new RecordToVOBuilder().build(presenterUtils.getRecord(id), RecordVO.VIEW_MODE.FORM, this.view.getSessionContext());
-    }
+	public RecordVO getRecordVO(String id) throws RecordServicesRuntimeException.NoSuchRecordWithId {
+		return new RecordToVOBuilder().build(presenterUtils.getRecord(id), RecordVO.VIEW_MODE.FORM, this.view.getSessionContext());
+	}
 
-    public RecordVO newRecordVO () {
-        return new RecordToVOBuilder().build(presenterUtils.newRecord(), RecordVO.VIEW_MODE.FORM, this.view.getSessionContext());
-    }
+	public RecordVO newRecordVO() {
+		return new RecordToVOBuilder().build(presenterUtils.newRecord(), RecordVO.VIEW_MODE.FORM, this.view.getSessionContext());
+	}
 
-    public void saveButtonClicked(RecordVO recordVO) throws RecordServicesException {
-        Record record = presenterUtils.toRecord(recordVO);
-        Transaction trans = new Transaction();
-        trans.update(record);
-        presenterUtils.recordServices().execute(trans);
-        view.navigate().to().previousView();
-    }
+	public void saveButtonClicked(RecordVO recordVO) throws RecordServicesException {
+		Record record = presenterUtils.toRecord(recordVO);
+		Transaction trans = new Transaction();
+		trans.update(record);
+		presenterUtils.recordServices().execute(trans);
+		view.navigate().to().previousView();
+	}
 }

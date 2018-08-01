@@ -1,12 +1,11 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.Select;
-
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.Select;
 
 public class FormDisplaySearchPage extends PageHelper {
 

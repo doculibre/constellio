@@ -1,10 +1,5 @@
 package com.constellio.app.modules.robots.model.actions;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.services.RobotsManager;
@@ -12,6 +7,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class RunExtractorsActionExecutor implements ActionExecutor {
 
@@ -26,7 +25,7 @@ public class RunExtractorsActionExecutor implements ActionExecutor {
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records, List<Record> processedRecords, boolean dryRun) {
+							   List<Record> records, List<Record> processedRecords, boolean dryRun) {
 		// Parameters will always be null, not use them
 		Transaction transaction = new Transaction();
 		transaction.setSkippingRequiredValuesValidation(true);

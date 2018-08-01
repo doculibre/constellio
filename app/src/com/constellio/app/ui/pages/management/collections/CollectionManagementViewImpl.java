@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -15,13 +11,12 @@ import com.constellio.app.ui.framework.data.CollectionVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionManagementViewImpl extends BaseViewImpl
 		implements CollectionManagementView, CollectionsListManagerListener {

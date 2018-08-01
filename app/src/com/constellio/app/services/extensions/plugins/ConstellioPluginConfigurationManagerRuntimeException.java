@@ -40,7 +40,8 @@ public class ConstellioPluginConfigurationManagerRuntimeException extends Runtim
 	public static class ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin
 			extends ConstellioPluginConfigurationManagerRuntimeException {
 
-		public ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin(String moduleId) {
+		public ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin(
+				String moduleId) {
 			super(moduleId);
 		}
 	}

@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.components.decommissioning;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BooleanLabel;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -51,12 +50,12 @@ public class ContainerDetailTableGenerator implements ColumnGenerator {
 		DecomListContainerDetail detail = (DecomListContainerDetail) itemId;
 
 		switch ((String) columnId) {
-		case IDENTIFIER:
-			return new ReferenceDisplay(detail.getContainerRecordId());
-		case FULL:
-			return presenter.isEditable() ? buildFullCheckBox(detail) : buildFullDisplay(detail);
-		case AVAILABLE_SIZE:
-			return buildAvailableSizeComponent(detail);
+			case IDENTIFIER:
+				return new ReferenceDisplay(detail.getContainerRecordId());
+			case FULL:
+				return presenter.isEditable() ? buildFullCheckBox(detail) : buildFullDisplay(detail);
+			case AVAILABLE_SIZE:
+				return buildAvailableSizeComponent(detail);
 		}
 
 		return null;
@@ -80,7 +79,7 @@ public class ContainerDetailTableGenerator implements ColumnGenerator {
 
 	private Component buildAvailableSizeComponent(final DecomListContainerDetail detail) {
 		Double availableSize = detail.getAvailableSize();
-		String caption = availableSize == null? "":availableSize.toString() + " cm";
+		String caption = availableSize == null ? "" : availableSize.toString() + " cm";
 		return new Label(caption);
 	}
 }

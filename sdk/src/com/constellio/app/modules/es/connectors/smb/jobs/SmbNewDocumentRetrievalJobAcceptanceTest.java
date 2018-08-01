@@ -15,7 +15,6 @@ import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
@@ -35,7 +34,6 @@ import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
 
 public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
@@ -93,7 +91,7 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, updater, jobFactory, FILE_URL, null);
 		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		retrievalJob.execute(connector);
 
@@ -112,7 +110,7 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.FAILED_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, updater, jobFactory, FILE_URL, null);
 		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		retrievalJob.execute(connector);
 
@@ -131,7 +129,7 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		JobParams jobParams = new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, updater, jobFactory, FILE_URL, null);
+		JobParams jobParams = new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, updater, jobFactory, FILE_URL, null);
 		retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		retrievalJob.execute(connector);
 

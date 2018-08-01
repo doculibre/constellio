@@ -1,13 +1,13 @@
 package com.constellio.model.services.records.cache;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collection;
+import java.util.List;
 
 public interface RecordsCache {
 

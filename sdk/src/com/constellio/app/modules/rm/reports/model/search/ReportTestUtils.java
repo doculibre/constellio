@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -25,6 +19,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportTestUtils {
 	private MetadataSchemaTypes types;
@@ -220,15 +220,15 @@ public class ReportTestUtils {
 		assertThat(result1.get(0)).isEqualTo(expectedFolderTitle_A01);
 		assertThat(result1.get(1)).isEqualTo("Chuck Norris");
 		assertThat(result1.get(2)).isEqualTo("Ceci est un test pour l'université.\n" +
-				"\n" +
-				"\n" +
-				"\n" +
-				"1\n" +
-				"2\n" +
-				"2.1\n" +
-				"A\n" +
-				"B\n" +
-				"B.A\n\n");
+											 "\n" +
+											 "\n" +
+											 "\n" +
+											 "1\n" +
+											 "2\n" +
+											 "2.1\n" +
+											 "A\n" +
+											 "B\n" +
+											 "B.A\n\n");
 		List<Object> result2 = content.get(1);
 		assertThat(result2.size()).isEqualTo(3);
 		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);

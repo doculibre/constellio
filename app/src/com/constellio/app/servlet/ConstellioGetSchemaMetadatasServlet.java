@@ -1,27 +1,23 @@
 package com.constellio.app.servlet;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.constellio.data.utils.AccentApostropheCleaner;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.cleanAll;
 
@@ -75,15 +71,15 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 		String schemaCode = request.getParameter("schema");
 		String language = modelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0);
 
-		if(type == null) {
+		if (type == null) {
 			executeRequestWithSchemaCode(response, collection, schemaCode, language);
-		}
-		else {
+		} else {
 			executeRequestWithType(response, collection, type, label, language);
 		}
 	}
 
-	private void executeRequestWithSchemaCode(HttpServletResponse response, String collection, String schemaCode, String language)
+	private void executeRequestWithSchemaCode(HttpServletResponse response, String collection, String schemaCode,
+											  String language)
 			throws IOException, ServletException {
 
 		MetadataSchema schema = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
@@ -91,7 +87,8 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 		outputDocument(response, document);
 	}
 
-	private void executeRequestWithType(HttpServletResponse response, String collection, String type, String label, String language)
+	private void executeRequestWithType(HttpServletResponse response, String collection, String type, String label,
+										String language)
 			throws IOException, ServletException {
 		List<MetadataSchema> schemaList = new ArrayList<>();
 
@@ -100,29 +97,27 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 		rootElement.setAttribute("code", collection);
 		document.addContent(rootElement);
 
-		if(type.equals("ddv")) {
-			for(MetadataSchemaType schemaType: modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
-				if(schemaType.getCode().contains("ddv")) {
+		if (type.equals("ddv")) {
+			for (MetadataSchemaType schemaType : modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
+				if (schemaType.getCode().contains("ddv")) {
 					schemaList.addAll(schemaType.getAllSchemas());
 				}
 			}
-		}
-		else {
-			for(MetadataSchemaType schemaType: modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
-				if(cleanAll(schemaType.getCode()).equals(cleanAll(type))) {
+		} else {
+			for (MetadataSchemaType schemaType : modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
+				if (cleanAll(schemaType.getCode()).equals(cleanAll(type))) {
 					schemaList.addAll(schemaType.getAllSchemas());
 				}
 			}
 		}
 
-		if(label == null) {
-			for(MetadataSchema schema: schemaList) {
+		if (label == null) {
+			for (MetadataSchema schema : schemaList) {
 				rootElement.addContent(buildElementFromSchema(schema, language));
 			}
-		}
-		else {
-			for(MetadataSchema schema: schemaList) {
-				if(cleanAll(schema.getLabel(Language.withCode(language))).equals(cleanAll(label))) {
+		} else {
+			for (MetadataSchema schema : schemaList) {
+				if (cleanAll(schema.getLabel(Language.withCode(language))).equals(cleanAll(label))) {
 					rootElement.addContent(buildElementFromSchema(schema, language));
 					break;
 				}

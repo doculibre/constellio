@@ -1,10 +1,10 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SearchEvent extends RecordWrapper {
 

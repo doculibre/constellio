@@ -1,15 +1,14 @@
 package com.constellio.model.conf;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.Duration;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.services.encrypt.EncryptionServices;
+import org.joda.time.Duration;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PropertiesModelLayerConfiguration extends PropertiesConfiguration implements ModelLayerConfiguration {
 
@@ -18,7 +17,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	private boolean batchProcessesEnabled = true;
 
 	public PropertiesModelLayerConfiguration(Map<String, String> configs, DataLayerConfiguration dataLayerConfiguration,
-			FoldersLocator foldersLocator, File constellioProperties) {
+											 FoldersLocator foldersLocator, File constellioProperties) {
 		super(configs, constellioProperties);
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		this.foldersLocator = foldersLocator;

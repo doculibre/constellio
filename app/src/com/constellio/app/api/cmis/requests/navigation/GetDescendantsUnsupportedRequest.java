@@ -1,8 +1,8 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import java.math.BigInteger;
-import java.util.List;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
@@ -10,9 +10,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
+import java.math.BigInteger;
+import java.util.List;
 
 public class GetDescendantsUnsupportedRequest extends CmisCollectionRequest<List<ObjectInFolderContainer>> {
 
@@ -26,8 +25,10 @@ public class GetDescendantsUnsupportedRequest extends CmisCollectionRequest<List
 	private final boolean foldersOnly;
 
 	public GetDescendantsUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions,
-			Boolean includePathSegment, ObjectInfoHandler objectInfos, boolean foldersOnly) {
+											CallContext context, String folderId, BigInteger depth, String filter,
+											Boolean includeAllowableActions,
+											Boolean includePathSegment, ObjectInfoHandler objectInfos,
+											boolean foldersOnly) {
 		super(context, repository, appLayerFactory);
 		this.folderId = folderId;
 		this.filter = filter;

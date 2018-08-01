@@ -9,15 +9,16 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 
-@Data @Builder
+@Data
+@Builder
 @JsonRootName("Content")
 public class ContentDto {
-    @JsonProperty(access=JsonProperty.Access.READ_ONLY)
-    private String version;
-    @NotNull
-    private VersionType versionType;
-    @Schema(description="Required when adding first version")
-    private String filename;
-    @JsonProperty(access=JsonProperty.Access.READ_ONLY)
-    private String hash;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	private String version;
+	@NotNull
+	private VersionType versionType;
+	@Schema(description = "Required when adding first version")
+	private String filename;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	private String hash;
 }

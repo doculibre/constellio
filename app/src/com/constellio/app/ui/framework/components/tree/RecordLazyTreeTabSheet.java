@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components.tree;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCaptionConverter;
@@ -15,12 +11,16 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public class RecordLazyTreeTabSheet extends TabSheet {
 
 	private int bufferSize;
 	private List<RecordLazyTreeDataProvider> dataProviders;
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
-	
+
 	private static int getBufferSizeFromConfig() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -50,7 +50,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 		String userDefaultTaxonomy = currentUser.getDefaultTaxonomy();
 		String configDefaultTaxonomy = presenterService.getSystemConfigs().getDefaultTaxonomy();
 
-//		PlaceHolder firstPlaceHolder = null;
+		//		PlaceHolder firstPlaceHolder = null;
 		for (int i = 0; i < dataProviders.size(); i++) {
 			RecordLazyTreeDataProvider dataProvider = dataProviders.get(i);
 			String taxonomyCode = dataProvider.getTaxonomyCode();
@@ -63,9 +63,9 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 				configDefaultTab = selectedTab;
 			}
 			PlaceHolder placeHolder = new PlaceHolder();
-//			if (i == 0) {
-//				firstPlaceHolder = placeHolder;
-//			}
+			//			if (i == 0) {
+			//				firstPlaceHolder = placeHolder;
+			//			}
 
 			addTab(placeHolder, lazyTreeCaption);
 		}
@@ -88,7 +88,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 
 		int position = getTabPosition(tab);
 		setSelectedTab(position);
-		
+
 		PlaceHolder tabComponent = (PlaceHolder) getSelectedTab();
 		if (tabComponent.getComponentCount() == 0) {
 			tabComponent.setCompositionRoot(newLazyTree(dataProviders.get(position), bufferSize));
@@ -107,7 +107,7 @@ public class RecordLazyTreeTabSheet extends TabSheet {
 	@Override
 	public void attach() {
 		super.attach();
-		
+
 		PlaceHolder tabComponent = (PlaceHolder) getSelectedTab();
 		if (tabComponent.getComponentCount() == 0) {
 			Tab tab = getTab(tabComponent);

@@ -5,9 +5,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 
 public interface BetaAddEditWorkflowView extends BaseView, AdminViewGroup {
-	
+
 	void setWorkflowVO(BetaWorkflowVO workflowVO);
-	
+
 	void setAddView(boolean addView);
 
 }

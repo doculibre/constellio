@@ -1,15 +1,5 @@
 package com.constellio.app.modules.es.extensions;
 
-import java.io.InputStream;
-import java.util.Locale;
-
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
@@ -19,21 +9,30 @@ import com.constellio.app.modules.es.model.connectors.RegisteredConnector;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.InputStream;
+import java.util.Locale;
 
 public class ESRecordNavigationExtension implements RecordNavigationExtension {
 
@@ -65,18 +64,18 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 		} else {
 			openWithAgent = false;
 		}
-		
+
 		if (openWithAgent) {
-	        try {
-	            openWithAgent(navigationParams);
-	        } catch (Exception e) {
-	        	openWithoutAgent(navigationParams);
-	        }
+			try {
+				openWithAgent(navigationParams);
+			} catch (Exception e) {
+				openWithoutAgent(navigationParams);
+			}
 		} else {
-        	openWithoutAgent(navigationParams);
+			openWithoutAgent(navigationParams);
 		}
 	}
-	
+
 	private void openWithoutAgent(NavigationParams navigationParams) {
 		RecordVO recordVO = navigationParams.getRecordVO();
 		if (recordVO != null) {
@@ -154,7 +153,8 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, boolean isRecordInTrash, Locale currentLocale) {
+	public void prepareLinkToView(final NavigationParams navigationParams, boolean isRecordInTrash,
+								  Locale currentLocale) {
 		if (isViewForSchemaTypeCode(navigationParams.getSchemaTypeCode())) {
 			ClickListener clickListener = null;
 
@@ -174,26 +174,26 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 				//			.substringAfterLast(url, "/");
 				//	clickListener = prepareFileDownloader(url, title, id, collection, referenceDisplay, filename);
 				//} else {
-					ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-					ConnectorManager connectorManager = es.getConnectorManager();
-					for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
-						ConnectorUtilsServices<?> services = connector.getServices();
-						for (String type : services.getConnectorDocumentTypes()) {
-							if (schemaTypeCode.equals(type)) {
-								String connectorUrl = services.getRecordExternalUrl(recordVO);
-								if (connectorUrl != null) {
-									clickListener = new ClickListener() {
-										@Override
-										public void buttonClick(ClickEvent event) {
-											navigateToView(navigationParams);
-										}
-									};
-									referenceDisplay.setCaption(title == null ? url : title);
-									break;
-								}
+				ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+				ConnectorManager connectorManager = es.getConnectorManager();
+				for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
+					ConnectorUtilsServices<?> services = connector.getServices();
+					for (String type : services.getConnectorDocumentTypes()) {
+						if (schemaTypeCode.equals(type)) {
+							String connectorUrl = services.getRecordExternalUrl(recordVO);
+							if (connectorUrl != null) {
+								clickListener = new ClickListener() {
+									@Override
+									public void buttonClick(ClickEvent event) {
+										navigateToView(navigationParams);
+									}
+								};
+								referenceDisplay.setCaption(title == null ? url : title);
+								break;
 							}
 						}
 					}
+				}
 				//}
 				referenceDisplay.addStyleName(SearchResultDisplay.TITLE_STYLE);
 				referenceDisplay.setEnabled(true);
@@ -207,12 +207,12 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 				referenceDisplay.addClickListener(clickListener);
 			} else if (component instanceof Table) {
 				// TODO Implement for table 
-			}	
+			}
 		}
 	}
 
 	private ClickListener prepareFileDownloader(String url, String title, String id, String collection,
-			ReferenceDisplay component, String filename) {
+												ReferenceDisplay component, String filename) {
 		ClickListener clickListener;
 		FileDownloader downloader = new FileDownloader(getResourceStream(collection, id, filename));
 		downloader.extend(component);

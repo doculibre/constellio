@@ -1,9 +1,14 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
+import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
+import com.constellio.app.modules.es.connectors.smb.security.Credentials;
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
+import jcifs.smb.ACE;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileFilter;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,17 +16,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import jcifs.smb.ACE;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileFilter;
-
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
-import com.constellio.app.modules.es.connectors.smb.security.Credentials;
-import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 public class SmbServiceTestUtils {
 	private Credentials validCredentials;
@@ -270,7 +268,7 @@ public class SmbServiceTestUtils {
 			SmbFile folderz = Mockito.mock(SmbFile.class);
 			when(folderz.getCanonicalPath()).thenReturn(SmbTestParams.EXISTING_SHARE + "folderz/");
 
-			return new SmbFile[] { childFile, childFolder, file0, file01, file10, filea, filez, folder0, folder01, folder10, foldera, folderz };
+			return new SmbFile[]{childFile, childFolder, file0, file01, file10, filea, filez, folder0, folder01, folder10, foldera, folderz};
 		}
 	}
 

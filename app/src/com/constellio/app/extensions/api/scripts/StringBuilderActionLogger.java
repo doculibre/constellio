@@ -1,8 +1,8 @@
 package com.constellio.app.extensions.api.scripts;
 
-import java.io.File;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import java.io.File;
 
 public class StringBuilderActionLogger implements ScriptActionLogger {
 

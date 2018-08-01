@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -19,6 +17,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static java.util.Arrays.asList;
+
 public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -26,7 +26,8 @@ public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		editTableMetadata(collection, appLayerFactory.getMetadataSchemasDisplayManager());
@@ -57,7 +58,7 @@ public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript
 	class SchemaAlterationFor7_6 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

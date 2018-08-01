@@ -1,18 +1,5 @@
 package com.constellio.model.services.search.query.logical.valueCondition;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -24,9 +11,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchValueCond
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchConditionBuilder;
-import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsStartingWithTextCriterion;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
 
 public class ConditionTemplateFactory {
 
@@ -66,7 +58,8 @@ public class ConditionTemplateFactory {
 		return autocompleteFieldMatchingInMetadatas(text, asList(Schemas.SCHEMA_AUTOCOMPLETE_FIELD));
 	}
 
-	public static LogicalSearchConditionBuilder autocompleteFieldMatchingInMetadatas(String text, List<Metadata> metadatas) {
+	public static LogicalSearchConditionBuilder autocompleteFieldMatchingInMetadatas(String text,
+																					 List<Metadata> metadatas) {
 		if (StringUtils.isBlank(text)) {
 			return new LogicalSearchConditionBuilder() {
 				@Override

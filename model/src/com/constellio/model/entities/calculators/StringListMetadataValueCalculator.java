@@ -1,8 +1,8 @@
 package com.constellio.model.entities.calculators;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.List;
 
 public abstract class StringListMetadataValueCalculator implements MetadataValueCalculator<List<String>> {
 

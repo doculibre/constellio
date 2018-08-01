@@ -1,20 +1,15 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
-import com.constellio.model.services.schemas.SchemaUtils;
+import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 
 public class
 Schemas {

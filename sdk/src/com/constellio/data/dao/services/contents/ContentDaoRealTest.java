@@ -38,7 +38,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 
 	static String givenContentDaoIsTheConfiguredOne = "givenContentDaoIsTheConfiguredOne";
 	static String givenContentDaoIsTheFileSystemImpl = "givenContentDaoIsTheFileSystemImpl";
-    static String givenContentDaoWithReplication = "givenContentDaoWithReplication";
+	static String givenContentDaoWithReplication = "givenContentDaoWithReplication";
 
 	String theContent = aString();
 
@@ -56,7 +56,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] { { givenContentDaoIsTheConfiguredOne }, { givenContentDaoIsTheFileSystemImpl }, {givenContentDaoWithReplication} });
+		return Arrays.asList(new Object[][]{{givenContentDaoIsTheConfiguredOne}, {givenContentDaoIsTheFileSystemImpl}, {givenContentDaoWithReplication}});
 	}
 
 	@Before
@@ -69,9 +69,9 @@ public class ContentDaoRealTest extends ConstellioTest {
 			getDataLayerFactory().getDataLayerConfiguration().setContentDaoFileSystemFolder(newTempFolder());
 			vaultDao = new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration());
 		} else if (testCase.equals(givenContentDaoWithReplication)) {
-            getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
-            vaultDao = new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration());
-        }
+			getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
+			vaultDao = new FileSystemContentDao(getIOLayerFactory().newIOServices(), getDataLayerFactory().getDataLayerConfiguration());
+		}
 	}
 
 	@Test
@@ -328,7 +328,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 			try {
 				expectedInputStream = newFileInputStream(entry.getKey());
 				savedInputStream = vaultDao.getContentInputStream(entry.getValue(), SDK_STREAM);
-                assertInputStreamEquals(expectedInputStream, savedInputStream);
+				assertInputStreamEquals(expectedInputStream, savedInputStream);
 			} finally {
 				IOUtils.closeQuietly(expectedInputStream);
 				IOUtils.closeQuietly(savedInputStream);
@@ -342,162 +342,162 @@ public class ContentDaoRealTest extends ConstellioTest {
 		return newFileInputStream(file);
 	}
 
-	private InputStream  newFailingInputStreamOfTextContent(String aContent)
+	private InputStream newFailingInputStreamOfTextContent(String aContent)
 			throws IOException {
-			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure(new IOException("fail"));
+		throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure(new IOException("fail"));
 	}
 
-    @Test
-    public void testMoveFileToVault() throws Exception {
-        // Given
-        File fileToMove = newTempFileWithContent("fileToMove.txt", theContent);
+	@Test
+	public void testMoveFileToVault() throws Exception {
+		// Given
+		File fileToMove = newTempFileWithContent("fileToMove.txt", theContent);
 
-        //When
-        vaultDao.moveFileToVault(fileToMove, theId);
+		//When
+		vaultDao.moveFileToVault(fileToMove, theId);
 
-        // Then
-        assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isNotEmpty();
-        if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
-            assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isNotEmpty();
-        }
-    }
+		// Then
+		assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isNotEmpty();
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isNotEmpty();
+		}
+	}
 
-    @Test
-    public void testMoveFileToVault_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
-        // Given
-        File fileToMove = newTempFileWithContent("fileToMove.txt", theContent);
-        // And forced failure
-        FileUtils.deleteQuietly(fileToMove);
+	@Test
+	public void testMoveFileToVault_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
+		// Given
+		File fileToMove = newTempFileWithContent("fileToMove.txt", theContent);
+		// And forced failure
+		FileUtils.deleteQuietly(fileToMove);
 
-        try {
-            //When
-            vaultDao.moveFileToVault(fileToMove, theId);
-            // Then
-            fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
-        } catch (Exception e) {
-            // Then
-			if(((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+		try {
+			//When
+			vaultDao.moveFileToVault(fileToMove, theId);
+			// Then
+			fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
+		} catch (Exception e) {
+			// Then
+			if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
 				assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication.class);
 			} else {
 				assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault.class);
 			}
 
 			assertVaultAndReplicationVaultAreEmpty();
-        }
-    }
+		}
+	}
 
-    private List<Path> listFilesRecursively(Path path) throws IOException {
-        final List<Path> files = new ArrayList<>();
+	private List<Path> listFilesRecursively(Path path) throws IOException {
+		final List<Path> files = new ArrayList<>();
 
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException{
-                files.add(file);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+		Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+				files.add(file);
+				return FileVisitResult.CONTINUE;
+			}
+		});
 
-        return files;
-    }
+		return files;
+	}
 
-    @Test
-    public void testAdd() throws Exception {
-        //When
-        vaultDao.add(theId, newInputStreamOfTextContent(theContent));
+	@Test
+	public void testAdd() throws Exception {
+		//When
+		vaultDao.add(theId, newInputStreamOfTextContent(theContent));
 
-        // Then
-        assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isNotEmpty();
-        if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
-            assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isNotEmpty();
-        }
-    }
+		// Then
+		assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).rootFolder.toPath())).isNotEmpty();
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder != null) {
+			assertThat(listFilesRecursively(((FileSystemContentDao) vaultDao).replicatedRootFolder.toPath())).isNotEmpty();
+		}
+	}
 
-    @Test
-    public void testAdd_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
-        try {
-            //When
-            vaultDao.add(theId, newFailingInputStreamOfTextContent(theContent));
-            // Then
-            fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
-        } catch (Exception e) {
-            // Then
-            assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure.class);
+	@Test
+	public void testAdd_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
+		try {
+			//When
+			vaultDao.add(theId, newFailingInputStreamOfTextContent(theContent));
+			// Then
+			fail("FileSystemContentDaoRuntimeException_DatastoreFailure expected but not thrown !");
+		} catch (Exception e) {
+			// Then
+			assertThat(e).isInstanceOf(FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure.class);
 
 			assertVaultAndReplicationVaultAreEmpty();
-        }
-    }
+		}
+	}
 
-    @Test
-    public void testGetContentInputStream_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
-        // Given
-        vaultDao.add(theId, newInputStreamOfTextContent(theContent));
-        // And forced failure
-        FileUtils.deleteQuietly((((FileSystemContentDao) vaultDao).rootFolder));
+	@Test
+	public void testGetContentInputStream_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
+		// Given
+		vaultDao.add(theId, newInputStreamOfTextContent(theContent));
+		// And forced failure
+		FileUtils.deleteQuietly((((FileSystemContentDao) vaultDao).rootFolder));
 
-        // When
-        InputStream inputStream = null;
-        try {
-            inputStream = vaultDao.getContentInputStream(theId, SDK_STREAM);
+		// When
+		InputStream inputStream = null;
+		try {
+			inputStream = vaultDao.getContentInputStream(theId, SDK_STREAM);
 
-            if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
-                fail("ContentDaoException_NoSuchContent expected but not thrown !");
-            } else {
-                assertThat(inputStream).isNotNull();
-            }
-        } catch (Exception e) {
-            if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
-                assertThat(e).isInstanceOf(ContentDaoException_NoSuchContent.class);
-            } else {
-                fail("No exception is expected !");
-            }
-        } finally {
-            IOUtils.closeQuietly(inputStream);
-        }
-    }
+			if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
+				fail("ContentDaoException_NoSuchContent expected but not thrown !");
+			} else {
+				assertThat(inputStream).isNotNull();
+			}
+		} catch (Exception e) {
+			if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
+				assertThat(e).isInstanceOf(ContentDaoException_NoSuchContent.class);
+			} else {
+				fail("No exception is expected !");
+			}
+		} finally {
+			IOUtils.closeQuietly(inputStream);
+		}
+	}
 
-    @Test
-    public void testGetContentLength_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
-        // Given
-        vaultDao.add(theId, newInputStreamOfTextContent(theContent));
-        // And forced failure
-        FileUtils.deleteQuietly((((FileSystemContentDao) vaultDao).rootFolder));
+	@Test
+	public void testGetContentLength_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
+		// Given
+		vaultDao.add(theId, newInputStreamOfTextContent(theContent));
+		// And forced failure
+		FileUtils.deleteQuietly((((FileSystemContentDao) vaultDao).rootFolder));
 
-        // When
-        long length = vaultDao.getContentLength(theId);
+		// When
+		long length = vaultDao.getContentLength(theId);
 
-        // Then
-        if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
-            assertThat(length).isEqualTo(0);
-        } else {
-            assertThat(length).isGreaterThan(0);
-        }
-    }
+		// Then
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
+			assertThat(length).isEqualTo(0);
+		} else {
+			assertThat(length).isGreaterThan(0);
+		}
+	}
 
-    @Test
-    public void testIsDocumentExisting_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
-        // Given
-        vaultDao.add(theId, newInputStreamOfTextContent(theContent));
-        // And forced failure
-        FileUtils.deleteQuietly((((FileSystemContentDao) vaultDao).rootFolder));
+	@Test
+	public void testIsDocumentExisting_FailureOnReplicatedVaultPrimaryMountPoint() throws Exception {
+		// Given
+		vaultDao.add(theId, newInputStreamOfTextContent(theContent));
+		// And forced failure
+		FileUtils.deleteQuietly((((FileSystemContentDao) vaultDao).rootFolder));
 
-        // When
-        boolean exists = vaultDao.isDocumentExisting(theId);
+		// When
+		boolean exists = vaultDao.isDocumentExisting(theId);
 
-        // Then
-        if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
-            assertThat(exists).isFalse();
-        } else {
-            assertThat(exists).isTrue();
-        }
-    }
+		// Then
+		if (((FileSystemContentDao) vaultDao).replicatedRootFolder == null) {
+			assertThat(exists).isFalse();
+		} else {
+			assertThat(exists).isTrue();
+		}
+	}
 
-    @Test
-    public void testDelete() throws Exception {
-        // Given
-        vaultDao.add(theId, newInputStreamOfTextContent(theContent));
+	@Test
+	public void testDelete() throws Exception {
+		// Given
+		vaultDao.add(theId, newInputStreamOfTextContent(theContent));
 
-        // When
-        vaultDao.delete(Arrays.asList(theId));
+		// When
+		vaultDao.delete(Arrays.asList(theId));
 		assertVaultAndReplicationVaultAreEmpty();
 
 

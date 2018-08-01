@@ -1,10 +1,9 @@
 package com.constellio.data.dao.services.solr;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SolrDataStoreTypesFactoryTest extends ConstellioTest {
 

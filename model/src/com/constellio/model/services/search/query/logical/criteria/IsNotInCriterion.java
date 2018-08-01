@@ -1,20 +1,19 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.SearchServicesRuntimeException.TooManyElementsInCriterion;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class IsNotInCriterion extends LogicalSearchValueCondition {
 
 	private final List<Object> elements;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public IsNotInCriterion(List<?> values) {
 		super();
 		this.elements = (List) values;

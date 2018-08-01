@@ -1,21 +1,7 @@
 package com.constellio.app.ui.pages.management.ldap;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.conf.ldap.EmptyDomainsRuntimeException;
-import com.constellio.model.conf.ldap.EmptyUrlsRuntimeException;
-import com.constellio.model.conf.ldap.InvalidUrlRuntimeException;
-import com.constellio.model.conf.ldap.LDAPConfigurationManager;
-import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
+import com.constellio.model.conf.ldap.*;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
@@ -26,9 +12,17 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class LDAPConfigManagementPresenter extends
-										   BasePresenter<LDAPConfigManagementView> {
+		BasePresenter<LDAPConfigManagementView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigManagementPresenter.class);
 
 	private boolean isLDAPActive = false;
@@ -52,7 +46,7 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public void saveConfigurations(LDAPServerConfiguration ldapServerConfigurationVO,
-			LDAPUserSyncConfiguration ldapUserSyncConfigurationVO) {
+								   LDAPUserSyncConfiguration ldapUserSyncConfigurationVO) {
 		LDAPConfigurationManager ldapConfigManager = view.getConstellioFactories().getModelLayerFactory()
 				.getLdapConfigurationManager();
 		try {
@@ -66,8 +60,8 @@ public class LDAPConfigManagementPresenter extends
 			view.showErrorMessage($("ldap.EmptyUrlsRuntimeException"));
 		} catch (LDAPConnectionFailure e) {
 			view.showErrorMessage($("ldap.LDAPConnectionFailure") + "\n" + e.getUrl()
-					+ "\n" + e.getUser() +
-					"\n " + StringUtils.join(e.getDomains(), "; "));
+								  + "\n" + e.getUser() +
+								  "\n " + StringUtils.join(e.getDomains(), "; "));
 		} catch (InvalidUrlRuntimeException e) {
 			view.showErrorMessage($("ldap.InvalidUrlRuntimeException") + ": " + e.getUrl());
 		} catch (Throwable e) {
@@ -77,7 +71,7 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
-			String user, String password) {
+												 String user, String password) {
 		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
 		if (StringUtils.isBlank(user) || StringUtils.isBlank(password)) {
 			return $("ldap.authentication.fail");
@@ -92,7 +86,7 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public String getSynchResultMessage(LDAPServerConfiguration ldapServerConfiguration,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+										LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		StringBuilder result = new StringBuilder();
 		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
 		List<String> groups = ldapServices.getTestSynchronisationGroups(ldapServerConfiguration, ldapUserSyncConfiguration);
@@ -125,17 +119,17 @@ public class LDAPConfigManagementPresenter extends
 
 	public void typeChanged(LDAPDirectoryType previousDirectoryType, LDAPDirectoryType newValue) {
 		switch (previousDirectoryType) {
-		case AZURE_AD:
-			view.updateComponents();
-			break;
-		case ACTIVE_DIRECTORY:
-		case E_DIRECTORY:
-			if (newValue == LDAPDirectoryType.AZURE_AD) {
+			case AZURE_AD:
 				view.updateComponents();
-			}
-			break;
-		default:
-			throw new RuntimeException("Unsupported type " + previousDirectoryType);
+				break;
+			case ACTIVE_DIRECTORY:
+			case E_DIRECTORY:
+				if (newValue == LDAPDirectoryType.AZURE_AD) {
+					view.updateComponents();
+				}
+				break;
+			default:
+				throw new RuntimeException("Unsupported type " + previousDirectoryType);
 		}
 	}
 
@@ -157,7 +151,7 @@ public class LDAPConfigManagementPresenter extends
 	public boolean isForceSynchVisible() {
 		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
 				.getLdapAuthenticationActive()
-				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || CollectionUtils.isNotEmpty(getLDAPUserSyncConfiguration().getScheduleTime());
+			   && getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || CollectionUtils.isNotEmpty(getLDAPUserSyncConfiguration().getScheduleTime());
 	}
 
 	public void deleteUsedUserButtonClick() {

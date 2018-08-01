@@ -1,6 +1,23 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.BaseDisplay;
+import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.BasePagedTable;
+import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.converter.StringToLongConverter;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.ui.*;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,31 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
-import com.constellio.app.ui.framework.components.AbstractCSVProducer;
-import com.constellio.app.ui.framework.components.BaseDisplay;
-import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.table.BasePagedTable;
-import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.statistic.FacetsCSVProducer;
-import com.constellio.app.ui.pages.statistic.SearchEventCSVProducer;
-import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.converter.StringToLongConverter;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.Resource;
-import com.vaadin.server.StreamResource;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorReportView {
 	private static Logger LOGGER = LoggerFactory.getLogger(ConnectorReportViewImpl.class);
@@ -61,7 +54,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
-		
+
 		BaseDisplay statsDisplay = buildStatsDisplay();
 		Layout filterComponent = buildFilterComponent();
 
@@ -175,7 +168,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 			public void valueChange(Property.ValueChangeEvent event) {
 				Object current = linesField.getConvertedValue();
 
-				if(!Objects.equals(oldValue, current)) {
+				if (!Objects.equals(oldValue, current)) {
 					DownloadLink newComponent = new DownloadLink(getCsvDocumentResource(ConnectorReportViewImpl.this.table), $("ConnectorReportView.downloadCsv"));
 					layout.replaceComponent(oldLink, newComponent);
 					oldLink = newComponent;
@@ -206,7 +199,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 			@Override
 			public InputStream getStream() {
 				try {
-					return new FileInputStream(new ConnectorReportCSVProducer(table, (Long)linesField.getConvertedValue()).produceCSVFile());
+					return new FileInputStream(new ConnectorReportCSVProducer(table, (Long) linesField.getConvertedValue()).produceCSVFile());
 				} catch (IOException e) {
 					LOGGER.error("Error during CSV generation", e);
 					return null;

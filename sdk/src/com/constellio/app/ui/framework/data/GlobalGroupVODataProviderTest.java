@@ -1,19 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -24,6 +10,15 @@ import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedFactories;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class GlobalGroupVODataProviderTest extends ConstellioTest {
 

@@ -1,12 +1,5 @@
 package com.constellio.model.services.security;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.jdom2.Document;
-import org.joda.time.LocalDate;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -20,6 +13,12 @@ import com.constellio.model.services.security.AuthorizationDetailsManagerRuntime
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class AuthorizationDetailsManager
 		implements StatefulService, OneXMLConfigPerCollectionManagerListener<Map<String, AuthorizationDetails>> {
@@ -28,9 +27,10 @@ public class AuthorizationDetailsManager
 	private OneXMLConfigPerCollectionManager<Map<String, AuthorizationDetails>> oneXMLConfigPerCollectionManager;
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
-	private ConstellioCacheManager cacheManager; 
+	private ConstellioCacheManager cacheManager;
 
-	public AuthorizationDetailsManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
+	public AuthorizationDetailsManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
+									   ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.cacheManager = cacheManager;
@@ -146,7 +146,8 @@ public class AuthorizationDetailsManager
 		};
 	}
 
-	DocumentAlteration newModifyEndDateAuthorizationDocumentAlteration(final AuthorizationDetails xmlAuthorizationDetails) {
+	DocumentAlteration newModifyEndDateAuthorizationDocumentAlteration(
+			final AuthorizationDetails xmlAuthorizationDetails) {
 		return new DocumentAlteration() {
 
 			@Override

@@ -1,18 +1,5 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
@@ -32,6 +19,18 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class SystemStateExporter {
 

@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.model.labelTemplate;
 
+import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
+import com.constellio.app.modules.rm.ui.components.Dimensionnable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.constellio.app.modules.rm.ui.components.Dimensionnable;
-import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 
 public class LabelTemplate implements Dimensionnable, Serializable {
 
@@ -31,8 +31,8 @@ public class LabelTemplate implements Dimensionnable, Serializable {
 	}
 
 	public LabelTemplate(String key, String name, LabelsReportLayout labelsReportLayout, String schemaType, int columns,
-			int lines,
-			List<LabelTemplateField> fields) {
+						 int lines,
+						 List<LabelTemplateField> fields) {
 		this.key = key;
 		this.name = name;
 		this.schemaType = schemaType;
@@ -44,7 +44,7 @@ public class LabelTemplate implements Dimensionnable, Serializable {
 	}
 
 	public LabelTemplate(String key, String name, LabelsReportLayout labelsReportLayout, String schemaType, int columns,
-			int lines, List<LabelTemplateField> fields, boolean printBorders) {
+						 int lines, List<LabelTemplateField> fields, boolean printBorders) {
 		this.key = key;
 		this.name = name;
 		this.schemaType = schemaType;

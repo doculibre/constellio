@@ -8,14 +8,14 @@ import com.constellio.model.entities.records.Record;
 
 import java.util.List;
 
-public class BagInfoToVOBuilder extends RecordToVOBuilder{
-    @Override
-    protected BagInfoVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, RecordVO.VIEW_MODE viewMode) {
-        return new BagInfoVO(id, metadataValueVOs, viewMode);
-    }
+public class BagInfoToVOBuilder extends RecordToVOBuilder {
+	@Override
+	protected BagInfoVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, RecordVO.VIEW_MODE viewMode) {
+		return new BagInfoVO(id, metadataValueVOs, viewMode);
+	}
 
-    @Override
-    public BagInfoVO build(Record record, RecordVO.VIEW_MODE viewMode, SessionContext sessionContext) {
-        return (BagInfoVO) super.build(record, viewMode, sessionContext);
-    }
+	@Override
+	public BagInfoVO build(Record record, RecordVO.VIEW_MODE viewMode, SessionContext sessionContext) {
+		return (BagInfoVO) super.build(record, viewMode, sessionContext);
+	}
 }

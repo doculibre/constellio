@@ -6,18 +6,18 @@ import com.constellio.app.ui.entities.MetadataVO;
 public class FolderUniqueKeyParams {
 
 
-    private MetadataVO metadataVO;
+	private MetadataVO metadataVO;
 
-    public FolderUniqueKeyParams(){
+	public FolderUniqueKeyParams() {
 
-    }
+	}
 
 
-    public MetadataVO getMetadataVO() {
-        return metadataVO;
-    }
+	public MetadataVO getMetadataVO() {
+		return metadataVO;
+	}
 
-    public void setMetadataVO(MetadataVO metadata) {
-        this.metadataVO = metadata;
-    }
+	public void setMetadataVO(MetadataVO metadata) {
+		this.metadataVO = metadata;
+	}
 }

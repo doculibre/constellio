@@ -1,9 +1,9 @@
 package com.constellio.app.servlet;
 
+import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-
-import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
 
 public class ConstellioCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 

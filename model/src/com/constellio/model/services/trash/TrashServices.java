@@ -29,9 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 
 public class TrashServices {
@@ -50,9 +48,9 @@ public class TrashServices {
 	public LogicalSearchQuery getTrashRecordsQueryForType(String selectedType, User currentUser) {
 		MetadataSchemaType schemaType = modelLayerFactory
 				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType);
-		if(!schemaType.hasSecurity()) {
+		if (!schemaType.hasSecurity()) {
 			LogicalSearchCondition deletableRecordsForUnsecuredType = getDeletableRecordsForUnsecuredType(selectedType, currentUser);
-			if(deletableRecordsForUnsecuredType != null) {
+			if (deletableRecordsForUnsecuredType != null) {
 				return new LogicalSearchQuery().setCondition(from(schemaType).whereAllConditions(deletableRecordsForUnsecuredType)).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 			} else {
 				return new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.impossibleCondition(collection));
@@ -64,7 +62,8 @@ public class TrashServices {
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
-	private LogicalSearchCondition getDeletableRecordsForUnsecuredType(final String selectedType, final User currentUser) {
+	private LogicalSearchCondition getDeletableRecordsForUnsecuredType(final String selectedType,
+																	   final User currentUser) {
 		ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
 				.forCollection(collection);
 		final LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(asList(selectedType), collection).returnAll());
@@ -72,7 +71,7 @@ public class TrashServices {
 
 			@Override
 			public String getSchemaCode() {
-				return selectedType+"_default";
+				return selectedType + "_default";
 			}
 
 			@Override
@@ -86,12 +85,12 @@ public class TrashServices {
 		List<MetadataSchemaType> trashSchemaList = getTrashSchemaTypes(collection, currentUser);
 		List<String> securedSchemaList = new ArrayList<>();
 		List<LogicalSearchCondition> conditionList = new ArrayList<>();
-		for(MetadataSchemaType schemaType: trashSchemaList) {
-			if(schemaType.hasSecurity()) {
-				securedSchemaList.add(schemaType.getCode()+"_");
+		for (MetadataSchemaType schemaType : trashSchemaList) {
+			if (schemaType.hasSecurity()) {
+				securedSchemaList.add(schemaType.getCode() + "_");
 			} else {
 				LogicalSearchCondition deletableRecordsForUnsecuredType = getDeletableRecordsForUnsecuredType(schemaType.getCode(), currentUser);
-				if(deletableRecordsForUnsecuredType != null) {
+				if (deletableRecordsForUnsecuredType != null) {
 					conditionList.add(deletableRecordsForUnsecuredType);
 				}
 			}
@@ -198,7 +197,8 @@ public class TrashServices {
 		}
 	}
 
-	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection, LocalDateTime deleteDate) {
+	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection,
+																				 LocalDateTime deleteDate) {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(getTrashSchemaTypes(collection, null))
 				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
 				.andWhere(Schemas.LOGICALLY_DELETED_ON).isLessOrEqualThan(deleteDate);

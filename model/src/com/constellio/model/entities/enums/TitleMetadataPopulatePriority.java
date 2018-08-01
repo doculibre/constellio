@@ -1,8 +1,8 @@
 package com.constellio.model.entities.enums;
 
-import static java.util.Arrays.asList;
-
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public enum TitleMetadataPopulatePriority {
 

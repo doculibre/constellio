@@ -1,19 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_ADMIN_UNIT;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_COPY_STATUS;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_OPEN_DATE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_PARENT_FOLDER;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -36,6 +22,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.*;
+import static java.util.Arrays.asList;
+
 public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 
 	@Override
@@ -44,7 +36,8 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor6_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -55,7 +48,7 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 	class SchemaAlterationFor6_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor6_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -142,7 +135,8 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 	}
 
 	private void configureClassifyInTaxonomyParametersForm(String collection,
-			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+														   MigrationResourcesProvider migrationResourcesProvider,
+														   AppLayerFactory appLayerFactory) {
 
 		Language language = migrationResourcesProvider.getLanguage();
 

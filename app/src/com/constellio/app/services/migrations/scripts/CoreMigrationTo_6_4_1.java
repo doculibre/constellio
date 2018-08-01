@@ -19,7 +19,7 @@ public class CoreMigrationTo_6_4_1 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		if (collection.equals(Collection.SYSTEM_COLLECTION)) {
 			new CoreSchemaAlterationFor6_4_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		}
@@ -28,7 +28,8 @@ public class CoreMigrationTo_6_4_1 implements MigrationScript {
 	class CoreSchemaAlterationFor6_4_1 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor6_4_1(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+											   MigrationResourcesProvider migrationResourcesProvider,
+											   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

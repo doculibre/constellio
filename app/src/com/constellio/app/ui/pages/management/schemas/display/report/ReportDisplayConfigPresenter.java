@@ -2,16 +2,12 @@ package com.constellio.app.ui.pages.management.schemas.display.report;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayUtils;
-import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -29,15 +25,11 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurationView>{
+public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurationView> {
 
 	private Map<String, String> parameters;
 
@@ -55,7 +47,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 	}
 
 	public MetadataVODataProvider getDataProvider() {
-		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, getSchemaTypeCode()){
+		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, getSchemaTypeCode()) {
 			@Override
 			public List<MetadataVO> buildList() {
 				Set<String> metadataLocalCodeSet = new HashSet<>();
@@ -67,7 +59,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 					for (Metadata meta : metadataList) {
 						if ((!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) && metadataLocalCodeSet.add(meta.getLocalCode())) {
 							MetadataVO metadataVO = voBuilder.build(meta, view.getSessionContext());
-							if(AllowedMetadataUtil.isAllowedMetadata(metadataVO)){
+							if (AllowedMetadataUtil.isAllowedMetadata(metadataVO)) {
 								schemaVOs.add(metadataVO);
 							}
 						}
@@ -101,7 +93,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		String reportTile = getSelectedReport();
 		String schemaTypeCode = getSchemaTypeCode();
 		Report newReport;
-		if(report == null){
+		if (report == null) {
 			MetadataSchema reportSchema = schemaType(Report.SCHEMA_TYPE).getDefaultSchema();
 			Record newReportRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(reportSchema);
 			newReport = new Report(newReportRecord, types());
@@ -120,15 +112,14 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	private List<ReportedMetadata> buildReportedMetadataList(List<MetadataVO> metadataVOs) {
 		List<ReportedMetadata> returnList = new ArrayList<>();
-		for(int i = 0; i < metadataVOs.size(); i++){
+		for (int i = 0; i < metadataVOs.size(); i++) {
 			MetadataVO metadataVO = metadataVOs.get(i);
 			returnList.add(new ReportedMetadata(metadataVO.getCode(), i));
 		}
 		return returnList;
 	}
 
-	public void deleteButtonClicked()
-	{
+	public void deleteButtonClicked() {
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		String schemaTypeCode = getSchemaTypeCode();
 		String reportTile = getSelectedReport();
@@ -155,7 +146,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<Report> reports = reportServices.getReports(getSchemaTypeCode());
 		ReportToVOBuilder builder = new ReportToVOBuilder();
-		for(Report report: reports){
+		for (Report report : reports) {
 			returnList.add(builder.build(report));
 		}
 		return returnList;
@@ -163,18 +154,18 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 	public List<MetadataVO> getReportMetadatas() {
 		List<MetadataVO> returnMetadataVOs = new ArrayList<>();
-		if(StringUtils.isBlank(getSelectedReport())){
+		if (StringUtils.isBlank(getSelectedReport())) {
 			return returnMetadataVOs;
 		}
 		ReportServices reportServices = new ReportServices(modelLayerFactory, view.getCollection());
 		Report report = reportServices.getReport(getSchemaTypeCode(), getSelectedReport());
-		if(report == null){
+		if (report == null) {
 			return returnMetadataVOs;
 		}
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
-		for(ReportedMetadata reportedMetadata : report.getReportedMetadata()){
-			if(schemasManager.getSchemaTypes(collection).hasMetadata(reportedMetadata.getMetadataCode())) {
+		for (ReportedMetadata reportedMetadata : report.getReportedMetadata()) {
+			if (schemasManager.getSchemaTypes(collection).hasMetadata(reportedMetadata.getMetadataCode())) {
 				Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(reportedMetadata.getMetadataCode());
 				returnMetadataVOs.add(builder.build(metadata, view.getSessionContext()));
 			}
@@ -198,10 +189,12 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		isAddMode = addMode;
 	}
 
-	public void setReport(ReportVO report) { this.report = report; }
+	public void setReport(ReportVO report) {
+		this.report = report;
+	}
 
-	public void checkForId(){
-		if(this.parameters.containsKey("id")) {
+	public void checkForId() {
+		if (this.parameters.containsKey("id")) {
 			String id = this.parameters.get("id");
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);

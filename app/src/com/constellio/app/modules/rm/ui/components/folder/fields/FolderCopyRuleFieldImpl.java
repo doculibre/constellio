@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.ui.framework.components.BaseLabel;
 import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
@@ -16,16 +8,17 @@ import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.i18n.i18n;
 import com.vaadin.data.Property;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderCopyRuleFieldImpl extends CustomField<String> implements FolderCopyRuleField {
-	
+
 	private Generator generator;
 	private Table table;
 	private List<CopyRetentionRule> copyRetentionRules;
@@ -93,13 +86,13 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 		public static final String TITLE = "title";
 		public static final String TYPE = "type";
 		public static final String MEDIUM_TYPES = "mediumTypes";
-		
+
 		private String[] allColumns() {
-			return new String[] { SELECTOR, RULE, TITLE, TYPE, MEDIUM_TYPES };
+			return new String[]{SELECTOR, RULE, TITLE, TYPE, MEDIUM_TYPES};
 		}
 
 		private String[] noTitle() {
-			return new String[] { SELECTOR, RULE, TYPE, MEDIUM_TYPES };
+			return new String[]{SELECTOR, RULE, TYPE, MEDIUM_TYPES};
 		}
 
 		public Table attachedTo(Table table) {
@@ -131,16 +124,16 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 			}
 			CopyRetentionRule copyRetentionRule = (CopyRetentionRule) itemId;
 			switch ((String) columnId) {
-			case SELECTOR:
-				return generateSelectorCell(copyRetentionRule);
-			case RULE:
-				return generateRuleCell(copyRetentionRule);
-			case TITLE:
-				return generateTitleCell(copyRetentionRule);
-			case MEDIUM_TYPES:
-				return generateMediumTypesCell(copyRetentionRule);
-			case TYPE:
-				return generateTypeCell(copyRetentionRule);
+				case SELECTOR:
+					return generateSelectorCell(copyRetentionRule);
+				case RULE:
+					return generateRuleCell(copyRetentionRule);
+				case TITLE:
+					return generateTitleCell(copyRetentionRule);
+				case MEDIUM_TYPES:
+					return generateMediumTypesCell(copyRetentionRule);
+				case TYPE:
+					return generateTypeCell(copyRetentionRule);
 			}
 			return null;
 		}
@@ -194,6 +187,6 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 			String mediumTypes = recordIdListToStringConverter.convertToPresentation(mediumTypeIds, String.class, i18n.getLocale());
 			return new Label(mediumTypes, ContentMode.HTML);
 		}
-		
+
 	}
 }

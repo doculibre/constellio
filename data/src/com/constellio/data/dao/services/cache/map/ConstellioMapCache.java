@@ -1,16 +1,11 @@
 package com.constellio.data.dao.services.cache.map;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class ConstellioMapCache implements ConstellioCache {
 

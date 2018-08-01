@@ -1,16 +1,4 @@
-
 package com.constellio.model.services.records;
-
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
-import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
-import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import org.junit.Test;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -26,6 +14,16 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
+import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
+import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioTest {
 

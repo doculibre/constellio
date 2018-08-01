@@ -17,16 +17,18 @@ public class ClassifyServicesRuntimeException extends RuntimeException {
 	}
 
 	public static class ClassifyServicesRuntimeException_CannotClassifyAsFolder extends ClassifyServicesRuntimeException {
-		public ClassifyServicesRuntimeException_CannotClassifyAsFolder(ConnectorDocument connectorDocument, Throwable cause) {
+		public ClassifyServicesRuntimeException_CannotClassifyAsFolder(ConnectorDocument connectorDocument,
+																	   Throwable cause) {
 			super("Cannot classify " + connectorDocument.getClass().getSimpleName() + " '" + connectorDocument.getId() + "-"
-					+ connectorDocument.getTitle() + "'", cause);
+				  + connectorDocument.getTitle() + "'", cause);
 		}
 	}
 
 	public static class ClassifyServicesRuntimeException_CannotClassifyAsDocument extends ClassifyServicesRuntimeException {
-		public ClassifyServicesRuntimeException_CannotClassifyAsDocument(ConnectorDocument connectorDocument, Throwable cause) {
+		public ClassifyServicesRuntimeException_CannotClassifyAsDocument(ConnectorDocument connectorDocument,
+																		 Throwable cause) {
 			super("Cannot classify " + connectorDocument.getClass().getSimpleName() + " '" + connectorDocument.getId() + "-"
-					+ connectorDocument.getTitle() + "'", cause);
+				  + connectorDocument.getTitle() + "'", cause);
 		}
 	}
 }

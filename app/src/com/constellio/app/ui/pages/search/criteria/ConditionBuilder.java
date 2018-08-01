@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.List;
-import java.util.ListIterator;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
@@ -20,7 +12,14 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
+
+import java.util.List;
+import java.util.ListIterator;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ConditionBuilder {
 	private MetadataSchemaType schemaType;
@@ -87,45 +86,45 @@ public class ConditionBuilder {
 		Object value;
 		Object endValue;
 		switch (criterion.getSearchOperator()) {
-		case EQUALS:
-			value = getValue(criterion, metadata, false);
-			if(metadata.getType() == MetadataValueType.DATE_TIME && value instanceof LocalDate && value != null) {
-				return from(schemaType).where(metadata).isValueInRange(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT),
-						((LocalDate) value).toLocalDateTime(new LocalTime(23, 59, 59, 999)));
-			} else {
-				return from(schemaType).where(metadata).isEqualTo(value);
-			}
-		case CONTAINS_TEXT:
-			String stringValue = (String) criterion.getValue();
+			case EQUALS:
+				value = getValue(criterion, metadata, false);
+				if (metadata.getType() == MetadataValueType.DATE_TIME && value instanceof LocalDate && value != null) {
+					return from(schemaType).where(metadata).isValueInRange(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT),
+							((LocalDate) value).toLocalDateTime(new LocalTime(23, 59, 59, 999)));
+				} else {
+					return from(schemaType).where(metadata).isEqualTo(value);
+				}
+			case CONTAINS_TEXT:
+				String stringValue = (String) criterion.getValue();
 
-			if (metadata.getType() == MetadataValueType.STRING && !metadata.isSearchable()) {
-				return from(schemaType).where(metadata).isContainingText(stringValue);
-			} else {
-				return from(schemaType).where(metadata.getAnalyzedField(languageCode)).query(stringValue.replace("-", "\\-"));
-			}
+				if (metadata.getType() == MetadataValueType.STRING && !metadata.isSearchable()) {
+					return from(schemaType).where(metadata).isContainingText(stringValue);
+				} else {
+					return from(schemaType).where(metadata.getAnalyzedField(languageCode)).query(stringValue.replace("-", "\\-"));
+				}
 
-		case LESSER_THAN:
-			value = getValue(criterion, metadata, false);
-			return from(schemaType).where(metadata).isLessThan(value);
-		case GREATER_THAN:
-			value = getValue(criterion, metadata, false);
-			return from(schemaType).where(metadata).isGreaterThan(value);
-		case BETWEEN:
-			value = getValue(criterion, metadata, false);
-			endValue = getValue(criterion, metadata, true);
-			return from(schemaType).where(metadata).isValueInRange(value, endValue);
-		case IS_TRUE:
-			return from(schemaType).where(metadata).isTrue();
-		case IS_FALSE:
-			return from(schemaType).where(metadata).isFalseOrNull();
-		case IN_HIERARCHY:
-			return from(schemaType).where(Schemas.PATH).isContainingText("/" + criterion.getValue() + "/");
-		case IS_NULL:
-			return from(schemaType).where(metadata).isNull();
-		case IS_NOT_NULL:
-			return from(schemaType).where(metadata).isNotNull();
-		default:
-			throw new RuntimeException("Unsupported search operator");
+			case LESSER_THAN:
+				value = getValue(criterion, metadata, false);
+				return from(schemaType).where(metadata).isLessThan(value);
+			case GREATER_THAN:
+				value = getValue(criterion, metadata, false);
+				return from(schemaType).where(metadata).isGreaterThan(value);
+			case BETWEEN:
+				value = getValue(criterion, metadata, false);
+				endValue = getValue(criterion, metadata, true);
+				return from(schemaType).where(metadata).isValueInRange(value, endValue);
+			case IS_TRUE:
+				return from(schemaType).where(metadata).isTrue();
+			case IS_FALSE:
+				return from(schemaType).where(metadata).isFalseOrNull();
+			case IN_HIERARCHY:
+				return from(schemaType).where(Schemas.PATH).isContainingText("/" + criterion.getValue() + "/");
+			case IS_NULL:
+				return from(schemaType).where(metadata).isNull();
+			case IS_NOT_NULL:
+				return from(schemaType).where(metadata).isNotNull();
+			default:
+				throw new RuntimeException("Unsupported search operator");
 		}
 	}
 

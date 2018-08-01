@@ -8,15 +8,15 @@ import java.util.Map;
 
 public class DocumentContentNotFoundException extends BaseRestApiException {
 
-    private static final String CODE = "documentContentNotFound";
+	private static final String CODE = "documentContentNotFound";
 
-    public DocumentContentNotFoundException(String id, String version) {
-        status = Response.Status.NOT_FOUND;
+	public DocumentContentNotFoundException(String id, String version) {
+		status = Response.Status.NOT_FOUND;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("id", id);
-        parameters.put("version", version);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("id", id);
+		parameters.put("version", version);
+		buildValidationError(CODE, parameters);
+	}
 
 }

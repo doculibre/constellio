@@ -1,8 +1,7 @@
 package com.constellio.app.api.pluginManagerTestResources.pluginImplementation;
 
-import net.xeoh.plugins.base.annotations.PluginImplementation;
-
 import com.constellio.app.api.APlugin;
+import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 public class APluginImplementation implements APlugin {

@@ -23,7 +23,7 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 			String key = params.getKey();
 			String schemaType = params.getSchemaType();
 			if (BATCH_PROCESSING_FIELD_FACTORY_KEY.equals(key) &&
-					(schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE))) {
+				(schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE))) {
 				recordFieldFactory = new RecordWithCopyRetentionRuleFieldFactory(schemaType,
 						params.getRecordIdThatCopyRetentionRuleDependantOn()
 						, params.getSelectedTypeId(), params.getQuery(), params.getSelectedRecords());

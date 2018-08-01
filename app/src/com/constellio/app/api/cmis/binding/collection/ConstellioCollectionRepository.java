@@ -13,8 +13,8 @@ public class ConstellioCollectionRepository {
 	private ConstellioCollectionRepositoryInfoManager repositoryInfoManager;
 
 	public ConstellioCollectionRepository(String collection, File root,
-			ConstellioCollectionTypeDefinitionsManager typeDefinitionsManager,
-			ConstellioCollectionRepositoryInfoManager repositoryInfoManager) {
+										  ConstellioCollectionTypeDefinitionsManager typeDefinitionsManager,
+										  ConstellioCollectionRepositoryInfoManager repositoryInfoManager) {
 		this.collection = collection;
 		this.root = root;
 		this.typeDefinitionsManager = typeDefinitionsManager;

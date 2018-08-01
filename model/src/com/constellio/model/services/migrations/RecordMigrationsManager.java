@@ -1,19 +1,5 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.joda.time.Duration;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
@@ -36,9 +22,17 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
+import org.jdom2.Document;
+import org.joda.time.Duration;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RecordMigrationsManager implements StatefulService,
-												OneXMLConfigPerCollectionManagerListener<SchemaTypesRecordMigration> {
+		OneXMLConfigPerCollectionManagerListener<SchemaTypesRecordMigration> {
 
 	public static final String CONFIG_PATH = "/recordMigrations.xml";
 
@@ -151,7 +145,8 @@ public class RecordMigrationsManager implements StatefulService,
 	}
 
 	public Set<String> registerReturningTypesWithNewScripts(String collection,
-			final List<RecordMigrationScript> recordMigrationScripts, boolean isMasterNode) {
+															final List<RecordMigrationScript> recordMigrationScripts,
+															boolean isMasterNode) {
 		oneXMLConfigPerCollectionManager.createCollectionFile(collection, new NewSchemaTypesRecordMigrationAlteration());
 
 		Map<String, RecordMigrationScript> collectionMigrationScripts = scripts.get(collection);
@@ -296,7 +291,8 @@ public class RecordMigrationsManager implements StatefulService,
 			return typesWithNewScripts;
 		}
 
-		private KeyListMap<String, RecordMigrationScript> splitBySchemaType(List<RecordMigrationScript> recordMigrationScripts) {
+		private KeyListMap<String, RecordMigrationScript> splitBySchemaType(
+				List<RecordMigrationScript> recordMigrationScripts) {
 			KeyListMap<String, RecordMigrationScript> scriptKeyListMap = new KeyListMap<>();
 
 			for (RecordMigrationScript script : recordMigrationScripts) {

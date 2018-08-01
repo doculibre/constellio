@@ -1,13 +1,13 @@
 package com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 
+import java.util.List;
+
 public class ActionParametersRetentionRuleFieldImpl extends RecordComboBox implements ActionParametersRetentionRuleField {
-	
+
 	private RecordIdToCaptionConverter converter = new RecordIdToCaptionConverter();
 
 	public ActionParametersRetentionRuleFieldImpl() {

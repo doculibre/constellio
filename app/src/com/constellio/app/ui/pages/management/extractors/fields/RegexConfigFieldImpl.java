@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.extractors.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.regex.Pattern;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.management.extractors.entities.RegexConfigVO;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
@@ -14,12 +9,12 @@ import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.data.util.BeanItem;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RegexConfigFieldImpl extends CustomField<RegexConfigVO> implements RegexConfigField {
 
@@ -146,9 +141,9 @@ public class RegexConfigFieldImpl extends CustomField<RegexConfigVO> implements 
 	private boolean isValidField() {
 		boolean valid = true;
 		if (inputMetadataComboboxField.getValue() == null
-				|| regexTextField.getValue() == null
-				|| valueTextField.getValue() == null
-				|| regexConfigTypeComboboxField.getValue() == null) {
+			|| regexTextField.getValue() == null
+			|| valueTextField.getValue() == null
+			|| regexConfigTypeComboboxField.getValue() == null) {
 			valid = false;
 		} else {
 			try {

@@ -1,30 +1,24 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.sdk.tests.TestUtils.asSet;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.*;
-
 import com.constellio.model.entities.Language;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.sdk.tests.TestUtils.asSet;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest {
 
@@ -475,8 +469,8 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 	}
 
 	private MetadataSchema configureMockedSchemaWithTaxonomyRelations(MetadataSchema schema, MetadataSchemaTypes types,
-			String code,
-			Metadata... taxonomyRelations) {
+																	  String code,
+																	  Metadata... taxonomyRelations) {
 		when(schema.getCode()).thenReturn(code);
 		List<Metadata> metadatas = Arrays.asList(taxonomyRelations);
 		when(schema.getTaxonomyRelationshipReferences(taxonomies)).thenReturn(metadatas);
@@ -487,9 +481,9 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 	}
 
 	private MetadataSchemaType configureMockedSchemaTypeWithTaxonomyRelations(MetadataSchemaType type,
-			MetadataSchemaTypes types,
-			String code,
-			Metadata... taxonomyRelations) {
+																			  MetadataSchemaTypes types,
+																			  String code,
+																			  Metadata... taxonomyRelations) {
 		when(type.getCode()).thenReturn(code);
 		List<Metadata> metadatas = Arrays.asList(taxonomyRelations);
 		when(type.getAllReferencesToTaxonomySchemas(taxonomies)).thenReturn(metadatas);
@@ -518,7 +512,7 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 	}
 
 	private Metadata configureMetadataWithHierarchyDependency(Metadata metadata, MetadataSchemaTypes types,
-			String code) {
+															  String code) {
 
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getLocalCode()).thenReturn(code.split("_")[2]);
@@ -530,7 +524,7 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 	}
 
 	private Metadata givenReferenceToSchemaType(Metadata metadata, MetadataSchemaTypes types,
-			String code, boolean childOf, String type) {
+												String code, boolean childOf, String type) {
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getLocalCode()).thenReturn(code.split("_")[2]);
 		when(metadata.getType()).thenReturn(MetadataValueType.REFERENCE);
@@ -543,7 +537,7 @@ public class ModificationImpactCalculator_HierarchiesTest extends ConstellioTest
 	}
 
 	private Metadata givenReferenceToSchemas(Metadata metadata, MetadataSchemaTypes types, String code,
-			boolean childOf, String... schemas) {
+											 boolean childOf, String... schemas) {
 
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getLocalCode()).thenReturn(code.split("_")[2]);

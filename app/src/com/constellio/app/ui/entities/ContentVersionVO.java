@@ -48,9 +48,11 @@ public class ContentVersionVO implements Serializable {
 
 	private String duplicatedHash;
 
-	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version,
-			Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId, LocalDateTime checkoutDateTime,
-			String comment, InputStreamProvider inputStreamProvider) {
+	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length,
+							String version,
+							Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId,
+							LocalDateTime checkoutDateTime,
+							String comment, InputStreamProvider inputStreamProvider) {
 		super();
 		this.comment = comment;
 		this.contentId = contentId;
@@ -167,9 +169,9 @@ public class ContentVersionVO implements Serializable {
 		}
 		String lengthLabel = FileUtils.byteCountToDisplaySize(length);
 		if (!lengthLabel.endsWith("bytes")) {
-			lengthLabel +=  ", " + String.format("%,d", length) + " bytes";
+			lengthLabel += ", " + String.format("%,d", length) + " bytes";
 		}
-		sb.append(" (" + lengthLabel +  ")");
+		sb.append(" (" + lengthLabel + ")");
 		return sb.toString();
 	}
 

@@ -26,15 +26,16 @@ public class RMMigrationTo6_6 implements MigrationScript {
 
 	private void addDefaultTaxonomy(ModelLayerFactory modelLayerFactory) {
 		SystemConfigurationsManager configManager = modelLayerFactory.getSystemConfigurationsManager();
-		String defaultTaxonomy = modelLayerFactory.getSystemConfigs().getDefaultTaxonomy(); 
+		String defaultTaxonomy = modelLayerFactory.getSystemConfigs().getDefaultTaxonomy();
 		if (defaultTaxonomy == null) {
-			configManager.setValue(ConstellioEIMConfigs.DEFAULT_TAXONOMY, RMTaxonomies.ADMINISTRATIVE_UNITS);			
+			configManager.setValue(ConstellioEIMConfigs.DEFAULT_TAXONOMY, RMTaxonomies.ADMINISTRATIVE_UNITS);
 		}
 	}
 
 	public static class SchemaAlterationsFor6_6 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_6(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_6(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

@@ -4,11 +4,11 @@ import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGr
 import com.constellio.app.ui.pages.base.BaseView;
 
 public interface HomeView extends BaseView, RecordsManagementViewGroup {
-	
+
 	String TABS = "home.tabs";
 
 	void openURL(String url);
-	
+
 	String getSelectedTabCode();
-	
+
 }

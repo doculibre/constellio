@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static com.constellio.data.utils.LangUtils.withoutNulls;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -21,6 +15,12 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.withoutNulls;
+import static java.util.Arrays.asList;
 
 public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalculator<List<CopyRetentionRuleInRule>> {
 
@@ -118,8 +118,8 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 
 		if (!copiesFromInheritedRule.isEmpty() && !copiesFromDocumentRulesInCategoryHierarchy.isEmpty()) {
 			return copiesFromInheritedRuleLevel > copiesFromDocumentRulesInCategoryHierarchyLevel ?
-					copiesFromInheritedRule :
-					copiesFromDocumentRulesInCategoryHierarchy;
+				   copiesFromInheritedRule :
+				   copiesFromDocumentRulesInCategoryHierarchy;
 
 		} else if (!copiesFromInheritedRule.isEmpty()) {
 			return copiesFromInheritedRule;
@@ -197,7 +197,7 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 		}
 
 		private CopyRetentionRuleInRule toCopyInRule(CopyRetentionRule copyRetentionRule, String retentionRule,
-				String category, int categoryLevel) {
+													 String category, int categoryLevel) {
 			if (copyRetentionRule == null) {
 				return null;
 			} else {
@@ -205,8 +205,9 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 			}
 		}
 
-		private List<CopyRetentionRuleInRule> toCopiesInRules(List<CopyRetentionRule> copyRetentionRules, String retentionRule,
-				String category, int categoryLevel) {
+		private List<CopyRetentionRuleInRule> toCopiesInRules(List<CopyRetentionRule> copyRetentionRules,
+															  String retentionRule,
+															  String category, int categoryLevel) {
 
 			List<CopyRetentionRuleInRule> copyRetentionRuleInRules = new ArrayList<>();
 

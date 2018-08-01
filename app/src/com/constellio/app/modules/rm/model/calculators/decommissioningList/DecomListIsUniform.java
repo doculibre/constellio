@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -12,6 +8,10 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class DecomListIsUniform implements MetadataValueCalculator<Boolean> {
 
@@ -28,9 +28,9 @@ public class DecomListIsUniform implements MetadataValueCalculator<Boolean> {
 		String uniformCategory = parameters.get(uniformCategoryParam);
 
 		if (uniformCopyRule != null
-				&& uniformCopyType != null
-				&& uniformRule != null
-				&& uniformCategory != null) {
+			&& uniformCopyType != null
+			&& uniformRule != null
+			&& uniformCategory != null) {
 			return true;
 		} else {
 			return false;

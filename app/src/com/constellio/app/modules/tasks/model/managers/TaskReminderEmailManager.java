@@ -1,17 +1,5 @@
 package com.constellio.app.modules.tasks.model.managers;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -38,6 +26,17 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class TaskReminderEmailManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TaskReminderEmailManager.class);
@@ -160,7 +159,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
-		if(task.getDueDate() != null) {
+		if (task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
@@ -175,7 +174,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters
 				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
 		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
-				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
+						  + "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 		newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
 
 		emailToSend.setParameters(newParameters);
@@ -200,7 +199,7 @@ public class TaskReminderEmailManager implements StatefulService {
 			return "";
 		}
 		return taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
-				taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
+			   taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	private List<EmailAddress> getValidEmailAddresses(List<String> usersIds) {

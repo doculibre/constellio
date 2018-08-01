@@ -1,17 +1,18 @@
 package com.constellio.app.services.extensions.plugins;
 
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 
 public interface PluginServices {
 
 	ConstellioPluginInfo extractPluginInfo(File pluginJar)
 			throws InvalidPluginJarException;
 
-	PluginActivationFailureCause validatePlugin(ConstellioPluginInfo pluginInfo, ConstellioPluginInfo previousPluginInfo);
+	PluginActivationFailureCause validatePlugin(ConstellioPluginInfo pluginInfo,
+												ConstellioPluginInfo previousPluginInfo);
 
 	void saveNewPlugin(File pluginsDirectory, File newPluginFile, String pluginCode)
 			throws IOException;

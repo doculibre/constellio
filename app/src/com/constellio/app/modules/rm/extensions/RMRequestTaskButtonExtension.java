@@ -82,7 +82,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public void decorateMainComponentAfterViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentAfterViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 		super.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 		Component mainComponent = params.getMainComponent();
 		Folder folder;
@@ -117,18 +118,18 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		for (Button button : actionMenuButtons) {
 			if (button.getId() != null) {
 				switch (button.getId()) {
-				case BorrowRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection));
-					break;
-				case ReturnRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-					break;
-				case ReactivationRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordReativable(folder, containerRecord, currentUser));
-					break;
-				case ExtensionRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-					break;
+					case BorrowRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection));
+						break;
+					case ReturnRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+						break;
+					case ReactivationRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordReativable(folder, containerRecord, currentUser));
+						break;
+					case ExtensionRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+						break;
 				}
 			}
 		}
@@ -167,7 +168,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
 				.on(folder)
-				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && !extensions.isModifyBlocked(folder.getWrappedRecord(), currentUser);
+			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && !extensions.isModifyBlocked(folder.getWrappedRecord(), currentUser);
 	}
 
 	private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {
@@ -182,7 +183,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
 	}
 
-	private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
+	private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser,
+												String collection) {
 		if (folder != null) {
 			return isFolderBorrowable(folder, container, currentUser, collection);
 		} else {
@@ -210,7 +212,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public void decorateMainComponentBeforeViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentBeforeViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 		super.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 		Component mainComponent = params.getMainComponent();
 		if (mainComponent instanceof DisplayFolderViewImpl || mainComponent instanceof DisplayContainerViewImpl) {
@@ -323,7 +326,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				if(view instanceof DisplayContainerViewImpl) {
+				if (view instanceof DisplayContainerViewImpl) {
 					return $("DisplayFolderView.confirmReturnContainerMessage");
 				} else {
 					return $("DisplayFolderView.confirmReturnMessage");
@@ -447,7 +450,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		try {
 			long recordResult = getNumberOfRequestFromUser(BorrowRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				Task borrowRequest;
@@ -482,10 +485,9 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 			long recordResult = getNumberOfRequestFromUser(ReturnRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
-			}
-			else if (folder != null) {
+			} else if (folder != null) {
 				String folderId = folder.getId();
 				Task returnRequest = taskSchemas
 						.newReturnFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle());
@@ -524,7 +526,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		try {
 			long recordResult = getNumberOfRequestFromUser(ReactivationRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				if (folder != null) {
@@ -558,7 +560,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		try {
 			long recordResult = getNumberOfRequestFromUser(ExtensionRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				if (folder != null) {
@@ -632,8 +634,9 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		}
 	}
 
-	public long getNumberOfRequestFromUser(String fullSchemaName, User currentUser, Folder folder, ContainerRecord containerRecord) {
-		SearchServices searchServices  = modelLayerFactory.newSearchServices();
+	public long getNumberOfRequestFromUser(String fullSchemaName, User currentUser, Folder folder,
+										   ContainerRecord containerRecord) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		MetadataSchemaType taskSchemaType = tasksSchemasRecordsServices.taskSchemaType();
@@ -643,7 +646,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		Metadata metadataApplicant = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(RequestTask.APPLICANT);
 		LogicalSearchCondition logicalSearchCondition;
 
-		if(folder != null) {
+		if (folder != null) {
 			logicalSearchCondition = from(taskSchemaType).where(Schemas.SCHEMA).isEqualTo(fullSchemaName)
 					.andWhere(metadataLinkedFolder).isEqualTo(folder).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY).andWhere(metadataApplicant).isEqualTo(currentUser.getId());
 		} else {

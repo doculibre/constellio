@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.app.modules.es.constants.ESTaxonomies.SMB_FOLDERS;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.Before;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
@@ -19,6 +12,12 @@ import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.junit.Before;
+
+import static com.constellio.app.modules.es.constants.ESTaxonomies.SMB_FOLDERS;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest {

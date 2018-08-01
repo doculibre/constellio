@@ -1,11 +1,10 @@
 package com.constellio.app.api.admin.services;
 
-import org.junit.After;
-import org.junit.Test;
-
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.After;
+import org.junit.Test;
 
 @SlowTest
 @DriverTest

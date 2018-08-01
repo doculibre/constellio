@@ -1,13 +1,5 @@
 package com.constellio.sdk.tests;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -18,6 +10,9 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.security.Principal;
+import java.util.*;
 
 public class FakeSessionContext extends BaseSessionContext {
 
@@ -32,7 +27,7 @@ public class FakeSessionContext extends BaseSessionContext {
 	Map<String, Long> selectedRecordSchemaTypeCodes;
 
 	Record searchEvent = null;
-	
+
 	private Map<String, Object> attributes = new HashMap<>();
 
 	private static FakeSessionContext current;
@@ -85,7 +80,6 @@ public class FakeSessionContext extends BaseSessionContext {
 	}
 
 
-
 	public static SessionContext dakotaInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "dakota", "Dakota", "L'Indien", "dakota.indien@gmail.com");
 		return new FakeSessionContext(userVO, collection);
@@ -131,11 +125,13 @@ public class FakeSessionContext extends BaseSessionContext {
 		return context;
 	}
 
-	private static UserVO newUserVO(String collection, String username, String firstName, String lastName, String email) {
+	private static UserVO newUserVO(String collection, String username, String firstName, String lastName,
+									String email) {
 		return newUserVO(username + "Id", collection, username, firstName, lastName, email);
 	}
 
-	private static UserVO newUserVO(String id,String collection, String username, String firstName, String lastName, String email) {
+	private static UserVO newUserVO(String id, String collection, String username, String firstName, String lastName,
+									String email) {
 		List<MetadataValueVO> metadataValueVOs = new ArrayList<>();
 		MetadataSchemaVO userSchema = userSchema(collection);
 		metadataValueVOs.add(new MetadataValueVO(userNameMetadata(userSchema), username));
@@ -161,7 +157,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String,Object>());
+				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
 	}
 
 	private static MetadataVO lastNameMetadata(MetadataSchemaVO userSchema) {
@@ -171,7 +167,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String,Object>());
+				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
 	}
 
 	private static MetadataVO firstNameMetadata(MetadataSchemaVO userSchema) {
@@ -181,7 +177,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String,Object>());
+				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
 	}
 
 	private static MetadataVO userNameMetadata(MetadataSchemaVO userSchema) {
@@ -191,7 +187,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String,Object>());
+				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
 	}
 
 	@Override

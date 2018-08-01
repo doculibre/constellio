@@ -8,9 +8,9 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface ConstellioHeader extends Serializable {
-	
+
 	String ACTION_MENU = "header.actionMenu";
-	
+
 	String getSearchExpression();
 
 	void setSearchExpression(String expression);
@@ -34,28 +34,28 @@ public interface ConstellioHeader extends Serializable {
 	String getCollection();
 
 	ConstellioFactories getConstellioFactories();
-	
+
 	SessionContext getSessionContext();
 
 	void setCollections(List<String> collections);
 
 	void updateUIContent();
-	
+
 	void setSelectionButtonEnabled(boolean enabled);
-	
+
 	void setAdvancedSearchFormVisible(boolean visible);
-	
+
 	void setSelectionPanelVisible(boolean visible, boolean refresh);
 
 	void setSelectionCount(int selectionCount);
 
 	void refreshSelectionPanel();
-	
+
 	void refreshButtons();
 
 	void removeRecordsFromPanel(List<String> idList);
 
 	BaseView getCurrentView();
 
-    void setCurrentCollectionQuietly();
+	void setCurrentCollectionQuietly();
 }

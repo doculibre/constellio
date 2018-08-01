@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
 
 public class DocumentToDocumentCertificate {
 	final RMSchemasRecordsServices rmSchemas;

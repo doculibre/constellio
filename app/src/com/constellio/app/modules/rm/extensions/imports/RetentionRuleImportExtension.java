@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
-import static org.apache.commons.lang3.StringUtils.join;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -35,6 +23,12 @@ import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
+import static org.apache.commons.lang3.StringUtils.join;
 
 public class RetentionRuleImportExtension extends RecordImportExtension {
 
@@ -164,7 +158,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		if (copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE)) {
 			String value = copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE) != null ?
-					copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase() : "";
+						   copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase() : "";
 			if (value.isEmpty() || !(isDisposalTypeValid(value))) {
 				addInvalidCopyRuleEnumValueError(errors, value, INACTIVE_DISPOSAL_TYPE, DisposalType.class);
 			}
@@ -245,7 +239,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	}
 
 	private void addInvalidCopyRuleEnumValueError(ValidationErrors errors, String value, String field,
-			Class<? extends Enum<?>> enumClass) {
+												  Class<? extends Enum<?>> enumClass) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("field", field);
 		parameters.put("value", value);
@@ -254,7 +248,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	}
 
 	private void addInvalidDocumentTypeEnumValueError(ValidationErrors errors, String value, String field,
-			Class<? extends Enum<?>> enumClass) {
+													  Class<? extends Enum<?>> enumClass) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("field", field);
 		parameters.put("value", value);
@@ -263,7 +257,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	}
 
 	private void prevalidateDocumentType(Map<String, String> documentType, ValidationErrors errors,
-			boolean copyRetentionRulePrincipalAndNotSortExist) {
+										 boolean copyRetentionRulePrincipalAndNotSortExist) {
 
 		if (!copyRetentionRulePrincipalAndNotSortExist) {
 			if (documentType.containsKey(ARCHIVISTIC_STATUS)) {
@@ -281,7 +275,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 	}
 
-	private void validateDocumentType(DocumentTypeResolver resolver, Map<String, String> documentType, ValidationErrors errors) {
+	private void validateDocumentType(DocumentTypeResolver resolver, Map<String, String> documentType,
+									  ValidationErrors errors) {
 
 		String value = documentType.get(CODE);
 		if (value.isEmpty()) {
@@ -364,8 +359,9 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 	}
 
-	private CopyRetentionRule buildCopyRetentionRule(MediumTypeResolver resolver, Map<String, String> mapCopyRetentionRule,
-			String rulesType) {
+	private CopyRetentionRule buildCopyRetentionRule(MediumTypeResolver resolver,
+													 Map<String, String> mapCopyRetentionRule,
+													 String rulesType) {
 
 		CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(rm);
 		CopyRetentionRule copyRetentionRule;
@@ -392,8 +388,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		CopyType copyType = (mapCopyRetentionRule.get(COPY_TYPE).toUpperCase()).equals("P") ?
-				CopyType.PRINCIPAL :
-				CopyType.SECONDARY;
+							CopyType.PRINCIPAL :
+							CopyType.SECONDARY;
 		copyRetentionRule.setCopyType(copyType);
 
 		List<String> mediumTypesId = getMediumTypesId(resolver, mapCopyRetentionRule.get(MEDIUM_TYPES));
@@ -490,7 +486,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		return copyRetentionRule;
 	}
 
-	private RetentionRuleDocumentType buildDocumentType(DocumentTypeResolver resolver, Map<String, String> documentType) {
+	private RetentionRuleDocumentType buildDocumentType(DocumentTypeResolver resolver,
+														Map<String, String> documentType) {
 		RetentionRuleDocumentType retentionRuleDocumentType = new RetentionRuleDocumentType();
 
 		if (!documentType.get(CODE).isEmpty()) {
@@ -506,15 +503,15 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 	private DisposalType disposalTypeFromString(String disposalType) {
 		switch (disposalType) {
-		case "T":
-			return DisposalType.SORT;
-		case "D":
-			return DisposalType.DESTRUCTION;
-		case "C":
-			return DisposalType.DEPOSIT;
-		default:
-			//errors.error(INVALID_ENUM_VALUE, asMap(INACTIVE_DISPOSAL_TYPE, disposalType));
-			throw new RuntimeException("Invalid disposal type: " + disposalType);
+			case "T":
+				return DisposalType.SORT;
+			case "D":
+				return DisposalType.DESTRUCTION;
+			case "C":
+				return DisposalType.DEPOSIT;
+			default:
+				//errors.error(INVALID_ENUM_VALUE, asMap(INACTIVE_DISPOSAL_TYPE, disposalType));
+				throw new RuntimeException("Invalid disposal type: " + disposalType);
 		}
 	}
 

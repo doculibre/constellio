@@ -82,7 +82,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenDeleteJobInsteadOfRetrievalJobWhenExecutingDispatchThenQueueDeleteJob() {
-		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService,smbRecordService, updater, null, FILE_URL, SHARE_URL));
+		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, updater, null, FILE_URL, SHARE_URL));
 		SmbDeleteJob deleteJob = new SmbDeleteJob(jobParams);
 		when(jobParams.getJobFactory()).thenReturn(new FakeSmbJobFactory(deleteJob));
 
@@ -100,7 +100,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenRetrievalJobAndUrlIsFileWhenExecutingDispatchThenQueueRetrievalJob() {
-		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService,smbRecordService, updater, null, FILE_URL, SHARE_URL));
+		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, updater, null, FILE_URL, SHARE_URL));
 		SmbNewRetrievalJob retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		when(jobParams.getJobFactory()).thenReturn(new FakeSmbJobFactory(retrievalJob));
 
@@ -147,7 +147,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRetrievalJobAndUrlIsShareWithoutContentWhenExecutingDispatchThenQueueRetrievalJob() {
 		smbService = new FakeSmbService(new ArrayList<String>());
-		JobParams jobParams = spy(new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, null, null));
+		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, null, null, null, null));
 		SmbNewRetrievalJob shareRetrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
 		when(jobParams.getJobFactory()).thenReturn(new FakeSmbJobFactory(shareRetrievalJob));
 
@@ -166,7 +166,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRetrievalJobAndUrlIsFolderWithContentWhenExecutingDispatchThenQueueRetrievalJobsAndDispatchJobs() {
 		smbService = new FakeSmbService(Arrays.asList(FILE1_URL, FOLDER2_URL));
-		JobParams jobParams = spy(new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, null, null));
+		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, null, null, null, null));
 		when(jobParams.getUrl()).thenReturn(FOLDER_URL, FILE1_URL, FOLDER2_URL);
 		SmbNewRetrievalJob shareRetrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), true);
 		SmbNewRetrievalJob fileRetrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), false);
@@ -195,7 +195,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenRetrievalJobAndUrlIsFolderWithoutContentWhenExecutingDispatchThenQueueRetrievalJob() {
-		JobParams jobParams = spy(new JobParams(connector, eventObserver,smbUtils, connectorInstance, smbService,smbRecordService, null, null, FILE_URL, null));
+		JobParams jobParams = spy(new JobParams(connector, eventObserver, smbUtils, connectorInstance, smbService, smbRecordService, null, null, FILE_URL, null));
 		SmbNewRetrievalJob retrievalJob = new SmbNewRetrievalJob(jobParams, mock(SmbModificationIndicator.class), true);
 		when(jobParams.getSmbShareService()).thenReturn(new FakeSmbService(new ArrayList<String>()));
 		when(jobParams.getJobFactory()).thenReturn(new FakeSmbJobFactory(retrievalJob));

@@ -1,44 +1,17 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaCalculatedInfos;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModificationUsersAndDateRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.*;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataList;
@@ -49,6 +22,13 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import com.constellio.model.utils.Lazy;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class MetadataSchemaBuilder {
 
@@ -117,7 +97,8 @@ public class MetadataSchemaBuilder {
 		return builder;
 	}
 
-	static MetadataSchemaBuilder modifyDefaultSchema(MetadataSchema defaultSchema, MetadataSchemaTypeBuilder typeBuilder) {
+	static MetadataSchemaBuilder modifyDefaultSchema(MetadataSchema defaultSchema,
+													 MetadataSchemaTypeBuilder typeBuilder) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = typeBuilder.getClassProvider();
 		builder.setLabels(defaultSchema.getLabels());
@@ -135,7 +116,8 @@ public class MetadataSchemaBuilder {
 		return builder;
 	}
 
-	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode, boolean commonMetadatas) {
+	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode,
+											  boolean commonMetadatas) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = defaultSchema.classProvider;
 		builder.setDefaultSchema(defaultSchema);
@@ -158,16 +140,18 @@ public class MetadataSchemaBuilder {
 	}
 
 	private static Map<Language, String> configureLabels(String code, MetadataSchemaBuilder typesBuilder,
-			Map<Language, String> labels) {
+														 Map<Language, String> labels) {
 		for (Language language : typesBuilder.getLabels().keySet()) {
-			if (labels.get(language) == null || StringUtils.isBlank(labels.get(language)))
+			if (labels.get(language) == null || StringUtils.isBlank(labels.get(language))) {
 				labels.put(language, code);
+			}
 		}
 		return labels;
 	}
 
 	static MetadataSchemaBuilder createDefaultSchema(MetadataSchemaTypeBuilder schemaTypeBuilder,
-			MetadataSchemaTypesBuilder schemaTypesBuilder, boolean initialize) {
+													 MetadataSchemaTypesBuilder schemaTypesBuilder,
+													 boolean initialize) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = schemaTypeBuilder.getClassProvider();
 		builder.setSchemaTypeBuilder(schemaTypeBuilder);
@@ -382,7 +366,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	private Lazy<MetadataSchemaCalculatedInfos> lazyCalculateSchemaInfos(final MetadataList newMetadatas,
-			final Set<RecordValidator> recordValidators) {
+																		 final Set<RecordValidator> recordValidators) {
 		return new Lazy<MetadataSchemaCalculatedInfos>() {
 			@Override
 			protected MetadataSchemaCalculatedInfos load() {
@@ -392,7 +376,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	private MetadataSchemaCalculatedInfos calculateSchemaInfos(MetadataList newMetadatas,
-			Set<RecordValidator> recordValidators) {
+															   Set<RecordValidator> recordValidators) {
 
 		for (Metadata metadata : newMetadatas.onlyCalculated().onlyWithoutInheritance()) {
 			MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
@@ -510,7 +494,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	private List<Metadata> orderAutomaticMetadatas(List<Metadata> metadatas,
-			Map<String, Set<String>> automaticMetadatasDependencies) {
+												   Map<String, Set<String>> automaticMetadatasDependencies) {
 		List<String> sortedMetadataCodes;
 
 		try {
@@ -557,7 +541,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataSchema buildCustom(MetadataSchema defaultSchema, DataStoreTypesFactory typesFactory,
-			ModelLayerFactory modelLayerFactory) {
+							   ModelLayerFactory modelLayerFactory) {
 		final MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
 			try {
@@ -589,7 +573,7 @@ public class MetadataSchemaBuilder {
 	@Override
 	public String toString() {
 		return "MetadataSchemaBuilder [localCode=" + localCode + ", code=" + code + ", label=" + labels + ", metadatas="
-				+ metadatas + ", undeletable=" + undeletable + "]";
+			   + metadatas + ", undeletable=" + undeletable + "]";
 	}
 
 	public ClassListBuilder<RecordValidator> defineValidators() {

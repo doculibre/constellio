@@ -1,7 +1,6 @@
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
 
 public class HttpURLFetchingServiceAcceptTest extends ConstellioTest {
 

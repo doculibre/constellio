@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.Serializable;
-
 import com.vaadin.server.Resource;
+
+import java.io.Serializable;
 
 public class RecordDataTreeNode implements Serializable {
 
@@ -21,7 +21,7 @@ public class RecordDataTreeNode implements Serializable {
 	int estimatedChildrenCount = -1;
 
 	public RecordDataTreeNode(String id, String caption, String description, String schemaType,
-			Resource collapsedIconFilename, Resource expandedIconFilename, boolean hasChildren) {
+							  Resource collapsedIconFilename, Resource expandedIconFilename, boolean hasChildren) {
 		this.id = id;
 		this.caption = caption;
 		this.description = description;

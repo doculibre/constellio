@@ -1,16 +1,15 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.records.RecordImpl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MetadataUnmodifiableValidator implements Validator<Record> {
 
@@ -56,7 +55,7 @@ public class MetadataUnmodifiableValidator implements Validator<Record> {
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
+		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
 		validationErrors.add(getClass(), errorCode, parameters);
 	}
 }

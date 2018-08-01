@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.model.wrappers.structures;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.sdk.tests.ConstellioTest;
-
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;

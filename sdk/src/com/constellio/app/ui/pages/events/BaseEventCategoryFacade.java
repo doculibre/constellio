@@ -1,16 +1,15 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.components.DateRangePanel;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.vaadin.TableWebElement;
 import com.constellio.app.ui.tools.vaadin.TableWebElement.TableRowWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.openqa.selenium.By;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BaseEventCategoryFacade {
 	protected ConstellioWebDriver driver;
@@ -29,17 +28,17 @@ public class BaseEventCategoryFacade {
 	}
 
 	public ButtonWebElement getReturnLink() {
-		if(returnLink == null){
+		if (returnLink == null) {
 			returnLink = new ButtonWebElement(this.driver.findElement(By.className(BaseViewImpl.BACK_BUTTON_CODE)));
 		}
 		return returnLink;
 	}
 
 	public List<Integer> getValues() {
-		if (statsValues == null){
+		if (statsValues == null) {
 			statsValues = new ArrayList<>();
 			TableWebElement table = getTable();
-			for(int i = 0; i < table.countRows(); i++){
+			for (int i = 0; i < table.countRows(); i++) {
 				TableRowWebElement row = table.getRow(i);
 				String valueField = row.getValueInColumn(1);
 				statsValues.add(Integer.valueOf(valueField));
@@ -50,7 +49,7 @@ public class BaseEventCategoryFacade {
 	}
 
 	protected TableWebElement getTable() {
-		if(this.table == null){
+		if (this.table == null) {
 			this.table = new TableWebElement(driver, BaseEventCategoryViewImpl.TABLE_STYLE_CODE);
 		}
 		return table;
@@ -65,10 +64,10 @@ public class BaseEventCategoryFacade {
 	}
 
 	public List<String> getCaptions() {
-		if(statsCaptions == null){
+		if (statsCaptions == null) {
 			statsCaptions = new ArrayList<>();
 			TableWebElement table = getTable();
-			for(int i = 0; i < table.countRows(); i++){
+			for (int i = 0; i < table.countRows(); i++) {
 				TableRowWebElement row = table.getRow(i);
 				String valueField = row.getValueInColumn(0);
 				statsCaptions.add(valueField);
@@ -81,7 +80,7 @@ public class BaseEventCategoryFacade {
 		return getValues().get(statIndex);
 	}
 
-	public void clear(){
+	public void clear() {
 		this.table = null;
 		this.statsCaptions = null;
 		this.statsValues = null;
@@ -93,7 +92,7 @@ public class BaseEventCategoryFacade {
 	}
 
 	private ButtonWebElement getValidationButton() {
-		if(okButton == null){
+		if (okButton == null) {
 			okButton = new ButtonWebElement(driver.find(DateRangePanel.OK_BUTTON));
 		}
 		return okButton;

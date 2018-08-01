@@ -1,11 +1,8 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
+import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
+import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
@@ -13,18 +10,11 @@ import org.jdom2.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUtils {
 

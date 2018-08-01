@@ -1,25 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.ComparisonFailure;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
@@ -44,6 +24,23 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.junit.Before;
+import org.junit.ComparisonFailure;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 

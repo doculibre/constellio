@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -35,14 +25,17 @@ import com.google.common.base.Strings;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultDisplay extends VerticalLayout {
 
@@ -74,7 +67,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	private Component titleComponent;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-			AppLayerFactory appLayerFactory, String query) {
+							   AppLayerFactory appLayerFactory, String query) {
 		this.appLayerFactory = appLayerFactory;
 		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
 				getAppLayerFactory().getModelLayerFactory());
@@ -109,7 +102,7 @@ public class SearchResultDisplay extends VerticalLayout {
 				.has(currentSessionContext.getCurrentUser().getUsername());
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
 			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
 
 			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;
@@ -143,14 +136,14 @@ public class SearchResultDisplay extends VerticalLayout {
 			elevationLayout.addComponent(elevateButton);
 			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
 			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
-			
+
 			titleLayout.addComponent(elevationLayout);
-//			titleLayout.setExpandRatio(elevationLayout, 1);
-//			titleLayout.setSpacing(true);
+			//			titleLayout.setExpandRatio(elevationLayout, 1);
+			//			titleLayout.setSpacing(true);
 		}
 		return titleLayout;
 	}
-	
+
 	protected Component newTitleLink(SearchResultVO searchResultVO) {
 		return new ReferenceDisplay(searchResultVO.getRecordVO());
 	}

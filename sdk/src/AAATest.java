@@ -1,6 +1,5 @@
-import org.junit.Test;
-
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
 
 public class AAATest extends ConstellioTest {
 

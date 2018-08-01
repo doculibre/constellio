@@ -7,7 +7,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 public class RMCollection extends Collection {
 
 	public RMCollection(Record record,
-			MetadataSchemaTypes types) {
+						MetadataSchemaTypes types) {
 		super(record, types);
 	}
 

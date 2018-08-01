@@ -1,12 +1,8 @@
 package com.constellio.data.utils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class KeyListMap<K, V> implements Serializable {
 	Map<K, List<V>> map = new HashMap<>();

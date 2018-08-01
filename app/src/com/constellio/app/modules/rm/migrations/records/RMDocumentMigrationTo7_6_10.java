@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.migrations.records;
 
-import static com.constellio.data.io.ConversionManager.isSupportedExtension;
-
-import org.apache.commons.io.FilenameUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -12,6 +8,9 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.Schemas;
+import org.apache.commons.io.FilenameUtils;
+
+import static com.constellio.data.io.ConversionManager.isSupportedExtension;
 
 public class RMDocumentMigrationTo7_6_10 extends RecordMigrationScript {
 

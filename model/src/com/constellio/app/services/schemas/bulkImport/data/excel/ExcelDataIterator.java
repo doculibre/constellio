@@ -1,5 +1,11 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
+import com.constellio.data.utils.LazyIterator;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.read.biff.BiffException;
+import org.joda.time.LocalDate;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -7,14 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
-
-import org.joda.time.LocalDate;
-
-import com.constellio.data.utils.LazyIterator;
 
 public class ExcelDataIterator extends LazyIterator<Map<String, Object>> implements Closeable {
 

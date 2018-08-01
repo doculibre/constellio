@@ -1,14 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -32,6 +23,14 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<BetaDisplayWorkflowView> {
 	private BetaWorkflowVO workflowVO;
@@ -173,7 +172,7 @@ public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<Beta
 	}
 
 	public void saveNewTaskButtonClicked(String taskType, String taskTitle, List<String> decisions,
-			BetaWorkflowTaskVO workflowTaskVO) {
+										 BetaWorkflowTaskVO workflowTaskVO) {
 		try {
 			SessionContext sessionContext = view.getSessionContext();
 			Record workflowRecord = toRecord(workflowVO);

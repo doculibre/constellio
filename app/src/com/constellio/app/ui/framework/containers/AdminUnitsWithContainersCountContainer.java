@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
@@ -14,6 +11,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class AdminUnitsWithContainersCountContainer extends ContainerAdapter {
 
@@ -29,7 +29,8 @@ public class AdminUnitsWithContainersCountContainer extends ContainerAdapter {
 	private String currentUserId;
 	private String tabName;
 
-	public AdminUnitsWithContainersCountContainer(Container adapted, String collection, String currentUserId, String tabName) {
+	public AdminUnitsWithContainersCountContainer(Container adapted, String collection, String currentUserId,
+												  String tabName) {
 		super(adapted);
 		this.collection = collection;
 		this.currentUserId = currentUserId;
@@ -37,8 +38,9 @@ public class AdminUnitsWithContainersCountContainer extends ContainerAdapter {
 		init();
 	}
 
-	public AdminUnitsWithContainersCountContainer(Container adapted, String collection, String currentUserId, String tabName,
-			AppLayerFactory appLayerFactory) {
+	public AdminUnitsWithContainersCountContainer(Container adapted, String collection, String currentUserId,
+												  String tabName,
+												  AppLayerFactory appLayerFactory) {
 		this(adapted, collection, currentUserId, tabName);
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();

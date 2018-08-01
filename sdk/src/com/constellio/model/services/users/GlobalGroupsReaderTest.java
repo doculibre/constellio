@@ -1,17 +1,16 @@
 package com.constellio.model.services.users;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Map;
-
-import org.jdom2.Document;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.jdom2.Document;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GlobalGroupsReaderTest extends ConstellioTest {
 

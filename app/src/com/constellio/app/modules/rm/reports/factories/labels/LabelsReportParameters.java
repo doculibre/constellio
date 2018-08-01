@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.reports.factories.labels;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+
+import java.util.List;
 
 public class LabelsReportParameters {
 
@@ -15,7 +15,7 @@ public class LabelsReportParameters {
 	private final int numberOfCopies;
 
 	public LabelsReportParameters(List<String> recordIds, LabelTemplate labelTemplate, int startPosition,
-			int numberOfCopies) {
+								  int numberOfCopies) {
 		this.recordIds = recordIds;
 		this.labelConfiguration = labelTemplate;
 		this.startPosition = startPosition;

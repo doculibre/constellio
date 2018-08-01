@@ -46,7 +46,7 @@ public class ReportViewer extends VerticalLayout {
 			return DownloadStreamResource.PDF_MIMETYPE;
 		} else {
 			String extension = StringUtils.substringAfterLast(filename, ".").toLowerCase();
-			if(StringUtils.isBlank(extension)) {
+			if (StringUtils.isBlank(extension)) {
 				return DownloadStreamResource.PDF_MIMETYPE;
 			}
 			return MimeTypes.lookupMimeType(extension);

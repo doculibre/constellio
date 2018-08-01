@@ -44,22 +44,22 @@ public class ContainerRecordValidator implements RecordValidator {
 		List<String> storageSpaceIds = container.getStorageSpaceList();
 
 		List<StorageSpace> storageSpaces = new ArrayList<>();
-		for(String storageSpaceId: storageSpaceIds) {
+		for (String storageSpaceId : storageSpaceIds) {
 			storageSpaces.add(new StorageSpace(params.getRecord(storageSpaceId), params.getTypes()));
 		}
 
-		if(capacity != null && linearSize != null && Math.round(linearSize * 100.0)/100.0 > capacity) {
+		if (capacity != null && linearSize != null && Math.round(linearSize * 100.0) / 100.0 > capacity) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CAPACITY, formatToParameter(capacity));
-			parameters.put(LINEAR_SIZE, formatToParameter(Math.round(linearSize * 100.0)/100.0));
+			parameters.put(LINEAR_SIZE, formatToParameter(Math.round(linearSize * 100.0) / 100.0));
 			parameters.put(LINEAR_SIZE_ENTERED, formatToParameter(container.getLinearSizeEntered()));
 			parameters.put(LINEAR_SIZE_SUM, formatToParameter(container.getLinearSizeSum()));
 
 			params.getValidationErrors().add(ContainerRecordValidator.class, CONTAINER_CAPACITY_MUST_BE_GREATER_OR_EQUAL_TO_LINEAR_SIZE, parameters);
 		}
 
-		for(StorageSpace storageSpace: storageSpaces) {
-			if(!canContain(storageSpace, container.getType(), params.getRecordProvider(), params.getTypes())) {
+		for (StorageSpace storageSpace : storageSpaces) {
+			if (!canContain(storageSpace, container.getType(), params.getRecordProvider(), params.getTypes())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
 
@@ -67,9 +67,9 @@ public class ContainerRecordValidator implements RecordValidator {
 			}
 		}
 
-		if(container.getWrappedRecord().isSaved()) {
+		if (container.getWrappedRecord().isSaved()) {
 			Object originalFirstTransferReportDate = container.getOriginal(ContainerRecord.FIRST_TRANSFER_REPORT_DATE);
-			if(originalFirstTransferReportDate != null && !originalFirstTransferReportDate.equals(container.getFirstTransferReportDate())) {
+			if (originalFirstTransferReportDate != null && !originalFirstTransferReportDate.equals(container.getFirstTransferReportDate())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(FIRST_TRANSFER_REPORT_DATE, formatToParameter(container.getFirstTransferReportDate()));
 
@@ -77,7 +77,7 @@ public class ContainerRecordValidator implements RecordValidator {
 			}
 
 			Object originalFirstDepositReportDate = container.getOriginal(ContainerRecord.FIRST_DEPOSIT_REPORT_DATE);
-			if(originalFirstDepositReportDate != null && !originalFirstDepositReportDate.equals(container.getFirstDepositReportDate())) {
+			if (originalFirstDepositReportDate != null && !originalFirstDepositReportDate.equals(container.getFirstDepositReportDate())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(FIRST_DEPOSIT_REPORT_DATE, formatToParameter(container.getFirstDepositReportDate()));
 
@@ -85,24 +85,26 @@ public class ContainerRecordValidator implements RecordValidator {
 			}
 		}
 
-		if(Boolean.TRUE.equals(params.getConfigProvider().get(RMConfigs.IS_CONTAINER_MULTIVALUE))) {
+		if (Boolean.TRUE.equals(params.getConfigProvider().get(RMConfigs.IS_CONTAINER_MULTIVALUE))) {
 			validateStorageSpaceIsOnlyContainingOneContainer(container, storageSpaces, params);
 		}
 	}
 
-	private void validateStorageSpaceIsOnlyContainingOneContainer(ContainerRecord container, List<StorageSpace> storageSpaces, RecordValidatorParams params) {
+	private void validateStorageSpaceIsOnlyContainingOneContainer(ContainerRecord container,
+																  List<StorageSpace> storageSpaces,
+																  RecordValidatorParams params) {
 		List<String> originalStorageSpaces = null;
-		if(container.getWrappedRecord().isSaved()) {
+		if (container.getWrappedRecord().isSaved()) {
 			originalStorageSpaces = container.getOriginal(ContainerRecord.STORAGE_SPACE);
 		}
-		if(originalStorageSpaces == null) {
+		if (originalStorageSpaces == null) {
 			originalStorageSpaces = new ArrayList<>();
 		}
-		for(StorageSpace storageSpace: storageSpaces) {
+		for (StorageSpace storageSpace : storageSpaces) {
 			Double numberOfContainers = storageSpace.getNumberOfContainers();
-			if(container.getWrappedRecord().isSaved()) {
-				if(!originalStorageSpaces.contains(storageSpace.getId())) {
-					if(numberOfContainers != null && numberOfContainers > 0){
+			if (container.getWrappedRecord().isSaved()) {
+				if (!originalStorageSpaces.contains(storageSpace.getId())) {
+					if (numberOfContainers != null && numberOfContainers > 0) {
 						Map<String, Object> parameters = new HashMap<>();
 						parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
 
@@ -110,7 +112,7 @@ public class ContainerRecordValidator implements RecordValidator {
 					}
 				}
 			} else {
-				if(numberOfContainers != null && numberOfContainers > 0){
+				if (numberOfContainers != null && numberOfContainers > 0) {
 					Map<String, Object> parameters = new HashMap<>();
 					parameters.put(STORAGE_SPACE, formatToParameter(storageSpace.getTitle()));
 
@@ -121,32 +123,33 @@ public class ContainerRecordValidator implements RecordValidator {
 	}
 
 	private String formatToParameter(Object parameter) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return "";
 		}
 		return parameter.toString();
 	}
 
 	private String formatToParameter(Object parameter, String suffix) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return formatToParameter(parameter);
 		} else {
 			return formatToParameter(parameter) + suffix;
 		}
 	}
 
-	public boolean canContain(StorageSpace storageSpace, String containerRecordType, RecordProvider recordProvider, MetadataSchemaTypes types) {
-		if(containerRecordType == null) {
+	public boolean canContain(StorageSpace storageSpace, String containerRecordType, RecordProvider recordProvider,
+							  MetadataSchemaTypes types) {
+		if (containerRecordType == null) {
 			return true;
 		}
 		List<String> containerRecordTypeList = new ArrayList<>();
 		StorageSpace currentStorage = storageSpace;
 		while (currentStorage != null) {
 
-			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
+			if (currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
 				containerRecordTypeList = currentStorage.getContainerType();
 				break;
-			} else if(currentStorage.getParentStorageSpace() == null) {
+			} else if (currentStorage.getParentStorageSpace() == null) {
 				break;
 			}
 			currentStorage = new StorageSpace(recordProvider.getRecord(currentStorage.getParentStorageSpace()), types);

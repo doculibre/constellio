@@ -1,18 +1,17 @@
 package com.constellio.model.services.security.authentification;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 public class PasswordFileAuthentificationServiceAcceptanceTest extends ConstellioTest {
 

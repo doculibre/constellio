@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class UniformSubdivision extends RecordWrapper {
 
@@ -21,7 +21,7 @@ public class UniformSubdivision extends RecordWrapper {
 	public static final String RETENTION_RULE = "retentionRule";
 
 	public UniformSubdivision(Record record,
-			MetadataSchemaTypes types) {
+							  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

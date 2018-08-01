@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
@@ -16,6 +11,10 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingContainerPresenter>
 		implements AddExistingContainerView {

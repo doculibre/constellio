@@ -1,8 +1,8 @@
 package com.constellio.model.entities.schemas.validation;
 
-import java.io.Serializable;
-
 import com.constellio.model.services.records.RecordValidatorParams;
+
+import java.io.Serializable;
 
 public interface RecordValidator extends Serializable {
 

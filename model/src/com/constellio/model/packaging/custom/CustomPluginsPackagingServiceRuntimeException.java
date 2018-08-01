@@ -29,7 +29,7 @@ public class CustomPluginsPackagingServiceRuntimeException extends RuntimeExcept
 
 		public CannotBuildCustumerJar(String custumerName, String binFolder, String jarDestinationFolder, Exception e) {
 			super("Cannot build a custumer jar : " + custumerName + ", bin folder : " + binFolder + ", jar destination folder : "
-					+ jarDestinationFolder, e);
+				  + jarDestinationFolder, e);
 		}
 
 	}

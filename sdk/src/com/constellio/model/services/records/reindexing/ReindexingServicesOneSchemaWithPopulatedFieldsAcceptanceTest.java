@@ -1,20 +1,5 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -28,6 +13,18 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.services.records.reindexing.ReindexationMode.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extends ConstellioTest {

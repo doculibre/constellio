@@ -1,10 +1,10 @@
 package com.constellio.model.services.records.utils;
 
-import java.util.Iterator;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordImpl;
+
+import java.util.Iterator;
 
 public class RecordDTOIterator implements Iterator<RecordDTO> {
 

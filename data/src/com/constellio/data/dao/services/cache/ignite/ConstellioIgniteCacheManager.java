@@ -1,17 +1,9 @@
 package com.constellio.data.dao.services.cache.ignite;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheManager;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
+import com.constellio.data.dao.services.cache.InsertionReason;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
@@ -28,10 +20,9 @@ import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
-import com.constellio.data.dao.services.cache.ConstellioCache;
-import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
-import com.constellio.data.dao.services.cache.InsertionReason;
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 
@@ -177,7 +168,7 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 	}
 
 	private ConstellioCache createNewCache(CacheConfiguration<String, Object> cacheConfiguration, String name,
-			ConstellioCacheOptions options) {
+										   ConstellioCacheOptions options) {
 		synchronized (this) {
 			ConstellioIgniteCache cache = caches.get(name);
 			if (cache == null) {

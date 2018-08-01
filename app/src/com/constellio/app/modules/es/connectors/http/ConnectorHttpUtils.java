@@ -1,19 +1,18 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static java.util.Arrays.asList;
+import com.constellio.app.modules.es.connectors.http.ConnectorHttpRuntimeException.ConnectorHttpRuntimeException_CannotGetAbsoluteHref;
+import com.constellio.data.io.services.facades.IOServices;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Connection.Response;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Connection.Response;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import com.constellio.app.modules.es.connectors.http.ConnectorHttpRuntimeException.ConnectorHttpRuntimeException_CannotGetAbsoluteHref;
-import com.constellio.data.io.services.facades.IOServices;
+import static java.util.Arrays.asList;
 
 public class ConnectorHttpUtils {
 

@@ -1,33 +1,22 @@
 package com.constellio.app.ui.pages.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.net.URLEncoder;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 

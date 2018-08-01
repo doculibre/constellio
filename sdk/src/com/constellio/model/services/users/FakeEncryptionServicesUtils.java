@@ -1,17 +1,16 @@
 package com.constellio.model.services.users;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
+import com.constellio.model.services.encrypt.EncryptionServices;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import com.constellio.model.services.encrypt.EncryptionServices;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 public class FakeEncryptionServicesUtils extends EncryptionServices {
 	public FakeEncryptionServicesUtils()

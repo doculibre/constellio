@@ -1,14 +1,13 @@
 package com.constellio.data.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import com.constellio.data.io.services.zip.ZipServiceException;
+import org.junit.Test;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
-
-import com.constellio.data.io.services.zip.ZipServiceException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TimeoutTaskTest {
 

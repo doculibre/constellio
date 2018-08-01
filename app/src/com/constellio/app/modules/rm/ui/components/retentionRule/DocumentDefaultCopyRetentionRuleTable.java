@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -40,17 +33,15 @@ import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private static final String COPY_TYPE = "copyType";
@@ -83,7 +74,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private Field<CopyRetentionRule> secondaryCopyField;
 
 	public DocumentDefaultCopyRetentionRuleTable(RetentionRuleVO retentionRuleVO, boolean formMode,
-			RetentionRuleTablePresenter presenter) {
+												 RetentionRuleTablePresenter presenter) {
 		this.retentionRuleVO = retentionRuleVO;
 		this.formMode = formMode;
 		this.dateMetadataVOs = getDateMetadataVOs();
@@ -349,12 +340,13 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 	private class RetentionPeriodFieldGroup extends VerticalLayout {
 
-		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
+		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule,
+										 final boolean activeRetentionPeriod) {
 			setSpacing(true);
 
 			RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
-					copyRetentionRule.getActiveRetentionPeriod() :
-					copyRetentionRule.getSemiActiveRetentionPeriod();
+											  copyRetentionRule.getActiveRetentionPeriod() :
+											  copyRetentionRule.getSemiActiveRetentionPeriod();
 
 			Property<String> dateMetadataProperty;
 			if (activeRetentionPeriod) {

@@ -1,19 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
-import org.apache.tools.ant.filters.StringInputStream;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
@@ -38,6 +24,19 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.tools.ant.filters.StringInputStream;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 @UiTest
 public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
@@ -160,7 +159,7 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 	}
 
 	public void createLevel(List<ConnectorSmbFolder> parents,
-			Stack<Integer> numberOfFoldersForEachLevel, int numberOfDocuments) {
+							Stack<Integer> numberOfFoldersForEachLevel, int numberOfDocuments) {
 
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions().withRecordsPerBatch(5000);
 		BulkRecordTransactionHandler bulkTransactionsHandler = new BulkRecordTransactionHandler(recordServices,

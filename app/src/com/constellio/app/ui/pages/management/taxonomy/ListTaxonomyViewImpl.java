@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.services.metadata.MetadataDeletionException;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -15,14 +13,12 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListTaxonomyViewImpl extends BaseViewImpl implements ListTaxonomyView {
 	private final ListTaxonomyPresenter presenter;
@@ -110,22 +106,22 @@ public class ListTaxonomyViewImpl extends BaseViewImpl implements ListTaxonomyVi
 		});
 
 		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				return new DeleteButton() {
 					@Override
-					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-						return new DeleteButton() {
-							@Override
-							protected void confirmButtonClick(ConfirmDialog dialog) {
-								TaxonomyVO taxonomyVO = (TaxonomyVO) itemId;
-								String taxonomyCode = taxonomyVO.getCode();
-								try {
-									presenter.deleteButtonClicked(taxonomyCode);
-								} catch (MetadataDeletionException e) {
-									e.printStackTrace();
-								}
-							}
-						};
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						TaxonomyVO taxonomyVO = (TaxonomyVO) itemId;
+						String taxonomyCode = taxonomyVO.getCode();
+						try {
+							presenter.deleteButtonClicked(taxonomyCode);
+						} catch (MetadataDeletionException e) {
+							e.printStackTrace();
+						}
 					}
-				});
+				};
+			}
+		});
 	}
 
 	@Override

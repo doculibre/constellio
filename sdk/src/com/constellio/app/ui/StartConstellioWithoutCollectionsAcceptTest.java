@@ -1,7 +1,5 @@
 package com.constellio.app.ui;
 
-import org.junit.Test;
-
 import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
@@ -9,6 +7,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
+import org.junit.Test;
 
 @UiTest
 @MainTest

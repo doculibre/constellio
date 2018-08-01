@@ -1,11 +1,10 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.entities.Language;
+
+import java.io.Serializable;
+import java.util.Map;
 
 public class MetadataSchemaTypeVO implements Serializable {
 

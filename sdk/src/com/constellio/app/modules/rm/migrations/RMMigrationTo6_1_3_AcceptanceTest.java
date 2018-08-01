@@ -1,15 +1,14 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.junit.Test;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.*;
-
-import com.constellio.model.services.records.SchemasRecordsServices;
-import net.sf.cglib.core.Local;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -26,6 +19,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class ClassificationPlanReportPresenter {
 
@@ -47,18 +44,19 @@ public class ClassificationPlanReportPresenter {
 		this(collection, modelLayerFactory, false, locale);
 	}
 
-	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed, Locale locale) {
+	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
+											 Locale locale) {
 		this(collection, modelLayerFactory, detailed, null, locale);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-		String administrativeUnitId, Locale locale) {
+											 String administrativeUnitId, Locale locale) {
 
-			this.collection = collection;
-			this.modelLayerFactory = modelLayerFactory;
-			this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
-			this.administrativeUnitId = administrativeUnitId;
-			this.locale = locale;
+		this.collection = collection;
+		this.modelLayerFactory = modelLayerFactory;
+		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
+		this.administrativeUnitId = administrativeUnitId;
+		this.locale = locale;
 	}
 
 	public ClassificationPlanReportModel build() {

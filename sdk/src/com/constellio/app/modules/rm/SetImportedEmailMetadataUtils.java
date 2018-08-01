@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.mail.internet.MimeUtility;
-
-import org.apache.log4j.Logger;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,9 +18,17 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.log4j.Logger;
+
+import javax.mail.internet.MimeUtility;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SetImportedEmailMetadataUtils {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(SetImportedEmailMetadataUtils.class);
 
 	static int BATCH_SIZE = 5000;
@@ -55,7 +53,7 @@ public class SetImportedEmailMetadataUtils {
 	private static LogicalSearchQuery getQuery() {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(currentCollection);
 		MetadataSchema emailSchema = types.getSchema(Email.SCHEMA);
-		
+
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		LogicalSearchCondition condition = from(emailSchema).returnAll();
 		query.setCondition(condition);
@@ -72,7 +70,7 @@ public class SetImportedEmailMetadataUtils {
 				Transaction transaction = new Transaction();
 				transaction.setSkippingRequiredValuesValidation(true);
 				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-				
+
 				for (Record record : records) {
 					Email email = rm.wrapEmail(record);
 					try {

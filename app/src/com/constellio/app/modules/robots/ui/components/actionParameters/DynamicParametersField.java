@@ -1,14 +1,5 @@
 package com.constellio.app.modules.robots.ui.components.actionParameters;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Iterator;
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
@@ -22,13 +13,16 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Iterator;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DynamicParametersField extends CustomField<String> {
 
@@ -107,11 +101,11 @@ public class DynamicParametersField extends CustomField<String> {
 				if (recordFieldFactory == null) {
 					recordFieldFactory = new RecordFieldFactory();
 				}
-				
+
 				return new LocalRecordForm(effectiveRecord, recordFieldFactory, new SaveActionListener() {
-					
+
 					@Override
-					public  void confirmBeforeSave(final RecordVO viewObject) {
+					public void confirmBeforeSave(final RecordVO viewObject) {
 						ConfirmDialog confirmDialog = createConfirmDialog();
 
 						confirmDialog.getOkButton().addClickListener(new ClickListener() {
@@ -127,19 +121,19 @@ public class DynamicParametersField extends CustomField<String> {
 							}
 						}, true);
 					}
-					
+
 					private ConfirmDialog createConfirmDialog() {
 						return ConfirmDialog.getFactory().create($("ActionAfterClassification.d.confirmation.dialog.title"),
 								$("ActionAfterClassification.d.confirmation"), $("OK"), $("cancel"), null);
 					}
-					
+
 					@Override
 					public void completeSaveAction(final RecordVO viewObject) {
 						if (presenter.saveParametersRecord(viewObject)) {
 							getWindow().close();
 						}
 					}
-					
+
 					@Override
 					public void completeCancelAction(RecordVO viewObject) {
 						presenter.cancelParametersEdit(viewObject);
@@ -151,17 +145,18 @@ public class DynamicParametersField extends CustomField<String> {
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;
 	}
-	
+
 	private final class LocalRecordForm extends RecordForm {
 		private static final String TAB_TO_HIDE = "tab.to.hide";
 		private final SaveActionListener actionListener;
-		
-		private LocalRecordForm(RecordVO pRecordVO, RecordFieldFactory pFormFieldFactory, SaveActionListener actionListener) {
+
+		private LocalRecordForm(RecordVO pRecordVO, RecordFieldFactory pFormFieldFactory,
+								SaveActionListener actionListener) {
 			super(pRecordVO, pFormFieldFactory);
-			
+
 			this.actionListener = actionListener;
-			
-			for (Iterator<Component> iterator = tabSheet.iterator(); iterator.hasNext();) {
+
+			for (Iterator<Component> iterator = tabSheet.iterator(); iterator.hasNext(); ) {
 				Tab tab = tabSheet.getTab(iterator.next());
 				tab.setVisible(!StringUtils.endsWith(tab.getCaption(), TAB_TO_HIDE));
 			}
@@ -187,7 +182,9 @@ public class DynamicParametersField extends CustomField<String> {
 
 	private interface SaveActionListener {
 		public void confirmBeforeSave(RecordVO viewObject);
+
 		public void completeSaveAction(RecordVO viewObject);
+
 		public void completeCancelAction(RecordVO viewObject);
 	}
 

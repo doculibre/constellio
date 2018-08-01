@@ -16,7 +16,8 @@ import java.util.List;
 public class SearchBoostManager extends AbstractOneXMLConfigPerCollectionManager<List<SearchBoost>> {
 	private String SEARCH_BOOST_CONFIG = "/searchBoost.xml";
 
-	public SearchBoostManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
+	public SearchBoostManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
+							  ConstellioCacheManager cacheManager) {
 		super(configManager, collectionsListManager, cacheManager);
 	}
 

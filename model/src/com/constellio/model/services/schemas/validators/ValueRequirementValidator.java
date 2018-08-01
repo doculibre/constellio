@@ -1,10 +1,5 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -12,6 +7,11 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ValueRequirementValidator implements Validator<Record> {
 
@@ -34,15 +34,16 @@ public class ValueRequirementValidator implements Validator<Record> {
 		for (Metadata metadata : metadatas) {
 			Object value = record.get(metadata);
 			if (metadata.isDefaultRequirement()
-					&& (!metadata.getLocalCode().startsWith("USR") || !skipUSRMetadatas)
-					&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
-					&& metadata.isEnabled()) {
+				&& (!metadata.getLocalCode().startsWith("USR") || !skipUSRMetadatas)
+				&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
+				&& metadata.isEnabled()) {
 				addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
 			}
 		}
 	}
 
-	private void addValidationErrors(String recordId, ValidationErrors validationErrors, String errorCode, Metadata metadata) {
+	private void addValidationErrors(String recordId, ValidationErrors validationErrors, String errorCode,
+									 Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(RECORD, recordId);
 		parameters.put(METADATA_CODE, metadata.getCode());

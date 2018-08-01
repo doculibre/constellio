@@ -8,16 +8,16 @@ import lombok.Getter;
 import java.util.Set;
 
 @AllArgsConstructor
-@JsonFormat(shape=JsonFormat.Shape.STRING)
+@JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum SchemaTypes {
-    DOCUMENT("documents");
+	DOCUMENT("documents");
 
-    private static final Set<SchemaTypes> ALLOWED_SCHEMA_TYPES = Sets.newHashSet(DOCUMENT);
+	private static final Set<SchemaTypes> ALLOWED_SCHEMA_TYPES = Sets.newHashSet(DOCUMENT);
 
-    @Getter
-    private final String resource;
+	@Getter
+	private final String resource;
 
-    public static boolean contains(SchemaTypes schemaType) {
-        return ALLOWED_SCHEMA_TYPES.contains(schemaType);
-    }
+	public static boolean contains(SchemaTypes schemaType) {
+		return ALLOWED_SCHEMA_TYPES.contains(schemaType);
+	}
 }

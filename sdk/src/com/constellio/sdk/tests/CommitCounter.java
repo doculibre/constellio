@@ -1,13 +1,12 @@
 package com.constellio.sdk.tests;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommitCounter extends BigVaultServerExtension {
 

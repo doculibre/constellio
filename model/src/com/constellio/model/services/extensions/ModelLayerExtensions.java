@@ -1,12 +1,12 @@
 package com.constellio.model.services.extensions;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ModelLayerExtensions implements StatefulService {
 

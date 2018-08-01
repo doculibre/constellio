@@ -1,21 +1,5 @@
 package com.constellio.model.utils;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
@@ -29,6 +13,19 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTest {
 

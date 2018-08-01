@@ -1,13 +1,12 @@
 package com.constellio.app.servlet;
 
+import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
-
 import java.io.IOException;
 
 public class ConstellioCmisAtomPubServlet extends CmisAtomPubServlet {
@@ -22,7 +21,7 @@ public class ConstellioCmisAtomPubServlet extends CmisAtomPubServlet {
 
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException,
-			IOException {
+																								  IOException {
 		HttpServletRequestWrapper requestProxyWrapper = new HttpServletRequestWrapper(request) {
 			@Override
 			public String getScheme() {

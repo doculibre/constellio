@@ -1,15 +1,15 @@
 package com.constellio.app.services.extensions.plugins;
 
-import static com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager.PREVIOUS_PLUGINS;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import static com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager.PREVIOUS_PLUGINS;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class InvalidJarsTest {
 	static String text1 = "I am not a jar",
@@ -22,11 +22,11 @@ public class InvalidJarsTest {
 		assertThat(text1File).isNotNull();
 		assertThat(FileUtils.readLines(text1File)).containsOnly(text1);
 
-		File text2File = FileUtils.getFile(exportedPluginsFolder.getPath() +  "/jar2.jar.new");
+		File text2File = FileUtils.getFile(exportedPluginsFolder.getPath() + "/jar2.jar.new");
 		assertThat(text2File).isNotNull();
 		assertThat(FileUtils.readLines(text2File)).containsOnly(text2);
 
-		File text3File = FileUtils.getFile(exportedPluginsFolder.getPath() +  "/" + PREVIOUS_PLUGINS + "/jar3.jar");
+		File text3File = FileUtils.getFile(exportedPluginsFolder.getPath() + "/" + PREVIOUS_PLUGINS + "/jar3.jar");
 		assertThat(text3File).isNotNull();
 		assertThat(FileUtils.readLines(text3File)).containsOnly(text3);
 	}

@@ -1,9 +1,9 @@
 package com.constellio.app.ui.entities;
 
-import java.util.List;
-
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class UserVO extends RecordVO {
@@ -26,7 +26,7 @@ public class UserVO extends RecordVO {
 
 	public int getDefaultPageLength() {
 		try {
-			if(getMetadataCodes().contains(User.DEFAULT_PAGE_LENGTH)) {
+			if (getMetadataCodes().contains(User.DEFAULT_PAGE_LENGTH)) {
 				SearchPageLength searchPageLength = get(User.DEFAULT_PAGE_LENGTH);
 				return searchPageLength == null ? 10 : searchPageLength.getValue();
 			} else {

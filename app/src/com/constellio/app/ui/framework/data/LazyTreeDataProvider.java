@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.Serializable;
-
 import com.vaadin.server.Resource;
+
+import java.io.Serializable;
 
 public interface LazyTreeDataProvider<T extends Serializable> extends DataProvider {
 

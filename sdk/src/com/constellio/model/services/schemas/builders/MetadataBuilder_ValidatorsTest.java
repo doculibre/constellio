@@ -1,13 +1,12 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator1;
+import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
+import org.junit.Test;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
-import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator1;
-import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
 
 public class MetadataBuilder_ValidatorsTest extends MetadataBuilderTest {
 

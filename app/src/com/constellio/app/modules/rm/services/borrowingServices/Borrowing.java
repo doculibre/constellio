@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class Borrowing implements ModifiableStructure {
 
@@ -20,8 +19,8 @@ public class Borrowing implements ModifiableStructure {
 	boolean dirty;
 
 	public Borrowing(BorrowingType borrowingType, User borrower, LocalDateTime borrowDateTime,
-			LocalDateTime previewReturnDateTime,
-			LocalDateTime returnDateTime, User returner) {
+					 LocalDateTime previewReturnDateTime,
+					 LocalDateTime returnDateTime, User returner) {
 		this.borrowingType = borrowingType;
 		this.borrowerId = borrower.getId();
 		this.borrowerUsername = borrower.getUsername();
@@ -103,14 +102,14 @@ public class Borrowing implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "Borrowing{" +
-				"borrowingType='" + borrowingType + '\'' +
-				", borrowUserId='" + borrowerId + '\'' +
-				", borrowerUsername='" + borrowerUsername + '\'' +
-				", borrowDateTime=" + borrowDateTime +
-				", returnDateTime=" + returnDateTime +
-				", previewReturnDateTime=" + previewReturnDateTime +
-				", dirty=" + dirty +
-				'}';
+			   "borrowingType='" + borrowingType + '\'' +
+			   ", borrowUserId='" + borrowerId + '\'' +
+			   ", borrowerUsername='" + borrowerUsername + '\'' +
+			   ", borrowDateTime=" + borrowDateTime +
+			   ", returnDateTime=" + returnDateTime +
+			   ", previewReturnDateTime=" + previewReturnDateTime +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

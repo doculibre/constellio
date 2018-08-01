@@ -1,18 +1,5 @@
 package com.constellio.model.api.impl.schemas.validation.impl;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -23,6 +10,16 @@ import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordValidatorParams;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.Mockito.*;
 
 public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest extends ConstellioTest {
 

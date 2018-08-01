@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -10,6 +7,9 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CopyRetentionRule implements ModifiableStructure {
 	String code;
@@ -299,71 +299,93 @@ public class CopyRetentionRule implements ModifiableStructure {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof CopyRetentionRule))
+		}
+		if (!(o instanceof CopyRetentionRule)) {
 			return false;
+		}
 
 		CopyRetentionRule that = (CopyRetentionRule) o;
 
-		if (essential != that.essential)
+		if (essential != that.essential) {
 			return false;
-		if (ignoreActivePeriod != that.ignoreActivePeriod)
+		}
+		if (ignoreActivePeriod != that.ignoreActivePeriod) {
 			return false;
-		if (code != null ? !code.equals(that.code) : that.code != null)
+		}
+		if (code != null ? !code.equals(that.code) : that.code != null) {
 			return false;
-		if (title != null ? !title.equals(that.title) : that.title != null)
+		}
+		if (title != null ? !title.equals(that.title) : that.title != null) {
 			return false;
-		if (description != null ? !description.equals(that.description) : that.description != null)
+		}
+		if (description != null ? !description.equals(that.description) : that.description != null) {
 			return false;
-		if (copyType != that.copyType)
+		}
+		if (copyType != that.copyType) {
 			return false;
-		if (mediumTypeIds != null ? !mediumTypeIds.equals(that.mediumTypeIds) : that.mediumTypeIds != null)
+		}
+		if (mediumTypeIds != null ? !mediumTypeIds.equals(that.mediumTypeIds) : that.mediumTypeIds != null) {
 			return false;
+		}
 		if (contentTypesComment != null ?
-				!contentTypesComment.equals(that.contentTypesComment) :
-				that.contentTypesComment != null)
+			!contentTypesComment.equals(that.contentTypesComment) :
+			that.contentTypesComment != null) {
 			return false;
+		}
 		if (activeRetentionPeriod != null ?
-				!activeRetentionPeriod.equals(that.activeRetentionPeriod) :
-				that.activeRetentionPeriod != null)
+			!activeRetentionPeriod.equals(that.activeRetentionPeriod) :
+			that.activeRetentionPeriod != null) {
 			return false;
+		}
 		if (activeRetentionComment != null ?
-				!activeRetentionComment.equals(that.activeRetentionComment) :
-				that.activeRetentionComment != null)
+			!activeRetentionComment.equals(that.activeRetentionComment) :
+			that.activeRetentionComment != null) {
 			return false;
+		}
 		if (semiActiveRetentionPeriod != null ?
-				!semiActiveRetentionPeriod.equals(that.semiActiveRetentionPeriod) :
-				that.semiActiveRetentionPeriod != null)
+			!semiActiveRetentionPeriod.equals(that.semiActiveRetentionPeriod) :
+			that.semiActiveRetentionPeriod != null) {
 			return false;
+		}
 		if (semiActiveRetentionComment != null ?
-				!semiActiveRetentionComment.equals(that.semiActiveRetentionComment) :
-				that.semiActiveRetentionComment != null)
+			!semiActiveRetentionComment.equals(that.semiActiveRetentionComment) :
+			that.semiActiveRetentionComment != null) {
 			return false;
-		if (inactiveDisposalType != that.inactiveDisposalType)
+		}
+		if (inactiveDisposalType != that.inactiveDisposalType) {
 			return false;
+		}
 		if (inactiveDisposalComment != null ?
-				!inactiveDisposalComment.equals(that.inactiveDisposalComment) :
-				that.inactiveDisposalComment != null)
+			!inactiveDisposalComment.equals(that.inactiveDisposalComment) :
+			that.inactiveDisposalComment != null) {
 			return false;
-		if (typeId != null ? !typeId.equals(that.typeId) : that.typeId != null)
+		}
+		if (typeId != null ? !typeId.equals(that.typeId) : that.typeId != null) {
 			return false;
+		}
 		if (semiActiveDateMetadata != null ?
-				!semiActiveDateMetadata.equals(that.semiActiveDateMetadata) :
-				that.semiActiveDateMetadata != null)
+			!semiActiveDateMetadata.equals(that.semiActiveDateMetadata) :
+			that.semiActiveDateMetadata != null) {
 			return false;
-		if (activeDateMetadata != null ? !activeDateMetadata.equals(that.activeDateMetadata) : that.activeDateMetadata != null)
+		}
+		if (activeDateMetadata != null ? !activeDateMetadata.equals(that.activeDateMetadata) : that.activeDateMetadata != null) {
 			return false;
+		}
 		if (openActiveRetentionPeriod != null ?
-				!openActiveRetentionPeriod.equals(that.openActiveRetentionPeriod) :
-				that.openActiveRetentionPeriod != null)
+			!openActiveRetentionPeriod.equals(that.openActiveRetentionPeriod) :
+			that.openActiveRetentionPeriod != null) {
 			return false;
+		}
 		if (semiActiveYearTypeId != null ?
-				!semiActiveYearTypeId.equals(that.semiActiveYearTypeId) :
-				that.semiActiveYearTypeId != null)
+			!semiActiveYearTypeId.equals(that.semiActiveYearTypeId) :
+			that.semiActiveYearTypeId != null) {
 			return false;
-		if (inactiveYearTypeId != null ? !inactiveYearTypeId.equals(that.inactiveYearTypeId) : that.inactiveYearTypeId != null)
+		}
+		if (inactiveYearTypeId != null ? !inactiveYearTypeId.equals(that.inactiveYearTypeId) : that.inactiveYearTypeId != null) {
 			return false;
+		}
 		return id != null ? id.equals(that.id) : that.id == null;
 	}
 

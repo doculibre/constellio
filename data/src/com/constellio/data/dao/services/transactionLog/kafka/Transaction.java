@@ -5,7 +5,7 @@ import java.util.Map;
 public class Transaction {
 	private Map<String, Long> versions;
 	private String transaction;
-	
+
 	public Map<String, Long> getVersions() {
 		return versions;
 	}

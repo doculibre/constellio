@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -10,20 +8,8 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.model.calculators.ContainerRecordTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
-import com.constellio.app.modules.rm.wrappers.type.FolderType;
-import com.constellio.app.modules.rm.wrappers.type.MediumType;
-import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.type.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -32,11 +18,9 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -46,7 +30,7 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new SchemaAlterationFor5_0_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		createEmailDocumentType(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
@@ -106,7 +90,7 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 	}
 
 	private void createEmailDocumentType(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+										 MigrationResourcesProvider migrationResourcesProvider) {
 		Transaction transaction = new Transaction();
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -126,7 +110,7 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 
 	class SchemaAlterationFor5_0_4 extends MetadataSchemasAlterationHelper {
 		protected SchemaAlterationFor5_0_4(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

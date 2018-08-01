@@ -27,83 +27,83 @@ import static org.mockito.Mockito.when;
 
 public class ContainerRecordTitleCalculatorAcceptanceTest extends ConstellioTest {
 
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    ContainerTitleCalculator calculator;
+	ContainerTitleCalculator calculator;
 
-    RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
-    RecordServices recordServices;
+	RecordServices recordServices;
 
-    SearchServices searchServices;
+	SearchServices searchServices;
 
-    @Mock
-    CalculatorParameters parameters;
+	@Mock
+	CalculatorParameters parameters;
 
-    @Before
-    public void setUp() {
-        givenBackgroundThreadsEnabled();
-        calculator = spy(new ContainerTitleCalculator());
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
-        );
+	@Before
+	public void setUp() {
+		givenBackgroundThreadsEnabled();
+		calculator = spy(new ContainerTitleCalculator());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
 
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        recordServices = getModelLayerFactory().newRecordServices();
-        searchServices = getModelLayerFactory().newSearchServices();
-    }
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+	}
 
-    @Test
-    public void givenParametersThenCalculatorReturnsGoodValue()  {
-        when(parameters.get(calculator.identifierParam)).thenReturn("1");
-        when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
-        assertThat(calculator.calculate(parameters)).isEqualTo("1");
+	@Test
+	public void givenParametersThenCalculatorReturnsGoodValue() {
+		when(parameters.get(calculator.identifierParam)).thenReturn("1");
+		when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
+		assertThat(calculator.calculate(parameters)).isEqualTo("1");
 
-        when(parameters.get(calculator.identifierParam)).thenReturn("testId");
-        when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
-        assertThat(calculator.calculate(parameters)).isEqualTo("testId");
+		when(parameters.get(calculator.identifierParam)).thenReturn("testId");
+		when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
+		assertThat(calculator.calculate(parameters)).isEqualTo("testId");
 
-        when(parameters.get(calculator.identifierParam)).thenReturn("testId");
-        when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn(null);
-        assertThat(calculator.calculate(parameters)).isEqualTo("testId");
+		when(parameters.get(calculator.identifierParam)).thenReturn("testId");
+		when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn(null);
+		assertThat(calculator.calculate(parameters)).isEqualTo("testId");
 
-        when(parameters.get(calculator.identifierParam)).thenReturn(null);
-        when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
-        assertThat(calculator.calculate(parameters)).isEqualTo("temporary");
+		when(parameters.get(calculator.identifierParam)).thenReturn(null);
+		when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn("temporary");
+		assertThat(calculator.calculate(parameters)).isEqualTo("temporary");
 
-        when(parameters.get(calculator.identifierParam)).thenReturn(null);
-        when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn(null);
-        assertThat(calculator.calculate(parameters)).isEqualTo(null);
-    }
+		when(parameters.get(calculator.identifierParam)).thenReturn(null);
+		when(parameters.get(calculator.temporaryIdentifierParam)).thenReturn(null);
+		assertThat(calculator.calculate(parameters)).isEqualTo(null);
+	}
 
-    @Test
-    public void givenNewContainerThenTitleIsCalculatedCorrectly()
-            throws RecordServicesException {
+	@Test
+	public void givenNewContainerThenTitleIsCalculatedCorrectly()
+			throws RecordServicesException {
 
-        ContainerRecord containerRecord = buildDefaultContainer().setIdentifier("testId").setTemporaryIdentifier("temporary");
-        recordServices.add(containerRecord);
-        assertThat(containerRecord.getTitle()).isEqualTo("testId");
+		ContainerRecord containerRecord = buildDefaultContainer().setIdentifier("testId").setTemporaryIdentifier("temporary");
+		recordServices.add(containerRecord);
+		assertThat(containerRecord.getTitle()).isEqualTo("testId");
 
-        containerRecord = buildDefaultContainer().setIdentifier("testId").setTemporaryIdentifier(null);
-        recordServices.add(containerRecord);
-        assertThat(containerRecord.getTitle()).isEqualTo("testId");
+		containerRecord = buildDefaultContainer().setIdentifier("testId").setTemporaryIdentifier(null);
+		recordServices.add(containerRecord);
+		assertThat(containerRecord.getTitle()).isEqualTo("testId");
 
-        containerRecord = buildDefaultContainer().setIdentifier(null).setTemporaryIdentifier("temporary");
-        recordServices.add(containerRecord);
-        assertThat(containerRecord.getTitle()).isEqualTo("temporary");
+		containerRecord = buildDefaultContainer().setIdentifier(null).setTemporaryIdentifier("temporary");
+		recordServices.add(containerRecord);
+		assertThat(containerRecord.getTitle()).isEqualTo("temporary");
 
-        try {
-            containerRecord = buildDefaultContainer().setIdentifier(null).setTemporaryIdentifier(null);
-            recordServices.add(containerRecord);
-            assertThat(containerRecord.getTitle()).isEqualTo("1");
-            fail("No exception thrown");
-        } catch (Exception e) {
+		try {
+			containerRecord = buildDefaultContainer().setIdentifier(null).setTemporaryIdentifier(null);
+			recordServices.add(containerRecord);
+			assertThat(containerRecord.getTitle()).isEqualTo("1");
+			fail("No exception thrown");
+		} catch (Exception e) {
 
-        }
-    }
+		}
+	}
 
-    public ContainerRecord buildDefaultContainer() {
-        return rm.newContainerRecord().setType(records.containerTypeId_boite22x22).setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
-    }
+	public ContainerRecord buildDefaultContainer() {
+		return rm.newContainerRecord().setType(records.containerTypeId_boite22x22).setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+	}
 }

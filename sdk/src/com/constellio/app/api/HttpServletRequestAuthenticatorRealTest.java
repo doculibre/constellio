@@ -1,30 +1,28 @@
 package com.constellio.app.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.security.Principal;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.security.Principal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
-	
+
 	public static final String USER_SERVICE_KEY = "serviceKey";
 	public static final String USER_TOKEN = "token";
 	private Users usersRecords = new Users();
-	
+
 	private String bobServiceKey;
 	private String bobToken;
 
@@ -32,7 +30,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 	public void setup() {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(withZeCollection().withAllTestUsers());
-		
+
 		//startApplication();
 
 		// User/Security setup
@@ -68,37 +66,37 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(getModelLayerFactory());
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		when(request.getSession()).thenReturn(mock(HttpSession.class));
-		
+
 		UserCredential credentials = authenticator.authenticate(request);
-		
+
 		assertThat(credentials).isNull();
 	}
-	
+
 	@Test
 	public void givenInvalidTokenThenNoCredentials() {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(getModelLayerFactory());
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		when(request.getSession()).thenReturn(mock(HttpSession.class));
-		
+
 		when(request.getParameter(USER_SERVICE_KEY)).thenReturn(this.bobServiceKey);
 		when(request.getParameter(USER_TOKEN)).thenReturn(this.bobToken + "invalid");
-		
+
 		UserCredential credentials = authenticator.authenticate(request);
-		
+
 		assertThat(credentials).isNull();
 	}
-	
+
 	@Test
 	public void givenValidTokenThenredentials() {
 		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(getModelLayerFactory());
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		when(request.getSession()).thenReturn(mock(HttpSession.class));
-		
+
 		when(request.getParameter(USER_SERVICE_KEY)).thenReturn(this.bobServiceKey);
 		when(request.getParameter(USER_TOKEN)).thenReturn(this.bobToken);
-		
+
 		UserCredential credentials = authenticator.authenticate(request);
-		
+
 		assertThat(credentials.getUsername()).isEqualTo("bob");
 	}
 

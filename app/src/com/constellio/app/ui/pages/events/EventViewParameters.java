@@ -8,9 +8,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
-public class EventViewParameters implements Serializable{
+public class EventViewParameters implements Serializable {
 	transient public static String EVENT_TYPE = "eventType";
-	transient public static  String EVENT_CATEGORY = "eventCategory";
+	transient public static String EVENT_CATEGORY = "eventCategory";
 	transient public static String BY_ID_EVENT_PARAMETER = "id";
 	transient public static String EVENT_START_DATE = "startDate";
 	transient public static String EVENT_END_DATE = "endDate";
@@ -27,35 +27,35 @@ public class EventViewParameters implements Serializable{
 	}
 
 	public EventCategory getEventCategory() {
-		if (eventCategory == null){
+		if (eventCategory == null) {
 			buildParameters();
 		}
 		return eventCategory;
 	}
 
 	public Date getEventStartDate() {
-		if (startDate == null){
+		if (startDate == null) {
 			buildParameters();
 		}
 		return startDate;
 	}
 
 	public Date getEventEndDate() {
-		if (endDate == null){
+		if (endDate == null) {
 			buildParameters();
 		}
 		return endDate;
 	}
 
 	public String getEventId() {
-		if (eventCategory == null){
+		if (eventCategory == null) {
 			buildParameters();
 		}
 		return id;
 	}
 
 	public String getEventType() {
-		if (eventType == null){
+		if (eventType == null) {
 			buildParameters();
 		}
 		return eventType;
@@ -65,25 +65,25 @@ public class EventViewParameters implements Serializable{
 		String viewNameAndParameters = NavigatorConfigurationService.EVENT_CATEGORY + "/" + this.parametersString;
 		Map<String, String> parameters = ParamUtils.getParamsMap(viewNameAndParameters);
 		String dateString = parameters.get(EventViewParameters.EVENT_START_DATE);
-		if (dateString != null){
+		if (dateString != null) {
 			this.startDate = LocalDateTime.parse(dateString).withTime(0, 0, 0, 0).toDate();
-		}else{
+		} else {
 			this.startDate = new LocalDateTime().minusWeeks(1).withTime(0, 0, 0, 0).toDate();
 		}
 		String endString = parameters.get(EventViewParameters.EVENT_END_DATE);
-		if (endString != null){
+		if (endString != null) {
 			this.endDate = LocalDateTime.parse(endString).withTime(23, 59, 59, 999).toDate();
-		}else{
+		} else {
 			this.endDate = new LocalDateTime().withTime(23, 59, 59, 999).toDate();
 		}
 		this.eventType = parameters.get(EventViewParameters.EVENT_TYPE);
 		String eventCategoryName = parameters.get(EventViewParameters.EVENT_CATEGORY);
-		if(eventCategoryName == null){
+		if (eventCategoryName == null) {
 			eventCategoryName = this.parametersString;
 		}
 		this.eventCategory = EventCategory.valueOf(eventCategoryName);
 		this.id = parameters.get(EventViewParameters.BY_ID_EVENT_PARAMETER);
-		if (id == null){
+		if (id == null) {
 			id = "";
 		}
 	}

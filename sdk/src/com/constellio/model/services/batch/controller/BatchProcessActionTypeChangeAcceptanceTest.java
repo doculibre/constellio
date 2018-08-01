@@ -1,17 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.CODE;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -28,6 +16,17 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 

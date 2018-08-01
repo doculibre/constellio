@@ -1,8 +1,7 @@
 package com.constellio.app.api.extensions.params;
 
-import org.jdom2.Element;
-
 import com.constellio.model.entities.records.Record;
+import org.jdom2.Element;
 
 public class AddFieldsInLabelXMLParams {
 

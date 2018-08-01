@@ -1,16 +1,18 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
+import org.joda.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.joda.time.LocalDateTime;
-
 public class SmbFileDTO {
 	public static enum SmbFileDTOStatus {
 		FULL_DTO, PARTIAL_DTO, UNKNOWN_DTO, DELETE_DTO, FAILED_DTO;
-	};
+	}
+
+	;
 
 	public static final String URL = "url";
 	public static final String CREATE_TIME = "createTime";

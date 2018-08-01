@@ -1,13 +1,5 @@
 package com.constellio.model.services.batch.manager;
 
-import static com.constellio.model.entities.schemas.Schemas.PATH;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -15,6 +7,13 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.model.entities.schemas.Schemas.PATH;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {

@@ -1,33 +1,7 @@
 package com.constellio.app.ui.pages.imports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import com.constellio.app.modules.es.constants.ESTaxonomies;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.sis.internal.jdk7.StandardCharsets;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.importExport.records.RecordExportOptions;
 import com.constellio.app.services.importExport.records.RecordExportServices;
 import com.constellio.app.services.importExport.settings.SettingsExportOptions;
@@ -64,6 +38,23 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.sis.internal.jdk7.StandardCharsets;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDateTime;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class ExportPresenter extends BasePresenter<ExportView> {
 
@@ -91,8 +82,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		export(false);
 	}
 
-	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds, List<String> documentIds,
-			List<String> containerIds) {
+	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds,
+											   List<String> documentIds,
+											   List<String> containerIds) {
 		RecordExportOptions options = new RecordExportOptions();
 		HashSet<String> allFolders = new HashSet<>(folderIds);
 		ArrayList<String> allIds = new ArrayList<>(documentIds);
@@ -150,7 +142,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				asList(AdministrativeUnit.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
 						DecommissioningList.SCHEMA_TYPE));
 		List<String> paths = new ArrayList<>();
-		for(String unit: unitIds) {
+		for (String unit : unitIds) {
 			paths.add((String) ((List) recordServices().getDocumentById(unit).get(Schemas.PATH)).get(0));
 		}
 
@@ -186,11 +178,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	private void removeUnwantedTaxonomiesForExportation(List<Taxonomy> taxonomies) {
-		if(taxonomies != null) {
+		if (taxonomies != null) {
 			List<String> unwantedTaxonomies = appCollectionExtentions.getUnwantedTaxonomiesForExportation();
 			Iterator<Taxonomy> iterator = taxonomies.iterator();
 			while (iterator.hasNext()) {
-				if(unwantedTaxonomies.contains(iterator.next().getCode())) {
+				if (unwantedTaxonomies.contains(iterator.next().getCode())) {
 					iterator.remove();
 				}
 			}

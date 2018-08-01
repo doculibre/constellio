@@ -1,27 +1,6 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.entities.modules.ComboMigrationScript;
-import com.constellio.app.entities.modules.InstallableModule;
-import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
-import com.constellio.app.entities.modules.Migration;
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
-import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.entities.modules.ModuleWithComboMigration;
+import com.constellio.app.entities.modules.*;
 import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
 import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
 import com.constellio.app.services.collections.CollectionsManager;
@@ -41,6 +20,14 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static java.util.Arrays.asList;
 
 public class MigrationServices {
 
@@ -58,7 +45,8 @@ public class MigrationServices {
 	CollectionsManager collectionsManager;
 
 	public MigrationServices(ConstellioEIM constellioEIM, AppLayerFactory appLayerFactory,
-			ConstellioModulesManagerImpl constellioModulesManager, ConstellioPluginManager constellioPluginManager) {
+							 ConstellioModulesManagerImpl constellioModulesManager,
+							 ConstellioPluginManager constellioPluginManager) {
 		super();
 		this.constellioEIM = constellioEIM;
 		this.appLayerFactory = appLayerFactory;
@@ -207,7 +195,7 @@ public class MigrationServices {
 		List<String> collectionCodes = collectionsManager.getCollectionCodesExcludingSystem();
 		boolean newCollection = isNewCollection(collection);
 		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled() &&
-				(!SYSTEM_COLLECTION.equals(collection) || collectionCodes.isEmpty())) {
+			(!SYSTEM_COLLECTION.equals(collection) || collectionCodes.isEmpty())) {
 			migrateWithoutException(new CoreMigrationCombo(), null, collection);
 		}
 
@@ -216,8 +204,8 @@ public class MigrationServices {
 		boolean firstMigration = true;
 		boolean fastMigrationEnabled = appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled();
 		while (modulesNotMigratedCorrectly.isEmpty() &&
-				!(migrations = filterRunnedMigration(collection,
-						getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
+			   !(migrations = filterRunnedMigration(collection,
+					   getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
 
 			LOGGER.info("Migrating collection " + collection + " : " + migrations);
 			for (Migration migration : migrations) {
@@ -225,7 +213,7 @@ public class MigrationServices {
 						.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
 
 					if (firstMigration) {
-						ensureSchemasHaveCommonMetadata(collection,0);
+						ensureSchemasHaveCommonMetadata(collection, 0);
 						firstMigration = false;
 					}
 
@@ -330,7 +318,7 @@ public class MigrationServices {
 
 		MigrationScript script = migration.getScript();
 		LOGGER.info("Running migration script '" + script.getClass().getSimpleName() +
-				"' updating to version '" + script.getVersion() + "'");
+					"' updating to version '" + script.getVersion() + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
 		String moduleId = migration.getModuleId() == null ? "core" : migration.getModuleId();
@@ -368,7 +356,7 @@ public class MigrationServices {
 
 		String highestVersion = getHighestVersion(fastMigrationScript);
 		LOGGER.info("Running migration script '" + fastMigrationScript.getClass().getSimpleName() +
-				"' updating to version '" + highestVersion + "'");
+					"' updating to version '" + highestVersion + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
 		List<Language> languages = Language.withCodes(collectionsManager.getCollectionLanguages(collectionId));

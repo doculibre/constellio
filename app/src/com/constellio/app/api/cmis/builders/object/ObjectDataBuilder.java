@@ -1,25 +1,5 @@
 package com.constellio.app.api.cmis.builders.object;
 
-import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
-
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_Runtime;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
@@ -34,6 +14,24 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
+
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
 
 public class ObjectDataBuilder {
 
@@ -48,7 +46,8 @@ public class ObjectDataBuilder {
 	private final AllowableActionsBuilder allowableActionsBuilder;
 	private final User user;
 
-	public ObjectDataBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context) {
+	public ObjectDataBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
+							 CallContext context) {
 		this.repository = repository;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -59,7 +58,7 @@ public class ObjectDataBuilder {
 	}
 
 	public ObjectData build(Record record, Set<String> filter, boolean includeAllowableActions,
-			boolean includeAcl, ObjectInfoHandler objectInfos) {
+							boolean includeAcl, ObjectInfoHandler objectInfos) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
@@ -98,7 +97,7 @@ public class ObjectDataBuilder {
 	}
 
 	private Properties compileProperties(Record record, ObjectInfoImpl objectInfo,
-			PropertiesBuilder propertiesBuilder, String typeId) {
+										 PropertiesBuilder propertiesBuilder, String typeId) {
 		if (record == null) {
 			throw new IllegalArgumentException("Record must not be null!");
 		}
@@ -147,7 +146,7 @@ public class ObjectDataBuilder {
 			}
 
 			if (path != null) {
-				if ("collection_default" .equals(typeId)) {
+				if ("collection_default".equals(typeId)) {
 					propertiesBuilder.addPropertyString(PropertyIds.PATH, "/");
 				} else {
 					path = "/taxo_" + path.substring(1);

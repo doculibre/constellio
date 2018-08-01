@@ -1,18 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -28,6 +15,18 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentEssentialMetadatasCacheNotLoadedInitially;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 

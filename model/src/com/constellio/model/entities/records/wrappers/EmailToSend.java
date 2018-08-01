@@ -1,14 +1,13 @@
 package com.constellio.model.entities.records.wrappers;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.EmailAddress;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class EmailToSend extends RecordWrapper {
 

@@ -27,7 +27,7 @@ public class ModifiableMetadataNetworkLink {
 	boolean mustBeEven;
 
 	public ModifiableMetadataNetworkLink(Metadata fromMetadata, Metadata toMetadata, Metadata refMetadata,
-			MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
+										 MetadataNetworkLinkType linkType, boolean mustBeOdd, boolean mustBeEven) {
 		this.fromMetadata = fromMetadata;
 		this.toMetadata = toMetadata;
 		this.refMetadata = refMetadata;
@@ -92,19 +92,24 @@ public class ModifiableMetadataNetworkLink {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		ModifiableMetadataNetworkLink that = (ModifiableMetadataNetworkLink) o;
 
-		if (level != that.level)
+		if (level != that.level) {
 			return false;
-		if (!fromMetadata.getCode().equals(that.fromMetadata.getCode()))
+		}
+		if (!fromMetadata.getCode().equals(that.fromMetadata.getCode())) {
 			return false;
-		if (!toMetadata.getCode().equals(that.toMetadata.getCode()))
+		}
+		if (!toMetadata.getCode().equals(that.toMetadata.getCode())) {
 			return false;
+		}
 
 		return true;
 	}

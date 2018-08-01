@@ -28,7 +28,8 @@ public class RMMigrationTo5_1_7 implements MigrationScript {
 
 	public static class SchemaAlterationsFor5_1_7 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor5_1_7(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor5_1_7(String collection, MigrationResourcesProvider provider,
+											AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

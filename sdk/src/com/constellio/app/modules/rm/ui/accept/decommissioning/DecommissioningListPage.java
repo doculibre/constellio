@@ -1,9 +1,6 @@
 package com.constellio.app.modules.rm.ui.accept.decommissioning;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -11,6 +8,7 @@ import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class DecommissioningListPage extends PageHelper {
 	private final String recordId;

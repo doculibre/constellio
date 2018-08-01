@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -13,6 +8,10 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Created by constellios on 2017-07-13.
@@ -30,7 +29,8 @@ public class RMMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
@@ -65,7 +65,7 @@ public class RMMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 	class SchemaAlterationFor7_4_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_4_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

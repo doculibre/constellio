@@ -1,15 +1,5 @@
 package com.constellio.model.services.users;
 
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
@@ -24,6 +14,16 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_NoSuchUserLog;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 //AFTER : Rename UserFilesServices
 public class UserPhotosServices {
@@ -102,7 +102,7 @@ public class UserPhotosServices {
 
 	public void addLogFile(String username, String logName, InputStream inputStream) {
 		String path = getLogId(username, logName);
-        getContentDao().add(path, inputStream);
+		getContentDao().add(path, inputStream);
 	}
 
 	public ContentDao getContentDao() {
@@ -111,7 +111,7 @@ public class UserPhotosServices {
 
 	public List<String> getUserLogs(String username) {
 		String folderId = getLogFolderId(username);
-        ContentDao contentDao = getContentDao();
+		ContentDao contentDao = getContentDao();
 		if (contentDao.isFolderExisting(folderId)) {
 			List<String> logs = new ArrayList<>();
 			for (String file : contentDao.getFolderContents(folderId)) {
@@ -179,6 +179,6 @@ public class UserPhotosServices {
 
 	public void deleteUserLog(String username, String log) {
 		String logPath = getLogId(username, log);
-        getContentDao().delete(asList(logPath));
+		getContentDao().delete(asList(logPath));
 	}
 }

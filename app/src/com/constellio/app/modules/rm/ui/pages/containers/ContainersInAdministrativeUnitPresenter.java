@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -25,6 +22,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ContainersInAdministrativeUnitPresenter extends BasePresenter<ContainersInAdministrativeUnitView> {
 

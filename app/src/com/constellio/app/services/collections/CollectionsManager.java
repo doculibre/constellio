@@ -1,27 +1,9 @@
 package com.constellio.app.services.collections;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.app.services.collections.CollectionsManagerRuntimeException.*;
+import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.ConstellioEIM;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotCreateCollectionRecord;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotMigrateCollection;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotRemoveCollection;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionNotFound;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
-import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidLanguage;
-import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -53,6 +35,16 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class CollectionsManager implements StatefulService {
 
@@ -75,7 +67,8 @@ public class CollectionsManager implements StatefulService {
 	private List<String> newDisabledCollections = new ArrayList<>();
 
 	public CollectionsManager(AppLayerFactory appLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
-			Delayed<MigrationServices> migrationServicesDelayed, SystemGlobalConfigsManager systemGlobalConfigsManager) {
+							  Delayed<MigrationServices> migrationServicesDelayed,
+							  SystemGlobalConfigsManager systemGlobalConfigsManager) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.constellioModulesManager = constellioModulesManager;
@@ -126,7 +119,7 @@ public class CollectionsManager implements StatefulService {
 				collectionsListManager.remove(collection);
 				newDisabledCollections.add(collection);
 				LOGGER.warn("Collection '" + collection + "' has been disabled since it have no schemas "
-						+ "(probably a problem during the creation of the collection)");
+							+ "(probably a problem during the creation of the collection)");
 			}
 		}
 	}
@@ -314,7 +307,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	private Set<String> prepareCollectionCreationAndGetInvalidModules(String code, String name,
-			List<String> languages, String version) {
+																	  List<String> languages, String version) {
 		validateCode(code);
 
 		boolean reindexingRequired = systemGlobalConfigsManager.isReindexingRequired();

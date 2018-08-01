@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import com.jgoodies.common.base.Strings;
-
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
@@ -19,6 +11,14 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.jgoodies.common.base.Strings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView> {
 
@@ -35,8 +35,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		if (valueLanguageError != null && valueLanguageError.size() == 0) {
 			valueListServices().createValueDomain(mapLanguage, isMultiLingual);
 			view.refreshTable();
-		}
-		else {
+		} else {
 			showExistingError(valueLanguageError);
 		}
 
@@ -46,13 +45,13 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	private void showExistingError(List<Language> valueLanguageError) {
 		StringBuilder errorMessage = new StringBuilder();
 		int i = 0;
-		for(Language language : valueLanguageError) {
-            if(i != 0) {
-                errorMessage.append("<br/>");
-            }
-            errorMessage.append($("ListValueDomainView.existingValueDomain", " (" + language.getCode().toUpperCase() + ")"));
-            i++;
-        }
+		for (Language language : valueLanguageError) {
+			if (i != 0) {
+				errorMessage.append("<br/>");
+			}
+			errorMessage.append($("ListValueDomainView.existingValueDomain", " (" + language.getCode().toUpperCase() + ")"));
+			i++;
+		}
 
 		view.showErrorMessage(errorMessage.toString());
 	}
@@ -65,7 +64,8 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		view.navigate().to().listSchemaRecords(schemaType.getCode() + "_default");
 	}
 
-	public List<Language> editButtonClicked(MetadataSchemaTypeVO schemaTypeVO, Map<Language, String> newLabel, Map<Language, String> oldValue) {
+	public List<Language> editButtonClicked(MetadataSchemaTypeVO schemaTypeVO, Map<Language, String> newLabel,
+											Map<Language, String> oldValue) {
 		List<Language> valueLanguageError = canAlterOrCreateLabels(newLabel, oldValue);
 		if (valueLanguageError != null && valueLanguageError.size() == 0) {
 			MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = modelLayerFactory.getMetadataSchemasManager()
@@ -103,8 +103,8 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		MetadataSchemaTypeToVOBuilder builder = newMetadataSchemaTypeToVOBuilder();
 		List<MetadataSchemaTypeVO> result = new ArrayList<>();
 		for (MetadataSchemaType schemaType : valueListServices().getValueDomainTypes()) {
-			if((isUserCreated && schemaType.getCode().matches(".*\\d")) ||
-					(!isUserCreated && !schemaType.getCode().matches(".*\\d"))) {
+			if ((isUserCreated && schemaType.getCode().matches(".*\\d")) ||
+				(!isUserCreated && !schemaType.getCode().matches(".*\\d"))) {
 				result.add(builder.build(schemaType));
 			}
 
@@ -112,7 +112,6 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		}
 		return result;
 	}
-
 
 
 	MetadataSchemaTypeToVOBuilder newMetadataSchemaTypeToVOBuilder() {
@@ -124,22 +123,22 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	}
 
 
-	public List<Language> canAlterOrCreateLabels(Map<Language, String> newMapTitle, Map<Language,String> oldValues) {
+	public List<Language> canAlterOrCreateLabels(Map<Language, String> newMapTitle, Map<Language, String> oldValues) {
 		List<Language> listUnvalidValueForLanguage = new ArrayList<>();
 
 		if (labels == null || labels.size() == 0) {
 			getDomainValues();
 		}
 
-		for(Language language : newMapTitle.keySet()) {
+		for (Language language : newMapTitle.keySet()) {
 			String newCurrentTitle = newMapTitle.get(language);
-			if(Strings.isBlank(newCurrentTitle)){
+			if (Strings.isBlank(newCurrentTitle)) {
 				listUnvalidValueForLanguage.add(language);
 			}
-			for(Map<Language, String> existingTitleMap : labels) {
+			for (Map<Language, String> existingTitleMap : labels) {
 				String existingTitleInCurrentLanguage = existingTitleMap.get(language);
-				if(Strings.isNotBlank(existingTitleInCurrentLanguage) && existingTitleInCurrentLanguage.equals(newCurrentTitle)
-						&& (oldValues == null ||  oldValues != null && !existingTitleInCurrentLanguage.equals(oldValues.get(language)))) {
+				if (Strings.isNotBlank(existingTitleInCurrentLanguage) && existingTitleInCurrentLanguage.equals(newCurrentTitle)
+					&& (oldValues == null || oldValues != null && !existingTitleInCurrentLanguage.equals(oldValues.get(language)))) {
 					listUnvalidValueForLanguage.add(language);
 				}
 			}
@@ -167,8 +166,8 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		String lcSchemaTypeCode = schemaTypeCode.toLowerCase();
 		Pattern pattern = Pattern.compile("ddv[0-9]+[0-9a-z]*");
 		return lcSchemaTypeCode.startsWith("ddvusr")
-				|| lcSchemaTypeCode.startsWith("usrddv")
-				|| pattern.matcher(lcSchemaTypeCode).matches();
+			   || lcSchemaTypeCode.startsWith("usrddv")
+			   || pattern.matcher(lcSchemaTypeCode).matches();
 
 	}
 }

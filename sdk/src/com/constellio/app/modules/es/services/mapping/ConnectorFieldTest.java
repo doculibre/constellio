@@ -1,11 +1,10 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorFieldTest extends ConstellioTest {
 

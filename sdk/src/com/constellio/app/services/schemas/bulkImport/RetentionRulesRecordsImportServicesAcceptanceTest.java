@@ -1,15 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -23,6 +13,15 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RetentionRulesRecordsImportServicesAcceptanceTest extends ConstellioTest {
 

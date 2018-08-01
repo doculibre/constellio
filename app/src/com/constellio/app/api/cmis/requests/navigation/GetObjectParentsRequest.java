@@ -1,13 +1,17 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
+import com.constellio.app.api.cmis.binding.utils.CmisUtils;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
@@ -17,17 +21,12 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
-import com.constellio.app.api.cmis.binding.utils.CmisUtils;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectParentData>> {
 
@@ -39,8 +38,8 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 	private final ObjectInfoHandler objectInfo;
 
 	public GetObjectParentsRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String objectId, String filter, Boolean includeAllowableActions,
-			Boolean includeRelativePathSegment, ObjectInfoHandler objectInfo) {
+								   CallContext context, String objectId, String filter, Boolean includeAllowableActions,
+								   Boolean includeRelativePathSegment, ObjectInfoHandler objectInfo) {
 		super(context, repository, appLayerFactory);
 		if (filter != null) {
 			this.filter = CmisUtils.splitFilter(filter);

@@ -1,20 +1,19 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.read.biff.BiffException;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException.ImportDataProviderRuntimeException_InvalidDate;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.read.biff.BiffException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class Excel2003ImportDataProvider implements ImportDataProvider {
 
@@ -63,8 +62,9 @@ public class Excel2003ImportDataProvider implements ImportDataProvider {
 
 	@Override
 	public ImportDataIterator newDataIterator(String schemaType) {
-		if(getAvailableSchemaTypes().contains(schemaType))
+		if (getAvailableSchemaTypes().contains(schemaType)) {
 			return new ExcelImportDataIterator(getExcelSheet(schemaType));
+		}
 		throw new RuntimeException("There are no sheet with this schema type");
 	}
 

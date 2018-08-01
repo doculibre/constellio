@@ -1,13 +1,12 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 
 public class IsGreaterOrEqualThanCriterion extends LogicalSearchValueCondition {
 
@@ -39,7 +38,7 @@ public class IsGreaterOrEqualThanCriterion extends LogicalSearchValueCondition {
 		} else {
 			query.append(dataStoreField.getDataStoreCode() + ":[\"" + index + "\" TO *] AND (*:* -(" + dataStoreField
 					.getDataStoreCode()
-					+ ":\"__NULL__\"))");
+						 + ":\"__NULL__\"))");
 		}
 		return query.toString();
 	}

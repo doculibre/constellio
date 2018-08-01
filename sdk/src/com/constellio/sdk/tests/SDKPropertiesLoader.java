@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
+import com.constellio.data.utils.PropertyFileUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -10,9 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
-
-import com.constellio.data.utils.PropertyFileUtils;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class SDKPropertiesLoader {
 

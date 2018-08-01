@@ -10,7 +10,7 @@ public class GetCustomResultDisplayParam {
 	String query;
 
 	public GetCustomResultDisplayParam(SearchResultVO searchResultVO,
-			MetadataDisplayFactory componentFactory, String query) {
+									   MetadataDisplayFactory componentFactory, String query) {
 		this.searchResultVO = searchResultVO;
 		this.componentFactory = componentFactory;
 		this.query = query;

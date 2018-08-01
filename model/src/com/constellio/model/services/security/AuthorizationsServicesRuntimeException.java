@@ -1,10 +1,10 @@
 package com.constellio.model.services.security;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class AuthorizationsServicesRuntimeException extends RuntimeException {

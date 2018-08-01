@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -17,7 +19,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
+public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 	private final CartsListPresenter presenter;
 
@@ -61,7 +63,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 						getWindow().close();
 					}
 				}.installOn(titleField);
-				
+
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -157,7 +159,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 			}
 		});
 
-		RecordVOTable table = new RecordVOTable("",buttonsContainer);
+		RecordVOTable table = new RecordVOTable("", buttonsContainer);
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 90);
 		table.setPageLength(Math.min(15, container.size()));

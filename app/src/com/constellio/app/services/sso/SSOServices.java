@@ -10,14 +10,14 @@ public class SSOServices implements Serializable {
 	private static SSOServices instance;
 
 	private boolean enabled;
-	
+
 	private boolean enabledForAgent;
-	
+
 	private SSOAuthenticator authenticator;
-	
+
 	private SSOServices() {
 	}
-	
+
 	public String getPrincipalName() {
 		return authenticator != null ? authenticator.getPrincipalName() : null;
 	}
@@ -31,7 +31,7 @@ public class SSOServices implements Serializable {
 		}
 		return clientName;
 	}
-	
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -43,7 +43,7 @@ public class SSOServices implements Serializable {
 	public boolean isEnabledForAgent() {
 		return enabledForAgent;
 	}
-	
+
 	public void setEnabledForAgent(boolean enabledForAgent) {
 		this.enabledForAgent = enabledForAgent;
 	}
@@ -60,7 +60,7 @@ public class SSOServices implements Serializable {
 		instance.enabledForAgent = authenticator != null && authenticator.isEnabledForAgent();
 		return instance;
 	}
-	
+
 	public static SSOServices getInstance() {
 		if (instance == null) {
 			// Disabled instance
@@ -68,5 +68,5 @@ public class SSOServices implements Serializable {
 		}
 		return instance;
 	}
-	
+
 }

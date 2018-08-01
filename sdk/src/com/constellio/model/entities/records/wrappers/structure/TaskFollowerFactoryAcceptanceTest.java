@@ -3,7 +3,6 @@ package com.constellio.model.entities.records.wrappers.structure;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollowerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
-
 import org.junit.Before;
 import org.junit.Test;
 

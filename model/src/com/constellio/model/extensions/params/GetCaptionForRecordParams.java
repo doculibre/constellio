@@ -1,9 +1,9 @@
 package com.constellio.model.extensions.params;
 
-import java.util.Locale;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Locale;
 
 public class GetCaptionForRecordParams {
 

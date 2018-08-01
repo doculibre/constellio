@@ -1,63 +1,19 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.data.utils.LangUtils.isFalseOrNull;
-import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.AllAuthorizationsTargettingRecordDependencyValue;
-import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
-import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
-import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
-import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.calculators.dependencies.*;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
-import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -74,6 +30,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.data.utils.LangUtils.isFalseOrNull;
+import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RecordAutomaticMetadataServices {
 
@@ -97,7 +61,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, Transaction transaction) {
+										 TransactionRecordsReindexation reindexation, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
@@ -130,8 +94,9 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void updateAutomaticMetadata(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider,
-			Metadata metadata,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
+								 Metadata metadata,
+								 TransactionRecordsReindexation reindexation, MetadataSchemaTypes types,
+								 Transaction transaction) {
 		if (metadata.isMarkedForDeletion()) {
 			record.updateAutomaticValue(metadata, null);
 
@@ -156,7 +121,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+											  TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
@@ -175,8 +140,9 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(TransactionExecutionContext context,
-			RecordImpl record, Metadata metadata,
-			Transaction transaction, MetadataSchemaTypes types) {
+																			 RecordImpl record, Metadata metadata,
+																			 Transaction transaction,
+																			 MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
@@ -189,7 +155,7 @@ public class RecordAutomaticMetadataServices {
 					record, metadata, aggregatedDataEntry, types);
 			List<Object> values = new ArrayList<>();
 			//TODO Populate based on transaction values
-			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(record.getId(),metadata, values) {
+			Object calculatedValue = getHandlerFor(metadata).calculate(new InMemoryAggregatedValuesParams(record.getId(), metadata, values) {
 
 				@Override
 				public List<AggregatedValuesEntry> getEntries() {
@@ -206,7 +172,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void setCopiedValuesInRecords(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, RecordUpdateOptions options) {
+								  TransactionRecordsReindexation reindexation, RecordUpdateOptions options) {
 
 		CopiedDataEntry copiedDataEntry = (CopiedDataEntry) metadataWithCopyDataEntry.getDataEntry();
 		Metadata referenceMetadata = schemasManager.getSchemaTypes(record.getCollection())
@@ -224,8 +190,9 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	boolean calculatorDependencyModified(RecordImpl record, MetadataValueCalculator<?> calculator, MetadataSchemaTypes types,
-			Metadata calculatedMetadata) {
+	boolean calculatorDependencyModified(RecordImpl record, MetadataValueCalculator<?> calculator,
+										 MetadataSchemaTypes types,
+										 Metadata calculatedMetadata) {
 		boolean calculatorDependencyModified = !record.isSaved();
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (SpecialDependencies.HIERARCHY.equals(dependency)) {
@@ -262,8 +229,9 @@ public class RecordAutomaticMetadataServices {
 		return calculatorDependencyModified;
 	}
 
-	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record, Metadata metadataWithCalculatedDataEntry,
-			RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction) {
+	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record,
+								Metadata metadataWithCalculatedDataEntry,
+								RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction) {
 
 		if (metadataWithCalculatedDataEntry.isMultiLingual()) {
 			for (Locale locale : types.getCollectionInfo().getCollectionLocales()) {
@@ -277,9 +245,11 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record, Metadata metadataWithCalculatedDataEntry,
-			RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction, Locale locale,
-			LocalisedRecordMetadataRetrieval mode) {
+	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record,
+								Metadata metadataWithCalculatedDataEntry,
+								RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction,
+								Locale locale,
+								LocalisedRecordMetadataRetrieval mode) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
 		boolean requiredValuesDefined = addValuesFromDependencies(context, record, metadataWithCalculatedDataEntry,
@@ -304,10 +274,11 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	boolean addValuesFromDependencies(TransactionExecutionContext context, RecordImpl record, Metadata metadata,
-			RecordProvider recordProvider,
-			MetadataValueCalculator<?> calculator,
-			Map<Dependency, Object> values, MetadataSchemaTypes types, Transaction transaction, Locale locale,
-			LocalisedRecordMetadataRetrieval mode) {
+									  RecordProvider recordProvider,
+									  MetadataValueCalculator<?> calculator,
+									  Map<Dependency, Object> values, MetadataSchemaTypes types,
+									  Transaction transaction, Locale locale,
+									  LocalisedRecordMetadataRetrieval mode) {
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency instanceof LocalDependency<?>) {
 				if (!addValueForLocalDependency(record, values, dependency, locale, mode)) {
@@ -337,9 +308,10 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
-			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types,
-			RecordProvider recordProvider, Transaction transaction,
-			Locale locale, LocalisedRecordMetadataRetrieval mode) {
+												   Map<Dependency, Object> values, DynamicLocalDependency dependency,
+												   MetadataSchemaTypes types,
+												   RecordProvider recordProvider, Transaction transaction,
+												   Locale locale, LocalisedRecordMetadataRetrieval mode) {
 
 		Map<String, Object> dynamicDependencyValues = new HashMap<>();
 
@@ -348,7 +320,7 @@ public class RecordAutomaticMetadataServices {
 		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
 
 			if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
-					&& record.getLazyTransientValues().isEmpty()) {
+				&& record.getLazyTransientValues().isEmpty()) {
 				loadTransientLazyMetadatas(record, recordProvider, transaction);
 			}
 
@@ -375,8 +347,9 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	void addValuesFromSpecialDependencies(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider,
-			Map<Dependency, Object> values, Dependency dependency) {
+	void addValuesFromSpecialDependencies(TransactionExecutionContext context, RecordImpl record,
+										  RecordProvider recordProvider,
+										  Map<Dependency, Object> values, Dependency dependency) {
 		if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 			addValueForTaxonomyDependency(record, recordProvider, values, dependency);
 
@@ -396,8 +369,10 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			Dependency dependency, RecordUpdateOptions options, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider recordProvider,
+										   Map<Dependency, Object> values,
+										   Dependency dependency, RecordUpdateOptions options, Locale locale,
+										   LocalisedRecordMetadataRetrieval mode) {
 		ReferenceDependency<?> referenceDependency = (ReferenceDependency<?>) dependency;
 		Metadata referenceMetadata = getMetadataFromDependency(record, referenceDependency);
 
@@ -411,7 +386,8 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(TransactionExecutionContext context,
-			RecordImpl calculatedRecord, RecordProvider recordProvider) {
+																  RecordImpl calculatedRecord,
+																  RecordProvider recordProvider) {
 
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
@@ -432,9 +408,9 @@ public class RecordAutomaticMetadataServices {
 
 				RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
 				if (recordProvider.transaction != null
-						//&& recordProvider.transaction.isContainingAnySchemaTypeRecord(User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
-						&& recordsCache.isConfigured(User.SCHEMA_TYPE)
-						&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+					//&& recordProvider.transaction.isContainingAnySchemaTypeRecord(User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+					&& recordsCache.isConfigured(User.SCHEMA_TYPE)
+					&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
 					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
 						if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
 							User user = User.wrapNullable(transactionRecord, types, roles);
@@ -499,7 +475,8 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(TransactionExecutionContext context,
+	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(
+			TransactionExecutionContext context,
 			RecordImpl calculatedRecord,
 			RecordProvider recordProvider) {
 
@@ -535,7 +512,7 @@ public class RecordAutomaticMetadataServices {
 					if (record != null) {
 						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
 						if (!authsInTransaction.contains(authorizationDetail.getId())
-								&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
 							authorizationDetails.add(authorizationDetail);
 						}
 					} else {
@@ -569,8 +546,9 @@ public class RecordAutomaticMetadataServices {
 				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
 	}
 
-	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			Dependency dependency) {
+	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider,
+										  Map<Dependency, Object> values,
+										  Dependency dependency) {
 
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaTypeCode);
@@ -627,9 +605,11 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean addMultivalueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			ReferenceDependency<?> referenceDependency, Metadata referenceMetadata, RecordUpdateOptions options,
-			Locale locale, LocalisedRecordMetadataRetrieval mode) {
+	private boolean addMultivalueReference(RecordImpl record, RecordProvider recordProvider,
+										   Map<Dependency, Object> values,
+										   ReferenceDependency<?> referenceDependency, Metadata referenceMetadata,
+										   RecordUpdateOptions options,
+										   Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		List<String> referencesValues = record.<String>getList(referenceMetadata, locale, mode);
 		List<Record> referencedRecords = new ArrayList<>();
 		for (String referenceValue : referencesValues) {
@@ -675,9 +655,11 @@ public class RecordAutomaticMetadataServices {
 		return true;
 	}
 
-	private boolean addSingleValueReference(RecordImpl record, RecordProvider recordProvider, Map<Dependency, Object> values,
-			ReferenceDependency<?> dependency, Metadata referenceMetadata, RecordUpdateOptions options,
-			Locale locale, LocalisedRecordMetadataRetrieval mode) {
+	private boolean addSingleValueReference(RecordImpl record, RecordProvider recordProvider,
+											Map<Dependency, Object> values,
+											ReferenceDependency<?> dependency, Metadata referenceMetadata,
+											RecordUpdateOptions options,
+											Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		String referenceValue = (String) record.get(referenceMetadata, locale, mode);
 		Record referencedRecord;
 		if (dependency.isRequired() && referenceValue == null) {
@@ -721,7 +703,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	boolean addValueForLocalDependency(RecordImpl record, Map<Dependency, Object> values, Dependency dependency,
-			Locale locale, LocalisedRecordMetadataRetrieval mode) {
+									   Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		Metadata metadata = getMetadataFromDependency(record, dependency);
 		Object dependencyValue = record.get(metadata, locale, mode);
 		if (dependency.isRequired() && dependencyValue == null) {
@@ -738,7 +720,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata referenceMetadata, Metadata copiedMetadata, RecordUpdateOptions options) {
+						   Metadata referenceMetadata, Metadata copiedMetadata, RecordUpdateOptions options) {
 
 		if (referenceMetadata.isMultivalue()) {
 			List<String> referencedRecordIds = record.getList(referenceMetadata);
@@ -760,8 +742,10 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata copiedMetadata, String referencedRecordId, Metadata referenceMetadata, RecordUpdateOptions options) {
+	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry,
+									RecordProvider recordProvider,
+									Metadata copiedMetadata, String referencedRecordId, Metadata referenceMetadata,
+									RecordUpdateOptions options) {
 		Object copiedValue;
 		try {
 			Record referencedRecord = recordProvider.getRecord(referencedRecordId);
@@ -780,8 +764,10 @@ public class RecordAutomaticMetadataServices {
 		record.updateAutomaticValue(metadataWithCopyDataEntry, copiedValue);
 	}
 
-	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
-			Metadata copiedMetadata, List<String> referencedRecordIds, Metadata referenceMetadata, RecordUpdateOptions options) {
+	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry,
+									RecordProvider recordProvider,
+									Metadata copiedMetadata, List<String> referencedRecordIds,
+									Metadata referenceMetadata, RecordUpdateOptions options) {
 		List<Object> values = new ArrayList<>();
 		for (String referencedRecordId : referencedRecordIds) {
 			if (referencedRecordId != null) {
@@ -811,7 +797,8 @@ public class RecordAutomaticMetadataServices {
 		record.updateAutomaticValue(metadataWithCopyDataEntry, values);
 	}
 
-	public List<Metadata> sortMetadatasUsingLocalDependencies(Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
+	public List<Metadata> sortMetadatasUsingLocalDependencies(
+			Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
 		List<Metadata> sortedMetadatas = new ArrayList<>();
 		Map<Metadata, Set<String>> metadatas = copyInModifiableMap(metadatasWithLocalCodeDependencies);
 		while (!metadatas.isEmpty()) {
@@ -828,7 +815,8 @@ public class RecordAutomaticMetadataServices {
 		return sortedMetadatas;
 	}
 
-	private Map<Metadata, Set<String>> copyInModifiableMap(Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
+	private Map<Metadata, Set<String>> copyInModifiableMap(
+			Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
 		Map<Metadata, Set<String>> metadatas = new HashMap<>();
 		for (Map.Entry<Metadata, Set<String>> entry : metadatasWithLocalCodeDependencies.entrySet()) {
 			metadatas.put(entry.getKey(), new HashSet<String>(entry.getValue()));
@@ -848,17 +836,18 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void setCalculatedValuesInRecords(TransactionExecutionContext context, RecordImpl record,
-			Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types, Transaction transaction) {
+									  Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
+									  TransactionRecordsReindexation reindexation, MetadataSchemaTypes types,
+									  Transaction transaction) {
 
-			MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
+		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
-			boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
-				&& !record.getLazyTransientValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
+		boolean lazyTransientMetadataToLoad = metadataWithCalculatedDataEntry.getTransiency() == MetadataTransiency.TRANSIENT_LAZY
+											  && !record.getLazyTransientValues().containsKey(metadataWithCalculatedDataEntry.getDataStoreCode());
 
 		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
-				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
-				|| lazyTransientMetadataToLoad) {
+			|| reindexation.isReindexed(metadataWithCalculatedDataEntry)
+			|| lazyTransientMetadataToLoad) {
 			calculateValueInRecord(context, record, metadataWithCalculatedDataEntry, recordProvider, types, transaction);
 		}
 	}

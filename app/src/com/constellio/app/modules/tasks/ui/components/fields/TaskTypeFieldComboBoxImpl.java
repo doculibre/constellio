@@ -18,8 +18,8 @@ public class TaskTypeFieldComboBoxImpl extends RecordComboBox implements TaskTyp
 	}
 
 	public void removeUnavailablesTaskTypes() {
-		if(unavailablesTaskTypes != null) {
-			for(String type: unavailablesTaskTypes) {
+		if (unavailablesTaskTypes != null) {
+			for (String type : unavailablesTaskTypes) {
 				removeItem(type);
 			}
 		}
@@ -37,7 +37,7 @@ public class TaskTypeFieldComboBoxImpl extends RecordComboBox implements TaskTyp
 
 	@Override
 	public Item addItem(Object itemId) throws UnsupportedOperationException {
-		if(unavailablesTaskTypes == null || !unavailablesTaskTypes.contains(itemId)) {
+		if (unavailablesTaskTypes == null || !unavailablesTaskTypes.contains(itemId)) {
 			return super.addItem(itemId);
 		}
 		return null;

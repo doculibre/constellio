@@ -1,11 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.data.TextView;
@@ -15,6 +9,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
@@ -45,7 +45,7 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		}
 		//given
 		String synonymFileContent = "pizza, papa, television";
-		setUpSynonymTests	(synonymFileContent);
+		setUpSynonymTests(synonymFileContent);
 
 		//when
 		String text = "papa";

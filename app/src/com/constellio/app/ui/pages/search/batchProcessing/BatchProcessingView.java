@@ -5,15 +5,15 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import java.util.List;
 
 public interface BatchProcessingView {
-    List<String> getSelectedRecordIds();
+	List<String> getSelectedRecordIds();
 
-    List<String> getUnselectedRecordIds();
+	List<String> getUnselectedRecordIds();
 
-    String getSchemaType();
+	String getSchemaType();
 
-    SessionContext getSessionContext();
+	SessionContext getSessionContext();
 
-    void showErrorMessage(String error);
+	void showErrorMessage(String error);
 
-    void showMessage(String message);
+	void showMessage(String message);
 }

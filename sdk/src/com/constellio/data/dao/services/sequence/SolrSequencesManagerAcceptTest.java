@@ -1,14 +1,9 @@
 package com.constellio.data.dao.services.sequence;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.utils.ThreadList;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -16,10 +11,10 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.utils.ThreadList;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 

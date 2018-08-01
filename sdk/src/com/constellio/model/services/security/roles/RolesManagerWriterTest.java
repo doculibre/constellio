@@ -1,17 +1,16 @@
 package com.constellio.model.services.security.roles;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RolesManagerWriterTest extends ConstellioTest {
 

@@ -29,7 +29,8 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
@@ -52,7 +53,7 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 	class SchemaAlterationFor7_5_3 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_5_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

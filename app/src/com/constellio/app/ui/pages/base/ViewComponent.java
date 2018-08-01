@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-
 import com.constellio.app.ui.application.Navigation;
+
+import java.io.Serializable;
 
 public interface ViewComponent extends Serializable, SessionContextProvider, UIContextProvider {
 

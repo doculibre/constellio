@@ -1,13 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -21,6 +13,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class CoreMigrationTo_6_5 implements MigrationScript {
 	private final static Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_6_5.class);
@@ -55,7 +54,7 @@ public class CoreMigrationTo_6_5 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_5 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_5(String collection, MigrationResourcesProvider provider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, provider, appLayerFactory);
 		}
 

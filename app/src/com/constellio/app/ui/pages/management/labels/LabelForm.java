@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.management.labels;
 
-import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 
@@ -18,13 +17,13 @@ import java.io.Serializable;
  */
 public interface LabelForm extends Serializable {
 
-    void reload();
+	void reload();
 
-    void commit();
+	void commit();
 
-    ConstellioFactories getConstellioFactories();
+	ConstellioFactories getConstellioFactories();
 
-    SessionContext getSessionContext();
+	SessionContext getSessionContext();
 
-    CustomLabelField<?> getCustomField(String metadataCode);
+	CustomLabelField<?> getCustomField(String metadataCode);
 }

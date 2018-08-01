@@ -1,18 +1,5 @@
 package com.constellio.data.dao.services.transactionLog.kafka;
 
-import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.DEFAULT_MAX_TRANSACTION_SIZE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
@@ -21,6 +8,12 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionC
 import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransactionLinesIteratorV1;
 import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransactionsIteratorV1;
 import com.constellio.data.dao.services.transactionLog.replay.TransactionsLogImportHandler;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.DEFAULT_MAX_TRANSACTION_SIZE;
 
 public class TransactionReplayer implements ConsumerRecordCallback<String, Transaction> {
 	private long maxBufferSize = 250000L;
@@ -33,14 +26,14 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 
 	private Map<Long, String> transactions;
 
-	private String[] requestDelimiters = { "addUpdate ", "delete ", "deletequery ", "sequence next ", "sequence set " };
+	private String[] requestDelimiters = {"addUpdate ", "delete ", "deletequery ", "sequence next ", "sequence set "};
 
 	private long startVersion;
 
 	private long lastInserted = 0L;
 
 	public TransactionReplayer(DataLayerConfiguration configuration, BigVaultServer bigVaultServer,
-			DataLayerLogger dataLayerLogger) {
+							   DataLayerLogger dataLayerLogger) {
 		this.configuration = configuration;
 		this.bigVaultServer = bigVaultServer;
 		this.dataLayerLogger = dataLayerLogger;
@@ -143,7 +136,7 @@ public class TransactionReplayer implements ConsumerRecordCallback<String, Trans
 		BigVaultLogAddUpdater addUpdater = initAddUpdater();
 		Set<Entry<Long, String>> entrySet = transactions.entrySet();
 
-		for (Iterator<Entry<Long, String>> iterator = entrySet.iterator(); i < length && iterator.hasNext();) {
+		for (Iterator<Entry<Long, String>> iterator = entrySet.iterator(); i < length && iterator.hasNext(); ) {
 			Entry<Long, String> transaction = iterator.next();
 
 			System.out.println("Replay version: " + transaction.getKey());

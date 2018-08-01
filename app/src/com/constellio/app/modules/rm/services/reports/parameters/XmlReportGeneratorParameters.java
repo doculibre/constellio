@@ -1,34 +1,35 @@
 package com.constellio.app.modules.rm.services.reports.parameters;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class XmlReportGeneratorParameters extends AbstractXmlGeneratorParameters {
-    private int numberOfCopies;
+	private int numberOfCopies;
 
-    public XmlReportGeneratorParameters() { }
+	public XmlReportGeneratorParameters() {
+	}
 
-    public XmlReportGeneratorParameters(int numberOfCopies, Record... recordsElements) {
-        super(recordsElements);
-        this.numberOfCopies = numberOfCopies;
-    }
+	public XmlReportGeneratorParameters(int numberOfCopies, Record... recordsElements) {
+		super(recordsElements);
+		this.numberOfCopies = numberOfCopies;
+	}
 
-    /**
-     * Method used to set the number of copies needed of the report.
-     * @param numberOfCopies
-     * @return
-     */
-    public XmlReportGeneratorParameters setNumberOfCopies(int numberOfCopies) {
-        this.numberOfCopies = numberOfCopies;
-        return this;
-    }
+	/**
+	 * Method used to set the number of copies needed of the report.
+	 *
+	 * @param numberOfCopies
+	 * @return
+	 */
+	public XmlReportGeneratorParameters setNumberOfCopies(int numberOfCopies) {
+		this.numberOfCopies = numberOfCopies;
+		return this;
+	}
 
-    public int getNumberOfCopies(){
-        return this.numberOfCopies;
-    }
+	public int getNumberOfCopies() {
+		return this.numberOfCopies;
+	}
 
-    @Override
-    public void validateInputs() {
+	@Override
+	public void validateInputs() {
 
-    }
+	}
 }

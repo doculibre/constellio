@@ -1,15 +1,10 @@
 package com.constellio.data.dao.services.sequence;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -20,13 +15,12 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 
-import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import java.io.IOException;
+import java.util.*;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 
 public class SolrSequencesManager implements SequencesManager {
 
@@ -44,7 +38,7 @@ public class SolrSequencesManager implements SequencesManager {
 		if (StringUtils.isBlank(sequenceId)) {
 			throw new IllegalArgumentException("sequenceId is blank");
 		}
-		
+
 		UpdateResponse response;
 		try {
 			SolrInputDocument document = newSequenceUpdateInputDocument(sequenceId);
@@ -93,7 +87,7 @@ public class SolrSequencesManager implements SequencesManager {
 				return next(sequenceId);
 			}
 		}
-		
+
 		if (secondTransactionLogManager != null) {
 			secondTransactionLogManager.nextSequence(sequenceId, SolrUtils.createTransactionResponseDTO(response));
 		}

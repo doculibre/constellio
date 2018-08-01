@@ -1,20 +1,19 @@
 package com.constellio.model.services.taxonomies;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.Language;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesReaderTest extends ConstellioTest {
 

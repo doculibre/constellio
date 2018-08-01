@@ -1,10 +1,5 @@
 package com.constellio.model.conf.email;
 
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -16,6 +11,10 @@ import com.constellio.model.services.security.roles.RolesManagerRuntimeException
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+
+import java.util.Map;
 
 public class EmailConfigurationsManager
 		implements StatefulService, OneXMLConfigPerCollectionManagerListener<EmailServerConfiguration> {
@@ -32,10 +31,10 @@ public class EmailConfigurationsManager
 	private ConfigManager configManager;
 	private CollectionsListManager collectionsListManager;
 	private ModelLayerFactory modelLayerFactory;
-	private ConstellioCacheManager cacheManager; 
+	private ConstellioCacheManager cacheManager;
 
 	public EmailConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
-			ModelLayerFactory modelLayerFactory, ConstellioCacheManager cacheManager) {
+									  ModelLayerFactory modelLayerFactory, ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.modelLayerFactory = modelLayerFactory;
@@ -43,7 +42,7 @@ public class EmailConfigurationsManager
 	}
 
 	public EmailServerConfiguration addEmailServerConfiguration(EmailServerConfiguration emailServerConfiguration,
-			final String collection) {
+																final String collection) {
 		validateEmailConfiguration(emailServerConfiguration);
 
 		String encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(emailServerConfiguration.getPassword());
@@ -74,8 +73,9 @@ public class EmailConfigurationsManager
 		oneXMLConfigPerCollectionManager.updateXML(collection, alteration);
 	}
 
-	public void updateEmailServerConfiguration(EmailServerConfiguration emailServerConfiguration, final String collection,
-			boolean encryptPassword)
+	public void updateEmailServerConfiguration(EmailServerConfiguration emailServerConfiguration,
+											   final String collection,
+											   boolean encryptPassword)
 			throws RolesManagerRuntimeException {
 		validateEmailConfiguration(emailServerConfiguration);
 		final EmailServerConfiguration emailServerConfigurationToBeSaved;

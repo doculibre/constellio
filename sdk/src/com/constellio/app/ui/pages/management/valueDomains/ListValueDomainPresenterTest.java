@@ -1,14 +1,12 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
-
+import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
-import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -17,21 +15,22 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.apache.commons.codec.language.bm.Lang;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class ListValueDomainPresenterTest extends ConstellioTest {
 

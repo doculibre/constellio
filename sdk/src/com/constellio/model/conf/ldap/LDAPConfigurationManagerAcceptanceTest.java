@@ -1,22 +1,20 @@
 package com.constellio.model.conf.ldap;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
-import org.joda.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 

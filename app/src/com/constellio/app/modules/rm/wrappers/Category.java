@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -10,6 +7,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.List;
+import java.util.Locale;
 
 public class Category extends RecordWrapper {
 

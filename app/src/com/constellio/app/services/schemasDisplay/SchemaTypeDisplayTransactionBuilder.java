@@ -1,13 +1,9 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.*;
-import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.DISPLAY;
-import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.FORM;
-import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.SEARCH;
-import static java.util.Arrays.asList;
-
-import com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+
+import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.*;
+import static java.util.Arrays.asList;
 
 public class SchemaTypeDisplayTransactionBuilder {
 
@@ -15,8 +11,9 @@ public class SchemaTypeDisplayTransactionBuilder {
 	SchemasDisplayManager schemasDisplayManager;
 	SchemaTypesDisplayTransactionBuilder transaction;
 
-	public SchemaTypeDisplayTransactionBuilder(MetadataSchemaType schemaType, SchemasDisplayManager schemasDisplayManager,
-			SchemaTypesDisplayTransactionBuilder transaction) {
+	public SchemaTypeDisplayTransactionBuilder(MetadataSchemaType schemaType,
+											   SchemasDisplayManager schemasDisplayManager,
+											   SchemaTypesDisplayTransactionBuilder transaction) {
 		this.schemaType = schemaType;
 		this.schemasDisplayManager = schemasDisplayManager;
 		this.transaction = transaction;

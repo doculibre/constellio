@@ -1,21 +1,19 @@
 package com.constellio.model.services.records.cache.eventBus;
 
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 
 /**
  * Records caches implementations using event bus to update and invalidate records.
- *
+ * <p>
  * Each collection has it's own event bus
- *
  */
 public class EventsBusRecordsCachesImpl extends RecordsCachesMemoryImpl {
 

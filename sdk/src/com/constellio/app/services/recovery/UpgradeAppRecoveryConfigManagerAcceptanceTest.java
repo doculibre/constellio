@@ -1,12 +1,11 @@
 package com.constellio.app.services.recovery;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
+import com.sun.star.uno.RuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
-import com.sun.star.uno.RuntimeException;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UpgradeAppRecoveryConfigManagerAcceptanceTest extends ConstellioTest {
 

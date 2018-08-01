@@ -1,31 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
-import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.AUTHENTICATION_SCHEME;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DAYS_BEFORE_REFETCHING;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.DOMAIN;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.EXCLUDE_PATTERNS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.INCLUDE_PATTERNS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.MAX_LEVEL;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_DOCUMENTS_PER_JOBS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.NUMBER_OF_JOBS_IN_PARALLEL;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.ON_DEMANDS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.PASSWORD;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.SEEDS;
-import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.USERNAME;
-import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -85,6 +59,16 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyAlreadyExists;
 
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.ENABLED;
+import static com.constellio.app.modules.es.model.connectors.ConnectorInstance.TRAVERSAL_SCHEDULE;
+import static com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance.*;
+import static com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType.ACTIVE_DIRECTORY;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
+
 public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScript {
 
 	EnterpriseSearchMigrationHelper migration;
@@ -103,7 +87,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 
@@ -204,7 +188,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	private void createConnectorTypes(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+									  AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
 		migration = new EnterpriseSearchMigrationHelper(appLayerFactory, collection,
 				migrationResourcesProvider);
@@ -268,7 +252,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_1_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -292,7 +276,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 		}
 
-		private void createConnectorLDAPSchemas(MetadataSchemaTypesBuilder types, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorLDAPSchemas(MetadataSchemaTypesBuilder types,
+												ESSchemaTypesMigrationHelper migration) {
 			MetadataSchemaBuilder connectorLDAPInstanceSchema = migration.newConnectorInstanceSchema(
 					ConnectorLDAPInstance.SCHEMA_LOCAL_CODE);
 			//in the current version only AD is supported
@@ -393,7 +378,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 		}
 
-		private void createConnectorCommonSchemaTypes(MetadataSchemaTypesBuilder types, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorCommonSchemaTypes(MetadataSchemaTypesBuilder types,
+													  ESSchemaTypesMigrationHelper migration) {
 
 			MetadataSchemaBuilder connectorSchema, connectorTypeSchema;
 
@@ -432,7 +418,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 							TraversalScheduleFactory.class);
 		}
 
-		private void createConnectorHTTPSchemas(MetadataSchemaTypesBuilder types, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorHTTPSchemas(MetadataSchemaTypesBuilder types,
+												ESSchemaTypesMigrationHelper migration) {
 			MetadataSchemaBuilder instanceSchema, documentSchema;
 
 			//-
@@ -463,7 +450,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			documentSchema.createUndeletable(ConnectorHttpDocument.PARSED_CONTENT).setType(TEXT).setSearchable(true);
 		}
 
-		private void createConnectorSMBSchemas(MetadataSchemaTypesBuilder types2, ESSchemaTypesMigrationHelper migration) {
+		private void createConnectorSMBSchemas(MetadataSchemaTypesBuilder types2,
+											   ESSchemaTypesMigrationHelper migration) {
 			MetadataSchemaBuilder instanceSchema, documentSchema, folderSchema;
 			MetadataSchemaTypeBuilder folderSchemaType;
 
@@ -518,7 +506,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	private void createFacets(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider)
+							  MigrationResourcesProvider migrationResourcesProvider)
 			throws RecordServicesException {
 
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
@@ -626,7 +614,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+												MigrationResourcesProvider migrationResourcesProvider) {
 
 		Map<Language, String> mapLangageTitre = MigrationUtil.getLabelsByLanguage(collection, modelLayerFactory,
 				migrationResourcesProvider, "init.taxoSmbFolders");
@@ -656,8 +644,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		manager.execute(transaction.build());
 	}
 
-	private void configureLDAPDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureLDAPDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											  SchemasDisplayManager manager,
+											  String collection) {
 		transaction
 				.add(manager.getType(collection, ConnectorLDAPUserDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
@@ -686,8 +675,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	}
 
-	private void configureLDAPConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureLDAPConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											   SchemasDisplayManager manager,
+											   String collection) {
 		List<String> form = asList(
 				ConnectorLDAPInstance.SCHEMA_CODE + "_" + ConnectorLDAPInstance.CODE,
 				ConnectorLDAPInstance.SCHEMA_CODE + "_" + ConnectorLDAPInstance.TITLE,
@@ -800,8 +790,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	}
 
-	private void configureSmbConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureSmbConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											  SchemasDisplayManager manager,
+											  String collection) {
 
 		List<String> form = asList(
 				ConnectorSmbInstance.SCHEMA_CODE + "_" + ConnectorSmbInstance.CODE,
@@ -842,8 +833,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	}
 
-	private void configureHttpConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureHttpConnectorDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											   SchemasDisplayManager manager,
+											   String collection) {
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, ENABLED)
 				.withMetadataGroup(executionTab));
 		transaction.add(manager.getMetadata(collection, ConnectorHttpInstance.SCHEMA_CODE, NUMBER_OF_DOCUMENTS_PER_JOBS)
@@ -868,8 +860,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 	}
 
-	private void configureSmbDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureSmbDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											 SchemasDisplayManager manager,
+											 String collection) {
 		transaction.add(manager.getType(collection, ConnectorSmbDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 
 		transaction.add(manager.getType(collection, ConnectorSmbDocument.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
@@ -900,8 +893,9 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 				.withVisibleInAdvancedSearchStatus(true));
 	}
 
-	private void configureHttpDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction, SchemasDisplayManager manager,
-			String collection) {
+	private void configureHttpDocumentDisplay(SchemaTypesDisplayTransactionBuilder transaction,
+											  SchemasDisplayManager manager,
+											  String collection) {
 		transaction.in(ConnectorHttpDocument.SCHEMA_TYPE)
 				.addToSearchResult(ConnectorHttpDocument.URL)
 				.atTheEnd();
@@ -932,7 +926,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	}
 
 	private void configureConnectorInstanceDisplayAndSearchDisplay(SchemaTypesDisplayTransactionBuilder transaction,
-			SchemasDisplayManager manager, String collection) {
+																   SchemasDisplayManager manager, String collection) {
 
 		transaction.add(manager.getType(collection, ConnectorInstance.SCHEMA_TYPE)
 				.withMetadataGroup(groups));

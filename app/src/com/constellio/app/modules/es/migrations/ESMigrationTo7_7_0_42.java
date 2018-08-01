@@ -4,11 +4,8 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class ESMigrationTo7_7_0_42 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -17,7 +14,8 @@ public class ESMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_7_0_42(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -25,7 +23,7 @@ public class ESMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 	class SchemaAlterationFor7_7_0_42 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_7_0_42(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

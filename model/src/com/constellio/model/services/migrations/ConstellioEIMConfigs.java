@@ -1,15 +1,5 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
-
-import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
@@ -19,7 +9,10 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
+
+import java.util.*;
+
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -80,20 +73,20 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
-			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
-			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
-			"	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" +
-			"	'/',\n" +
-			"	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n"
-			+
-			"	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n"
-			+
-			"	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" +
-			"	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" +
-			"	'/',\n" +
-			"	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" +
-			"	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" +
-			"	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
+																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
+																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
+																 "	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" +
+																 "	'/',\n" +
+																 "	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n"
+																 +
+																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n"
+																 +
+																 "	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" +
+																 "	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" +
+																 "	'/',\n" +
+																 "	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" +
+																 "	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" +
+																 "	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
 
 	public static final SystemConfiguration DEFAULT_START_TAB;
 

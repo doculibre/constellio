@@ -1,14 +1,13 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchemaFilters extends CollectionFilters implements DataStoreFilters {
 

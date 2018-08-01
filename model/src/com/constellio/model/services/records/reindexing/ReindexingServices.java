@@ -1,26 +1,5 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG;
-import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
-import static com.constellio.model.services.records.RecordUtils.removeMetadataValuesOn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -40,11 +19,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataNetworkLink;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
@@ -71,6 +46,22 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG;
+import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
+import static com.constellio.model.services.records.RecordUtils.removeMetadataValuesOn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ReindexingServices {
 
@@ -264,7 +255,8 @@ public class ReindexingServices {
 		return modelLayerFactory.newSearchServices().getResultsCount(new LogicalSearchQuery(condition));
 	}
 
-	private void reindexCollection(String collection, ReindexationParams params, RecordUpdateOptions transactionOptions) {
+	private void reindexCollection(String collection, ReindexationParams params,
+								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
 		if (params.getReindexationMode().isFullRewrite()) {
@@ -389,8 +381,9 @@ public class ReindexingServices {
 	}
 
 	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,
-			ReindexingLogger logger, ReindexingSchemaTypeRecordsProvider recordsProvider,
-			ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage, ReindexationParams params) {
+									   ReindexingLogger logger, ReindexingSchemaTypeRecordsProvider recordsProvider,
+									   ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage,
+									   ReindexationParams params) {
 
 		MetadataSchemaType type = recordsProvider.type;
 		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
@@ -475,8 +468,8 @@ public class ReindexingServices {
 						for (String referencedRecordId : referencedRecordIds) {
 
 							if (hasLinkWithinSameSchemaType(links)
-									&& recordsProvider.isAlreadyHandledInCurrentOrPreviousBatch(referencedRecordId)
-									&& !referencedRecordId.equals(record.getId())) {
+								&& recordsProvider.isAlreadyHandledInCurrentOrPreviousBatch(referencedRecordId)
+								&& !referencedRecordId.equals(record.getId())) {
 
 								LOGGER.info("Record " + referencedRecordId + " will be recalculated");
 								int skippedRecordsSize = recordsProvider.markRecordAsSkipped(referencedRecordId);
@@ -512,7 +505,7 @@ public class ReindexingServices {
 	}
 
 	private boolean updateAggregatedMetadata(final Record record, Metadata aggregatingMetadata,
-			final ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
+											 final ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
 
 		final MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection());
 		MetadataAggregationHandler handler = MetadataAggregationHandlerFactory.getHandlerFor(aggregatingMetadata);

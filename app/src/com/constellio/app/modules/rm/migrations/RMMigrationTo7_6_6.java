@@ -1,21 +1,11 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS_OF_HIERARCHY;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import com.constellio.app.modules.rm.wrappers.BagInfo;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.model.calculators.FolderTokensOfHierarchyCalculator;
+import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -25,8 +15,17 @@ import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS_OF_HIERARCHY;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
@@ -39,14 +38,14 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 		new SchemaAlterationFor7_6_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("en")) {
 			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED,
@@ -89,8 +88,8 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 	}
 
 	private static void reloadEmailTemplate(final String templateFileName, final String templateId,
-			AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider, String collection) {
+											AppLayerFactory appLayerFactory,
+											MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -106,7 +105,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 	class SchemaAlterationFor7_6_6 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_6_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -119,7 +118,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 			typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSmallCode("c");
 
 			if (typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
-					.getType() == MetadataValueType.REFERENCE) {
+						.getType() == MetadataValueType.REFERENCE) {
 
 				typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.TOKENS.getLocalCode())
 						.defineDataEntry().asCalculated(TokensCalculator4.class);
@@ -145,25 +144,25 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
 				}
 			}
-            MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
-            MetadataSchemaBuilder defaultBagInfoSchema = builder.getDefaultSchema();
+			MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
+			MetadataSchemaBuilder defaultBagInfoSchema = builder.getDefaultSchema();
 
-            defaultBagInfoSchema.create(BagInfo.ARCHIVE_TITLE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.NOTE).setType(MetadataValueType.TEXT);
-            defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.ADRESSE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.REGION_ADMINISTRATIVE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.ENTITE_RESPONSABLE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_RESPONSABLE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.COURRIEL_RESPONSABLE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.NUMERO_TELEPHONE_RESPONSABLE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.DESCRIPTION_SOMMAIRE).setType(MetadataValueType.TEXT);
-            defaultBagInfoSchema.create(BagInfo.CATEGORIE_DOCUMENT).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.METHODE_TRANSFERE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.RESTRICTION_ACCESSIBILITE).setType(MetadataValueType.STRING);
-            defaultBagInfoSchema.create(BagInfo.ENCODAGE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.ARCHIVE_TITLE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.NOTE).setType(MetadataValueType.TEXT);
+			defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.ADRESSE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.REGION_ADMINISTRATIVE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.ENTITE_RESPONSABLE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.IDENTIFICATION_RESPONSABLE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.COURRIEL_RESPONSABLE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.NUMERO_TELEPHONE_RESPONSABLE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.DESCRIPTION_SOMMAIRE).setType(MetadataValueType.TEXT);
+			defaultBagInfoSchema.create(BagInfo.CATEGORIE_DOCUMENT).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.METHODE_TRANSFERE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.RESTRICTION_ACCESSIBILITE).setType(MetadataValueType.STRING);
+			defaultBagInfoSchema.create(BagInfo.ENCODAGE).setType(MetadataValueType.STRING);
 
-        }
+		}
 	}
 }

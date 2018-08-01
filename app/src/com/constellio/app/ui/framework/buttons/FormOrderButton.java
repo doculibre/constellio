@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class FormOrderButton extends Button {

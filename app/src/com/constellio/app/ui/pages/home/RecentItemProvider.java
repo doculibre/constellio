@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -31,6 +20,16 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RecentItemProvider implements Serializable {
 	public static int DEFAULT_QUANTITY = 50;
@@ -44,7 +43,7 @@ public class RecentItemProvider implements Serializable {
 	private final int quantity;
 
 	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType,
-			int quantity) {
+							  int quantity) {
 		init(modelLayerFactory, sessionContext);
 		this.schemaType = schemaType;
 		this.quantity = quantity;

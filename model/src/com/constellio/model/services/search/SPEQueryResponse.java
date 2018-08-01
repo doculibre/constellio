@@ -1,14 +1,10 @@
 package com.constellio.model.services.search;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+
+import java.util.*;
 
 public class SPEQueryResponse {
 
@@ -72,7 +68,8 @@ public class SPEQueryResponse {
 	public SPEQueryResponse(
 			Map<String, List<FacetValue>> fieldFacetValues, Map<String, Map<String, Object>> statisticsValues,
 			Map<String, Integer> queryFacetsValues, long qtime,
-			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
+			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights,
+			boolean correctlySpelt,
 			List<String> spellcheckerSuggestions, List<MoreLikeThisRecord> moreLikeThisRecords) {
 		this.fieldFacetValues = fieldFacetValues;
 		this.statisticsValues = statisticsValues;

@@ -12,7 +12,8 @@ import java.util.Collection;
  * Note that the class will be serialized in the XML format (check {@link DefaultMetadataPopulator} for
  * how the concrete class will be serialized to the XML format).
  */
-public interface ExtractorSupplier<T>{
+public interface ExtractorSupplier<T> {
 	void init(LoadingCache<String, ParsedContent> cachedParsedContentProvider, MetadataSchema schema);
+
 	Collection<T> getFeeds(Record record);
 }

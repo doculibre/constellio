@@ -1,11 +1,11 @@
 package com.constellio.data.dao.services.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public abstract class AutoReloadingConstellioCache implements ConstellioCache {
 

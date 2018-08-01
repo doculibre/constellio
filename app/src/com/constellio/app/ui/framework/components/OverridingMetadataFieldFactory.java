@@ -1,13 +1,13 @@
 package com.constellio.app.ui.framework.components;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.FieldOverridePresenter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Field;
+
+import java.io.Serializable;
+import java.util.List;
 
 public class OverridingMetadataFieldFactory<T extends FieldOverridePresenter> extends MetadataFieldFactory {
 	public interface FieldOverridePresenter extends Serializable {
@@ -47,8 +47,8 @@ public class OverridingMetadataFieldFactory<T extends FieldOverridePresenter> ex
 	@Override
 	protected Field<?> newSingleValueField(MetadataVO metadata) {
 		switch (presenter.getOverride(metadata.getCode())) {
-		case DROPDOWN:
-			return buildDropdown(metadata);
+			case DROPDOWN:
+				return buildDropdown(metadata);
 		}
 		return super.newSingleValueField(metadata);
 	}

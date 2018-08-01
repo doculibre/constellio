@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.extractors.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.pages.management.extractors.converters.RegexConfigVOToStringConverter;
@@ -13,6 +8,11 @@ import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveRegexConfigField extends ListAddRemoveField<RegexConfigVO, RegexConfigFieldImpl> {
@@ -87,8 +87,8 @@ public class ListAddRemoveRegexConfigField extends ListAddRemoveField<RegexConfi
 	protected int getExtraColumnWidth(Object propertyId) {
 		int width;
 		if (VALUE.equals(propertyId) ||
-				REGEX.equals(propertyId) ||
-				REGEX_CONFIG_TYPE.equals(propertyId)) {
+			REGEX.equals(propertyId) ||
+			REGEX_CONFIG_TYPE.equals(propertyId)) {
 			width = 250;
 		} else {
 			throw new IllegalArgumentException("Unrecognized propertyId : " + propertyId);

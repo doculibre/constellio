@@ -1,9 +1,8 @@
 package com.constellio.model.entities.records.wrappers;
 
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
 
 /**
  * Created by Nicolas D'Amours
@@ -44,7 +43,7 @@ public class UserFolder extends RecordWrapper {
 		set(USER, user);
 		return this;
 	}
-	
+
 	public LocalDateTime getFormCreatedOn() {
 		return get(FORM_CREATED_ON);
 	}
@@ -53,7 +52,7 @@ public class UserFolder extends RecordWrapper {
 		set(FORM_CREATED_ON, dateTime);
 		return this;
 	}
-	
+
 	public LocalDateTime getFormModifiedOn() {
 		return get(FORM_MODIFIED_ON);
 	}

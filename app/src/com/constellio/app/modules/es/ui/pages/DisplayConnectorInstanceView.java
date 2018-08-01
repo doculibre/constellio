@@ -6,9 +6,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 public interface DisplayConnectorInstanceView extends BaseView {
 
 	void setRecord(RecordVO recordVO);
-	
+
 	void setDocumentsCount(long count);
-	
+
 	void setLastDocuments(String lastDocuments);
-	
+
 }

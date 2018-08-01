@@ -1,15 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -32,14 +22,16 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.DocumentSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1FirstSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1SecondSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2CustomSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.UserSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
@@ -459,7 +451,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			List<String> grantedOnRecords) {
+														   List<String> grantedOnRecords) {
 		String id = authorizationsServices.add(authorizationInCollection(zeCollection).giving(roles)
 				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecords.get(0)));
 		recordServices.refresh(chuck);

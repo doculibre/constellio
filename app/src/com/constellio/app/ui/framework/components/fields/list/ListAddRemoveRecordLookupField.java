@@ -5,7 +5,7 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, LookupRecordField> {
-	
+
 	private String schemaTypeCode;
 	private String schemaCode;
 	private boolean ignoreLinkability;

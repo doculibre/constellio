@@ -1,59 +1,14 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.constants.RMRoles.MANAGER;
-import static com.constellio.app.modules.rm.constants.RMRoles.RGD;
-import static com.constellio.app.modules.rm.constants.RMRoles.USER;
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static java.util.Locale.ENGLISH;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.OriginStatus;
-import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.model.enums.*;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
@@ -94,6 +49,23 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.modules.rm.constants.RMRoles.*;
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.*;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
 
 public class RMTestRecords {
 
@@ -952,7 +924,8 @@ public class RMTestRecords {
 		return createEvent(username, eventType, eventDate, recordId, null);
 	}
 
-	private RecordWrapper createEvent(String username, String eventType, LocalDateTime eventDate, String recordId, String title) {
+	private RecordWrapper createEvent(String username, String eventType, LocalDateTime eventDate, String recordId,
+									  String title) {
 		return rm.newEvent().setRecordId(recordId).setTitle(title).setUsername(username).setType(eventType)
 				.setCreatedOn(eventDate);
 	}
@@ -1278,7 +1251,8 @@ public class RMTestRecords {
 		return this;
 	}
 
-	private List<String> createDocumentsAndReturnThoseWhithDifferentCopyForEach(Transaction transaction, String... folders) {
+	private List<String> createDocumentsAndReturnThoseWhithDifferentCopyForEach(Transaction transaction,
+																				String... folders) {
 
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		User user = users.adminIn(collection);

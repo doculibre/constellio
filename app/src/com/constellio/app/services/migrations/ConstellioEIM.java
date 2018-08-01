@@ -1,24 +1,17 @@
 package com.constellio.app.services.migrations;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.*;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ConstellioEIM {
 
@@ -93,7 +86,7 @@ public class ConstellioEIM {
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {
-		if(!Collection.SYSTEM_COLLECTION.equals(collection) && setupCollections.add(collection)) {
+		if (!Collection.SYSTEM_COLLECTION.equals(collection) && setupCollections.add(collection)) {
 			configureBaseExtensions(appLayerFactory, collection);
 		}
 	}

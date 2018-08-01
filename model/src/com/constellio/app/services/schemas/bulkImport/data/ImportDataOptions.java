@@ -19,7 +19,8 @@ public class ImportDataOptions {
 		return mergeExistingRecordWithSameUniqueMetadata;
 	}
 
-	public ImportDataOptions setMergeExistingRecordWithSameUniqueMetadata(boolean mergeExistingRecordWithSameUniqueMetadata) {
+	public ImportDataOptions setMergeExistingRecordWithSameUniqueMetadata(
+			boolean mergeExistingRecordWithSameUniqueMetadata) {
 		this.mergeExistingRecordWithSameUniqueMetadata = mergeExistingRecordWithSameUniqueMetadata;
 		return this;
 	}

@@ -17,9 +17,10 @@ public class RecordMigrationsManagerRuntimeException extends RuntimeException {
 	public static class RecordMigrationsManagerRuntimeException_ScriptNotRegistered
 			extends RecordMigrationsManagerRuntimeException {
 
-		public RecordMigrationsManagerRuntimeException_ScriptNotRegistered(String script, String schemaType, String collection) {
+		public RecordMigrationsManagerRuntimeException_ScriptNotRegistered(String script, String schemaType,
+																		   String collection) {
 			super("Script '" + script + "' is not registered for schemaType '" + schemaType + "' of collection '" + collection
-					+ "'");
+				  + "'");
 		}
 	}
 }

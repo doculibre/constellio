@@ -1,9 +1,5 @@
 package com.constellio.app.ui.tools;
 
-import java.util.List;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -11,6 +7,9 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.List;
 
 public abstract class PageHelper {
 	protected final ConstellioWebDriver driver;

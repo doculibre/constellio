@@ -1,9 +1,9 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.model.conf.email.EmailServerConfiguration;
+
 import java.io.Serializable;
 import java.util.Map;
-
-import com.constellio.model.conf.email.EmailServerConfiguration;
 
 @SuppressWarnings("serial")
 public class EmailServerConfigVO implements Serializable, EmailServerConfiguration {

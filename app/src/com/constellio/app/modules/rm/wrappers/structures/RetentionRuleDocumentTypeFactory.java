@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnumWithSmallCode;
-
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+
+import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnumWithSmallCode;
 
 public class RetentionRuleDocumentTypeFactory implements StructureFactory {
 	@Override

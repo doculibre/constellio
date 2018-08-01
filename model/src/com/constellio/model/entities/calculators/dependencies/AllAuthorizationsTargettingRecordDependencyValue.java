@@ -1,8 +1,8 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.util.List;
-
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+
+import java.util.List;
 
 public class AllAuthorizationsTargettingRecordDependencyValue {
 
@@ -13,8 +13,8 @@ public class AllAuthorizationsTargettingRecordDependencyValue {
 	private boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity;
 
 	public AllAuthorizationsTargettingRecordDependencyValue(List<AuthorizationDetails> authorizationDetailsOnRecord,
-			List<AuthorizationDetails> authorizationDetailsOnMetadatasProvidingSecurity,
-			boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity) {
+															List<AuthorizationDetails> authorizationDetailsOnMetadatasProvidingSecurity,
+															boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity) {
 		this.authorizationDetailsOnRecord = authorizationDetailsOnRecord;
 		this.authorizationDetailsOnMetadatasProvidingSecurity = authorizationDetailsOnMetadatasProvidingSecurity;
 		this.inheritedAuthorizationsOverridenByMetadatasProvidingSecurity = inheritedAuthorizationsOverridenByMetadatasProvidingSecurity;

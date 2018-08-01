@@ -1,17 +1,16 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class Excel2003FileImportDataIteratorAcceptanceTest extends ImportDataIteratorTest {
 

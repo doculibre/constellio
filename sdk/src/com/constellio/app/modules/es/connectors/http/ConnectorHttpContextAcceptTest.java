@@ -1,12 +1,11 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorHttpContextAcceptTest extends ConstellioTest {
 

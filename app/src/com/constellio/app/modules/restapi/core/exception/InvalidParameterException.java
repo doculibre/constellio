@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class InvalidParameterException extends BaseRestApiException {
 
-    private static final String CODE = "invalidParameter";
+	private static final String CODE = "invalidParameter";
 
-    public InvalidParameterException(String parameter, String value) {
-        status = Response.Status.BAD_REQUEST;
+	public InvalidParameterException(String parameter, String value) {
+		status = Response.Status.BAD_REQUEST;
 
-        buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("parameter", parameter).put("value", value).build());
-    }
+		buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("parameter", parameter).put("value", value).build());
+	}
 }

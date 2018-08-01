@@ -1,24 +1,20 @@
 package com.constellio.sdk.tests.schemas;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataNetwork;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.DefaultClassProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public abstract class SchemasSetup {
 
@@ -105,15 +101,15 @@ public abstract class SchemasSetup {
 	}
 
 	protected void configureMetadataBuilder(MetadataBuilder metadataBuilder, MetadataSchemaTypesBuilder typesBuilder,
-			com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator... builderConfigurators) {
+											com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator... builderConfigurators) {
 		for (com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator builderConfigurator : builderConfigurators) {
 			builderConfigurator.configure(metadataBuilder, typesBuilder);
 		}
 	}
 
 	protected void configureMetadataBuilder(MetadataSchemaTypeBuilder metadataSchemaTypeBuilder,
-			MetadataSchemaTypesBuilder typesBuilder,
-			com.constellio.sdk.tests.schemas.MetadataSchemaTypeConfigurator... builderConfigurators) {
+											MetadataSchemaTypesBuilder typesBuilder,
+											com.constellio.sdk.tests.schemas.MetadataSchemaTypeConfigurator... builderConfigurators) {
 		for (com.constellio.sdk.tests.schemas.MetadataSchemaTypeConfigurator builderConfigurator : builderConfigurators) {
 			builderConfigurator.configure(metadataSchemaTypeBuilder, typesBuilder);
 		}

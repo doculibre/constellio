@@ -1,31 +1,5 @@
 package com.constellio.app.api.cmis.requests.acl;
 
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
-import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
-import static com.constellio.data.utils.LangUtils.isEqual;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
-import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -40,6 +14,29 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.*;
+import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
+import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 /**
  * Limitations of this service :
@@ -64,9 +61,11 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	private final RecordServices recordServices;
 	private final String collection;
 
-	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
-			String repositoryId, String objectId, Acl addAces, Acl removeAces, AclPropagation aclPropagation,
-			ExtensionsData extension) {
+	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
+						   CallContext context,
+						   String repositoryId, String objectId, Acl addAces, Acl removeAces,
+						   AclPropagation aclPropagation,
+						   ExtensionsData extension) {
 		super(context, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
@@ -80,8 +79,9 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		this.collection = repository.getCollection();
 	}
 
-	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
-			String repositoryId, String objectId, Acl aces, AclPropagation aclPropagation) {
+	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
+						   CallContext context,
+						   String repositoryId, String objectId, Acl aces, AclPropagation aclPropagation) {
 		super(context, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
@@ -138,7 +138,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 					for (String permission : ace.getPermissions()) {
 						if (!CMIS_READ.equals(permission) && !CMIS_WRITE.equals(permission) && !CMIS_DELETE.equals(permission)) {
 							throw new RuntimeException("An ace has unsupported permission '" + permission
-									+ "', only cmis:read/cmis:write/cmis:delete are allowed");
+													   + "', only cmis:read/cmis:write/cmis:delete are allowed");
 						}
 					}
 
@@ -147,7 +147,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 					} catch (Exception e) {
 						throw new RuntimeException(
 								"An ace has invalid principal : No such user with username or"
-										+ " group with code : '" + ace.getPrincipalId() + "'");
+								+ " group with code : '" + ace.getPrincipalId() + "'");
 					}
 				}
 			}
@@ -320,7 +320,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 	private boolean areEquals(Ace ace1, Ace ace2) {
 		return isEqual(ace1.getPrincipalId(), ace2.getPrincipalId())
-				&& hasSameElementsNoMatterTheOrder(ace1.getPermissions(), ace2.getPermissions());
+			   && hasSameElementsNoMatterTheOrder(ace1.getPermissions(), ace2.getPermissions());
 	}
 
 	private List<String> toConstellioPermissions(List<String> permissions) {

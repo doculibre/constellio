@@ -1,27 +1,12 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -29,15 +14,16 @@ import com.constellio.model.services.records.extractions.DefaultMetadataPopulato
 import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class MetadataSchemaXMLReader2 {
 
@@ -52,8 +38,9 @@ public class MetadataSchemaXMLReader2 {
 		this.classProvider = classProvider;
 	}
 
-	public MetadataSchemaTypesBuilder read(CollectionInfo collection, Document document, DataStoreTypesFactory typesFactory,
-			ModelLayerFactory modelLayerFactory) {
+	public MetadataSchemaTypesBuilder read(CollectionInfo collection, Document document,
+										   DataStoreTypesFactory typesFactory,
+										   ModelLayerFactory modelLayerFactory) {
 
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
@@ -66,7 +53,8 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
-			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+											   DataStoreTypesFactory typesFactory,
+											   ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false);
 
@@ -75,7 +63,7 @@ public class MetadataSchemaXMLReader2 {
 		}
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
-				null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
+												 null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
 
 		schemaTypeBuilder.setSecurity(getBooleanFlagValueWithFalseAsDefaultValue(element, "security"));
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
@@ -85,7 +73,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
-			MetadataSchemaBuilder collectionSchema) {
+									MetadataSchemaBuilder collectionSchema) {
 		Element customSchemasElement = root.getChild("customSchemas");
 		for (Element schemaElement : customSchemasElement.getChildren("schema")) {
 			parseSchema(schemaTypeBuilder, schemaElement, collectionSchema);
@@ -93,7 +81,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement,
-			MetadataSchemaBuilder collectionSchema) {
+							 MetadataSchemaBuilder collectionSchema) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
 		schemaBuilder.addLabel(Language.French, getLabelValue(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
@@ -107,7 +95,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void parseMetadata(MetadataSchemaBuilder schemaBuilder, Element metadataElement,
-			MetadataSchemaBuilder collectionSchema) {
+							   MetadataSchemaBuilder collectionSchema) {
 		String codeValue = getCodeValue(metadataElement);
 
 		MetadataBuilder metadataBuilder;
@@ -164,7 +152,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void parseMetadataWithoutInheritance(Element metadataElement, MetadataBuilder metadataBuilder,
-			MetadataSchemaBuilder collectionSchema) {
+												 MetadataSchemaBuilder collectionSchema) {
 		if (!metadataBuilder.isSystemReserved()) {
 			String enabledStringValue = metadataElement.getAttributeValue("enabled");
 			String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
@@ -189,7 +177,7 @@ public class MetadataSchemaXMLReader2 {
 
 		boolean inheriteGlobalMetadata = false;
 		if (Schemas.isGlobalMetadata(metadataBuilder.getLocalCode()) && collectionSchema != null
-				&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
+			&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
 			globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadataBuilder.getLocalCode());
 			inheriteGlobalMetadata = true;
 		}
@@ -229,7 +217,7 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder.setSystemReserved(globalMetadataInCollectionSchema.isSystemReserved());
 		} else {
 			metadataBuilder.setSystemReserved(!userDefinedMetadata &&
-					readBooleanWithDefaultValue(systemReservedStringValue, true));
+											  readBooleanWithDefaultValue(systemReservedStringValue, true));
 		}
 
 		String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
@@ -368,7 +356,7 @@ public class MetadataSchemaXMLReader2 {
 				Element regexConfigsElement = populateConfigsElement.getChild("regexConfigs");
 				addRegexConfigElementsToList(regexConfigsElement, regexes);
 			}
-			if (populateConfigsElement.getChild("metadataPopulators") != null){
+			if (populateConfigsElement.getChild("metadataPopulators") != null) {
 				Element metadataPopulatorsElement = populateConfigsElement.getChild("metadataPopulators");
 				addMetadataPopulateElementsToList(metadataPopulatorsElement, metadataPopulators);
 			}
@@ -382,8 +370,9 @@ public class MetadataSchemaXMLReader2 {
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
 	}
 
-	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement, List<MetadataPopulator> metadataPopulators) {
-		for (Element metadataPopulatorElement: metadataPopulatorsElement.getChildren()){
+	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement,
+												   List<MetadataPopulator> metadataPopulators) {
+		for (Element metadataPopulatorElement : metadataPopulatorsElement.getChildren()) {
 			try {
 				metadataPopulators.add(metadataPopulatorXMLSerializer.fromXML(metadataPopulatorElement));
 			} catch (Exception e) {
@@ -412,7 +401,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void setAccessRestrictions(MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder,
-			Element metadataElement) {
+									   Element metadataElement) {
 		if (metadataElement.getChild("accessRestrictions") != null) {
 			Element accessRestrictionsElement = metadataElement.getChild("accessRestrictions");
 			if (accessRestrictionsElement.getAttributeValue("readAccessRestrictions") != null) {
@@ -479,7 +468,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void addReferencesToBuilder(MetadataBuilder metadataBuilder, Element metadataElement,
-			MetadataBuilder collectionSchemaBuilder) {
+										MetadataBuilder collectionSchemaBuilder) {
 		if (metadataElement.getChild("references") != null) {
 			Element references = metadataElement.getChild("references");
 
@@ -501,7 +490,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void parseDataEntryElement(MetadataBuilder metadataBuilder, Element metadataElement,
-			MetadataBuilder collectionSchemaBuilder) {
+									   MetadataBuilder collectionSchemaBuilder) {
 		Element dataEntry = metadataElement.getChild("dataEntry");
 		if (dataEntry != null) {
 			if (dataEntry.getAttributeValue("copied") != null) {
@@ -524,7 +513,7 @@ public class MetadataSchemaXMLReader2 {
 	}
 
 	private void parseDefaultSchema(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
-			MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder collectionSchema) {
+									MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder collectionSchema) {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
 

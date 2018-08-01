@@ -1,8 +1,5 @@
 package com.constellio.app.modules.robots.migrations;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -15,6 +12,9 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RobotsMigrationTo6_3 implements MigrationScript {
 	@Override
@@ -48,7 +48,8 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 
 	static class SchemaAlterationFor6_3 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor6_3(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationFor6_3(String collection, MigrationResourcesProvider provider,
+										 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

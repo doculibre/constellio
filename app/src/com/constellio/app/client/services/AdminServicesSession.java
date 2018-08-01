@@ -1,16 +1,15 @@
 package com.constellio.app.client.services;
 
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.UserResource;
+import org.glassfish.jersey.jackson.JacksonFeature;
+
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
-
-import org.glassfish.jersey.jackson.JacksonFeature;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.UserResource;
 
 public class AdminServicesSession {
 

@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-
-import java.io.InputStream;
-import java.util.Locale;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -23,13 +14,16 @@ import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
 public class BatchProcessingButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
@@ -68,17 +62,17 @@ public class BatchProcessingButton extends WindowButton {
 		this.hasResultSelected = value;
 		return this;
 	}
-	
+
 	private Component buildSearchResultsSelectionForm() {
 		getWindow().setHeight("220px");
-		
+
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
 		vLayout.setSizeFull();
 		vLayout.setSpacing(true);
-		
+
 		Label questionLabel = new Label($("AdvancedSearch.batchProcessingRecordSelection"));
-		
+
 		BaseButton allSearchResultsButton = new BaseButton($("AdvancedSearchView.allSearchResults")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -88,7 +82,7 @@ public class BatchProcessingButton extends WindowButton {
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
 		};
-		
+
 		BaseButton selectedSearchResultsButton = new BaseButton($("AdvancedSearchView.selectedSearchResults")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -99,7 +93,7 @@ public class BatchProcessingButton extends WindowButton {
 			}
 		};
 
-		if(!hasResultSelected) {
+		if (!hasResultSelected) {
 			selectedSearchResultsButton.setEnabled(false);
 		}
 
@@ -109,12 +103,12 @@ public class BatchProcessingButton extends WindowButton {
 		panel.setSizeFull();
 		return panel;
 	}
-	
+
 	private Component buildBatchProcessingForm() {
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
 		vLayout.setSpacing(true);
-		
+
 		String typeSchemaType = presenter.getTypeSchemaType(view.getSchemaType());
 		typeField = new LookupRecordField(typeSchemaType);
 		// FIXME All schemas don't have a type field

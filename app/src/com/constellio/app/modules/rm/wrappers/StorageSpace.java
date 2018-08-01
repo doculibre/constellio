@@ -46,7 +46,7 @@ public class StorageSpace extends RecordWrapper {
 	public static final String NUMBER_OF_CONTAINERS = "numberOfContainers";
 
 	public StorageSpace(Record record,
-			MetadataSchemaTypes types) {
+						MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

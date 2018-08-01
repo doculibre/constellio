@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class RequiredParameterException extends BaseRestApiException {
 
-    private static final String CODE = "requiredParameter";
+	private static final String CODE = "requiredParameter";
 
-    public RequiredParameterException(String parameter) {
-        status = Response.Status.BAD_REQUEST;
+	public RequiredParameterException(String parameter) {
+		status = Response.Status.BAD_REQUEST;
 
-        buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("parameter", parameter).build());
-    }
+		buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("parameter", parameter).build());
+	}
 }

@@ -1,13 +1,12 @@
 package com.constellio.data.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import org.apache.commons.collections.BufferUnderflowException;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.OfficeDocumentsServicesException.CannotReadDocumentsProperties;
+import com.constellio.data.utils.OfficeDocumentsServicesException.NotCompatibleExtension;
+import com.constellio.data.utils.OfficeDocumentsServicesException.PropertyDoesntExist;
+import com.constellio.data.utils.OfficeDocumentsServicesException.RTFFileIsNotCompatible;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.hpsf.MarkUnsupportedException;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
@@ -18,13 +17,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.OfficeDocumentsServicesException.CannotReadDocumentsProperties;
-import com.constellio.data.utils.OfficeDocumentsServicesException.NotCompatibleExtension;
-import com.constellio.data.utils.OfficeDocumentsServicesException.PropertyDoesntExist;
-import com.constellio.data.utils.OfficeDocumentsServicesException.RTFFileIsNotCompatible;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class OfficeDocumentsServicesRealTest extends ConstellioTest {
@@ -48,7 +46,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test(expected = OfficeDocumentsServicesException.PropertyDoesntExist.class)
 	public void whenGetPropertyOfEmptyWordFileThenException()
 			throws CannotReadDocumentsProperties, IOException, PropertyDoesntExist, NotCompatibleExtension,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("EmptyWordFile.doc");
 		officeDocumentsServices.getProperty(inputStream, "id_igid", "doc");
 	}
@@ -63,7 +61,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test(expected = OfficeDocumentsServicesException.PropertyDoesntExist.class)
 	public void whenGetPropertyOfEmptyExcelFileThenException()
 			throws CannotReadDocumentsProperties, IOException, PropertyDoesntExist, NotCompatibleExtension,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("EmptyExcelFile.xls");
 		officeDocumentsServices.getProperty(inputStream, "id_igid", "xls");
 	}
@@ -78,7 +76,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test(expected = OfficeDocumentsServicesException.PropertyDoesntExist.class)
 	public void whenGetPropertyOfEmptyPowerPointFileThenException()
 			throws CannotReadDocumentsProperties, IOException, PropertyDoesntExist, NotCompatibleExtension,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("EmptyPowerPointFile.ppt");
 
 		officeDocumentsServices.getProperty(inputStream, "id_igid", "ppt");
@@ -87,8 +85,8 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfXLSFileThenNewProperty()
 			throws NoPropertySetStreamException, MarkUnsupportedException, UnexpectedPropertySetTypeException, IOException,
-			CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, WritingNotSupportedException,
-			MimeTypeException, RTFFileIsNotCompatible {
+				   CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, WritingNotSupportedException,
+				   MimeTypeException, RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("EmptyExcelFile.xls");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
 
@@ -100,8 +98,8 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfPptFileThenNewProperty()
 			throws NoPropertySetStreamException, MarkUnsupportedException, UnexpectedPropertySetTypeException, IOException,
-			CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, WritingNotSupportedException,
-			MimeTypeException, RTFFileIsNotCompatible {
+				   CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, WritingNotSupportedException,
+				   MimeTypeException, RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("EmptyPowerPointFile.ppt");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
 
@@ -113,8 +111,8 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfWordFileThenNewProperty()
 			throws NoPropertySetStreamException, MarkUnsupportedException, UnexpectedPropertySetTypeException, IOException,
-			CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, WritingNotSupportedException,
-			MimeTypeException, RTFFileIsNotCompatible {
+				   CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, WritingNotSupportedException,
+				   MimeTypeException, RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("EmptyWordFile.doc");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
 
@@ -168,7 +166,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfWord2007FileThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("NonEmptyWordFile2007.docx");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -181,7 +179,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfPowerPointFile2007ThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("NonEmptyPowerPointFile2007.pptx");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -194,7 +192,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfExcelFile2007ThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("NonEmptyExcelFile2007.xlsx");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -207,7 +205,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfDocxDocNamedDocThenReturnRightProperty()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentDocxNamedDoc.doc");
 		assertThat(officeDocumentsServices.getProperty(inputStream, "id_igid", "doc")).isEqualTo("1476047023");
 	}
@@ -215,7 +213,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfDocxDocNamedDocThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentDocxNamedDoc.doc");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -228,7 +226,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfDocDocNamedDocxThenReturnRightProperty()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentDocNamedDocx.docx");
 		assertThat(officeDocumentsServices.getProperty(inputStream, "id_igid", "docx")).isEqualTo("1476047023");
 	}
@@ -236,7 +234,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfDocDocNamedDocxThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentDocxNamedDoc.doc");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -249,7 +247,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfXlsDocNamedXlsxThenReturnRightProperty()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentXlsNamedXlsx.xlsx");
 		assertThat(officeDocumentsServices.getProperty(inputStream, "id_igid", "xlsx")).isEqualTo("1476047023");
 	}
@@ -257,7 +255,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfXlsDocNamedXlsxThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentXlsNamedXlsx.xlsx");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -270,7 +268,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfXlsxDocNamedXlsThenReturnRightProperty()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentXlsxNamedXls.xls");
 		assertThat(officeDocumentsServices.getProperty(inputStream, "id_igid", "xls")).isEqualTo("1476047023");
 	}
@@ -278,7 +276,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfXlsxDocNamedXlsThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentXlsxNamedXls.xls");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -291,7 +289,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfPptxDocNamedPptThenReturnRightProperty()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentPptxNamedPpt.ppt");
 		assertThat(officeDocumentsServices.getProperty(inputStream, "id_igid", "ppt")).isEqualTo("1476047023");
 	}
@@ -299,7 +297,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfPptxDocNamedPptThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			IOException, MimeTypeException, RTFFileIsNotCompatible {
+				   IOException, MimeTypeException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentPptxNamedPpt.ppt");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -312,7 +310,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfPptDocNamedPptxThenReturnRightProperty()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentPptNamedPptx.pptx");
 		assertThat(officeDocumentsServices.getProperty(inputStream, "id_igid", "pptx")).isEqualTo("1476047023");
 	}
@@ -320,7 +318,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenSetPropertyOfPptDocNamedPptxThenRightPropertyExists()
 			throws WritingNotSupportedException, NotCompatibleExtension, CannotReadDocumentsProperties, PropertyDoesntExist,
-			MimeTypeException, IOException, RTFFileIsNotCompatible {
+				   MimeTypeException, IOException, RTFFileIsNotCompatible {
 
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentPptNamedPptx.pptx");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
@@ -333,7 +331,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test(expected = OfficeDocumentsServicesException.RTFFileIsNotCompatible.class)
 	public void whenGetPropertyOfRTFDocNamedDocThenException()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentRTFNamedDoc.doc");
 		officeDocumentsServices.getProperty(inputStream, "tartanpion", "tartanpion");
 	}
@@ -341,7 +339,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test(expected = OfficeDocumentsServicesException.RTFFileIsNotCompatible.class)
 	public void whenSetPropertyOfRTFDocNamedDocThenException()
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension, IOException,
-			WritingNotSupportedException, MimeTypeException, RTFFileIsNotCompatible {
+				   WritingNotSupportedException, MimeTypeException, RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentRTFNamedDoc.doc");
 		StreamFactory<OutputStream> outputStream = getTestResourceOutputStreamFactory(tempFile);
 
@@ -351,7 +349,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenGetPropertyOfFirstByteOfFileThenException()
 			throws IOException, CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 		StreamFactory<InputStream> inputStream = getTestResourceInputStreamFactory("DocumentWithALotOfBytes.doc");
 		byte[] arrayByte = new byte[1000];
 		IOUtils.read(inputStream.create(SDK_STREAM), arrayByte);
@@ -362,7 +360,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 		try {
 			officeDocumentsServices.getProperty(inputStream, "property", "ppt");
 			Assert.fail("Exception expected");
-		} catch(java.nio.BufferUnderflowException | IOException e) {
+		} catch (java.nio.BufferUnderflowException | IOException e) {
 			//OK
 		}
 	}

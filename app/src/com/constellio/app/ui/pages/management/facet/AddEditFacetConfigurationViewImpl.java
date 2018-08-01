@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.maddon.ListContainer;
-
 import com.constellio.app.modules.rm.ui.components.facet.FacetFieldFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
@@ -25,6 +19,11 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Table;
+import org.vaadin.maddon.ListContainer;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditFacetConfigurationViewImpl extends BaseViewImpl implements AddEditFacetConfigurationView {
 	private AddEditFacetConfigurationPresenter presenter;

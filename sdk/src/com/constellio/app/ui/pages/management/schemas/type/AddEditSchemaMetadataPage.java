@@ -1,17 +1,12 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.tools.AutocompleteWebElement;
-import com.constellio.app.ui.tools.ButtonWebElement;
-import com.constellio.app.ui.tools.CheckboxWebElement;
-import com.constellio.app.ui.tools.OptionGroupWebElement;
-import com.constellio.app.ui.tools.PageHelper;
+import com.constellio.app.ui.tools.*;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class AddEditSchemaMetadataPage extends PageHelper {
 

@@ -1,16 +1,5 @@
 package org.vaadin.easyuploads;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.vaadin.easyuploads.MultiUpload.FileDetail;
-import org.vaadin.easyuploads.UploadField.FieldType;
-
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -20,15 +9,19 @@ import com.vaadin.server.StreamVariable.StreamingEndEvent;
 import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.StreamVariable.StreamingProgressEvent;
 import com.vaadin.server.StreamVariable.StreamingStartEvent;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.server.WebBrowser;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.*;
 import com.vaadin.ui.DragAndDropWrapper.WrapperTransferable;
-import com.vaadin.ui.Html5File;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.ProgressIndicator;
+import org.vaadin.easyuploads.MultiUpload.FileDetail;
+import org.vaadin.easyuploads.UploadField.FieldType;
+
+import java.io.File;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * MultiFileUpload makes it easier to upload multiple files. MultiFileUpload
@@ -51,7 +44,6 @@ import com.vaadin.ui.ProgressIndicator;
  * queued files)
  * <p>
  * TODO Time remaining estimates and current transfer rate
- * 
  */
 @SuppressWarnings("serial")
 public abstract class MultiFileUpload extends CssLayout implements DropHandler {
@@ -234,12 +226,12 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	}
 
 	abstract protected void handleFile(File file, String fileName,
-			String mimeType, long length);
+									   String mimeType, long length);
 
 	/**
 	 * A helper method to set DirectoryFileFactory with given pathname as
 	 * directory.
-	 * 
+	 *
 	 * @param file
 	 */
 	public void setRootDirectory(String directoryWhereToUpload) {
@@ -278,7 +270,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 				public void onProgress(StreamingProgressEvent event) {
 					float p = (float) event.getBytesReceived()
-							/ (float) event.getContentLength();
+							  / (float) event.getContentLength();
 					pi.setValue(p);
 				}
 

@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.model.calculators;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.services.records.RecordServices;
@@ -18,37 +17,37 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class TemporaryRecordDestructionDateCalculatorAcceptanceTest extends ConstellioTest {
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    TemporaryRecordDestructionDateCalculator calculator;
+	TemporaryRecordDestructionDateCalculator calculator;
 
-    RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
-    RecordServices recordServices;
+	RecordServices recordServices;
 
-    SearchServices searchServices;
+	SearchServices searchServices;
 
-    @Mock
-    CalculatorParameters parameters;
+	@Mock
+	CalculatorParameters parameters;
 
-    @Before
-    public void setUp() {
-        givenBackgroundThreadsEnabled();
-        calculator = spy(new TemporaryRecordDestructionDateCalculator());
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
-        );
+	@Before
+	public void setUp() {
+		givenBackgroundThreadsEnabled();
+		calculator = spy(new TemporaryRecordDestructionDateCalculator());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
 
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        recordServices = getModelLayerFactory().newRecordServices();
-        searchServices = getModelLayerFactory().newSearchServices();
-    }
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+	}
 
-    @Test
-    public void givenParametersThenCalculatorReturnsGoodValue()  {
-        when(parameters.get(calculator.numberOfDaysParams)).thenReturn(5D);
-        when(parameters.get(calculator.creationDate)).thenReturn(new LocalDateTime());
-        assertThat(calculator.calculate(parameters).toString("dd/MM/yyyy")).isEqualTo(new LocalDate().plusDays(5).toString("dd/MM/yyyy"));
-    }
+	@Test
+	public void givenParametersThenCalculatorReturnsGoodValue() {
+		when(parameters.get(calculator.numberOfDaysParams)).thenReturn(5D);
+		when(parameters.get(calculator.creationDate)).thenReturn(new LocalDateTime());
+		assertThat(calculator.calculate(parameters).toString("dd/MM/yyyy")).isEqualTo(new LocalDate().plusDays(5).toString("dd/MM/yyyy"));
+	}
 }

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -32,6 +25,13 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
 
 public class ESMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -65,7 +65,8 @@ public class ESMigrationCombo implements ComboMigrationScript {
 	MigrationResourcesProvider migrationResourcesProvider;
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -86,14 +87,15 @@ public class ESMigrationCombo implements ComboMigrationScript {
 	}
 
 	private void applySchemasDisplay2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			SchemasDisplayManager manager) {
+									  SchemasDisplayManager manager) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 
 		manager.execute(transaction.build());
 	}
 
-	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
+	private Transaction createRecordTransaction(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
 		Transaction transaction = new Transaction();
 
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
@@ -238,7 +240,8 @@ public class ESMigrationCombo implements ComboMigrationScript {
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlteration(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

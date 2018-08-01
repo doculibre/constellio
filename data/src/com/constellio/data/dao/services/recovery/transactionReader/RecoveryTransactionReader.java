@@ -7,14 +7,14 @@ import com.constellio.data.io.services.facades.IOServices;
 
 public class RecoveryTransactionReader extends TransactionLogReadWriteServices {
 	public RecoveryTransactionReader(boolean writeZZRecords, IOServices ioServices,
-			DataLayerConfiguration configuration) {
+									 DataLayerConfiguration configuration) {
 		super(ioServices, configuration, new AcceptAllExtension());
 	}
 
 	private static class AcceptAllExtension extends DataLayerSystemExtensions {
 		@Override
 		public boolean isDocumentFieldLoggedInTransactionLog(String field, String schema, String collection,
-				boolean defaultValue) {
+															 boolean defaultValue) {
 			return true;
 		}
 	}

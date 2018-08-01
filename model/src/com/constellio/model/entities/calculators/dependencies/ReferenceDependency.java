@@ -1,13 +1,12 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.util.List;
-import java.util.SortedMap;
-
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.List;
+import java.util.SortedMap;
 
 public class ReferenceDependency<T> implements Dependency {
 
@@ -25,7 +24,8 @@ public class ReferenceDependency<T> implements Dependency {
 
 	final boolean metadataCreatedLater;
 
-	private ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, MetadataValueType returnType) {
+	private ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode,
+								MetadataValueType returnType) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.dependentMetadataCode = dependentMetadataCode;
@@ -36,8 +36,9 @@ public class ReferenceDependency<T> implements Dependency {
 		this.metadataCreatedLater = false;
 	}
 
-	public ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, boolean required, boolean multivalue,
-			MetadataValueType returnType, boolean groupedByReference, boolean metadataCreatedLater) {
+	public ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, boolean required,
+							   boolean multivalue,
+							   MetadataValueType returnType, boolean groupedByReference, boolean metadataCreatedLater) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.dependentMetadataCode = dependentMetadataCode;
@@ -83,7 +84,7 @@ public class ReferenceDependency<T> implements Dependency {
 
 	//@formatter:off
 
-		public static <Z> ReferenceDependency<Z> toAnEnum(String referenceMetadataCode, String dependentMetadataCode) {
+	public static <Z> ReferenceDependency<Z> toAnEnum(String referenceMetadataCode, String dependentMetadataCode) {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.ENUM, false, false);
 	}
 
@@ -107,7 +108,8 @@ public class ReferenceDependency<T> implements Dependency {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE, false, false);
 	}
 
-	public static ReferenceDependency<LocalDateTime> toADateTime(String referenceMetadataCode, String dependentMetadataCode) {
+	public static ReferenceDependency<LocalDateTime> toADateTime(String referenceMetadataCode,
+																 String dependentMetadataCode) {
 		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE_TIME, false, false);
 	}
 
@@ -155,8 +157,8 @@ public class ReferenceDependency<T> implements Dependency {
 	@Override
 	public String toString() {
 		return "ReferenceDependency{" +
-				"referenceMetadataCode='" + referenceMetadataCode + '\'' +
-				", dependentMetadataCode='" + dependentMetadataCode + '\'' +
-				'}';
+			   "referenceMetadataCode='" + referenceMetadataCode + '\'' +
+			   ", dependentMetadataCode='" + dependentMetadataCode + '\'' +
+			   '}';
 	}
 }

@@ -1,12 +1,12 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServicesException;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EditConnectorInstancePresenter extends AddEditConnectorInstancePresenter {
 

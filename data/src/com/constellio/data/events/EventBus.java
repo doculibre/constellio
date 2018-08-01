@@ -1,10 +1,10 @@
 package com.constellio.data.events;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.utils.TimeProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EventBus {
 

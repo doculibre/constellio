@@ -1,17 +1,17 @@
 package com.constellio.model.services.records.preparation;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class RecordsToReindexResolver {
 
@@ -47,7 +47,7 @@ public class RecordsToReindexResolver {
 		}
 
 		for (Metadata metadata : metadatas) {
-			if(metadata.getInheritance() != null) {
+			if (metadata.getInheritance() != null) {
 				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata.getInheritance())) {
 					if (link.getLevel() > 0) {
 						metadatasToReindex.add(link.getFromMetadata().getCode());

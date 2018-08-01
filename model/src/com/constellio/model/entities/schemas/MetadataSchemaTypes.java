@@ -1,26 +1,18 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.data.dao.services.records.DataStore.RECORDS;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class MetadataSchemaTypes implements Serializable {
 
@@ -45,8 +37,9 @@ public class MetadataSchemaTypes implements Serializable {
 	private final CollectionInfo collectionInfo;
 
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
-			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages,
-			MetadataNetwork metadataNetwork) {
+							   List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues,
+							   List<Language> languages,
+							   MetadataNetwork metadataNetwork) {
 		super();
 		this.version = version;
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
@@ -71,7 +64,7 @@ public class MetadataSchemaTypes implements Serializable {
 			for (MetadataSchema schema : schemaType.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					if (metadata.getInheritance() == null && metadata.isSearchable()
-							&& !searchableMetadatasDataStoreCodes.contains(metadata.getDataStoreCode())) {
+						&& !searchableMetadatasDataStoreCodes.contains(metadata.getDataStoreCode())) {
 						searchableMetadatasDataStoreCodes.add(metadata.getDataStoreCode());
 						searchableMetadatas.add(metadata);
 					}
@@ -90,7 +83,7 @@ public class MetadataSchemaTypes implements Serializable {
 			for (MetadataSchemaType anotherType : schemaTypes) {
 				for (Metadata metadata : anotherType.getAllMetadatas()) {
 					if (metadata.getType() == REFERENCE && metadata.isChildOfRelationship()
-							&& metadata.getAllowedReferences().isAllowed(type)) {
+						&& metadata.getAllowedReferences().isAllowed(type)) {
 						typeParentOfOtherTypes.add(type.getCode());
 						break secondFor;
 					}

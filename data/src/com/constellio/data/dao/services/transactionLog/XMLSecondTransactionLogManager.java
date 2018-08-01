@@ -1,35 +1,5 @@
 package com.constellio.data.dao.services.transactionLog;
 
-import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.io.services.zip.ZipServiceException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.AbstractFileFilter;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -43,21 +13,37 @@ import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoE
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.*;
 import com.constellio.data.dao.services.transactionLog.replay.TransactionLogReplayServices;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AbstractFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
 
 public class XMLSecondTransactionLogManager implements SecondTransactionLogManager {
 
@@ -101,9 +87,12 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
 	private boolean automaticRegroup = true;
 
-	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices, RecordDao recordDao,
-			ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager, DataLayerLogger dataLayerLogger,
-			DataLayerSystemExtensions dataLayerSystemExtensions, TransactionLogRecoveryManager transactionLogRecoveryManager) {
+	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices,
+										  RecordDao recordDao,
+										  ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager,
+										  DataLayerLogger dataLayerLogger,
+										  DataLayerSystemExtensions dataLayerSystemExtensions,
+										  TransactionLogRecoveryManager transactionLogRecoveryManager) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -201,7 +190,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public void moveLastBackupAsCurrentLog() {
 		String lastTLOGBackup = getLastTLOGBackup();
-		if(lastTLOGBackup != null) {
+		if (lastTLOGBackup != null) {
 			File tlogsFolder = contentDao.getFileOf("tlogs/");
 			ioServices.deleteQuietly(tlogsFolder);
 
@@ -222,7 +211,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		LocalDateTime lastFolderDateTime = null;
 		for (String backup : backups) {
 			File backupFile = contentDao.getFileOf(backup);
-			if(!backupFile.isDirectory()) {
+			if (!backupFile.isDirectory()) {
 				String backupName = backup.split("/")[1];
 				backupName = backupName.replace(".zip", "");
 				DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");

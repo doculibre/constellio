@@ -17,121 +17,122 @@ import java.util.List;
 
 public class CorrectorExcluderManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<List<CorrectorExclusion>> {
 
-    private static String EXCLUSION_CONFIG = "/exclusion.xml";
-    private OneXMLConfigPerCollectionManager<List<CorrectorExclusion>> oneXMLConfigPerCollectionManager;
-    private ConfigManager configManager;
-    private CollectionsListManager collectionsListManager;
-    private ConstellioCacheManager cacheManager;
+	private static String EXCLUSION_CONFIG = "/exclusion.xml";
+	private OneXMLConfigPerCollectionManager<List<CorrectorExclusion>> oneXMLConfigPerCollectionManager;
+	private ConfigManager configManager;
+	private CollectionsListManager collectionsListManager;
+	private ConstellioCacheManager cacheManager;
 
 
-    public CorrectorExcluderManager(ModelLayerFactory modelLayerFactory) {
-        this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
-        this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-        this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
-    }
+	public CorrectorExcluderManager(ModelLayerFactory modelLayerFactory) {
+		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
+	}
 
-    @Override
-    public void initialize() {
-        ConstellioCache cache = cacheManager.getCache(CorrectorExcluderManager.class.getName());
-        this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager(configManager,
-                collectionsListManager,
-                EXCLUSION_CONFIG, xmlConfigReader(), this, new DocumentAlteration() {
-            @Override
-            public void alter(Document document) {
-                new CorrectorExcluderWriter(document).createEmptyException();
-            }
-        }, cache);
-    }
+	@Override
+	public void initialize() {
+		ConstellioCache cache = cacheManager.getCache(CorrectorExcluderManager.class.getName());
+		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager(configManager,
+				collectionsListManager,
+				EXCLUSION_CONFIG, xmlConfigReader(), this, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				new CorrectorExcluderWriter(document).createEmptyException();
+			}
+		}, cache);
+	}
 
-    @Override
-    public void close() {
+	@Override
+	public void close() {
 
-    }
+	}
 
-    public void createCollectionExcluder(String collection) {
-        DocumentAlteration createConfigAlteration = new DocumentAlteration() {
-            @Override
-            public void alter(Document document) {
-                CorrectorExcluderWriter writer = new CorrectorExcluderWriter(document);
-                writer.createEmptyException();
-            }
-        };
-        oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
-    }
+	public void createCollectionExcluder(String collection) {
+		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				CorrectorExcluderWriter writer = new CorrectorExcluderWriter(document);
+				writer.createEmptyException();
+			}
+		};
+		oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
+	}
 
-    private XMLConfigReader<List<CorrectorExclusion>> xmlConfigReader() {
-        return new XMLConfigReader<List<CorrectorExclusion>>() {
-            @Override
-            public List<CorrectorExclusion> read(String collection, Document document) {
-                return newExclusionReader(document).getAllCorrection();
-            }
-        };
-    }
+	private XMLConfigReader<List<CorrectorExclusion>> xmlConfigReader() {
+		return new XMLConfigReader<List<CorrectorExclusion>>() {
+			@Override
+			public List<CorrectorExclusion> read(String collection, Document document) {
+				return newExclusionReader(document).getAllCorrection();
+			}
+		};
+	}
 
-    public List<CorrectorExclusion> getAllExclusion(String collection) {
-        return oneXMLConfigPerCollectionManager.get(collection);
-    }
+	public List<CorrectorExclusion> getAllExclusion(String collection) {
+		return oneXMLConfigPerCollectionManager.get(collection);
+	}
 
-    public void addExclusion(final CorrectorExclusion exclusion) {
-        DocumentAlteration alteration = new DocumentAlteration() {
-            @Override
-            public void alter(Document document) {
-                CorrectorExcluderWriter writer = newExclusionWriter(document);
-                writer.addExclusion(exclusion);
-            }
-        };
-        oneXMLConfigPerCollectionManager.updateXML(exclusion.getCollection(), alteration);
-    }
+	public void addExclusion(final CorrectorExclusion exclusion) {
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				CorrectorExcluderWriter writer = newExclusionWriter(document);
+				writer.addExclusion(exclusion);
+			}
+		};
+		oneXMLConfigPerCollectionManager.updateXML(exclusion.getCollection(), alteration);
+	}
 
-    public void deleteException(final CorrectorExclusion correctorExclusion)
-            throws RolesManagerRuntimeException {
-        DocumentAlteration alteration = new DocumentAlteration() {
-            @Override
-            public void alter(Document document) {
-                CorrectorExcluderWriter writer = newExclusionWriter(document);
-                writer.deleteExclusion(correctorExclusion);
-            }
-        };
-        oneXMLConfigPerCollectionManager.updateXML(correctorExclusion.getCollection(), alteration);
-    }
+	public void deleteException(final CorrectorExclusion correctorExclusion)
+			throws RolesManagerRuntimeException {
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				CorrectorExcluderWriter writer = newExclusionWriter(document);
+				writer.deleteExclusion(correctorExclusion);
+			}
+		};
+		oneXMLConfigPerCollectionManager.updateXML(correctorExclusion.getCollection(), alteration);
+	}
 
-    public void updateException(final CorrectorExclusion oldCorrectionExclusion , final CorrectorExclusion correctorExclusion)
-            throws RolesManagerRuntimeException {
-        DocumentAlteration alteration = new DocumentAlteration() {
-            @Override
-            public void alter(Document document) {
-                CorrectorExcluderWriter writer = newExclusionWriter(document);
-                writer.updateExclusion(correctorExclusion, oldCorrectionExclusion);
-            }
-        };
-        oneXMLConfigPerCollectionManager.updateXML(correctorExclusion.getCollection(), alteration);
-    }
+	public void updateException(final CorrectorExclusion oldCorrectionExclusion,
+								final CorrectorExclusion correctorExclusion)
+			throws RolesManagerRuntimeException {
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				CorrectorExcluderWriter writer = newExclusionWriter(document);
+				writer.updateExclusion(correctorExclusion, oldCorrectionExclusion);
+			}
+		};
+		oneXMLConfigPerCollectionManager.updateXML(correctorExclusion.getCollection(), alteration);
+	}
 
-    public void createCollectionExclusion(String collection) {
-        DocumentAlteration createConfigAlteration = new DocumentAlteration() {
-            @Override
-            public void alter(Document document) {
-                CorrectorExcluderWriter writer = newExclusionWriter(document);
-                writer.createEmptyException();
-            }
-        };
-        oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
-    }
+	public void createCollectionExclusion(String collection) {
+		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				CorrectorExcluderWriter writer = newExclusionWriter(document);
+				writer.createEmptyException();
+			}
+		};
+		oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
+	}
 
-    private CorrectorExcluderWriter newExclusionWriter(Document document) {
-        return new CorrectorExcluderWriter(document);
-    }
+	private CorrectorExcluderWriter newExclusionWriter(Document document) {
+		return new CorrectorExcluderWriter(document);
+	}
 
-    private CorrectorExcluderReader newExclusionReader(Document document) {
-        return new CorrectorExcluderReader(document);
-    }
+	private CorrectorExcluderReader newExclusionReader(Document document) {
+		return new CorrectorExcluderReader(document);
+	}
 
-    @Override
-    public void onValueModified(String collection, List<CorrectorExclusion> newValue) {
+	@Override
+	public void onValueModified(String collection, List<CorrectorExclusion> newValue) {
 
-    }
+	}
 
-    public List<String> getCollectionListExceptSystem() {
-        return collectionsListManager.getCollectionsExcludingSystem();
-    }
+	public List<String> getCollectionListExceptSystem() {
+		return collectionsListManager.getCollectionsExcludingSystem();
+	}
 }

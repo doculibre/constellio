@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.extensions.app;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -22,6 +18,10 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class RMBatchProcessingExtension extends BatchProcessingExtension {
 
@@ -139,8 +139,8 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 	public boolean hasMetadataSpecificAssociatedField(MetadataVO metadataVO) {
 		String metadataLocalCode = metadataVO.getLocalCode();
 		return metadataLocalCode.equals(Folder.TYPE)
-				|| metadataLocalCode.equals(Document.TYPE)
-				|| metadataLocalCode.equals(ContainerRecord.TYPE)
-				|| metadataLocalCode.equals(Folder.MAIN_COPY_RULE_ID_ENTERED);
+			   || metadataLocalCode.equals(Document.TYPE)
+			   || metadataLocalCode.equals(ContainerRecord.TYPE)
+			   || metadataLocalCode.equals(Folder.MAIN_COPY_RULE_ID_ENTERED);
 	}
 }

@@ -1,18 +1,13 @@
 package com.constellio.model.services.search.query.logical.ongoing;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
-import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
-import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchConditionBuilder;
+import com.constellio.model.services.search.query.logical.condition.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class OngoingLogicalSearchCondition {
 

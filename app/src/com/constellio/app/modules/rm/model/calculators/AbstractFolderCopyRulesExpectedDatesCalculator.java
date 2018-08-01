@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -14,6 +9,10 @@ import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements MetadataValueCalculator<List<LocalDate>> {
 	LocalDependency<List<CopyRetentionRule>> applicableCopyRulesParam = LocalDependency
@@ -80,7 +79,8 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 
 	protected abstract List<? extends Dependency> getCopyRuleDateCalculationDependencies();
 
-	protected abstract LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters);
+	protected abstract LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule,
+													  CalculatorParameters parameters);
 
 	protected class AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput {
 

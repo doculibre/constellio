@@ -1,23 +1,21 @@
 package com.constellio.app.modules.es.connectors.smb.assumptions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbAuthException;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbAuthException;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JcifsAssumptionsRealTest extends ConstellioTest {
 	private static String validServer;
@@ -34,26 +32,26 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 	private static NtlmPasswordAuthentication auth;
 	private static SmbTestCommandFactory commandFactory;
 
-//	@BeforeClass
-//	public static void before() {
-//		domain = SDKPasswords.testSmbDomain();
-//		username = SDKPasswords.testSmbUsername();
-//		password = SDKPasswords.testSmbPassword();
-//		auth = new NtlmPasswordAuthentication(domain, username, password);
-//
-//		validServer = SDKPasswords.testSmbVMHost();
-//		validShare = validServer + SDKPasswords.testSmbShare();
-//		validFile = validShare + SmbTestParams.FILE_NAME;
-//		validFolder = validShare + SmbTestParams.FOLDER_NAME;
-//		invalidShare = validServer + "invalidShare/";
-//		validShareWithNonExistingFile = validShare + "nofile";
-//		validShareWithNonExistingFileInSubFolder = validShare + "subfolder/nofile";
-//		invalidServer = "smb://192.168.1.207/share/nofile";
-//
-//		commandFactory = new SmbTestCommandFactory(auth);
-//		SmbTestCommand populateMinimalShare = commandFactory.get(SmbTestCommandType.POPULATE_MINIMAL_SHARE, validShare, "");
-//		populateMinimalShare.execute();
-//	}
+	//	@BeforeClass
+	//	public static void before() {
+	//		domain = SDKPasswords.testSmbDomain();
+	//		username = SDKPasswords.testSmbUsername();
+	//		password = SDKPasswords.testSmbPassword();
+	//		auth = new NtlmPasswordAuthentication(domain, username, password);
+	//
+	//		validServer = SDKPasswords.testSmbVMHost();
+	//		validShare = validServer + SDKPasswords.testSmbShare();
+	//		validFile = validShare + SmbTestParams.FILE_NAME;
+	//		validFolder = validShare + SmbTestParams.FOLDER_NAME;
+	//		invalidShare = validServer + "invalidShare/";
+	//		validShareWithNonExistingFile = validShare + "nofile";
+	//		validShareWithNonExistingFileInSubFolder = validShare + "subfolder/nofile";
+	//		invalidServer = "smb://192.168.1.207/share/nofile";
+	//
+	//		commandFactory = new SmbTestCommandFactory(auth);
+	//		SmbTestCommand populateMinimalShare = commandFactory.get(SmbTestCommandType.POPULATE_MINIMAL_SHARE, validShare, "");
+	//		populateMinimalShare.execute();
+	//	}
 
 	@Test
 	@InDevelopmentTest
@@ -347,7 +345,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 	 * smb://192.168.1.246/share/folder10/
 	 * smb://192.168.1.246/share/foldera/
 	 * smb://192.168.1.246/share/folderz/
-	 * 
+	 *
 	 * Also, cannot create both filea and fileA in the same location.
 	 */
 	public void whenListingShareContentThenGetSpecificOrder()
@@ -392,11 +390,11 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		populateMinimalShare.execute();
 	}
 
-//	@AfterClass
-//	public static void after()
-//			throws InterruptedException {
-//		Thread.sleep(1000);
-//		SmbTestCommand clean = commandFactory.get(SmbTestCommandType.CLEAN_SHARE, validShare, "");
-//		clean.execute();
-//	}
+	//	@AfterClass
+	//	public static void after()
+	//			throws InterruptedException {
+	//		Thread.sleep(1000);
+	//		SmbTestCommand clean = commandFactory.get(SmbTestCommandType.CLEAN_SHARE, validShare, "");
+	//		clean.execute();
+	//	}
 }

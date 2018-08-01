@@ -1,16 +1,16 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static org.joda.time.Days.daysBetween;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import org.joda.time.LocalDate;
 
 import java.util.List;
 
-import org.joda.time.LocalDate;
-
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import static org.joda.time.Days.daysBetween;
 
 public class CalculatorUtils {
 
-	public static LocalDate toNextEndOfYearDateIfNotAlready(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
+	public static LocalDate toNextEndOfYearDateIfNotAlready(LocalDate date, String yearEndStr,
+															int requiredDaysBeforeYearEnd) {
 		if (isEndOfYear(date, yearEndStr)) {
 			return date;
 		} else {
@@ -26,7 +26,7 @@ public class CalculatorUtils {
 	}
 
 	static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd,
-			boolean addDayIfEndOfYear) {
+										 boolean addDayIfEndOfYear) {
 		if (date == null) {
 			return null;
 		}
@@ -71,8 +71,9 @@ public class CalculatorUtils {
 		return date.getDayOfMonth() == yearEndDay && date.getMonthOfYear() == yearEndMonth;
 	}
 
-	public static LocalDate calculateExpectedTransferDate(CopyRetentionRule copyRule, LocalDate adjustedDecommissioningDate,
-			int defaultNumberOfYearWhenVariableDelay) {
+	public static LocalDate calculateExpectedTransferDate(CopyRetentionRule copyRule,
+														  LocalDate adjustedDecommissioningDate,
+														  int defaultNumberOfYearWhenVariableDelay) {
 
 		int numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay;
 		if (copyRule.getOpenActiveRetentionPeriod() != null && copyRule.getOpenActiveRetentionPeriod() >= 0) {
@@ -102,7 +103,7 @@ public class CalculatorUtils {
 	}
 
 	public static LocalDate calculateExpectedInactiveDate(CopyRetentionRule copyRule,
-			LocalDate baseDate, int numberOfYearWhenVariableDelayPeriod) {
+														  LocalDate baseDate, int numberOfYearWhenVariableDelayPeriod) {
 
 		if (baseDate == null) {
 			return null;

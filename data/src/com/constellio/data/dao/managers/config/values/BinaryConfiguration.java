@@ -1,11 +1,10 @@
 package com.constellio.data.dao.managers.config.values;
 
-import java.io.InputStream;
-
+import com.constellio.data.io.streamFactories.StreamFactory;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.data.io.streamFactories.StreamFactory;
+import java.io.InputStream;
 
 public class BinaryConfiguration {
 

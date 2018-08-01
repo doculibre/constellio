@@ -1,26 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
-import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
-import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
-import static com.constellio.model.entities.schemas.Schemas.PATH;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import com.constellio.app.services.metadata.MetadataDeletionException;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_ExtractedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_FacetMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_InheritedMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.*;
 import com.constellio.app.services.metadata.MetadataDeletionService;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
@@ -36,6 +17,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.*;
 
 public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> {
 	private transient MetadataDeletionService metadataDeletionService;
@@ -64,9 +51,9 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return metadata.getLocalCode().startsWith("USR")
-						&& metadata.isEnabled()
-						&& !isDDVOrTaxonomy(metadata)
-						&& isNotAHiddenSystemReserved(metadata);
+					   && metadata.isEnabled()
+					   && !isDDVOrTaxonomy(metadata)
+					   && isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
@@ -75,9 +62,9 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return !metadata.getLocalCode().startsWith("USR")
-						&& metadata.isEnabled()
-						&& !isDDVOrTaxonomy(metadata)
-						&& isNotAHiddenSystemReserved(metadata);
+					   && metadata.isEnabled()
+					   && !isDDVOrTaxonomy(metadata)
+					   && isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
@@ -86,8 +73,8 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return metadata.isEnabled()
-						&& isDDVOrTaxonomy(metadata)
-						&& isNotAHiddenSystemReserved(metadata);
+					   && isDDVOrTaxonomy(metadata)
+					   && isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
@@ -96,7 +83,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
 				return !metadata.isEnabled()
-						&& isNotAHiddenSystemReserved(metadata);
+					   && isNotAHiddenSystemReserved(metadata);
 			}
 		};
 
@@ -112,7 +99,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
 			String referencedSchemaType = metadata.getReferencedSchemaType();
 			return referencedSchemaType.startsWith("taxo")
-					|| (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
+				   || (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
 
 		} else {
 			return false;

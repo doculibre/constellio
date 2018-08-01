@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Created by constellios on 2017-05-30.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface CloudTest {
 
 }

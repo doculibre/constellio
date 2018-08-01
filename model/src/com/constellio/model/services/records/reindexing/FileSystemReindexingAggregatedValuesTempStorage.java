@@ -1,18 +1,7 @@
 package com.constellio.model.services.records.reindexing;
 
-import static java.lang.Class.forName;
-import static org.apache.commons.lang3.EnumUtils.getEnum;
-import static org.apache.commons.lang3.StringUtils.substringAfter;
-import static org.apache.commons.lang3.StringUtils.substringBefore;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.data.utils.KeyIntMap;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -20,8 +9,14 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.utils.KeyIntMap;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static java.lang.Class.forName;
+import static org.apache.commons.lang3.EnumUtils.getEnum;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 
 public class FileSystemReindexingAggregatedValuesTempStorage implements ReindexingAggregatedValuesTempStorage {
 
@@ -37,7 +32,7 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 	@Override
 	public void addOrReplace(String recordIdAggregatingValues, String recordId, String inputMetadataLocalCode,
-			List<Object> values) {
+							 List<Object> values) {
 
 		File file = new File(baseFolder, recordIdAggregatingValues);
 

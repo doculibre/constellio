@@ -2,8 +2,8 @@ package com.constellio.data.io.concurrent.data;
 
 import java.nio.charset.StandardCharsets;
 
-public class TextView implements DataWrapper<String>{
-	private String data; 
+public class TextView implements DataWrapper<String> {
+	private String data;
 
 	@Override
 	public void init(byte[] data) {

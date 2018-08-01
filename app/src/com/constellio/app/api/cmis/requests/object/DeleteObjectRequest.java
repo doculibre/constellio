@@ -1,29 +1,24 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_RecordServicesError;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 
@@ -31,7 +26,7 @@ public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 	private final String objectId;
 
 	public DeleteObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext callContext, String objectId) {
+							   CallContext callContext, String objectId) {
 		super(callContext, repository, appLayerFactory);
 		this.objectId = objectId;
 	}
@@ -53,7 +48,7 @@ public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 			} else {
 				record.set(metadata, null);
 			}
-//			DeleteContentParams params = new DeleteContentParams(user, record);
+			//			DeleteContentParams params = new DeleteContentParams(user, record);
 			//			appLayerFactory.getExtensions().forCollection(collection).onDeleteContent(params);
 			try {
 				recordServices.execute(new Transaction(record).setUser(user));

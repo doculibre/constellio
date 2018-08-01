@@ -24,62 +24,60 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class AceDaoTest {
 
-    @Mock private AuthorizationsServices authorizationsServices;
-    @Mock private User user;
-    @Mock private Record record;
-    @Mock private Authorization authorization;
-    @Mock private AuthorizationDetails authorizationDetails;
-    @Mock private AuthorizationModificationRequest authorizationModificationRequest;
+	@Mock private AuthorizationsServices authorizationsServices;
+	@Mock private User user;
+	@Mock private Record record;
+	@Mock private Authorization authorization;
+	@Mock private AuthorizationDetails authorizationDetails;
+	@Mock private AuthorizationModificationRequest authorizationModificationRequest;
 
-    @InjectMocks @Spy private AceDao aceDao;
+	@InjectMocks @Spy private AceDao aceDao;
 
-    private List<AceDto> aces;
-    private String id = "id";
+	private List<AceDto> aces;
+	private String id = "id";
 
-    @Before
-    public void setUp() {
-        initMocks(this);
+	@Before
+	public void setUp() {
+		initMocks(this);
 
-        aces = singletonList(AceDto.builder().principals(singleton("id")).permissions(singleton("READ")).build());
+		aces = singletonList(AceDto.builder().principals(singleton("id")).permissions(singleton("READ")).build());
 
-        when(authorizationsServices.getAuthorization(anyString(), anyString())).thenReturn(authorization);
-        when(authorization.getDetail()).thenReturn(authorizationDetails);
+		when(authorizationsServices.getAuthorization(anyString(), anyString())).thenReturn(authorization);
+		when(authorization.getDetail()).thenReturn(authorizationDetails);
 
-        doReturn(record).when(aceDao).getUserByUsername(anyString(), anyString());
-    }
+		doReturn(record).when(aceDao).getUserByUsername(anyString(), anyString());
+	}
 
-    @Test(expected=UnresolvableOptimisticLockException.class)
-    public void testAddAcesUnresolvableOptimisticLockException() {
-        when(authorizationsServices.add(any(AuthorizationAddRequest.class), any(User.class))).thenThrow(
-                new AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException(
-                new RecordServicesException.UnresolvableOptimisticLockingConflict(id)));
+	@Test(expected = UnresolvableOptimisticLockException.class)
+	public void testAddAcesUnresolvableOptimisticLockException() {
+		when(authorizationsServices.add(any(AuthorizationAddRequest.class), any(User.class))).thenThrow(
+				new AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException(
+						new RecordServicesException.UnresolvableOptimisticLockingConflict(id)));
 
-        aceDao.addAces(user, record, aces);
-    }
+		aceDao.addAces(user, record, aces);
+	}
 
-    @Test(expected=UnresolvableOptimisticLockException.class)
-    public void testUpdateAcesUnresolvableOptimisticLockException() {
-        doThrow(new AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException(
-                new RecordServicesException.UnresolvableOptimisticLockingConflict(id)))
-                .when(authorizationsServices).execute(any(AuthorizationModificationRequest.class));
+	@Test(expected = UnresolvableOptimisticLockException.class)
+	public void testUpdateAcesUnresolvableOptimisticLockException() {
+		doThrow(new AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException(
+				new RecordServicesException.UnresolvableOptimisticLockingConflict(id)))
+				.when(authorizationsServices).execute(any(AuthorizationModificationRequest.class));
 
-        aceDao.updateAces(user, record, aces);
-    }
+		aceDao.updateAces(user, record, aces);
+	}
 
-    @Test(expected=UnresolvableOptimisticLockException.class)
-    public void testRemoveAcesUnresolvableOptimisticLockException() {
-        doThrow(new AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException(
-                new RecordServicesException.UnresolvableOptimisticLockingConflict(id)))
-                .when(authorizationsServices).execute(any(AuthorizationDeleteRequest.class));
+	@Test(expected = UnresolvableOptimisticLockException.class)
+	public void testRemoveAcesUnresolvableOptimisticLockException() {
+		doThrow(new AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException(
+				new RecordServicesException.UnresolvableOptimisticLockingConflict(id)))
+				.when(authorizationsServices).execute(any(AuthorizationDeleteRequest.class));
 
-        aceDao.removeAces(user, record, aces);
-    }
+		aceDao.removeAces(user, record, aces);
+	}
 
 }

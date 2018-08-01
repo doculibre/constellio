@@ -1,14 +1,5 @@
 package com.constellio.model.services.schemas.validators;
 
-import static com.constellio.data.utils.LangUtils.isEqual;
-import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
-import static java.lang.Boolean.TRUE;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -18,6 +9,15 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.records.RecordProvider;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static java.lang.Boolean.TRUE;
 
 public class AllowedReferencesValidator implements Validator<Record> {
 
@@ -33,7 +33,8 @@ public class AllowedReferencesValidator implements Validator<Record> {
 	private boolean skippingReferenceToLogicallyDeletedValidation;
 
 	public AllowedReferencesValidator(MetadataSchemaTypes schemaTypes, List<Metadata> metadatas,
-			RecordProvider recordProvider, boolean skippingReferenceToLogicallyDeletedValidation) {
+									  RecordProvider recordProvider,
+									  boolean skippingReferenceToLogicallyDeletedValidation) {
 		this.schemaTypes = schemaTypes;
 		this.metadatas = metadatas;
 		this.recordProvider = recordProvider;
@@ -50,7 +51,7 @@ public class AllowedReferencesValidator implements Validator<Record> {
 		}
 		for (Metadata metadata : metadatas) {
 			if (metadata.getType() == MetadataValueType.REFERENCE && record.isModified(metadata)
-					&& record.get(metadata) != null) {
+				&& record.get(metadata) != null) {
 				if (metadata.isMultivalue()) {
 					List<String> wasValue = wasRecord == null ? new ArrayList<String>() : wasRecord.<String>getList(metadata);
 					List<String> referencedValues = (List) record.get(metadata);
@@ -70,7 +71,7 @@ public class AllowedReferencesValidator implements Validator<Record> {
 							}
 
 							if (newItems.contains(referenceValueStr) && !skippingReferenceToLogicallyDeletedValidation
-									&& TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
+								&& TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
 
 								addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
 										schema.getCode(), (String) referenceValueStr);
@@ -109,8 +110,9 @@ public class AllowedReferencesValidator implements Validator<Record> {
 		return schemaTypes.getSchema(referencedSchemaCode);
 	}
 
-	public void addValidationErrors(ValidationErrors validationErrors, String code, Metadata metadata, String unallowedSchema,
-			String referencedId) {
+	public void addValidationErrors(ValidationErrors validationErrors, String code, Metadata metadata,
+									String unallowedSchema,
+									String referencedId) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
 		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());

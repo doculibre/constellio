@@ -45,11 +45,13 @@ public class MetadataVO implements Serializable {
 	final Map<String, Object> customParameters;
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
-			boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
-			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-			MetadataInputType metadataInputType,
-			MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
-			String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual, Locale locale, Map<String,Object> customParameters) {
+					  boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
+					  Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+					  MetadataInputType metadataInputType,
+					  MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
+					  StructureFactory structureFactory,
+					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
+					  Locale locale, Map<String, Object> customParameters) {
 		this(code, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
@@ -57,14 +59,16 @@ public class MetadataVO implements Serializable {
 	}
 
 
-
-	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
+	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection,
+					  MetadataSchemaVO schema,
 					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
 					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
-					  String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
+					  String schemaTypeCode, MetadataInputType metadataInputType,
+					  MetadataDisplayType metadataDisplayType,
 					  AllowedReferences allowedReferences,
 					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,Map<String,Object> customParameters) {
+					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
+					  Map<String, Object> customParameters) {
 		super();
 		this.code = code;
 		this.datastoreCode = datastoreCode;
@@ -98,12 +102,15 @@ public class MetadataVO implements Serializable {
 	}
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required,
-			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
-			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-			MetadataDisplayType metadataDisplayType,
-			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue, boolean isWriteNullValues,
-			Set<String> customAttributes, boolean multiLingual, Locale locale, Map<String, Object> customParameters) {
+					  boolean required,
+					  boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+					  Class<? extends Enum<?>> enumClass,
+					  String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
+					  MetadataDisplayType metadataDisplayType,
+					  AllowedReferences allowedReferences, String metadataGroup, Object defaultValue,
+					  boolean isWriteNullValues,
+					  Set<String> customAttributes, boolean multiLingual, Locale locale,
+					  Map<String, Object> customParameters) {
 
 		this(code, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
@@ -242,34 +249,34 @@ public class MetadataVO implements Serializable {
 
 	public Class<?> getJavaType() {
 		switch (type) {
-		case BOOLEAN:
-			return Boolean.class;
-		case DATE:
-			return LocalDate.class;
-		case DATE_TIME:
-			return LocalDateTime.class;
-		case INTEGER:
-			return Integer.class;
-		case NUMBER:
-			return Double.class;
-		case STRING:
-			return String.class;
-		case STRUCTURE:
-			return ModifiableStructure.class;
-		case CONTENT:
-			return ContentVersionVO.class;
-		case TEXT:
-			return String.class;
-		case REFERENCE:
-			if (enumClass != null) {
-				return EnumWithSmallCode.class;
-			} else {
+			case BOOLEAN:
+				return Boolean.class;
+			case DATE:
+				return LocalDate.class;
+			case DATE_TIME:
+				return LocalDateTime.class;
+			case INTEGER:
+				return Integer.class;
+			case NUMBER:
+				return Double.class;
+			case STRING:
 				return String.class;
-			}
-		case ENUM:
-			return Enum.class;
-		default:
-			return null;
+			case STRUCTURE:
+				return ModifiableStructure.class;
+			case CONTENT:
+				return ContentVersionVO.class;
+			case TEXT:
+				return String.class;
+			case REFERENCE:
+				if (enumClass != null) {
+					return EnumWithSmallCode.class;
+				} else {
+					return String.class;
+				}
+			case ENUM:
+				return Enum.class;
+			default:
+				return null;
 		}
 	}
 

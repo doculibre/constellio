@@ -14,16 +14,18 @@ public class GenericRecordPageExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public ExtensionBooleanResult canViewSchemaRecord(User user, MetadataSchemaType schemaType, Record restrictedRecord) {
+	public ExtensionBooleanResult canViewSchemaRecord(User user, MetadataSchemaType schemaType,
+													  Record restrictedRecord) {
 		return canManageSchema(user, schemaType);
 	}
 
-	public ExtensionBooleanResult canModifySchemaRecord(User user, MetadataSchemaType schemaType, Record restrictedRecord) {
+	public ExtensionBooleanResult canModifySchemaRecord(User user, MetadataSchemaType schemaType,
+														Record restrictedRecord) {
 		return canManageSchema(user, schemaType);
 	}
 
 	public ExtensionBooleanResult canLogicallyDeleteSchemaRecord(User user, MetadataSchemaType schemaType,
-			Record restrictedRecord) {
+																 Record restrictedRecord) {
 		return canManageSchema(user, schemaType);
 	}
 
@@ -31,12 +33,12 @@ public class GenericRecordPageExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-    public String getSchemaTypeDisplayGroup(MetadataSchemaType schemaType) {
-		if(schemaType.getCode().startsWith("ddv")) {
+	public String getSchemaTypeDisplayGroup(MetadataSchemaType schemaType) {
+		if (schemaType.getCode().startsWith("ddv")) {
 			return DDV_TAB;
-		} else if(schemaType.getCode().startsWith("taxo")) {
+		} else if (schemaType.getCode().startsWith("taxo")) {
 			return TAXONOMY_TAB;
 		}
 		return null;
-    }
+	}
 }

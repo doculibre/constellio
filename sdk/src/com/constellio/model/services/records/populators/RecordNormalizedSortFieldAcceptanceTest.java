@@ -1,16 +1,5 @@
 package com.constellio.model.services.records.populators;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -24,6 +13,16 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordNormalizedSortFieldAcceptanceTest extends ConstellioTest {
 

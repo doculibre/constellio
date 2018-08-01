@@ -1,20 +1,4 @@
-
 package com.constellio.model.services.records;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.assertj.core.groups.Tuple;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Test;
 
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -32,6 +16,18 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends ConstellioTest {
 
@@ -239,10 +235,10 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		for (MetadataNetworkLink link : schemas.getTypes().getMetadataNetwork().getLinks()) {
 
 			if (!link.getToMetadata().isGlobal()
-					&& !link.getFromMetadata().isGlobal()
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
+				&& !link.getFromMetadata().isGlobal()
+				&& !link.getFromMetadata().getCode().startsWith("user_")
+				&& !link.getFromMetadata().getCode().startsWith("user_")
+				&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
 				Tuple tuple = new Tuple();
 				tuple.addData(link.getFromMetadata().getCode());
 				tuple.addData(link.getToMetadata().getCode());

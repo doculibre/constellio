@@ -5,5 +5,6 @@ import com.constellio.app.ui.pages.viewGroups.TrashViewGroup;
 
 public interface TrashView extends BaseView, TrashViewGroup {
 	String getSelectedType();
+
 	void enableOrDisableActionButtons();
 }

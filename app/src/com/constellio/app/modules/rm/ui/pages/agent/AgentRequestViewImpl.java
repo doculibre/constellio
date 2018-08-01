@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.agent;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
@@ -10,6 +8,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AgentRequestViewImpl extends BaseViewImpl implements AgentRequestView {
 	@Override

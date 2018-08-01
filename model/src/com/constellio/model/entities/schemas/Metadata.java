@@ -79,7 +79,8 @@ public class Metadata implements DataStoreField {
 		this("global_default", localCode, type, multivalue, multiLingual);
 	}
 
-	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
+	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
+			 boolean multiLingual) {
 		this.inheritance = null;
 
 		this.enabled = false;
@@ -162,12 +163,14 @@ public class Metadata implements DataStoreField {
 	}
 
 	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
-			InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
-			AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
-			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
-			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
-			Object defaultValue, String inputMask, MetadataPopulateConfigs populateConfigs,
-			Factory<EncryptionServices> encryptionServices, Boolean duplicatbale, Map<String, Object> customParameter) {
+					InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
+					AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
+					Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
+					MetadataAccessRestriction accessRestriction, StructureFactory structureFactory,
+					Class<? extends Enum<?>> enumClass,
+					Object defaultValue, String inputMask, MetadataPopulateConfigs populateConfigs,
+					Factory<EncryptionServices> encryptionServices, Boolean duplicatbale,
+					Map<String, Object> customParameter) {
 		super();
 
 		this.inheritance = null;
@@ -197,9 +200,10 @@ public class Metadata implements DataStoreField {
 		this.customParameter = Collections.unmodifiableMap(customParameter);
 	}
 
-	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
-			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
-			MetadataPopulateConfigs populateConfigs, boolean duplicable, Map<String,Object> customParameter) {
+	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement,
+					String code,
+					Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
+					MetadataPopulateConfigs populateConfigs, boolean duplicable, Map<String, Object> customParameter) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -434,13 +438,14 @@ public class Metadata implements DataStoreField {
 		return enumClass;
 	}
 
-	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type, boolean multivalue,
-			boolean multiLingual) {
+	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type,
+											boolean multivalue,
+											boolean multiLingual) {
 		return new Metadata(schemaCode, localCode, type, multivalue, multiLingual);
 	}
 
 	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue,
-			boolean multiLingual) {
+											 boolean multiLingual) {
 		return new Metadata("global_default", dataStoreCode, type, multivalue, multiLingual);
 	}
 
@@ -507,7 +512,7 @@ public class Metadata implements DataStoreField {
 				CODE.getLocalCode().equals(getLocalCode()) || TITLE.getLocalCode().equals(getLocalCode());
 		boolean isIdentifier = IDENTIFIER.getDataStoreCode().equals(getDataStoreCode());
 		return (isSortable() || globalMetadataWithNormalizedSortField) && (type == STRING || type == REFERENCE) && !isMultivalue()
-				&& !isIdentifier;
+			   && !isIdentifier;
 	}
 
 	public Metadata getSortField() {
@@ -516,7 +521,7 @@ public class Metadata implements DataStoreField {
 
 	public boolean isSameValueThan(Metadata otherMetadata) {
 		boolean sameValue = type == otherMetadata.type &&
-				isMultivalue() == otherMetadata.isMultivalue();
+							isMultivalue() == otherMetadata.isMultivalue();
 
 		if (sameValue && otherMetadata.type == MetadataValueType.REFERENCE) {
 			sameValue = allowedReferences.equals(otherMetadata.getAllowedReferences());

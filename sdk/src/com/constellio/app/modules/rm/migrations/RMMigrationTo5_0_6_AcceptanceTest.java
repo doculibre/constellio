@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -16,6 +12,10 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.annotations.SlowTest;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {

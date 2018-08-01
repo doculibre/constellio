@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class ExpiredSignedUrlException extends BaseRestApiException {
 
-    private static final String CODE = "expiredSignedUrl";
+	private static final String CODE = "expiredSignedUrl";
 
-    public ExpiredSignedUrlException() {
-        status = Response.Status.FORBIDDEN;
+	public ExpiredSignedUrlException() {
+		status = Response.Status.FORBIDDEN;
 
-        buildValidationError(CODE);
-    }
+		buildValidationError(CODE);
+	}
 }

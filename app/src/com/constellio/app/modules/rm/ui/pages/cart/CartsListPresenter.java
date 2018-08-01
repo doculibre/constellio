@@ -8,18 +8,12 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.github.rjeschke.txtmark.Run;
 
 import java.util.Arrays;
 
@@ -32,9 +26,9 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	private RMSchemasRecordsServices rm;
 
 	public CartsListPresenter(CartsListView view) {
-		super(view,Cart.DEFAULT_SCHEMA);
-		schemaVO =  new MetadataSchemaToVOBuilder().build(defaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-		rm = new RMSchemasRecordsServices(collection,appLayerFactory);
+		super(view, Cart.DEFAULT_SCHEMA);
+		schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override

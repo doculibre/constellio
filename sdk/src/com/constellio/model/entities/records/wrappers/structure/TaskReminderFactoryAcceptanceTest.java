@@ -1,10 +1,9 @@
 package com.constellio.model.entities.records.wrappers.structure;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminderFactory;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.sdk.tests.ConstellioTest;
-
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;

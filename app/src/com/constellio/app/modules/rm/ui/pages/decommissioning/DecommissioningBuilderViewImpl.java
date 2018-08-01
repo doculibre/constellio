@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -22,15 +18,14 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningBuilderViewImpl extends SearchViewImpl<DecommissioningBuilderPresenter>
 		implements DecommissioningBuilderView {
@@ -75,7 +70,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				if(presenter.isAddMode()) {
+				if (presenter.isAddMode()) {
 					navigate().to(RMViews.class).decommissioning();
 				} else if (presenter.getDecommissioningList().getDecommissioningListType().isFolderList()) {
 					navigate().to(RMViews.class).displayDecommissioningList(presenter.getDecommissioningList().getId());
@@ -227,7 +222,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		}
 
 		@Override
-		public boolean isVisible(){
+		public boolean isVisible() {
 			return presenter.isAddMode();
 		}
 	}

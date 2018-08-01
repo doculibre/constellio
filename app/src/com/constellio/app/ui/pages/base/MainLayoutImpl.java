@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import elemental.json.JsonArray;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
@@ -25,25 +16,20 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.JavaScript;
-import com.vaadin.ui.JavaScriptFunction;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.SingleComponentContainer;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /*
  * Dashboard MainView is a simple HorizontalLayout that wraps the menu on the
@@ -65,7 +51,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
-		
+
 		addStyleName("main-layout");
 
 		mainMenuContentFooterLayout = new I18NHorizontalLayout();

@@ -1,12 +1,12 @@
 package com.constellio.model.services.records;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 
 public class RecordProvider {
 
@@ -21,7 +21,7 @@ public class RecordProvider {
 	}
 
 	public RecordProvider(RecordServices recordServices, RecordProvider recordProvider, List<Record> records,
-			Transaction transaction) {
+						  Transaction transaction) {
 		this.recordServices = recordServices;
 		this.transaction = transaction;
 		this.memoryList = new HashMap<>();

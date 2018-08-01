@@ -1,14 +1,13 @@
 package com.constellio.app.ui.application;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
+import com.constellio.sdk.tests.ConstellioTest;
+import com.vaadin.navigator.Navigator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.sdk.tests.ConstellioTest;
-import com.vaadin.navigator.Navigator;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ConstellioNavigatorTest extends ConstellioTest {
 

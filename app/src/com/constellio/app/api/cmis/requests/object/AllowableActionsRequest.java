@@ -1,16 +1,13 @@
 package com.constellio.app.api.cmis.requests.object;
 
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.Record;
 
 public class AllowableActionsRequest extends CmisCollectionRequest<AllowableActions> {
 
@@ -18,7 +15,7 @@ public class AllowableActionsRequest extends CmisCollectionRequest<AllowableActi
 	private final String objectId;
 
 	public AllowableActionsRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String objectId) {
+								   CallContext context, String objectId) {
 		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 	}

@@ -1,32 +1,20 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import com.constellio.app.ui.framework.data.RecordVOFilter;
-import com.vaadin.data.Container;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.Transformer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.RecordVOFilter;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Item;
+import org.apache.commons.collections4.CollectionUtils;
+import org.vaadin.addons.lazyquerycontainer.*;
+
+import java.io.Serializable;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class RecordVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
@@ -49,7 +37,8 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		this(dataProviders, batchSize, isOnlyTableMetadatasShown());
 	}
 
-	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize, boolean isOnlyTableMetadatasShown) {
+	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize,
+								 boolean isOnlyTableMetadatasShown) {
 		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
@@ -85,7 +74,8 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		return schemas;
 	}
 
-	private static RecordVODataProviderAndRecordIndex forRecordIndex(List<RecordVODataProvider> dataProviders, int index) {
+	private static RecordVODataProviderAndRecordIndex forRecordIndex(List<RecordVODataProvider> dataProviders,
+																	 int index) {
 		RecordVODataProviderAndRecordIndex result = null;
 		int lastSize = 0;
 		for (RecordVODataProvider dataProvider : dataProviders) {
@@ -143,13 +133,14 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 
 		/**
 		 * final boolean compositeItems, final int batchSize, final Object idPropertyId
-		 *
+		 * <p>
 		 * //@param dataProviders
 		 * //@param compositeItems
 		 * //@param batchSize
 		 * //@param idPropertyId
 		 */
-		public RecordVOLazyQueryDefinition(List<RecordVODataProvider> dataProviders, boolean tableMetadatasOnly, int batchSize) {
+		public RecordVOLazyQueryDefinition(List<RecordVODataProvider> dataProviders, boolean tableMetadatasOnly,
+										   int batchSize) {
 			super(true, batchSize, null);
 			this.dataProviders = dataProviders;
 
@@ -211,16 +202,16 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		@Override
 		public Query constructQuery(final QueryDefinition queryDefinition) {
 			List<RecordVOFilter> filters = new ArrayList<>();
-			for(Filter filter: CollectionUtils.emptyIfNull(queryDefinition.getFilters())) {
-				if(filter instanceof RecordVOFilter) {
+			for (Filter filter : CollectionUtils.emptyIfNull(queryDefinition.getFilters())) {
+				if (filter instanceof RecordVOFilter) {
 					filters.add((RecordVOFilter) filter);
 				}
 			}
 
 			if (!filters.isEmpty()) {
 				for (RecordVODataProvider dataProvider : dataProviders) {
-                    dataProvider.setFilters(filters);
-                }
+					dataProvider.setFilters(filters);
+				}
 			}
 
 			Object[] sortPropertyIds = queryDefinition.getSortPropertyIds();

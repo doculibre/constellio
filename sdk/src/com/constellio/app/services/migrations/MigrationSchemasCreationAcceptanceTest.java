@@ -1,19 +1,18 @@
 package com.constellio.app.services.migrations;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationSchemasCreationAcceptanceTest extends ConstellioTest {
 

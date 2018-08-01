@@ -4,14 +4,14 @@ import java.util.Map;
 
 public class ScriptParameterValues {
 
-    Map<ScriptParameter, Object> values;
+	Map<ScriptParameter, Object> values;
 
-    public ScriptParameterValues(Map<ScriptParameter, Object> values) {
-        this.values = values;
-    }
+	public ScriptParameterValues(Map<ScriptParameter, Object> values) {
+		this.values = values;
+	}
 
-    public <T> T get(ScriptParameter parameter) {
-        return (T) values.get(parameter);
-    }
+	public <T> T get(ScriptParameter parameter) {
+		return (T) values.get(parameter);
+	}
 
 }

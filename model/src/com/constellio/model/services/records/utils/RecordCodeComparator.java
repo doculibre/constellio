@@ -1,14 +1,12 @@
 package com.constellio.model.services.records.utils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
-import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormalizer;
-import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class RecordCodeComparator implements Comparator<Record> {
 

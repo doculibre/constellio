@@ -6,14 +6,14 @@ import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.app.ui.framework.data.trees.SmbRecordTreeNodesDataProvider;
 
 public class TreeNodeAppExtension implements TreeNodeExtension {
-    @Override
-    public RecordTreeNodesDataProvider getTreeNodeFor(String codeToxonomie, AppLayerFactory appLayerFactory) {
-        RecordTreeNodesDataProvider recordTreeNode = null;
+	@Override
+	public RecordTreeNodesDataProvider getTreeNodeFor(String codeToxonomie, AppLayerFactory appLayerFactory) {
+		RecordTreeNodesDataProvider recordTreeNode = null;
 
-        if(codeToxonomie.equals(ESTaxonomies.SMB_FOLDERS)) {
-            recordTreeNode = new SmbRecordTreeNodesDataProvider(codeToxonomie, appLayerFactory);
-        }
+		if (codeToxonomie.equals(ESTaxonomies.SMB_FOLDERS)) {
+			recordTreeNode = new SmbRecordTreeNodesDataProvider(codeToxonomie, appLayerFactory);
+		}
 
-        return recordTreeNode;
-    }
+		return recordTreeNode;
+	}
 }

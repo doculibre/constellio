@@ -9,39 +9,39 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EditSynonymsPresenter extends BasePresenter<EditSynonymsView> {
-    List<String> synonyms;
-    SynonymsConfigurationsManager synonymsConfigurationsManager;
+	List<String> synonyms;
+	SynonymsConfigurationsManager synonymsConfigurationsManager;
 
-    public EditSynonymsPresenter(EditSynonymsView view) {
-        super(view);
-        synonymsConfigurationsManager = modelLayerFactory.getSynonymsConfigurationsManager();
-        this.synonyms = synonymsConfigurationsManager.getSynonyms(collection);
-    }
+	public EditSynonymsPresenter(EditSynonymsView view) {
+		super(view);
+		synonymsConfigurationsManager = modelLayerFactory.getSynonymsConfigurationsManager();
+		this.synonyms = synonymsConfigurationsManager.getSynonyms(collection);
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return true;
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
 
-    public void saveButtonClicked(String synonymsAsOneString) {
-        String[] stringList = synonymsAsOneString.split("\\r\\n|\\n|\\r");
-        synonyms = Arrays.asList(stringList);
-        synonymsConfigurationsManager.setSynonyms(collection, synonyms);
-        view.navigate().to(CoreViews.class).displaySynonyms();
-    }
+	public void saveButtonClicked(String synonymsAsOneString) {
+		String[] stringList = synonymsAsOneString.split("\\r\\n|\\n|\\r");
+		synonyms = Arrays.asList(stringList);
+		synonymsConfigurationsManager.setSynonyms(collection, synonyms);
+		view.navigate().to(CoreViews.class).displaySynonyms();
+	}
 
-    public String getSynonmsAsOneString() {
-        StringBuilder stringBuilder = new StringBuilder();
+	public String getSynonmsAsOneString() {
+		StringBuilder stringBuilder = new StringBuilder();
 
-        for(String string : synonyms) {
-            stringBuilder.append(string).append("\n");
-        }
+		for (String string : synonyms) {
+			stringBuilder.append(string).append("\n");
+		}
 
-        return stringBuilder.toString();
-    }
+		return stringBuilder.toString();
+	}
 
-    public void cancelButtonClicked() {
-        view.navigate().to(CoreViews.class).displaySynonyms();
-    }
+	public void cancelButtonClicked() {
+		view.navigate().to(CoreViews.class).displaySynonyms();
+	}
 
 }

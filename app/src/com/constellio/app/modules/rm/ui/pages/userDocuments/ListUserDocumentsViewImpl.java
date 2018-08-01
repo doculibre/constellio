@@ -1,20 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.data.DataProvider;
-import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.MultiFileUpload;
-
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
@@ -35,20 +22,25 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DragAndDropWrapper;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.MultiFileUpload;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
-	
+
 	public static final String STYLE_NAME = "user-documents";
 	public static final String STYLE_LAYOUT = STYLE_NAME + "-layout";
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
 
 	List<RecordVODataProvider> dataProviders;
-	
+
 	private DragAndDropWrapper dragAndDropWrapper;
 	private VerticalLayout mainLayout;
 	private MultiFileUpload multiFileUpload;
@@ -58,7 +50,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private RecordVOTable userContentTable;
 	private Button deleteAllButton;
 	private Builder<ContainerButton> classifyButtonFactory;
-	
+
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
 	private ListUserDocumentsPresenter presenter;
@@ -143,7 +135,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userContentTable.addStyleName(TABLE_STYLE_NAME);
 		userContentTable.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 		userContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		
+
 		userContentSelectTableAdapter = new RecordVOSelectionTableAdapter(userContentTable) {
 			@Override
 			public void selectAll() {
@@ -189,17 +181,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				if(dialog.isConfirmed()) {
+				if (dialog.isConfirmed()) {
 					List<RecordVO> records = new ArrayList<>();
 					int size = userContentContainer.size();
-					for(int i = 0; i < size; i++) {
+					for (int i = 0; i < size; i++) {
 						records.add(userContentContainer.getRecordVO(i));
 					}
-					if(dataProviders != null) {
-						for(RecordVODataProvider dataProvider: dataProviders) {
+					if (dataProviders != null) {
+						for (RecordVODataProvider dataProvider : dataProviders) {
 							MetadataSchemaVO schema = dataProvider.getSchema();
-							for(RecordVO recordVO: records) {
-								if(recordVO.getSchema().getTypeCode().equals(schema.getTypeCode())) {
+							for (RecordVO recordVO : records) {
+								if (recordVO.getSchema().getTypeCode().equals(schema.getTypeCode())) {
 									presenter.deleteButtonClicked(recordVO, false);
 								}
 							}

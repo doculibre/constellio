@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.server.Resource;
@@ -15,8 +10,13 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public abstract class WindowButton extends BaseButton implements Button.ClickListener {
-	
+
 	public static final String STYLE_NAME = "window-button";
 	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
@@ -25,7 +25,7 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	private final WindowConfiguration configuration;
 	private BaseWindow window;
 	private Integer zIndex;
-	
+
 	private List<CloseListener> closeListeners = new ArrayList<>();
 
 	public WindowButton(String caption, String windowCaption, WindowConfiguration configuration) {
@@ -75,10 +75,10 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 			if (configuration.getHeight() != null) {
 				window.setHeight(configuration.getHeight());
 			}
-			
+
 			if (acceptWindowOpen(event)) {
 				Component windowContent = buildWindowContent();
-				if(windowContent != null) {
+				if (windowContent != null) {
 					windowContent.addStyleName(WINDOW_CONTENT_STYLE_NAME);
 					if (!windowContent.getStyleName().contains("scroll")) {
 						windowContent.addStyleName("auto-scroll");
@@ -103,15 +103,16 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 			}
 		}
 	}
-	
+
 	protected BaseWindow newWindow(String windowCaption) {
 		return new BaseWindow(windowCaption);
 	}
-	
+
 	protected boolean acceptWindowOpen(ClickEvent event) {
 		return true;
 	}
-	public void afterOpenModal ( ){
+
+	public void afterOpenModal() {
 
 	}
 
@@ -138,15 +139,15 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 	public void setWindowCaption(String caption) {
 		windowCaption = caption;
 	}
-	
+
 	public List<CloseListener> getCloseListeners() {
 		return Collections.unmodifiableList(closeListeners);
 	}
-	
+
 	public void addCloseListener(CloseListener listener) {
 		this.closeListeners.add(listener);
 	}
-	
+
 	public void removeCloseListener(CloseListener listener) {
 		this.closeListeners.remove(listener);
 	}

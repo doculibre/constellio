@@ -1,13 +1,12 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 
 public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 
@@ -44,7 +43,7 @@ public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 		} else {
 			//FIXME Date?
 			return dataStoreField.getDataStoreCode() + ":[\"" + beginValue + "\" TO \"" + endValue + "\"] AND -"
-					+ dataStoreField.getDataStoreCode() + ":\"__NULL__\"";
+				   + dataStoreField.getDataStoreCode() + ":\"__NULL__\"";
 		}
 	}
 
@@ -53,7 +52,7 @@ public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 		String end = CriteriaUtils.toSolrStringValue(endValue, dataStoreField);
 
 		return dataStoreField.getDataStoreCode() + ":[" + begin + " TO " + end + "] AND -" + dataStoreField.getDataStoreCode()
-				+ ":\"" + CriteriaUtils.getNullDateValue() + "\"";
+			   + ":\"" + CriteriaUtils.getNullDateValue() + "\"";
 	}
 
 	@Override
@@ -69,6 +68,6 @@ public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ":[" + beginValue + " TO " + endValue + "]  AND -" + getClass().getSimpleName()
-				+ ":\"__NULL__\"";
+			   + ":\"__NULL__\"";
 	}
 }

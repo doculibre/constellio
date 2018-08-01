@@ -1,37 +1,5 @@
 package com.constellio.app.services.records;
 
-import static com.constellio.app.services.records.SystemCheckManager.BROKEN_REFERENCES_METRIC;
-import static com.constellio.app.services.records.SystemCheckManager.CHECKED_REFERENCES_METRIC;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage1;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage2;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage3;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage4;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage5;
-import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage6;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.joda.time.LocalDate.now;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.common.SolrInputDocument;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -41,11 +9,7 @@ import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticS
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -81,6 +45,30 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.common.SolrInputDocument;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.services.records.SystemCheckManager.BROKEN_REFERENCES_METRIC;
+import static com.constellio.app.services.records.SystemCheckManager.CHECKED_REFERENCES_METRIC;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.*;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.joda.time.LocalDate.now;
 
 public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 

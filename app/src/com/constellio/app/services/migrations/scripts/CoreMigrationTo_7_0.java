@@ -1,32 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.END_DATE;
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.ROLES;
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.START_DATE;
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.SYNCED;
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.TARGET;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -44,7 +17,6 @@ import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -53,10 +25,20 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
-import com.constellio.model.services.schemas.calculators.TokensCalculator3;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
 
 public class CoreMigrationTo_7_0 implements MigrationScript {
 
@@ -68,7 +50,8 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		removeQueryFacet(collection, appLayerFactory);
 		new CoreSchemaAlterationFor7_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -94,7 +77,8 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
-	private void convertXMLAuthorizationDetailsToSolrAuthorizationDetails(String collection, AppLayerFactory appLayerFactory)
+	private void convertXMLAuthorizationDetailsToSolrAuthorizationDetails(String collection,
+																		  AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
 
 		AuthorizationDetailsManager manager = appLayerFactory.getModelLayerFactory().getAuthorizationDetailsManager();
@@ -172,8 +156,9 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 	}
 
 	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory,
-			final SchemasRecordsServices schemasRecordsServices, final KeySetMap<String, String> authCopies,
-			final Set<String> convertedAuthDetails)
+										   final SchemasRecordsServices schemasRecordsServices,
+										   final KeySetMap<String, String> authCopies,
+										   final Set<String> convertedAuthDetails)
 			throws Exception {
 
 		final Set<String> oldAuths = new HashSet<>();
@@ -198,8 +183,9 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 
 	}
 
-	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies, SchemasRecordsServices schemas,
-			Set<String> convertedAuthDetails) {
+	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies,
+										SchemasRecordsServices schemas,
+										Set<String> convertedAuthDetails) {
 		List<String> oldAuths = record.getList(Schemas.AUTHORIZATIONS);
 		List<String> newAuths = new ArrayList<>();
 
@@ -209,7 +195,7 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 
 			if (!convertedAuthDetails.contains(oldAuth)) {
 				String code = record.getTypeCode().equals(User.SCHEMA_TYPE) ? record.<String>get(schemas.user.username()) :
-						("group " + record.get(schemas.group.code()));
+							  ("group " + record.get(schemas.group.code()));
 				LOGGER.warn("No such authorization detail for auth id '" + oldAuth + "' on principal '" + code + "'");
 			}
 		}
@@ -219,7 +205,7 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 	}
 
 	private List<String> findTargets(SearchServices searchServices, SchemasRecordsServices schemas,
-			AuthorizationDetails details) {
+									 AuthorizationDetails details) {
 		return searchServices.searchRecordIds(
 				fromAllSchemasIn(details.getCollection()).where(AUTHORIZATIONS).isEqualTo(details.getId()));
 	}
@@ -231,7 +217,8 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 
 	}
 
-	private KeySetMap<String, String> buildSolrAuthorizationDetails(Iterator<List<AuthToConvert>> authsToConvertIterator,
+	private KeySetMap<String, String> buildSolrAuthorizationDetails(
+			Iterator<List<AuthToConvert>> authsToConvertIterator,
 			SchemasRecordsServices schemasRecordsServices, AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
 
@@ -248,7 +235,7 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 							.newSolrAuthorizationDetails();
 
 					if (authToConvert.details.getStartDate() == null
-							|| authToConvert.details.getStartDate().getYear() < 2007) {
+						|| authToConvert.details.getStartDate().getYear() < 2007) {
 						solrAuthorizationDetails.setStartDate(null);
 					} else {
 						solrAuthorizationDetails.setStartDate(authToConvert.details.getStartDate());
@@ -282,7 +269,7 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor7_0 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

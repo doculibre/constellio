@@ -1,21 +1,21 @@
 package com.constellio.data.utils.comparators;
 
-import java.util.Comparator;
-
 import com.constellio.data.utils.AccentApostropheCleaner;
+
+import java.util.Comparator;
 
 public abstract class AbstractTextComparator<T> implements Comparator<T> {
 
 	private int maxNormalizedTextLength = 255;
-	
+
 	public AbstractTextComparator() {
 		this(Integer.MAX_VALUE);
 	}
-	
+
 	public AbstractTextComparator(int maxNormalizedTextLength) {
 		this.maxNormalizedTextLength = maxNormalizedTextLength;
 	}
-	
+
 	@Override
 	public int compare(T o1, T o2) {
 		String text1 = o1 != null ? getNormalizedText(o1) : null;
@@ -33,7 +33,7 @@ public abstract class AbstractTextComparator<T> implements Comparator<T> {
 		}
 		return resultat;
 	}
-	
+
 	public String getNormalizedText(T object) {
 		String text;
 		if (object != null) {
@@ -49,7 +49,7 @@ public abstract class AbstractTextComparator<T> implements Comparator<T> {
 		}
 		return text;
 	}
-	
+
 	protected String normalize(String text) {
 		if (text != null) {
 			text = text.toLowerCase();
@@ -58,7 +58,7 @@ public abstract class AbstractTextComparator<T> implements Comparator<T> {
 		}
 		return text;
 	}
-	
+
 	protected abstract String getText(T object);
 
 }

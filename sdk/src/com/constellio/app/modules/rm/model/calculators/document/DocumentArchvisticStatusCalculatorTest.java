@@ -1,14 +1,13 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Patrick on 2016-01-06.

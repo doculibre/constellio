@@ -1,28 +1,9 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
-import static com.constellio.model.entities.schemas.Schemas.CODE;
-import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.entities.schemas.Schemas.TOKENS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromTypesInCollectionOf;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -36,6 +17,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class ConceptNodesTaxonomySearchServices {
 
@@ -57,7 +46,8 @@ public class ConceptNodesTaxonomySearchServices {
 		return getRootConceptResponse(collection, taxonomyCode, options).getRecords();
 	}
 
-	public SPEQueryResponse getRootConceptResponse(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
+	public SPEQueryResponse getRootConceptResponse(String collection, String taxonomyCode,
+												   TaxonomiesSearchOptions options) {
 		LogicalSearchQuery query = getRootConceptsQuery(collection, taxonomyCode, options, true);
 
 		if (query.getReturnedMetadatas().isFullyLoaded()) {
@@ -73,12 +63,14 @@ public class ConceptNodesTaxonomySearchServices {
 		}
 	}
 
-	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
+	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode,
+												   TaxonomiesSearchOptions options) {
 		return getRootConceptsQuery(collection, taxonomyCode, options, false);
 	}
 
-	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode, TaxonomiesSearchOptions options,
-			boolean preferCachedQuery) {
+	public LogicalSearchQuery getRootConceptsQuery(String collection, String taxonomyCode,
+												   TaxonomiesSearchOptions options,
+												   boolean preferCachedQuery) {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 		boolean useCache = false;
 		if (preferCachedQuery && taxonomy.getSchemaTypes().size() == 1 && options.getStartRow() == 0) {
@@ -112,7 +104,8 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public static ReturnedMetadatasFilter returnedMetadatasForRecordsIn(String collection,
-			TaxonomiesSearchOptions options, MetadataSchemaTypes types) {
+																		TaxonomiesSearchOptions options,
+																		MetadataSchemaTypes types) {
 		//TODO Detect which records could possibly be in the taxonomy and only return those essential fields
 
 		Set<String> metadatas = new HashSet<>();
@@ -150,7 +143,7 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public static LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
-			MetadataSchemaTypes types) {
+													 MetadataSchemaTypes types) {
 		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
 		LogicalSearchCondition condition = fromTypesInCollectionOf(record, dataStore)
 				.where(directChildOf(record).andWhere(visibleInTrees));
@@ -164,8 +157,9 @@ public class ConceptNodesTaxonomySearchServices {
 						returnedMetadatasForRecordsIn(record.getCollection(), options, types));
 	}
 
-	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy, TaxonomiesSearchOptions options,
-			MetadataSchemaTypes types) {
+	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy,
+														TaxonomiesSearchOptions options,
+														MetadataSchemaTypes types) {
 		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(directChildOf(record)).andWhere(visibleInTrees);
 		return new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())

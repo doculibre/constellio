@@ -1,18 +1,17 @@
 package com.constellio.app.ui.framework.builders;
 
+import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.LocalDateTime;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.common.base.Joiner;
-import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.LocalDateTime;
-
-import com.constellio.app.ui.entities.UserCredentialVO;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 
 @SuppressWarnings("serial")
 public class UserCredentialToVOBuilder implements Serializable {

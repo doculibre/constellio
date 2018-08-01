@@ -1,20 +1,18 @@
 package com.constellio.app.servlet;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.Duration;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Duration;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 

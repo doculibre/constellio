@@ -1,27 +1,6 @@
 package com.constellio.app.modules.es.services.crawler;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.modules.es.connectors.spi.Connector;
-import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
-import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
-import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
+import com.constellio.app.modules.es.connectors.spi.*;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.utils.Factory;
@@ -35,6 +14,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ConnectorCrawler {
 
@@ -51,8 +39,8 @@ public class ConnectorCrawler {
 	List<CrawledConnector> crawledConnectors = new ArrayList<>();
 
 	ConnectorCrawler(ESSchemasRecordsServices es, ConnectorJobCrawler jobCrawler,
-			ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+					 ConnectorLogger logger,
+					 ConnectorEventObserver eventObserver) {
 		this.es = es;
 		this.jobCrawler = jobCrawler;
 		this.logger = logger;
@@ -239,20 +227,22 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es, ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+														   ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new SimpleConnectorJobCrawler(), logger, eventObserver);
 	}
 
-	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es, ConnectorEventObserver eventObserver) {
+	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es,
+														   ConnectorEventObserver eventObserver) {
 		return runningJobsSequentially(es, new ConsoleConnectorLogger(), eventObserver);
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+														 ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new MultithreadConnectorJobCrawler(), logger, eventObserver);
 	}
 
-	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorEventObserver eventObserver) {
+	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es,
+														 ConnectorEventObserver eventObserver) {
 		return runningJobsSequentially(es, new ConsoleConnectorLogger(), eventObserver);
 	}
 

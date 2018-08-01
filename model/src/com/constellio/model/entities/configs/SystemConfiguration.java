@@ -1,9 +1,9 @@
 package com.constellio.model.entities.configs;
 
-import java.io.Serializable;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
+
+import java.io.Serializable;
 
 public class SystemConfiguration implements Serializable {
 
@@ -29,9 +29,11 @@ public class SystemConfiguration implements Serializable {
 
 	Class<? extends SystemConfigurationScript> scriptClass;
 
-	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String code, Object defaultValue,
-			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden,
-			boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
+	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String code,
+						Object defaultValue,
+						Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass,
+						boolean hidden,
+						boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
 		this.type = type;
 		this.configGroupCode = configGroupCode;
 		this.code = code;
@@ -131,7 +133,7 @@ public class SystemConfiguration implements Serializable {
 	public boolean isHidden() {
 		return hidden;
 	}
-	
+
 	public void setHidden(boolean hidden) {
 		this.hidden = hidden;
 	}

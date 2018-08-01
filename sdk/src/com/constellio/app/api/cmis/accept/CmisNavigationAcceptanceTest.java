@@ -1,18 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -22,6 +9,18 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.assertj.core.api.Condition;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest
 public class CmisNavigationAcceptanceTest extends ConstellioTest {
@@ -118,7 +117,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 	private void whenGetARootFolderThenReturnTheFolder()
 			throws Exception {
 		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2 + "/"
-				+ zeCollectionRecords.folder4;
+					  + zeCollectionRecords.folder4;
 		CmisObject object = session.getObjectByPath(path);
 		assertThat(object).has(property("cmis:path", "folder_default"));
 	}

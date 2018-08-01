@@ -6,11 +6,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilderWithDefinedId
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.joda.time.LocalDate;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,12 +1,11 @@
 package com.constellio.data.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.data.utils.DelayedRuntimeException.DelayedRuntimeException_AlreadyDefined;
 import com.constellio.data.utils.DelayedRuntimeException.DelayedRuntimeException_NotYetDefined;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DelayedTest extends ConstellioTest {
 

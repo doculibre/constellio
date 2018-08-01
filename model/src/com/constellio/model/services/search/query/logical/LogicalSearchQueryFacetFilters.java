@@ -1,17 +1,12 @@
 package com.constellio.model.services.search.query.logical;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.constellio.data.utils.KeySetMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.data.utils.KeySetMap;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class LogicalSearchQueryFacetFilters {
 

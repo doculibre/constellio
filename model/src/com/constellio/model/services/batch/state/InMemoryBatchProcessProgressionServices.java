@@ -1,12 +1,12 @@
 package com.constellio.model.services.batch.state;
 
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.services.batch.state.BatchProcessProgressionServicesException.BatchProcessProgressionServicesException_OptimisticLocking;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.services.batch.state.BatchProcessProgressionServicesException.BatchProcessProgressionServicesException_OptimisticLocking;
 
 public class InMemoryBatchProcessProgressionServices implements BatchProcessProgressionServices {
 

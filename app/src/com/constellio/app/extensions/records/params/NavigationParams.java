@@ -15,7 +15,7 @@ public class NavigationParams {
 	private boolean openInNewTab = false;
 
 	public NavigationParams(Navigation navigate, RecordVO recordVO, String schemaTypeCode, Page page,
-			AbstractComponent component) {
+							AbstractComponent component) {
 		this.navigate = navigate;
 		this.recordId = recordVO.getId();
 		this.recordVO = recordVO;
@@ -25,7 +25,7 @@ public class NavigationParams {
 	}
 
 	public NavigationParams(Navigation navigate, String recordId, String schemaTypeCode, Page page,
-			AbstractComponent component) {
+							AbstractComponent component) {
 		this.navigate = navigate;
 		this.recordId = recordId;
 		this.schemaTypeCode = schemaTypeCode;

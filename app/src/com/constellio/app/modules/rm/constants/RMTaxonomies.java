@@ -8,6 +8,6 @@ public class RMTaxonomies {
 
 	public static final String STORAGES = "containers";
 
-	public static final String[] ALL_RM_TAXONOMIES = { CLASSIFICATION_PLAN, ADMINISTRATIVE_UNITS, STORAGES };
+	public static final String[] ALL_RM_TAXONOMIES = {CLASSIFICATION_PLAN, ADMINISTRATIVE_UNITS, STORAGES};
 
 }

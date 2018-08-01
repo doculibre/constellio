@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.components.content;
 
-import java.io.InputStream;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.vaadin.server.StreamResource;
+
+import java.io.InputStream;
 
 public class ContentVersionVOResource extends StreamResource {
 
@@ -17,7 +17,7 @@ public class ContentVersionVOResource extends StreamResource {
 			}
 		}, getFilename(contentVersionVO));
 	}
-	
+
 	private static String getFilename(ContentVersionVO contentVersionVO) {
 		String filename = contentVersionVO.getFileName();
 		filename = filename.replace("%", "");

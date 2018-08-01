@@ -1,7 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -11,6 +9,8 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
+import java.util.List;
+
 public class SchemaTypesDisplayTransactionBuilder {
 
 	MetadataSchemaTypes types;
@@ -18,7 +18,8 @@ public class SchemaTypesDisplayTransactionBuilder {
 
 	SchemaDisplayManagerTransaction transaction;
 
-	public SchemaTypesDisplayTransactionBuilder(MetadataSchemaTypes types, SchemasDisplayManager schemasDisplayManager) {
+	public SchemaTypesDisplayTransactionBuilder(MetadataSchemaTypes types,
+												SchemasDisplayManager schemasDisplayManager) {
 		this.transaction = new SchemaDisplayManagerTransaction();
 		this.types = types;
 		this.schemasDisplayManager = schemasDisplayManager;

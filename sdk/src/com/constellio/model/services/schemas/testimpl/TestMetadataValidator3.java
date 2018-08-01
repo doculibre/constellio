@@ -8,7 +8,8 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 public class TestMetadataValidator3 implements RecordMetadataValidator<String> {
 
 	@Override
-	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+	public void validate(Metadata metadata, String value, ConfigProvider configProvider,
+						 ValidationErrors validationErrors) {
 	}
 
 }

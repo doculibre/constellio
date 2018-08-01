@@ -34,7 +34,7 @@ public class DecommissioningSecurityService {
 
 	public boolean hasAccessToDecommissioningMainPage(User user) {
 		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
-				|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
+			|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			return true;
 		}
 		return searchServices.hasResults(
@@ -43,12 +43,12 @@ public class DecommissioningSecurityService {
 
 	public boolean hasAccessToDecommissioningListPage(DecommissioningList list, User user) {
 		return hasProcessPermissionOnList(user, list) || hasManageDecommissioningPermissionOnList(user, list) ||
-				hasPermissionToCreateTransferOnList(list, user) ||
-				canValidate(list, user);
+			   hasPermissionToCreateTransferOnList(list, user) ||
+			   canValidate(list, user);
 	}
 
 	private boolean hasProcessPermissionOnList(User user, DecommissioningList list) {
-        return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 	}
 
 	private boolean hasManageDecommissioningPermissionOnList(User user, DecommissioningList list) {
@@ -57,7 +57,7 @@ public class DecommissioningSecurityService {
 
 	private boolean hasEditPermissionOnList(User user, DecommissioningList list) {
 		return hasPermissionOnList(user, list, RMPermissionsTo.EDIT_DECOMMISSIONING_LIST) ||
-				hasPermissionToEditTransferOnList(list, user);
+			   hasPermissionToEditTransferOnList(list, user);
 	}
 
 	private boolean hasPermissionOnList(User user, DecommissioningList list, String permission) {
@@ -76,7 +76,7 @@ public class DecommissioningSecurityService {
 
 	public boolean canCreateLists(User user) {
 		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
-				user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
+			   user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean canAskApproval(DecommissioningList list, User user) {
@@ -126,37 +126,36 @@ public class DecommissioningSecurityService {
 			tabs = new ArrayList<>(Arrays.asList(DecommissioningMainPresenter.TO_VALIDATE));
 		}
 
-		if(!tabs.contains(DecommissioningMainPresenter.CREATE) && user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
+		if (!tabs.contains(DecommissioningMainPresenter.CREATE) && user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			tabs.add(0, DecommissioningMainPresenter.CREATE);
 		}
-		if(!tabs.contains(DecommissioningMainPresenter.GENERATED) && user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
-			if(tabs.contains(DecommissioningMainPresenter.CREATE)) {
+		if (!tabs.contains(DecommissioningMainPresenter.GENERATED) && user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
+			if (tabs.contains(DecommissioningMainPresenter.CREATE)) {
 				tabs.add(1, DecommissioningMainPresenter.GENERATED);
-			}
-			else {
+			} else {
 				tabs.add(0, DecommissioningMainPresenter.GENERATED);
 			}
 		}
 		return tabs;
 	}
-	
+
 	public boolean canCreateContainers(User user) {
 		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
-	
+
 	public boolean hasAccessToManageContainersPage(User user) {
 		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 	}
 
 	public boolean hasPermissionToCreateTransferOnList(DecommissioningList list, User user) {
-		if(isListOfSearchTypeTransfer(list) && list.hasAnalogicalMedium() && !list.hasElectronicMedium()) {
+		if (isListOfSearchTypeTransfer(list) && list.hasAnalogicalMedium() && !list.hasElectronicMedium()) {
 			return user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 		}
 		return false;
 	}
 
 	public boolean hasPermissionToEditTransferOnList(DecommissioningList list, User user) {
-		if(isListOfSearchTypeTransfer(list) && list.hasAnalogicalMedium() && !list.hasElectronicMedium()) {
+		if (isListOfSearchTypeTransfer(list) && list.hasAnalogicalMedium() && !list.hasElectronicMedium()) {
 			return user.has(RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 		}
 		return false;
@@ -164,6 +163,6 @@ public class DecommissioningSecurityService {
 
 	public boolean isListOfSearchTypeTransfer(DecommissioningList list) {
 		return DecommissioningListType.FOLDERS_TO_TRANSFER.equals(list.getDecommissioningListType())
-				&& OriginStatus.ACTIVE.equals(list.getOriginArchivisticStatus());
+			   && OriginStatus.ACTIVE.equals(list.getOriginArchivisticStatus());
 	}
 }

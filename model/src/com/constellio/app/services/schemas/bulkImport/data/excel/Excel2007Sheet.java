@@ -1,12 +1,12 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Excel2007Sheet implements ExcelSheet {
 

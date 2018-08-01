@@ -1,27 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
@@ -33,22 +11,14 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -57,11 +27,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
-import com.constellio.app.ui.pages.search.SearchPresenter;
-import com.constellio.app.ui.pages.search.SearchResultsViewMode;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
+import com.constellio.app.ui.pages.search.*;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -74,11 +40,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordImpl;
@@ -98,6 +60,18 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
@@ -201,44 +175,44 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		String sortCriterion;
 		SearchPresenter.SortOrder sortOrder;
 		switch (searchSortType) {
-		case RELEVENCE:
-			sortOrder = SearchPresenter.SortOrder.DESCENDING;
-			sortCriterion = null;
-			break;
-		case PATH_ASC:
-			sortCriterion = Schemas.PATH.getCode();
-			sortOrder = SearchPresenter.SortOrder.ASCENDING;
-			break;
-		case PATH_DES:
-			sortCriterion = Schemas.PATH.getCode();
-			sortOrder = SearchPresenter.SortOrder.DESCENDING;
-			break;
-		case ID_ASC:
-			sortCriterion = Schemas.IDENTIFIER.getCode();
-			sortOrder = SearchPresenter.SortOrder.ASCENDING;
-			break;
-		case ID_DES:
-			sortCriterion = Schemas.IDENTIFIER.getCode();
-			sortOrder = SearchPresenter.SortOrder.DESCENDING;
-			break;
-		case CREATION_DATE_ASC:
-			sortCriterion = Schemas.CREATED_ON.getCode();
-			sortOrder = SearchPresenter.SortOrder.ASCENDING;
-			break;
-		case CREATION_DATE_DES:
-			sortCriterion = Schemas.CREATED_ON.getCode();
-			sortOrder = SearchPresenter.SortOrder.DESCENDING;
-			break;
-		case MODIFICATION_DATE_ASC:
-			sortCriterion = Schemas.MODIFIED_ON.getCode();
-			sortOrder = SearchPresenter.SortOrder.ASCENDING;
-			break;
-		case MODIFICATION_DATE_DES:
-			sortCriterion = Schemas.MODIFIED_ON.getCode();
-			sortOrder = SearchPresenter.SortOrder.DESCENDING;
-			break;
-		default:
-			throw new RuntimeException("Unsupported type " + searchSortType);
+			case RELEVENCE:
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				sortCriterion = null;
+				break;
+			case PATH_ASC:
+				sortCriterion = Schemas.PATH.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case PATH_DES:
+				sortCriterion = Schemas.PATH.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			case ID_ASC:
+				sortCriterion = Schemas.IDENTIFIER.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case ID_DES:
+				sortCriterion = Schemas.IDENTIFIER.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			case CREATION_DATE_ASC:
+				sortCriterion = Schemas.CREATED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case CREATION_DATE_DES:
+				sortCriterion = Schemas.CREATED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			case MODIFICATION_DATE_ASC:
+				sortCriterion = Schemas.MODIFIED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.ASCENDING;
+				break;
+			case MODIFICATION_DATE_DES:
+				sortCriterion = Schemas.MODIFIED_ON.getCode();
+				sortOrder = SearchPresenter.SortOrder.DESCENDING;
+				break;
+			default:
+				throw new RuntimeException("Unsupported type " + searchSortType);
 		}
 
 		return new SortParameters(sortCriterion, sortOrder);
@@ -368,10 +342,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				Boolean visibleForUserAndInAdvancedSearch =
 						config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser());
 				Boolean condition = !isTextOrString ||
-						(isTextOrString && metadata.isSearchable()) ||
-						Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-						ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-						ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
+									(isTextOrString && metadata.isSearchable()) ||
+									Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+									ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+									ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
 				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
 					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
 					if (SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
@@ -718,15 +692,15 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		for (String record : recordIds) {
 			switch (recordServices.getDocumentById(record).getTypeCode()) {
-			case Folder.SCHEMA_TYPE:
-				cart.addFolders(asList(record));
-				break;
-			case Document.SCHEMA_TYPE:
-				cart.addDocuments(asList(record));
-				break;
-			case ContainerRecord.SCHEMA_TYPE:
-				cart.addContainers(asList(record));
-				break;
+				case Folder.SCHEMA_TYPE:
+					cart.addFolders(asList(record));
+					break;
+				case Document.SCHEMA_TYPE:
+					cart.addDocuments(asList(record));
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					cart.addContainers(asList(record));
+					break;
 			}
 		}
 
@@ -775,15 +749,15 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		for (String record : recordIds) {
 			switch (recordServices.getDocumentById(record).getTypeCode()) {
-			case Folder.SCHEMA_TYPE:
-				cart.addFolders(asList(record));
-				break;
-			case Document.SCHEMA_TYPE:
-				cart.addDocuments(asList(record));
-				break;
-			case ContainerRecord.SCHEMA_TYPE:
-				cart.addContainers(asList(record));
-				break;
+				case Folder.SCHEMA_TYPE:
+					cart.addFolders(asList(record));
+					break;
+				case Document.SCHEMA_TYPE:
+					cart.addDocuments(asList(record));
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					cart.addContainers(asList(record));
+					break;
 			}
 		}
 		try {

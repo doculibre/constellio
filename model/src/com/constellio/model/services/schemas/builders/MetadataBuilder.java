@@ -1,34 +1,12 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -36,14 +14,17 @@ import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.*;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 
 public class MetadataBuilder {
 
@@ -96,7 +77,8 @@ public class MetadataBuilder {
 	}
 
 	static MetadataBuilder createCustomMetadataFromOriginalCustomMetadata(MetadataSchemaBuilder schemaBuilder,
-			MetadataBuilder customMetadata, String codeSchema) {
+																		  MetadataBuilder customMetadata,
+																		  String codeSchema) {
 		MetadataBuilder copy;
 
 		if (customMetadata.getInheritance() == null) {
@@ -120,7 +102,8 @@ public class MetadataBuilder {
 		this.customParameter = customParameter;
 	}
 
-	static MetadataBuilder createCustomMetadataFromDefault(MetadataSchemaBuilder schemaBuilder, MetadataBuilder defaultMetadata,
+	static MetadataBuilder createCustomMetadataFromDefault(MetadataSchemaBuilder schemaBuilder,
+														   MetadataBuilder defaultMetadata,
 														   String codeSchema) {
 		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.classProvider = defaultMetadata.classProvider;
@@ -178,8 +161,9 @@ public class MetadataBuilder {
 		return builder;
 	}
 
-	static MetadataBuilder modifyMetadataWithoutInheritance(MetadataSchemaBuilder schemaBuilder, Metadata defaultMetadata,
-			ClassProvider classProvider) {
+	static MetadataBuilder modifyMetadataWithoutInheritance(MetadataSchemaBuilder schemaBuilder,
+															Metadata defaultMetadata,
+															ClassProvider classProvider) {
 		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.classProvider = classProvider;
 		setBuilderPropertiesOfMetadataWithoutInheritance(defaultMetadata, builder);
@@ -187,7 +171,7 @@ public class MetadataBuilder {
 	}
 
 	static MetadataBuilder modifyMetadataWithInheritance(MetadataSchemaBuilder schemaBuilder, Metadata metadata,
-			MetadataBuilder defaultMetadata) {
+														 MetadataBuilder defaultMetadata) {
 		MetadataBuilder builder = new MetadataBuilder(schemaBuilder);
 		builder.inheritance = defaultMetadata;
 		setBuilderPropertiesOfMetadataWithInheritance(metadata, defaultMetadata, builder);
@@ -242,8 +226,9 @@ public class MetadataBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata, MetadataBuilder inheritanceMetadata,
-			MetadataBuilder builder) {
+	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata,
+																	  MetadataBuilder inheritanceMetadata,
+																	  MetadataBuilder builder) {
 		builder.classProvider = inheritanceMetadata.classProvider;
 		builder.originalMetadata = metadata;
 		builder.localCode = metadata.getLocalCode();
@@ -298,7 +283,7 @@ public class MetadataBuilder {
 		}
 		builder.enumClass = metadata.getEnumClass();
 		if (inheritanceMetadata.getDefaultRequirement() != null
-				&& inheritanceMetadata.getDefaultRequirement().equals(metadata.isDefaultRequirement())) {
+			&& inheritanceMetadata.getDefaultRequirement().equals(metadata.isDefaultRequirement())) {
 			builder.setDefaultRequirement(null);
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
@@ -573,7 +558,8 @@ public class MetadataBuilder {
 		return populateConfigsBuilder;
 	}
 
-	public MetadataPopulateConfigsBuilder definePopulateConfigsBuilder(MetadataPopulateConfigsBuilder populateConfigsBuilder) {
+	public MetadataPopulateConfigsBuilder definePopulateConfigsBuilder(
+			MetadataPopulateConfigsBuilder populateConfigsBuilder) {
 		this.populateConfigsBuilder = populateConfigsBuilder;
 		return this.populateConfigsBuilder;
 	}
@@ -745,7 +731,7 @@ public class MetadataBuilder {
 			duplicable = inheritance.isDuplicable();
 		}
 
-		if(customParameter == null) {
+		if (customParameter == null) {
 			customParameter = new HashMap<>();
 		}
 
@@ -812,7 +798,7 @@ public class MetadataBuilder {
 	}
 
 	private String getDataStoreType(String metadataCode, DataStoreTypesFactory typesFactory, MetadataValueType type,
-			boolean multivalue) {
+									boolean multivalue) {
 
 		if (metadataCode.equals("id")) {
 			return null;
@@ -821,38 +807,38 @@ public class MetadataBuilder {
 		String dataStoreType;
 		switch (type) {
 
-		case BOOLEAN:
-			dataStoreType = typesFactory.forBoolean(multivalue);
-			break;
-		case ENUM:
-			dataStoreType = typesFactory.forString(multivalue);
-			break;
-		case CONTENT:
-			dataStoreType = typesFactory.forString(multivalue);
-			break;
-		case STRUCTURE:
-			dataStoreType = typesFactory.forString(multivalue);
-			break;
-		case DATE:
-			dataStoreType = typesFactory.forDate(multivalue);
-			break;
-		case DATE_TIME:
-			dataStoreType = typesFactory.forDateTime(multivalue);
-			break;
-		case NUMBER:
-			dataStoreType = typesFactory.forDouble(multivalue);
-			break;
-		case REFERENCE:
-			dataStoreType = typesFactory.forString(multivalue);
-			break;
-		case STRING:
-			dataStoreType = typesFactory.forString(multivalue);
-			break;
-		case TEXT:
-			dataStoreType = typesFactory.forText(multivalue);
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unsupported type : " + type);
+			case BOOLEAN:
+				dataStoreType = typesFactory.forBoolean(multivalue);
+				break;
+			case ENUM:
+				dataStoreType = typesFactory.forString(multivalue);
+				break;
+			case CONTENT:
+				dataStoreType = typesFactory.forString(multivalue);
+				break;
+			case STRUCTURE:
+				dataStoreType = typesFactory.forString(multivalue);
+				break;
+			case DATE:
+				dataStoreType = typesFactory.forDate(multivalue);
+				break;
+			case DATE_TIME:
+				dataStoreType = typesFactory.forDateTime(multivalue);
+				break;
+			case NUMBER:
+				dataStoreType = typesFactory.forDouble(multivalue);
+				break;
+			case REFERENCE:
+				dataStoreType = typesFactory.forString(multivalue);
+				break;
+			case STRING:
+				dataStoreType = typesFactory.forString(multivalue);
+				break;
+			case TEXT:
+				dataStoreType = typesFactory.forText(multivalue);
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unsupported type : " + type);
 		}
 		return dataStoreType;
 	}
@@ -860,9 +846,9 @@ public class MetadataBuilder {
 	@Override
 	public String toString() {
 		return "MetadataBuilder [inheritance=" + inheritance + ", localCode=" + localCode + ", code=" + code + ", enabled="
-				+ enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
-				+ ", undeletable=" + undeletable + ", defaultRequirement=" + defaultRequirement + ", dataEntry=" + dataEntry
-				+ ", duplicable=" + duplicable + "]";
+			   + enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
+			   + ", undeletable=" + undeletable + ", defaultRequirement=" + defaultRequirement + ", dataEntry=" + dataEntry
+			   + ", duplicable=" + duplicable + "]";
 	}
 
 	public MetadataBuilder addValidator(Class<? extends RecordMetadataValidator> clazz) {
@@ -970,9 +956,10 @@ public class MetadataBuilder {
 			AllowedReferencesBuilder allowedReferencesBuilder = builder.allowedReferencesBuilder;
 			if (allowedReferencesBuilder == null) {
 				return false;
-			} else
+			} else {
 				return !((allowedReferencesBuilder.getSchemas() == null || allowedReferencesBuilder.getSchemas().isEmpty())
-						&& builder.allowedReferencesBuilder.getSchemaType() == null);
+						 && builder.allowedReferencesBuilder.getSchemaType() == null);
+			}
 		}
 		return true;
 	}

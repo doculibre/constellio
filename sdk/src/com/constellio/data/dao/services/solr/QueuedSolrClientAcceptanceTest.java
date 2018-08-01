@@ -1,10 +1,6 @@
 package com.constellio.data.dao.services.solr;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
@@ -12,7 +8,10 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 

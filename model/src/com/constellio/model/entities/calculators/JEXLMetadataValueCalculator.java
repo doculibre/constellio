@@ -1,24 +1,5 @@
 package com.constellio.model.entities.calculators;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.jexl3.JexlBuilder;
-import org.apache.commons.jexl3.JexlContext;
-import org.apache.commons.jexl3.JexlEngine;
-import org.apache.commons.jexl3.JexlException;
-import org.apache.commons.jexl3.JexlInfo;
-import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.MapContext;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -27,6 +8,14 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.utils.Parametrized;
+import org.apache.commons.jexl3.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.*;
 
 public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalculator<Object>, Parametrized {
 
@@ -165,7 +154,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { expression };
+		return new Object[]{expression};
 	}
 
 	@Override
@@ -233,7 +222,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 				metadata.getType(), false);
 	}
 
-	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, List<String> variable) {
+	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema,
+													  List<String> variable) {
 		Metadata referenceMetadata = schema.getMetadata(variable.get(0));
 		String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);

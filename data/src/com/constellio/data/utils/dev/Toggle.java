@@ -1,12 +1,12 @@
 package com.constellio.data.utils.dev;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class Toggle {
 

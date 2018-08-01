@@ -1,11 +1,10 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.util.Date;
-import java.util.Locale;
-
+import com.vaadin.data.util.converter.Converter;
 import org.joda.time.LocalDateTime;
 
-import com.vaadin.data.util.converter.Converter;
+import java.util.Date;
+import java.util.Locale;
 
 @SuppressWarnings("serial")
 public class JodaDateTimeToUtilConverter implements Converter<Date, LocalDateTime> {

@@ -1,14 +1,13 @@
 package com.constellio.app.services.schemas.bulkImport.data;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.SimpleImportContent;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.Condition;
 
 import java.util.List;
 
-import org.assertj.core.api.Condition;
-
-import com.constellio.model.services.records.SimpleImportContent;
-import com.constellio.model.services.records.ContentImportVersion;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ImportDataIteratorTest extends ConstellioTest {
 

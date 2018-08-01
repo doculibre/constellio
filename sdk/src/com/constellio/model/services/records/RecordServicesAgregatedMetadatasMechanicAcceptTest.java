@@ -1,34 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
-import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
-import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.solr.common.SolrInputDocument;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.junit.runners.Parameterized;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
@@ -55,6 +26,31 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.apache.solr.common.SolrInputDocument;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.junit.runners.Parameterized;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -78,7 +74,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] { { givenOptimizedForMemoryUsage }, { givenOptimizedForPerformance } });
+		return Arrays.asList(new Object[][]{{givenOptimizedForMemoryUsage}, {givenOptimizedForPerformance}});
 	}
 
 	public void setUpWithAgregatedSumMetadatas()

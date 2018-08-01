@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
@@ -40,7 +39,6 @@ import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.validation.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +85,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return true;
 	}
 
-	static public boolean hasRestrictedRecordAccess(RMSchemasRecordsServices rmRecordServices, User user, Record restrictedRecord) {
+	static public boolean hasRestrictedRecordAccess(RMSchemasRecordsServices rmRecordServices, User user,
+													Record restrictedRecord) {
 		boolean access = false;
 		ContainerRecord containerRecord = rmRecordServices.wrapContainerRecord(restrictedRecord);
 		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
@@ -276,7 +275,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			adminUnitIds.add(containerRecord.getAdministrativeUnit());
 		}
 
-		if(adminUnitIdsWithPermissions.isEmpty()) {
+		if (adminUnitIdsWithPermissions.isEmpty()) {
 			return false;
 		}
 

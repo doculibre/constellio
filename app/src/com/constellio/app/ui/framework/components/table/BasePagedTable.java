@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.Serializable;
-import java.util.Map;
-
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
@@ -15,22 +9,17 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.validator.IntegerRangeValidator;
-import com.vaadin.server.ClientConnector;
-import com.vaadin.server.PaintException;
-import com.vaadin.server.PaintTarget;
-import com.vaadin.server.Resource;
-import com.vaadin.server.StreamVariable;
-import com.vaadin.server.VariableOwner;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.server.*;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BasePagedTable<T extends Container> extends PagedTable {
 

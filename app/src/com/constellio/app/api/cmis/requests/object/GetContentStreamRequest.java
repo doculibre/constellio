@@ -1,8 +1,12 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.io.InputStream;
-import java.math.BigInteger;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.ContentVersion;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
@@ -12,17 +16,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
-import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.records.RecordServices;
+import java.io.InputStream;
+import java.math.BigInteger;
 
 public class GetContentStreamRequest extends CmisCollectionRequest<ContentStream> {
 
@@ -34,7 +29,7 @@ public class GetContentStreamRequest extends CmisCollectionRequest<ContentStream
 	private final BigInteger length;
 
 	public GetContentStreamRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String objectId, BigInteger offset, BigInteger length) {
+								   CallContext context, String objectId, BigInteger offset, BigInteger length) {
 		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.offset = offset;

@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
-import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
@@ -26,6 +17,15 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
+import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
+import static java.util.Arrays.asList;
 
 public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
@@ -155,8 +155,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 				));
 		return taskVerification == ExtensionBooleanResult.FALSE ?
-				ExtensionBooleanResult.FALSE :
-				ExtensionBooleanResult.NOT_APPLICABLE;
+			   ExtensionBooleanResult.FALSE :
+			   ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
@@ -170,7 +170,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		return ExtensionBooleanResult.forceTrueIf(logicallyDeletable);
 	}
 
-	private ExtensionBooleanResult isVariableRetentionPeriodLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	private ExtensionBooleanResult isVariableRetentionPeriodLogicallyDeletable(
+			RecordLogicalDeletionValidationEvent event) {
 		VariableRetentionPeriod variableRetentionPeriod = rm.wrapVariableRetentionPeriod(event.getRecord());
 		String code = variableRetentionPeriod.getCode();
 		if (code.equals("888") || code.equals("999")) {

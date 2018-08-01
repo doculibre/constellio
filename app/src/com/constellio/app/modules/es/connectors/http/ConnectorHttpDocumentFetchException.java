@@ -1,9 +1,9 @@
 package com.constellio.app.modules.es.connectors.http;
 
+import com.constellio.app.modules.es.connectors.spi.LoggedException;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.app.modules.es.connectors.spi.LoggedException;
 
 public class ConnectorHttpDocumentFetchException extends Exception implements LoggedException {
 

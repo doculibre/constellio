@@ -8,25 +8,25 @@ import com.constellio.model.entities.records.Record;
  */
 public class ValidateRecordsCheckParams {
 
-    private Record record;
-    private boolean repair;
-    SystemCheckResultsBuilder resultsBuilder;
+	private Record record;
+	private boolean repair;
+	SystemCheckResultsBuilder resultsBuilder;
 
-    public ValidateRecordsCheckParams(Record record, boolean repair, SystemCheckResultsBuilder resultsBuilder) {
-        this.record = record;
-        this.repair = repair;
-        this.resultsBuilder = resultsBuilder;
-    }
+	public ValidateRecordsCheckParams(Record record, boolean repair, SystemCheckResultsBuilder resultsBuilder) {
+		this.record = record;
+		this.repair = repair;
+		this.resultsBuilder = resultsBuilder;
+	}
 
-    public SystemCheckResultsBuilder getResultsBuilder() {
-        return resultsBuilder;
-    }
+	public SystemCheckResultsBuilder getResultsBuilder() {
+		return resultsBuilder;
+	}
 
-    public Record getRecord() {
-        return record;
-    }
+	public Record getRecord() {
+		return record;
+	}
 
-    public boolean isRepair() {
-        return repair;
-    }
+	public boolean isRepair() {
+		return repair;
+	}
 }

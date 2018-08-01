@@ -7,14 +7,14 @@ import java.util.Map;
 
 public class ParametersMustMatchException extends BaseRestApiException {
 
-    private static final String CODE = "parametersMustMatch";
+	private static final String CODE = "parametersMustMatch";
 
-    public ParametersMustMatchException(String parameter1, String parameter2) {
-        status = Response.Status.BAD_REQUEST;
+	public ParametersMustMatchException(String parameter1, String parameter2) {
+		status = Response.Status.BAD_REQUEST;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("parameter1", parameter1);
-        parameters.put("parameter2", parameter2);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("parameter1", parameter1);
+		parameters.put("parameter2", parameter2);
+		buildValidationError(CODE, parameters);
+	}
 }

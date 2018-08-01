@@ -14,7 +14,7 @@ public class ClassifySmbFolderInFolderActionParameters extends ActionParameters 
 	public static final String MAJOR_VERSIONS = "majorVersions";
 
 	public ClassifySmbFolderInFolderActionParameters(Record record,
-			MetadataSchemaTypes types) {
+													 MetadataSchemaTypes types) {
 		super(record, types);
 	}
 

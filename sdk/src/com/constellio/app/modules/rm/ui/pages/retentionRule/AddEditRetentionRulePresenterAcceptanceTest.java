@@ -1,19 +1,18 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.List;
+
+import static org.mockito.Mockito.when;
 
 @InDevelopmentTest
 public class AddEditRetentionRulePresenterAcceptanceTest extends ConstellioTest {

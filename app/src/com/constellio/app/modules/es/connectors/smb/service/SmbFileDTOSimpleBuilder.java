@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
 import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
@@ -16,8 +9,13 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
-
 import jcifs.smb.SmbFile;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SmbFileDTOSimpleBuilder {
 	private static final long MAX_FILE_SIZE_IN_BYTES = 10737418240L;
@@ -27,7 +25,8 @@ public class SmbFileDTOSimpleBuilder {
 	private final ESSchemasRecordsServices es;
 	private final WindowsPermissionsFactory permissionsFactory;
 
-	public SmbFileDTOSimpleBuilder(ConnectorLogger logger, ESSchemasRecordsServices es, WindowsPermissionsFactory permissionsFactory) {
+	public SmbFileDTOSimpleBuilder(ConnectorLogger logger, ESSchemasRecordsServices es,
+								   WindowsPermissionsFactory permissionsFactory) {
 		this.logger = logger;
 		this.es = es;
 		this.permissionsFactory = permissionsFactory;

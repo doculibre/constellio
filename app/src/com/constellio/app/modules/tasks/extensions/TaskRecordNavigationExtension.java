@@ -8,10 +8,10 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.model.entities.Language;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -58,7 +58,8 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash, Locale currentLocale) {
+	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
+								  Locale currentLocale) {
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
 			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
@@ -73,7 +74,7 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 				ClickListener clickListener = new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						if(isRecordInTrash) {
+						if (isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
 						} else {
 							navigateToView(navigationParams);
@@ -84,7 +85,7 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 				referenceDisplay.addClickListener(clickListener);
 			} else if (component instanceof Table) {
 				// FIXME Assumes that it is called by an item click listener
-				if(isRecordInTrash) {
+				if (isRecordInTrash) {
 					RecordNavigationExtensionUtils.showMessage(errorMessage);
 				} else {
 					navigateToView(navigationParams);

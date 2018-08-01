@@ -1,10 +1,10 @@
 package com.constellio.model.services.emails;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.sdk.SDKPasswords;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class OldSmtpServerTestConfig implements EmailServerConfiguration {
 

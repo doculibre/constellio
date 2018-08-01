@@ -7,13 +7,13 @@ import java.util.Map;
 
 public class CollectionIsEmptyException extends BaseRestApiException {
 
-    private static final String CODE = "collectionIsEmpty";
+	private static final String CODE = "collectionIsEmpty";
 
-    public CollectionIsEmptyException(String collection) {
-        status = Response.Status.BAD_REQUEST;
+	public CollectionIsEmptyException(String collection) {
+		status = Response.Status.BAD_REQUEST;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("collection", collection);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("collection", collection);
+		buildValidationError(CODE, parameters);
+	}
 }

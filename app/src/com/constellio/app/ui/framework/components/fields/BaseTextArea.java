@@ -4,7 +4,7 @@ import com.vaadin.data.Property;
 import com.vaadin.ui.TextArea;
 
 public class BaseTextArea extends TextArea {
-	
+
 	public BaseTextArea() {
 		super();
 		init();

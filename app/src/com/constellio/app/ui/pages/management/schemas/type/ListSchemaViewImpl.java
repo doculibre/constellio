@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -18,15 +14,13 @@ import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, ClickListener {
 	ListSchemaPresenter presenter;

@@ -44,7 +44,7 @@ public class ParametrizedInstanceUtilsRuntimeException extends RuntimeException 
 
 		public <T extends Parametrized> CannotInstanciate(String name, Exception e) {
 			super("Cannot instanciate class '" + name
-					+ "', make sure the constructor and class are public and that the class is not abstract", e);
+				  + "', make sure the constructor and class are public and that the class is not abstract", e);
 		}
 
 	}

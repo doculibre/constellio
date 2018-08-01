@@ -1,11 +1,11 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Deprecated
 /**
@@ -20,7 +20,7 @@ public class ConditionTemplate {
 	LogicalSearchValueCondition condition;
 
 	private ConditionTemplate(List<?> fields,
-			LogicalSearchValueCondition condition, LogicalOperator operator) {
+							  LogicalSearchValueCondition condition, LogicalOperator operator) {
 		this.fields = fields;
 		this.condition = condition;
 		this.operator = operator;

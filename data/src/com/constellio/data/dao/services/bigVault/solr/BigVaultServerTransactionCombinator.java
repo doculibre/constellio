@@ -1,19 +1,10 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
 
-import com.constellio.data.dao.dto.records.RecordsFlushing;
+import java.util.*;
 
 public class BigVaultServerTransactionCombinator {
 
@@ -75,9 +66,9 @@ public class BigVaultServerTransactionCombinator {
 
 	public boolean canCombineWith(BigVaultServerTransaction otherTransaction) {
 		int totalAddUpdate = mergeNewDocuments.size() + mergeUpdatedDocuments.size() + otherTransaction.getNewDocuments().size()
-				+ otherTransaction.getUpdatedDocuments().size();
+							 + otherTransaction.getUpdatedDocuments().size();
 		return deletedQueries.isEmpty() && otherTransaction.getDeletedQueries().isEmpty()
-				&& totalAddUpdate < maximumTransactionSize;
+			   && totalAddUpdate < maximumTransactionSize;
 		//
 		//		if (!otherTransaction.deletedQueries.isEmpty()) {
 		//			return false;

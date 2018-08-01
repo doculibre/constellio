@@ -1,21 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -27,8 +11,18 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCredentialView> {
 
@@ -122,8 +116,8 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 				return false;
 			}
 			if (!isLDAPAuthentication() && !(entity.getPassword() != null && StringUtils.isNotBlank(entity.getPassword())
-					&& entity.getPassword()
-					.equals(entity.getConfirmPassword()))) {
+											 && entity.getPassword()
+													 .equals(entity.getConfirmPassword()))) {
 				showErrorMessageView("AddEditUserCredentialView.passwordsFieldsMustBeEquals");
 				return false;
 			} else {

@@ -47,31 +47,33 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenImportActiveFolderWithTransferDispositionAndDestructionDateThenValidationError() throws ValidationException {
+	public void whenImportActiveFolderWithTransferDispositionAndDestructionDateThenValidationError()
+			throws ValidationException {
 		importParameters();
 		XMLImportDataProvider folder = toXMLFileWithFile661("folder.xml");
 		try {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
-							"Dossier 661 : Le dossier «661» a une date de transfert alors que son statut archivistique est \"Active\".",
-							"Dossier 661 : Le dossier «661» a une date de versement alors que son statut archivistique est \"Active\".",
-							"Dossier 661 : Le dossier «661» a une date de destruction alors que son statut archivistique est \"Active\"."
+					"Dossier 661 : Le dossier «661» a une date de transfert alors que son statut archivistique est \"Active\".",
+					"Dossier 661 : Le dossier «661» a une date de versement alors que son statut archivistique est \"Active\".",
+					"Dossier 661 : Le dossier «661» a une date de destruction alors que son statut archivistique est \"Active\"."
 			);
 		}
 	}
 
 	@Test
-	public void whenImportSemiActiveFolderWithDispositionAndDestructionDateThenValidationError() throws ValidationException {
+	public void whenImportSemiActiveFolderWithDispositionAndDestructionDateThenValidationError()
+			throws ValidationException {
 		importParameters();
 		XMLImportDataProvider folder = toXMLFileWithFile662("folder.xml");
 		try {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
-							"Dossier 662 : Le dossier «662» a une date de versement alors que son statut archivistique est \"Semi-active\".",
-							"Dossier 662 : Le dossier «662» a une date de destruction alors que son statut archivistique est \"Semi-active\"."
-					);
+					"Dossier 662 : Le dossier «662» a une date de versement alors que son statut archivistique est \"Semi-active\".",
+					"Dossier 662 : Le dossier «662» a une date de destruction alors que son statut archivistique est \"Semi-active\"."
+			);
 		}
 	}
 
@@ -83,8 +85,8 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
-							"Dossier 663 : Le dossier «663» n'a pas de date de transfert alors que son statut archivistique est \"Semi-active\"."
-					);
+					"Dossier 663 : Le dossier «663» n'a pas de date de transfert alors que son statut archivistique est \"Semi-active\"."
+			);
 		}
 	}
 
@@ -131,55 +133,55 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 		XMLImportDataProvider administrativeUnit = toXMLFile("administrativeUnit.xml");
 		XMLImportDataProvider category = toXMLFile("category.xml");
 		XMLImportDataProvider retentionRule = toXMLFile("retentionRule.xml");
-		XMLImportDataProvider[] files = new XMLImportDataProvider[] {category, administrativeUnit, retentionRule};
+		XMLImportDataProvider[] files = new XMLImportDataProvider[]{category, administrativeUnit, retentionRule};
 		for (ImportDataProvider importDataProvider : files) {
 			importServices.bulkImport(importDataProvider, progressionListener, admin);
 		}
 	}
 
 	private XMLImportDataProvider toXMLFileWithFile661(String name) {
-		return toXMLFileWithoutTextBetween(name, 21,29);
+		return toXMLFileWithoutTextBetween(name, 21, 29);
 	}
 
 	private XMLImportDataProvider toXMLFileWithFile662(String name) {
-		return toXMLFileWithoutTextBetween(name, 30,38);
+		return toXMLFileWithoutTextBetween(name, 30, 38);
 	}
 
 	private XMLImportDataProvider toXMLFileWithFile663(String name) {
-		return toXMLFileWithoutTextBetween(name, 39,44);
+		return toXMLFileWithoutTextBetween(name, 39, 44);
 	}
 
 	private XMLImportDataProvider toXMLFileWithFile664(String name) {
-		return toXMLFileWithoutTextBetween(name, 45,52);
+		return toXMLFileWithoutTextBetween(name, 45, 52);
 	}
 
 	private XMLImportDataProvider toXMLFileWithFile665(String name) {
-		return toXMLFileWithoutTextBetween(name, 53,58);
+		return toXMLFileWithoutTextBetween(name, 53, 58);
 	}
 
 	private XMLImportDataProvider toXMLFileWithFile666(String name) {
-		return toXMLFileWithoutTextBetween(name, 59,66);
+		return toXMLFileWithoutTextBetween(name, 59, 66);
 	}
 
-	private XMLImportDataProvider toXMLFileWithoutTextBetween(String name, int start, int end){
+	private XMLImportDataProvider toXMLFileWithoutTextBetween(String name, int start, int end) {
 		File resourceFile = getTestResourceFile(name);
 		File tempFile = new File(newTempFolder(), name);
 		try {
 			String strLine;
-			FileWriter fileWriter = new FileWriter(tempFile,true);
+			FileWriter fileWriter = new FileWriter(tempFile, true);
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(resourceFile));
 			int line = 1;
-			while ((strLine = bufferedReader.readLine()) != null){
-				if(line>=21 && line<=66){
-					if(line >= start && line <= end){
+			while ((strLine = bufferedReader.readLine()) != null) {
+				if (line >= 21 && line <= 66) {
+					if (line >= start && line <= end) {
 						fileWriter.append(strLine);
 						fileWriter.append("\n");
 					}
-				}else{
+				} else {
 					fileWriter.append(strLine);
 					fileWriter.append("\n");
 				}
-				line ++;
+				line++;
 			}
 			fileWriter.close();
 			bufferedReader.close();

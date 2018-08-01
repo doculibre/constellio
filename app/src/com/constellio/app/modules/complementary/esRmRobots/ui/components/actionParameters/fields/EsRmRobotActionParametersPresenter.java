@@ -17,13 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EsRmRobotActionParametersPresenter {
-	
+
 	private EsRmRobotActionParametersFields fields;
 
 	public EsRmRobotActionParametersPresenter(EsRmRobotActionParametersFields fields) {
 		this.fields = fields;
 	}
-	
+
 	void rmFieldsCreated() {
 		ActionParametersCategoryField categoryField = fields.getCategoryField();
 		if (categoryField != null) {
@@ -38,7 +38,7 @@ public class EsRmRobotActionParametersPresenter {
 
 	void subdivisionFieldCreated() {
 		LookupRecordField uniformSubdivisionField = fields.getUniformSubdivision();
-		if(uniformSubdivisionField != null) {
+		if (uniformSubdivisionField != null) {
 			uniformSubdivisionField.addValueChangeListener(new Property.ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -48,7 +48,7 @@ public class EsRmRobotActionParametersPresenter {
 			});
 		}
 	}
-	
+
 	private void updateFields(String categoryId) {
 		ConstellioFactories constellioFactories = fields.getConstellioFactories();
 		SessionContext sessionContext = fields.getSessionContext();
@@ -59,7 +59,7 @@ public class EsRmRobotActionParametersPresenter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		ActionParametersRetentionRuleField retentionRuleField = fields.getRetentionRuleField();
 
-		if(uniformSubdivisionField == null || uniformSubdivisionField.getValue() == null || uniformSubdivisionField.getValue().equals("")) {
+		if (uniformSubdivisionField == null || uniformSubdivisionField.getValue() == null || uniformSubdivisionField.getValue().equals("")) {
 			if (StringUtils.isNotBlank(categoryId)) {
 				Category defaultCategory = rm.getCategory(categoryId);
 				List<String> retentionRules = defaultCategory.getRententionRules();
@@ -87,7 +87,7 @@ public class EsRmRobotActionParametersPresenter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		ActionParametersRetentionRuleField retentionRuleField = fields.getRetentionRuleField();
 
-		if(uniformSubdivisionField == null || uniformSubdivisionField.getValue() == null || uniformSubdivisionField.getValue().equals("")) {
+		if (uniformSubdivisionField == null || uniformSubdivisionField.getValue() == null || uniformSubdivisionField.getValue().equals("")) {
 			String categoryId = fields.getCategoryField().getFieldValue();
 			if (StringUtils.isNotBlank(categoryId)) {
 				Category defaultCategory = rm.getCategory(categoryId);

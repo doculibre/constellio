@@ -6,11 +6,11 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class BorrowRequest extends RequestTask {
 
-    public static final String SCHEMA_NAME = "borrowRequest";
-    public static final String FULL_SCHEMA_NAME = Task.SCHEMA_TYPE + "_" + SCHEMA_NAME;
-    public static final String BORROW_DURATION = "borrowDuration";
+	public static final String SCHEMA_NAME = "borrowRequest";
+	public static final String FULL_SCHEMA_NAME = Task.SCHEMA_TYPE + "_" + SCHEMA_NAME;
+	public static final String BORROW_DURATION = "borrowDuration";
 
-    public BorrowRequest(Record record, MetadataSchemaTypes types) {
-        super(record, types);
-    }
+	public BorrowRequest(Record record, MetadataSchemaTypes types) {
+		super(record, types);
+	}
 }

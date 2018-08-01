@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.ui.util;
 
+import com.constellio.data.io.streams.factories.StreamsServices;
+import com.constellio.model.conf.FoldersLocator;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-
-import com.constellio.data.io.streams.factories.StreamsServices;
-import com.constellio.model.conf.FoldersLocator;
 
 public class NewFileUtils {
 

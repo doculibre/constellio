@@ -1,12 +1,11 @@
 package com.constellio.app.modules.es.model.connectors.structures;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TraversalScheduleTest extends ConstellioTest {
 
@@ -40,9 +39,9 @@ public class TraversalScheduleTest extends ConstellioTest {
 	public void whenConvertingStructureWithAllValuesThenRemainsEqual()
 			throws Exception {
 		traversalSchedule = new TraversalSchedule();
-				traversalSchedule.setWeekDay(DateTimeConstants.WEDNESDAY);
-				traversalSchedule.setStartTime("12:00");
-				traversalSchedule.setEndTime("13:00");
+		traversalSchedule.setWeekDay(DateTimeConstants.WEDNESDAY);
+		traversalSchedule.setStartTime("12:00");
+		traversalSchedule.setEndTime("13:00");
 
 		String stringValue = factory.toString(traversalSchedule);
 		TraversalSchedule deserialized = (TraversalSchedule) factory.build(stringValue);

@@ -1,13 +1,13 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.pages.management.extractors.builders.RegexConfigToVOBuilder;
 import com.constellio.app.ui.pages.management.extractors.entities.RegexConfigVO;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.RegexConfig;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MetadataExtractorVO implements Serializable {
 

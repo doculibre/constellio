@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -15,6 +7,13 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.server.FileResource;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class LogoUtils {
 	private static final Logger LOGGER = Logger.getLogger(LogoUtils.class.getName());

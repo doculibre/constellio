@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.extractions;
 
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
@@ -10,8 +11,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import com.constellio.sdk.tests.ConstellioTest;
 
 /**
  * Created by Majid on 2016-03-29.

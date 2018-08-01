@@ -1,18 +1,5 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -21,6 +8,12 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ReindexingSchemaTypeRecordsProvider {
 
@@ -42,8 +35,9 @@ public class ReindexingSchemaTypeRecordsProvider {
 	ReindexingRecordPriorityInfo info;
 
 	public ReindexingSchemaTypeRecordsProvider(ModelLayerFactory modelLayerFactory, int mainThreadQueryRows,
-			MetadataSchemaType type, int dependencyLevel, int thresholdForReturningLastIgnoredDocumentById,
-			ReindexingRecordPriorityInfo info) {
+											   MetadataSchemaType type, int dependencyLevel,
+											   int thresholdForReturningLastIgnoredDocumentById,
+											   ReindexingRecordPriorityInfo info) {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.mainThreadQueryRows = mainThreadQueryRows;
@@ -78,7 +72,8 @@ public class ReindexingSchemaTypeRecordsProvider {
 		return newRecordsIteratorAdaptorNotReturningAlreadyHandled(recordsIterator);
 	}
 
-	private Iterator<Record> newRecordsIteratorAdaptorNotReturningAlreadyHandled(final Iterator<Record> nestedRecordsIterator) {
+	private Iterator<Record> newRecordsIteratorAdaptorNotReturningAlreadyHandled(
+			final Iterator<Record> nestedRecordsIterator) {
 		//final List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
 		//		final Integer lastIterationOfADependencyLevelUnder =
 		//				dependencyLevel == 0 ? null : info.getLastIterationOf(dependencyLevel - 1, type.getCode());
@@ -178,6 +173,7 @@ public class ReindexingSchemaTypeRecordsProvider {
 
 	/**
 	 * 1-based
+	 *
 	 * @return
 	 */
 	int getCurrentIteration() {

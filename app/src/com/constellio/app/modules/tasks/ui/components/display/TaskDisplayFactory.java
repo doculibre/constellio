@@ -1,7 +1,6 @@
 package com.constellio.app.modules.tasks.ui.components.display;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
@@ -9,7 +8,6 @@ import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
-import com.constellio.app.ui.framework.components.display.LinkReferenceDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceActiveLink;
 import com.vaadin.ui.Component;
 

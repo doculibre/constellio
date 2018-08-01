@@ -1,13 +1,5 @@
 package com.constellio.app.ui.acceptation.permissions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.ui.pages.management.permissions.PermissionsManagementViewImpl.CreateRoleButton;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -15,6 +7,13 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class PermissionsManagementViewAcceptTest extends ConstellioTest {

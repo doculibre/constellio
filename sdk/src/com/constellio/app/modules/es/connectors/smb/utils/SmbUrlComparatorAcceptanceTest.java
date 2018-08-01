@@ -1,10 +1,9 @@
 package com.constellio.app.modules.es.connectors.smb.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SmbUrlComparatorAcceptanceTest extends ConstellioTest {
 	@Test

@@ -1,13 +1,12 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDateTime;
 
 public class IsOlderThanCriterion extends LogicalSearchValueCondition {
 

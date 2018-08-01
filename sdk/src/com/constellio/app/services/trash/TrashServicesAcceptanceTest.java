@@ -1,20 +1,5 @@
 package com.constellio.app.services.trash;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -39,6 +24,20 @@ import com.constellio.model.services.trash.TrashServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class TrashServicesAcceptanceTest extends ConstellioTest {
 	TrashServices trashServices;
@@ -126,7 +125,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 		Document document = records.getDocumentWithContent_A49();
 		documentDeletedLogicallyId = document.getId();
 		recordServices.logicallyDelete(document.getWrappedRecord(), adminUser);
-		recordServices.add((RecordWrapper)folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
+		recordServices.add((RecordWrapper) folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
 	}
 
 	@Test

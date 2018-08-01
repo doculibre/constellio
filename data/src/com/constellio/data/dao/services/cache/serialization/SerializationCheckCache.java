@@ -1,17 +1,16 @@
 package com.constellio.data.dao.services.cache.serialization;
 
-import java.io.Serializable;
-import java.text.DecimalFormat;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.SerializationException;
-import org.apache.commons.lang3.SerializationUtils;
-
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.cache.map.ConstellioMapCache;
 import com.constellio.data.utils.serialization.ConstellioSerializationUtils;
+import org.apache.commons.lang3.SerializationException;
+import org.apache.commons.lang3.SerializationUtils;
+
+import java.io.Serializable;
+import java.text.DecimalFormat;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class SerializationCheckCache extends ConstellioMapCache {
 
@@ -78,9 +77,10 @@ public class SerializationCheckCache extends ConstellioMapCache {
 	 * Source: https://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc
 	 */
 	public static String readableFileSize(long size) {
-		if (size <= 0)
+		if (size <= 0) {
 			return "0";
-		final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
+		}
+		final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
 		int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
 		return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
 	}

@@ -1,19 +1,11 @@
 package com.constellio.app.ui.application;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.SIP.SIPProgressionViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
-import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
-import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
-import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
-import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
-import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
+import com.constellio.app.ui.pages.collection.*;
 import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
@@ -22,12 +14,7 @@ import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
-import com.constellio.app.ui.pages.imports.ExportViewImpl;
-import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportGroupsFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
-import com.constellio.app.ui.pages.imports.ListImportExportViewImpl;
+import com.constellio.app.ui.pages.imports.*;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
@@ -52,7 +39,10 @@ import com.constellio.app.ui.pages.management.email.EmailServerConfigViewImpl;
 import com.constellio.app.ui.pages.management.extractors.AddEditMetadataExtractorViewImpl;
 import com.constellio.app.ui.pages.management.extractors.ListMetadataExtractorsViewImpl;
 import com.constellio.app.ui.pages.management.extractors.PropertiesAnalyserViewImpl;
-import com.constellio.app.ui.pages.management.facet.*;
+import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
+import com.constellio.app.ui.pages.management.facet.OrderFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.labels.AddEditLabelViewImpl;
 import com.constellio.app.ui.pages.management.labels.LabelViewImpl;
 import com.constellio.app.ui.pages.management.labels.ListLabelViewImpl;
@@ -77,11 +67,7 @@ import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaMetada
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaViewImpl;
 import com.constellio.app.ui.pages.management.schemas.type.ListSchemaViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptViewImpl;
-import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
-import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
-import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementSearchViewImpl;
-import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
+import com.constellio.app.ui.pages.management.taxonomy.*;
 import com.constellio.app.ui.pages.management.thesaurus.ThesaurusConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainRecordsViewImpl;
@@ -102,6 +88,10 @@ import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
 import com.vaadin.navigator.ViewProvider;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NavigatorConfigurationService implements Serializable {
 	public static final String HOME = "";
@@ -219,7 +209,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String STATISTICS = "statistics";
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
-    public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
+	public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
 	public static final String SUMMARY_CONFIGURATOR = "summaryConfigurator";
 	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 

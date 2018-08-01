@@ -50,12 +50,12 @@ import static java.util.Arrays.asList;
 public class ConnectorSmb extends Connector {
 
 	static {
-		System.setProperty("jcifs.smb.client.soTimeout","150000");
-		System.setProperty("jcifs.smb.client.responseTimeout","120000");
-		System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
-		System.setProperty("jcifs.smb.client.listSize","1200");
-		System.setProperty("jcifs.smb.client.listCount","15");
-		System.setProperty("jcifs.smb.client.dfs.strictView","true");
+		System.setProperty("jcifs.smb.client.soTimeout", "150000");
+		System.setProperty("jcifs.smb.client.responseTimeout", "120000");
+		System.setProperty("jcifs.resolveOrder", "LMHOSTS,DNS,WINS");
+		System.setProperty("jcifs.smb.client.listSize", "1200");
+		System.setProperty("jcifs.smb.client.listCount", "15");
+		System.setProperty("jcifs.smb.client.dfs.strictView", "true");
 	}
 
 	static final String START_OF_TRAVERSAL = "Start of traversal";
@@ -149,8 +149,8 @@ public class ConnectorSmb extends Connector {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbDocument.url(),
-				es.connectorSmbDocument.connectorUrl(),	es.connectorSmbDocument.parentUrl(), es.connectorSmbDocument.parentConnectorUrl(),
-				es.connectorSmbDocument.lastModified(),	es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
+				es.connectorSmbDocument.connectorUrl(), es.connectorSmbDocument.parentUrl(), es.connectorSmbDocument.parentConnectorUrl(),
+				es.connectorSmbDocument.lastModified(), es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
 				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId))
 				.setReturnedMetadatas(returnedMetadatasFilter);
@@ -186,7 +186,7 @@ public class ConnectorSmb extends Connector {
 				updater);
 		for (String seed : sortedSeeds) {
 			SmbConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.DISPATCH, seed, "");
-				queueJob(smbDispatchJob);
+			queueJob(smbDispatchJob);
 		}
 	}
 
@@ -268,7 +268,7 @@ public class ConnectorSmb extends Connector {
 	}
 
 	private void checkDuplicates() {
-        try {
+		try {
 			this.duplicateUrls.clear();
 			this.duplicateUrls.addAll(this.smbRecordService.duplicateDocuments());
 		} catch (Exception e) {
@@ -298,7 +298,7 @@ public class ConnectorSmb extends Connector {
 		}
 
 		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + this.connectorInstance.getId() +
-						" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
+										   " Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
 				new LinkedHashMap<String, String>());
 	}
 

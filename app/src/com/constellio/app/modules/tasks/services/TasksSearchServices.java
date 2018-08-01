@@ -1,16 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.TERMINATED_STATUS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Record;
@@ -22,7 +11,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
+
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.TERMINATED_STATUS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class TasksSearchServices {
 	TasksSchemasRecordsServices tasksSchemas;

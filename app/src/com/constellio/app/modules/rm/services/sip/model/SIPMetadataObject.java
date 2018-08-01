@@ -1,16 +1,11 @@
 package com.constellio.app.modules.rm.services.sip.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 public abstract class SIPMetadataObject {
 
@@ -42,8 +37,8 @@ public abstract class SIPMetadataObject {
 			if (metadataValue != null) {
 				String displayValue = rmObject.get(metadata).toString();
 				List<String> metadataValues = StringUtils.isNotBlank(displayValue) ?
-						Arrays.asList(displayValue) :
-						new ArrayList<String>();
+											  Arrays.asList(displayValue) :
+											  new ArrayList<String>();
 				metadataIds.add(metadataId);
 				metadataLabelsMap.put(metadataId, metadataLabel);
 				metadataValuesMap.put(metadataId, metadataValues);

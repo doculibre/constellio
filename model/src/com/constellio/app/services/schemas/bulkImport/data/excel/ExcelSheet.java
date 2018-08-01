@@ -5,5 +5,6 @@ import java.util.List;
 public interface ExcelSheet {
 
 	int getRows();
+
 	List<ExcelCell> getRow(int lineToParse);
 }

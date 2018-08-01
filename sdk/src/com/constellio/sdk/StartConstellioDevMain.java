@@ -1,14 +1,14 @@
 package com.constellio.sdk;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by francisbaril on 2015-11-02.

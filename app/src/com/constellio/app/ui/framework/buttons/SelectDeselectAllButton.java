@@ -3,11 +3,11 @@ package com.constellio.app.ui.framework.buttons;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SelectDeselectAllButton extends BaseButton {
-	
+
 	private boolean selectAllMode;
-	
+
 	private String selectAllCaption;
-	
+
 	private String deselectAllCaption;
 
 	public SelectDeselectAllButton() {
@@ -50,9 +50,9 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 		selectAllMode = !selectAllMode;
 		buttonClickCallBack(selectAllMode);
 	}
-	
+
 	protected abstract void onSelectAll(ClickEvent event);
-	
+
 	protected abstract void onDeselectAll(ClickEvent event);
 
 	protected abstract void buttonClickCallBack(boolean selectAllMode);

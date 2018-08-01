@@ -1,13 +1,12 @@
 package com.constellio.data.io.services.facades;
 
-import static org.junit.Assert.assertEquals;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-import org.junit.Test;
-
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.junit.Assert.assertEquals;
 
 public class FileServiceAcceptanceTest extends ConstellioTest {
 

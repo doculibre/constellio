@@ -31,20 +31,20 @@ public class StorageSpaceValidator implements RecordValidator {
 
 	private void validate(StorageSpace storageSpace, RecordValidatorParams params) {
 		Double numberOfContainers = storageSpace.getNumberOfContainers();
-		if(Boolean.TRUE.equals(params.getConfigProvider().get(RMConfigs.IS_CONTAINER_MULTIVALUE)) && numberOfContainers != null && numberOfContainers > 1) {
+		if (Boolean.TRUE.equals(params.getConfigProvider().get(RMConfigs.IS_CONTAINER_MULTIVALUE)) && numberOfContainers != null && numberOfContainers > 1) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(NUMBER_OF_CONTAINERS, formatToParameter(numberOfContainers));
 
 			params.getValidationErrors().add(StorageSpaceValidator.class, STORAGE_SPACE_CAN_CONTAIN_ONLY_ONE_CONTAINER, parameters);
 		}
 
-		if(storageSpace.getParentStorageSpace() == null) {
+		if (storageSpace.getParentStorageSpace() == null) {
 			return;
 		}
 		Long capacity = storageSpace.getCapacity();
 		StorageSpace parentStorageSpace = new StorageSpace(params.getRecordProvider().getRecord(storageSpace.getParentStorageSpace()), params.getTypes());
 		Long parentCapacity = parentStorageSpace.getCapacity();
-		if(capacity != null && parentCapacity != null && capacity > parentCapacity) {
+		if (capacity != null && parentCapacity != null && capacity > parentCapacity) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CAPACITY, formatToParameter(capacity));
 			parameters.put(PARENT_CAPACITY, formatToParameter(parentCapacity));
@@ -53,7 +53,7 @@ public class StorageSpaceValidator implements RecordValidator {
 		}
 
 		List<String> containerRecordTypeList = storageSpace.getContainerType();
-		if(!canContain(parentStorageSpace, containerRecordTypeList, params.getRecordProvider(), params.getTypes())) {
+		if (!canContain(parentStorageSpace, containerRecordTypeList, params.getRecordProvider(), params.getTypes())) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONTAINER_TYPE, formatToParameter(containerRecordTypeList));
 			parameters.put(PARENT_CONTAINER_TYPE, formatToParameter(parentStorageSpace.getContainerType()));
@@ -63,38 +63,39 @@ public class StorageSpaceValidator implements RecordValidator {
 	}
 
 	private String formatToParameter(Long parameter) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return "";
 		}
 		return parameter.toString();
 	}
 
 	private String formatToParameter(Double parameter) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return "";
 		}
 		return parameter.toString();
 	}
 
 	private String formatToParameter(List<String> parameter) {
-		if(parameter == null || parameter.isEmpty()) {
+		if (parameter == null || parameter.isEmpty()) {
 			return "";
 		}
 		return parameter.toString();
 	}
 
-	public boolean canContain(StorageSpace storageSpace, List<String> checkedContainerRecordType, RecordProvider recordProvider, MetadataSchemaTypes types) {
-		if(checkedContainerRecordType == null || checkedContainerRecordType.isEmpty()) {
+	public boolean canContain(StorageSpace storageSpace, List<String> checkedContainerRecordType,
+							  RecordProvider recordProvider, MetadataSchemaTypes types) {
+		if (checkedContainerRecordType == null || checkedContainerRecordType.isEmpty()) {
 			return true;
 		}
 		List<String> containerRecordTypeList = new ArrayList<>();
 		StorageSpace currentStorage = storageSpace;
 		while (currentStorage != null) {
 
-			if(currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
+			if (currentStorage.getContainerType() != null && !currentStorage.getContainerType().isEmpty()) {
 				containerRecordTypeList = currentStorage.getContainerType();
 				break;
-			} else if(currentStorage.getParentStorageSpace() == null) {
+			} else if (currentStorage.getParentStorageSpace() == null) {
 				break;
 			}
 			currentStorage = new StorageSpace(recordProvider.getRecord(currentStorage.getParentStorageSpace()), types);

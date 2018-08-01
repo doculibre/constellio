@@ -1,14 +1,5 @@
 package com.constellio.app.ui.acceptation.management.authorizations;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.security.Authorization;
@@ -18,6 +9,14 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class ListAuthorizationsViewAcceptTest extends ConstellioTest {

@@ -1,10 +1,11 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
+import com.constellio.model.conf.ldap.RegexFilter;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -16,21 +17,15 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.PagedResultsControl;
 import javax.naming.ldap.PagedResultsResponseControl;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
-import com.constellio.model.conf.ldap.RegexFilter;
-import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
+import java.util.*;
 
 public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 	private static final Logger LOGGER = LogManager.getLogger(ConnectorLDAPServicesImpl.class);
 
 	@Override
-	public ConnectorLDAPSearchResult getAllObjectsUsingFilter(LdapContext ctx, String objectClass, String objectCategory,
-			Set<String> searchContextsNames, RegexFilter filter) {
+	public ConnectorLDAPSearchResult getAllObjectsUsingFilter(LdapContext ctx, String objectClass,
+															  String objectCategory,
+															  Set<String> searchContextsNames, RegexFilter filter) {
 		Set<String> usersIds = new HashSet<>();
 		String userIdAttributeName = "cn";
 		String searchFilter = computeSearchFilter(objectCategory, objectClass);
@@ -40,7 +35,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 			for (String currentContext : searchContextsNames) {
 				ConnectorLDAPSearchResult currentResult = getAllObjectsUsingFilter(ctx, filter, searchFilter, userIdAttributeName,
 						currentContext);
-				if(currentResult.isErrorDuringSearch()){
+				if (currentResult.isErrorDuringSearch()) {
 					errorDuringSearch = true;
 				}
 				usersIds.addAll(currentResult.getDocumentIds());
@@ -54,25 +49,25 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 	}
 
 	ConnectorLDAPSearchResult getAllObjectsUsingFilter(LdapContext ctx, RegexFilter filter, String searchFilter,
-			String userIdAttributeName,
-			String contextName) {
+													   String userIdAttributeName,
+													   String contextName) {
 		Set<String> objectsIds = new HashSet<>();
 		/////////////////////////////
 		Boolean errorDuringSearch = false;
 		try {
 			int pageSize = 100;
 			byte[] cookie = null;
-			ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, Control.NONCRITICAL) });
+			ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, Control.NONCRITICAL)});
 			do {
 				//Query
 				SearchControls searchCtls = new SearchControls();
 				searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-				String[] returnAttributes = { userIdAttributeName };
+				String[] returnAttributes = {userIdAttributeName};
 				searchCtls.setReturningAttributes(returnAttributes);
 
 				NamingEnumeration results = ctx.search(contextName, searchFilter, searchCtls);
 
-					/* for each entry print out name + all attrs and values */
+				/* for each entry print out name + all attrs and values */
 				while (results != null && results.hasMore()) {
 					SearchResult entry = (SearchResult) results.next();
 					String currentUserId = entry.getNameInNamespace();
@@ -100,7 +95,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 					LOGGER.warn("No controls were sent from the server");
 				}
 				// Re-activate paged results
-				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
+				ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, cookie, Control.CRITICAL)});
 
 			} while (cookie != null);
 		} catch (Exception e) {
@@ -118,7 +113,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 	private Set<String> getMainContextes(LdapContext ctx)
 			throws NamingException {
 		Set<String> returnContextes = new HashSet<>();
-		Attributes attributes = ctx.getAttributes("", new String[] { "namingContexts" });
+		Attributes attributes = ctx.getAttributes("", new String[]{"namingContexts"});
 		Attribute attribute = attributes.get("namingContexts");
 		NamingEnumeration<?> all = attribute.getAll();
 		while (all.hasMore()) {
@@ -144,7 +139,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 			}
 		}
 		LOGGER.error("Should specify at least one of objectClass, objectCategory; given values were : " + objectClass
-				+ objectCategory);
+					 + objectCategory);
 		throw new InvalidSearchFilterRuntimeException(objectClass, objectCategory);
 	}
 
@@ -171,7 +166,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 
 	@Override
 	public LdapContext connectToLDAP(String url, String user, String password, Boolean followReferences,
-			boolean activeDirectory) {
+									 boolean activeDirectory) {
 		return new LDAPServicesImpl().connectToLDAP(new ArrayList<String>(), url, user, password, followReferences, activeDirectory);
 	}
 
@@ -184,7 +179,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 		public InvalidSearchFilterRuntimeException(
 				String objectClass, String objectCategory) {
 			super("Should specify at least one of objectClass, objectCategory; given values were : " + objectClass
-					+ objectCategory);
+				  + objectCategory);
 		}
 	}
 }

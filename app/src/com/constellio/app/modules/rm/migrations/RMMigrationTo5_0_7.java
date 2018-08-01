@@ -1,24 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.data.utils.LangUtils.withoutDuplicates;
-import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -32,14 +13,7 @@ import com.constellio.app.modules.rm.model.calculators.decommissioningList.Pendi
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidationFactory;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -53,11 +27,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -75,6 +45,18 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo5_0_7 implements MigrationScript {
 	public static final String RECENT_FOLDERS = "F";
@@ -89,7 +71,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		MetadataSchema taskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
@@ -117,7 +99,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 	}
 
 	private void setupRMFacets(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection)
+							   String collection)
 			throws RecordServicesException {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
@@ -147,8 +129,9 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		}
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection) {
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "remindReturnBorrowedFolderTemplate.html",
 				RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "approvalRequestForDecomListTemplate.html",
@@ -159,9 +142,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 				RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 	}
 
-	private void addEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplate(AppLayerFactory appLayerFactory,
+								  MigrationResourcesProvider migrationResourcesProvider,
+								  String collection,
+								  String templateFileName, String templateId) {
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
@@ -176,7 +160,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 	}
 
 	private void updateFormAndDisplayConfigs(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+											 MigrationResourcesProvider migrationResourcesProvider) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
@@ -212,10 +196,8 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 	}
 
 	/**
-	 *
 	 * - Add default role to users
 	 * - Migrate default tab
-	 *
 	 */
 	private void updateUserProfiles(String collection, ModelLayerFactory modelLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -233,18 +215,18 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 			if (startTabValue != null) {
 				switch (startTabValue) {
-				case RECENT_FOLDERS:
-					transaction.add(record.set(startTab, RMNavigationConfiguration.LAST_VIEWED_FOLDERS));
-					break;
-				case RECENT_DOCUMENTS:
-					transaction.add(record.set(startTab, RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
-					break;
-				case CHECKED_OUT_DOCUMENTS:
-					transaction.add(record.set(startTab, RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS));
-					break;
-				case TAXONOMIES:
-					transaction.add(record.set(startTab, RMNavigationConfiguration.TAXONOMIES));
-					break;
+					case RECENT_FOLDERS:
+						transaction.add(record.set(startTab, RMNavigationConfiguration.LAST_VIEWED_FOLDERS));
+						break;
+					case RECENT_DOCUMENTS:
+						transaction.add(record.set(startTab, RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
+						break;
+					case CHECKED_OUT_DOCUMENTS:
+						transaction.add(record.set(startTab, RMNavigationConfiguration.CHECKED_OUT_DOCUMENTS));
+						break;
+					case TAXONOMIES:
+						transaction.add(record.set(startTab, RMNavigationConfiguration.TAXONOMIES));
+						break;
 				}
 			}
 
@@ -264,7 +246,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_0_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -463,7 +445,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		}
 
 		private void addAuthorizationOn(AdministrativeUnit newUnit, List<String> users, List<String> roles,
-				UniqueIdGenerator uniqueIdGenerator) {
+										UniqueIdGenerator uniqueIdGenerator) {
 			/*if (!users.isEmpty()) {
 				authorizationsServices.add(authorizationInCollection(collection)
 						.giving(roles).forPrincipalsIds(users).on(newUnit));

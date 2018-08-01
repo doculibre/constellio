@@ -1,17 +1,5 @@
 package com.constellio.app.ui.util;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -23,6 +11,17 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FileIconUtils implements Serializable {
 
@@ -34,7 +33,7 @@ public class FileIconUtils implements Serializable {
 	private static final String DEFAULT_VALUE = "document";
 
 	private static final String DEFAULT_ICON_PATH = ICONS_DIR + DEFAULT_VALUE + ".gif";
-	
+
 	private static final Map<String, String> ICON_PATHS = new HashMap<>();
 
 	public static Resource getIcon(String fileName) {
@@ -91,7 +90,7 @@ public class FileIconUtils implements Serializable {
 			} else {
 				extension = getExtensionForRecordVO(recordVO);
 			}
-		}	
+		}
 		return extension;
 	}
 

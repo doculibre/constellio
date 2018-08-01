@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -13,16 +9,15 @@ import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
-import com.vaadin.ui.AbstractSelect;
+import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportSelector extends HorizontalLayout {
-	
+
 	private final NewReportPresenter presenter;
 	private AbstractSelect selector;
 	private final Button button;
@@ -71,7 +66,7 @@ public class ReportSelector extends HorizontalLayout {
 			comboBox.addValidator(new Validator() {
 				@Override
 				public void validate(Object value) throws InvalidValueException {
-					if(value == null) {
+					if (value == null) {
 						throw new InvalidValueException($("ReportTabButton.invalidReportType"));
 					}
 				}

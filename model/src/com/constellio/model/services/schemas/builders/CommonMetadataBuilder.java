@@ -1,14 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -17,21 +8,14 @@ import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
-import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
-import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
-import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
-import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
-import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
-import com.constellio.model.services.schemas.calculators.PathCalculator;
-import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
-import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
-import com.constellio.model.services.schemas.calculators.TokensCalculator4;
+import com.constellio.model.services.schemas.calculators.*;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class CommonMetadataBuilder {
 	public static final String ID = "id";
@@ -222,7 +206,7 @@ public class CommonMetadataBuilder {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				} else {
@@ -509,7 +493,7 @@ public class CommonMetadataBuilder {
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
 					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
 							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);

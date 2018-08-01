@@ -1,13 +1,13 @@
 package com.constellio.model.services.migrations;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.configs.SystemConfigurationScript;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 public class TimeScheduleConfigurationValidator implements SystemConfigurationScript<String> {
 
@@ -33,7 +33,8 @@ public class TimeScheduleConfigurationValidator implements SystemConfigurationSc
 	}
 
 	@Override
-	public void onValueChanged(String previousValue, String newValue, ModelLayerFactory modelLayerFactory, String collection) {
+	public void onValueChanged(String previousValue, String newValue, ModelLayerFactory modelLayerFactory,
+							   String collection) {
 
 	}
 

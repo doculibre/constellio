@@ -12,27 +12,28 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 
-@Data @Builder
+@Data
+@Builder
 @JsonRootName("Document")
 public class DocumentDto {
-    private String id;
-    private String folderId;
-    @Valid
-    private DocumentTypeDto type;
-    @Valid
-    private ContentDto content;
-    private String title;
-    private List<String> keywords;
-    private String author;
-    private String subject;
-    private String organization;
-    @Valid
-    private List<AceDto> directAces;
-    @Valid @JsonProperty(access=READ_ONLY)
-    private List<AceDto> inheritedAces;
-    @Valid
-    private List<ExtendedAttributeDto> extendedAttributes;
+	private String id;
+	private String folderId;
+	@Valid
+	private DocumentTypeDto type;
+	@Valid
+	private ContentDto content;
+	private String title;
+	private List<String> keywords;
+	private String author;
+	private String subject;
+	private String organization;
+	@Valid
+	private List<AceDto> directAces;
+	@Valid @JsonProperty(access = READ_ONLY)
+	private List<AceDto> inheritedAces;
+	@Valid
+	private List<ExtendedAttributeDto> extendedAttributes;
 
-    @JsonIgnore @Getter(onMethod=@__(@JsonIgnore))
-    private String eTag;
+	@JsonIgnore @Getter(onMethod = @__(@JsonIgnore))
+	private String eTag;
 }
