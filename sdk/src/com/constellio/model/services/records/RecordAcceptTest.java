@@ -1,19 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static java.util.Arrays.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.records.Record;
@@ -35,6 +21,15 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
+import java.util.ArrayList;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordAcceptTest extends ConstellioTest {
 

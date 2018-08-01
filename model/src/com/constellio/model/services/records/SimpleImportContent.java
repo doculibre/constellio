@@ -1,9 +1,9 @@
 package com.constellio.model.services.records;
 
+import org.joda.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.joda.time.LocalDateTime;
 
 public class SimpleImportContent implements ImportContent {
 
@@ -17,7 +17,8 @@ public class SimpleImportContent implements ImportContent {
 
 	}
 
-	public SimpleImportContent(String url, String fileName, boolean major, String comment, LocalDateTime lastModification) {
+	public SimpleImportContent(String url, String fileName, boolean major, String comment,
+							   LocalDateTime lastModification) {
 		versions.add(new ContentImportVersion(url, fileName, major, comment, lastModification));
 	}
 

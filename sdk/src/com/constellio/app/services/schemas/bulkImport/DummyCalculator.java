@@ -1,11 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -13,6 +7,11 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class DummyCalculator implements MetadataValueCalculator<LocalDate> {
 	LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());

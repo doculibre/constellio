@@ -1,12 +1,5 @@
 package com.constellio.model.services.security.authentification;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-
-import org.junit.Test;
-
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
@@ -15,6 +8,12 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import java.util.ArrayList;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 

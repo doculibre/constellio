@@ -1,27 +1,11 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.collections.CollectionsManager;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeCodeChangeForbidden;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
@@ -33,6 +17,19 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -52,7 +49,7 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
-        navigator = new MockedNavigation();
+		navigator = new MockedNavigation();
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));

@@ -1,43 +1,22 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containing;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.in;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isFalse;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isFalseOrNull;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNotNull;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isTrue;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isTrueOrNull;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.notContainingElements;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.notIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAll;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
-import static java.util.Arrays.asList;
-import static com.constellio.sdk.tests.TestUtils.chuckNorris;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class LogicalSearchEntitiesTest extends ConstellioTest {
 

@@ -1,17 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static java.util.Arrays.asList;
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -29,6 +17,17 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static java.util.Arrays.asList;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends ConstellioTest {
@@ -271,7 +270,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 								double expectedNumber = j - 1;
 								if (currentCopiedNumber != expectedNumber) {
 									System.out.println(" **** Field #" + index + " : Expected '" + expectedNumber + "' but was '"
-											+ currentCopiedNumber + "'");
+													   + currentCopiedNumber + "'");
 									corruptionCounter.incrementAndGet();
 								}
 
@@ -345,7 +344,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 								double expectedNumber = j - 1;
 								if (currentCopiedNumber != expectedNumber) {
 									System.out.println(" **** Field #" + index + " : Expected '" + expectedNumber + "' but was '"
-											+ currentCopiedNumber + "'");
+													   + currentCopiedNumber + "'");
 									corruptionCounter.incrementAndGet();
 								}
 
@@ -418,7 +417,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 								double expectedNumber = j - 1;
 								if (currentCopiedNumber != expectedNumber) {
 									System.out.println(" **** Field #" + index + " : Expected '" + expectedNumber + "' but was '"
-											+ currentCopiedNumber + "' **** ");
+													   + currentCopiedNumber + "' **** ");
 									corruptionCounter.incrementAndGet();
 								}
 

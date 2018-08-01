@@ -1,21 +1,19 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.UUID;
-
-import javax.naming.ldap.LdapContext;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.naming.ldap.LdapContext;
+import java.util.UUID;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @InternetTest
 public class ConnectorLDAPUserDocumentFactoryRealTest extends ConstellioTest {

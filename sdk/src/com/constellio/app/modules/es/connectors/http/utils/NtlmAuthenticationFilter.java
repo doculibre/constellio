@@ -1,21 +1,15 @@
 package com.constellio.app.modules.es.connectors.http.utils;
 
+import jcifs.ntlmssp.Type3Message;
+
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Base64;
 import java.util.Enumeration;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import jcifs.ntlmssp.Type3Message;
 
 /**
  * Ref http://stackoverflow.com/questions/24066008/ntlm-authentification-java
@@ -48,9 +42,9 @@ public class NtlmAuthenticationFilter implements Filter {
 			byte[] msg = Base64.getDecoder().decode(auth.substring(5));
 			if (msg[8] == 1) {
 				byte z = 0;
-				byte[] msg1 = { (byte) 'N', (byte) 'T', (byte) 'L', (byte) 'M', (byte) 'S', (byte) 'S', (byte) 'P', z, (byte) 2,
-						z, z, z, z, z, z, z, (byte) 40, z, z, z, (byte) 1,
-						(byte) 130, z, z, z, (byte) 2, (byte) 2, (byte) 2, z, z, z, z, z, z, z, z, z, z, z, z };
+				byte[] msg1 = {(byte) 'N', (byte) 'T', (byte) 'L', (byte) 'M', (byte) 'S', (byte) 'S', (byte) 'P', z, (byte) 2,
+							   z, z, z, z, z, z, z, (byte) 40, z, z, z, (byte) 1,
+							   (byte) 130, z, z, z, (byte) 2, (byte) 2, (byte) 2, z, z, z, z, z, z, z, z, z, z, z, z};
 				httpResponse.setHeader("WWW-Authenticate", "NTLM " + Base64.getEncoder().encodeToString(msg1));
 				httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				httpResponse.setContentLength(0);

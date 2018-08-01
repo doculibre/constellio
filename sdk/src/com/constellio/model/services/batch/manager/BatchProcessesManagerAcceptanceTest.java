@@ -1,33 +1,25 @@
 package com.constellio.model.services.batch.manager;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.model.entities.batchprocess.AsyncTask;
-import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.entities.batchprocess.*;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
@@ -216,7 +208,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { wordsToAdd };
+			return new Object[]{wordsToAdd};
 		}
 	}
 

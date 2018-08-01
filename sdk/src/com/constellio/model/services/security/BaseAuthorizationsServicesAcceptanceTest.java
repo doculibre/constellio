@@ -30,7 +30,6 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;

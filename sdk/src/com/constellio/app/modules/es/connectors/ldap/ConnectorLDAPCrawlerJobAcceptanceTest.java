@@ -1,30 +1,5 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.EMAIL;
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.WORK_TITLE;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.eclipse.jetty.server.Server;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidDocumentsBatchRuntimeException;
-import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidJobsBatchRuntimeException;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
@@ -34,6 +9,21 @@ import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.eclipse.jetty.server.Server;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
+import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.EMAIL;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class ConnectorLDAPCrawlerJobAcceptanceTest extends ConstellioTest {
 	Server server;
@@ -93,8 +83,6 @@ public class ConnectorLDAPCrawlerJobAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 		return asList("id1", "id2", "id3");
 	}
-
-
 
 
 	private List<ConnectorLDAPUserDocument> getConnectorDocuments() {

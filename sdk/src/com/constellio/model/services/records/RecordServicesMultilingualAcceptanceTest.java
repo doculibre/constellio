@@ -1,37 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.Language.Arabic;
-import static com.constellio.model.entities.Language.English;
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.dummy;
-import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
-import static java.util.Arrays.asList;
-import static java.util.Locale.ENGLISH;
-import static java.util.Locale.FRENCH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -47,6 +15,31 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.entities.Language.*;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.dummy;
+import static com.constellio.model.entities.schemas.Schemas.getSortMetadata;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
+import static java.util.Locale.FRENCH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
@@ -1030,7 +1023,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		return assertThat(searchServices.searchRecordIds(query));
 	}
 
-	private org.assertj.core.api.ListAssert<String> assertThatTypeSearch(MetadataSchemaType type, Locale locale, String text) {
+	private org.assertj.core.api.ListAssert<String> assertThatTypeSearch(MetadataSchemaType type, Locale locale,
+																		 String text) {
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).returnAll());
 		query.setFreeTextQuery(text);
 		query.setLanguage(locale);
@@ -1125,7 +1119,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		setupServices();
 	}
 
-	protected void givenFrenchSystemOneMonolingualAndOneMultilingualCollection(final SetupAlteration... setupAlterations) {
+	protected void givenFrenchSystemOneMonolingualAndOneMultilingualCollection(
+			final SetupAlteration... setupAlterations) {
 		givenSystemLanguageIs("fr");
 		givenCollection("monolingual", asList("fr")).withAllTestUsers();
 		givenCollection("multilingual", asList("fr", "en")).withAllTestUsers();
@@ -1150,7 +1145,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		setupServices();
 	}
 
-	protected void givenFrenchSystemOneMonolingualAndOneTrilingualCollection(final SetupAlteration... setupAlterations) {
+	protected void givenFrenchSystemOneMonolingualAndOneTrilingualCollection(
+			final SetupAlteration... setupAlterations) {
 		givenSystemLanguageIs("fr");
 		givenCollection("monolingual", asList("fr")).withAllTestUsers();
 		givenCollection("multilingual", asList("fr", "en", "ar")).withAllTestUsers();
@@ -1176,7 +1172,8 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		setupServices();
 	}
 
-	protected void givenEnglishSystemOneMonolingualAndOneTrilingualCollection(final SetupAlteration... setupAlterations) {
+	protected void givenEnglishSystemOneMonolingualAndOneTrilingualCollection(
+			final SetupAlteration... setupAlterations) {
 		givenSystemLanguageIs("en");
 		givenCollection("monolingual", asList("en")).withAllTestUsers();
 		givenCollection("multilingual", asList("fr", "en", "ar")).withAllTestUsers();

@@ -1,16 +1,5 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.DISTINGUISHED_NAME;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Map.Entry;
-import java.util.UUID;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
@@ -18,6 +7,16 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Map.Entry;
+import java.util.UUID;
+
+import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
+import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.DISTINGUISHED_NAME;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorLDAPCrawlerHelperAcceptanceTest extends ConstellioTest {
 	ConnectorLDAPCrawlerHelper crawlerHelper;
