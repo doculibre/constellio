@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -15,15 +16,15 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class ConstellioAgentLink extends HorizontalLayout {
 
-	public ConstellioAgentLink(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
-		this(agentURL, recordVO, contentVersionVO, caption, true);
+	public ConstellioAgentLink(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, UpdatableContentVersionPresenter presenter) {
+		this(agentURL, recordVO, contentVersionVO, caption, true, presenter);
 	}
 
 	public ConstellioAgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption, boolean downloadLink) {
-		this(agentURL, null, contentVersionVO, caption, downloadLink);
+		this(agentURL, null, contentVersionVO, caption, downloadLink, null);
 	}
 
-	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO, String caption, boolean downloadLink) {
+	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO, String caption, boolean downloadLink, UpdatableContentVersionPresenter presenter) {
 		addStyleName("agent-link");
 		AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption);
 		agentLink.addClickListener(new ClickListener() {
@@ -34,7 +35,12 @@ public class ConstellioAgentLink extends HorizontalLayout {
 		});
 		addComponent(agentLink);
 		if (downloadLink) {
-			DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, new ThemeResource("images/icons/actions/download.png"));
+			DownloadContentVersionLink downloadContentLink;
+			if(presenter != null) {
+				downloadContentLink = new DownloadContentVersionLink(recordVO, contentVersionVO, new ThemeResource("images/icons/actions/download.png"), presenter);
+			} else {
+				downloadContentLink = new DownloadContentVersionLink(contentVersionVO, new ThemeResource("images/icons/actions/download.png"));
+			}
 			downloadContentLink.setDescription($("download"));
 			addComponent(downloadContentLink);
 		}

@@ -2,13 +2,12 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
@@ -206,7 +205,7 @@ public class MetadataDisplayFactory implements Serializable {
 				break;
 			case CONTENT:
 				ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
-				displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO);
+				displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, new BaseUpdatableContentVersionPresenter());
 				break;
 			case REFERENCE:
 				switch (metadataInputType) {
