@@ -2,7 +2,9 @@ package com.constellio.data.dao.services.idGenerator;
 
 public class UUIDV1Generator implements UniqueIdGenerator {
 	public static String newRandomId() {
-		return new com.eaio.uuid.UUID().toString();
+		// FIXME
+		//return new com.eaio.uuid.UUID().toString();
+		return null;
 	}
 
 	@Override

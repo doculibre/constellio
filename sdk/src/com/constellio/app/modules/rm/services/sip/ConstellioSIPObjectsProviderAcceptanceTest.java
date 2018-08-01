@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -43,7 +43,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {

@@ -126,12 +126,12 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(zeSchemaRecord.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe zeValue - 666 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecord.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe zeValue - 666 Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe  - zeValue Suffixe");
-		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe zeValue -  Suffixe");
-		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe  - 42 Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe  - 42 Suffixe");
 	}
 
 	@Test
@@ -174,15 +174,15 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithOneReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithTwoReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [null] -  Suffixe");
-		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
 	}
 
 	@Test
@@ -225,15 +225,15 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithOneReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithTwoReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [null] -  Suffixe");
-		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutReference.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
 	}
 
 	@Test
@@ -273,12 +273,12 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithOneReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithTwoReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1, value2] - value1 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata())).isNull();
-		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.<String>get(zeSchema.anotherStringMetadata())).isNull();
+		assertThat(zeSchemaRecordWithoutReference.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe [] -  Suffixe");
 	}
 
 	@Test
@@ -318,13 +318,13 @@ public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(zeSchemaRecordWithOneReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithOneReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1] - 666 Suffixe");
-		assertThat(zeSchemaRecordWithTwoReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithTwoReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [value1, value2] - 666 Suffixe");
-		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [null] - zeValue Suffixe");
-		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata()))
+		assertThat(zeSchemaRecordWithoutReference.<String>get(zeSchema.anotherStringMetadata()))
 				.isEqualTo("Prefixe [] - 42 Suffixe");
 	}
 }

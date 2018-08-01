@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 public class SimpleImportContent implements ImportContent {
 

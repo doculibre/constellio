@@ -1,7 +1,7 @@
 package com.constellio.model.services.migrations;
 
 import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;

@@ -144,7 +144,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		assertThat(batchProcessManager.getCurrentBatchProcess()).isNull();
 		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getFinishedBatchProcesses()).isEmpty();
-		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).get(zeSchema.text()))
+		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).<String>get(zeSchema.text()))
 				.isEqualTo(anotherSchemaRecordText);
 		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
 	}
@@ -167,7 +167,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getFinishedBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getStandbyBatchProcesses()).hasSize(1);
-		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).get(zeSchema.text()))
+		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).<String>get(zeSchema.text()))
 				.isEqualTo(anotherSchemaRecordText);
 		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
 	}
@@ -193,7 +193,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getFinishedBatchProcesses()).isEmpty();
 		assertThat(batchProcessManager.getStandbyBatchProcesses()).hasSize(1);
-		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).get(zeSchema.text()))
+		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).<String>get(zeSchema.text()))
 				.isEqualTo(anotherSchemaRecordText);
 		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
 
@@ -240,8 +240,8 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		for (Record record : recordServices.getRecordsById(zeCollection, recordIds)) {
-			assertThat(record.get(zeSchema.title())).isEqualTo("changedTitle");
-			assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("changedString");
+			assertThat(record.<String>get(zeSchema.title())).isEqualTo("changedTitle");
+			assertThat(record.<String>get(zeSchema.stringMetadata())).isEqualTo("changedString");
 		}
 
 	}
@@ -286,11 +286,11 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 			Record record = recordServices.getDocumentById(recordId);
 
 			if (record.getSchemaCode().equals(anotherSchema.code())) {
-				assertThat(record.get(anotherSchema.copiedText())).isEqualTo(text);
-				assertThat(record.get(anotherSchema.copiedTextLength())).isEqualTo(Double.valueOf(text.length()));
+				assertThat(record.<String>get(anotherSchema.copiedText())).isEqualTo(text);
+				assertThat(record.<Double>get(anotherSchema.copiedTextLength())).isEqualTo(Double.valueOf(text.length()));
 			} else {
-				assertThat(record.get(thirdSchema.copiedText())).isEqualTo(text);
-				assertThat(record.get(thirdSchema.copiedTextLength())).isEqualTo(Double.valueOf(text.length()));
+				assertThat(record.<String>get(thirdSchema.copiedText())).isEqualTo(text);
+				assertThat(record.<Double>get(thirdSchema.copiedTextLength())).isEqualTo(Double.valueOf(text.length()));
 			}
 		}
 	}

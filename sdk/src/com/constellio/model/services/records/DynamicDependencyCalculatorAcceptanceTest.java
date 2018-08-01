@@ -96,31 +96,31 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(record);
 		assertThat(recalculationCounter.get()).isEqualTo(1);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("toto,");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("toto,");
 
 		recordServices.update(record.set(zeSchema.anotherStringMetadata(), asList("edouard")));
 		assertThat(recalculationCounter.get()).isEqualTo(1);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("toto,");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("toto,");
 
 		recordServices.update(record.set(zeSchema.stringMetadata(), "test"));
 		assertThat(recalculationCounter.get()).isEqualTo(2);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,");
 
 		recordServices.update(record.set(zeSchema.dateTimeMetadata(), aDateTime));
 		assertThat(recalculationCounter.get()).isEqualTo(2);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,");
 
 		recordServices.update(record.set(zeSchema.booleanMetadata(), true));
 		assertThat(recalculationCounter.get()).isEqualTo(3);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,true");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,true");
 
 		recordServices.update(record.set(zeSchema.referenceMetadata(), anotherSchemaRecordId));
 		assertThat(recalculationCounter.get()).isEqualTo(3);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,true");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,true");
 
 		recordServices.update(record.set(zeSchema.booleanMetadata(), false));
 		assertThat(recalculationCounter.get()).isEqualTo(4);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,false");
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,false");
 	}
 
 	@Test
@@ -164,32 +164,32 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(record);
 		assertThat(recalculationCounter.get()).isEqualTo(1);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("toto,[],,,,");
 
 		recordServices.update(record.set(zeSchema.anotherStringMetadata(), asList("edouard")));
 		assertThat(recalculationCounter.get()).isEqualTo(2);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("toto,[edouard],,,,");
 
 		recordServices.update(record.set(zeSchema.dateMetadata(), aDate));
 		assertThat(recalculationCounter.get()).isEqualTo(3);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("toto,[edouard],2016-11-04,,,");
 
 		recordServices.update(record.set(zeSchema.dateTimeMetadata(), aDateTime));
 		assertThat(recalculationCounter.get()).isEqualTo(4);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("toto,[edouard],2016-11-04,2016-11-04T01:02:03.000,,");
 
 		recordServices.update(record.set(zeSchema.booleanMetadata(), true));
 		assertThat(recalculationCounter.get()).isEqualTo(5);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("toto,[edouard],2016-11-04,2016-11-04T01:02:03.000,true,");
 
 		recordServices.update(record.set(zeSchema.referenceMetadata(), anotherSchemaRecordId));
 		assertThat(recalculationCounter.get()).isEqualTo(6);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("toto,[edouard],2016-11-04,2016-11-04T01:02:03.000,true,42");
 	}
 
@@ -209,7 +209,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.stringMetadata(), "toto");
 
 		recordServices.add(record);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo(
 						"anotherStringMetadata,booleanMetadata,dateMetadata,dateTimeMetadata,referenceMetadata,stringMetadata");
 
@@ -231,13 +231,13 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.stringMetadata(), "toto");
 
 		recordServices.add(record);
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("stringMetadata");
 
 		recordServices.add(record
 				.set(zeSchema.anotherStringMetadata(), asList("aValue"))
 				.set(zeSchema.booleanMetadata(), true));
-		assertThat(record.get(zeSchema.metadata(calculatedMetadata)))
+		assertThat(record.<String>get(zeSchema.metadata(calculatedMetadata)))
 				.isEqualTo("anotherStringMetadata,booleanMetadata,stringMetadata");
 
 	}
@@ -295,11 +295,11 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.metadata("metadataD"), 100);
 		recordServices.add(record);
 
-		assertThat(record.get(zeSchema.metadata("calculated1"))).isEqualTo(242.0);
-		assertThat(record.get(zeSchema.metadata("calculated2"))).isEqualTo(110.0);
-		assertThat(record.get(zeSchema.metadata("calculated3"))).isEqualTo(121.0);
-		assertThat(record.get(zeSchema.metadata("calculated4"))).isEqualTo(11.0);
-		assertThat(record.get(zeSchema.metadata("calculated5"))).isEqualTo(10.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated1"))).isEqualTo(242.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated2"))).isEqualTo(110.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated3"))).isEqualTo(121.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated4"))).isEqualTo(11.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated5"))).isEqualTo(10.0);
 
 	}
 
@@ -372,11 +372,11 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.metadata("metadataD"), 100);
 		recordServices.add(record);
 
-		assertThat(record.get(zeSchema.metadata("calculated1"))).isEqualTo(242.0);
-		assertThat(record.get(zeSchema.metadata("calculated2"))).isEqualTo(110.0);
-		assertThat(record.get(zeSchema.metadata("calculated3"))).isEqualTo(121.0);
-		assertThat(record.get(zeSchema.metadata("calculated4"))).isEqualTo(11.0);
-		assertThat(record.get(zeSchema.metadata("calculated5"))).isEqualTo(10.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated1"))).isEqualTo(242.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated2"))).isEqualTo(110.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated3"))).isEqualTo(121.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated4"))).isEqualTo(11.0);
+		assertThat(record.<Double>get(zeSchema.metadata("calculated5"))).isEqualTo(10.0);
 
 	}
 

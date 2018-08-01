@@ -58,8 +58,8 @@ public class DisplayPrintableReportPresenterAcceptanceTest extends ConstellioTes
         RecordVO recordVO = presenter.getRecordVO(report.getId());
 
         assertThat(recordVO.getTitle()).isEqualTo(report.getTitle());
-        assertThat(recordVO.get(PrintableReport.RECORD_TYPE)).isEqualTo(report.get(PrintableReport.RECORD_TYPE));
-        assertThat(recordVO.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(report.get(PrintableReport.RECORD_SCHEMA));
+        assertThat(recordVO.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(report.get(PrintableReport.RECORD_TYPE));
+        assertThat(recordVO.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(report.get(PrintableReport.RECORD_SCHEMA));
         assertThat(recordVO.getId()).isEqualTo(report.getId());
     }
 

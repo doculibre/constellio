@@ -1,7 +1,7 @@
 package com.constellio.app.modules.tasks.services;
 
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static org.assertj.core.api.Assertions.assertThat;
 

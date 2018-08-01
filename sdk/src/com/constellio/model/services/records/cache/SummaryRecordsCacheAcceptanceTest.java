@@ -227,15 +227,15 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(record1).isNotNull();
 		assertThat(record1.isFullyLoaded()).isFalse();
-		assertThat(record1.get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record1.<String>get(schemaType.anotherStringMetadata())).isNull();
 
 		assertThat(record2).isNotNull();
 		assertThat(record2.isFullyLoaded()).isFalse();
-		assertThat(record2.get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record2.<String>get(schemaType.anotherStringMetadata())).isNull();
 
 		assertThat(record3).isNotNull();
 		assertThat(record3.isFullyLoaded()).isFalse();
-		assertThat(record3.get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record3.<String>get(schemaType.anotherStringMetadata())).isNull();
 
 		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "1")).isNull();
 		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "1").getId()).isEqualTo("1");
@@ -246,17 +246,17 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordsCache.getByMetadata(schemaType.stringMetadata(), "6")).isNull();
 		assertThat(recordsCache.getSummaryByMetadata(schemaType.stringMetadata(), "6").getId()).isEqualTo("3");
 
-		assertThat(record1.get(schemaType.stringMetadata())).isEqualTo("1");
-		assertThat(record2.get(schemaType.stringMetadata())).isEqualTo("4");
-		assertThat(record3.get(schemaType.stringMetadata())).isEqualTo("6");
+		assertThat(record1.<String>get(schemaType.stringMetadata())).isEqualTo("1");
+		assertThat(record2.<String>get(schemaType.stringMetadata())).isEqualTo("4");
+		assertThat(record3.<String>get(schemaType.stringMetadata())).isEqualTo("6");
 
-		assertThat(record1.get(schemaType.numberMetadata())).isEqualTo(2.0);
-		assertThat(record2.get(schemaType.numberMetadata())).isNull();
-		assertThat(record3.get(schemaType.numberMetadata())).isEqualTo(7.0);
+		assertThat(record1.<Double>get(schemaType.numberMetadata())).isEqualTo(2.0);
+		assertThat(record2.<Double>get(schemaType.numberMetadata())).isNull();
+		assertThat(record3.<Double>get(schemaType.numberMetadata())).isEqualTo(7.0);
 
-		assertThat(record1.get(schemaType.anotherStringMetadata())).isNull();
-		assertThat(record2.get(schemaType.anotherStringMetadata())).isNull();
-		assertThat(record3.get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record1.<String>get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record2.<String>get(schemaType.anotherStringMetadata())).isNull();
+		assertThat(record3.<String>get(schemaType.anotherStringMetadata())).isNull();
 
 	}
 

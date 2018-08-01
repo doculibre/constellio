@@ -264,7 +264,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
-		assertThat(manager.getValue(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT)).isEqualTo(Boolean.FALSE);
+		assertThat(manager.<Boolean>getValue(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT)).isEqualTo(Boolean.FALSE);
 	}
 
 	private void whenMigratingToCurrentVersionThenHasEssentialMetadatas()

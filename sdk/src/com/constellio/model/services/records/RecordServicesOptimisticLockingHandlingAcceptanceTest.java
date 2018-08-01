@@ -1,7 +1,7 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 

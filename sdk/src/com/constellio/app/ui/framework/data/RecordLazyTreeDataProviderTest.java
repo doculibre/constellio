@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -9,6 +8,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;

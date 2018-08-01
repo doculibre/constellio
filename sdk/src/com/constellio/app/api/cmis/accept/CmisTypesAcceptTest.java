@@ -102,7 +102,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 	}
 
 	private void thenCanConnectOnEachCollections() {
-		assertThat(cmisSession.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
+		assertThat(cmisSession.getRootFolder().getProperty("cmis:path").<String>getValue()).isEqualTo("/");
 	}
 
 	private void thenAllPropertiesAreSetted() {

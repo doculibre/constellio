@@ -139,7 +139,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy1(), schemasManager);
 				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy2(), schemasManager);
 
-				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
+				for (String collection : asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 					if (!cache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
@@ -190,7 +190,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				setup.refresh(schemasManager);
 				anothercollectionSetup.refresh(schemasManager);
 
-				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
+				for (String collection : asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 					cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));

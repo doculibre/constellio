@@ -1,6 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 
 import java.util.List;
 

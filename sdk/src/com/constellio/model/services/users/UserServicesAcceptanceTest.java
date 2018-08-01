@@ -880,7 +880,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.removeGroupFromCollections(admin, "group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
-				.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+				.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 		assertThat(userServices.getChildrenOfGroupInCollection("group1", "collection1")).isEmpty();
 		assertThat(userServices.getChildrenOfGroupInCollection("group1_1", "collection1")).isEmpty();
 		assertThat(userServices.getChildrenOfGroupInCollection("group1_1_1", "collection1")).isEmpty();

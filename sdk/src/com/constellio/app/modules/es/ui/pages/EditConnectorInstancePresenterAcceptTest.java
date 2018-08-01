@@ -87,7 +87,7 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(recordVO);
 
-		assertThat(recordServices.getDocumentById(connectorInstance.getId()).get(Schemas.TITLE)).isEqualTo("new Title");
+		assertThat(recordServices.getDocumentById(connectorInstance.getId()).<String>get(Schemas.TITLE)).isEqualTo("new Title");
 	}
 
 	@Test

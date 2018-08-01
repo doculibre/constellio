@@ -1,7 +1,7 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
 import com.constellio.app.ui.entities.MetadataVO;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -46,7 +46,7 @@ public class SummaryColumnParams {
                 return "title";
             }
 
-            throw new NotImplementedException();
+            throw new NotImplementedException("Not implemented");
         }
 
         public static ReferenceMetadataDisplay fromInteger(int intToParse) {

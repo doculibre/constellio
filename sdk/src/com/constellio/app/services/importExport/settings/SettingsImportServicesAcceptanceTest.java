@@ -444,20 +444,20 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		importSettings();
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
 				.isEqualTo(false);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.<Boolean>getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE))
+		assertThat(systemConfigurationsManager.<Integer>getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE))
 				.isEqualTo(2015);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR))
+		assertThat(systemConfigurationsManager.<Integer>getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR))
 				.isEqualTo(15);
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
+		assertThat(systemConfigurationsManager.<String>getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
+		assertThat(systemConfigurationsManager.<DecommissioningDateBasedOn>getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
 				.isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
 	}
 

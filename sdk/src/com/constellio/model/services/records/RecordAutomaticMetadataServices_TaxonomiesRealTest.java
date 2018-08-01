@@ -1,6 +1,6 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -158,7 +158,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		services.calculateValueInRecord(context, (RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
 				recordProvider, schemas.getTypes(), new Transaction(options));
 
-		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
+		assertThat(records.taxo1_firstTypeItem1.<String>get(calculatedMetadata)).isEqualTo("calculatedValue");
 	}
 
 	@Test
@@ -296,12 +296,12 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 
 	private void assertThatPathIsEqualTo(Record record, String path) {
 		Metadata pathMetadata = schemas.getMetadata(record.getSchemaCode() + "_path");
-		assertThat(record.get(pathMetadata)).isEqualTo(Arrays.asList(path));
+		assertThat(record.<List<String>>get(pathMetadata)).isEqualTo(Arrays.asList(path));
 	}
 
 	private void assertThatPathIsEqualTo(Record record, List<String> paths) {
 		Metadata pathMetadata = schemas.getMetadata(record.getSchemaCode() + "_path");
-		assertThat(record.get(pathMetadata)).isEqualTo(paths);
+		assertThat(record.<List<String>>get(pathMetadata)).isEqualTo(paths);
 	}
 
 	public static class DummyCalculatorWithTaxonomyDependency implements MetadataValueCalculator<String> {

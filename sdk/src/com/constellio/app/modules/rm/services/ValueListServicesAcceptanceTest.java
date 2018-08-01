@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.services;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCode;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static junit.framework.Assert.fail;

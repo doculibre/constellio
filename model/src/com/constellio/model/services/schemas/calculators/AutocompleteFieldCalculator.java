@@ -44,14 +44,7 @@ public class AutocompleteFieldCalculator implements MetadataValueCalculator<List
 			}
 
 		} else if (value instanceof String) {
-			splitInLowerCasedTermsRemovingAccents(words, (String) value);
-
-		}
-	}
-
-	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value) {
-		if (value != null) {
-			String cleanedValue = AccentApostropheCleaner.removeAccents(value).toLowerCase();
+			String cleanedValue = AccentApostropheCleaner.removeAccents((String) value).toLowerCase();
 			for (String word : cleanedValue.split(" ")) {
 				words.add(word);
 			}

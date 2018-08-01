@@ -302,14 +302,14 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		List<Task> tasks = services.getWorkflowInstanceTasks(approvalWorkflowInstance);
 		assertThat(tasks).hasSize(1);
-		assertThat(tasks.get(0).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
+		assertThat(tasks.get(0).<List<String>>get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance).setStatus(closedStatus));
 
 		tasks = services.getWorkflowInstanceTasks(approvalWorkflowInstance);
 		assertThat(tasks).hasSize(2);
-		assertThat(tasks.get(0).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
-		assertThat(tasks.get(1).get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
+		assertThat(tasks.get(0).<List<String>>get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
+		assertThat(tasks.get(1).<List<String>>get(RMTask.LINKED_FOLDERS)).isEqualTo(asList(records.folder_A04, records.folder_A08));
 
 	}
 

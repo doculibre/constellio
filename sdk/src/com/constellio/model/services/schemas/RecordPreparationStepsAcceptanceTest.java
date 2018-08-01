@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
 import static org.assertj.core.api.Assertions.assertThat;
 

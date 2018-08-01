@@ -20,7 +20,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAll;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static com.constellio.sdk.tests.TestUtils.chuckNorris;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;

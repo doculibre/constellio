@@ -7,6 +7,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 
@@ -120,17 +121,17 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsSearchable).withANumberMetadata());
 		String record1 = givenZeSchemaRecordWithStringAndNumber("Shish", 42.0);
 		String record2 = givenZeSchemaRecordWithStringAndNumber("Pomme", null);
-		assertThat(record(record1).get(zeSchemaStringMetadata())).isEqualTo("Shish");
-		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(42.0);
-		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo("Pomme");
-		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(null);
+		assertThat(record(record1).<String>get(zeSchemaStringMetadata())).isEqualTo("Shish");
+		assertThat(record(record1).<Double>get(zeSchemaNumberMetadata())).isEqualTo(42.0);
+		assertThat(record(record2).<String>get(zeSchemaStringMetadata())).isEqualTo("Pomme");
+		assertThat(record(record2).<Double>get(zeSchemaNumberMetadata())).isEqualTo(null);
 
 		schemasManager.modify(zeCollection, changeStringAndNumberMultivalueStatus(true));
 		waitForBatchProcess();
-		assertThat(record(record1).get(zeSchemaStringMetadata())).isEqualTo(asList("Shish"));
-		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(asList(42.0));
-		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo(asList("Pomme"));
-		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(new ArrayList<>());
+		assertThat(record(record1).<List<String>>get(zeSchemaStringMetadata())).isEqualTo(asList("Shish"));
+		assertThat(record(record1).<List<Double>>get(zeSchemaNumberMetadata())).isEqualTo(asList(42.0));
+		assertThat(record(record2).<List<String>>get(zeSchemaStringMetadata())).isEqualTo(asList("Pomme"));
+		assertThat(record(record2).<List<Double>>get(zeSchemaNumberMetadata())).isEqualTo(new ArrayList<>());
 		//assertThatSimpleSearch("Shish").containsOnly(record1);
 
 		recordServices.update(record(record1).set(zeSchemaStringMetadata(), asList("Shish", "inter"))
@@ -138,21 +139,21 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		recordServices.update(record(record2).set(zeSchemaStringMetadata(), asList("Banane", "Shish"))
 				.set(zeSchemaNumberMetadata(), new ArrayList<>()));
 
-		assertThat(record(record1).get(zeSchemaStringMetadata())).isEqualTo(asList("Shish", "inter"));
-		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(asList(123.4, 42.0));
-		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo(asList("Banane", "Shish"));
-		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(new ArrayList<>());
+		assertThat(record(record1).<List<String>>get(zeSchemaStringMetadata())).isEqualTo(asList("Shish", "inter"));
+		assertThat(record(record1).<List<Double>>get(zeSchemaNumberMetadata())).isEqualTo(asList(123.4, 42.0));
+		assertThat(record(record2).<List<String>>get(zeSchemaStringMetadata())).isEqualTo(asList("Banane", "Shish"));
+		assertThat(record(record2).<List<Double>>get(zeSchemaNumberMetadata())).isEqualTo(new ArrayList<>());
 		//assertThatSimpleSearch("Shish").containsOnly(record1, record2);
 
 		schemasManager.modify(zeCollection, changeStringAndNumberMultivalueStatus(false));
 		waitForBatchProcess();
 
-		assertThat(record(record1).get(zeSchemaStringMetadata())).isEqualTo("Shish");
+		assertThat(record(record1).<String>get(zeSchemaStringMetadata())).isEqualTo("Shish");
 		assertThat(record(record1).getList(Schemas.dummyMultiValueMetadata(zeSchemaStringMetadata())))
 				.isEqualTo(new ArrayList<>());
-		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(123.4);
-		assertThat(record(record2).get(zeSchemaStringMetadata())).isEqualTo("Banane");
-		assertThat(record(record2).get(zeSchemaNumberMetadata())).isEqualTo(null);
+		assertThat(record(record1).<Double>get(zeSchemaNumberMetadata())).isEqualTo(123.4);
+		assertThat(record(record2).<String>get(zeSchemaStringMetadata())).isEqualTo("Banane");
+		assertThat(record(record2).<Double>get(zeSchemaNumberMetadata())).isEqualTo(null);
 		//assertThatSimpleSearch("Shish").containsOnly(record1);
 
 	}

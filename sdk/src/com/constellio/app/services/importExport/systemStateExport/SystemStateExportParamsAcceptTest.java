@@ -1,7 +1,7 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
 import static java.io.File.separator;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;

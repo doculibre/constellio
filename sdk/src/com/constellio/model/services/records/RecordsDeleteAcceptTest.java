@@ -476,9 +476,9 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		when(bob).logicallyDelete(valueListItem1);
 		when(bob).physicallyDelete(valueListItem1, withMostReferencesRemoved);
 		assertThat(valueListItem1).is(physicallyDeleted());
-		assertThat(records.folder3().get(metadata)).isNull();
-		assertThat(records.folder4().get(metadata)).isNull();
-		assertThat(records.folder1().get(metadata)).isEqualTo("value2ListItem");
+		assertThat(records.folder3().<String>get(metadata)).isNull();
+		assertThat(records.folder4().<String>get(metadata)).isNull();
+		assertThat(records.folder1().<String>get(metadata)).isEqualTo("value2ListItem");
 
 	}
 

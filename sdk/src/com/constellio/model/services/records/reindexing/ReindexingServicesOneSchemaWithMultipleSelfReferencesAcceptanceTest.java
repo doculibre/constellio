@@ -107,7 +107,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 
 		for (int i = 3002; i <= 3010; i++) {
 			System.out.println(i);
-			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
+			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
 		}
 
 		List<String> ids = new ArrayList<>();
@@ -119,7 +119,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		for (int i = 3002; i <= 3010; i++) {
 			System.out.println(i);
-			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
+			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
 		}
 	}
 
@@ -146,7 +146,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
-			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
+			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
 		}
 
 		List<String> ids = new ArrayList<>();
@@ -158,7 +158,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
-			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
+			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
 		}
 	}
 
@@ -196,12 +196,12 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		makeTheTitleOfZeSchemaRequired();
 
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
-		assertThat(record("000042").get(Schemas.TITLE)).isNull();
-		assertThat(record("000042").get(zeSchema.metadata(childOfReference))).isEqualTo("000666");
+		assertThat(record("000042").<String>get(Schemas.TITLE)).isNull();
+		assertThat(record("000042").<String>get(zeSchema.metadata(childOfReference))).isEqualTo("000666");
 
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
-		assertThat(record("000042").get(Schemas.TITLE)).isNull();
-		assertThat(record("000042").get(zeSchema.metadata(childOfReference))).isEqualTo("000666");
+		assertThat(record("000042").<String>get(Schemas.TITLE)).isNull();
+		assertThat(record("000042").<String>get(zeSchema.metadata(childOfReference))).isEqualTo("000666");
 	}
 
 	private void makeTheTitleOfZeSchemaRequired() {

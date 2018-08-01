@@ -1,7 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
@@ -28,6 +26,8 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.annotations.UiTest;
+
+import static java.util.Arrays.asList;
 
 public class SkipTestsRule implements TestRule {
 

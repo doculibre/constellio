@@ -12,7 +12,7 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
 import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;

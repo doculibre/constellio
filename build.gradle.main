@@ -26,8 +26,8 @@ allprojects {
         flatDir(dirs: file(project(":constellio").projectDir.getAbsolutePath() + '/libs/'))
     }
 
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 10
+    targetCompatibility = 10
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'

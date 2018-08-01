@@ -5,7 +5,7 @@ import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUM
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 

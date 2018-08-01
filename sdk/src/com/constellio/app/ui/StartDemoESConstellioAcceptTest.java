@@ -1,7 +1,7 @@
 package com.constellio.app.ui;
 
 import static com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils.startWebsite;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.util.ArrayList;

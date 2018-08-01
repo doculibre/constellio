@@ -210,8 +210,8 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		driver.navigateTo().url(dummyPage);
 
 		RecordFormWebElement form = new RecordFormWebElement(driver.find("zeForm"));
-		assertThat(form.getValue("metadata1")).isEqualTo("metadata1InitialValue");
-		assertThat(form.getValue("metadata2")).isEqualTo("metadata2InitialValue");
+		assertThat(form.<String>getValue("metadata1")).isEqualTo("metadata1InitialValue");
+		assertThat(form.<String>getValue("metadata2")).isEqualTo("metadata2InitialValue");
 
 		String newMetadata1Value = null;
 		String newMetadata2Value = null;
@@ -221,16 +221,16 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 			form.setValue("metadata1", newMetadata1Value);
 			form.setValue("metadata2", newMetadata2Value);
-			assertThat(form.getValue("metadata1")).isEqualTo(newMetadata1Value);
-			assertThat(form.getValue("metadata2")).isEqualTo(newMetadata2Value);
+			assertThat(form.<String>getValue("metadata1")).isEqualTo(newMetadata1Value);
+			assertThat(form.<String>getValue("metadata2")).isEqualTo(newMetadata2Value);
 		}
 
 		form.clickSaveButtonAndWaitForPageReload();
 
 		verify(presenter).saveButtonClick(recordVOArgumentCaptor.capture());
 		RecordVO receivedRecordVO = recordVOArgumentCaptor.getValue();
-		assertThat(receivedRecordVO.get("metadata1")).isEqualTo(newMetadata1Value);
-		assertThat(receivedRecordVO.get("metadata2")).isEqualTo(newMetadata2Value);
+		assertThat(receivedRecordVO.<String>get("metadata1")).isEqualTo(newMetadata1Value);
+		assertThat(receivedRecordVO.<String>get("metadata2")).isEqualTo(newMetadata2Value);
 	}
 
 	//TODO Maxime
@@ -255,8 +255,8 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		driver.navigateTo().url(dummyPage);
 
 		RecordFormWebElement form = new RecordFormWebElement(driver.find("zeForm"));
-		assertThat(form.getValue("metadata1")).isEqualTo("metadata1InitialValue");
-		assertThat(form.getValue("metadata2")).isEqualTo("metadata2InitialValue");
+		assertThat(form.<String>getValue("metadata1")).isEqualTo("metadata1InitialValue");
+		assertThat(form.<String>getValue("metadata2")).isEqualTo("metadata2InitialValue");
 
 		String newMetadata1Value = null;
 		String newMetadata2Value = null;
@@ -267,16 +267,16 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			form.setValue("metadata1", newMetadata1Value);
 			form.setValue("metadata2", newMetadata2Value);
 
-			assertThat(form.getValue("metadata1")).isEqualTo(newMetadata1Value);
-			assertThat(form.getValue("metadata2")).isEqualTo(newMetadata2Value);
+			assertThat(form.<String>getValue("metadata1")).isEqualTo(newMetadata1Value);
+			assertThat(form.<String>getValue("metadata2")).isEqualTo(newMetadata2Value);
 		}
 
 		form.clickSaveButtonAndWaitForPageReload();
 
 		verify(presenter).saveButtonClick(recordVOArgumentCaptor.capture());
 		RecordVO receivedRecordVO = recordVOArgumentCaptor.getValue();
-		assertThat(receivedRecordVO.get("metadata1")).isEqualTo(newMetadata1Value);
-		assertThat(receivedRecordVO.get("metadata2")).isEqualTo(newMetadata2Value);
+		assertThat(receivedRecordVO.<String>get("metadata1")).isEqualTo(newMetadata1Value);
+		assertThat(receivedRecordVO.<String>get("metadata2")).isEqualTo(newMetadata2Value);
 
 	}
 

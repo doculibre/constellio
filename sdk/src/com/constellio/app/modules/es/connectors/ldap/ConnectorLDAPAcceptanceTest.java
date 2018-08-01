@@ -9,7 +9,7 @@ import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
 import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
