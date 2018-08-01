@@ -68,24 +68,24 @@ public class ExcelRetentionRuleDataProviderAcceptanceTest extends ImportDataIter
 		documentTypeDetailOne.put("code", "1234");
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(2))
-											 .has(field("description", firstDescription))
-											 .has(field("approved", "true"))
-											 .has(field("approvalDate", localDate))
-											 .has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
-											 .has(field("essentialDocuments", "true"))
-											 .has(field("confidentialDocuments", "false"))
-											 .has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
-											 .has(field("administrativeUnits", singletonList("1")));
+				.has(field("description", firstDescription))
+				.has(field("approved", "true"))
+				.has(field("approvalDate", localDate))
+				.has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
+				.has(field("essentialDocuments", "true"))
+				.has(field("confidentialDocuments", "false"))
+				.has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
+				.has(field("administrativeUnits", singletonList("1")));
 
 		assertThat(importDataIterator.next()).has(id("2")).has(index(3))
-											 .has(field("code", "111200"))
-											 .has(field("description", secondDescription))
-											 .has(field("approved", "true"))
-											 .has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
-											 .has(field("essentialDocuments", "false"))
-											 .has(field("confidentialDocuments", "true"))
-											 .has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
-											 .has(field("administrativeUnits", asList("1", "2")));
+				.has(field("code", "111200"))
+				.has(field("description", secondDescription))
+				.has(field("approved", "true"))
+				.has(structure("documentTypesDetails", singletonList(documentTypeDetailOne)))
+				.has(field("essentialDocuments", "false"))
+				.has(field("confidentialDocuments", "true"))
+				.has(structure("copyRetentionRules", asList(copyRetentionRuleOne, copyRetentionRuleTwo)))
+				.has(field("administrativeUnits", asList("1", "2")));
 
 	}
 }

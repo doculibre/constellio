@@ -38,7 +38,7 @@ public class OrderFacetConfigurationPresenter extends BasePresenter<OrderFacetCo
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemasRecords.facetSchemaType()).returnAll())
-			 .sortAsc(schemasRecords.defaultFacet().get(Facet.ORDER));
+				.sortAsc(schemasRecords.defaultFacet().get(Facet.ORDER));
 		List<Record> records = searchServices().search(query);
 
 		for (Record record : records) {

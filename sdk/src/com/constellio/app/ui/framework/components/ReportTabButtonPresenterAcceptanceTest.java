@@ -38,8 +38,8 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 	public void SetUp() {
 		prepareSystem(
 				withZeCollection().withConstellioESModule().withTasksModule().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents().withDocumentsHavingContent()
+						.withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withEvents().withDocumentsHavingContent()
 		);
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		view = mock(ReportTabButton.class);

@@ -37,7 +37,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		String skosDestination = foldersLocator.getPluginsSDKProject()
-											   .getAbsoluteFile() + File.separator + "sdk-resources" + File.separator + "SKOS destination.xml";
+										 .getAbsoluteFile() + File.separator + "sdk-resources" + File.separator + "SKOS destination.xml";
 		File file = new File(skosDestination);
 		Assume.assumeTrue(file.exists());
 

@@ -37,9 +37,9 @@ public class CoreMigrationTo_7_2 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(RMCollection.SCHEMA_TYPE).createUndeletable(RMCollection.ORGANIZATION_NUMBER)
-						.setType(MetadataValueType.STRING).setSystemReserved(true);
+					.setType(MetadataValueType.STRING).setSystemReserved(true);
 			typesBuilder.getDefaultSchema(RMCollection.SCHEMA_TYPE).createUndeletable(RMCollection.CONSERVATION_CALENDAR_NUMBER)
-						.setType(MetadataValueType.STRING).setSystemReserved(true);
+					.setType(MetadataValueType.STRING).setSystemReserved(true);
 		}
 	}
 

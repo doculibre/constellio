@@ -53,7 +53,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		appLayerFactory = getAppLayerFactory();
 		rm = new RMSchemasRecordsServices(zeCollection, appLayerFactory);
@@ -81,7 +81,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 		appLayerFactory.getExtensions().forCollection(zeCollection).searchPageExtensions.add(searchPageExtension2);
 
 		final LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schema()).where(rm.folder.title())
-																						.isEqualTo("Abeille"));
+				.isEqualTo("Abeille"));
 		SimpleSearchPresenter simpleSearchPresenter = new SimpleSearchPresenter(simpleSearchView) {
 			@Override
 			protected LogicalSearchQuery getSearchQuery() {

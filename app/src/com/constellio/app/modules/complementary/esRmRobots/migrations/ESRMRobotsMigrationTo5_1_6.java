@@ -43,7 +43,7 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 		private void setupClassifyConnectorTaxonomyActionParametersSchema() {
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(false);
 		}
 

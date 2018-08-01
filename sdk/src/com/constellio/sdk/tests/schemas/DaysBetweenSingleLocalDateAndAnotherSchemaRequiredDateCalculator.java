@@ -18,7 +18,7 @@ public class DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator im
 	public static AtomicInteger invokationCounter = new AtomicInteger();
 
 	ReferenceDependency<LocalDateTime> anotherSchemaDateParam = ReferenceDependency.toADateTime("dateRef", "dateMeta")
-																				   .whichIsRequired();
+			.whichIsRequired();
 	LocalDependency<LocalDateTime> dateParam = LocalDependency.toADateTime("dateTimeMetadata").whichIsRequired();
 
 	@Override

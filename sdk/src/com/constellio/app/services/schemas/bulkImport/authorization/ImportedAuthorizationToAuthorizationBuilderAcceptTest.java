@@ -43,7 +43,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers().withDocumentsHavingContent()
 		);
 		users.setUp(getModelLayerFactory().newUserServices());
 
@@ -82,7 +82,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 				new ImportedAuthorizationTarget("folder", "folderLegacyId"));
 
 		validAuthorization = new ImportedAuthorization().setId("id").setPrincipals(validPrincipals)
-														.setTargets(validTargets).setAccess("rwd");
+				.setTargets(validTargets).setAccess("rwd");
 	}
 
 	@Test

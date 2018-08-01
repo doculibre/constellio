@@ -67,7 +67,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
@@ -314,13 +314,13 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		Transaction transaction = new Transaction();
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A19)
-												.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername())
-												.setType(EventType.MODIFY_DOCUMENT)
-												.setCreatedOn(LocalDateTime.now()));
+				.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername())
+				.setType(EventType.MODIFY_DOCUMENT)
+				.setCreatedOn(LocalDateTime.now()));
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A49)
-												.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername())
-												.setType(EventType.MODIFY_DOCUMENT)
-												.setCreatedOn(LocalDateTime.now()));
+				.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername())
+				.setType(EventType.MODIFY_DOCUMENT)
+				.setCreatedOn(LocalDateTime.now()));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newEventsDao().flush();
@@ -386,7 +386,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
 		manager.updateRole(zeNewRole.withPermissions(new ArrayList<String>()));
 		assertThat(manager.getRole(zeCollection, "zeNewRoleWithPublishPermission")
-						  .hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
+				.hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
 		connectAsSasquatch();
 		presenter.forParams(rmRecords.document_A19);
 		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();

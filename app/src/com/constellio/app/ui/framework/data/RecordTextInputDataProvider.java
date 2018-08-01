@@ -165,7 +165,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		if (schemaTypeCode != null) {
 
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
-													   .getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
+					.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
 			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
@@ -182,12 +182,12 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 			if (schemaTypeCode.equals(Category.SCHEMA_TYPE) && !includeDeactivated) {
 				condition = condition.andWhere(type.getAllMetadatas().getMetadataWithLocalCode(Category.DEACTIVATE))
-									 .isFalseOrNull();
+						.isFalseOrNull();
 			}
 		} else {
 
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
-													 .getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
+					.getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
 			List<Metadata> extraMetadatas = schema.getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(schema).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));

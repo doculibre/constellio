@@ -21,13 +21,13 @@ public class TasksMigrationTo7_6_3 extends MigrationHelper implements MigrationS
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
 		transaction.add(metadataSchemasDisplayManager.getMetadata(collection, "userTask_default_contents")
-													 .withHighlightStatus(true));
+				.withHighlightStatus(true));
 
 		transaction.add(metadataSchemasDisplayManager.getMetadata(collection, "userTask_default_description")
-													 .withHighlightStatus(true));
+				.withHighlightStatus(true));
 
 		transaction.add(metadataSchemasDisplayManager.getMetadata(collection, "userTask_default_title")
-													 .withHighlightStatus(true));
+				.withHighlightStatus(true));
 
 		metadataSchemasDisplayManager.execute(transaction);
 	}

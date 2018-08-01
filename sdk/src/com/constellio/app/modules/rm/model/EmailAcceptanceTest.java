@@ -27,7 +27,7 @@ public class EmailAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -64,8 +64,8 @@ public class EmailAcceptanceTest extends ConstellioTest {
 		assertThat(email.getFolderCategory()).isEqualTo(records.categoryId_X110);
 
 		Folder folder = records.getFolder_A03()
-							   .setCategoryEntered(records.categoryId_X13)
-							   .setAdministrativeUnitEntered(records.unitId_11b);
+				.setCategoryEntered(records.categoryId_X13)
+				.setAdministrativeUnitEntered(records.unitId_11b);
 
 		recordServices.execute(new Transaction(folder.getWrappedRecord()));
 		waitForBatchProcess();

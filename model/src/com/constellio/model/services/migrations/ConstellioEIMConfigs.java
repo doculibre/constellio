@@ -118,10 +118,10 @@ public class ConstellioEIMConfigs {
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
-											 .withDefaultValue(ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS));
+				.withDefaultValue(ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS));
 		add(INCLUDE_CONTENTS_IN_SAVESTATE = others.createBooleanFalseByDefault("includeContentsInSavestate"));
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
-									   .withDefaultValue("${firstName} ${lastName}"));
+				.withDefaultValue("${firstName} ${lastName}"));
 
 		// Associer ou non des rôles utilisateur aux autorisations
 		add(USER_ROLES_IN_AUTHORIZATIONS = others.createBooleanFalseByDefault("userRolesInAuthorizations"));
@@ -130,7 +130,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
-											   .withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
+				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
@@ -141,26 +141,26 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
-															  .withDefaultValue(3000));
+				.withDefaultValue(3000));
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
-																   .withDefaultValue(30));
+				.withDefaultValue(30));
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-										  .withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
+				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
 		add(TAXONOMY_ORDER_IN_HOME_VIEW = others.createString("taxonomyOrderInHomeView"));
 
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
-										  .scriptedBy(LazyTreeBufferSizeValidationScript.class));
+				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
 
 		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
-									  .scriptedBy(AutocompleteSizeValidationScript.class));
+				.scriptedBy(AutocompleteSizeValidationScript.class));
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -168,7 +168,7 @@ public class ConstellioEIMConfigs {
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
-											  .scriptedBy(WriteZZRecordsScript.class));
+				.scriptedBy(WriteZZRecordsScript.class));
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
@@ -183,7 +183,7 @@ public class ConstellioEIMConfigs {
 		add(ICAP_RESPONSE_TIMEOUT = icapConfigurationGroup.createInteger("icapResponseTimeout").withDefaultValue(5000));
 
 		add(CKEDITOR_TOOLBAR_CONFIG = others.createString("ckeditorToolbarConfig")
-											.withDefaultValue(DEFAULT_CKEDITOR_TOOLBAR_CONFIG));
+				.withDefaultValue(DEFAULT_CKEDITOR_TOOLBAR_CONFIG));
 
 		add(GROUP_AUTHORIZATIONS_INHERITANCE = others
 				.createEnum("groupAuthorizationsInheritance", GroupAuthorizationsInheritance.class)
@@ -202,19 +202,19 @@ public class ConstellioEIMConfigs {
 				.createBooleanFalseByDefault("showTriangleOnlyWhenFolderHasContent"));
 
 		add(MEMORY_CONSUMPTION_LEVEL = advanced.createEnum("memoryConsumptionLevel", MemoryConsumptionLevel.class)
-											   .withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
+				.withDefaultValue(MemoryConsumptionLevel.NORMAL).whichRequiresReboot().whichIsHidden());
 
 		add(CONTENT_PARSING_SCHEDULE = advanced.createString("contentParsingSchedule")
-											   .scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		add(VIEWER_CONTENTS_CONVERSION_SCHEDULE = advanced.createString("viewerConversionSchedule")
-														  .scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		add(UNREFERENCED_CONTENTS_DELETE_SCHEDULE = advanced.createString("unreferencedContentsDeleteSchedule")
-															.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+				.withDefaultValue("18-06").scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		add(BATCH_PROCESSES_SCHEDULE = advanced.createString("batchProcessesSchedule")
-											   .scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
+				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
 		add(SEIZE_MULTILANGUAL_VALUES = advanced.createBooleanFalseByDefault("seizeMultiLangual"));
 
@@ -226,7 +226,7 @@ public class ConstellioEIMConfigs {
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
-													  .whichIsHidden());
+				.whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}

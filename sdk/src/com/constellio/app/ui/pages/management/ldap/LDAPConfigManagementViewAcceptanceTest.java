@@ -33,7 +33,7 @@ public class LDAPConfigManagementViewAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig
 				.getLDAPUserSyncConfiguration(new Duration(1000 * 60 * 12));
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	@Test

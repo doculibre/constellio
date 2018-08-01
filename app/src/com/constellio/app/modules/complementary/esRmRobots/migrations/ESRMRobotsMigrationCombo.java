@@ -79,7 +79,7 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 		//transaction.add(manager.getType(collection, ConnectorHttpDocument.SCHEMA_TYPE).withMetadataGroup(groups));
 		transaction.add(manager.getSchema(collection, "robotLog_default").withNewTableMetadatas("robotLog_default_count"));
 		transaction.add(manager.getSchema(collection, "containerRecord_default")
-							   .withRemovedFormMetadatas("containerRecord_default_fillRatioEntered"));
+				.withRemovedFormMetadatas("containerRecord_default_fillRatioEntered"));
 
 		manager.execute(transaction.build());
 	}

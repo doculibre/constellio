@@ -100,7 +100,7 @@ public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTe
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idol"))))
 				.isEmpty();
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
-																				   .andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
+				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
 				.isEmpty();
 
 		assertThat(searchServices
@@ -122,7 +122,7 @@ public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTe
 				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idol")).setPreferAnalyzedFields(true)))
 				.isEmpty();
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
-																				   .andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
+				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
 				.isEmpty();
 	}
 

@@ -62,10 +62,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		userServices = getModelLayerFactory().newUserServices();
 
 		schemasDisplayManager.saveSchema(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom")
-															  .withDisplayMetadataCodes(asList("zeSchemaType_custom_title")));
+				.withDisplayMetadataCodes(asList("zeSchemaType_custom_title")));
 
 		schemasDisplayManager.saveMetadata(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-																.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -97,13 +97,13 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString").isUnmodifiable())
 				.isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-										.isVisibleInAdvancedSearch()).isTrue();
+				.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
@@ -145,11 +145,11 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas())
 				.extracting("code").containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom_customString")
-								 .isUnmodifiable()).isTrue();
+				.isUnmodifiable()).isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
-										.isVisibleInAdvancedSearch()).isTrue();
+				.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
@@ -214,17 +214,17 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(thirdSchemas.code()).create("zeProblematicReference")
-					 .defineReferencesTo(types.getSchema("zeSchemaType_custom"));
+						.defineReferencesTo(types.getSchema("zeSchemaType_custom"));
 			}
 		});
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
-								 .getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
+				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom");
 		assertThat(frenchMessages(appSchemasServices.isSchemaDeletable(zeCollection, "zeSchemaType_custom")))
 				.containsOnly("Le schéma Ze french label ne peut pas être supprimé, car il est utilisé par la métadonnée zeProblematicReference du schéma aThirdSchemaType du type aThirdSchemaType.");
 
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(thirdSchemas.code()).get("zeProblematicReference")
-								 .getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom2");
+				.getAllowedReferences().getAllowedSchemas()).containsOnly("zeSchemaType_custom2");
 
 	}
 
@@ -244,13 +244,13 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getDocumentById("r2").get(zeCustomSchema.customStringMetadata())).isEqualTo("custom value 2");
 		assertThat(recordServices.getDocumentById("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom2");
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom2");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getMetadata("zeSchemaType_custom2_customString").isUnmodifiable())
 				.isTrue();
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom2").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom2_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom2_customString")
-										.isVisibleInAdvancedSearch()).isTrue();
+				.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.English))
@@ -290,7 +290,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo("custom value 1999");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom", "zeSchemaType_custom2");
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom", "zeSchemaType_custom2");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getFrenchLabel())
 				.isEqualTo("Ze french label (À supprimer)");
@@ -302,7 +302,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom2").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom2_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom2_customString")
-										.isVisibleInAdvancedSearch()).isTrue();
+				.isVisibleInAdvancedSearch()).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.French))
 				.isEqualTo("Ze french label");
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.English))
@@ -334,7 +334,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 
@@ -350,14 +350,14 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 				.containsOnly("Le schéma zeSchemaType ne peut pas être supprimé, car il s’agit du schéma par défaut.");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-																											 .containsOnly("zeSchemaType_default", "zeSchemaType_custom");
+				.containsOnly("zeSchemaType_default", "zeSchemaType_custom");
 		assertThat(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom").getDisplayMetadataCodes())
 				.containsOnly("zeSchemaType_custom_title");
 
 		appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom");
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchemaType("zeSchemaType").getAllSchemas()).extracting("code")
-																											 .containsOnly("zeSchemaType_default");
+				.containsOnly("zeSchemaType_default");
 
 		try {
 			schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom");
@@ -417,7 +417,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 	long countRecordsInSchema(String schemaCode) {
 		MetadataSchema schema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-													  .getSchema(schemaCode);
+				.getSchema(schemaCode);
 		return getModelLayerFactory().newSearchServices().getResultsCount(new LogicalSearchQuery(from(schema).returnAll()));
 	}
 }

@@ -26,7 +26,7 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.add(displayManager.getSchema(collection, Task.DEFAULT_SCHEMA)
-											 .withNewTableMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS));
+				.withNewTableMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS));
 		displayManager.execute(transactionBuilder.build());
 	}
 
@@ -41,7 +41,7 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder taskSchema = typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE);
 			taskSchema.createUndeletable(Task.STARRED_BY_USERS).setSystemReserved(true)
-					  .setType(MetadataValueType.STRING).setMultivalue(true);
+					.setType(MetadataValueType.STRING).setMultivalue(true);
 		}
 	}
 }

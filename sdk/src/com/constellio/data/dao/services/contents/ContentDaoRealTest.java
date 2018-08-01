@@ -79,7 +79,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 			throws Exception {
 
 		getDataLayerFactory().getDataLayerConfiguration()
-							 .setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.TWO_DIGITS);
+				.setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.TWO_DIGITS);
 
 		assertThat(getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemDigitsSeparatorMode())
 				.isEqualTo(DigitSeparatorMode.TWO_DIGITS);
@@ -139,10 +139,10 @@ public class ContentDaoRealTest extends ConstellioTest {
 			throws Exception {
 
 		getDataLayerFactory().getDataLayerConfiguration()
-							 .setHashingEncoding(BASE64_URL_ENCODED);
+				.setHashingEncoding(BASE64_URL_ENCODED);
 
 		getDataLayerFactory().getDataLayerConfiguration()
-							 .setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
+				.setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
 
 		vaultDao.add("anIdWithoutSlash", newInputStreamOfTextContent("test1"));
 		vaultDao.add("anotherId", newInputStreamOfTextContent("test2"));
@@ -185,10 +185,10 @@ public class ContentDaoRealTest extends ConstellioTest {
 			);
 
 			assertThat(new File(root, "a" + separator + "an" + separator + "anI").listFiles()).extracting("name", "file")
-																							  .containsOnly(tuple("anIdWithoutSlash", true));
+					.containsOnly(tuple("anIdWithoutSlash", true));
 
 			assertThat(new File(root, "a" + separator + "an" + separator + "ano").listFiles()).extracting("name", "file")
-																							  .containsOnly(tuple("anotherId", true));
+					.containsOnly(tuple("anotherId", true));
 
 			assertThat(new File(root, "z").listFiles()).extracting("name", "file").containsOnly(
 					tuple("z", true),
@@ -201,7 +201,7 @@ public class ContentDaoRealTest extends ConstellioTest {
 			);
 
 			assertThat(new File(root, "z" + separator + "zz" + separator + "zzz").listFiles()).extracting("name", "file")
-																							  .containsOnly(tuple("zzz", true), tuple("zzzz", true));
+					.containsOnly(tuple("zzz", true), tuple("zzzz", true));
 
 		}
 	}

@@ -42,12 +42,12 @@ public class ConnectorLDAPCrawlerHelperAcceptanceTest extends ConstellioTest {
 	private ConnectorLDAPInstance newConnectorLDAPInstance(String code)
 			throws RecordServicesException {
 		String newTraversalCode = UUID.randomUUID()
-									  .toString();
+				.toString();
 		ConnectorLDAPInstance returnInstance = (ConnectorLDAPInstance) es.newConnectorLDAPInstance().setPassword("pass")
-																		 .setUrls(asList("url"))
-																		 .setUsersBaseContextList(asList("BCL"))
-																		 .setConnectionUsername(
-																				 "username").setTitle("title").setCode(code).setTraversalCode(newTraversalCode);
+				.setUrls(asList("url"))
+				.setUsersBaseContextList(asList("BCL"))
+				.setConnectionUsername(
+						"username").setTitle("title").setCode(code).setTraversalCode(newTraversalCode);
 		recordServices.add(returnInstance);
 		return returnInstance;
 	}

@@ -59,10 +59,10 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(Printable.SCHEMA_TYPE).getDefaultSchema();
 			builder.create(Printable.JASPERFILE).setType(MetadataValueType.CONTENT).setUndeletable(true).setEssential(true)
-				   .defineDataEntry().asManual()
-				   .addValidator(JasperFilePrintableValidator.class);
+					.defineDataEntry().asManual()
+					.addValidator(JasperFilePrintableValidator.class);
 			builder.create(Printable.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setUndeletable(true).setDefaultValue(true)
-				   .defineDataEntry().asManual();
+					.defineDataEntry().asManual();
 
 			MetadataSchemaBuilder UserBuilder = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
 			UserBuilder.create(User.FAX).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
@@ -70,15 +70,15 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 
 			if (typesBuilder.getCollection().equals(Collection.SYSTEM_COLLECTION)) {
 				MetadataSchemaBuilder UserCredentialBuilder = typesBuilder.getSchemaType(SolrUserCredential.SCHEMA_TYPE)
-																		  .getDefaultSchema();
+						.getDefaultSchema();
 				UserCredentialBuilder.create(SolrUserCredential.ADDRESS).setEssential(false).setType(MetadataValueType.STRING)
-									 .defineDataEntry().asManual();
+						.defineDataEntry().asManual();
 				UserCredentialBuilder.create(SolrUserCredential.FAX).setEssential(false).setType(MetadataValueType.STRING)
-									 .defineDataEntry().asManual();
+						.defineDataEntry().asManual();
 				UserCredentialBuilder.create(SolrUserCredential.JOB_TITLE).setEssential(false).setType(MetadataValueType.STRING)
-									 .defineDataEntry().asManual();
+						.defineDataEntry().asManual();
 				UserCredentialBuilder.create(SolrUserCredential.PHONE).setEssential(false).setType(MetadataValueType.STRING)
-									 .defineDataEntry().asManual();
+						.defineDataEntry().asManual();
 			}
 		}
 	}

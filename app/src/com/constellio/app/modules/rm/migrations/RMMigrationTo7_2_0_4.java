@@ -38,7 +38,7 @@ public class RMMigrationTo7_2_0_4 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).createUndeletable(ContainerRecord.DOCUMENT_RESPONSIBLE)
-						.setType(MetadataValueType.REFERENCE).setSystemReserved(true).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+					.setType(MetadataValueType.REFERENCE).setSystemReserved(true).defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 		}
 	}
 }

@@ -97,7 +97,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(schema.getCollection()).thenReturn(zeCollection);
 		inOrder = inOrder(configManager, taxonomiesManager, reader, writer, oneXMLConfigPerCollectionManager);
 		doNothing().when(taxonomiesManager)
-				   .createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
+				.createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
 
 		labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "1");

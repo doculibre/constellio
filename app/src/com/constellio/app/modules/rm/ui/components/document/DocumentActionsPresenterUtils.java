@@ -118,7 +118,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		decommissioningLoggingService = new DecommissioningLoggingService(presenterUtils.modelLayerFactory());
 		extensions = presenterUtils.modelLayerFactory().getExtensions().forCollection(presenterUtils.getCollection());
 		rmModuleExtensions = presenterUtils.appLayerFactory().getExtensions().forCollection(presenterUtils.getCollection())
-										   .forModule(ConstellioRMModule.ID);
+				.forModule(ConstellioRMModule.ID);
 	}
 
 	public DocumentVO getDocumentVO() {
@@ -165,13 +165,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
 			if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
 				if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
-										.getPopulateConfigs().isAddOnly()) {
+						.getPopulateConfigs().isAddOnly()) {
 					document.setTitle(newName);
 				}
 			} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
-									.equals(document.getTitle())) {
+					.equals(document.getTitle())) {
 				if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
-										.getPopulateConfigs().isAddOnly()) {
+						.getPopulateConfigs().isAddOnly()) {
 					document.setTitle(FilenameUtils.removeExtension(newName));
 				}
 			}
@@ -195,7 +195,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isDeleteDocumentPossibleExtensively() {
 		return isDeleteDocumentPossible() && presenterUtils.recordServices()
-														   .isLogicallyDeletable(currentDocument(), getCurrentUser());
+				.isLogicallyDeletable(currentDocument(), getCurrentUser());
 	}
 
 	private ComponentState getDeleteButtonState() {
@@ -204,12 +204,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (documentVO != null) {
 				Document document = new Document(currentDocument(), presenterUtils.types());
 				if (document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT)
-															   .on(currentDocument())) {
+						.on(currentDocument())) {
 					return ComponentState.INVISIBLE;
 				}
 
 				if (getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
-																			   .on(currentDocument())) {
+						.on(currentDocument())) {
 					return ComponentState.INVISIBLE;
 				}
 			}
@@ -622,7 +622,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private ComponentState getCheckInState() {
 		if (getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
 			boolean permissionToReturnOtherUsersDocuments = getCurrentUser().has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS)
-																			.on(currentDocument());
+					.on(currentDocument());
 			if (isCheckInPossible() || (permissionToReturnOtherUsersDocuments && isContentCheckedOut())) {
 				return ComponentState.ENABLED;
 			}
@@ -845,7 +845,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 
 		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
-													   .forModule(ConstellioRMModule.ID);
+				.forModule(ConstellioRMModule.ID);
 
 		final Record record = currentDocument();
 
@@ -890,7 +890,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 
 		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
-													   .forModule(ConstellioRMModule.ID);
+				.forModule(ConstellioRMModule.ID);
 
 		final Record record = currentDocument();
 

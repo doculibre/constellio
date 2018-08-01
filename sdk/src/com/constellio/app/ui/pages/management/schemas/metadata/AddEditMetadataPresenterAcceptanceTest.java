@@ -50,7 +50,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
-							.withAStringMetadata(whichIsSortable, whichIsEnabled));
+						.withAStringMetadata(whichIsSortable, whichIsEnabled));
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
@@ -180,7 +180,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.preSaveButtonClicked(newMetadataForm, false);
 
 		Metadata result = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-												.getMetadata(zeSchema.code() + "_USRzeMetadataCode");
+				.getMetadata(zeSchema.code() + "_USRzeMetadataCode");
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(zeSchema.code() + "_USRzeMetadataCode");
@@ -209,7 +209,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.preSaveButtonClicked(newMetadataForm, false);
 
 		Metadata result = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-												.getMetadata(zeCustomSchema.code() + "_USRzeMetadataCode");
+				.getMetadata(zeCustomSchema.code() + "_USRzeMetadataCode");
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(zeCustomSchema.code() + "_USRzeMetadataCode");
@@ -292,9 +292,9 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("fr", "zeNewSchema");
 		types.getDefaultSchema("zeSchemaType").create("zeMask").setInputMask("9999-9999").addLabel(Language.French, "Mask")
-			 .setType(MetadataValueType.STRING);
+				.setType(MetadataValueType.STRING);
 		types.getSchemaType("zeSchemaType").createCustomSchema("zeNewSchema", labels)
-			 .setDefaultSchema(types.getDefaultSchema("zeSchemaType"));
+				.setDefaultSchema(types.getDefaultSchema("zeSchemaType"));
 		schemasManager.saveUpdateSchemaTypes(types);
 
 		Metadata zeNewSchemaMetadata = rm.schema("zeSchemaType_zeNewSchema").getMetadata("zeMask");

@@ -535,7 +535,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 		assertThat(getValueOf(dakota)).isEqualTo("" + (numberOfIterations * 2));
 
 		assertThat(problems.get()).isGreaterThan(100)
-								  .describedAs("The test passed, but there wasn't enought conflict to prove it is correct");
+				.describedAs("The test passed, but there wasn't enought conflict to prove it is correct");
 	}
 
 	boolean isExistingOnServer(String id, BigVaultServer solrServer)

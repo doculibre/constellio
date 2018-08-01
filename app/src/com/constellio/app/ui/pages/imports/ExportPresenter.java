@@ -75,7 +75,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return modelLayerFactory.newUserServices().has(user.getUsername())
-								.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS);
+				.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS);
 	}
 
 	void exportWithoutContentsButtonClicked() {
@@ -94,7 +94,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 		List<String> foldersInContainers = searchServices()
 				.searchRecordIds(LogicalSearchQueryOperators.from(asList(Folder.SCHEMA_TYPE), collection)
-															.where(schema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CONTAINER)).isIn(containerIds));
+						.where(schema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CONTAINER)).isIn(containerIds));
 		allFolders.addAll(foldersInContainers);
 		allIds.addAll(allFolders);
 
@@ -147,11 +147,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		}
 
 		MetadataSchemaType decommissioningListSchemaType = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-																		  .getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
+				.getSchemaTypes(collection).getSchemaType(DecommissioningList.SCHEMA_TYPE);
 		SearchResponseIterator<Record> recordsIterator = searchServices().recordsIterator(
 				LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(Schemas.PATH).isStartingWithTextFromAny(paths)
-										   .orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT))
-										   .isIn(unitIds));
+						.orWhere(decommissioningListSchemaType.getDefaultSchema().get(DecommissioningList.ADMINISTRATIVE_UNIT))
+						.isIn(unitIds));
 
 		exportToXML(options, recordsIterator);
 	}
@@ -274,7 +274,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 		String filename = "systemstate-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
-									   .newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
+				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
 		ExportAudit newExportAudit = createNewExportAudit();
 
@@ -361,7 +361,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
 		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
-									   .newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
+				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File zipFile = new File(folder, filename);
 
 		List<File> logFiles = new ArrayList<>();

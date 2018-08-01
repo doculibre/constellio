@@ -81,10 +81,10 @@ public class SIPButtonPresenter {
 		String collection = button.getView().getCollection();
 
 		MetadataSchemaType documentSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-																 .getSchemaType(Document.SCHEMA_TYPE);
+				.getSchemaType(Document.SCHEMA_TYPE);
 		for (String folderId : getFolderIDListFromObjectList()) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType)
-																		  .where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
+					.where(documentSchemaType.getDefaultSchema().get(Document.FOLDER)).isEqualTo(folderId);
 			if (searchServices.getResultsCount(new LogicalSearchQuery(condition)) > 0) {
 				return true;
 			}
@@ -119,7 +119,7 @@ public class SIPButtonPresenter {
 				Object value = viewObject.get(metadatavo);
 				if (metadatavo.getType().equals(MetadataValueType.REFERENCE)) {
 					Record referencedRecord = appLayerFactory.getModelLayerFactory().newRecordServices()
-															 .getDocumentById(viewObject.<String>get(metadatavo));
+							.getDocumentById(viewObject.<String>get(metadatavo));
 					value = referencedRecord.getTitle();
 				}
 				if (value != null) {

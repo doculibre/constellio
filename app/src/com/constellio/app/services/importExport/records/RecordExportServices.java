@@ -175,7 +175,7 @@ public class RecordExportServices {
 		for (String schemaTypeCode : schemaTypeList) {
 			writer.setOptions(schemaTypeCode,
 					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
-										   .setImportAsLegacyId(!options.isForSameSystem()));
+							.setImportAsLegacyId(!options.isForSameSystem()));
 		}
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -196,7 +196,7 @@ public class RecordExportServices {
 				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
 				appLayerFactory.getExtensions().forCollection(collection)
-							   .onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
+						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
 
 				writer.write(modifiableImportRecord);
 			}
@@ -220,7 +220,7 @@ public class RecordExportServices {
 		for (String schemaTypeCode : schemaTypeList) {
 			writer.setOptions(schemaTypeCode,
 					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
-										   .setImportAsLegacyId(!options.isForSameSystem()));
+							.setImportAsLegacyId(!options.isForSameSystem()));
 		}
 
 		while (recordsToExport.hasNext()) {
@@ -236,7 +236,7 @@ public class RecordExportServices {
 			writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
 			appLayerFactory.getExtensions().forCollection(collection)
-						   .onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
+					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
 
 			writer.write(modifiableImportRecord);
 		}
@@ -265,7 +265,7 @@ public class RecordExportServices {
 			writer.setOptions(schemaTypeCode,
 
 					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
-										   .setImportAsLegacyId(!options.isForSameSystem()));
+							.setImportAsLegacyId(!options.isForSameSystem()));
 		}
 
 		for (String exportedSchemaType : schemaTypeList) {
@@ -286,7 +286,7 @@ public class RecordExportServices {
 				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
 				appLayerFactory.getExtensions().forCollection(collection)
-							   .onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
+						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
 
 				writer.write(modifiableImportRecord);
 			}

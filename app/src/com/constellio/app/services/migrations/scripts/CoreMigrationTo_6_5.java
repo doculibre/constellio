@@ -41,7 +41,7 @@ public class CoreMigrationTo_6_5 implements MigrationScript {
 				fromAllSchemasIn(collection).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
 		List<Record> results = appLayerFactory.getModelLayerFactory().newSearchServices().search(query);
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory()
-													   .newRecordServices();
+				.newRecordServices();
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		for (Record record : results) {
 			try {
@@ -63,7 +63,7 @@ public class CoreMigrationTo_6_5 implements MigrationScript {
 			//add delete metadata
 
 			typesBuilder.getSchema(User.DEFAULT_SCHEMA).create(User.VISIBLE_TABLE_COLUMNS)
-						.defineStructureFactory(MapStringListStringStructureFactory.class);
+					.defineStructureFactory(MapStringListStringStructureFactory.class);
 		}
 	}
 

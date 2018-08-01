@@ -48,7 +48,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
 		);
 		mockHeader = mock(ConstellioHeader.class);
 		when(mockHeader.getConstellioFactories()).thenReturn(getConstellioFactories());
@@ -69,15 +69,15 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 		AvailableActionsParam param = buildParamWithDocumentsAndFoldersAndContainers();
 		extension.addAvailableActions(param);
 		assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
-																									 .doesNotContain(records.folder_A20);
+				.doesNotContain(records.folder_A20);
 		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
-																		   .doesNotContain(records.folder_A20);
+				.doesNotContain(records.folder_A20);
 
 		extension.parentFolderButtonClicked(records.folder_A20, param.getIds());
 		assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
-																									 .containsOnly(records.folder_A20);
+				.containsOnly(records.folder_A20);
 		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
-																		   .containsOnly(records.folder_A20);
+				.containsOnly(records.folder_A20);
 	}
 
 	@Test
@@ -85,18 +85,18 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 		AvailableActionsParam param = buildParamWithDocumentsAndFoldersAndContainers();
 		extension.addAvailableActions(param);
 		assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
-																									 .doesNotContain(records.folder_A20);
+				.doesNotContain(records.folder_A20);
 		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
-																		   .doesNotContain(records.folder_A20);
+				.doesNotContain(records.folder_A20);
 		List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
-																																										  where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
+				where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
 		));
 
 		extension.duplicateButtonClicked(records.folder_A20, param);
 		assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
-																									 .doesNotContain(records.folder_A20);
+				.doesNotContain(records.folder_A20);
 		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
-																		   .doesNotContain(records.folder_A20);
+				.doesNotContain(records.folder_A20);
 
 		List<Record> recordList = getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection)
 				.whereAllConditions(
@@ -131,7 +131,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 		extension.addAvailableActions(param);
 
 		List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
-																																										  where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
+				where(Schemas.PATH).isStartingWithText(records.getFolder_A20().getPaths().get(0))
 		));
 		extension.classifyButtonClicked(records.folder_A20, "", null, true, param);
 
@@ -154,7 +154,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 		extension.addAvailableActions(param);
 
 		List<String> existingIds = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).
-																																										  where(Schemas.PATH).isStartingWithText(records.getCategory_X().getPaths().get(0))
+				where(Schemas.PATH).isStartingWithText(records.getCategory_X().getPaths().get(0))
 		));
 		extension.classifyButtonClicked("", records.categoryId_X, records.ruleId_1, false, param);
 

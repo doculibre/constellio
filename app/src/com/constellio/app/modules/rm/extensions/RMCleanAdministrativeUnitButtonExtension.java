@@ -90,8 +90,8 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 
 		AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(searchServices.
-																								searchSingleResult(from(rm.administrativeUnit.schema()).where(Schemas.IDENTIFIER)
-																																					   .isEqualTo(currentConcept.getId())));
+				searchSingleResult(from(rm.administrativeUnit.schema()).where(Schemas.IDENTIFIER)
+						.isEqualTo(currentConcept.getId())));
 
 		boolean hasAllRights = hasCurrentUserDeletionRightsToCleanTasks(administrativeUnit, currentUser);
 		if (hasAllRights) {
@@ -113,14 +113,14 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 		SearchResponseIterator<Record> documentIterator = searchServices
 				.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.document.schema())
 						.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId()))
-														 .sortDesc(Schemas.PRINCIPAL_PATH));
+						.sortDesc(Schemas.PRINCIPAL_PATH));
 		SearchResponseIterator<Record> folderIterator = searchServices
 				.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.folder.schema())
 						.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId()))
-														 .sortDesc(Schemas.PRINCIPAL_PATH));
+						.sortDesc(Schemas.PRINCIPAL_PATH));
 		List<Record> taskList = searchServices.search(new LogicalSearchQuery().setCondition(from(taskSchemas.userTask.schema())
 				.where(Schemas.PRINCIPAL_PATH).isNot(containingText(administrativeUnit.getId())))
-																			  .sortDesc(Schemas.PRINCIPAL_PATH));
+				.sortDesc(Schemas.PRINCIPAL_PATH));
 
 		while (documentIterator.hasNext()) {
 			Record document = documentIterator.next();
@@ -158,7 +158,7 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 		SearchResponseIterator<Record> containerIterator = searchServices
 				.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.containerRecord.schema())
 						.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId()))
-														 .sortDesc(Schemas.PRINCIPAL_PATH));
+						.sortDesc(Schemas.PRINCIPAL_PATH));
 
 		while (containerIterator.hasNext()) {
 			Record container = containerIterator.next();
@@ -235,7 +235,7 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 
 		for (Record task : taskList) {
 			MetadataSchema curTaskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-														  .getSchemaTypes(collection).getSchema(task.getSchemaCode());
+					.getSchemaTypes(collection).getSchema(task.getSchemaCode());
 			List<String> linkedDocumentsIDs = task.get(curTaskSchema.getMetadata(RMTask.LINKED_DOCUMENTS));
 			linkedDocumentsIDs = new ArrayList<>(linkedDocumentsIDs);
 			if (linkedDocumentsIDs.contains(document.getId())) {
@@ -252,7 +252,7 @@ public class RMCleanAdministrativeUnitButtonExtension extends PagesComponentsExt
 
 		for (Record task : taskList) {
 			MetadataSchema curTaskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-														  .getSchemaTypes(collection).getSchema(task.getSchemaCode());
+					.getSchemaTypes(collection).getSchema(task.getSchemaCode());
 			List<String> linkedDocumentsIDs = task.get(curTaskSchema.getMetadata(RMTask.LINKED_DOCUMENTS));
 			linkedDocumentsIDs = new ArrayList<>(linkedDocumentsIDs);
 			if (linkedDocumentsIDs.contains(folder.getId())) {

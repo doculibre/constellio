@@ -57,7 +57,7 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		// This doesn't work because the taxonomy isn't created at that moment.
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_CREATION);
+				.url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_CREATION);
 		waitUntilICloseTheBrowsers();
 	}
 

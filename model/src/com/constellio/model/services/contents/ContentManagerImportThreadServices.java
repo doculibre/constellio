@@ -201,7 +201,7 @@ public class ContentManagerImportThreadServices {
 
 	private boolean fileNotExceedingParsingLimit(File file) {
 		long limit = (int) modelLayerFactory.getSystemConfigurationsManager()
-											.getValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS) * 1024 * 1024;
+				.getValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS) * 1024 * 1024;
 		return file.length() <= limit;
 	}
 
@@ -221,7 +221,7 @@ public class ContentManagerImportThreadServices {
 
 	private String toBigFileKey(File extractedBigFileFolder, File file) {
 		String bigFile = extractedBigFileFolder.getAbsolutePath()
-											   .replace(tempFolder.getAbsolutePath() + File.separator, "");
+				.replace(tempFolder.getAbsolutePath() + File.separator, "");
 
 		String entryPath = file.getAbsolutePath().replace(extractedBigFileFolder.getAbsolutePath() + File.separator, "");
 
@@ -230,7 +230,7 @@ public class ContentManagerImportThreadServices {
 
 	private String toKey(File file) {
 		return file.getAbsolutePath().replace(toImportFolder.getAbsolutePath() + File.separator, "")
-				   .replace(File.separator, "/");
+				.replace(File.separator, "/");
 	}
 
 	private int extractBigFile(File bigFile) {

@@ -448,7 +448,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				if (menuBarRequired) {
 					RecordContextMenu contextMenu = null;
 					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent()
-																						   .getRecordContextMenuHandlers();
+							.getRecordContextMenuHandlers();
 					for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
 						if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
 							contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
@@ -484,7 +484,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 							MenuBar menuBar = null;
 							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent()
-																						   .getRecordMenuBarHandlers();
+									.getRecordMenuBarHandlers();
 							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
 								menuBar = recordMenuBarHandler.get(recordVO);
 								if (menuBar != null) {

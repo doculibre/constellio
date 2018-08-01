@@ -123,7 +123,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		}
 
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
-					   .setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
+				.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
 
 	}
 
@@ -160,19 +160,19 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
 		transaction.add(rm.newFacetField().setOrder(0)
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
-						  .setActive(true)
-						  .setOpenByDefault(true)
-						  .setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
+				.setActive(true)
+				.setOpenByDefault(true)
+				.setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
 
 		transaction.add(rm.newFacetQuery().setOrder(1)
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
-						  .setActive(false)
-						  .setOpenByDefault(true)
-						  .withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
-						  .withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
-						  .withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
-						  .withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
+				.setActive(false)
+				.setOpenByDefault(true)
+				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
+				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
+				.withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
+				.withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
 		return transaction;
 	}
 

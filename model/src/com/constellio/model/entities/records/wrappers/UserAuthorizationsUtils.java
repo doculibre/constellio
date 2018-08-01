@@ -56,7 +56,7 @@ public class UserAuthorizationsUtils {
 
 	public static boolean containsAUserToken(User user, Record record) {
 		SecurityTokenManager securityTokenManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
-														.getSecurityTokenManager();
+				.getSecurityTokenManager();
 		for (String token : securityTokenManager.getTokens(user).getAllowTokens()) {
 			if (record.getList(TOKENS).contains(token)) {
 				return true;
@@ -156,7 +156,7 @@ public class UserAuthorizationsUtils {
 		SchemasRecordsServices schemas = user.getRolesDetails().getSchemasRecordsServices();
 
 		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
-															.getGroupAuthorizationsInheritance();
+				.getGroupAuthorizationsInheritance();
 
 		Set<String> authsId;
 		if (inheritance == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
@@ -180,7 +180,7 @@ public class UserAuthorizationsUtils {
 				AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
 
 				TaxonomiesManager taxonomiesManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
-														  .getTaxonomiesManager();
+						.getTaxonomiesManager();
 				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
 						authorizationDetails.getTargetSchemaType());
 

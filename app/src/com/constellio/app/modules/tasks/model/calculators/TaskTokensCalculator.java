@@ -24,9 +24,9 @@ public class TaskTokensCalculator implements MetadataValueCalculator<List<String
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(CommonMetadataBuilder.MANUAL_TOKENS);
 	LocalDependency<String> assigneeParam = LocalDependency.toAReference(Task.ASSIGNEE);
 	LocalDependency<List<String>> assigneeUsersParam = LocalDependency.toAReference(Task.ASSIGNEE_USERS_CANDIDATES)
-																	  .whichIsMultivalue();
+			.whichIsMultivalue();
 	LocalDependency<List<String>> assigneeGroupsParam = LocalDependency.toAReference(Task.ASSIGNEE_GROUPS_CANDIDATES)
-																	   .whichIsMultivalue();
+			.whichIsMultivalue();
 	LocalDependency<List<String>> followersParam = LocalDependency.toAReference(Task.FOLLOWERS_IDS).whichIsMultivalue();
 	LocalDependency<String> createdByParam = LocalDependency.toAReference(CommonMetadataBuilder.CREATED_BY);
 	ReferenceDependency<List<String>> parentTokensParam = ReferenceDependency

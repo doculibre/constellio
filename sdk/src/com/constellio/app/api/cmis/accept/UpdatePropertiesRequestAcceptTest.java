@@ -63,7 +63,7 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-											 .build();
+				.build();
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());

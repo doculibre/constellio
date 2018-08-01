@@ -48,12 +48,12 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2").setType(STRING).setMultivalue(true);
 				MetadataBuilder zeSchema_zeRef = zeType.createMetadata("ref").defineReferencesTo(anotherType);
 				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.createMetadata("stringValuesUnion").setType(STRING)
-																			 .setMultivalue(true).defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_value1, zeSchema_Value2);
+						.setMultivalue(true).defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_value1, zeSchema_Value2);
 				MetadataBuilder anotherSchema_zeRef = anotherType.createMetadata("ref").defineReferencesTo(thirdType);
 				MetadataBuilder anotherSchema_value = anotherType.createMetadata("stringValue").setType(STRING)
-																 .setMultivalue(true);
+						.setMultivalue(true);
 				thirdType.createMetadata("stringValuesUnion").setType(STRING).setMultivalue(true)
-						 .defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion, anotherSchema_value);
+						.defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion, anotherSchema_value);
 
 			}
 		}));
@@ -79,7 +79,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		TestRecord r1 = new TestRecord(zeSchema, "r1").set("stringValue1", "value1").set("ref", "merge1");
 		TestRecord r2 = new TestRecord(zeSchema, "r2").set("stringValue2", asList("value2")).set("ref", "merge1");
 		TestRecord r3 = new TestRecord(zeSchema, "r3").set("stringValue1", "value3").set("stringValue2", asList("value5"))
-													  .set("ref", "merge2");
+				.set("ref", "merge2");
 		TestRecord r4 = new TestRecord(zeSchema, "r4").set("stringValue2", asList("value4")).set("ref", "merge2");
 		TestRecord r5 = new TestRecord(zeSchema, "r5").set("stringValue1", "value4").set("ref", "merge2");
 		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3, r4, r5));
@@ -132,12 +132,12 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				MetadataBuilder zeSchema_zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.getDefaultSchema().create("stringValuesUnion")
-																			 .setType(STRING).setMultivalue(true)
-																			 .defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_valueMetadata);
+						.setType(STRING).setMultivalue(true)
+						.defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_valueMetadata);
 				MetadataBuilder anotherSchema_zeRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder thirdSchema_stringValuesUnion = thirdType.getDefaultSchema().create("stringValuesUnion")
-																		 .setType(STRING).setMultivalue(true)
-																		 .defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion);
+						.setType(STRING).setMultivalue(true)
+						.defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion);
 
 			}
 		}));

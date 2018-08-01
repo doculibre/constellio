@@ -280,8 +280,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 			throws IOException {
 		SmbFile smbFile = new SmbFile(validFile, auth);
 		assertThat(smbFile.getInputStream()
-						  .read()).isNotNull()
-								  .isNotEqualTo(-1);
+				.read()).isNotNull()
+				.isNotEqualTo(-1);
 	}
 
 	@Test(expected = SmbException.class)
@@ -293,7 +293,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 			throws IOException {
 		SmbFile smbFile = new SmbFile(validShareWithNonExistingFile, auth);
 		smbFile.getInputStream()
-			   .read();
+				.read();
 	}
 
 	@Test
@@ -305,7 +305,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 			throws MalformedURLException {
 		SmbFile smbFile = new SmbFile(validFile, auth);
 		assertThat(smbFile.getLastModified()).isNotZero()
-											 .isBetween(0L, System.currentTimeMillis());
+				.isBetween(0L, System.currentTimeMillis());
 	}
 
 	@Test
@@ -328,7 +328,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 			throws MalformedURLException {
 		SmbFile smbFile = new SmbFile(validFolder, auth);
 		assertThat(smbFile.getLastModified()).isNotZero()
-											 .isBetween(0L, System.currentTimeMillis());
+				.isBetween(0L, System.currentTimeMillis());
 	}
 
 	@Test
@@ -379,10 +379,10 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		SmbFile smbFile = new SmbFile(validShare, auth);
 		SmbFile[] files = smbFile.listFiles();
 		assertThat(files).extracting("canonicalPath")
-						 .containsSequence("smb://192.168.1.246/share/file0", "smb://192.168.1.246/share/file01", "smb://192.168.1.246/share/file10",
-								 "smb://192.168.1.246/share/filea", "smb://192.168.1.246/share/filez", "smb://192.168.1.246/share/folder0/",
-								 "smb://192.168.1.246/share/folder01/", "smb://192.168.1.246/share/folder10/", "smb://192.168.1.246/share/foldera/",
-								 "smb://192.168.1.246/share/folderz/");
+				.containsSequence("smb://192.168.1.246/share/file0", "smb://192.168.1.246/share/file01", "smb://192.168.1.246/share/file10",
+						"smb://192.168.1.246/share/filea", "smb://192.168.1.246/share/filez", "smb://192.168.1.246/share/folder0/",
+						"smb://192.168.1.246/share/folder01/", "smb://192.168.1.246/share/folder10/", "smb://192.168.1.246/share/foldera/",
+						"smb://192.168.1.246/share/folderz/");
 
 		clean.execute();
 

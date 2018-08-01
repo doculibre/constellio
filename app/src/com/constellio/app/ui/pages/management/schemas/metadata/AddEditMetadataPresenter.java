@@ -119,7 +119,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		List<String> typeCodes = new ArrayList<>();
 		final Map<String, String> typeCodesAndLabels = new HashMap<>();
 		for (MetadataSchemaType type : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-														.getSchemaTypes()) {
+				.getSchemaTypes()) {
 			if (this.isAllowedReferenceType(type)) {
 				typeCodes.add(type.getCode());
 				Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
@@ -174,14 +174,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	public boolean isShowUniqueComboBox() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode))
-																				   .returnAll();
+				.returnAll();
 		Metadata metadata = types.getMetadata(metadataCode);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
 		logicalSearchQuery.setNumberOfRows(0);
 		logicalSearchQuery.addFieldFacet(metadata.getDataStoreCode());
 
 		List<FacetValue> response = modelLayerFactory.newSearchServices().query(logicalSearchQuery)
-													 .getFieldFacetValues(metadata.getDataStoreCode());
+				.getFieldFacetValues(metadata.getDataStoreCode());
 		for (FacetValue facetValue : response) {
 			if (facetValue.getQuantity() > 1) {
 				return false;
@@ -214,7 +214,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (formMetadataVO.getValueType().equals(REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
-													 .getTaxonomyFor(collection, formMetadataVO.getReference());
+						.getTaxonomyFor(collection, formMetadataVO.getReference());
 				if (taxonomy != null) {
 					builder.defineTaxonomyRelationshipToType(refBuilder);
 				} else {
@@ -365,9 +365,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
-										 .withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
-										 .withInputType(type)
-										 .withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup());
+					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
+					.withInputType(type)
+					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup());
 		}
 
 		displayManager.saveMetadata(displayConfig);
@@ -375,7 +375,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (formMetadataVO.isInheritance()) {
 			String codeInDefaultSchema = schemaTypeCode + "_default_" + new SchemaUtils().getLocalCodeFromMetadataCode(code);
 			displayConfig = displayManager.getMetadata(collection, codeInDefaultSchema)
-										  .withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch());
+					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch());
 			displayManager.saveMetadata(displayConfig);
 		}
 
@@ -397,15 +397,15 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		String localCode = schemaUtils.getLocalCode(code, schemaCode);
 
 		List<String> hugeMetadatas = schemasManager.getSchemaTypes(collection).getSchema(schemaCode).getMetadatas()
-												   .onlyWithType(MetadataValueType.STRUCTURE, MetadataValueType.TEXT).toLocalCodesList();
+				.onlyWithType(MetadataValueType.STRUCTURE, MetadataValueType.TEXT).toLocalCodesList();
 
 		transactionBuilder.in(typeCode)
-						  .addToDisplay(localCode)
-						  .beforeTheHugeCommentMetadata();
+				.addToDisplay(localCode)
+				.beforeTheHugeCommentMetadata();
 
 		transactionBuilder.in(typeCode)
-						  .addToForm(localCode)
-						  .beforeMetadatas(hugeMetadatas);
+				.addToForm(localCode)
+				.beforeMetadatas(hugeMetadatas);
 
 		displayManager.execute(transactionBuilder.build());
 
@@ -478,29 +478,29 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				final Metadata metadata = schema.getMetadata(metadataCode);
 
 				builtInMetadataModifiable = appLayerFactory.getExtensions().forCollection(collection)
-														   .isMetadataRequiredStatusModifiable(
-																   new IsBuiltInMetadataAttributeModifiableParam() {
+						.isMetadataRequiredStatusModifiable(
+								new IsBuiltInMetadataAttributeModifiableParam() {
 
-																	   @Override
-																	   public Metadata getMetadata() {
-																		   return metadata;
-																	   }
+									@Override
+									public Metadata getMetadata() {
+										return metadata;
+									}
 
-																	   @Override
-																	   public MetadataSchema getSchema() {
-																		   return schema;
-																	   }
+									@Override
+									public MetadataSchema getSchema() {
+										return schema;
+									}
 
-																	   @Override
-																	   public MetadataSchemaType getSchemaType() {
-																		   return types.getSchemaType(schemaTypeCode);
-																	   }
+									@Override
+									public MetadataSchemaType getSchemaType() {
+										return types.getSchemaType(schemaTypeCode);
+									}
 
-																	   @Override
-																	   public MetadataAttribute getMetadataAttribute() {
-																		   return attribute;
-																	   }
-																   });
+									@Override
+									public MetadataAttribute getMetadataAttribute() {
+										return attribute;
+									}
+								});
 			}
 
 		}

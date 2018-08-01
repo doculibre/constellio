@@ -28,7 +28,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 
 		EmailServerConfiguration expectedConfig = new OldSmtpServerTestConfig();
 		EmailServerConfiguration serverConfiguration = getModelLayerFactory().getEmailConfigurationsManager()
-																			 .getEmailConfiguration("ff", false);
+				.getEmailConfiguration("ff", false);
 
 		assertThat(serverConfiguration.getPassword())
 				.isEqualTo(getModelLayerFactory().newEncryptionServices().encrypt(expectedConfig.getPassword()));
@@ -71,7 +71,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		String validToken = "c84e2c14-f933-4399-aed2-95c538b2b7dd";
 		assertThat(
 				new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml.old")
-																	 .getDocument())).doesNotContain(validToken);
+						.getDocument())).doesNotContain(validToken);
 
 		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
 		assertThat(adminTokens).contains(validToken);
@@ -98,7 +98,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		givenSystemAtVersion5_1_2WithManualInvalidSMTPConfiguration();
 
 		EmailServerConfiguration serverConfiguration = getModelLayerFactory().getEmailConfigurationsManager()
-																			 .getEmailConfiguration("ff", false);
+				.getEmailConfiguration("ff", false);
 		assertThat(serverConfiguration.isEnabled()).isFalse();
 	}
 

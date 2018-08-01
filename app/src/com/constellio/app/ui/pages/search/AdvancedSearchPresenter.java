@@ -376,7 +376,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
-																   .isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -390,7 +390,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
-																   .isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+						.isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -398,10 +398,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search.setSearchType(AdvancedSearchView.SEARCH_TYPE)
-					 .setSchemaFilter(schemaTypeCode)
-					 .setFreeTextSearch(searchExpression)
-					 .setAdvancedSearch(view.getSearchCriteria())
-					 .setPageNumber(pageNumber);
+				.setSchemaFilter(schemaTypeCode)
+				.setFreeTextSearch(searchExpression)
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(pageNumber);
 	}
 
 	public Record getTemporarySearchRecord() {
@@ -595,9 +595,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-			 .filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
-			 .setPreferAnalyzedFields(isPreferAnalyzedFields());
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -607,9 +607,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildLogicalSearchQueryWithUnselectedIds() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-			 .filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
-			 .setPreferAnalyzedFields(isPreferAnalyzedFields());
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -619,8 +619,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildLogicalSearchQueryWithAllRecords() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-			 .filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
-			 .setPreferAnalyzedFields(isPreferAnalyzedFields());
+				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -630,8 +630,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithSelectedIds() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-			 .setPreferAnalyzedFields(isPreferAnalyzedFields());
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -641,8 +641,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithUnselectedIds() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-			 .setPreferAnalyzedFields(isPreferAnalyzedFields());
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -652,7 +652,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildUnsecuredLogicalSearchQueryWithAllRecords() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-			 .setPreferAnalyzedFields(isPreferAnalyzedFields());
+				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		if (searchExpression != null && !searchExpression.isEmpty()) {
 			query.setFreeTextQuery(searchExpression);
 		}
@@ -749,7 +749,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		if (listSearchableMetadataSchemaType == null) {
 			listSearchableMetadataSchemaType = new ArrayList<>();
 			for (MetadataSchemaType schemaType : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-																  .getSchemaTypes()) {
+					.getSchemaTypes()) {
 				if (isMetadataSchemaTypesSearchable(schemaType)) {
 					listSearchableMetadataSchemaType.add(schemaType.getCode());
 				}

@@ -121,7 +121,7 @@ public class ContentManager implements StatefulService {
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
 		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory()
-											   .newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
+				.newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -184,21 +184,21 @@ public class ContentManager implements StatefulService {
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, contentActionsInBackgroundRunnable)
-											 .executedEvery(
-													 configuration.getUnreferencedContentsThreadDelayBetweenChecks())
-											 .handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+						.executedEvery(
+								configuration.getUnreferencedContentsThreadDelayBetweenChecks())
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
-											 .executedEvery(
-													 configuration.getGeneratePreviewsThreadDelayBetweenChecks())
-											 .handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+						.executedEvery(
+								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(SCAN_VAULT_CONTENTS, scanVaultContentsInBackgroundRunnable)
-											 .executedEvery(Duration.standardHours(2))
-											 //						.executedEvery(Duration.standardSeconds(10))
-											 .handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+						.executedEvery(Duration.standardHours(2))
+						//						.executedEvery(Duration.standardSeconds(10))
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
 			Runnable contentImportAction = new Runnable() {
@@ -210,8 +210,8 @@ public class ContentManager implements StatefulService {
 			};
 			backgroundThreadsManager.configure(
 					BackgroundThreadConfiguration.repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
-												 .executedEvery(Duration.standardSeconds(30))
-												 .handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+							.executedEvery(Duration.standardSeconds(30))
+							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 		}
 
 		//
@@ -433,7 +433,7 @@ public class ContentManager implements StatefulService {
 		boolean handleDeletionOfUnreferencedHashes = uploadOptions.isHandleDeletionOfUnreferencedHashes();
 
 		boolean defaultParsing = modelLayerFactory.getSystemConfigs()
-												  .getDefaultParsingBehavior() == SYNC_PARSING_FOR_ALL_CONTENTS;
+										 .getDefaultParsingBehavior() == SYNC_PARSING_FOR_ALL_CONTENTS;
 
 		boolean parse = uploadOptions.isParse(defaultParsing);
 
@@ -698,7 +698,7 @@ public class ContentManager implements StatefulService {
 					try {
 						Transaction transaction = new Transaction();
 						transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
-																  .setOverwriteModificationDateAndUser(false));
+								.setOverwriteModificationDateAndUser(false));
 						for (Record record : records) {
 							if (!closing.get()) {
 								try {

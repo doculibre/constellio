@@ -191,19 +191,19 @@ public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTe
 			throws RecordServicesException {
 
 		recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-							 .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary1")
-							 .setAdministrativeUnits(asList(records.unitId_10))
-							 .setDecommissioningType(DecommissioningType.DEPOSIT)
+				.setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary1")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
 		);
 		recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-							 .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary2")
-							 .setAdministrativeUnits(asList(records.unitId_10))
-							 .setDecommissioningType(DecommissioningType.DEPOSIT)
+				.setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary2")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
 		);
 		recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-							 .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary3")
-							 .setAdministrativeUnits(asList(records.unitId_10))
-							 .setDecommissioningType(DecommissioningType.DEPOSIT)
+				.setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary3")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
 		);
 	}
 

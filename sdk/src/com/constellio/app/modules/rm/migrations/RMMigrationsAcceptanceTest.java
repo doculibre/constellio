@@ -39,7 +39,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		if (getModelLayerFactory().getCollectionsListManager().getCollections().contains(zeCollection)) {
 			MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-																			.getSchemaTypes(zeCollection);
+					.getSchemaTypes(zeCollection);
 			if (metadataSchemaTypes.hasType(RetentionRule.SCHEMA_TYPE)) {
 				whenMigratingToCurrentVersionThenValidSchemas();
 				whenMigratingToCurrentVersionThenValidSystemCollectionSchemas();
@@ -162,7 +162,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-										 .getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
+				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -173,7 +173,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Collection.SYSTEM_COLLECTION);
 
 		assertThat(metadataSchemaTypes.getSchema(SolrUserCredential.DEFAULT_SCHEMA)
-									  .getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
+				.getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
 
 	}
 
@@ -181,7 +181,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		List<String> types = new ArrayList<>();
 		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollections()) {
 			for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager()
-																 .getSchemaTypes(collection).getSchemaTypes()) {
+					.getSchemaTypes(collection).getSchemaTypes()) {
 				if (type.hasSecurity()) {
 					types.add(type.getCode());
 				}
@@ -194,7 +194,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		SchemaDisplayConfig folderDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
-																	  .getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
+				.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
 
 		assertThat(folderDisplayConfig.getFormMetadataCodes()).endsWith(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
@@ -225,7 +225,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		//				Folder.DEFAULT_SCHEMA + "_" + "title");
 
 		SchemaDisplayConfig retentionRuleDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
-																			 .getSchema(zeCollection, RetentionRule.DEFAULT_SCHEMA);
+				.getSchema(zeCollection, RetentionRule.DEFAULT_SCHEMA);
 
 		assertThat(retentionRuleDisplayConfig.getDisplayMetadataCodes())
 				.contains("retentionRule_default_scope",

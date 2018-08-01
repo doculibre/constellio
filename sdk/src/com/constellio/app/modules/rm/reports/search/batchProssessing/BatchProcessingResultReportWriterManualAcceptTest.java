@@ -33,7 +33,7 @@ public class BatchProcessingResultReportWriterManualAcceptTest extends ReportBui
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 	}
 

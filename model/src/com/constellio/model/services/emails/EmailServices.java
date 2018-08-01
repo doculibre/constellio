@@ -132,8 +132,8 @@ public class EmailServices {
 				DataHandler handler = bodyPart.getDataHandler();
 
 				returnList.add(new MessageAttachment().setAttachmentName(handler.getName())
-													  .setInputStream(handler.getInputStream())
-													  .setMimeType(handler.getContentType()));
+						.setInputStream(handler.getInputStream())
+						.setMimeType(handler.getContentType()));
 			}
 		}
 		return returnList;

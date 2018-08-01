@@ -110,7 +110,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
 				LogicalSearchQueryOperators.from(userFolderSchema).where(userMetadata).is(currentUser.getWrappedRecord())
-										   .andWhere(parentUserFolderMetadata).isNull());
+						.andWhere(parentUserFolderMetadata).isNull());
 		query.sortAsc(Schemas.IDENTIFIER);
 
 		return query;
@@ -125,7 +125,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
 				LogicalSearchQueryOperators.from(userDocumentSchema).where(userMetadata).is(currentUser.getWrappedRecord())
-										   .andWhere(userFolderMetadata).isNull());
+						.andWhere(userFolderMetadata).isNull());
 		query.sortAsc(Schemas.IDENTIFIER);
 
 		return query;
@@ -198,16 +198,16 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-																 .where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-																 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						)
 						.filteredWithUser(getCurrentUser());
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				LogicalSearchQuery duplicateUserDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.userDocumentSchemaType())
-																 .where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-																 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-																 .andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId()))
+								.where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+								.andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId()))
 						.filteredWithUser(getCurrentUser());
 				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
 				if (duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {

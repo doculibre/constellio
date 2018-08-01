@@ -79,12 +79,12 @@ class IcapClient {
 
 	private String buildOptionsMethodRequest() {
 		return new StringBuilder().
-										  append("OPTIONS ").append(icapServerUrl).append(" ICAP/1.0").
-										  append(CR_LF).
-										  append("Host: ").append(icapServerUrl.getHost()).
-										  append(CR_LF).
-										  append(CR_LF).
-										  toString();
+				append("OPTIONS ").append(icapServerUrl).append(" ICAP/1.0").
+				append(CR_LF).
+				append("Host: ").append(icapServerUrl.getHost()).
+				append(CR_LF).
+				append(CR_LF).
+				toString();
 	}
 
 	private IcapResponse parseResponse() throws IOException {
@@ -126,10 +126,10 @@ class IcapClient {
 			try {
 				mockedIcapResponse = new ByteArrayInputStream(
 						new StringBuilder("ICAP/1.0 ").
-															  append(HttpStatus.SC_NO_CONTENT).
-															  append(" OK").
-															  toString().
-															  getBytes());
+								append(HttpStatus.SC_NO_CONTENT).
+								append(" OK").
+								toString().
+								getBytes());
 
 				response = IcapResponse.parse(mockedIcapResponse);
 			} finally {
@@ -160,22 +160,22 @@ class IcapClient {
 	private String buildEncapsulatedFileGetRequest(final String filename, final String clientHostname)
 			throws IOException {
 		return new StringBuilder().
-										  append("GET http://").append(clientHostname).append("/").append(URLEncoder.encode(filename, "utf-8")).append(" ").append("HTTP/1.1").
-										  append(CR_LF).
-										  append("Host: ").append(clientHostname).
-										  append(CR_LF).
-										  append(CR_LF).
-										  toString();
+				append("GET http://").append(clientHostname).append("/").append(URLEncoder.encode(filename, "utf-8")).append(" ").append("HTTP/1.1").
+				append(CR_LF).
+				append("Host: ").append(clientHostname).
+				append(CR_LF).
+				append(CR_LF).
+				toString();
 	}
 
 	private String buildEncapsulatedFileGetResponse() {
 		return new StringBuilder().
-										  append("HTTP/1.1 200 OK").
-										  append(CR_LF).
-										  append("Transfer-Encoding: chunked").
-										  append(CR_LF).
-										  append(CR_LF).
-										  toString();
+				append("HTTP/1.1 200 OK").
+				append(CR_LF).
+				append("Transfer-Encoding: chunked").
+				append(CR_LF).
+				append(CR_LF).
+				toString();
 	}
 
 	private String buildRespmodMethodRequest(final String encapsulatedFileGetRequest,
@@ -185,22 +185,22 @@ class IcapClient {
 		final int encapsulatedFileGetResponseOffset = encapsulatedFileGetRequestOffset + encapsulatedFileGetResponse.length();
 
 		final StringBuilder request = new StringBuilder().
-																 append("RESPMOD ").append(icapServerUrl).append(" ICAP/1.0").
-																 append(CR_LF).
-																 append("Host: ").append(icapServerUrl.getHost()).
-																 append(CR_LF).
-																 append("Allow: 204").
-																 append(CR_LF).
-																 append("Encapsulated: req-hdr=0 res-hdr=").append(encapsulatedFileGetRequestOffset).append(" res-body=").append(encapsulatedFileGetResponseOffset).
-																 append(CR_LF).
-																 append("Preview: ").append(previewLength).
-																 append(CR_LF).
-																 append("User-Agent: Java").
-																 append(CR_LF);
+				append("RESPMOD ").append(icapServerUrl).append(" ICAP/1.0").
+				append(CR_LF).
+				append("Host: ").append(icapServerUrl.getHost()).
+				append(CR_LF).
+				append("Allow: 204").
+				append(CR_LF).
+				append("Encapsulated: req-hdr=0 res-hdr=").append(encapsulatedFileGetRequestOffset).append(" res-body=").append(encapsulatedFileGetResponseOffset).
+				append(CR_LF).
+				append("Preview: ").append(previewLength).
+				append(CR_LF).
+				append("User-Agent: Java").
+				append(CR_LF);
 
 		if (StringUtils.isNotBlank(clientHostname)) {
 			request.append("X-Client-IP: ").append(clientHostname)
-				   .append(CR_LF);
+					.append(CR_LF);
 		}
 
 		request.append(CR_LF);

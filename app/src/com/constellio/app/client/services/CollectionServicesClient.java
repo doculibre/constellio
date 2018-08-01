@@ -26,6 +26,6 @@ public class CollectionServicesClient {
 
 	private Builder requestString(String service) {
 		return target.path(service).request(MediaType.TEXT_PLAIN).header(AdminServicesConstants.AUTH_TOKEN, token)
-					 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 }

@@ -15,7 +15,7 @@ import java.util.List;
 public class FolderActiveRetentionTypeCalculator implements MetadataValueCalculator<RetentionType> {
 
 	LocalDependency<CopyRetentionRule> mainCopyRuleParam = LocalDependency.toAStructure(Folder.MAIN_COPY_RULE)
-																		  .whichIsRequired();
+			.whichIsRequired();
 
 	@Override
 	public RetentionType calculate(CalculatorParameters parameters) {

@@ -21,7 +21,7 @@ public class SecurityUtils {
 	public static String printSecurityReport(String collection, AppLayerFactory appLayerFactory) {
 
 		List<User> usersInCollection = appLayerFactory.getModelLayerFactory().newUserServices()
-													  .getAllUsersInCollection(collection);
+				.getAllUsersInCollection(collection);
 
 		Iterator<User> removeInvalids = usersInCollection.iterator();
 

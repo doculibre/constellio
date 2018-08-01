@@ -226,7 +226,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
 					return new LogicalSearchQuery(
 							from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems())
-																 .andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNITS)).isIn(adminUnitIds))
+									.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNITS)).isIn(adminUnitIds))
 							.filteredByStatus(StatusFilter.ACTIVES)
 							.sortAsc(Schemas.TITLE);
 				} else {
@@ -328,7 +328,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return false;
 			}
 			if (getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
-																		   .on(document)) {
+					.on(document)) {
 				return false;
 			}
 		}
@@ -554,7 +554,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isBatchProcessingButtonVisible(String schemaType) {
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType) && !getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS)
-																			   .onSomething()) {
+				.onSomething()) {
 			return false;
 		}
 		return getNotDeletedRecordsIds(schemaType).size() != 0;
@@ -744,7 +744,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
 					return new LogicalSearchQuery(
 							from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems())
-																 .andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT)).isIn(adminUnitIds))
+									.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT)).isIn(adminUnitIds))
 							.filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 							.sortAsc(Schemas.TITLE);
 				} else {
@@ -806,14 +806,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isAnyFolderBorrowed() {
 		return searchServices().getResultsCount(from(rm().folder.schemaType()).where(rm().folder.borrowed()).isTrue()
-																			  .andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
+				.andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
 	}
 
 	public boolean isAnyFolderInDecommissioningList() {
 		return searchServices().getResultsCount(
 				from(rm().decommissioningList.schemaType()).where(rm().decommissioningList.status())
-														   .isNotEqual(DecomListStatus.PROCESSED)
-														   .andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
+						.isNotEqual(DecomListStatus.PROCESSED)
+						.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
 	}
 
 	public boolean batchEditRequested(String code, Object value, String schemaType) {

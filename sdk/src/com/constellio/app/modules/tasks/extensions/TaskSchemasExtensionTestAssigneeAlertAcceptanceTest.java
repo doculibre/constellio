@@ -78,7 +78,7 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 		List<String> heroesEmails = getGroupUsersEmails(heroes);
 		assertThat(heroesEmails).isNotEmpty();
 		recordServices.add(zeTask.setAssigneeGroupsCandidates(asList(heroes.getId())).setAssignationDate(now.toLocalDate())
-								 .setAssigner(aliceId));
+				.setAssigner(aliceId));
 		recordServices.flush();
 		EmailToSend emailToSend = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
 		assertThat(emailToSend).isNotNull();
@@ -113,7 +113,7 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 		Task newTask = tasksSchemas.newTask();
 		recordServices
 				.add(newTask.setTitle("newTask").setAssignee(alice.getId()).setAssigner(alice.getId())
-							.setAssignationDate(now.toLocalDate()));
+						.setAssignationDate(now.toLocalDate()));
 		recordServices.flush();
 		EmailToSend toAlice = getEmailToSendByTemplateId(TASK_ASSIGNED_TO_YOU);
 

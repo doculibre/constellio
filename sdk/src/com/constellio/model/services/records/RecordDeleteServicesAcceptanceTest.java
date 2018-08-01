@@ -66,7 +66,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -93,11 +93,11 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 				MetadataSchemaBuilder tasksSchema = tasksSchemaType.createCustomSchema(CUSTOM_TASK_SCHEMA_LOCAL_CODE);
 				MetadataSchemaBuilder folderSchemaBuilder = types.getDefaultSchema(Folder.SCHEMA_TYPE);
 				tasksSchema.create(CUSTOM_TASK_NEW_METADATA).setType(MetadataValueType.REFERENCE)
-						   .defineReferencesTo(folderSchemaBuilder).setDefaultRequirement(true);
+						.defineReferencesTo(folderSchemaBuilder).setDefaultRequirement(true);
 			}
 		});
 		customTaskSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-												 .getSchemaType(Task.SCHEMA_TYPE).getSchema(CUSTOM_TASK_SCHEMA_LOCAL_CODE);
+				.getSchemaType(Task.SCHEMA_TYPE).getSchema(CUSTOM_TASK_SCHEMA_LOCAL_CODE);
 		zMeta = customTaskSchema.getMetadata(CUSTOM_TASK_NEW_METADATA);
 	}
 
@@ -106,10 +106,10 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.add(category = rm.newCategory().setCode("zCat").setTitle("Ze category")
-									 .setRetentionRules(asList(records.ruleId_1)));
+				.setRetentionRules(asList(records.ruleId_1)));
 		transaction.add(parentFolderInCategory_A = records.getFolder_A01().setCategoryEntered(category));
 		transaction.add(subFolder_B = rm.newFolderWithId("subFolder_B").setParentFolder(parentFolderInCategory_A)
-										.setTitle("subFolder_B").setOpenDate(TimeProvider.getLocalDate()));
+				.setTitle("subFolder_B").setOpenDate(TimeProvider.getLocalDate()));
 
 		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema, "taskReferencesFolderB"));
 		transaction.add(taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B).setTitle("zTask"));
@@ -137,9 +137,9 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		Record rootConcept = new TestRecord(schema, "rootConcept")
 				.set(Schemas.CODE, "A").set(Schemas.TITLE, "Root concept");
 		Record childConcept = new TestRecord(schema, "childConcept").set(schema.get("parent"), "rootConcept")
-																	.set(Schemas.CODE, "A1").set(Schemas.TITLE, "Child concept");
+				.set(Schemas.CODE, "A1").set(Schemas.TITLE, "Child concept");
 		Document aDocument = rm.newDocument().setTitle("Ze doc")
-							   .setFolder(records.getFolder_A03()).set(metadata, asList(childConcept));
+				.setFolder(records.getFolder_A03()).set(metadata, asList(childConcept));
 		Transaction transaction = new Transaction();
 		transaction.add(rootConcept);
 		transaction.add(childConcept);
@@ -183,7 +183,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
 			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
-									  .doesNotContain(subFolder_B.getId(), category.getId());
+					.doesNotContain(subFolder_B.getId(), category.getId());
 
 			recordServices.refresh(parentFolderInCategory_A);
 

@@ -81,7 +81,7 @@ public class ConnectorManager implements StatefulService {
 	@Override
 	public void initialize() {
 		BackgroundThreadsManager backgroundThreadsManager = es.getModelLayerFactory().getDataLayerFactory()
-															  .getBackgroundThreadsManager();
+				.getBackgroundThreadsManager();
 
 		Runnable crawlAction = new Runnable() {
 			@Override
@@ -199,7 +199,7 @@ public class ConnectorManager implements StatefulService {
 	public long getFetchedDocumentsCount(String connectorId) {
 		ConnectorInstance<?> connectorInstance = es.getConnectorInstance(connectorId);
 		return es.getSearchServices().getResultsCount(es.fromAllFetchedDocumentsOf(connectorId)
-														.andWhere(es.connectorDocument.searchable()).isNot(isFalse()));
+				.andWhere(es.connectorDocument.searchable()).isNot(isFalse()));
 	}
 
 	public List<ConnectorDocument<?>> getLastFetchedDocuments(String connectorId, int qty) {
@@ -207,7 +207,7 @@ public class ConnectorManager implements StatefulService {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(es.fromAllFetchedDocumentsOf(connectorId)
-							 .andWhere(es.connectorDocument.traversalCode()).isEqualTo(connectorInstance.getTraversalCode()));
+				.andWhere(es.connectorDocument.traversalCode()).isEqualTo(connectorInstance.getTraversalCode()));
 		query.setNumberOfRows(qty);
 		query.sortDesc(es.connectorDocument.modifiedOn());
 

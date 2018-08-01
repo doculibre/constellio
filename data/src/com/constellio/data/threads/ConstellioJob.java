@@ -57,9 +57,9 @@ public abstract class ConstellioJob implements Job {
 
 	JobDetail buildJobDetail() {
 		return JobBuilder.
-								 newJob(getClass()).
-								 withIdentity(name(), Scheduler.DEFAULT_GROUP).
-								 build();
+				newJob(getClass()).
+				withIdentity(name(), Scheduler.DEFAULT_GROUP).
+				build();
 	}
 
 	Set<Trigger> buildIntervalTriggers() {
@@ -72,12 +72,12 @@ public abstract class ConstellioJob implements Job {
 
 			for (final int interval : intervals) {
 				final TriggerBuilder triggerBuilder = TriggerBuilder.
-																			newTrigger().
-																			withIdentity(name() + "-Trigger-" + interval, Scheduler.DEFAULT_GROUP).
-																			withSchedule(SimpleScheduleBuilder.
-																													  simpleSchedule().
-																													  withIntervalInSeconds(interval).
-																													  repeatForever());
+						newTrigger().
+						withIdentity(name() + "-Trigger-" + interval, Scheduler.DEFAULT_GROUP).
+						withSchedule(SimpleScheduleBuilder.
+								simpleSchedule().
+								withIntervalInSeconds(interval).
+								repeatForever());
 
 				if (startTime() == null) {
 					triggerBuilder.startAt(DateTime.now().plusSeconds(interval).toDate());
@@ -103,10 +103,10 @@ public abstract class ConstellioJob implements Job {
 			for (final String cronExpression : cronExpressions) {
 				try {
 					final TriggerBuilder triggerBuilder = TriggerBuilder.
-																				newTrigger().
-																				withIdentity(name() + "-Trigger-" + cronExpression, Scheduler.DEFAULT_GROUP).
-																				withSchedule(CronScheduleBuilder.
-																														cronSchedule(cronExpression));
+							newTrigger().
+							withIdentity(name() + "-Trigger-" + cronExpression, Scheduler.DEFAULT_GROUP).
+							withSchedule(CronScheduleBuilder.
+									cronSchedule(cronExpression));
 					;
 					if (startTime() == null) {
 						triggerBuilder.startAt(new CronExpression(cronExpression).getNextValidTimeAfter(new Date()));

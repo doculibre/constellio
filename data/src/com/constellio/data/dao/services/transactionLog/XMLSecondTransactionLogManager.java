@@ -119,7 +119,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
-											 .handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
+						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		if (bigVaultServer.countDocuments() == 0) {
 			regroupAndMoveInVault();

@@ -52,7 +52,7 @@ public class MetadataUniqueValidator implements Validator<Record> {
 				if (value != null) {
 					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
 					LogicalSearchCondition condition = from(schemaTypes.getSchemaType(schemaTypeCode)).where(metadata)
-																									  .isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
+							.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
 
 					if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
 						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {

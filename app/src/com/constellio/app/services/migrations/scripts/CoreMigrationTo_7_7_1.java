@@ -44,11 +44,11 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 			if (!temporaryRecord.hasSchema(BatchProcessReport.SCHEMA)) {
 				MetadataSchemaBuilder batchProcessReportSchema = temporaryRecord.createCustomSchema(BatchProcessReport.SCHEMA);
 				batchProcessReportSchema.createUndeletable(BatchProcessReport.ERRORS).setType(MetadataValueType.TEXT)
-										.setSystemReserved(true);
+						.setSystemReserved(true);
 				batchProcessReportSchema.createUndeletable(BatchProcessReport.SKIPPED_RECORDS).setType(MetadataValueType.STRING)
-										.setMultivalue(true).setSystemReserved(true);
+						.setMultivalue(true).setSystemReserved(true);
 				batchProcessReportSchema.createUndeletable(BatchProcessReport.LINKED_BATCH_PROCESS)
-										.setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
+						.setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
 			}
 
 			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA);

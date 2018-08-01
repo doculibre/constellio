@@ -504,7 +504,7 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 			throws IOException {
 		Document cmisContent = getSingleContentOf(zeRecord);
 		String versionId = cmisContent.checkIn(false, new HashMap<String, Object>(), docx2ContentStream(), null)
-									  .getId();
+				.getId();
 		assertThat(versionId).isEqualTo("content_" + zeRecord + "_contentMetadata_" + zeRecordContentId + "_2.1");
 
 		cmisContent = getSingleContentOf(zeRecord);

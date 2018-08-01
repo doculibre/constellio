@@ -177,7 +177,7 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 
 		if (ConstellioFactories.isInitialized()) {
 			SolrClient solrClient = ConstellioFactories.getInstance().getDataLayerFactory().newRecordDao().getBigVaultServer()
-													   .getNestedSolrServer();
+					.getNestedSolrServer();
 
 			solrClient.deleteByQuery("*:*");
 			solrClient.commit(true, true, true);

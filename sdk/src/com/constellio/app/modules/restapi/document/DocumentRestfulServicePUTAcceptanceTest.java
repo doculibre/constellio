@@ -67,20 +67,20 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		minDocumentToUpdate = DocumentDto.builder().id(fakeDocument.getId()).title("New title").folderId(records.folder_C01).build();
 		minDocumentWithoutAcesToUpdate = DocumentDto.builder().id(fakeDocument.getId()).title("New title").folderId(fakeDocument.getFolder())
-													.directAces(asList(
-															AceDto.builder().principals(singleton(bob)).permissions(asSet("READ", "WRITE", "DELETE")).build(),
-															AceDto.builder().principals(singleton(alice)).permissions(asSet("READ", "WRITE")).build())).build();
+				.directAces(asList(
+						AceDto.builder().principals(singleton(bob)).permissions(asSet("READ", "WRITE", "DELETE")).build(),
+						AceDto.builder().principals(singleton(alice)).permissions(asSet("READ", "WRITE")).build())).build();
 		fullDocumentToUpdate = DocumentDto.builder().id(fakeDocument.getId()).folderId(fakeDocument.getFolder()).title("newTitle")
-										  .organization("newOrg").subject("newSub").author("newAut").keywords(asList("document", "document2"))
-										  .content(ContentDto.builder().versionType(MINOR).filename(fakeFilename).build())
-										  .type(DocumentTypeDto.builder().id(fakeDocumentType.getId()).build())
-										  .directAces(singletonList(
-												  AceDto.builder().principals(singleton(alice)).permissions(newHashSet(READ, WRITE))
-														.startDate(toDateString(new LocalDate()))
-														.endDate(toDateString(new LocalDate().plusDays(365))).build()))
-										  .extendedAttributes(singletonList(
-												  ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList("value1b")).build()))
-										  .build();
+				.organization("newOrg").subject("newSub").author("newAut").keywords(asList("document", "document2"))
+				.content(ContentDto.builder().versionType(MINOR).filename(fakeFilename).build())
+				.type(DocumentTypeDto.builder().id(fakeDocumentType.getId()).build())
+				.directAces(singletonList(
+						AceDto.builder().principals(singleton(alice)).permissions(newHashSet(READ, WRITE))
+								.startDate(toDateString(new LocalDate()))
+								.endDate(toDateString(new LocalDate().plusDays(365))).build()))
+				.extendedAttributes(singletonList(
+						ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList("value1b")).build()))
+				.build();
 		fileToUpdate = newTempFileWithContent(fakeFilename, fakeFileContentV1);
 	}
 
@@ -111,7 +111,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		assertThat(record.getId()).isEqualTo(doc.getId());
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER).containsExactly(doc.getTitle(), doc.getFolderId());
 		assertThatRecord(record).extracting(Document.TYPE, Document.SUBJECT, Document.KEYWORDS, Document.AUTHOR)
-								.containsExactly(null, null, Collections.emptyList(), null);
+				.containsExactly(null, null, Collections.emptyList(), null);
 
 		assertThat(response.getHeaderString("ETag")).isNull();
 	}
@@ -152,7 +152,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		Record record = recordServices.getDocumentById(doc.getId());
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
-								.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
+				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(doc.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(Collections.emptyList());
 
@@ -185,7 +185,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		assertThat(documentDto.getId()).isNotNull();
 		assertThat(singletonList(documentDto)).extracting("folderId", "type", "content", "title",
 				"keywords", "author", "subject", "organization", "directAces", "inheritedAces", "extendedAttributes")
-											  .containsOnly(tuple(null, null, null, null, null, null, null, null, null, null, null));
+				.containsOnly(tuple(null, null, null, null, null, null, null, null, null, null, null));
 	}
 
 	@Test
@@ -200,9 +200,9 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		assertThat(documentDto.getId()).isNotNull();
 		assertThat(singletonList(documentDto)).extracting("folderId", "type", "content", "title",
 				"keywords", "author", "subject", "organization", "directAces", "inheritedAces", "extendedAttributes")
-											  .containsOnly(tuple(fullDocumentToUpdate.getFolderId(), null, null, fullDocumentToUpdate.getTitle(),
-													  fullDocumentToUpdate.getKeywords(), fullDocumentToUpdate.getAuthor(), fullDocumentToUpdate.getSubject(),
-													  fullDocumentToUpdate.getOrganization(), null, null, null));
+				.containsOnly(tuple(fullDocumentToUpdate.getFolderId(), null, null, fullDocumentToUpdate.getTitle(),
+						fullDocumentToUpdate.getKeywords(), fullDocumentToUpdate.getAuthor(), fullDocumentToUpdate.getSubject(),
+						fullDocumentToUpdate.getOrganization(), null, null, null));
 	}
 
 	@Test
@@ -212,7 +212,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("filter", "invalid").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("filter", "invalid").getValidationError()));
 	}
 
 	@Test
@@ -260,19 +260,19 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		id = newDoc.getId();
 		DocumentDto docUpdate = DocumentDto.builder().id(id).title(newDoc.getTitle()).folderId(newDoc.getFolder())
-										   .content(ContentDto.builder().filename(fakeFilename).versionType(MAJOR).build()).build();
+				.content(ContentDto.builder().filename(fakeFilename).versionType(MAJOR).build()).build();
 		Response response = doPutQuery(docUpdate, fileToUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV1.getHash(), "1.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV1.getHash(), "1.0"));
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
 	}
 
 	@Test
@@ -282,13 +282,13 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		id = newDoc.getId();
 		DocumentDto docUpdate = DocumentDto.builder().id(id).title(newDoc.getTitle()).folderId(newDoc.getFolder())
-										   .content(ContentDto.builder().versionType(MAJOR).build()).build();
+				.content(ContentDto.builder().versionType(MAJOR).build()).build();
 		Response response = doPutQuery(docUpdate, fileToUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RequiredParameterException("content.filename").getValidationError()));
+				.isEqualTo(i18n.$(new RequiredParameterException("content.filename").getValidationError()));
 	}
 
 	@Test
@@ -323,7 +323,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateFormat).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateFormat).getValidationError()));
 	}
 
 	@Test
@@ -358,7 +358,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateTimeFormat).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateTimeFormat).getValidationError()));
 	}
 
 	@Test
@@ -393,7 +393,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.NUMBER.name(), value1.get(0)).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.NUMBER.name(), value1.get(0)).getValidationError()));
 	}
 
 	@Test
@@ -428,7 +428,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.BOOLEAN.name(), value1.get(0)).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.BOOLEAN.name(), value1.get(0)).getValidationError()));
 	}
 
 	@Test
@@ -483,7 +483,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(value1.get(0)).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(value1.get(0)).getValidationError()));
 	}
 
 	@Test
@@ -497,7 +497,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataReferenceNotAllowedException("folder", fakeMetadata1).getValidationError()));
+				.isEqualTo(i18n.$(new MetadataReferenceNotAllowedException("folder", fakeMetadata1).getValidationError()));
 	}
 
 	@Test
@@ -555,7 +555,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataNotFoundException(fakeMetadata1).getValidationError()));
+				.isEqualTo(i18n.$(new MetadataNotFoundException(fakeMetadata1).getValidationError()));
 	}
 
 	@Test
@@ -576,7 +576,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
 	}
 
 	@Test
@@ -596,7 +596,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
+				.isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
 	}
 
 	@Test
@@ -616,7 +616,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("method", method).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("method", method).getValidationError()));
 	}
 
 	@Test
@@ -636,7 +636,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("date", date).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("date", date).getValidationError()));
 	}
 
 	@Test
@@ -667,7 +667,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
+				.isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
 	}
 
 	@Test
@@ -687,7 +687,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidSignatureException().getValidationError()));
+				.isEqualTo(i18n.$(new InvalidSignatureException().getValidationError()));
 	}
 
 	@Test
@@ -699,7 +699,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+				.isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 
 	@Test
@@ -710,7 +710,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
+				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
 	}
 
 	@Test
@@ -721,7 +721,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
+				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
 	}
 
 	@Test
@@ -742,7 +742,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(minDocumentToUpdate.getFolderId()).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(minDocumentToUpdate.getFolderId()).getValidationError()));
 	}
 
 	@Test
@@ -763,7 +763,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
 	}
 
 	@Test
@@ -774,7 +774,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
 	}
 
 	@Test
@@ -785,7 +785,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterCombinationException("type.id", "type.code").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterCombinationException("type.id", "type.code").getValidationError()));
 	}
 
 	@Test
@@ -842,19 +842,19 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException("fake").getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException("fake").getValidationError()));
 	}
 
 	@Test
 	public void testUpdateDocumentWithInvalidAcePermissions() throws Exception {
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder()
-															  .principals(singleton(alice)).permissions(singleton("fake")).build()));
+				.principals(singleton(alice)).permissions(singleton("fake")).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("directAces[0].permissions", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("directAces[0].permissions", "fake").getValidationError()));
 	}
 
 	@Test
@@ -862,7 +862,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		String start = toDateString(new LocalDate().plusDays(365));
 		String end = toDateString(new LocalDate());
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
-															  .permissions(singleton(READ)).startDate(start).endDate(end).build()));
+				.permissions(singleton(READ)).startDate(start).endDate(end).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -873,7 +873,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	@Test
 	public void testUpdateDocumentWithStartDateOnly() throws Exception {
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
-															  .permissions(singleton(READ)).startDate(toDateString(new LocalDate())).build()));
+				.permissions(singleton(READ)).startDate(toDateString(new LocalDate())).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
@@ -890,7 +890,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	@Test
 	public void testUpdateDocumentWithEndDateOnly() throws Exception {
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
-															  .permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
+				.permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -906,7 +906,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataNotFoundException("fake").getValidationError()));
+				.isEqualTo(i18n.$(new MetadataNotFoundException("fake").getValidationError()));
 	}
 
 	@Test
@@ -919,7 +919,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataNotMultivalueException(fakeMetadata1).getValidationError()));
+				.isEqualTo(i18n.$(new MetadataNotMultivalueException(fakeMetadata1).getValidationError()));
 	}
 
 	@Test
@@ -931,7 +931,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(NOT_EMPTY_MESSAGE, "extendedAttributes[0].values"));
+				.isEqualTo(i18n.$(NOT_EMPTY_MESSAGE, "extendedAttributes[0].values"));
 	}
 
 	@Test
@@ -967,7 +967,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordLogicallyDeletedException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordLogicallyDeletedException(id).getValidationError()));
 	}
 
 	@Test
@@ -977,7 +977,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, "ALL").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, "ALL").getValidationError()));
 	}
 
 	@Test
@@ -987,7 +987,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, "WITHIN_0_SECONDS").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, "WITHIN_0_SECONDS").getValidationError()));
 	}
 
 	@Test
@@ -998,7 +998,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, flushMode).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, flushMode).getValidationError()));
 	}
 
 	@Test
@@ -1085,7 +1085,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		String eTag = String.valueOf(document.getVersion());
 
 		Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
-										   .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
+				.put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
 		DocumentDto documentDto = response.readEntity(DocumentDto.class);
@@ -1098,29 +1098,29 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		String eTag = String.valueOf(document.getVersion());
 
 		Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
-										   .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
+				.put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		String validEtag = response.getEntityTag().getValue();
 
 		minDocumentWithoutAcesToUpdate.setTitle("aNewTitle2");
 		response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
-								  .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
+				.put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
 		assertThat(response.getStatus()).isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new OptimisticLockException(id, eTag, Long.valueOf(validEtag)).getValidationError()));
+				.isEqualTo(i18n.$(new OptimisticLockException(id, eTag, Long.valueOf(validEtag)).getValidationError()));
 	}
 
 	@Test
 	public void testUpdateWithInvalidEtag() throws Exception {
 		Response response = buildPutQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, "invalidEtag")
-										   .put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
+				.put(entity(buildMultiPart(minDocumentWithoutAcesToUpdate), MULTIPART_FORM_DATA_TYPE));
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("ETag", "invalidEtag").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("ETag", "invalidEtag").getValidationError()));
 	}
 
 	@Test
@@ -1131,7 +1131,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
-									  .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+				.isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
 	}
 
 	@Test

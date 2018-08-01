@@ -63,7 +63,7 @@ public class LogicalSearchEntitiesTest extends ConstellioTest {
 	public void whenAllMetadataThenAnyWhereOnACriterionThenRootConditionIsTheAny()
 			throws Exception {
 		LogicalSearchCondition condition = from(schema).where(firstTextMetadata).isNotNull().andWhere(secondTextMetadata)
-													   .isContainingText("text").orWhere(firstTextMetadata).isNotContainingElements(Arrays.asList("othertext"));
+				.isContainingText("text").orWhere(firstTextMetadata).isNotContainingElements(Arrays.asList("othertext"));
 
 		LogicalSearchCondition subCondition1 = where(firstTextMetadata).isNotNull();
 		LogicalSearchCondition subCondition2 = where(secondTextMetadata).isContainingText("text");
@@ -80,7 +80,7 @@ public class LogicalSearchEntitiesTest extends ConstellioTest {
 	public void whenAnyMetadataThenAndWhereOnACriterionThenRootConditionIsTheAnd()
 			throws Exception {
 		LogicalSearchCondition condition = from(schema).where(firstTextMetadata).isNotNull().orWhere(secondTextMetadata)
-													   .isContainingText("text").andWhere(booleanMetadata).isFalse();
+				.isContainingText("text").andWhere(booleanMetadata).isFalse();
 
 		LogicalSearchCondition subCondition1 = where(firstTextMetadata).isNotNull();
 		LogicalSearchCondition subCondition2 = where(secondTextMetadata).isContainingText("text");
@@ -97,7 +97,7 @@ public class LogicalSearchEntitiesTest extends ConstellioTest {
 	public void whenUsingWhereAllOnOnUngoingConditionThenSameAsUsingWhereAndSubCondition()
 			throws Exception {
 		LogicalSearchCondition condition = from(schema).whereAll(Arrays.asList(firstTextMetadata, secondTextMetadata))
-													   .isNotNull();
+				.isNotNull();
 
 		LogicalSearchCondition equalCondition = from(schema).where(
 				whereAll(asList(firstTextMetadata, secondTextMetadata)).isNotNull());
@@ -150,7 +150,7 @@ public class LogicalSearchEntitiesTest extends ConstellioTest {
 	public void whenUsingAndOnValueClauseThenSameAsUsingIsAll()
 			throws Exception {
 		LogicalSearchCondition condition = from(schema).where(firstTextMetadata).isNotNull()
-													   .and(asList(startingWithText("prefix"), endingWithText("suffix")));
+				.and(asList(startingWithText("prefix"), endingWithText("suffix")));
 
 		LogicalSearchCondition equalCondition = from(schema).where(firstTextMetadata).isAll(
 				asList(isNotNull(), startingWithText("prefix"), endingWithText("suffix")));
@@ -165,7 +165,7 @@ public class LogicalSearchEntitiesTest extends ConstellioTest {
 	public void whenUsingAndThenOrOnValueClauseThenSameAsUsingIsAllThenIsAny()
 			throws Exception {
 		LogicalSearchCondition condition = from(schema).where(firstTextMetadata).isNotNull()
-													   .and(asList(startingWithText("prefix"), endingWithText("suffix"))).or(asList(containingText(chuckNorris)));
+				.and(asList(startingWithText("prefix"), endingWithText("suffix"))).or(asList(containingText(chuckNorris)));
 
 		LogicalSearchCondition equalCondition = from(schema).where(firstTextMetadata).isAny(
 				asList(all(asList(isNotNull(), startingWithText("prefix"), endingWithText("suffix"))),
@@ -181,7 +181,7 @@ public class LogicalSearchEntitiesTest extends ConstellioTest {
 	public void whenUsingOrThenAndOnValueClauseThenSameAsUsingIsAnyThenIsAll()
 			throws Exception {
 		LogicalSearchCondition condition = from(schema).where(firstTextMetadata).isNotNull()
-													   .or(asList(startingWithText("prefix"), endingWithText("suffix"))).and(asList(containingText(chuckNorris)));
+				.or(asList(startingWithText("prefix"), endingWithText("suffix"))).and(asList(containingText(chuckNorris)));
 
 		LogicalSearchCondition equalCondition = from(schema).where(firstTextMetadata).isAll(
 				asList(any(asList(isNotNull(), startingWithText("prefix"), endingWithText("suffix"))),

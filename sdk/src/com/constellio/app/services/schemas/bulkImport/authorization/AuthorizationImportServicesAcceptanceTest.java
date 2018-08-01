@@ -59,7 +59,7 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers().withDocumentsHavingContent()
 		);
 
 		//rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());

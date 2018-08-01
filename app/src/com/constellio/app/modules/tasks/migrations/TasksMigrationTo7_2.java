@@ -32,14 +32,14 @@ public class TasksMigrationTo7_2 implements MigrationScript {
 		final TaskStatus status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
 
 		appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-					   .modify(collection, new MetadataSchemaTypesAlteration() {
-						   @Override
-						   public void alter(MetadataSchemaTypesBuilder types) {
-							   for (MetadataSchemaBuilder schema : types.getSchemaType(Task.SCHEMA_TYPE).getAllSchemas()) {
-								   schema.getMetadata(Task.STATUS).setDefaultValue(status.getId());
-							   }
-						   }
-					   });
+				.modify(collection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						for (MetadataSchemaBuilder schema : types.getSchemaType(Task.SCHEMA_TYPE).getAllSchemas()) {
+							schema.getMetadata(Task.STATUS).setDefaultValue(status.getId());
+						}
+					}
+				});
 
 		configureTableMetadatas(collection, appLayerFactory);
 	}

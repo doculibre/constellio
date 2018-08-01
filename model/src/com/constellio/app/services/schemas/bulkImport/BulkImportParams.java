@@ -93,8 +93,8 @@ public class BulkImportParams {
 
 	public static BulkImportParams PERMISSIVE() {
 		return new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true).setImportErrorsBehavior(CONTINUE)
-									 .setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS)
-									 .setWarningsForRequiredUSRMetadatasWithoutValue(true);
+				.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS)
+				.setWarningsForRequiredUSRMetadatasWithoutValue(true);
 	}
 
 	public static BulkImportParams STRICT() {

@@ -932,7 +932,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 	private void givenFolderInheritingTaxonomyAuthorizations() {
 		AuthorizationAddRequest authorization = authorizationInCollection(zeCollection).forUsers(users.edouardIn(zeCollection))
-																					   .on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
+				.on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, users.adminIn(zeCollection));
 		try {
 			waitForBatchProcess();
@@ -1097,7 +1097,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		Holder<String> objectIdHolder = new Holder<String>(object.getId());
 
 		session.getBinding().getObjectService()
-			   .moveObject(session.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
+				.moveObject(session.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
 
 		recordServices.refresh(record);
 	}
@@ -1147,7 +1147,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			}
 		}
 		boolean isMovable = !record.get(Schemas.PATH).toString()
-								   .equals(oldParent.get(Schemas.PATH).toString() + "/" + record.getId());
+				.equals(oldParent.get(Schemas.PATH).toString() + "/" + record.getId());
 		moveObject(record, oldParent.getId());
 
 		return isMovable;

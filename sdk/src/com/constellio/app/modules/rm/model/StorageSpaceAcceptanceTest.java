@@ -51,7 +51,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
 		users = users.setUp(getAppLayerFactory().getModelLayerFactory().newUserServices());
@@ -204,12 +204,12 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 	public void whenSavingAContainerRecordWithCustomSchemaThenAggregatedMetadatasStillWork()
 			throws Exception {
 		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-							.modify(zeCollection, new MetadataSchemaTypesAlteration() {
-								@Override
-								public void alter(MetadataSchemaTypesBuilder types) {
-									types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
-								}
-							});
+				.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("ZeSchema");
+					}
+				});
 
 		ContainerRecordType zeContainerType = rm.newContainerRecordTypeWithId("zeContainerType");
 		zeContainerType.setTitle("zeContainerType");
@@ -263,26 +263,26 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions().setFilter(taxonomiesSearchFilter);
 
 		List<TaxonomySearchRecord> visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-																	  .getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
-																			  taxonomiesSearchOptions);
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
 		assertThat(visibleChild).isEmpty();
 
 		getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-							.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
-									StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).isEmpty();
 
 		child.setCapacity(30);
 		recordServices.update(child);
 
 		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-										   .getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
-												   taxonomiesSearchOptions);
+				.getLinkableRootConcept(users.adminIn(zeCollection), zeCollection, STORAGES, StorageSpace.SCHEMA_TYPE,
+						taxonomiesSearchOptions);
 		assertThat(visibleChild).hasSize(1);
 
 		visibleChild = getAppLayerFactory().getModelLayerFactory().newTaxonomiesSearchService()
-										   .getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
-												   StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
+				.getLinkableChildConcept(users.adminIn(zeCollection), ancestor.getWrappedRecord(), STORAGES,
+						StorageSpace.SCHEMA_TYPE, taxonomiesSearchOptions);
 		assertThat(visibleChild).hasSize(1);
 	}
 

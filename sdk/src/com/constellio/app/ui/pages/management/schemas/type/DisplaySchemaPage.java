@@ -25,7 +25,7 @@ public class DisplaySchemaPage extends PageHelper {
 		paramMap.put("schemaTypeCode", "folder");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA_TYPE, paramMap);
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
+				.url(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
 	}
 
 	public ButtonWebElement getAddButton() {

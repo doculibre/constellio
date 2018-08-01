@@ -174,7 +174,7 @@ public class ThesaurusService implements Serializable {
 					String parsedLabelValue = parseForSearch(thesaurusLabel.getValue(locale));
 
 					if (parsedLabelValue != null && (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue)
-																							  .find())) {
+							.find())) {
 						skosConcepts.add(skosConcept);
 					}
 				}

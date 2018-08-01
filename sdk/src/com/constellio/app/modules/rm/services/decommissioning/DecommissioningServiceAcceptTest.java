@@ -38,7 +38,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -199,8 +199,8 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(rm.PA()), "3-888-D");
 		CopyRetentionRule secondary_MD_3_888_C = copyBuilder.newSecondary(asList(rm.DM()), "3-888-C");
 		recordServices.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("Ze rule!")
-							 .setAdministrativeUnits(asList(records.unitId_12)).setApproved(true)
-							 .setCopyRetentionRules(asList(principal_PA_3_888_D, secondary_MD_3_888_C)));
+				.setAdministrativeUnits(asList(records.unitId_12)).setApproved(true)
+				.setCopyRetentionRules(asList(principal_PA_3_888_D, secondary_MD_3_888_C)));
 		recordServices.logicallyDelete(recordServices.getDocumentById("zeRule"), User.GOD);
 		List<RetentionRule> retentionRules = service.getRetentionRulesForAdministrativeUnit("unitId_12b");
 		assertThat(retentionRules).hasSize(3).extracting("id").containsOnly("ruleId_2", "ruleId_1", "ruleId_4");

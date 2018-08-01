@@ -28,7 +28,7 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -236,8 +236,8 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 		String bob = records.getBob_userInAC().getId();
 		String chuck = records.getChuckNorris().getId();
 		DecommissioningList list = records.getList01()
-										  .addValidationRequest(bob, TimeProvider.getLocalDate())
-										  .addValidationRequest(chuck, TimeProvider.getLocalDate());
+				.addValidationRequest(bob, TimeProvider.getLocalDate())
+				.addValidationRequest(chuck, TimeProvider.getLocalDate());
 		recordServices.add(list);
 		return list;
 	}

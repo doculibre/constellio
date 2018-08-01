@@ -144,7 +144,7 @@ public class SaveStateFeature {
 			throws Exception {
 		ConstellioModulesManager modulesManager = factoriesTestFeatures.newAppServicesFactory(DEFAULT_NAME).getModulesManager();
 		String version = factoriesTestFeatures.newAppServicesFactory(DEFAULT_NAME).newMigrationServices()
-											  .getCurrentVersion("zeCollection");
+				.getCurrentVersion("zeCollection");
 
 		List<String> moduleIds = new ArrayList<>();
 		for (Module module : modulesManager.getInstalledModules()) {

@@ -99,7 +99,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
-																	  .has(currentSessionContext.getCurrentUser().getUsername());
+				.has(currentSessionContext.getCurrentUser().getUsername());
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
@@ -172,7 +172,7 @@ public class SearchResultDisplay extends VerticalLayout {
 		String currentCollection = sessionContext.getCurrentCollection();
 		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(currentCollection);
 		MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-											   .getSchemaTypes(currentCollection).getSchema(recordVO.getSchema().getCode());
+				.getSchemaTypes(currentCollection).getSchema(recordVO.getSchema().getCode());
 		SchemasDisplayManager displayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> highlightedDateStoreCodes = new ArrayList<>();

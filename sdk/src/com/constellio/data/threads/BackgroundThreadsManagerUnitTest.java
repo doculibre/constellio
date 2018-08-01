@@ -37,7 +37,7 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 	@Test(expected = BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads.class)
 	public void givenNotStartedBackgroundThreadConfigurationThenCannotConfigureThreads() {
 		BackgroundThreadConfiguration configuration = BackgroundThreadConfiguration.repeatingAction("zeAction", repeatedAction)
-																				   .executedEvery(Duration.standardMinutes(42));
+				.executedEvery(Duration.standardMinutes(42));
 		doReturn(command).when(backgroundThreadsManager).getRunnableCommand(configuration);
 
 		backgroundThreadsManager.configure(configuration);
@@ -48,7 +48,7 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 	public void whenConfiguringThreadThenConfiguredWithCorrectInfos() {
 		backgroundThreadsManager.initialize();
 		BackgroundThreadConfiguration configuration = BackgroundThreadConfiguration.repeatingAction("zeAction", repeatedAction)
-																				   .executedEvery(Duration.standardMinutes(42));
+				.executedEvery(Duration.standardMinutes(42));
 		doReturn(command).when(backgroundThreadsManager).getRunnableCommand(configuration);
 
 		backgroundThreadsManager.configure(configuration);

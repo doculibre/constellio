@@ -355,7 +355,7 @@ public class SchemaUtils {
 				if (calculatorLocalDependency.getReturnType() == MetadataValueType.REFERENCE) {
 					Metadata otherMetadata = schema.get(calculatorLocalDependency.getLocalMetadataCode());
 					if (otherMetadata.getAllowedReferences().getTypeWithAllowedSchemas()
-									 .equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
+							.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
 						return otherMetadata;
 					}
 				}

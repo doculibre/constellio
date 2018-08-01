@@ -27,7 +27,7 @@ public class CoreMigrationTo_6_6 implements MigrationScript {
 		SearchBoostManager searchBoostManager = modelLayerFactory.getSearchBoostManager();
 
 		String titleTitle = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-											 .getSchema(Collection.DEFAULT_SCHEMA).get(Collection.TITLE).getLabel(Language.French);
+				.getSchema(Collection.DEFAULT_SCHEMA).get(Collection.TITLE).getLabel(Language.French);
 		SearchBoost oldBoost = new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", titleTitle, 20d);
 		SearchBoost newBoost = new SearchBoost(SearchBoost.METADATA_TYPE, "title_s", titleTitle, 20d);
 		searchBoostManager.delete(collection, oldBoost);

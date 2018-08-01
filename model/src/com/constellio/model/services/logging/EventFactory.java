@@ -169,7 +169,7 @@ public class EventFactory {
 				String metadataDatastoreCode = modifiedValueEntry.getKey();
 				String metadataLocalCode = new SchemaUtils().getLocalCodeFromDataStoreCode(metadataDatastoreCode);
 				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(record.getCollection())
-															  .getSchema(record.getSchemaCode());
+						.getSchema(record.getSchemaCode());
 				if (schema.hasMetadataWithCode(metadataLocalCode)) {
 					Metadata metadata = schema.getMetadata(metadataLocalCode);
 					if (notAccepted(metadata)) {

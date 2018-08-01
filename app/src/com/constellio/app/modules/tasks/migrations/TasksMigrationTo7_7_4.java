@@ -44,7 +44,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 
 	private void reloadEmailTemplates() {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("en")) {
+				.equals("en")) {
 			reloadEmailTemplate("taskStatusModificationToCompletedTemplate_en.html", TasksEmailTemplates.TASK_COMPLETED);
 		} else {
 			reloadEmailTemplate("taskStatusModificationToCompletedTemplate.html", TasksEmailTemplates.TASK_COMPLETED);
@@ -56,7 +56,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -78,7 +78,7 @@ public class TasksMigrationTo7_7_4 extends MigrationHelper implements MigrationS
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder task = typesBuilder.getSchemaType(Task.SCHEMA_TYPE)
-													 .getDefaultSchema();
+					.getDefaultSchema();
 			if (!typesBuilder.getSchema(Task.DEFAULT_SCHEMA).hasMetadata(Task.REASON)) {
 				typesBuilder.getSchema(Task.DEFAULT_SCHEMA).createUndeletable(Task.REASON).setType(MetadataValueType.TEXT);
 			}

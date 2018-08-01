@@ -45,7 +45,7 @@ public class StorageSpaceAvailableSizeCalculatorAcceptanceTest extends Constelli
 		calculator = spy(new StorageSpaceAvailableSizeCalculator());
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -58,11 +58,11 @@ public class ModuleResourcesLocatorAcceptanceTest extends ConstellioTest {
 				.isEqualTo(constellioFile("resources_i18n/migrations/rm/5_0_7/alertAvailableTemplate.html"));
 
 		assertThat(locator.getModuleMigrationI18nBundle("rm", "5.0.7").getBundle(FRENCH).getString("init.facet.category")).
-																																  isEqualTo("Catégories");
+				isEqualTo("Catégories");
 
 		assertThat(
 				locator.getModuleMigrationI18nBundle("es", "5.1.3").getBundle(Locale.ENGLISH).getString("init.connector")).
-																																  isEqualTo("Connector");
+				isEqualTo("Connector");
 	}
 
 	@Test
@@ -103,11 +103,11 @@ public class ModuleResourcesLocatorAcceptanceTest extends ConstellioTest {
 				.isEqualTo(webInf("resources_i18n/migrations/rm/5_0_7/alertAvailableTemplate.html"));
 
 		assertThat(locator.getModuleMigrationI18nBundle("rm", "5.0.7").getBundle(FRENCH).getString("init.facet.category")).
-																																  isEqualTo("Catégories");
+				isEqualTo("Catégories");
 
 		assertThat(
 				locator.getModuleMigrationI18nBundle("es", "5.1.3").getBundle(Locale.ENGLISH).getString("init.connector")).
-																																  isEqualTo("Connector");
+				isEqualTo("Connector");
 	}
 
 	protected ModuleResourcesLocator givenLocatorBasedOnFakeWebapp(String zipResource)

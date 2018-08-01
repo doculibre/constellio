@@ -38,7 +38,7 @@ public class FolderValidatorAcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -70,8 +70,8 @@ public class FolderValidatorAcceptanceTest extends ConstellioTest {
 
 	public Folder buildDefaultFolder() {
 		return rm.newFolderWithId(FOLDER_ID).setTitle(FOLDER_TITLE).setAdministrativeUnitEntered(records.getUnit10())
-				 .setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
-				 .setCategoryEntered(records.categoryId_X);
+				.setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
+				.setCategoryEntered(records.categoryId_X);
 	}
 
 }

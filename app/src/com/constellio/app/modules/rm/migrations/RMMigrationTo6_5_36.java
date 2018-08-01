@@ -36,8 +36,8 @@ public class RMMigrationTo6_5_36 implements MigrationScript {
 			SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 
 			transaction.in(Event.SCHEMA_TYPE)
-					   .addToTable(Event.RECORD_ID)
-					   .beforeMetadata(Event.TITLE);
+					.addToTable(Event.RECORD_ID)
+					.beforeMetadata(Event.TITLE);
 
 			schemaDisplayManager.execute(transaction.build());
 		}

@@ -53,8 +53,8 @@ public class RMRecordDeletionServices {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(searchServices.
-																								searchSingleResult(from(rm.administrativeUnit.schema()).where(Schemas.IDENTIFIER)
-																																					   .isEqualTo(administrativeUnitID)));
+				searchSingleResult(from(rm.administrativeUnit.schema()).where(Schemas.IDENTIFIER)
+						.isEqualTo(administrativeUnitID)));
 		cleanAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
 	}
 
@@ -252,7 +252,7 @@ public class RMRecordDeletionServices {
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		for (Record task : taskList) {
 			MetadataSchema curTaskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-														  .getSchemaTypes(collection).getSchema(task.getSchemaCode());
+					.getSchemaTypes(collection).getSchema(task.getSchemaCode());
 			List<String> linkedDocumentsIDs = task.get(curTaskSchema.getMetadata(RMTask.LINKED_DOCUMENTS));
 			linkedDocumentsIDs = new ArrayList<>(linkedDocumentsIDs);
 			if (linkedDocumentsIDs.contains(document.getId())) {
@@ -273,7 +273,7 @@ public class RMRecordDeletionServices {
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		for (Record task : taskList) {
 			MetadataSchema curTaskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-														  .getSchemaTypes(collection).getSchema(task.getSchemaCode());
+					.getSchemaTypes(collection).getSchema(task.getSchemaCode());
 			List<String> linkedDocumentsIDs = task.get(curTaskSchema.getMetadata(RMTask.LINKED_DOCUMENTS));
 			linkedDocumentsIDs = new ArrayList<>(linkedDocumentsIDs);
 			if (linkedDocumentsIDs.contains(folder.getId())) {

@@ -71,7 +71,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		userServices.addUserToCollection(users.admin(), zeCollection);
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-											 .build();
+				.build();
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 
@@ -85,7 +85,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		CmisObject object = cmisSession.getObject(zeCollectionRecords.folder1.getId());
 
 		cmisSession.getBinding().getObjectService()
-				   .deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
+				.deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
 
 		try {
 			recordServices.getDocumentById(zeCollectionRecords.folder1.getId());
@@ -102,7 +102,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		CmisObject object = cmisSession.getObject(zeCollectionRecords.folder1.getId());
 
 		cmisSession.getBinding().getObjectService()
-				   .deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
+				.deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
 
 		recordServices.refresh(zeCollectionRecords.folder1);
 		assertThat(zeCollectionRecords.folder1.isActive()).isTrue();

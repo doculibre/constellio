@@ -48,13 +48,13 @@ public class FolderValidator implements RecordValidator {
 			UniformSubdivision uniformSubdivision = new UniformSubdivision(params.getRecord(uniformSubdivisionId),
 					params.getTypes());
 			if (uniformSubdivision.getRetentionRules() == null || !uniformSubdivision.getRetentionRules()
-																					 .contains(retentionRule.getId())) {
+					.contains(retentionRule.getId())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(RULE_CODE, retentionRule.getCode());
 				parameters.put(UNIFORM_SUBDIVISION, uniformSubdivision.getCode());
 
 				params.getValidationErrors()
-					  .add(FolderValidator.class, FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE, parameters);
+						.add(FolderValidator.class, FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			}
 		} else if (params.getConfigProvider().<Boolean>get(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)) {
 			Category category = Category.wrap(params.getRecord(folder.getCategory()), params.getTypes());
@@ -94,11 +94,11 @@ public class FolderValidator implements RecordValidator {
 					&& folder.getCopyStatus() == SECONDARY) {
 
 					params.getValidationErrors()
-						  .add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_SECONDARY, parameters);
+							.add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_SECONDARY, parameters);
 				} else if (copyRetentionRule != null && copyRetentionRule.getCopyType() == SECONDARY
 						   && folder.getCopyStatus() == PRINCIPAL) {
 					params.getValidationErrors()
-						  .add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_PRINCIPAL, parameters);
+							.add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_PRINCIPAL, parameters);
 
 				} else {
 					params.getValidationErrors().add(FolderValidator.class, FOLDER_INVALID_COPY_RETENTION_RULE, parameters);

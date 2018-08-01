@@ -74,7 +74,7 @@ public class CoreMigrationTo_7_6_2 implements MigrationScript {
 				//						.setLabels(labels);
 				if (defaultSchema.hasMetadata("errorStackTrace")) {
 					defaultSchema.getMetadata(Schemas.MANUAL_TOKENS.getLocalCode())
-								 .addLabel(Language.French, "Fil d'exécution");
+							.addLabel(Language.French, "Fil d'exécution");
 				}
 			}
 		}

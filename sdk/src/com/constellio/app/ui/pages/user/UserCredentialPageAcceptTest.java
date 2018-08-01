@@ -29,7 +29,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus(),
+						.withFoldersAndContainersOfEveryStatus(),
 				withCollection("otherCollection")
 		);
 

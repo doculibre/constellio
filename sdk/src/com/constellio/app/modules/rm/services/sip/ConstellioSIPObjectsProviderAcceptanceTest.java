@@ -52,7 +52,7 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 		this.searchServices = getModelLayerFactory().newSearchServices();
 		this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -150,8 +150,8 @@ public class ConstellioSIPObjectsProviderAcceptanceTest extends ConstellioTest {
 		List<String> documentsIds = new ArrayList<>();
 		MetadataSchemaType documentType = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE);
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentType)
-																	  .where(documentType.getDefaultSchema().getMetadata(com.constellio.app.modules.rm.wrappers.Document.FOLDER))
-																	  .isEqualTo(records.getFolder_A01());
+				.where(documentType.getDefaultSchema().getMetadata(com.constellio.app.modules.rm.wrappers.Document.FOLDER))
+				.isEqualTo(records.getFolder_A01());
 		List<Record> documentsRecords = searchServices.search(new LogicalSearchQuery(condition));
 		for (Record record : documentsRecords) {
 			documentsIds.add(record.getId());

@@ -44,9 +44,9 @@ public class RMMigrationTo5_1_5 implements MigrationScript {
 	private void createFolderTypeAndDocumentTypeFacets(Transaction transaction, RMSchemasRecordsServices rm,
 													   MigrationResourcesProvider provider) {
 		transaction.add(rm.newFacetField().setTitles(provider.getLanguagesString("facets.folderType"))
-						  .setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
+				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
 		transaction.add(rm.newFacetField().setTitles(provider.getLanguagesString("facets.documentType"))
-						  .setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
+				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 	}
 
 	private class RMSchemaAlterationsFor5_1_5 extends MetadataSchemasAlterationHelper {
@@ -68,7 +68,7 @@ public class RMMigrationTo5_1_5 implements MigrationScript {
 		private void updateFolderSchema(MetadataSchemaBuilder folder, MetadataSchemaBuilder folderType) {
 			folder.createSystemReserved(Folder.PERMISSION_STATUS).defineAsEnum(FolderStatus.class);
 			folder.createSystemReserved(Folder.FOLDER_TYPE).setType(MetadataValueType.STRING).defineDataEntry()
-				  .asCopied(folder.getMetadata(Folder.TYPE), folderType.getMetadata(CommonMetadataBuilder.TITLE));
+					.asCopied(folder.getMetadata(Folder.TYPE), folderType.getMetadata(CommonMetadataBuilder.TITLE));
 		}
 
 		private void updateDocumentSchema(MetadataSchemaBuilder document, MetadataSchemaBuilder documentType) {

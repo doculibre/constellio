@@ -166,8 +166,8 @@ public class ConservationRulesReportPresenter {
 
 		LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
-														 .where(rm.retentionRule.administrativeUnits())
-														 .isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+						.where(rm.retentionRule.administrativeUnits())
+						.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
 
 		List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
 				.search(retentionRulesQuery));

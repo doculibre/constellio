@@ -163,7 +163,7 @@ public class RecordValidationServices {
 		}
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
 		if (transaction.getRecordUpdateOptions() == null || !transaction.getRecordUpdateOptions()
-																		.isSkipMaskedMetadataValidations()) {
+				.isSkipMaskedMetadataValidations()) {
 			newMaskedMetadataValidator(metadatas).validate(record, validationErrors);
 		}
 		return validationErrors;

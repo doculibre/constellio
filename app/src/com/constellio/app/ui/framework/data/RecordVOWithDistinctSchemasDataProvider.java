@@ -122,8 +122,8 @@ public abstract class RecordVOWithDistinctSchemasDataProvider implements DataPro
 		for (int i = 0; i < propertyId.length; i++) {
 			MetadataVO metadataVO = propertyId[i];
 			Metadata metadata = modelLayerFactory.getMetadataSchemasManager()
-												 .getSchemaTypes(metadataVO.getCollection())
-												 .getMetadata(metadataVO.getCode());
+					.getSchemaTypes(metadataVO.getCollection())
+					.getMetadata(metadataVO.getCode());
 
 			if (ascending[i]) {
 				query = query.sortAsc(metadata);

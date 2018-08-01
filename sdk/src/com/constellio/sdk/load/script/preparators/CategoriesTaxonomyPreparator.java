@@ -30,7 +30,7 @@ public class CategoriesTaxonomyPreparator extends BaseTaxonomyPreparator {
 
 		String title = "Category '" + code + "'";
 		return ids.attach(rm.newCategory().setCode(code).setTitle(title).setParent((Category) parent))
-				  .setRetentionRules(asList(ruleId));
+				.setRetentionRules(asList(ruleId));
 	}
 
 	@Override
@@ -45,8 +45,8 @@ public class CategoriesTaxonomyPreparator extends BaseTaxonomyPreparator {
 		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
 		RetentionRule rule = rm.newRetentionRule().setCode("2").setTitle("Rule #2")
-							   .setResponsibleAdministrativeUnits(true).setApproved(true)
-							   .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D));
+				.setResponsibleAdministrativeUnits(true).setApproved(true)
+				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D));
 		transaction.add(rule);
 		ruleId = rule.getId();
 	}

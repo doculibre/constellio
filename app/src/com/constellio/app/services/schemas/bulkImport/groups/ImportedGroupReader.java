@@ -28,7 +28,7 @@ public class ImportedGroupReader {
 
 	private ImportedGroup readGroup(Element groupElement) {
 		return new ImportedGroup().setCode(readCode(groupElement)).setParent(readParent(groupElement))
-								  .setTitle(readTitle(groupElement));
+				.setTitle(readTitle(groupElement));
 	}
 
 	private String readTitle(Element groupElement) {

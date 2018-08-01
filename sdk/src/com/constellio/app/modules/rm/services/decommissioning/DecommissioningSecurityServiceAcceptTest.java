@@ -39,7 +39,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

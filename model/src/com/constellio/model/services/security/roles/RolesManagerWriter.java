@@ -39,7 +39,7 @@ public class RolesManagerWriter {
 		Element rootElement = document.getRootElement();
 		for (Element child : rootElement.getChildren()) {
 			if (child.getAttribute(CODE).getValue().equals(role.getCode()) && child.getAttribute(COLLECTION).getValue()
-																				   .equals(role.getCollection())) {
+					.equals(role.getCollection())) {
 				child.getAttribute(TITLE).setValue(role.getTitle());
 				child.setText(StringUtils.join(role.getOperationPermissions(), ","));
 				break;

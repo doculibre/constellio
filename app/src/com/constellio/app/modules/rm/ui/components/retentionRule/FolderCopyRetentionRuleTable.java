@@ -236,9 +236,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			Label activeRetentionCodeLabel = new Label("" + variableRetentionPeriodVO.getCode());
 			Label activeRetentionTitleLabel = new Label("" + variableRetentionPeriodVO.getTitle());
 			variablePeriodTable.getContainerProperty(variableRetentionPeriodVO, ACTIVE_RETENTION_PERIOD)
-							   .setValue(activeRetentionCodeLabel);
+					.setValue(activeRetentionCodeLabel);
 			variablePeriodTable.getContainerProperty(variableRetentionPeriodVO, ACTIVE_RETENTION_TITLE)
-							   .setValue(activeRetentionTitleLabel);
+					.setValue(activeRetentionTitleLabel);
 		}
 		return variablePeriodTable;
 	}
@@ -313,9 +313,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_PERIOD).setValue(activeRetentionPeriodFieldGroup);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_COMMENT).setValue(activeRetentionCommentField);
 			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_PERIOD)
-				 .setValue(semiActiveRetentionPeriodFieldGroup);
+					.setValue(semiActiveRetentionPeriodFieldGroup);
 			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT)
-				 .setValue(semiActiveRetentionCommentField);
+					.setValue(semiActiveRetentionCommentField);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_TYPE).setValue(inactiveDisposalTypeField);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT).setValue(inactiveDisposalCommentField);
 			table.getContainerProperty(copyRetentionRule, ESSENTIAL).setValue(essential);
@@ -385,9 +385,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_PERIOD).setValue(activeRetentionPeriodFieldGroup);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_COMMENT).setValue(activeRetentionCommentLabel);
 			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_PERIOD)
-				 .setValue(semiActiveRetentionPeriodFieldGroup);
+					.setValue(semiActiveRetentionPeriodFieldGroup);
 			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT)
-				 .setValue(semiActiveRetentionCommentLabel);
+					.setValue(semiActiveRetentionCommentLabel);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_TYPE).setValue(inactiveDisposalTypeLabel);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT).setValue(inactiveDisposalCommentLabel);
 			table.getContainerProperty(copyRetentionRule, ESSENTIAL).setValue(essential);

@@ -67,10 +67,10 @@ public class MaskUtils {
 		if (maskRegexPattern == null) {
 			try {
 				String regex = mask.replace("\\9", "__ZE_NEUF__").replace("\\A", "__ZE_FIRST_LETTER__")
-								   .replace("\\*", "__ZE_FLOCON__")
-								   .replace("9", "\\d").replace("A", "[A-Za-z]").replace("*", "[A-Za-z0-9]").replace("(", "\\(")
-								   .replace(")", "\\)")
-								   .replace("__ZE_NEUF__", "9").replace("__ZE_FIRST_LETTER__", "A").replace("__ZE_FLOCON__", "\\*");
+						.replace("\\*", "__ZE_FLOCON__")
+						.replace("9", "\\d").replace("A", "[A-Za-z]").replace("*", "[A-Za-z0-9]").replace("(", "\\(")
+						.replace(")", "\\)")
+						.replace("__ZE_NEUF__", "9").replace("__ZE_FIRST_LETTER__", "A").replace("__ZE_FLOCON__", "\\*");
 				maskRegexPattern = Pattern.compile(regex);
 			} catch (PatternSyntaxException e) {
 				try {
@@ -89,8 +89,8 @@ public class MaskUtils {
 
 		if (maskRegexPattern == null) {
 			String regex = mask.replace("9", "\\d").replace("A", "[A-Za-z]")
-							   .replace("__ZE_NEUF__", "9")
-							   .replace("__ZE_FIRST_LETTER__", "A");
+					.replace("__ZE_NEUF__", "9")
+					.replace("__ZE_FIRST_LETTER__", "A");
 			maskRegexPattern = Pattern.compile(regex);
 			maskStrictRegexPatterns.put(mask, maskRegexPattern);
 		}

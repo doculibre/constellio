@@ -151,7 +151,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 					metadataField
 							.setItemCaption(searchBoostVO, searchBoostVO.getLabel());
 					if (currentSearchBoostVO != null && currentSearchBoostVO.getKey()
-																			.equals(searchBoostVO.getKey())) {
+							.equals(searchBoostVO.getKey())) {
 						metadataField.setValue(searchBoostVO);
 					}
 				}

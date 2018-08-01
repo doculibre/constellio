@@ -66,12 +66,12 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 
 		RecordDTO child1 = new RecordDTO("child1",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
-																   .andWith("otherRefId_s", "zeRef")
-																   .build());
+						.andWith("otherRefId_s", "zeRef")
+						.build());
 		RecordDTO child2 = new RecordDTO("child2",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
-																   .andWith("otherRefId_s", "zeRef")
-																   .build());
+						.andWith("otherRefId_s", "zeRef")
+						.build());
 
 		TransactionDTO transactionDTO = new TransactionDTO(RecordsFlushing.NOW)
 				.withNewRecords(Arrays.asList(child1, child2));
@@ -178,7 +178,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(secondTransactionLogManager, bigVaultServer);
 		inOrder.verify(secondTransactionLogManager)
-			   .prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
+				.prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
 		inOrder.verify(bigVaultServer).addAll(any(BigVaultServerTransaction.class));
 		inOrder.verify(secondTransactionLogManager).flush(zeTransactionId, null);
 
@@ -205,7 +205,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(secondTransactionLogManager, bigVaultServer);
 		inOrder.verify(secondTransactionLogManager)
-			   .prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
+				.prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
 		inOrder.verify(bigVaultServer).addAll(any(BigVaultServerTransaction.class));
 		inOrder.verify(secondTransactionLogManager).cancel(zeTransactionId);
 		verify(secondTransactionLogManager, never()).flush(zeTransactionId, null);
@@ -221,7 +221,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 		when(transactionDTO.getDeletedByQueries())
 				.thenReturn(asList((SolrParams) new ModifiableSolrParams().set("q", "request")));
 		doThrow(BigVaultException.class).when(bigVaultServer)
-										.addAll(any(BigVaultServerTransaction.class));
+				.addAll(any(BigVaultServerTransaction.class));
 
 		try {
 			recordDao.execute(transactionDTO);
@@ -232,7 +232,7 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(secondTransactionLogManager, bigVaultServer);
 		inOrder.verify(secondTransactionLogManager)
-			   .prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
+				.prepare(eq(transactionDTO.getTransactionId()), any(BigVaultServerTransaction.class));
 		inOrder.verify(bigVaultServer).addAll(any(BigVaultServerTransaction.class));
 		inOrder.verify(secondTransactionLogManager).cancel(zeTransactionId);
 		verify(secondTransactionLogManager, never()).flush(zeTransactionId, null);

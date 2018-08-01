@@ -98,10 +98,10 @@ public class RMMigrationTo7_2_0_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(RMUser.SCHEMA_TYPE).createUndeletable(RMUser.DEFAULT_ADMINISTRATIVE_UNIT)
-						.setType(MetadataValueType.STRING).setSystemReserved(true);
+					.setType(MetadataValueType.STRING).setSystemReserved(true);
 			typesBuilder.getDefaultSchema(UniformSubdivision.SCHEMA_TYPE)
-						.deleteMetadataWithoutValidation(
-								typesBuilder.getMetadata(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.DESCRIPTION));
+					.deleteMetadataWithoutValidation(
+							typesBuilder.getMetadata(UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.DESCRIPTION));
 		}
 	}
 
@@ -120,7 +120,7 @@ public class RMMigrationTo7_2_0_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(UniformSubdivision.SCHEMA_TYPE).create(UniformSubdivision.DESCRIPTION)
-						.setType(MetadataValueType.TEXT);
+					.setType(MetadataValueType.TEXT);
 		}
 	}
 }

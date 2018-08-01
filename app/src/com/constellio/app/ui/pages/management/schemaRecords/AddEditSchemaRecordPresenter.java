@@ -85,7 +85,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 			Record record = toRecord(recordVO);
 			if (record.isModified(Schemas.LINKED_SCHEMA)) {
 				LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(view.getCollection())
-																			  .where(Schemas.ALL_REFERENCES).isEqualTo(record.getId());
+						.where(Schemas.ALL_REFERENCES).isEqualTo(record.getId());
 				long resultsCount = searchServices().getResultsCount(condition);
 				if (resultsCount != 0) {
 					ValidationErrors validationErrors = new ValidationErrors();

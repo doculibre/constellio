@@ -93,7 +93,7 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 
 	private boolean recordDoesNotExist(String id) {
 		return !getModelLayerFactory().newSearchServices()
-									  .hasResults(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(id));
+				.hasResults(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(id));
 	}
 
 	private void givenTestWebsiteInState1() {
@@ -111,7 +111,7 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 
 	private void givenDataSet1Connector() {
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-															   .setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html"));
+				.setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html"));
 	}
 
 	private List<ConnectorHttpDocument> tickAndGetAllDocuments() {

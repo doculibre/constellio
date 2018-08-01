@@ -58,7 +58,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus().withEvents(),
 				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
-													.withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");

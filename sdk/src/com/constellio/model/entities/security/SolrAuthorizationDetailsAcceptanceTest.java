@@ -31,7 +31,7 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		users.setUp(getModelLayerFactory().newUserServices());
@@ -191,7 +191,7 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 	public List<String> getReadRecordsForUser(User user) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-														.getSchemaType(Folder.SCHEMA_TYPE);
+				.getSchemaType(Folder.SCHEMA_TYPE);
 		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
 				from(type).returnAll()).filteredWithUser(user).sortAsc(Schemas.IDENTIFIER));
 	}
@@ -199,7 +199,7 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 	public List<String> getWriteRecordsForUser(User user) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-														.getSchemaType(Folder.SCHEMA_TYPE);
+				.getSchemaType(Folder.SCHEMA_TYPE);
 		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
 				from(type).returnAll()).filteredWithUserWrite(user).sortAsc(Schemas.IDENTIFIER));
 	}
@@ -207,7 +207,7 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 	public List<String> getDeleteRecordsForUser(User user) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-														.getSchemaType(Folder.SCHEMA_TYPE);
+				.getSchemaType(Folder.SCHEMA_TYPE);
 		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
 				from(type).returnAll()).filteredWithUserDelete(user).sortAsc(Schemas.IDENTIFIER));
 	}

@@ -55,49 +55,49 @@ public class ConnectorRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-															   .setTitle("ze connector").setEnabled(false).setSeeds("http://constellio.com"));
+				.setTitle("ze connector").setEnabled(false).setSeeds("http://constellio.com"));
 
 		connectorInstance2 = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector2")
-																.setTitle("another connector").setEnabled(false).setSeeds("http://constellio.com"));
+				.setTitle("another connector").setEnabled(false).setSeeds("http://constellio.com"));
 
 		Transaction transaction = new Transaction();
 
 		transaction.add(connectorInstance.setTraversalCode("t2"));
 		transaction.add(connectorInstance2.setTraversalCode("t2"));
 		transaction.add(es.newConnectorHttpDocumentWithId("unsearchableDocument", connectorInstance))
-				   .setURL("http://constellio.com/document1").setTitle("Titre1").setFetched(true).setSearchable(false)
-				   .setModifiedOn(shishOClock).setTraversalCode("t1");
+				.setURL("http://constellio.com/document1").setTitle("Titre1").setFetched(true).setSearchable(false)
+				.setModifiedOn(shishOClock).setTraversalCode("t1");
 
 		transaction.add(es.newConnectorHttpDocumentWithId("otherConnectorRecord", connectorInstance2))
-				   .setModifiedOn(shishOClock.plusSeconds(1)).setURL("http://constellio.com/document2").setTitle("Titre2")
-				   .setFetched(true).setTraversalCode("t2");
+				.setModifiedOn(shishOClock.plusSeconds(1)).setURL("http://constellio.com/document2").setTitle("Titre2")
+				.setFetched(true).setTraversalCode("t2");
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record1", connectorInstance))
-				   .setModifiedOn(shishOClock.plusSeconds(2)).setURL("http://constellio.com/document1").setTitle("Titre1")
-				   .setFetched(true).setTraversalCode("t2");
+				.setModifiedOn(shishOClock.plusSeconds(2)).setURL("http://constellio.com/document1").setTitle("Titre1")
+				.setFetched(true).setTraversalCode("t2");
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record2", connectorInstance))
-				   .setModifiedOn(shishOClock.plusSeconds(3)).setURL("http://constellio.com/document2").setTitle("Titre2")
-				   .setFetched(true).setTraversalCode("t2");
+				.setModifiedOn(shishOClock.plusSeconds(3)).setURL("http://constellio.com/document2").setTitle("Titre2")
+				.setFetched(true).setTraversalCode("t2");
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record3", connectorInstance))
-				   .setModifiedOn(shishOClock.plusSeconds(4)).setURL("http://constellio.com/document3").setTitle("Titre3")
-				   .setFetched(false).setTraversalCode("t2");
+				.setModifiedOn(shishOClock.plusSeconds(4)).setURL("http://constellio.com/document3").setTitle("Titre3")
+				.setFetched(false).setTraversalCode("t2");
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record4", connectorInstance))
-				   .setModifiedOn(shishOClock.plusSeconds(5)).setURL("http://constellio.com/document4").setTitle("Titre4")
-				   .setFetched(true).setTraversalCode("t2");
+				.setModifiedOn(shishOClock.plusSeconds(5)).setURL("http://constellio.com/document4").setTitle("Titre4")
+				.setFetched(true).setTraversalCode("t2");
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record5", connectorInstance))
-				   .setModifiedOn(shishOClock.plusSeconds(6)).setURL("http://constellio.com/document5").setTitle("Titre5")
-				   .setFetched(false).setTraversalCode("t2");
+				.setModifiedOn(shishOClock.plusSeconds(6)).setURL("http://constellio.com/document5").setTitle("Titre5")
+				.setFetched(false).setTraversalCode("t2");
 		recordServices.execute(transaction);
 
 		assertThat(connectorManager.getLastFetchedDocuments(connectorInstance.getId(), 1)).extracting("id")
-																						  .isEqualTo(asList("record4"));
+				.isEqualTo(asList("record4"));
 
 		assertThat(connectorManager.getLastFetchedDocuments(connectorInstance.getId(), 10)).extracting("id")
-																						   .isEqualTo(asList("record4", "record2", "record1"));
+				.isEqualTo(asList("record4", "record2", "record1"));
 
 		assertThat(connectorManager.getFetchedDocumentsCount(connectorInstance.getId())).isEqualTo(3);
 	}
@@ -110,7 +110,7 @@ public class ConnectorRecordsAcceptanceTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
 		ConnectorType type = es.newConnectorTypeWithId(testConnectorTypeId).setCode("test").setTitle("test")
-							   .setConnectorClassName(ConnectorTest.class.getName()).setLinkedSchema(ConnectorInstance.SCHEMA_TYPE + "_test");
+				.setConnectorClassName(ConnectorTest.class.getName()).setLinkedSchema(ConnectorInstance.SCHEMA_TYPE + "_test");
 		recordServices.add(type);
 	}
 

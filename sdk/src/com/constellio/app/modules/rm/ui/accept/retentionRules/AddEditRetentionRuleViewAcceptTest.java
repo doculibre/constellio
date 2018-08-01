@@ -21,7 +21,7 @@ public class AddEditRetentionRuleViewAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));

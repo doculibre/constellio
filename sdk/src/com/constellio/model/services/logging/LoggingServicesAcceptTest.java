@@ -65,7 +65,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection(zeCollection).giveReadAccessTo(admin);
 
@@ -89,7 +89,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.charles(), zeCollection);
 		userServices.addUserToCollection(users.alice(), zeCollection);
 		recordServices.add(users.aliceIn(zeCollection).setCollectionWriteAccess(true).setCollectionDeleteAccess(true)
-								.getWrappedRecord());
+				.getWrappedRecord());
 		userServices.addUserToCollection(users.bob(), zeCollection);
 		users = records.getUsers();
 		alice = users.aliceIn(zeCollection);
@@ -308,7 +308,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		AuthorizationDetails detail = schemas.newSolrAuthorizationDetails().setRoles(roles).setStartDate(startDate)
-											 .setEndDate(endDate).setTarget(record.getId());
+				.setEndDate(endDate).setTarget(record.getId());
 		List<String> grantedToPrincipals = new ArrayList<>();
 		for (User user : users) {
 			grantedToPrincipals.add(user.getId());
@@ -412,8 +412,8 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		getDataLayerFactory().getDataLayerLogger().monitor("00000000279");
 
 		Folder folder = rm.newFolder().setTitle("Ze Folder").setRetentionRuleEntered(records.ruleId_1)
-						  .setAdministrativeUnitEntered(records.unitId_10a)
-						  .setCategoryEntered(records.categoryId_X110).setOpenDate(new LocalDate(2010, 4, 4));
+				.setAdministrativeUnitEntered(records.unitId_10a)
+				.setCategoryEntered(records.categoryId_X110).setOpenDate(new LocalDate(2010, 4, 4));
 		User alice = users.aliceIn(zeCollection);
 
 		recordServices.add(folder.getWrappedRecord(), alice);
@@ -437,8 +437,8 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		Folder folder = rm.newFolder().setRetentionRuleEntered(records.ruleId_1)
-						  .setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X110).setTitle("titre1")
-						  .setOpenDate(new LocalDate(2010, 1, 1));
+				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X110).setTitle("titre1")
+				.setOpenDate(new LocalDate(2010, 1, 1));
 		User alice = users.aliceIn(zeCollection);
 
 		recordServices.add(folder.getWrappedRecord(), alice);

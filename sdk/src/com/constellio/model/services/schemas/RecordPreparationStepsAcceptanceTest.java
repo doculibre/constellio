@@ -27,7 +27,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(setup.withAStringMetadata()
-										  .withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata")));
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata")));
 
 		List<RecordPreparationStep> steps = zeSchema.instance().getPreparationSteps();
 
@@ -66,8 +66,8 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 	public void givenTypicalSchemasWithValidatorsThenTypicalPreparationSteps()
 			throws Exception {
 		defineSchemasManager().using(setup.withAStringMetadata()
-										  .withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
-										  .withRecordValidator(TestRecordValidator1.class));
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
+				.withRecordValidator(TestRecordValidator1.class));
 
 		List<RecordPreparationStep> steps = zeSchema.instance().getPreparationSteps();
 
@@ -90,7 +90,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 				.contains(zeSchema.anotherStringMetadata().getCode());
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
-																									   .contains(TestRecordValidator1.class.getName());
+				.contains(TestRecordValidator1.class.getName());
 
 	}
 
@@ -99,8 +99,8 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(setup.withAStringMetadata()
-										  .withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
-										  .withRecordValidator(TestRecordValidator1.class).withADynamicSequence());
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
+				.withRecordValidator(TestRecordValidator1.class).withADynamicSequence());
 
 		List<RecordPreparationStep> steps = zeSchema.instance().getPreparationSteps();
 
@@ -130,7 +130,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
-																									   .contains(TestRecordValidator1.class.getName());
+				.contains(TestRecordValidator1.class.getName());
 
 		assertThat(((SequenceRecordPreparationStep) steps.get(6)).getMetadatasCodes())
 				.containsExactly("zeSchemaType_default_dynamicSequenceMetadata");
@@ -142,9 +142,9 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(setup.withAStringMetadata()
-										  .withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
-										  .withRecordValidator(TestRecordValidator1.class)
-										  .withADynamicSequence().with(new MetadataSchemaTypesConfigurator() {
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
+				.withRecordValidator(TestRecordValidator1.class)
+				.withADynamicSequence().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder zeSchema = schemaTypes.getSchema("zeSchemaType_default");
@@ -196,7 +196,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
-																									   .contains(TestRecordValidator1.class.getName());
+				.contains(TestRecordValidator1.class.getName());
 
 		assertThat(((SequenceRecordPreparationStep) steps.get(6)).getMetadatasCodes())
 				.containsExactly("zeSchemaType_default_dynamicSequenceMetadata");
@@ -212,7 +212,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(9)).getValidators()).extracting("class.name")
-																									   .contains(TestRecordValidator1.class.getName());
+				.contains(TestRecordValidator1.class.getName());
 
 	}
 
@@ -220,9 +220,9 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 	public void givenFixedSequenceMetadataThenMetadataAndThoseDependingOnItAreCalculatedAndValidatedAtTheEnd()
 			throws Exception {
 		defineSchemasManager().using(setup.withAStringMetadata()
-										  .withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
-										  .withRecordValidator(TestRecordValidator1.class)
-										  .withAFixedSequence().with(new MetadataSchemaTypesConfigurator() {
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
+				.withRecordValidator(TestRecordValidator1.class)
+				.withAFixedSequence().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder zeSchema = schemaTypes.getSchema("zeSchemaType_default");
@@ -276,7 +276,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
-																									   .contains(TestRecordValidator1.class.getName());
+				.contains(TestRecordValidator1.class.getName());
 
 		assertThat(((SequenceRecordPreparationStep) steps.get(6)).getMetadatasCodes())
 				.containsExactly("zeSchemaType_default_fixedSequenceMetadata");
@@ -292,7 +292,7 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(9)).getValidators()).extracting("class.name")
-																									   .contains(TestRecordValidator1.class.getName());
+				.contains(TestRecordValidator1.class.getName());
 
 	}
 

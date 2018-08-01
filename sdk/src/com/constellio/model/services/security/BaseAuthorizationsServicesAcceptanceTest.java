@@ -189,9 +189,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		recordServices.getRecordsCaches().getCache(zeCollection)
-					  .configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
+				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
 		recordServices.getRecordsCaches().getCache(anotherCollection)
-					  .configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
+				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
 	}
 
 	protected ListAssert<String> assertThatBatchProcessDuringTest() {
@@ -428,7 +428,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
-																							   .setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
@@ -446,7 +446,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserWrite(user)
-																							   .setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
@@ -464,7 +464,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasDeleteAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserDelete(user)
-																							   .setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
@@ -679,7 +679,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		List<String> authorizations = new ArrayList<>();
 		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-																  .getAuthorizationsDetails(zeCollection).values()) {
+				.getAuthorizationsDetails(zeCollection).values()) {
 			authorizations.add(details.getId());
 		}
 
@@ -808,7 +808,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			Authorization authorization = services
 					.getAuthorization(zeCollection, authId);
 			assertThat(authorization.getGrantedToPrincipals()).describedAs("principals")
-															  .containsOnly(expectedPrincipals.toArray(new String[0]));
+					.containsOnly(expectedPrincipals.toArray(new String[0]));
 			return this;
 		}
 
@@ -1023,8 +1023,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 															 String grantedOnRecord) {
 
 		id = services.add(authorizationInCollectionWithId(zeCollection, id).forPrincipalsIds(grantedToPrincipals)
-																		   .on(grantedOnRecord)
-																		   .giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
+				.on(grantedOnRecord)
+				.giving(roles).setExecutedBy(users.dakotaLIndienIn(zeCollection)));
 
 		return services.getAuthorization(zeCollection, id);
 	}

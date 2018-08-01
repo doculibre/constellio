@@ -39,7 +39,7 @@ public class BagInfoSIPPresenter extends BasePresenter<BagInfoSIPForm> {
 		List<BagInfoVO> bagInfoVOS = new ArrayList<>();
 		BagInfoToVOBuilder builder = new BagInfoToVOBuilder();
 		List<MetadataSchema> bagInfoSchemas = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-															   .getSchemaType(BagInfo.SCHEMA_TYPE).getCustomSchemas();
+				.getSchemaType(BagInfo.SCHEMA_TYPE).getCustomSchemas();
 		for (MetadataSchema bagInfoSchema : bagInfoSchemas) {
 			Record bagInfoRecord = recordServices().newRecordWithSchema(bagInfoSchema);
 			bagInfoRecord.set(Schemas.TITLE, bagInfoSchema.getLabel(Language.withLocale(i18n.getLocale())));

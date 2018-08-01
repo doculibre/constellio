@@ -52,7 +52,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withRMTest(records).withConstellioRMModule()
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withDocumentsDecommissioningList()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withDocumentsDecommissioningList()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		ss = getModelLayerFactory().newSearchServices();
@@ -67,7 +67,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		String title = "test REcords 1";
 		File file = getFile("Avery_5162_Vide.jasper");
 		ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
-														 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 		Content c = contentManager.createSystemContent("test-" + LocalDate.now() + ".jasper", upload);
 		Printable r = rm.newPrintableLabel();
 		r.setTitle(title);
@@ -77,7 +77,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		recordServices.execute(t);
 
 		LogicalSearchCondition condition = from(rm.printable_label.schemaType()).where(rm.printable_label.title())
-																				.isEqualTo(title);
+				.isEqualTo(title);
 		Printable retour = rm.wrapPrintableLabel(ss.searchSingleResult(condition));
 		assertThat(retour.getTitle()).isEqualTo(title);
 		assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
@@ -89,7 +89,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		String title = "Test records 2";
 		File file = getFile("Avery_5162_Vide.jasper");
 		ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
-														 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 		Content c = contentManager.createSystemContent("test-" + LocalDate.now() + ".jasper", upload);
 		Printable r = rm.newPrintableLabel();
 		PrintableLabel printableLabel = rm.newPrintableLabel();
@@ -101,7 +101,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		recordServices.execute(t);
 
 		LogicalSearchCondition condition = from(rm.printable_label.schemaType()).where(rm.printable_label.title())
-																				.isEqualTo(title);
+				.isEqualTo(title);
 		PrintableLabel retour = rm.wrapPrintableLabel(ss.searchSingleResult(condition));
 		assertThat(retour.getJasperfile().getCurrentVersion().getHash()).isEqualTo(c.getCurrentVersion().getHash());
 		assertThat(retour.getTitle()).isEqualTo(title);
@@ -151,9 +151,9 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 
 		assertThat(XmlMuliple.size()).isEqualTo(3);
 		assertThat(XmlMuliple.get(0).getChild("metadatas").getChild(rm.folder.title().getLocalCode().toLowerCase())
-							 .getValue()).isEqualTo(records.getFolder_A05().getTitle());
+				.getValue()).isEqualTo(records.getFolder_A05().getTitle());
 		assertThat(XmlMuliple.get(1).getChild("metadatas").getChild(rm.folder.title().getLocalCode().toLowerCase())
-							 .getValue()).isEqualTo(records.getFolder_A06().getTitle());
+				.getValue()).isEqualTo(records.getFolder_A06().getTitle());
 		String Null = null;
 		try {
 			String xmlNull = reportXmlGenerator.generateXML();
@@ -184,7 +184,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		}
 		//assertThat(containers.size()).isEqualTo(compteur);
 		assertThat(containers.get(0).getChild("metadatas")
-							 .getChild(LabelXmlGenerator.getLabelOfMetadata(rm.containerRecord.title())).getValue())
+				.getChild(LabelXmlGenerator.getLabelOfMetadata(rm.containerRecord.title())).getValue())
 				.isEqualTo(records.getContainerBac01().getTitle());
 
 		String xmlWithNullParameter = reportXmlGenerator.generateXML();
@@ -220,7 +220,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		assertThat(meta1.getChild(
 				LabelXmlGenerator.REFERENCE_PREFIX + rm.containerRecord.storageSpace().getCode().replace("_default_", "_")
 				+ "_code")
-						.getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
+				.getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
 
 		LabelXmlGenerator labelXmlGeneratorConteneurWithMultipleIds = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
 				records.getContainerBac05().getWrappedRecord(), records.getContainerBac07().getWrappedRecord());

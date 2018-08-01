@@ -98,7 +98,7 @@ public class ConditionTemplateFactory {
 						conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords[i]));
 					} else {
 						conditions.add(whereAny(metadatas).isStartingWithText(cleanedTextWords[i])
-														  .orWhereAny(metadatas).isEqualTo(cleanedTextWords[i]));
+								.orWhereAny(metadatas).isEqualTo(cleanedTextWords[i]));
 					}
 				} else {
 					conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords[i]));

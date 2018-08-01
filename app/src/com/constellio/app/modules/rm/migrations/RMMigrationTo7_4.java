@@ -70,12 +70,12 @@ RMMigrationTo7_4 extends MigrationHelper implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
-																	  .createCustomSchema(PrintableReport.SCHEMA_TYPE);
+					.createCustomSchema(PrintableReport.SCHEMA_TYPE);
 
 			metadataSchemaBuilder.create(PrintableReport.RECORD_TYPE).setType(MetadataValueType.STRING).setUndeletable(true)
-								 .setEssential(true);
+					.setEssential(true);
 			metadataSchemaBuilder.create(PrintableReport.RECORD_SCHEMA).setType(MetadataValueType.STRING).setUndeletable(true)
-								 .setEssential(true);
+					.setEssential(true);
 
 			MetadataSchemaBuilder containerRecord = typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA);
 			containerRecord.getMetadata(ContainerRecord.DECOMMISSIONING_TYPE).setDefaultRequirement(true);

@@ -73,9 +73,9 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		BigVaultServerTransaction t1, t2, t3, t4;
 
 		bigVaultServer.addAll(t1 = new BigVaultServerTransaction(LATER).setNewDocuments(transaction1NewDocs)
-																	   .setUpdatedDocuments(transaction1UpdatedDocs));
+				.setUpdatedDocuments(transaction1UpdatedDocs));
 		bigVaultServer.addAll(t2 = new BigVaultServerTransaction(NOW).setNewDocuments(transaction2NewDocs)
-																	 .setDeletedRecords(deletedDocs1));
+				.setDeletedRecords(deletedDocs1));
 		bigVaultServer.addAll(t3 = new BigVaultServerTransaction(WITHIN_SECONDS(1))
 				.setUpdatedDocuments(transaction3UpdatedDocs).setDeletedRecords(deletedDocs2));
 		bigVaultServer.addAll(t4 = new BigVaultServerTransaction(WITHIN_MILLISECONDS(2)).setDeletedRecords(deletedDocs3));
@@ -188,7 +188,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(e.code()).thenReturn(500);
 		when(e.getMessage()).thenReturn("Ze message");
 		doThrow(e).when(bigVaultServer)
-				  .addAndCommit(transaction);
+				.addAndCommit(transaction);
 
 		bigVaultServer.tryAddAll(transaction, 3);
 
@@ -206,7 +206,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(e.getMessage()).thenReturn(
 				"version conflict for e80fda8a-f842-48de-9ccf-c6ec847a18f7 expected=1487130319535472640 actual=1487130319704293376");
 		doThrow(e).when(bigVaultServer)
-				  .addAndCommit(transaction);
+				.addAndCommit(transaction);
 
 		bigVaultServer.tryAddAll(transaction, 3);
 
@@ -223,7 +223,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(e.code()).thenReturn(500);
 		when(e.getMessage()).thenReturn("Document not found for update.  id=idx_act_idOfAnotherNonExistentIndex");
 		doThrow(e).when(bigVaultServer)
-				  .addAndCommit(transaction);
+				.addAndCommit(transaction);
 
 		bigVaultServer.tryAddAll(transaction, 3);
 

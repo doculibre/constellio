@@ -111,7 +111,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(typeDisplay.isManageable()).isFalse();
 
 		manager.saveType(typeDisplay.withAdvancedSearchStatus(true).withSimpleSearchStatus(true)
-									.withManageableStatus(true));
+				.withManageableStatus(true));
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isTrue();
@@ -134,9 +134,9 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(typeDisplay2.isManageable()).isFalse();
 
 		manager.saveType(typeDisplay.withAdvancedSearchStatus(true).withSimpleSearchStatus(true)
-									.withManageableStatus(true));
+				.withManageableStatus(true));
 		manager.saveType(typeDisplay2.withAdvancedSearchStatus(true).withSimpleSearchStatus(true)
-									 .withManageableStatus(true));
+				.withManageableStatus(true));
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isTrue();
@@ -159,7 +159,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(typeDisplay.isManageable()).isFalse();
 
 		manager.saveType(typeDisplay.withAdvancedSearchStatus(true).withSimpleSearchStatus(true)
-									.withManageableStatus(true));
+				.withManageableStatus(true));
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isTrue();
@@ -167,7 +167,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(typeDisplay.isManageable()).isTrue();
 
 		manager.saveType(typeDisplay.withAdvancedSearchStatus(false).withSimpleSearchStatus(true)
-									.withManageableStatus(false));
+				.withManageableStatus(false));
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isFalse();
@@ -190,8 +190,8 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		Collections.shuffle(searchResultsMetadataCodes);
 		Collections.shuffle(tableMetadataCodes);
 		manager.saveSchema(schemaDisplay.withDisplayMetadataCodes(displayMetadataCodes)
-										.withFormMetadataCodes(formMetadataCodes).withSearchResultsMetadataCodes(searchResultsMetadataCodes)
-										.withTableMetadataCodes(tableMetadataCodes));
+				.withFormMetadataCodes(formMetadataCodes).withSearchResultsMetadataCodes(searchResultsMetadataCodes)
+				.withTableMetadataCodes(tableMetadataCodes));
 
 		schemaDisplay = manager.getSchema(zeCollection, "group_default");
 		assertThat(schemaDisplay.getDisplayMetadataCodes()).isEqualTo(displayMetadataCodes);
@@ -210,7 +210,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
-											.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.HIDDEN);
@@ -250,7 +250,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
-											.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.HIDDEN);
@@ -261,7 +261,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.RICHTEXT)
-											.withVisibleInAdvancedSearchStatus(false));
+				.withVisibleInAdvancedSearchStatus(false));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "user_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.RICHTEXT);
@@ -299,9 +299,9 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(typeDisplay2.isManageable()).isFalse();
 
 		manager.saveType(typeDisplay.withAdvancedSearchStatus(true).withSimpleSearchStatus(true)
-									.withManageableStatus(true));
+				.withManageableStatus(true));
 		manager.saveType(typeDisplay2.withAdvancedSearchStatus(true).withSimpleSearchStatus(true)
-									 .withManageableStatus(true));
+				.withManageableStatus(true));
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isTrue();
@@ -326,8 +326,8 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		Collections.shuffle(searchResultsMetadataCodes);
 		Collections.shuffle(tableMetadataCodes);
 		manager.saveSchema(schemaDisplay.withDisplayMetadataCodes(displayMetadataCodes)
-										.withFormMetadataCodes(formMetadataCodes).withSearchResultsMetadataCodes(searchResultsMetadataCodes)
-										.withTableMetadataCodes(tableMetadataCodes));
+				.withFormMetadataCodes(formMetadataCodes).withSearchResultsMetadataCodes(searchResultsMetadataCodes)
+				.withTableMetadataCodes(tableMetadataCodes));
 
 		schemaDisplay = manager.getSchema(zeCollection, "group_default");
 		assertThat(schemaDisplay.getDisplayMetadataCodes()).isEqualTo(displayMetadataCodes);
@@ -342,7 +342,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
-											.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 
 		metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.HIDDEN);
@@ -415,11 +415,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaType("mySchemaType").getDefaultSchema();
 				schemaBuilder.create("aMetadataThatWillOneDayBeEssential").setType(TEXT).setEssential(false)
-							 .addLabel(Language.French, "zeMetadataThatWillOneDayBeEssential");
+						.addLabel(Language.French, "zeMetadataThatWillOneDayBeEssential");
 				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true)
-							 .addLabel(Language.French, "zeEssentialMetadata");
+						.addLabel(Language.French, "zeEssentialMetadata");
 				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false)
-							 .addLabel(Language.French, "ZeTrivialMetadata");
+						.addLabel(Language.French, "ZeTrivialMetadata");
 				schemaBuilder.create("code").setType(TEXT).addLabel(Language.French, "Ze code");
 				schemaBuilder.get("title").addLabel(Language.French, "Ze title");
 				schemaBuilder.get("title").addLabel(Language.English, "Ze title en");

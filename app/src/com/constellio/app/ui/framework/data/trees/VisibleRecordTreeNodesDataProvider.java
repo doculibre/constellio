@@ -35,7 +35,7 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 
 		TaxonomiesSearchOptions taxonomiesSearchOptions = newTaxonomiesSearchOptions(maxSize, start, infos);
 		return modelLayerFactory.newTaxonomiesSearchService()
-								.getVisibleChildConceptResponse(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
+				.getVisibleChildConceptResponse(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class VisibleRecordTreeNodesDataProvider implements RecordTreeNodesDataPr
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(rows, startRow, StatusFilter.ACTIVES)
 				.setFastContinueInfos(infos)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
-																	  .withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
 		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
 		Boolean showOnlyTriangleIfContent = modelLayerFactory.getSystemConfigurationsManager().<Boolean>getValue(ConstellioEIMConfigs.SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT);
 		if (showOnlyTriangleIfContent) {

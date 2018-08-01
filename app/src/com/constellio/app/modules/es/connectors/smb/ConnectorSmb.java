@@ -153,7 +153,7 @@ public class ConnectorSmb extends Connector {
 				es.connectorSmbDocument.lastModified(), es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
 				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId))
-																		.setReturnedMetadatas(returnedMetadatasFilter);
+				.setReturnedMetadatas(returnedMetadatasFilter);
 		SearchResponseIterator<Record> smbDocumentsIterator = searchServices.recordsIterator(logicalSearchQuery, 50000);
 		while (smbDocumentsIterator.hasNext()) {
 			Record next = smbDocumentsIterator.next();
@@ -286,7 +286,7 @@ public class ConnectorSmb extends Connector {
 		connectorInstance = es.getConnectorSmbInstance(connectorId);
 		String oldTraversalCode = this.connectorInstance.getTraversalCode();
 		String newTraversalCode = UUID.randomUUID()
-									  .toString();
+				.toString();
 
 		this.connectorInstance.setTraversalCode(newTraversalCode);
 		this.connectorInstance.setResumeUrl("");

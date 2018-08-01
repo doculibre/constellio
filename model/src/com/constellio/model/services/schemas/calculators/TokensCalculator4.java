@@ -26,7 +26,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	ReferenceDependency<SortedMap<String, List<String>>> authorizationsRolesParam = ReferenceDependency.toAString(
 			CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS, SolrAuthorizationDetails.ROLES).whichIsMultivalue()
-																									   .whichAreReferencedMultiValueGroupedByReference();
+			.whichAreReferencedMultiValueGroupedByReference();
 
 	SpecialDependency<AllPrincipalsAuthsDependencyValue> allPrincipalsAuthsParam = SpecialDependencies.ALL_PRINCIPALS;
 

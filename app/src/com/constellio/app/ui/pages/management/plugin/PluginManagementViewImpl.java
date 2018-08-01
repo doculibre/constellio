@@ -146,7 +146,7 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 					&& constellioPluginInfo.getPluginActivationFailureCause() != null) {
 					Window window = new BaseWindow(
 							$("PluginActivationFailureCause." + constellioPluginInfo.getPluginActivationFailureCause()
-																					.getCode()));
+									.getCode()));
 					window.center();
 					window.setWidth("50%");
 					VerticalLayout vLayout = new VerticalLayout();

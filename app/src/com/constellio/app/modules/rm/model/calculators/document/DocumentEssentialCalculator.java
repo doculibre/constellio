@@ -17,7 +17,7 @@ import static java.util.Arrays.asList;
 public class DocumentEssentialCalculator implements MetadataValueCalculator<Boolean> {
 
 	LocalDependency<CopyRetentionRule> mainCopyRuleParam = LocalDependency.toAStructure(Document.MAIN_COPY_RULE)
-																		  .whichIsRequired();
+			.whichIsRequired();
 	ReferenceDependency<Boolean> retentionRuleEssentialParam = ReferenceDependency.toABoolean(Document.FOLDER_RETENTION_RULE,
 			RetentionRule.ESSENTIAL_DOCUMENTS);
 

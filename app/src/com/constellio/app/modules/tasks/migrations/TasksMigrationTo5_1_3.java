@@ -38,7 +38,7 @@ public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationS
 		String taskStatusModificationTemplate;
 		String taskStatusModificationToCompletedTemplate;
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("en")) {
+				.equals("en")) {
 			taskReminderTemplate = "taskReminderTemplate_en.html";
 			subTasksModificationTemplate = "subTasksModificationTemplate_en.html";
 			taskAssigneeModificationTemplate = "taskAssigneeModificationTemplate_en.html";
@@ -79,7 +79,7 @@ public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationS
 		InputStream stream = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .addCollectionTemplateIfInexistent(templateId, collection, stream);
+					.addCollectionTemplateIfInexistent(templateId, collection, stream);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -93,7 +93,7 @@ public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationS
 									 String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-																	.getEmailTemplatesManager();
+				.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

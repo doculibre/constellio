@@ -215,17 +215,17 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		Record category = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_secondTypeItem1");
 
 		AuthorizationAddRequest authorization1 = authorizationInCollection(zeCollection).forUsers(users.aliceIn(zeCollection))
-																						.on(category)
-																						.givingReadWriteAccess();
+				.on(category)
+				.givingReadWriteAccess();
 		AuthorizationAddRequest authorization2 = authorizationInCollection(zeCollection).forUsers(users.bobIn(zeCollection))
-																						.on(category)
-																						.givingReadWriteAccess();
+				.on(category)
+				.givingReadWriteAccess();
 		AuthorizationAddRequest authorization3 = authorizationInCollection(zeCollection)
 				.forUsers(users.charlesIn(zeCollection)).on(category)
 				.givingReadWriteAccess();
 		AuthorizationAddRequest authorization4 = authorizationInCollection(zeCollection).forUsers(users.dakotaIn(zeCollection))
-																						.on(category)
-																						.givingReadWriteAccess();
+				.on(category)
+				.givingReadWriteAccess();
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		authorizationsServices.add(authorization1, User.GOD);
@@ -282,7 +282,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		String path = taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1) + "/";
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema.instance()).where(Schemas.PATH)
-																	  .isStartingWithText(path);
+				.isStartingWithText(path);
 		return searchServices.getResultsCount(condition);
 	}
 
@@ -290,7 +290,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		String path = taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1) + "/";
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema.instance()).where(Schemas.PATH)
-																	  .isStartingWithText(path);
+				.isStartingWithText(path);
 		Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(condition));
 		List<String> lines = new ArrayList<>();
 		lines.add("Not reindexed : " + getInitialReindexedFolders());
@@ -305,7 +305,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		String path = taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem1) + "/";
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema.instance()).where(Schemas.PATH)
-																	  .isStartingWithText(path);
+				.isStartingWithText(path);
 		return searchServices.getResultsCount(condition);
 	}
 
@@ -313,7 +313,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		String path = taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem1) + "/";
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema.instance()).where(Schemas.PATH)
-																	  .isStartingWithText(path);
+				.isStartingWithText(path);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		return searchServices.search(query.filteredByStatus(StatusFilter.DELETED)).size();
 	}

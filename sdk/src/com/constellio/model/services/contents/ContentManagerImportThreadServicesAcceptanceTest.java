@@ -317,7 +317,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 
 		setUp(false);
 		getModelLayerFactory().getSystemConfigurationsManager()
-							  .setValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 1);
+				.setValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 1);
 
 		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
 				htmlWithBody("Chuck Norris"));

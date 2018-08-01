@@ -76,7 +76,7 @@ public class MetadataSchemaXMLReader3 {
 		String code = getCodeValue(element);
 		Map<Language, String> labels = readLabels(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
-																  .setLabels(labels);
+				.setLabels(labels);
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 												 null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
@@ -631,10 +631,10 @@ public class MetadataSchemaXMLReader3 {
 						throw new MetadataBuilderRuntimeException.CannotInstanciateClass(calculatorClassName, e);
 					}
 					metadataBuilder.defineDataEntry()
-								   .as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType, calculatorClass));
+							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType, calculatorClass));
 				} else {
 					metadataBuilder.defineDataEntry()
-								   .as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType));
+							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType));
 				}
 			}
 		} else if (!isInheriting(metadataElement)) {

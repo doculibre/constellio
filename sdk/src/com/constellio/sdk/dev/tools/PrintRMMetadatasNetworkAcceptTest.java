@@ -32,7 +32,7 @@ public class PrintRMMetadatasNetworkAcceptTest extends ConstellioTest {
 
 		SchemaUtils utils = new SchemaUtils();
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-															 .getSchemaTypes()) {
+				.getSchemaTypes()) {
 
 			boolean hasCalculator = false;
 

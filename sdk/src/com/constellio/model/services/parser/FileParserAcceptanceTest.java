@@ -156,7 +156,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("Feuille1").contains("This is the content of")
-													.contains("the xsl file");
+				.contains("the xsl file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/vnd.ms-excel");
 		assertThat(parsedContent.getLength()).isEqualTo(23552L);
@@ -175,7 +175,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("Sheet1").contains("This is the content of")
-													.contains("the xslx file");
+				.contains("the xslx file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 		assertThat(parsedContent.getLength()).isEqualTo(8022L);

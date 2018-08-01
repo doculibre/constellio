@@ -76,7 +76,7 @@ public class SmbNewRetrievalJob extends SmbConnectorJob {
 				break;
 			default:
 				this.connector.getLogger()
-							  .error("Unexpected DTO type for : " + url, "", new LinkedHashMap<String, String>());
+						.error("Unexpected DTO type for : " + url, "", new LinkedHashMap<String, String>());
 				break;
 		}
 	}

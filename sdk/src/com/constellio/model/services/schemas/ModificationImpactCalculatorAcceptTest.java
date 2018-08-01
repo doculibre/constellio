@@ -246,7 +246,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	public void givenLazyTransientReferenceMetadataThenModificationPropagated()
 			throws Exception {
 		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(TRANSIENT_LAZY)
-											.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(TRANSIENT_LAZY));
+				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(TRANSIENT_LAZY));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));
@@ -263,7 +263,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	public void givenEagerTransientReferenceMetadataThenModificationPropagated()
 			throws Exception {
 		defineSchemasManager().using(schemas.withComputedTitleSizeCopiedInAnotherSchema(MetadataTransiency.TRANSIENT_EAGER)
-											.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataTransiency.TRANSIENT_EAGER));
+				.withReferenceFromAnotherSchemaToZeSchemaComputedFromStringMetadata(MetadataTransiency.TRANSIENT_EAGER));
 
 		Transaction tx = new Transaction();
 		tx.add(new TestRecord(zeSchema, "chat").set(TITLE, "Vodka Framboise"));

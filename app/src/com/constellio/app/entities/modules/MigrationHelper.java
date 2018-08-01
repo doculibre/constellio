@@ -22,7 +22,7 @@ public class MigrationHelper {
 										SchemaDisplayConfig schema, String... localCodes) {
 
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory()
-														 .getMetadataSchemasManager().getSchemaTypes(collection);
+				.getMetadataSchemasManager().getSchemaTypes(collection);
 
 		List<String> visibleMetadataCodes = new ArrayList<>();
 		for (String localCode : localCodes) {
@@ -44,7 +44,7 @@ public class MigrationHelper {
 			} else {
 				try {
 					if (!schemaTypes.getMetadata(retrievedMetadataCode)
-									.isSystemReserved()) {
+							.isSystemReserved()) {
 						otherMetadatas.add(retrievedMetadataCode);
 					}
 				} catch (InvalidCodeFormat e) {

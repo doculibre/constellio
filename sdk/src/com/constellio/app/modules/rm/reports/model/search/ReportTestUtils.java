@@ -360,7 +360,7 @@ public class ReportTestUtils {
 		MetadataSchemaTypesBuilder typesBuilder = modelLayerFactory.getMetadataSchemasManager().modify(zeCollection);
 		MetadataSchemaTypeBuilder metadataSchemaTypeBuilder = typesBuilder.getSchemaType(folderSchemaType);
 		metadataSchemaTypeBuilder.getDefaultSchema().getMetadata(folderDescriptionMetadataCode).setEssentialInSummary(false)
-								 .setEnabled(false);
+				.setEnabled(false);
 		try {
 			modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 		} catch (OptimisticLocking optimistickLocking) {

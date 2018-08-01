@@ -20,21 +20,21 @@ public class ListUserCredentialPage extends PageHelper {
 	void navigateToListUserCredentialsPage() {
 
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.USER_LIST);
+				.url(NavigatorConfigurationService.USER_LIST);
 		try {
 			getAddButton();
 
 		} catch (Exception e) {
 			driver.printHierarchy();
 			driver.navigateTo()
-				  .url(NavigatorConfigurationService.USER_LIST);
+					.url(NavigatorConfigurationService.USER_LIST);
 			try {
 				getAddButton();
 
 			} catch (Exception e2) {
 				driver.printHierarchy();
 				driver.navigateTo()
-					  .url(NavigatorConfigurationService.USER_LIST);
+						.url(NavigatorConfigurationService.USER_LIST);
 			}
 		}
 	}

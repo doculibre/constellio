@@ -89,7 +89,7 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 				SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory);
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(schemasRecords.facetSchemaType()).returnAll())
-					 .sortAsc(schemasRecords.defaultFacet().get(Facet.ORDER));
+						.sortAsc(schemasRecords.defaultFacet().get(Facet.ORDER));
 				return query;
 			}
 		};

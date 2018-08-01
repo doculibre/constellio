@@ -80,7 +80,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 		long timeStampBefore = new Date().getTime();
 
 		searchEventServices.save(schemas.newSearchEventWithId("search1").setUsername("bob").setQuery("banane").setNumFound(3000)
-										.setQTime(100));
+				.setQTime(100));
 		searchEventServices.save(schemas.newSearchEventWithId("search2").setUsername("bob").setQuery("banane"));
 		searchEventServices.save(schemas.newSearchEventWithId("search3").setUsername("bob").setQuery("banane"));
 

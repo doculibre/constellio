@@ -8,7 +8,7 @@ import java.util.Set;
 public class SkosUtil {
 	public static String normaliseTextForMatching(String text) {
 		String normalised = text.replaceAll("\\r?\\n", " ")
-								.replaceAll(" +", " ").toUpperCase();
+				.replaceAll(" +", " ").toUpperCase();
 		return " " + normalised + " ";
 	}
 

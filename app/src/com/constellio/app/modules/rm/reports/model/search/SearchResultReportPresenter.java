@@ -94,7 +94,7 @@ public class SearchResultReportPresenter {
 		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
 		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).where(Schemas.IDENTIFIER)
-														 .isIn(selectedRecords)).filteredWithUser(userInCollection)
+						.isIn(selectedRecords)).filteredWithUser(userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
 		//		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
 		//		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)

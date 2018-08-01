@@ -88,7 +88,7 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 																	  ConstellioFactories constellioFactories,
 																	  SessionContext sessionContext) {
 		MetadataSchemaType categoryType = constellioFactories.getModelLayerFactory().getMetadataSchemasManager()
-															 .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(Category.SCHEMA_TYPE);
+				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(Category.SCHEMA_TYPE);
 		LogicalSearchCondition searchCondition = from(categoryType)
 				.where(categoryType.getDefaultSchema().get(Category.DEACTIVATE)).isNotEqual(true);
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();

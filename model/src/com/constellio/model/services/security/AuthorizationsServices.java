@@ -470,7 +470,7 @@ public class AuthorizationsServices {
 			if (removedAuthorization != null) {
 				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) removedAuthorization);
 				transaction.add(((SolrAuthorizationDetails) removedAuthorization).getWrappedRecord()
-																				 .set(Schemas.LOGICALLY_DELETED_STATUS, true));
+						.set(Schemas.LOGICALLY_DELETED_STATUS, true));
 
 			}
 
@@ -739,7 +739,7 @@ public class AuthorizationsServices {
 
 	private void executeTransaction(AuthTransaction transaction) {
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
-												  .setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL()));
+				.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL()));
 		try {
 			recordServices.execute(transaction);
 		} catch (Exception e) {
@@ -909,7 +909,7 @@ public class AuthorizationsServices {
 
 		if (request.getNewOverridingInheritedAuths() != null) {
 			transaction.add(((SolrAuthorizationDetails) authorizationDetails))
-					   .setOverrideInherited(request.getNewOverridingInheritedAuths());
+					.setOverrideInherited(request.getNewOverridingInheritedAuths());
 		}
 	}
 
@@ -924,7 +924,7 @@ public class AuthorizationsServices {
 
 				List<MetadataSchemaType> types = asList(schemas.user.schemaType(), schemas.group.schemaType());
 				Record record = searchServices.searchSingleResult(from(types).where(schemas.user.username()).isEqualTo(principal)
-																			 .orWhere(schemas.group.code()).isEqualTo(principal));
+						.orWhere(schemas.group.code()).isEqualTo(principal));
 
 				if (record == null) {
 					throw new NoSuchPrincipalWithUsername(principal);
@@ -954,7 +954,7 @@ public class AuthorizationsServices {
 		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType(Group.SCHEMA_TYPE);
 
 		query.setCondition(fromAllSchemasExcept(asList(userSchemaType, groupSchemaType)).where(AUTHORIZATIONS)
-																						.isContaining(asList(authDetails.getId())));
+				.isContaining(asList(authDetails.getId())));
 		records.addAll(searchServices.search(query));
 		return records;
 	}
@@ -1132,7 +1132,7 @@ public class AuthorizationsServices {
 
 			boolean hasMetadataProvidingSecurityFromThisType = false;
 			for (Metadata metadata : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection())
-													  .getAllMetadatas().onlyReferencesToType(schemaType)) {
+					.getAllMetadatas().onlyReferencesToType(schemaType)) {
 				hasMetadataProvidingSecurityFromThisType |= metadata.isRelationshipProvidingSecurity();
 			}
 

@@ -130,6 +130,6 @@ public class TaxonomyManagementWebElement {
 	public ConstellioWebElement getTabByClassName(String classname) {
 		driver.waitUntilElementExist(By.className("v-tabsheet-tabitemcell-" + classname));
 		return new ConstellioWebElement(driver.findElement(By.className("v-tabsheet-tabitemcell-" + classname))).getChildren()
-																												.get(0).getChildren().get(0);
+				.get(0).getChildren().get(0);
 	}
 }

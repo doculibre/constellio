@@ -56,7 +56,7 @@ public class DependencyUtilsTest {
 		// d -> e -> b/c -> a
 
 		DependencyUtilsParams params = new DependencyUtilsParams().sortUsingDefaultComparator()
-																  .withToleratedCyclicDepencies();
+				.withToleratedCyclicDepencies();
 
 		List<String> sortedValues = utils.sortByDependency(dependenciesMap, params);
 		assertThat(sortedValues).isEqualTo(asList("d", "e", "b", "c", "a", "f", "g"));

@@ -52,7 +52,7 @@ public class PresenterService {
 			return null;
 		}
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager()
-													 .getSchemaTypes(sessionContext.getCurrentCollection());
+				.getSchemaTypes(sessionContext.getCurrentCollection());
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		Metadata metadata = types.getMetadata(metadataCode);
 		return builder.build(metadata, sessionContext);

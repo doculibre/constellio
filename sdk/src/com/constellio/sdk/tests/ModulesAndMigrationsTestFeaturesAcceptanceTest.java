@@ -79,7 +79,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		int i = 0;
@@ -118,7 +118,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Document.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 
@@ -144,7 +144,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, AdministrativeUnit.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThereIsNotSystemReservedIn(metadataCodes);
@@ -161,7 +161,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Category.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThat(metadataCodes.get(0)).isEqualTo(Category.DEFAULT_SCHEMA + "_" + Category.CODE);
@@ -184,7 +184,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, DecommissioningList.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		int i = 0;
@@ -207,7 +207,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, FilingSpace.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
 		assertThat(metadataCodes.get(0)).isEqualTo(FilingSpace.DEFAULT_SCHEMA + "_" + FilingSpace.CODE);
@@ -242,7 +242,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, StorageSpace.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.subList(0, 6)).isEqualTo(asList(
 				StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.TYPE,
@@ -268,7 +268,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, UniformSubdivision.DEFAULT_SCHEMA)
-														  .getFormMetadataCodes();
+				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.subList(0, 4)).isEqualTo(asList(
 				UniformSubdivision.DEFAULT_SCHEMA + "_" + UniformSubdivision.CODE,

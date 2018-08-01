@@ -76,15 +76,15 @@ public class TaskSchemasExtensionTestUpdateRemindersStatusAcceptanceTest extends
 		notProcessedReminderWithFixedDate_7 = new TaskReminder().setFixedDate(now.minusDays(1)).setProcessed(false);
 
 		recordServices.add(zeTask.setTitle("zeTaskTilte").setStartDate(oldStartDate).setDueDate(oldDueDate)
-								 .setReminders(asList(reminderWithRelativeToStartDateProcessedWithOldStartDateAndProcessedWithNewStartDate_0,
-										 reminderWithRelativeToStartDateProcessedWithOldStartDateAndNotProcessedWithNewStartDate_1,
-										 reminderWithRelativeToStartDateNotProcessedWithOldStartDateAndNotProcessedWithNewStartDate_2,
-										 reminderWithRelativeToDueDateProcessedWithOldDueDateAndProcessedWithNewDueDate_3,
-										 reminderWithRelativeToDueDateProcessedWithOldDueDateAndNotProcessedWithNewDueDate_4,
-										 reminderWithRelativeToDueDateNotProcessedWithOldDueDateAndNotProcessedWithNewDueDate_5,
-										 processedReminderWithFixedDate_6,
-										 notProcessedReminderWithFixedDate_7
-								 )));
+				.setReminders(asList(reminderWithRelativeToStartDateProcessedWithOldStartDateAndProcessedWithNewStartDate_0,
+						reminderWithRelativeToStartDateProcessedWithOldStartDateAndNotProcessedWithNewStartDate_1,
+						reminderWithRelativeToStartDateNotProcessedWithOldStartDateAndNotProcessedWithNewStartDate_2,
+						reminderWithRelativeToDueDateProcessedWithOldDueDateAndProcessedWithNewDueDate_3,
+						reminderWithRelativeToDueDateProcessedWithOldDueDateAndNotProcessedWithNewDueDate_4,
+						reminderWithRelativeToDueDateNotProcessedWithOldDueDateAndNotProcessedWithNewDueDate_5,
+						processedReminderWithFixedDate_6,
+						notProcessedReminderWithFixedDate_7
+				)));
 	}
 
 	@Test

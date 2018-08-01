@@ -77,18 +77,18 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 
 		PrintableReport report1 = rm.newPrintableReport();
 		report1.setTitle(titleForFolder1)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
 
 		PrintableReport report2 = rm.newPrintableReport();
 		report2.setTitle(titleForFolder2)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
 
 		PrintableReport report3 = rm.newPrintableReport();
 		report3.setTitle(titleForFolder3)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
 
 		transaction.addAll(report1, report2, report3);
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -137,18 +137,18 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 
 		PrintableReport report1 = rm.newPrintableReport();
 		report1.setTitle(titleForFolder1)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
 
 		PrintableReport report2 = rm.newPrintableReport();
 		report2.setTitle(titleForFolder2)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
 
 		PrintableReport report3 = rm.newPrintableReport();
 		report3.setTitle(titleForFolder3)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
 
 		transaction.addAll(report1, report2, report3);
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -197,18 +197,18 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 
 		PrintableReport report1 = rm.newPrintableReport();
 		report1.setTitle(titleForFolder1)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
 
 		PrintableReport report2 = rm.newPrintableReport();
 		report2.setTitle(titleForFolder2)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
 
 		PrintableReport report3 = rm.newPrintableReport();
 		report3.setTitle(titleForFolder3)
-			   .set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
-			   .set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
 
 		transaction.addAll(report1, report2, report3);
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -242,13 +242,13 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 
 		PrintableReport reportToRemoveByIndex = rm.newPrintableReport();
 		reportToRemoveByIndex.setTitle("testToRemoveByIndex")
-							 .set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
-							 .set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+				.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
+				.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
 
 		PrintableReport reportToRemoveById = rm.newPrintableReport();
 		reportToRemoveById.setTitle("testToRemoveById")
-						  .set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
-						  .set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+				.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
+				.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
 
 
 		transaction.addAll(reportToRemoveById, reportToRemoveByIndex);

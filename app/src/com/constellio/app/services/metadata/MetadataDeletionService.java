@@ -97,7 +97,7 @@ public class MetadataDeletionService {
 
 	private MetadataDependency computeDependencies(Metadata dependOnMetadata) {
 		List<Metadata> metadatalist = schemasManager.getSchemaTypes(collection)
-													.getAllMetadataIncludingInheritedOnes();
+				.getAllMetadataIncludingInheritedOnes();
 		MetadataDependency metadataDependency = new MetadataDependency(dependOnMetadata.getCode());
 		for (Metadata dependentMetadata : metadatalist) {
 			computeDependencies(dependOnMetadata, dependentMetadata, metadataDependency);
@@ -178,7 +178,7 @@ public class MetadataDeletionService {
 				defaultValue = encryptionServices.encrypt(defaultValue.toString());
 			}
 			query = from(schemaType).where(metadata).isNotEqual(defaultValue).andWhere(metadata)
-									.isNotNull();
+					.isNotNull();
 		} else {
 			query = from(schemaType).where(metadata).isNotNull();
 		}

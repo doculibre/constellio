@@ -103,14 +103,14 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		//		givenCollection(anotherCollection, asList("fr"));
 
 		defineSchemasManager().using(zeCollectionSetup.withSecurityFlag(true)
-													  .withAStringMetadata(whichIsMultivalue).withAContentMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata(whichIsMultivalue).withAContentMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getSchemaType("anotherSchemaType").setSecurity(false);
 					}
 				}));
 		defineSchemasManager().using(anotherCollectionSetup.withSecurityFlag(true)
-														   .withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
+				.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
 
 		//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 		//			@Override
@@ -518,12 +518,12 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 				zeCollection).setCollectionReadAccess(true));
 		recordServices.update(userServices.getUserInCollection(userWithAnotherCollectionReadAccess.getUsername(),
 				anotherCollection)
-										  .setCollectionReadAccess(true));
+				.setCollectionReadAccess(true));
 		recordServices
 				.update(userServices.getUserInCollection(userWithBothCollectionReadAccess.getUsername(),
 						zeCollection).setCollectionWriteAccess(true));
 		recordServices.update(userServices.getUserInCollection(userWithBothCollectionReadAccess.getUsername(), anotherCollection)
-										  .setCollectionWriteAccess(true));
+				.setCollectionWriteAccess(true));
 	}
 
 	private void setupAuthorizations()

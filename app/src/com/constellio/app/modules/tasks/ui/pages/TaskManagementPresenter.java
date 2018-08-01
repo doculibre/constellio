@@ -128,7 +128,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(tasksSchemasRecordsServices.taskSchemaType())
-										   .where(tasksSchemasRecordsServices.userTask.parentTask()).isEqualTo(record.getId())));
+						.where(tasksSchemasRecordsServices.userTask.parentTask()).isEqualTo(record.getId())));
 
 		final String STAND_BY = "S";
 		final String IN_PROGRESS = "I";
@@ -513,8 +513,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public String getDueDateCaption() {
 		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-								.getDefaultSchema(SCHEMA_TYPE).getMetadata(DUE_DATE)
-								.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+				.getDefaultSchema(SCHEMA_TYPE).getMetadata(DUE_DATE)
+				.getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {

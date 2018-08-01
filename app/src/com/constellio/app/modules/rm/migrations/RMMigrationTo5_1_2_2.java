@@ -41,19 +41,19 @@ public class RMMigrationTo5_1_2_2 implements MigrationScript {
 				CommonMetadataBuilder.CREATED_BY, CommonMetadataBuilder.CREATED_ON,
 				CommonMetadataBuilder.MODIFIED_BY, CommonMetadataBuilder.MODIFIED_ON);
 		transactionBuilder.in(Folder.SCHEMA_TYPE)
-						  .addToDisplay(Folder.FORM_CREATED_BY, Folder.FORM_CREATED_ON, Folder.FORM_MODIFIED_BY, Folder.FORM_MODIFIED_ON)
-						  .beforeTheHugeCommentMetadata();
+				.addToDisplay(Folder.FORM_CREATED_BY, Folder.FORM_CREATED_ON, Folder.FORM_MODIFIED_BY, Folder.FORM_MODIFIED_ON)
+				.beforeTheHugeCommentMetadata();
 		transactionBuilder.in(Document.SCHEMA_TYPE)
-						  .addToDisplay(Document.FORM_CREATED_BY, Document.FORM_CREATED_ON,
-								  Document.FORM_MODIFIED_BY, Document.FORM_MODIFIED_ON).beforeTheHugeCommentMetadata();
+				.addToDisplay(Document.FORM_CREATED_BY, Document.FORM_CREATED_ON,
+						Document.FORM_MODIFIED_BY, Document.FORM_MODIFIED_ON).beforeTheHugeCommentMetadata();
 		transactionBuilder.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.FORM_CREATED_BY)
-									  .withInputType(MetadataInputType.HIDDEN));
+				.withInputType(MetadataInputType.HIDDEN));
 		transactionBuilder.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.FORM_CREATED_ON)
-									  .withInputType(MetadataInputType.HIDDEN));
+				.withInputType(MetadataInputType.HIDDEN));
 		transactionBuilder.add(manager.getMetadata(collection, Document.DEFAULT_SCHEMA, Document.FORM_CREATED_BY)
-									  .withInputType(MetadataInputType.HIDDEN));
+				.withInputType(MetadataInputType.HIDDEN));
 		transactionBuilder.add(manager.getMetadata(collection, Document.DEFAULT_SCHEMA, Document.FORM_CREATED_ON)
-									  .withInputType(MetadataInputType.HIDDEN));
+				.withInputType(MetadataInputType.HIDDEN));
 		manager.execute(transactionBuilder.build());
 	}
 

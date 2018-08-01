@@ -177,8 +177,8 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("aStringMetadataContainingReferences").setType(STRING);
 				types.getSchema(zeSchema.code()).create("calculatedRef").setType(REFERENCE)
-					 .defineReferencesTo(types.getSchemaType(anotherSchema.typeCode()))
-					 .defineDataEntry().asJexlScript("aStringMetadataContainingReferences");
+						.defineReferencesTo(types.getSchemaType(anotherSchema.typeCode()))
+						.defineDataEntry().asJexlScript("aStringMetadataContainingReferences");
 			}
 		});
 
@@ -203,7 +203,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		command.run();
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(zeSchema.metadata("calculatedRef"))
-																	   .isEqualTo(anotherSchemaRecord.getId()))).isEqualTo(100);
+				.isEqualTo(anotherSchemaRecord.getId()))).isEqualTo(100);
 
 	}
 

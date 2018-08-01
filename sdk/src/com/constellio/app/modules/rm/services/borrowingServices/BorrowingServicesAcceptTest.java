@@ -49,7 +49,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withFoldersAndContainersOfEveryStatus().withAllTest(users)
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -72,7 +72,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 
@@ -124,19 +124,19 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customSchema").create("newSearchableMetadata")
-					 .setType(MetadataValueType.STRING).setSearchable(true);
+						.setType(MetadataValueType.STRING).setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_customSchema_newSearchableMetadata")
-														   .withVisibleInAdvancedSearchStatus(true));
+						.withVisibleInAdvancedSearchStatus(true));
 
 		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE));
 		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
 		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true)
-											.set(AUTHORIZATIONS, new ArrayList<>()));
+				.set(AUTHORIZATIONS, new ArrayList<>()));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
 		newMetadatas.removeAll(baseMetadatas);
@@ -169,7 +169,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 
 		recordServices.add((RecordWrapper) rm.newHierarchicalValueListItem("justeadmin_default").setCode("J01")
-											 .set(Schemas.TITLE, "J01"));
+				.set(Schemas.TITLE, "J01"));
 
 		connectWithAdmin();
 		List<MetadataVO> baseMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
@@ -178,15 +178,15 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("newSearchableMetadata")
-					 .setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
-					 .setSearchable(true);
+						.setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema("justeadmin"))
+						.setSearchable(true);
 			}
 		});
 
 		SchemasDisplayManager metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager
 				.saveMetadata(metadataSchemasDisplayManager.getMetadata(zeCollection, "folder_default_newSearchableMetadata")
-														   .withVisibleInAdvancedSearchStatus(true));
+						.withVisibleInAdvancedSearchStatus(true));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
 		newMetadatas.removeAll(baseMetadatas);
@@ -205,7 +205,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
-					 .setEnabled(false);
+						.setEnabled(false);
 			}
 		});
 
@@ -215,7 +215,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.BORROWED)
-					 .setEnabled(true);
+						.setEnabled(true);
 			}
 		});
 
@@ -270,9 +270,9 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	private Folder newFolder(String title) {
 		return schemasRecordsServices.newFolderWithId("testFolder").setTitle(title).setOpenDate(LocalDate.now())
-									 .setAdministrativeUnitEntered(rmRecords.unitId_10a)
-									 .setCategoryEntered(rmRecords.categoryId_X110)
-									 .setRetentionRuleEntered(rmRecords.getRule2())
-									 .setCopyStatusEntered(CopyType.PRINCIPAL);
+				.setAdministrativeUnitEntered(rmRecords.unitId_10a)
+				.setCategoryEntered(rmRecords.categoryId_X110)
+				.setRetentionRuleEntered(rmRecords.getRule2())
+				.setCopyStatusEntered(CopyType.PRINCIPAL);
 	}
 }

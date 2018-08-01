@@ -47,7 +47,7 @@ public class CoreMigrationTo_7_6_6 implements MigrationScript {
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		transaction.add(displayManager.getSchema(collection, User.DEFAULT_SCHEMA)
-									  .withNewDisplayMetadataQueued(User.DEFAULT_SCHEMA + "_" + User.DEFAULT_PAGE_LENGTH));
+				.withNewDisplayMetadataQueued(User.DEFAULT_SCHEMA + "_" + User.DEFAULT_PAGE_LENGTH));
 		displayManager.execute(transaction);
 
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
@@ -57,7 +57,7 @@ public class CoreMigrationTo_7_6_6 implements MigrationScript {
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
 		final Taxonomy principalTaxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-														  .getPrincipalTaxonomy(collection);
+				.getPrincipalTaxonomy(collection);
 
 		if (principalTaxonomy != null) {
 			new ActionExecutorInBatch(searchServices, "set auth's target schema type", 10000) {

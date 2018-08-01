@@ -23,7 +23,7 @@ public class FolderClosingDateCalculator2 implements MetadataValueCalculator<Loc
 	LocalDependency<LocalDate> openingDateParam = LocalDependency.toADate(Folder.OPENING_DATE);
 	LocalDependency<LocalDate> enteredClosingDateParam = LocalDependency.toADate(Folder.ENTERED_CLOSING_DATE);
 	LocalDependency<List<CopyRetentionRule>> copiesParam = LocalDependency.toAStructure(Folder.APPLICABLE_COPY_RULES)
-																		  .whichIsMultivalue();
+			.whichIsMultivalue();
 	ConfigDependency<Boolean> configCalculatedClosingDateParam = RMConfigs.CALCULATED_CLOSING_DATE.dependency();
 	ConfigDependency<Integer> configNumberOfYearWhenFixedDelayParam =
 			RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE.dependency();

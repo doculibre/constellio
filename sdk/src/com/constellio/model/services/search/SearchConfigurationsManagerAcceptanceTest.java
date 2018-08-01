@@ -38,7 +38,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		assumeLocalSolr();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 		//syncSolrConfigurationFiles(getDataLayerFactory());
 		synonymsConfigurationsManager = getModelLayerFactory().getSynonymsConfigurationsManager();
 		searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();

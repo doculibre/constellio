@@ -31,7 +31,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -29,7 +29,7 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
-										.withAllTest(users));
+				.withAllTest(users));
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -56,7 +56,7 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
-										.withAllTest(users));
+				.withAllTest(users));
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

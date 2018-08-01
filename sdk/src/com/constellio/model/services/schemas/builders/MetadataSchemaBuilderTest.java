@@ -436,9 +436,9 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 			throws Exception {
 		buildAndModify();
 		defaultSchemaBuilder.create("zeMetadata").setMultivalue(true).setUndeletable(true).setEnabled(false)
-							.setSystemReserved(true).setDefaultRequirement(true).addLabel(Language.French, "zeLabel")
-							.setType(MetadataValueType.BOOLEAN)
-							.setUnmodifiable(true);
+				.setSystemReserved(true).setDefaultRequirement(true).addLabel(Language.French, "zeLabel")
+				.setType(MetadataValueType.BOOLEAN)
+				.setUnmodifiable(true);
 
 		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2", true);
 		MetadataBuilder metadataBuilder = builder.getMetadata("zeMetadata");

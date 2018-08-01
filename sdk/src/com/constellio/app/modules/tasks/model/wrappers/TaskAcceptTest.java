@@ -165,7 +165,7 @@ public class TaskAcceptTest extends ConstellioTest {
 		zeTask.setStatus(zeStatus.getId());
 		TaskReminder reminder1 = new TaskReminder().setFixedDate(now.plusDays(1000));
 		TaskReminder reminder2 = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1)
-												   .setRelativeDateMetadataCode(Task.DUE_DATE);
+				.setRelativeDateMetadataCode(Task.DUE_DATE);
 		zeTask.setReminders(asList(reminder1, reminder2));
 		TaskFollower aliceFollowingTask = new TaskFollower().setFollowerId(users.aliceIn(zeCollection).getId());
 
@@ -423,13 +423,13 @@ public class TaskAcceptTest extends ConstellioTest {
 		TaskStatus status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
 		System.out.println(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).getDefaultValue());
 		assertThat(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS)
-						.getDefaultValue()).isEqualTo(status.getId());
+				.getDefaultValue()).isEqualTo(status.getId());
 
 		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		status = tasks.getTaskStatusWithCode(TaskStatus.STANDBY_CODE);
 		System.out.println(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS).getDefaultValue());
 		assertThat(tasks.getTypes().getMetadata(Task.DEFAULT_SCHEMA + "_" + Task.STATUS)
-						.getDefaultValue()).isEqualTo(status.getId());
+				.getDefaultValue()).isEqualTo(status.getId());
 
 	}
 

@@ -113,7 +113,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus().withEvents(),
 				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
-													.withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -458,7 +458,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		recordServices.update(userServices.getUserRecordInCollection(aliceWonderland, zeCollection)
-										  .setUserRoles(asList("roleDeAlice")));
+				.setUserRoles(asList("roleDeAlice")));
 
 		givenAliceHasPermission(RMPermissionsTo.CREATE_FOLDERS);
 		assertThatUserInGlobalMenuHasOnlyAccessTo(RECORDS_MANAGEMENT_LINK, USER_DOCUMENTS_LINK);
@@ -1128,7 +1128,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToTransferNoStorageSpaceContainerPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/transferNoStorageSpace/" + unitId);
+					.url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/transferNoStorageSpace/" + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1138,7 +1138,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToTransferWithStorageSpaceContainerPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/transferWithStorageSpace/" + unitId);
+					.url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/transferWithStorageSpace/" + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1148,7 +1148,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDepositWithStorageSpaceContainerPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/depositWithStorageSpace/" + unitId);
+					.url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/depositWithStorageSpace/" + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1158,7 +1158,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDepositNoStorageSpaceContainerPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/depositNoStorageSpace/" + unitId);
+					.url(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/depositNoStorageSpace/" + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1168,7 +1168,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToTransferNoStorageSpaceFilingSpacePossible(String unitId, String filingId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/transferNoStorageSpace/" + unitId + "/" + filingId);
+					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/transferNoStorageSpace/" + unitId + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1178,8 +1178,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDepositNoStorageSpaceFilingSpacePossible(String unitId, String filingId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/despositNoStorageSpace/" + unitId
-					   + "/" + filingId);
+					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/despositNoStorageSpace/" + unitId
+						 + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1189,8 +1189,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToTransferWithStorageSpaceFilingSpacePossible(String unitId, String filingId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/transferWithStorageSpace/"
-					   + unitId + "/" + filingId);
+					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/transferWithStorageSpace/"
+						 + unitId + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1200,8 +1200,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDepositWithStorageSpaceFilingSpacePossible(String unitId, String filingId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/despositWithStorageSpace/"
-					   + unitId + "/" + filingId);
+					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/despositWithStorageSpace/"
+						 + unitId + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1211,7 +1211,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDisplayContainerPossible(String containerId) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_CONTAINER + "/" + containerId);
+					.url(DISPLAY_CONTAINER + "/" + containerId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1272,7 +1272,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToReportsPossible() {
 		try {
 			driver.navigateTo()
-				  .url(REPORTS);
+					.url(REPORTS);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1340,8 +1340,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToACategoryPlanDisplayPossible(String categoryId) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253Dplan%253BconceptId%253D"
-					   + categoryId);
+					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253Dplan%253BconceptId%253D"
+						 + categoryId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1352,8 +1352,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 																	String categoryId_parent) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253Dplan%253BconceptId%253D"
-					   + categoryId_children + "%253BparentConceptId%253D" + categoryId_parent);
+					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253Dplan%253BconceptId%253D"
+						 + categoryId_children + "%253BparentConceptId%253D" + categoryId_parent);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1363,7 +1363,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAddTaxonomyConceptPlanPossible() {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/plan/category_default");
+					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/plan/category_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1373,8 +1373,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAddTaxonomyConceptPlanWithParentPossible(String categoryId_parent) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/plan/category_default/"
-					   + categoryId_parent);
+					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/plan/category_default/"
+						 + categoryId_parent);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1384,7 +1384,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditTaxonomyConceptPlanPossible(String categoryId) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_CONCEPT_ADD_EDIT + "/EDIT/plan/category_default/" + categoryId);
+					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/EDIT/plan/category_default/" + categoryId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1412,8 +1412,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToACategoryAdministrativeUnitDisplayPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253DadmUnits%253BconceptId%253D"
-					   + unitId);
+					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253DadmUnits%253BconceptId%253D"
+						 + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1424,8 +1424,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 																				  String unitId_parent) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253DadmUnits%253BconceptId%253D"
-					   + unitId_children + "%253BparentConceptId%253D" + unitId_parent);
+					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253DadmUnits%253BconceptId%253D"
+						 + unitId_children + "%253BparentConceptId%253D" + unitId_parent);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1435,7 +1435,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAddTaxonomyConceptAdministrativeUnitPossible() {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/admUnits/administrativeUnit_default");
+					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/admUnits/administrativeUnit_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1445,8 +1445,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAddTaxonomyConceptAdministrativeUnitWithParentPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/admUnits/administrativeUnit_default/"
-					   + unitId);
+					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/admUnits/administrativeUnit_default/"
+						 + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1456,8 +1456,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditTaxonomyConceptAdministrativeUnitPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(TAXONOMY_CONCEPT_ADD_EDIT + "/EDIT/admUnits/administrativeUnit_default/"
-					   + unitId);
+					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/EDIT/admUnits/administrativeUnit_default/"
+						 + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1467,7 +1467,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAdministrativeUnitAuthorizationsPossible(String unitId) {
 		try {
 			driver.navigateTo()
-				  .url(LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/" + unitId);
+					.url(LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/" + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1504,7 +1504,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditUniformSubdivisionPossible(String subdivId) {
 		try {
 			driver.navigateTo()
-				  .url(ADD_EDIT_SCHEMA_RECORD + "/uniformSubdivision_default/" + subdivId);
+					.url(ADD_EDIT_SCHEMA_RECORD + "/uniformSubdivision_default/" + subdivId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1615,7 +1615,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditDocumentTypePossible(String documentTypeId) {
 		try {
 			driver.navigateTo()
-				  .url(ADD_EDIT_SCHEMA_RECORD + "/ddvDocumentType_default/" + documentTypeId);
+					.url(ADD_EDIT_SCHEMA_RECORD + "/ddvDocumentType_default/" + documentTypeId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1625,7 +1625,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToCollectionSecurityPossible() {
 		try {
 			driver.navigateTo()
-				  .url(COLLECTION_MANAGEMENT);
+					.url(COLLECTION_MANAGEMENT);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1635,7 +1635,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToSchemaRecordList(String schemaCode) {
 		try {
 			driver.navigateTo()
-				  .url(LIST_SCHEMA_RECORDS + "/" + schemaCode);
+					.url(LIST_SCHEMA_RECORDS + "/" + schemaCode);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1645,7 +1645,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToSchemaRecordDisplay(String id) {
 		try {
 			driver.navigateTo()
-				  .url(DISPLAY_SCHEMA_RECORD + "/" + id);
+					.url(DISPLAY_SCHEMA_RECORD + "/" + id);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1700,7 +1700,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToSchemaRecordEdit(String schemaCode, String id) {
 		try {
 			driver.navigateTo()
-				  .url(ADD_EDIT_SCHEMA_RECORD + "/" + schemaCode + "/" + id);
+					.url(ADD_EDIT_SCHEMA_RECORD + "/" + schemaCode + "/" + id);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1710,7 +1710,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToSchemaRecordAdd(String schemaCode) {
 		try {
 			driver.navigateTo()
-				  .url(ADD_EDIT_SCHEMA_RECORD + "/" + schemaCode);
+					.url(ADD_EDIT_SCHEMA_RECORD + "/" + schemaCode);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1765,7 +1765,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditMediumTypePossible(String mediumType) {
 		try {
 			driver.navigateTo()
-				  .url(ADD_EDIT_SCHEMA_RECORD + "/ddvMediumType_default/" + mediumType);
+					.url(ADD_EDIT_SCHEMA_RECORD + "/ddvMediumType_default/" + mediumType);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1940,7 +1940,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToGroupAddPossible() {
 		try {
 			driver.navigateTo()
-				  .url(GROUP_ADD_EDIT + "/" + GROUP_LIST);
+					.url(GROUP_ADD_EDIT + "/" + GROUP_LIST);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;

@@ -47,7 +47,7 @@ public class RMMigrationTo7_4_48_1 extends MigrationHelper implements MigrationS
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).create(Document.CONTENT_CHECKED_OUT_BY).setType(STRING)
-						.defineDataEntry().asCalculated(new DocumentCheckedOutUserCalculator());
+					.defineDataEntry().asCalculated(new DocumentCheckedOutUserCalculator());
 		}
 
 	}

@@ -23,7 +23,7 @@ public class RMDocumentRetentionRulesScript implements SystemConfigurationScript
 
 				if (types.hasSchemaType(Folder.SCHEMA_TYPE)) {
 					types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().get(Folder.MAIN_COPY_RULE)
-						 .setDefaultRequirement(!value);
+							.setDefaultRequirement(!value);
 				}
 			}
 		});

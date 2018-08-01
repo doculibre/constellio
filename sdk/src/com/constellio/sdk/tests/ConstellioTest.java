@@ -66,7 +66,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 			PreserveState preserveStateAnnotation = getClass().getAnnotation(PreserveState.class);
 			if (preserveStateAnnotation.enabled()) {
 				testSession.getFileSystemTestFeatures()
-						   .setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
+						.setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
 			}
 		}
 		currentInstance = this;

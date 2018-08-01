@@ -28,7 +28,7 @@ public class PrintSchemaTypesDiagramAcceptTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule();
 
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-															 .getSchemaTypes()) {
+				.getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
 				System.out.println("[" + type.getCode() + "]");
 				for (Metadata metadata : type.getAllMetadatas().onlyWithType(MetadataValueType.REFERENCE).onlyManuals()) {

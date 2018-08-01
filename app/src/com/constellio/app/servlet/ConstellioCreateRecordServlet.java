@@ -226,7 +226,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 							whereMetadata = Schemas.CODE;
 						}
 						LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(metadataSchemaType)
-																								   .where(whereMetadata).isEqualTo(metadataValue);
+								.where(whereMetadata).isEqualTo(metadataValue);
 						LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition)
 								.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER));
 						List<String> foundRecordIds = modelLayerFactory().newSearchServices().searchRecordIds(logicalSearchQuery);

@@ -57,14 +57,14 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	private void saveValidLDAPSConfig() {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPSServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	@Test

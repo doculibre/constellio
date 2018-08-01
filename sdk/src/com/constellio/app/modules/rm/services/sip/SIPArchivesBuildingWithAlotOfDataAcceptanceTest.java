@@ -45,8 +45,8 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withRMTest(records).withConstellioRMModule().withConstellioESModule()
-								  .withDocumentsHavingContent().withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
-								  .withAllTestUsers()
+						.withDocumentsHavingContent().withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withAllTestUsers()
 		);
 		searchServices = getModelLayerFactory().newSearchServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -66,13 +66,13 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 		waitForBatchProcess();
 
 		MetadataSchema sipArchiveSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-																.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
+				.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
 		LogicalSearchCondition allCondition = LogicalSearchQueryOperators.from(sipArchiveSchema).where(ALL);
 		SIParchive records = rm.wrapSIParchive(searchServices.searchSingleResult(allCondition));
 		Content zipContent = records.getContent();
 		InputStream is = getModelLayerFactory().getContentManager()
-											   .getContentInputStream(zipContent.getLastMajorContentVersion().getHash(),
-													   "com.constellio.app.modules.rm.services.sip.ConstellioSIPObjectsProviderAcceptanceTest.testSIPGenerationWithEmail");
+				.getContentInputStream(zipContent.getLastMajorContentVersion().getHash(),
+						"com.constellio.app.modules.rm.services.sip.ConstellioSIPObjectsProviderAcceptanceTest.testSIPGenerationWithEmail");
 		nonConventionalClosingZipInputStream zis = new nonConventionalClosingZipInputStream(is);
 
 		ZipEntry ze;
@@ -98,7 +98,7 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 			throws Exception {
 
 		MetadataSchemaType folderMetadataSchemaType = getModelLayerFactory().getMetadataSchemasManager()
-																			.getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
+				.getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
 		List<String> allPossibleFolder = searchServices
 				.searchRecordIds(new LogicalSearchQuery(from(folderMetadataSchemaType).where(ALL)));
 
@@ -165,10 +165,10 @@ public class SIPArchivesBuildingWithAlotOfDataAcceptanceTest extends ConstellioT
 	private int getTotalOfDocumentForFolderList(List<Folder> folders) {
 		int ammount = 0;
 		MetadataSchemaType documentSchemaType = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-																	  .getSchemaType(Document.SCHEMA_TYPE);
+				.getSchemaType(Document.SCHEMA_TYPE);
 		for (Folder folder : folders) {
 			LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentSchemaType)
-																		  .where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(folder.getId());
+					.where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(folder.getId());
 			ammount += searchServices.getResultsCount(new LogicalSearchQuery(condition));
 		}
 		return ammount;

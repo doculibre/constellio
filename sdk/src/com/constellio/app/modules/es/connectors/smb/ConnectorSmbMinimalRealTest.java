@@ -75,7 +75,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	public void setup()
 			throws IOException {
 		prepareSystem(withZeCollection().withConstellioESModule()
-										.withAllTestUsers());
+				.withAllTestUsers());
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorManager = es.getConnectorManager();
 
@@ -101,9 +101,9 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		createConnector(seeds, inclusions, exclusions);
 
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntilNoMoreRecordsFoundWithinTimeoutForSchemaTypes(Duration.standardMinutes(1),
-								ConnectorSmbDocument.SCHEMA_TYPE,
-								ConnectorSmbFolder.SCHEMA_TYPE);
+				.crawlUntilNoMoreRecordsFoundWithinTimeoutForSchemaTypes(Duration.standardMinutes(1),
+						ConnectorSmbDocument.SCHEMA_TYPE,
+						ConnectorSmbFolder.SCHEMA_TYPE);
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -111,7 +111,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(2);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple());
+				.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple());
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -119,7 +119,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(2);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
 	}
 
 	@Test
@@ -135,7 +135,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		SmbTestCommand createFileCommand = commandFactory
 				.get(SmbTestCommandType.CREATE_FILE, baseUrl + share + newFileName, newFileContent);
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(7, 5, createFileCommand));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(7, 5, createFileCommand));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -143,7 +143,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(3);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple(), newFileTuple);
+				.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple(), newFileTuple);
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -151,7 +151,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(2);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
 	}
 
 	@Test
@@ -166,7 +166,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		SmbTestCommand createFolderCommand = commandFactory
 				.get(SmbTestCommandType.CREATE_FOLDER, baseUrl + share + newFolderName, "");
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(8, 5, createFolderCommand));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(8, 5, createFolderCommand));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -174,7 +174,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(2);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple());
+				.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple());
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -182,7 +182,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(3);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple(), newFolderTuple);
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple(), newFolderTuple);
 	}
 
 	@Test
@@ -203,7 +203,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		createConnector(seeds, inclusions, exclusions);
 
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(8, 5, commands));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(8, 5, commands));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -211,7 +211,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(3);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple(), newFileTuple);
+				.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple(), newFileTuple);
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -219,7 +219,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(3);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple(), newFolderTuple);
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple(), newFolderTuple);
 	}
 
 	@Test
@@ -231,7 +231,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 
 		SmbTestCommand deleteCommand = commandFactory.get(SmbTestCommandType.DELETE, baseUrl + share + fileName, "");
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(10, 5, deleteCommand));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(10, 5, deleteCommand));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -239,7 +239,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(1);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedAnotherFileTuple());
+				.containsOnly(getFetchedAnotherFileTuple());
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -247,7 +247,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(2);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
 	}
 
 	@Test
@@ -263,7 +263,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 
 		SmbTestCommand deleteCommand = commandFactory.get(SmbTestCommandType.DELETE, baseUrl + share + newFolder, "");
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(10, 5, deleteCommand));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(10, 5, deleteCommand));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -271,7 +271,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(2);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple());
+				.containsOnly(getFetchedFileTuple(), getFetchedAnotherFileTuple());
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -279,7 +279,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(2);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
 	}
 
 	@Test
@@ -291,7 +291,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 
 		SmbTestCommand deleteCommand = commandFactory.get(SmbTestCommandType.DELETE, baseUrl + share + folderName, "");
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(10, 5, deleteCommand));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(10, 5, deleteCommand));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -299,7 +299,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(1);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(getFetchedFileTuple());
+				.containsOnly(getFetchedFileTuple());
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -307,7 +307,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(1);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple());
+				.containsOnly(getFetchedShareTuple());
 	}
 
 	@Test
@@ -322,7 +322,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		SmbTestCommand updateCommand = commandFactory
 				.get(SmbTestCommandType.UPDATE_FILE, baseUrl + share + fileName, modifiedContent);
 		ConnectorCrawler.runningJobsSequentially(es, eventObserver)
-						.crawlUntil(new NTimesWhileCommandIsExecuted(7, 5, updateCommand));
+				.crawlUntil(new NTimesWhileCommandIsExecuted(7, 5, updateCommand));
 
 		// Documents
 		List<ConnectorSmbDocument> indexedDocuments = es
@@ -330,7 +330,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedDocuments).hasSize(2);
 
 		assertThat(indexedDocuments).extracting(getDocumentFields())
-									.containsOnly(updatedFileTuple, getFetchedAnotherFileTuple());
+				.containsOnly(updatedFileTuple, getFetchedAnotherFileTuple());
 
 		// Folders
 		List<ConnectorSmbFolder> indexedFolders = es
@@ -338,7 +338,7 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		assertThat(indexedFolders).hasSize(2);
 
 		assertThat(indexedFolders).extracting(getFolderFields())
-								  .containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
+				.containsOnly(getFetchedShareTuple(), getFetchedFolderTuple());
 	}
 
 	@After
@@ -360,18 +360,18 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 		String connectorTitle = "zeConnectorTitle";
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode(connectorCode)
-															   .setEnabled(true)
-															   .setSeeds(seeds)
-															   .setUsername(SDKPasswords.testSmbUsername())
-															   .setPassword(SDKPasswords.testSmbPassword())
-															   .setDomain(SDKPasswords.testSmbDomain())
-															   .setInclusions(inclusions)
-															   .setExclusions(exclusions)
-															   .setTitle(connectorTitle));
+				.setCode(connectorCode)
+				.setEnabled(true)
+				.setSeeds(seeds)
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword(SDKPasswords.testSmbPassword())
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setInclusions(inclusions)
+				.setExclusions(exclusions)
+				.setTitle(connectorTitle));
 
 		es.getRecordServices()
-		  .update(connectorInstance.getWrappedRecord());
+				.update(connectorInstance.getWrappedRecord());
 
 		return connectorInstance;
 	}

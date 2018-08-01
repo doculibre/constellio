@@ -58,44 +58,44 @@ public class TrashQueueManagerAcceptanceTest extends ConstellioTest {
 		givenTimeIs(beforeNow30Days);
 
 		Task task = zeCollectionTaskSchemas.newTask()
-										   .setTitle("recordDeletedLogicallyBefore30DaysInZeCollection");
+				.setTitle("recordDeletedLogicallyBefore30DaysInZeCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyBefore30DaysInZeCollection = task.getId();
 
 		task = businessTaskSchemas.newTask()
-								  .setTitle("recordDeletedLogicallyBefore30DaysInBusinessCollection");
+				.setTitle("recordDeletedLogicallyBefore30DaysInBusinessCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyBefore30DaysInBusinessCollection = task.getId();
 
 		givenTimeIs(beforeNow29Days);
 		task = zeCollectionTaskSchemas.newTask()
-									  .setTitle("recordDeletedLogicallyBefore29DaysInZeCollection");
+				.setTitle("recordDeletedLogicallyBefore29DaysInZeCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyBefore29DaysInZeCollection = task.getId();
 
 		givenTimeIs(now);
 		task = zeCollectionTaskSchemas.newTask()
-									  .setTitle("recordDeletedLogicallyNowInZeCollection");
+				.setTitle("recordDeletedLogicallyNowInZeCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyNowInZeCollection = task.getId();
 
 		task = zeCollectionTaskSchemas.newTask()
-									  .setTitle("recordInZeCollection");
+				.setTitle("recordInZeCollection");
 		recordServices.add(task);
 		recordInZeCollection = task.getId();
 
 		task = businessTaskSchemas.newTask()
-								  .setTitle("recordDeletedLogicallyNowInBusinessCollection");
+				.setTitle("recordDeletedLogicallyNowInBusinessCollection");
 		recordServices.add(task);
 		recordServices.logicallyDelete(task.getWrappedRecord(), null);
 		recordDeletedLogicallyNowInBusinessCollection = task.getId();
 
 		task = businessTaskSchemas.newTask()
-								  .setTitle("recordInBusinessCollection");
+				.setTitle("recordInBusinessCollection");
 		recordServices.add(task);
 		recordInBusinessCollection = task.getId();
 	}

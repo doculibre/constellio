@@ -17,7 +17,7 @@ public class DecomListStatusCalculator2 implements MetadataValueCalculator<Decom
 	LocalDependency<LocalDate> processingDate = LocalDependency.toADate(DecommissioningList.PROCESSING_DATE);
 	LocalDependency<LocalDate> approvalDate = LocalDependency.toADate(DecommissioningList.APPROVAL_DATE);
 	LocalDependency<List<DecomListValidation>> validations = LocalDependency.toAStructure(DecommissioningList.VALIDATIONS)
-																			.whichIsMultivalue();
+			.whichIsMultivalue();
 	LocalDependency<LocalDate> approvalRequestDate = LocalDependency.toADate(DecommissioningList.APPROVAL_REQUEST_DATE);
 
 	@Override

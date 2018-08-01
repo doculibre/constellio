@@ -66,7 +66,7 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
 		super.initBeforeCreateComponents(event);
 		MetadataSchemasManager metadataSchemasManager = getConstellioFactories().getAppLayerFactory().getModelLayerFactory()
-																				.getMetadataSchemasManager();
+				.getMetadataSchemasManager();
 		presenter = new ListExcelReportPresenter(this);
 		POSSIBLE_TAB = presenter.initPossibleTab();
 	}

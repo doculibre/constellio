@@ -251,7 +251,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	private boolean isMetadataSequential(String metadataCode) {
 		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-															  .getMetadata(metadataCode).getDataEntry().getType());
+				.getMetadata(metadataCode).getDataEntry().getType());
 	}
 
 	public SessionContext getSessionContext() {

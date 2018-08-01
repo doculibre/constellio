@@ -93,7 +93,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		metadataBuilder = defaultSchema.createUndeletable(Event.IP).setType(STRING);
 		configureLabels(typesBuilder, metadataBuilder);
 		metadataBuilder = defaultSchema.createUndeletable(Event.REASON).setType(STRING)
-									   .addLabel(Language.French, "Justification");
+				.addLabel(Language.French, "Justification");
 		configureLabels(typesBuilder, metadataBuilder);
 
 		return type;
@@ -121,7 +121,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		MetadataSchemaTypeBuilder userSchemaType = typesBuilder.getSchemaType("user");
 		MetadataSchemaBuilder userSchema = userSchemaType.getDefaultSchema();
 		userSchema.createUndeletable(User.USERNAME).setType(STRING).setUniqueValue(true)
-				  .setUnmodifiable(true);
+				.setUnmodifiable(true);
 		userSchema.createUndeletable(User.FIRSTNAME).setType(STRING);
 		userSchema.createUndeletable(User.LASTNAME).setType(STRING);
 		userSchema.createUndeletable(User.LAST_LOGIN).setType(DATE_TIME).setSystemReserved(true);
@@ -133,9 +133,9 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		userSchema.createUndeletable(User.COLLECTION_DELETE_ACCESS).setType(BOOLEAN);
 		userSchema.createUndeletable(User.SYSTEM_ADMIN).setType(BOOLEAN);
 		MetadataBuilder groupsReference = userSchema.createUndeletable(User.GROUPS).setType(REFERENCE).setMultivalue(true)
-													.defineReferencesTo(groupSchemaType);
+				.defineReferencesTo(groupSchemaType);
 		userSchema.createUndeletable(User.ALL_ROLES).setType(STRING).setMultivalue(true).defineDataEntry()
-				  .asCalculated(RolesCalculator.class);
+				.asCalculated(RolesCalculator.class);
 
 		//		userSchema.createUndeletable(User.GROUPS_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
 		//				.asCopied(groupsReference, groupSchemaType.getMetadata("group_default_allauthorizations"));
@@ -143,7 +143,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		//		userSchema.createUndeletable(User.ALL_USER_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
 		//				.asCalculated(AllUserAuthorizationsCalculator.class);
 		userSchema.createUndeletable(User.USER_TOKENS).setType(STRING).setMultivalue(true).defineDataEntry()
-				  .asCalculated(UserTokensCalculator2.class);
+				.asCalculated(UserTokensCalculator2.class);
 
 		userSchema.createUndeletable(User.JOB_TITLE).setType(STRING);
 		userSchema.createUndeletable(User.PHONE).setType(STRING);
@@ -162,7 +162,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		groupSchema.createUndeletable(Group.IS_GLOBAL).setType(BOOLEAN);
 		groupSchema.createUndeletable(Group.ROLES).setType(STRING).setMultivalue(true);
 		MetadataBuilder parentGroup = groupSchema.createUndeletable(Group.PARENT).setType(REFERENCE)
-												 .defineReferencesTo(groupSchema);
+				.defineReferencesTo(groupSchema);
 		MetadataBuilder allAuthorizations = groupSchema.get(Schemas.ALL_AUTHORIZATIONS.getCode());
 		groupSchema.get(Schemas.INHERITED_AUTHORIZATIONS.getCode()).defineDataEntry().asCopied(parentGroup, allAuthorizations);
 		return groupSchemaType;
@@ -175,7 +175,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_TO).setType(REFERENCE).defineReferencesTo(userSchema);
 		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_ON).setType(DATE_TIME);
 		taskSchema.createUndeletable(WorkflowTask.ASSIGN_CANDIDATES).setType(REFERENCE).defineReferencesTo(userSchema)
-				  .setMultivalue(true);
+				.setMultivalue(true);
 		taskSchema.createUndeletable(WorkflowTask.FINISHED_BY).setType(REFERENCE).defineReferencesTo(userSchema);
 		taskSchema.createUndeletable(WorkflowTask.FINISHED_ON).setType(DATE_TIME);
 		taskSchema.createUndeletable(WorkflowTask.WORKFLOW_ID).setType(STRING);

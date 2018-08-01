@@ -415,7 +415,7 @@ public class MetadataFieldFactory implements Serializable {
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-										   .getTaxonomyFor(currentSessionContext.getCurrentCollection(), taxonomyCode);
+				.getTaxonomyFor(currentSessionContext.getCurrentCollection(), taxonomyCode);
 		UserVO currentUser = currentSessionContext.getCurrentUser();
 		String userid = currentUser.getId();
 

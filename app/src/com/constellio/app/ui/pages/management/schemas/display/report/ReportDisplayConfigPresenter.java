@@ -178,7 +178,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		MetadataSchemasManager metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		int index = metadataCode.lastIndexOf("_");
 		return metadataSchemasManager.getSchemaTypes(collection).getSchema(metadataCode.substring(0, index))
-									 .getLabel(language);
+				.getLabel(language);
 	}
 
 	public boolean isAddMode() {

@@ -32,7 +32,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 
 		for (MetadataSchemaType type : metadataSchemaTypes.getSchemaTypes()) {
 			if (type.getDefaultSchema().hasMetadataWithCode(Schemas.CODE.getCode()) && !type.getCode()
-																							.equals(YearType.SCHEMA_TYPE)) {
+					.equals(YearType.SCHEMA_TYPE)) {
 				if (!type.getCode().equals(FilingSpace.SCHEMA_TYPE) && !type.getCode().equals(StorageSpace.SCHEMA_TYPE)) {
 					assertThat(type.getDefaultSchema().getMetadata(Schemas.CODE.getCode()).isUniqueValue())
 							.describedAs(type.getCode() + " code's uniqueness").isTrue();
@@ -42,7 +42,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 			}
 		}
 		assertThat(metadataSchemaTypes.getSchema(AdministrativeUnit.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE)
-									  .isDefaultRequirement()).isTrue();
+				.isDefaultRequirement()).isTrue();
 		assertThat(metadataSchemaTypes.getSchema(Category.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE).isDefaultRequirement())
 				.isTrue();
 		assertThat(
@@ -52,7 +52,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 				metadataSchemaTypes.getSchema(StorageSpace.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE).isDefaultRequirement())
 				.isTrue();
 		assertThat(metadataSchemaTypes.getSchema(UniformSubdivision.DEFAULT_SCHEMA).getMetadata(Schemas.TITLE_CODE)
-									  .isDefaultRequirement()).isTrue();
+				.isDefaultRequirement()).isTrue();
 	}
 
 	//@Test

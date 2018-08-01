@@ -14,9 +14,9 @@ public class CoreMigrationTo_5_0_7AcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		assertThat(metadataSchemaTypes.getSchema(Report.DEFAULT_SCHEMA).getMetadata(Report.SCHEMA_TYPE_CODE)
-									  .isDefaultRequirement()).isTrue();
+				.isDefaultRequirement()).isTrue();
 		assertThat(metadataSchemaTypes.getSchema(Report.DEFAULT_SCHEMA).getMetadata(Report.LINES_COUNT)
-									  .isDefaultRequirement()).isTrue();
+				.isDefaultRequirement()).isTrue();
 	}
 
 	@Before

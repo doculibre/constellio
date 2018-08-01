@@ -15,13 +15,13 @@ public class ESMigrationSmbAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenAnyMigrationWhenAllMigrationsRunThenSmbConnectorStillHasPasswordHidden() {
 		prepareSystem(withZeCollection().withConstellioESModule()
-										.withAllTestUsers());
+				.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		MetadataDisplayConfig config = es.getMetadataSchemasDisplayManager()
-										 .getMetadata(zeCollection, ConnectorSmbInstance.SCHEMA_CODE + "_" + ConnectorSmbInstance.PASSWORD);
+				.getMetadata(zeCollection, ConnectorSmbInstance.SCHEMA_CODE + "_" + ConnectorSmbInstance.PASSWORD);
 
 		assertThat(config.getInputType()
-						 .equals(MetadataInputType.PASSWORD)).isTrue();
+				.equals(MetadataInputType.PASSWORD)).isTrue();
 	}
 }

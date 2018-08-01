@@ -103,14 +103,14 @@ public class SmbServiceTestUtils {
 
 		length = new Long(validFileContent.length());
 		doAnswer(new LengthAnswer()).when(validSmbFile)
-									.length();
+				.length();
 
 		inputStream = new ByteArrayInputStream(validFileContent.getBytes());
 		when(validSmbFile.getInputStream()).thenAnswer(new InputStreamAnswer());
 
 		contentLength = validFileContent.length();
 		doAnswer(new ContentLengthAnswer()).when(validSmbFile)
-										   .getContentLength();
+				.getContentLength();
 
 		ntfsSEcurity = new ACE[0];
 		when(validSmbFile.getSecurity(anyBoolean())).thenAnswer(new NtfsSecurityAnswer());

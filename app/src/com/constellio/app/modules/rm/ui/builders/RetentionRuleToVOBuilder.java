@@ -87,7 +87,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 	private List<String> getCategories(String id) {
 		LogicalSearchCondition condition = from(rm.category.schemaType()).where(rm.category.retentionRules())
-																		 .isEqualTo(id);
+				.isEqualTo(id);
 		List<Record> categoryRecords = searchServices.cachedSearch(new LogicalSearchQuery(condition));
 		List<Category> categories = new ArrayList<>();
 		for (Record categoryRecord : categoryRecords) {
@@ -134,7 +134,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		String typeCode = SchemaUtils.getSchemaTypeCode(schema.getCode());
 
 		Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode)
-																		 .getMetadataGroup();
+				.getMetadataGroup();
 		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 		String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
 

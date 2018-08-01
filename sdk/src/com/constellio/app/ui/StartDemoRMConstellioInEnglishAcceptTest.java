@@ -30,12 +30,12 @@ public class StartDemoRMConstellioInEnglishAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers();
 		givenCollectionWithTitle("LaCollectionDeRida", asList("en"), "Collection d'entreprise").withConstellioRMModule()
-																							   .withAllTestUsers();
+				.withAllTestUsers();
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		records = new RMTestRecords(zeCollection).setup(getAppLayerFactory())
-												 .withFoldersAndContainersOfEveryStatus();//				.withEvents();
+				.withFoldersAndContainersOfEveryStatus();//				.withEvents();
 		new DemoTestRecords("LaCollectionDeRida").setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 	}
 

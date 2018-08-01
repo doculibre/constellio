@@ -43,7 +43,7 @@ public class MetadataBuilder_ValidatorsTest extends MetadataBuilderTest {
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).defineValidators().add(TestRecordMetadataValidator1.class);
 		metadataWithInheritanceBuilder.defineValidators().add(TestRecordMetadataValidator1.class)
-									  .add(TestRecordMetadataValidator2.class);
+				.add(TestRecordMetadataValidator2.class);
 
 		build();
 
@@ -57,7 +57,7 @@ public class MetadataBuilder_ValidatorsTest extends MetadataBuilderTest {
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).defineValidators().add(TestRecordMetadataValidator1.class);
 		metadataWithInheritanceBuilder.defineValidators().add(TestRecordMetadataValidator1.class)
-									  .add(TestRecordMetadataValidator2.class);
+				.add(TestRecordMetadataValidator2.class);
 
 		buildAndModify();
 

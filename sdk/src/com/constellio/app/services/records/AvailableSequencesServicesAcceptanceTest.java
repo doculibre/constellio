@@ -126,7 +126,7 @@ public class AvailableSequencesServicesAcceptanceTest extends ConstellioTest {
 				.usingFieldByFieldElementComparator().isEmpty();
 
 		assertThat(services.getAvailableGlobalSequences()).usingFieldByFieldElementComparator()
-														  .containsOnly(sequence1, sequence2, sequence3);
+				.containsOnly(sequence1, sequence2, sequence3);
 	}
 
 	@Test
@@ -137,32 +137,32 @@ public class AvailableSequencesServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("sequentialNumber").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel de la rubrique"))
-					 .defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY);
+						.setLabels(asMap(French, "Numéro séquentiel de la rubrique"))
+						.defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY);
 
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("sequentialNumberNotBasedOnAReferemce").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel de la rubrique non-basé sur une référence"))
-					 .defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY_CODE);
+						.setLabels(asMap(French, "Numéro séquentiel de la rubrique non-basé sur une référence"))
+						.defineDataEntry().asSequenceDefinedByMetadata(Folder.CATEGORY_CODE);
 
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("sequentialNumber2").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel de l'unité "))
-					 .defineDataEntry().asSequenceDefinedByMetadata(Folder.ADMINISTRATIVE_UNIT);
+						.setLabels(asMap(French, "Numéro séquentiel de l'unité "))
+						.defineDataEntry().asSequenceDefinedByMetadata(Folder.ADMINISTRATIVE_UNIT);
 
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("globalSequentialNumber").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel global"))
-					 .defineDataEntry().asFixedSequence("globalSequence");
+						.setLabels(asMap(French, "Numéro séquentiel global"))
+						.defineDataEntry().asFixedSequence("globalSequence");
 
 				types.getSchema(RetentionRule.DEFAULT_SCHEMA).create("globalSequentialNumber").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel global"))
-					 .defineDataEntry().asFixedSequence("globalSequence");
+						.setLabels(asMap(French, "Numéro séquentiel global"))
+						.defineDataEntry().asFixedSequence("globalSequence");
 
 				types.getSchema(RetentionRule.DEFAULT_SCHEMA).create("globalSequentialNumber2").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel global"))
-					 .defineDataEntry().asFixedSequence("globalSequence2");
+						.setLabels(asMap(French, "Numéro séquentiel global"))
+						.defineDataEntry().asFixedSequence("globalSequence2");
 
 				types.getSchema(Document.DEFAULT_SCHEMA).create("sequentialNumber").setType(STRING)
-					 .setLabels(asMap(French, "Numéro séquentiel de l'unité"))
-					 .defineDataEntry().asSequenceDefinedByMetadata(Document.FOLDER_ADMINISTRATIVE_UNIT);
+						.setLabels(asMap(French, "Numéro séquentiel de l'unité"))
+						.defineDataEntry().asSequenceDefinedByMetadata(Document.FOLDER_ADMINISTRATIVE_UNIT);
 			}
 		});
 

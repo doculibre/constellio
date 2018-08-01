@@ -143,32 +143,32 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")
-																 .setTitle(titleMap)
-																 .setClassifiedTypes(toListOfString("document", "folder"))
-																 .setCodeMode("DISABLED"));
+				.setTitle(titleMap)
+				.setClassifiedTypes(toListOfString("document", "folder"))
+				.setCodeMode("DISABLED"));
 
 		Map<Language, String> titleMap2 = new HashMap<>();
 		titleMap2.put(Language.French, "domaine2");
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
-																 .setTitle(titleMap2)
-																 .setClassifiedTypes(toListOfString("document"))
-																 .setCodeMode("FACULTATIVE"));
+				.setTitle(titleMap2)
+				.setClassifiedTypes(toListOfString("document"))
+				.setCodeMode("FACULTATIVE"));
 
 		Map<Language, String> titleMap3 = new HashMap<>();
 		titleMap3.put(Language.French, "domaine3");
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
-																 .setTitle(titleMap3)
-																 .setCodeMode("REQUIRED_AND_UNIQUE")
-																 .setHierarchical(true));
+				.setTitle(titleMap3)
+				.setCodeMode("REQUIRED_AND_UNIQUE")
+				.setHierarchical(true));
 
 		Map<Language, String> titleMap4 = new HashMap<>();
 		titleMap4.put(Language.French, "domaine4");
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl4")
-																 .setTitle(titleMap4)
-																 .setHierarchical(false));
+				.setTitle(titleMap4)
+				.setHierarchical(false));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
 		writer.writeSettings(importedSettings);
@@ -204,18 +204,18 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		labelTitle1.put(Language.French, "taxo1Titre1");
 
 		ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-														   .setTitle(labelTitle1)
-														   .setClassifiedTypes(toListOfString("document", "folder"))
-														   .setVisibleOnHomePage(false)
-														   .setUserIds(asList("user1", "user2"))
-														   .setGroupIds(asList("group1"));
+				.setTitle(labelTitle1)
+				.setClassifiedTypes(toListOfString("document", "folder"))
+				.setVisibleOnHomePage(false)
+				.setUserIds(asList("user1", "user2"))
+				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(taxonomy1);
 
 		Map<Language, String> labelTitle2 = new HashMap<>();
 		labelTitle2.put(Language.French, "taxo1Titre2");
 
 		ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-														   .setTitle(labelTitle2);
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(taxonomy2);
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
@@ -250,15 +250,15 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		String qualifiedName = "com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator";
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(toListOfString("custom1"))
-													.setVisibleInFormIn(toListOfString("default", "custom1"))
-													.setDataEntry(ImportedDataEntry.asCalculated(qualifiedName));
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"))
+				.setDataEntry(ImportedDataEntry.asCalculated(qualifiedName));
 
 		zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
-													   .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-																									 .addMetadata(m1)));
+				.setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+						.addMetadata(m1)));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
 		writer.writeSettings(importedSettings);
@@ -308,15 +308,15 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(toListOfString("custom1"))
-													.setVisibleInFormIn(toListOfString("default", "custom1"))
-													.setDataEntry(ImportedDataEntry.asCopied("category", "title"));
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"))
+				.setDataEntry(ImportedDataEntry.asCopied("category", "title"));
 
 		zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
-													   .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-																									 .addMetadata(m1)));
+				.setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+						.addMetadata(m1)));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
 		writer.writeSettings(importedSettings);
@@ -371,15 +371,15 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 						 + "## This is a comment on the last line";
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(toListOfString("custom1"))
-													.setVisibleInFormIn(toListOfString("default", "custom1"))
-													.setDataEntry(ImportedDataEntry.asJEXLScript("title").withPattern(pattern));
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"))
+				.setDataEntry(ImportedDataEntry.asJEXLScript("title").withPattern(pattern));
 
 		zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
-													   .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-																									 .addMetadata(m1)));
+				.setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+						.addMetadata(m1)));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
 		writer.writeSettings(importedSettings);
@@ -429,22 +429,22 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(toListOfString("custom1"))
-													.setVisibleInFormIn(toListOfString("default", "custom1"))
-													.setDataEntry(ImportedDataEntry.asFixedSequence("zeSequence"));
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"))
+				.setDataEntry(ImportedDataEntry.asFixedSequence("zeSequence"));
 
 		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
-													.setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
-													.setInputMask("9999-9999")
-													.setDataEntry(ImportedDataEntry.asMetadataProvidingSequence("id"));
+				.setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
+				.setInputMask("9999-9999")
+				.setDataEntry(ImportedDataEntry.asMetadataProvidingSequence("id"));
 
 		zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
-													   .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-																									 .addMetadata(m1))
-													   .addSchema(new ImportedMetadataSchema().setCode("custom1")
-																							  .addMetadata(m2)));
+				.setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+						.addMetadata(m1))
+				.addSchema(new ImportedMetadataSchema().setCode("custom1")
+						.addMetadata(m2)));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
 		writer.writeSettings(importedSettings);
@@ -539,28 +539,28 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		tabParams.put("zeTab", "Mon onglet");
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(toListOfString("custom1"))
-													.setVisibleInFormIn(toListOfString("default", "custom1"));
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"));
 
 		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
-													.setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
-													.setTab("zeTab")
-													.setInputMask("9999-9999");
+				.setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
+				.setTab("zeTab")
+				.setInputMask("9999-9999");
 
 		ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setLabel("Titre m3")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(Arrays.asList("custom1"))
-													.setMultiValue(true);
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(Arrays.asList("custom1"))
+				.setMultiValue(true);
 		zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
-													   .setTabs(toListOfTabs(tabParams))
-													   .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-																									 .addMetadata(m1)
-																									 .addMetadata(m2))
-													   .addSchema(new ImportedMetadataSchema().setCode("custom1")
-																							  .addMetadata(m3)));
+				.setTabs(toListOfTabs(tabParams))
+				.setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+						.addMetadata(m1)
+						.addMetadata(m2))
+				.addSchema(new ImportedMetadataSchema().setCode("custom1")
+						.addMetadata(m3)));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
 		writer.writeSettings(importedSettings);
@@ -710,49 +710,49 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")
-																 .setTitle(titleMap)
-																 .setClassifiedTypes(toListOfString("document", "folder"))
-																 .setCodeMode("DISABLED"));
+				.setTitle(titleMap)
+				.setClassifiedTypes(toListOfString("document", "folder"))
+				.setCodeMode("DISABLED"));
 
 		Map<Language, String> titleMap2 = new HashMap<>();
 		titleMap2.put(Language.French, "domaine2");
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
-																 .setTitle(titleMap2)
-																 .setClassifiedTypes(toListOfString("document"))
-																 .setCodeMode("FACULTATIVE"));
+				.setTitle(titleMap2)
+				.setClassifiedTypes(toListOfString("document"))
+				.setCodeMode("FACULTATIVE"));
 
 		Map<Language, String> titleMap3 = new HashMap<>();
 		titleMap3.put(Language.French, "domaine3");
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
-																 .setTitle(titleMap3)
-																 .setCodeMode("REQUIRED_AND_UNIQUE")
-																 .setHierarchical(true));
+				.setTitle(titleMap3)
+				.setCodeMode("REQUIRED_AND_UNIQUE")
+				.setHierarchical(true));
 
 		Map<Language, String> titleMap4 = new HashMap<>();
 		titleMap4.put(Language.French, "domaine4");
 
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl4")
-																 .setTitle(titleMap4)
-																 .setHierarchical(false));
+				.setTitle(titleMap4)
+				.setHierarchical(false));
 
 		Map<Language, String> labelTitle1 = new HashMap<>();
 		labelTitle1.put(Language.French, "taxo1Titre1");
 
 		ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-														   .setTitle(labelTitle1)
-														   .setClassifiedTypes(toListOfString("document", "folder"))
-														   .setVisibleOnHomePage(false)
-														   .setUserIds(asList("user1", "user2"))
-														   .setGroupIds(asList("group1"));
+				.setTitle(labelTitle1)
+				.setClassifiedTypes(toListOfString("document", "folder"))
+				.setVisibleOnHomePage(false)
+				.setUserIds(asList("user1", "user2"))
+				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(taxonomy1);
 
 		Map<Language, String> labelTitle2 = new HashMap<>();
 		labelTitle2.put(Language.French, "taxo1Titre2");
 
 		ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-														   .setTitle(labelTitle2);
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(taxonomy2);
 
 		Map<String, String> tabParams = new TreeMap<>();
@@ -760,31 +760,31 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		tabParams.put("zeTab", "Mon onglet");
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-													.setType("STRING")
-													.setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(toListOfString("custom1"))
-													.setVisibleInFormIn(toListOfString("default", "custom1"));
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"));
 
 		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
-													.setType("STRING").setEnabled(true).setRequired(true)
-													.setTab("zeTab").setMultiValue(true)
-													.setSearchable(true).setAdvanceSearchable(true).setUnique(true).setUnmodifiable(true)
-													.setSortable(true).setRecordAutoComplete(true).setEssential(true).setEssentialInSummary(true)
-													.setMultiLingual(true).setDuplicable(true)
-													.setInputMask("9999-9999");
+				.setType("STRING").setEnabled(true).setRequired(true)
+				.setTab("zeTab").setMultiValue(true)
+				.setSearchable(true).setAdvanceSearchable(true).setUnique(true).setUnmodifiable(true)
+				.setSortable(true).setRecordAutoComplete(true).setEssential(true).setEssentialInSummary(true)
+				.setMultiLingual(true).setDuplicable(true)
+				.setInputMask("9999-9999");
 
 		ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setLabel("Titre m3")
-													.setType("STRING").setEnabledIn(toListOfString("default", "custom1", "custom2"))
-													.setRequiredIn(Arrays.asList("custom1")).setMultiValue(true);
+				.setType("STRING").setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(Arrays.asList("custom1")).setMultiValue(true);
 		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default")
-																		   .addMetadata(m1)
-																		   .addMetadata(m2);
+				.addMetadata(m1)
+				.addMetadata(m2);
 		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom1")
-																		  .addMetadata(m3);
+				.addMetadata(m3);
 		ImportedType importedType = new ImportedType().setCode("folder").setLabel("Dossier")
-													  .setTabs(toListOfTabs(tabParams))
-													  .setDefaultSchema(defaultSchema)
-													  .addSchema(customSchema);
+				.setTabs(toListOfTabs(tabParams))
+				.setDefaultSchema(defaultSchema)
+				.addSchema(customSchema);
 		zeCollectionSettings.addType(importedType);
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);

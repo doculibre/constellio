@@ -38,7 +38,7 @@ public class ListImportExportPresenter extends BasePresenter<ListImportExportVie
 
 				return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(ImportAudit.SCHEMA))
 						.returnAll())
-											   .sortDesc(Schemas.CREATED_ON);
+						.sortDesc(Schemas.CREATED_ON);
 			}
 		};
 		return dataProvider;
@@ -55,7 +55,7 @@ public class ListImportExportPresenter extends BasePresenter<ListImportExportVie
 
 				return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(ExportAudit.SCHEMA))
 						.returnAll())
-											   .sortDesc(Schemas.CREATED_ON);
+						.sortDesc(Schemas.CREATED_ON);
 			}
 		};
 		return dataProvider;

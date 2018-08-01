@@ -33,7 +33,7 @@ public class ESMigrationTo7_7 extends MigrationHelper implements MigrationScript
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(ConnectorHttpDocument.SCHEMA_TYPE).create(ConnectorHttpDocument.LANGUAGE)
-						.setType(STRING);
+					.setType(STRING);
 		}
 	}
 }

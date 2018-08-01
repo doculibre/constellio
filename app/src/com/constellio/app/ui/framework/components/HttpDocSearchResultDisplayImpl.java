@@ -24,7 +24,7 @@ public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
 		String currentCollection = sessionContext.getCurrentCollection();
 		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(currentCollection);
 		MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-											   .getSchemaTypes(currentCollection).getSchema(ConnectorHttpDocument.DEFAULT_SCHEMA);
+				.getSchemaTypes(currentCollection).getSchema(ConnectorHttpDocument.DEFAULT_SCHEMA);
 
 		Metadata metadata = schema.getMetadata(ConnectorHttpDocument.DESCRIPTION);
 

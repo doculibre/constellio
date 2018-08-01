@@ -53,7 +53,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -287,7 +287,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 	private void buildDefaultContainer() throws RecordServicesException {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices.add(rm.newContainerRecordWithId("testBoite100").setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE)
-							 .setAdministrativeUnit(records.getUnit10a()).setTitle("testBoite100").setTemporaryIdentifier("testBoite100")
-							 .setCapacity(100D).setType(recordServices.getDocumentById(records.containerTypeId_boite22x22)));
+				.setAdministrativeUnit(records.getUnit10a()).setTitle("testBoite100").setTemporaryIdentifier("testBoite100")
+				.setCapacity(100D).setType(recordServices.getDocumentById(records.containerTypeId_boite22x22)));
 	}
 }

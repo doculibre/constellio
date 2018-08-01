@@ -127,7 +127,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 				new ThemeResource("images/icons/config/display-config-search.png"), searchListener);
 
 		if (!(metadataSchemaVO == null || metadataSchemaVO.getCode() == null || !metadataSchemaVO.getCode()
-																								 .endsWith("default"))) {
+				.endsWith("default"))) {
 			final MenuBar.Command tableListener = new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuBar.MenuItem selectedItem) {

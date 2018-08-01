@@ -21,16 +21,16 @@ public class CoreMigrationTo_7_4_AcceptanceTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-							   .givenSystemInState(getTestResourceFile("saveStateWithTemporaryMetadata.zip")).withPasswordsReset()
-							   .withFakeEncryptionServices();
+				.givenSystemInState(getTestResourceFile("saveStateWithTemporaryMetadata.zip")).withPasswordsReset()
+				.withFakeEncryptionServices();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		assertThat(manager.getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata"))
 				.isNotNull();
 		assertThat(manager.getSchemaTypes(zeCollection).getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata")
-						  .getDataEntry().getType()).isEqualTo(DataEntryType.CALCULATED);
+				.getDataEntry().getType()).isEqualTo(DataEntryType.CALCULATED);
 
 		MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) manager.getSchemaTypes(zeCollection)
-																			  .getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata").getDataEntry()).getCalculator();
+				.getSchema(Folder.DEFAULT_SCHEMA).getMetadata("temporaryMetadata").getDataEntry()).getCalculator();
 		String currentScript = ((JEXLMetadataValueCalculator) calculator).getExpression();
 		assertThat(currentScript).isEqualTo("#STRICT:title + '-test'");
 	}

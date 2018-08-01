@@ -68,8 +68,8 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioESModule().withTasksModule().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -89,18 +89,18 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 
 		connectorSmbInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-																  .setTitle("zeConnectorSMB")
-																  .setCode("zeConnectorSMB")
-																  .setEnabled(false)
-																  .setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain("domain")
-																  .setTraversalCode("zeTraversal"));
+				.setTitle("zeConnectorSMB")
+				.setCode("zeConnectorSMB")
+				.setEnabled(false)
+				.setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain("domain")
+				.setTraversalCode("zeTraversal"));
 		connectorSmbDocument = es.newConnectorSmbDocument(connectorSmbInstance);
 		connectorHttpInstance = connectorManager.createConnector(es.newConnectorHttpInstance()
-																   .setTitle("zeConnectorHTTP")
-																   .setCode("zeConnectorHTTP")
-																   .setEnabled(false)
-																   .setSeeds("share").setUsername("username").setPassword("password").setDomain("domain")
-																   .setTraversalCode("zeTraversal"));
+				.setTitle("zeConnectorHTTP")
+				.setCode("zeConnectorHTTP")
+				.setEnabled(false)
+				.setSeeds("share").setUsername("username").setPassword("password").setDomain("domain")
+				.setTraversalCode("zeTraversal"));
 		connectorHttpDocument = es.newConnectorHttpDocument(connectorHttpInstance);
 	}
 
@@ -112,10 +112,10 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		recordServices.update(folder);
 		RecordVO recordVO = voBuilder.build(records.getFolder_A01().getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(records.getFolder_A01().getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(records.getFolder_A01().getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder.png")
-											 .isEqualTo(iconPath);
+				.isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("folder");
 		assertThat(recordVO.getNiceTitle()).isEqualTo("niceTitle");
 	}
@@ -126,10 +126,10 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(records.getFolder_C30().getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(records.getFolder_C30().getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(records.getFolder_C30().getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder_orange.png")
-											 .isEqualTo(iconPath);
+				.isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("folder_orange");
 	}
 
@@ -139,10 +139,10 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(records.getFolder_A79().getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(records.getFolder_A79().getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(records.getFolder_A79().getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder_purple.png")
-											 .isEqualTo(iconPath);
+				.isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("folder_purple");
 	}
 
@@ -152,7 +152,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(records.getFolder_A80().getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(records.getFolder_A80().getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(records.getFolder_A80().getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder_grey.png").isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("folder_grey");
@@ -164,7 +164,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(records.getContainerBac01().getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(records.getContainerBac01().getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(records.getContainerBac01().getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/container/box.png").isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isNull();
@@ -176,7 +176,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(connectorSmbDocument.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(connectorSmbDocument.getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(connectorSmbDocument.getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/connectors/connectorSmbDocument.png").isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isNull();
@@ -188,7 +188,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(connectorHttpDocument.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(connectorHttpDocument.getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(connectorHttpDocument.getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/connectors/connectorHttpDocument.png").isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isNull();
@@ -200,7 +200,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		RecordVO recordVO = voBuilder.build(zeTask.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
-											  .getIconForRecord(new GetIconPathParams(zeTask.getWrappedRecord(), false));
+				.getIconForRecord(new GetIconPathParams(zeTask.getWrappedRecord(), false));
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/task/task.png").isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("task");

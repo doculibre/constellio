@@ -20,7 +20,7 @@ public class StatsReportParameters {
 		DataStoreField folderLinearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
 		query.computeStatsOnField(folderLinearSizeMetadata);
 		statistics = appLayerFactory.getModelLayerFactory().newSearchServices().query(query)
-									.getStatValues(folderLinearSizeMetadata);
+				.getStatValues(folderLinearSizeMetadata);
 	}
 
 	public Map<String, Object> getStatistics() {

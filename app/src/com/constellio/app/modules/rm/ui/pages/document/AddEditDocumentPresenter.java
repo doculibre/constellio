@@ -234,7 +234,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-														 .where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
+						.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getHash())))
 				.filteredWithUser(getCurrentUser());
 		List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 		if (duplicateDocuments.size() > 0) {
@@ -396,7 +396,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String fileName = contentVO.getFileName();
 			String hash = contentVO.getHash();
 			ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash)
-																				.getContentVersionDataSummary();
+					.getContentVersionDataSummary();
 			Content copiedContent;
 			if (majorVersion != null && majorVersion) {
 				copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
@@ -462,9 +462,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-																 .where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-																 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-																 .andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
+								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+								.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
 						.filteredWithUser(getCurrentUser());
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				if (duplicateDocuments.size() > 0) {
@@ -611,7 +611,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 
 		ContentVersionVO contentVersionVO = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT)
-																   .getFieldValue();
+				.getFieldValue();
 		documentVO.setContent(contentVersionVO);
 
 		view.setRecord(documentVO);
@@ -682,10 +682,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 								.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-																		 .where(rm.document.content())
-																		 .is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-																		 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-																		 .andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
+										.where(rm.document.content())
+										.is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
+										.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+										.andWhere(Schemas.IDENTIFIER).isNotEqual(documentVO.getId()))
 								.filteredWithUser(getCurrentUser());
 						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 						if (duplicateDocuments.size() > 0) {

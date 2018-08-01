@@ -229,7 +229,7 @@ public class AppSchemasServices {
 		for (String definedMetadataCode : definedMetadataCodes) {
 			if (definedMetadataCode.startsWith(fromCode)) {
 				transaction.add(schemasDisplayManager.getMetadata(collection, definedMetadataCode)
-													 .withCode(definedMetadataCode.replace(fromCode, toCode)));
+						.withCode(definedMetadataCode.replace(fromCode, toCode)));
 			}
 		}
 		schemasDisplayManager.execute(transaction.build());

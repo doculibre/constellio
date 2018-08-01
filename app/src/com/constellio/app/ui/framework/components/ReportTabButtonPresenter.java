@@ -206,7 +206,7 @@ class ReportTabButtonPresenter {
 		RecordToVOBuilder builder = new RecordToVOBuilder();
 		SearchServices searchServices = view.getFactory().getModelLayerFactory().newSearchServices();
 		MetadataSchemaType printableSchemaType = view.getFactory().getModelLayerFactory().getMetadataSchemasManager()
-													 .getSchemaTypes(view.getCollection()).getSchemaType(Printable.SCHEMA_TYPE);
+				.getSchemaTypes(view.getCollection()).getSchemaType(Printable.SCHEMA_TYPE);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(view.getCollection(), view.getFactory());
 		List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(printableSchemaType).where(Schemas.SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));

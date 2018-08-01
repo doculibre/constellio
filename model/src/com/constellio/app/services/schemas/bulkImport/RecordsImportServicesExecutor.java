@@ -220,7 +220,7 @@ public class RecordsImportServicesExecutor {
 			context.recordsBeforeImport = searchServices.hasResults(from(types.getSchemaType(schemaType)).returnAll());
 			progressionHandler.beforeImportOf(schemaType);
 			context.uniqueMetadatas = types.getSchemaType(schemaType).getAllMetadatas().onlyWithType(STRING).onlyUniques()
-										   .toLocalCodesList();
+					.toLocalCodesList();
 			int previouslySkipped = 0;
 			context.addUpdateCount = new AtomicInteger();
 			context.hasContents = !types.getSchemaType(schemaType).getAllMetadatas().onlyWithType(CONTENT).isEmpty();
@@ -579,7 +579,7 @@ public class RecordsImportServicesExecutor {
 							if (contentImport instanceof SimpleImportContent) {
 								SimpleImportContent simpleImportContent = (SimpleImportContent) contentImport;
 								for (Iterator<ContentImportVersion> iterator = simpleImportContent.getVersions()
-																								  .iterator(); iterator.hasNext(); ) {
+										.iterator(); iterator.hasNext(); ) {
 									ContentImportVersion version = iterator.next();
 									String url = version.getUrl();
 									if (!url.toLowerCase().startsWith("imported://")) {
@@ -624,10 +624,10 @@ public class RecordsImportServicesExecutor {
 		if (resolverCache.isRecordUpdate(typeImportContext.schemaType, legacyId, importAsLegacyId)) {
 			if (importAsLegacyId) {
 				record = modelLayerFactory.newSearchServices()
-										  .searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
+						.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
 			} else {
 				record = modelLayerFactory.newSearchServices()
-										  .searchSingleResult(from(schemaType).where(Schemas.IDENTIFIER).isEqualTo(legacyId));
+						.searchSingleResult(from(schemaType).where(Schemas.IDENTIFIER).isEqualTo(legacyId));
 			}
 		} else {
 			record = null;

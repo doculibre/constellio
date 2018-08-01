@@ -29,7 +29,7 @@ public class BatchProcessTestFeature {
 
 	public void waitForAllBatchProcesses(Runnable batchProcessRuntimeAction, boolean acceptErrors) {
 		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory(DEFAULT_NAME)
-																		   .getBatchProcessesManager();
+				.getBatchProcessesManager();
 		boolean batchProcessRuntimeActionExecuted = false;
 		if (!ConstellioTest.IS_FIRST_EXECUTED_TEST) {
 			batchProcessesManager.waitUntilAllFinished();
@@ -81,7 +81,7 @@ public class BatchProcessTestFeature {
 	public void afterTest() {
 		if (waitForBatchProcessAfterTest && factoriesTestFeatures.isInitialized()) {
 			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger()
-								 .setPrintAllQueriesLongerThanMS(10000);
+					.setPrintAllQueriesLongerThanMS(10000);
 			factoriesTestFeatures.getConstellioFactories().getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(false);
 			waitForAllBatchProcesses(null, false);
 		}

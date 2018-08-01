@@ -127,7 +127,7 @@ public class WindowsPermissions {
 				}
 				if (tries == 0) {
 					LOG.warning("Exception (NTFS PERMISSIONS)) : " + file.getCanonicalPath() + " (" + ioe.getClass()
-																										 .getCanonicalName() + ": " + ioe.getMessage());
+							.getCanonicalName() + ": " + ioe.getMessage());
 					errors.add("Exception (NTFS PERMISSIONS) :" + ioe.getMessage());
 				}
 			}
@@ -158,7 +158,7 @@ public class WindowsPermissions {
 			} catch (IOException ioe) {
 				if (tries == 0) {
 					LOG.warning("Exception (SHARE PERMISSIONS)) : " + file.getCanonicalPath() + " (" + ioe.getClass()
-																										  .getCanonicalName() + ": " + ioe.getMessage());
+							.getCanonicalName() + ": " + ioe.getMessage());
 					errors.add("Exception (SHARE PERMISSIONS) :" + ioe.getMessage());
 				}
 			}
@@ -173,7 +173,7 @@ public class WindowsPermissions {
 			for (ACE ace : aces) {
 				if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0) {
 					String aceSid = ace.getSID()
-									   .toString();
+							.toString();
 					if (ace.isAllow()) {
 						allow.add(aceSid);
 					} else {

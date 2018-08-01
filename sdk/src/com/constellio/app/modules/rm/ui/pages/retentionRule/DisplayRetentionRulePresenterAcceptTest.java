@@ -30,7 +30,7 @@ public class DisplayRetentionRulePresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		when(view.getSessionContext()).thenReturn(sessionContext);
@@ -50,9 +50,9 @@ public class DisplayRetentionRulePresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(records.ruleId_1);
 
 		assertThat(presenter.getOpenActivePeriodsDDVList()).extracting("code", "title")
-														   .containsOnly(
-																   tuple("888", "Ouvert"),
-																   tuple("42", "Ze 42")
-														   );
+				.containsOnly(
+						tuple("888", "Ouvert"),
+						tuple("42", "Ze 42")
+				);
 	}
 }

@@ -75,7 +75,7 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		Transaction transaction = new Transaction();
 		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
 			RecordWrapper recordWrapper = ((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE)
-																  .set(Schemas.LOGICALLY_DELETED_STATUS, true);
+					.set(Schemas.LOGICALLY_DELETED_STATUS, true);
 			transaction.add(recordWrapper);
 		}
 		try {
@@ -103,7 +103,7 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	@Override
 	public GlobalGroup getGlobalGroupWithCode(String code) {
 		Record record = modelLayerFactory.newRecordServices()
-										 .getRecordByMetadata(schemas.globalGroupCode(), code);
+				.getRecordByMetadata(schemas.globalGroupCode(), code);
 		return record != null ? schemas.wrapGlobalGroup(record) : null;
 	}
 

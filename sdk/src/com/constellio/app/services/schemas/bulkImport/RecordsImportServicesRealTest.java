@@ -269,26 +269,26 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		LocalDateTime anotherDateTime = new LocalDateTime().minusDays(2);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withABooleanMetadata()
-											.withADateMetadata()
-											.withADateTimeMetadata()
-											.withANumberMetadata()
-											.withAnEnumMetadata(AValidEnum.class));
+				.withABooleanMetadata()
+				.withADateMetadata()
+				.withADateTimeMetadata()
+				.withANumberMetadata()
+				.withAnEnumMetadata(AValidEnum.class));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "yes")
-												   .addField(zeSchema.dateMetadata().getLocalCode(), aDate)
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime)
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), "S"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "yes")
+				.addField(zeSchema.dateMetadata().getLocalCode(), aDate)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime)
+				.addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
+				.addField(zeSchema.enumMetadata().getLocalCode(), "S"));
 		bulkImport(importDataProvider, progressionListener, admin);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "new title 2")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "no")
-												   .addField(zeSchema.dateMetadata().getLocalCode(), anotherDate)
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), anotherDateTime)
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "7.77")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), "F"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "no")
+				.addField(zeSchema.dateMetadata().getLocalCode(), anotherDate)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), anotherDateTime)
+				.addField(zeSchema.numberMetadata().getLocalCode(), "7.77")
+				.addField(zeSchema.enumMetadata().getLocalCode(), "F"));
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
@@ -311,11 +311,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), null)
-												   .addField(zeSchema.dateMetadata().getLocalCode(), null)
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), null)
-												   .addField(zeSchema.numberMetadata().getLocalCode(), null)
-												   .addField(zeSchema.enumMetadata().getLocalCode(), null));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), null)
+				.addField(zeSchema.dateMetadata().getLocalCode(), null)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), null)
+				.addField(zeSchema.numberMetadata().getLocalCode(), null)
+				.addField(zeSchema.enumMetadata().getLocalCode(), null));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
@@ -337,18 +337,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		LocalDateTime aDateTime = new LocalDateTime().minusDays(1);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withABooleanMetadata()
-											.withADateMetadata()
-											.withADateTimeMetadata()
-											.withANumberMetadata()
-											.withAnEnumMetadata(AValidEnum.class));
+				.withABooleanMetadata()
+				.withADateMetadata()
+				.withADateTimeMetadata()
+				.withANumberMetadata()
+				.withAnEnumMetadata(AValidEnum.class));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "yes")
-												   .addField(zeSchema.dateMetadata().getLocalCode(), aDate)
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime)
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), "S"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "yes")
+				.addField(zeSchema.dateMetadata().getLocalCode(), aDate)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime)
+				.addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
+				.addField(zeSchema.enumMetadata().getLocalCode(), "S"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -373,18 +373,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		LocalDateTime anotherDateTime = new LocalDateTime().minusDays(2);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withABooleanMetadata(whichIsMultivalue)
-											.withADateMetadata(whichIsMultivalue)
-											.withADateTimeMetadata(whichIsMultivalue)
-											.withANumberMetadata(whichIsMultivalue)
-											.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue));
+				.withABooleanMetadata(whichIsMultivalue)
+				.withADateMetadata(whichIsMultivalue)
+				.withADateTimeMetadata(whichIsMultivalue)
+				.withANumberMetadata(whichIsMultivalue)
+				.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
-												   .addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
-												   .addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -409,19 +409,19 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		LocalDateTime anotherDateTime = new LocalDateTime().minusDays(2);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withABooleanMetadata(whichIsMultivalue)
-											.withADateMetadata(whichIsMultivalue)
-											.withADateTimeMetadata(whichIsMultivalue)
-											.withANumberMetadata(whichIsMultivalue)
-											.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue)
-											.withAStringMetadataInCustomSchema());
+				.withABooleanMetadata(whichIsMultivalue)
+				.withADateMetadata(whichIsMultivalue)
+				.withADateTimeMetadata(whichIsMultivalue)
+				.withANumberMetadata(whichIsMultivalue)
+				.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue)
+				.withAStringMetadataInCustomSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("default").addField("title", "Record 1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
-												   .addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
-												   .addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
@@ -436,12 +436,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		zeSchemaTypeRecords.clear();
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("custom").addField("title", "Record 1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
-												   .addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
-												   .addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
-												   .addField(zeCustomSchemaMetadatas.customStringMetadata().getLocalCode(), "customMetadataValue")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeCustomSchemaMetadatas.customStringMetadata().getLocalCode(), "customMetadataValue")
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
@@ -456,11 +456,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		zeSchemaTypeRecords.clear();
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("default").addField("title", "Record 1")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
-												   .addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
-												   .addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
@@ -479,48 +479,48 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withABooleanMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withABooleanMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "yes"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "yes"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "true"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "true"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "oui"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "oui"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "vrai"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "vrai"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "YES"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "YES"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("8").addField("title", "Record 8")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "TRuE"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "TRuE"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("9").addField("title", "Record 9")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "OuI"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "OuI"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("10").addField("title", "Record 10")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "vRai"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "vRai"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 11")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "O"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "O"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 12")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "Y"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "Y"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 13")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "T"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "T"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("14").addField("title", "Record 14")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "no"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "no"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("15").addField("title", "Record 15")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "false"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "false"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("16").addField("title", "Record 16")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "non"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "non"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("17").addField("title", "Record 17")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "faux"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "faux"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("18").addField("title", "Record 18")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "N"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "N"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("19").addField("title", "Record 19")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "F"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "F"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -530,7 +530,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
 			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be true")
-																		.isTrue();
+					.isTrue();
 		}
 
 		for (int i = 14; i <= 19; i++) {
@@ -539,7 +539,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
 			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be false")
-																		.isFalse();
+					.isFalse();
 		}
 	}
 
@@ -548,8 +548,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		ImportDataProvider importDataProvider = new ImportDataProvider() {
 			@Override
@@ -596,8 +596,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId(null).addField("title", "Record 3"));
@@ -624,17 +624,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withTypeFrenchLabel("Ze type label")
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withTypeFrenchLabel("Ze type label")
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "42"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "42"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "666"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "666"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -660,16 +660,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:42"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:42"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:666"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:666"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -695,21 +695,21 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsUnique)
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAStringMetadata(whichIsUnique)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("stringMetadata", "code2"));
+				.addField("stringMetadata", "code2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("stringMetadata", "code3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2"));
+				.addField("stringMetadata", "code3")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField("stringMetadata", "code4")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:42"));
+				.addField("stringMetadata", "code4")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:42"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("stringMetadata", "code5")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:666"));
+				.addField("stringMetadata", "code5")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:666"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -734,24 +734,24 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsUnique)
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAStringMetadata(whichIsUnique)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("stringMetadata", "code2"));
+				.addField("stringMetadata", "code2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("stringMetadata", "code3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2"));
+				.addField("stringMetadata", "code3")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField("stringMetadata", "code4")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "invalidMetadata:code2"));
+				.addField("stringMetadata", "code4")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "invalidMetadata:code2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("stringMetadata", "code5")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "otherInvalidMetadata:666"));
+				.addField("stringMetadata", "code5")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "otherInvalidMetadata:666"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -775,42 +775,42 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata(whichIsMultivalue, whichHasDefaultRequirement)
-											.withABooleanMetadata(whichHasDefaultRequirement)
-											.with(new MetadataSchemaTypesConfigurator() {
-												@Override
-												public void configure(MetadataSchemaTypesBuilder schemaTypes) {
-													schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema().create("USRuserMetadata")
-															   .setType(STRING).setDefaultRequirement(true);
-												}
-											}));
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata(whichIsMultivalue, whichHasDefaultRequirement)
+				.withABooleanMetadata(whichHasDefaultRequirement)
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema().create("USRuserMetadata")
+								.setType(STRING).setDefaultRequirement(true);
+					}
+				}));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
-												   .addField("title", "Record 1")
-												   .addField("stringMetadata", asList("42"))
-												   .addField("booleanMetadata", "true"));
+				.addField("title", "Record 1")
+				.addField("stringMetadata", asList("42"))
+				.addField("booleanMetadata", "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2")
-												   .addField("title", "Record 2")
-												   .addField("stringMetadata", asList("42"))
-												   .addField("USRuserMetadata", "value 1")
-												   .addField("booleanMetadata", "true"));
+				.addField("title", "Record 2")
+				.addField("stringMetadata", asList("42"))
+				.addField("USRuserMetadata", "value 1")
+				.addField("booleanMetadata", "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3")
-												   .addField("title", "Record 3")
-												   .addField("USRuserMetadata", "value 1")
-												   .addField("stringMetadata", asList("42")));
+				.addField("title", "Record 3")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", asList("42")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4")
-												   .addField("title", "Record 4")
-												   .addField("booleanMetadata", "true"));
+				.addField("title", "Record 4")
+				.addField("booleanMetadata", "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5")
-												   .addField("title", "Record 5")
-												   .addField("USRuserMetadata", "value 1")
-												   .addField("stringMetadata", new ArrayList<>()));
+				.addField("title", "Record 5")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", new ArrayList<>()));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE());
@@ -854,42 +854,42 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata(whichIsMultivalue, whichHasDefaultRequirement)
-											.withABooleanMetadata(whichHasDefaultRequirement)
-											.with(new MetadataSchemaTypesConfigurator() {
-												@Override
-												public void configure(MetadataSchemaTypesBuilder schemaTypes) {
-													schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema().create("USRuserMetadata")
-															   .setType(STRING).setDefaultRequirement(true);
-												}
-											}));
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata(whichIsMultivalue, whichHasDefaultRequirement)
+				.withABooleanMetadata(whichHasDefaultRequirement)
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema().create("USRuserMetadata")
+								.setType(STRING).setDefaultRequirement(true);
+					}
+				}));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
-												   .addField("title", "Record 1")
-												   .addField("stringMetadata", asList("42"))
-												   .addField("booleanMetadata", "true"));
+				.addField("title", "Record 1")
+				.addField("stringMetadata", asList("42"))
+				.addField("booleanMetadata", "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2")
-												   .addField("title", "Record 2")
-												   .addField("stringMetadata", asList("42"))
-												   .addField("USRuserMetadata", "value 1")
-												   .addField("booleanMetadata", "true"));
+				.addField("title", "Record 2")
+				.addField("stringMetadata", asList("42"))
+				.addField("USRuserMetadata", "value 1")
+				.addField("booleanMetadata", "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3")
-												   .addField("title", "Record 3")
-												   .addField("USRuserMetadata", "value 1")
-												   .addField("stringMetadata", asList("42")));
+				.addField("title", "Record 3")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", asList("42")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4")
-												   .addField("title", "Record 4")
-												   .addField("booleanMetadata", "true"));
+				.addField("title", "Record 4")
+				.addField("booleanMetadata", "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5")
-												   .addField("title", "Record 5")
-												   .addField("USRuserMetadata", "value 1")
-												   .addField("stringMetadata", new ArrayList<>()));
+				.addField("title", "Record 5")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", new ArrayList<>()));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -925,17 +925,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withABooleanMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withABooleanMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "true"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "true"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "Oui monsieur"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "Oui monsieur"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.booleanMetadata().getLocalCode(), "Oh yes"));
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "Oh yes"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -959,16 +959,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAnEnumMetadata(AValidEnum.class));
+				.withAnEnumMetadata(AValidEnum.class));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), "SECOND_VALUE"));
+				.addField(zeSchema.enumMetadata().getLocalCode(), "SECOND_VALUE"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), "S"));
+				.addField(zeSchema.enumMetadata().getLocalCode(), "S"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), "FS"));
+				.addField(zeSchema.enumMetadata().getLocalCode(), "FS"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -992,16 +992,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue));
+				.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("S", "SECOND_VALUE")));
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("S", "SECOND_VALUE")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.enumMetadata().getLocalCode(), asList("FS", "F")));
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("FS", "F")));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1026,18 +1026,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsMultilingual));
+				.withAStringMetadata(whichIsMultilingual));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value1"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value1"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value2", Locale.FRENCH)
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value3", Locale.ENGLISH));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value2", Locale.FRENCH)
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value3", Locale.ENGLISH));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value5", Locale.ENGLISH));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value5", Locale.ENGLISH));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -1059,13 +1059,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		zeSchemaTypeRecords.clear();
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value6"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value6"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value7", Locale.FRENCH));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value7", Locale.FRENCH));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value8", Locale.ENGLISH));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value8", Locale.ENGLISH));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -1093,12 +1093,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 		// We want to be able to import values in disabled fields
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsDisabled));
+				.withAStringMetadata(whichIsDisabled));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1118,12 +1118,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 		// We import as the system. We are supposed to be able to set system-reserved fields
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsSystemReserved));
+				.withAStringMetadata(whichIsSystemReserved));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "value"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1142,12 +1142,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false));
+				.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField(zeSchema.stringCopiedFromFirstReferenceStringMeta().getLocalCode(), "value"));
+				.addField(zeSchema.stringCopiedFromFirstReferenceStringMeta().getLocalCode(), "value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1167,18 +1167,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withANumberMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withANumberMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "1.0"));
+				.addField(zeSchema.numberMetadata().getLocalCode(), "1.0"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "5L"));
+				.addField(zeSchema.numberMetadata().getLocalCode(), "5L"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "5.0t"));
+				.addField(zeSchema.numberMetadata().getLocalCode(), "5.0t"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
-												   .addField(zeSchema.numberMetadata().getLocalCode(), "nan"));
+				.addField(zeSchema.numberMetadata().getLocalCode(), "nan"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1203,18 +1203,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "1.0"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "1.0"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), aDate));
+				.addField(zeSchema.stringMetadata().getLocalCode(), aDate));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), aDateTime));
+				.addField(zeSchema.stringMetadata().getLocalCode(), aDateTime));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "Ze value"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "Ze value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1239,18 +1239,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata(whichIsMultivalue));
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata(whichIsMultivalue));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), asList("1.0")));
+				.addField(zeSchema.stringMetadata().getLocalCode(), asList("1.0")));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), asList("validValue", aDate)));
+				.addField(zeSchema.stringMetadata().getLocalCode(), asList("validValue", aDate)));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), asList(aDate, aDateTime)));
+				.addField(zeSchema.stringMetadata().getLocalCode(), asList(aDate, aDateTime)));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), new ArrayList<>()));
+				.addField(zeSchema.stringMetadata().getLocalCode(), new ArrayList<>()));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1279,16 +1279,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withADateMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withADateMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.dateMetadata().getLocalCode(), aDate));
+				.addField(zeSchema.dateMetadata().getLocalCode(), aDate));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.dateMetadata().getLocalCode(), aDateTime));
+				.addField(zeSchema.dateMetadata().getLocalCode(), aDateTime));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.dateMetadata().getLocalCode(), "a text value"));
+				.addField(zeSchema.dateMetadata().getLocalCode(), "a text value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1312,16 +1312,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withADateTimeMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withADateTimeMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), aDate));
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), aDate));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime));
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.dateTimeMetadata().getLocalCode(), "a text value"));
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), "a text value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1346,16 +1346,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata(whichIsMultivalue));
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata(whichIsMultivalue));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), asList("zeValue", "anotherValue")));
+				.addField(zeSchema.stringMetadata().getLocalCode(), asList("zeValue", "anotherValue")));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "anotherValue"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "anotherValue"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1378,18 +1378,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), asList("aValue")));
+				.addField(zeSchema.stringMetadata().getLocalCode(), asList("aValue")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "goodValue"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "goodValue"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), asList("anotherValue", "thirdValue")));
+				.addField(zeSchema.stringMetadata().getLocalCode(), asList("anotherValue", "thirdValue")));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1411,21 +1411,21 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withSchemaFrenchLabel("Ze default schema label")
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata());
+				.withSchemaFrenchLabel("Ze default schema label")
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("zeChuckNorrisMetadata", "zeValue"));
+				.addField("zeChuckNorrisMetadata", "zeValue"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.stringMetadata().getCode(), "ze value")
-												   .addField("anInexistentMetadata", "ze value")
-												   .addField("anotherInexistentMetadata", "ze value"));
+				.addField(zeSchema.stringMetadata().getCode(), "ze value")
+				.addField("anInexistentMetadata", "ze value")
+				.addField("anotherInexistentMetadata", "ze value"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1454,25 +1454,25 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("anInvalidSchema").setId("4").addField("title", "Record 4")
-												   .addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("default").setId("5").addField("title", "Record 5"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("zeSchemaType_custom").setId("6").addField("title", "Record 6")
-												   .addField(zeSchema.stringMetadata().getCode(), "ze value"));
+				.addField(zeSchema.stringMetadata().getCode(), "ze value"));
 
 		zeSchemaTypeRecords
 				.add(defaultSchemaData().setSchema("zeSchemaType_default").setId("7").addField("title", "Record 7")
-										.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
+						.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
 
 		zeSchemaTypeRecords
 				.add(defaultSchemaData().setSchema("anotherSchemaType_default").setId("8").addField("title", "Record 7")
-										.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
+						.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1495,24 +1495,24 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema()
-											.withAStringMetadata());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "3"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "3"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "4"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "4"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "6"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "6"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6"));
 
@@ -1533,35 +1533,35 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
 				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "3"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "3"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "42"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 42")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "previouslySavedRecordLegacyId"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "previouslySavedRecordLegacyId"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 43"));
 
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
-														.addField("referenceFromAnotherSchemaToZeSchema", "1"));
+				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		ResolverCache resolver = new ResolverCache(getModelLayerFactory().newRecordServices(),
 				getModelLayerFactory().newSearchServices(), types, importDataProvider);
 
 		ModelLayerCollectionExtensions extensions = getModelLayerFactory().getExtensions()
-																		  .forCollection(zeCollection);
+				.forCollection(zeCollection);
 
 		RecordsImportServicesExecutor executor = services
 				.newExecutor(importDataProvider, new LoggerBulkImportProgressionListener(), admin, asList(types.getCollection()),
@@ -1695,11 +1695,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique)
-											.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getSchemaType(thirdSchema.typeCode()).getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType(zeSchema.typeCode()));
+								.defineReferencesTo(schemaTypes.getSchemaType(zeSchema.typeCode()));
 					}
 				}));
 
@@ -1751,18 +1751,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAContentMetadata()
-											.withAContentListMetadata());
+				.withAContentMetadata()
+				.withAContentListMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("contentMetadata", new SimpleImportContent(testResource1, "Ze document.docx", true, null, null)));
+				.addField("contentMetadata", new SimpleImportContent(testResource1, "Ze document.docx", true, null, null)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("contentListMetadata", asList(
-														   new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
-														   new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
+				.addField("contentListMetadata", asList(
+						new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1839,41 +1839,41 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAContentMetadata()
-											.withAContentListMetadata());
+				.withAContentMetadata()
+				.withAContentListMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("contentMetadata", new SimpleImportContent("imported://file1.docx", "File 1.docx", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://file1.docx", "File 1.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("contentListMetadata", asList(
-														   new SimpleImportContent("imported://file2.pdf", "File 2a.pdf", true, now),
-														   new SimpleImportContent("imported://file5.pdf", "File 2b.pdf", true, now))));
+				.addField("contentListMetadata", asList(
+						new SimpleImportContent("imported://file2.pdf", "File 2a.pdf", true, now),
+						new SimpleImportContent("imported://file5.pdf", "File 2b.pdf", true, now))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("contentMetadata", new SimpleImportContent("imported://inexistentFile.pdf", "File 3.pdf", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://inexistentFile.pdf", "File 3.pdf", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
-												   .addField("contentMetadata", new SimpleImportContent("imported://folder/file3.docx", "File 4.docx", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://folder/file3.docx", "File 4.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-												   .addField("contentMetadata", new SimpleImportContent("imported://folder\\file3.docx", "File 5.docx", true, now)));
+				.addField("contentMetadata", new SimpleImportContent("imported://folder\\file3.docx", "File 5.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
-												   .addField("contentMetadata",
-														   new SimpleImportContent("imported://otherFolder/file3.docx", "File 6.docx", true, now)));
+				.addField("contentMetadata",
+						new SimpleImportContent("imported://otherFolder/file3.docx", "File 6.docx", true, now)));
 
 		SimpleImportContent contentImport7 = new SimpleImportContent("imported://file2.pdf", "File 7a.pdf", true, now);
 		contentImport7.getVersions().add(new ContentImportVersion("imported://file4.pdf", "File 7b.pdf", false, now));
 		contentImport7.getVersions().add(new ContentImportVersion("imported://file5.pdf", "File 7c.pdf", false, now));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
-												   .addField("contentMetadata", contentImport7));
+				.addField("contentMetadata", contentImport7));
 
 		SimpleImportContent contentImport8 = new SimpleImportContent("imported://file2.pdf", "File 7a.pdf", true, now);
 		contentImport8.getVersions().add(new ContentImportVersion("imported://fileZ.pdf", "File 7b.pdf", false, now));
 		contentImport8.getVersions().add(new ContentImportVersion("imported://file5.pdf", "File 7c.pdf", false, now));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("8").addField("title", "Record 8")
-												   .addField("contentMetadata", contentImport8));
+				.addField("contentMetadata", contentImport8));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1942,9 +1942,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 
 		ContentVersionDataSummary summary1 = contentManager.upload(getTestResourceInputStream("resource1.docx"), "File1.docx")
-														   .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 		ContentVersionDataSummary summary2 = contentManager.upload(getTestResourceInputStream("resource2.pdf"), "File2.pdf")
-														   .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 
 		ContentVersionDataSummary inexistent1 = new ContentVersionDataSummary("inexistentHash1", "pdf", 45);
 		ContentVersionDataSummary inexistent2 = new ContentVersionDataSummary("inexistentHash2", "doc", 56);
@@ -1954,11 +1954,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAContentMetadata()
-											.withAContentListMetadata());
+				.withAContentMetadata()
+				.withAContentListMetadata());
 
 		Content content = contentManager.createMajor(users.adminIn(zeCollection), "File1a.pdf", inexistent1)
-										.checkOut(users.sasquatchIn(zeCollection)).updateCheckedOutContent(summary1);
+				.checkOut(users.sasquatchIn(zeCollection)).updateCheckedOutContent(summary1);
 
 		Content content1 = contentManager.createMajor(users.adminIn(zeCollection), "File1b.pdf", inexistent1);
 		content1.updateContent(users.dakotaIn(zeCollection), inexistent2, false);
@@ -1976,12 +1976,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		//		versions.add(new ContentImportVersion("hash://inexistentHash2", "File 1b.pdf", true, LocalDateTime.now()));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("contentMetadata", new StructureImportContent(contentFactory.toString(content))));
+				.addField("contentMetadata", new StructureImportContent(contentFactory.toString(content))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("contentListMetadata", asList(
-														   new StructureImportContent(contentFactory.toString(content1)),
-														   new StructureImportContent(contentFactory.toString(content2)))));
+				.addField("contentListMetadata", asList(
+						new StructureImportContent(contentFactory.toString(content1)),
+						new StructureImportContent(contentFactory.toString(content2)))));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -1990,7 +1990,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(extractingSimpleCodeAndParameters(e, "filePath", "hash")).isEmpty();
 
 			String contentPath = getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemFolder()
-													  .getAbsolutePath() + File.separator;
+										 .getAbsolutePath() + File.separator;
 			assertThat(extractingWarningsSimpleCodeAndParameters(e, "filePath", "hash")).containsOnly(
 					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash1"), "inexistentHash1"),
 					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash2"), "inexistentHash2"),
@@ -2071,22 +2071,22 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource5Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAContentMetadata()
-											.withAContentListMetadata());
+				.withAContentMetadata()
+				.withAContentListMetadata());
 
 		ContentImportVersion version1 = new ContentImportVersion(testResource1, "Ze document.docx", true, null, null);
 		ContentImportVersion version2 = new ContentImportVersion(testResource4, "Ze document.docx", false, null, null);
 		ContentImportVersion version3 = new ContentImportVersion(testResource5, "Ze document.docx", true, null, null);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("contentMetadata", new SimpleImportContent(Arrays.asList(version1, version2, version3))));
+				.addField("contentMetadata", new SimpleImportContent(Arrays.asList(version1, version2, version3))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("contentListMetadata", asList(
-														   new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
-														   new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
+				.addField("contentListMetadata", asList(
+						new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2149,14 +2149,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		//Reimport the records changing the order of versions of record #1
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("contentMetadata", new SimpleImportContent(Arrays.asList(version3, version2, version1))));
+				.addField("contentMetadata", new SimpleImportContent(Arrays.asList(version3, version2, version1))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("contentListMetadata", asList(
-														   new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
-														   new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
+				.addField("contentListMetadata", asList(
+						new SimpleImportContent(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new SimpleImportContent(testResource3, "Ze book.txt", true, null, null))));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2256,30 +2256,30 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadataInCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAStringMetadataInCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
 				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "3"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "3"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "42"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 42")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "previouslySavedRecordLegacyId"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "previouslySavedRecordLegacyId"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("custom").setId("43").addField("title", "Record 43")
-												   .addField("customString", "customFieldValue"));
+				.addField("customString", "customFieldValue"));
 
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
-														.addField("referenceFromAnotherSchemaToZeSchema", "1"));
+				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2292,30 +2292,30 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadataInCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAStringMetadataInCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
 				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:3"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:3"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:42"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 42")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:previouslySavedRecordLegacyId"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:previouslySavedRecordLegacyId"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("custom").setId("43").addField("title", "Record 43")
-												   .addField("customString", "customFieldValue"));
+				.addField("customString", "customFieldValue"));
 
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
-														.addField("referenceFromAnotherSchemaToZeSchema", "legacyIdentifier:1"));
+				.addField("referenceFromAnotherSchemaToZeSchema", "legacyIdentifier:1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2328,53 +2328,53 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadataInCustomSchema()
-											.with(new MetadataSchemaTypesConfigurator() {
-												@Override
-												public void configure(MetadataSchemaTypesBuilder schemaTypes) {
-													MetadataSchemaTypeBuilder anotherSchemaTypeDefault = schemaTypes.getSchemaType("anotherSchemaType");
-													anotherSchemaTypeDefault.getDefaultSchema().create("code").setType(STRING)
-																			.setDefaultRequirement(true).setUniqueValue(true);
+				.withAStringMetadataInCustomSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaTypeBuilder anotherSchemaTypeDefault = schemaTypes.getSchemaType("anotherSchemaType");
+						anotherSchemaTypeDefault.getDefaultSchema().create("code").setType(STRING)
+								.setDefaultRequirement(true).setUniqueValue(true);
 
-													MetadataSchemaBuilder zeSchemaTypeDefault = schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema();
-													zeSchemaTypeDefault.create("requiredReference").defineReferencesTo(anotherSchemaTypeDefault)
-																	   .setDefaultRequirement(true);
-													zeSchemaTypeDefault.create("facultativeReference").defineReferencesTo(anotherSchemaTypeDefault);
+						MetadataSchemaBuilder zeSchemaTypeDefault = schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema();
+						zeSchemaTypeDefault.create("requiredReference").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true);
+						zeSchemaTypeDefault.create("facultativeReference").defineReferencesTo(anotherSchemaTypeDefault);
 
-													zeSchemaTypeDefault.create("facultativeReferenceUsedByFacultativeCalculatedMetadata")
-																	   .defineReferencesTo(anotherSchemaTypeDefault);
-													zeSchemaTypeDefault.create("facultativeReferenceUsedByRequiredCalculatedMetadata")
-																	   .defineReferencesTo(anotherSchemaTypeDefault);
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByFacultativeCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByRequiredCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
 
-													zeSchemaTypeDefault.create("facultativeCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
-																	   .defineDataEntry().asJexlScript("facultativeReferenceUsedByFacultativeCalculatedMetadata");
-													zeSchemaTypeDefault.create("requiredCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
-																	   .setDefaultRequirement(true)
-																	   .defineDataEntry().asJexlScript("facultativeReferenceUsedByRequiredCalculatedMetadata");
+						zeSchemaTypeDefault.create("facultativeCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByFacultativeCalculatedMetadata");
+						zeSchemaTypeDefault.create("requiredCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByRequiredCalculatedMetadata");
 
-												}
-											}));
+					}
+				}));
 
 		recordServices.add(new TestRecord(anotherSchema).set(CODE, "ze code").set(TITLE, "Ze title").set(LEGACY_ID, "42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
-												   .addField("requiredReference", "43")
-												   .addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42"));
+				.addField("requiredReference", "43")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2")
-												   .addField("requiredReference", "42")
-												   .addField("facultativeReference", "43")
-												   .addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42"));
+				.addField("requiredReference", "42")
+				.addField("facultativeReference", "43")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3")
-												   .addField("requiredReference", "42")
-												   .addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "43")
-												   .addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "42"));
+				.addField("requiredReference", "42")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "43")
+				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4")
-												   .addField("requiredReference", "42")
-												   .addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42")
-												   .addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
+				.addField("requiredReference", "42")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42")
+				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE());
@@ -2403,32 +2403,32 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadataInCustomSchema()
-											.with(new MetadataSchemaTypesConfigurator() {
-												@Override
-												public void configure(MetadataSchemaTypesBuilder schemaTypes) {
-													MetadataSchemaTypeBuilder anotherSchemaTypeDefault = schemaTypes.getSchemaType("anotherSchemaType");
-													anotherSchemaTypeDefault.getDefaultSchema().create("code").setType(STRING)
-																			.setDefaultRequirement(true).setUniqueValue(true);
+				.withAStringMetadataInCustomSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaTypeBuilder anotherSchemaTypeDefault = schemaTypes.getSchemaType("anotherSchemaType");
+						anotherSchemaTypeDefault.getDefaultSchema().create("code").setType(STRING)
+								.setDefaultRequirement(true).setUniqueValue(true);
 
-													MetadataSchemaBuilder zeSchemaTypeDefault = schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema();
-													zeSchemaTypeDefault.create("requiredReference").defineReferencesTo(anotherSchemaTypeDefault)
-																	   .setDefaultRequirement(true);
-													zeSchemaTypeDefault.create("facultativeReference").defineReferencesTo(anotherSchemaTypeDefault);
+						MetadataSchemaBuilder zeSchemaTypeDefault = schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema();
+						zeSchemaTypeDefault.create("requiredReference").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true);
+						zeSchemaTypeDefault.create("facultativeReference").defineReferencesTo(anotherSchemaTypeDefault);
 
-													zeSchemaTypeDefault.create("facultativeReferenceUsedByFacultativeCalculatedMetadata")
-																	   .defineReferencesTo(anotherSchemaTypeDefault);
-													zeSchemaTypeDefault.create("facultativeReferenceUsedByRequiredCalculatedMetadata")
-																	   .defineReferencesTo(anotherSchemaTypeDefault);
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByFacultativeCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByRequiredCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
 
-													zeSchemaTypeDefault.create("facultativeCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
-																	   .defineDataEntry().asJexlScript("facultativeReferenceUsedByFacultativeCalculatedMetadata");
-													zeSchemaTypeDefault.create("requiredCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
-																	   .setDefaultRequirement(true)
-																	   .defineDataEntry().asJexlScript("facultativeReferenceUsedByRequiredCalculatedMetadata");
+						zeSchemaTypeDefault.create("facultativeCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByFacultativeCalculatedMetadata");
+						zeSchemaTypeDefault.create("requiredCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByRequiredCalculatedMetadata");
 
-												}
-											}));
+					}
+				}));
 
 		recordServices.add(new TestRecord(anotherSchema).set(CODE, "ze code").set(TITLE, "Ze title").set(LEGACY_ID, "42"));
 
@@ -2436,13 +2436,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		zeSchemaTypeRecords
 				.add(defaultSchemaData().setId("2").addField("requiredReference", "42").addField("facultativeReference", "43"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("requiredReference", "42")
-												   .addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "43"));
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "43"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("requiredReference", "42")
-												   .addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
+				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE()
-																					   .setWarningsForInvalidFacultativeMetadatas(false));
+					.setWarningsForInvalidFacultativeMetadatas(false));
 			fail("Validation exception expected");
 		} catch (ValidationException e) {
 			e.printStackTrace();
@@ -2472,37 +2472,37 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsUnique)
-											.withAStringMetadataInCustomSchema()
-											.withAParentReferenceFromZeSchemaToZeSchema()
-											.withAParentReferenceFromAnotherSchemaToZeSchema());
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
 				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
 				.set(zeSchema.stringMetadata(), "previouslySavedRecordCode"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2")
-												   .addField("stringMetadata", "code1"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2")
+				.addField("stringMetadata", "code1"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code3")
-												   .addField("stringMetadata", "code2"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code3")
+				.addField("stringMetadata", "code2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code42")
-												   .addField("stringMetadata", "code3"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code42")
+				.addField("stringMetadata", "code3"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 42")
-												   .addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:previouslySavedRecordCode")
-												   .addField("stringMetadata", "code42"));
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:previouslySavedRecordCode")
+				.addField("stringMetadata", "code42"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("custom").setId("43").addField("title", "Record 43")
-												   .addField("customString", "customFieldValue")
-												   .addField("stringMetadata", "code43"));
+				.addField("customString", "customFieldValue")
+				.addField("stringMetadata", "code43"));
 
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
-														.addField("referenceFromAnotherSchemaToZeSchema", "stringMetadata:code1"));
+				.addField("referenceFromAnotherSchemaToZeSchema", "stringMetadata:code1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2515,17 +2515,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsUnique)
-											.withAStringMetadataInCustomSchema());
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
-												   .addField("stringMetadata", "Value with a x"));
+				.addField("stringMetadata", "Value with a x"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
-												   .addField("stringMetadata", "Value with a y"));
+				.addField("stringMetadata", "Value with a y"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
-												   .addField("stringMetadata", "Value with a z"));
+				.addField("stringMetadata", "Value with a z"));
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin);
@@ -2543,17 +2543,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsUnique)
-											.withAStringMetadataInCustomSchema());
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
-												   .addField("stringMetadata", "Value with a word"));
+				.addField("stringMetadata", "Value with a word"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
-												   .addField("stringMetadata", "Value with a tata"));
+				.addField("stringMetadata", "Value with a tata"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
-												   .addField("stringMetadata", "Value with a toto"));
+				.addField("stringMetadata", "Value with a toto"));
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin);
@@ -2572,21 +2572,21 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichIsUnique)
-											.withAStringMetadataInCustomSchema()
-											.withAStructureMetadata());
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema()
+				.withAStructureMetadata());
 
 		Map<String, Object> record11Structure = asMap("zeTitle", "pouet");
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
-												   .addField("structureMetadata", record11Structure));
+				.addField("structureMetadata", record11Structure));
 
 		Map<String, String> record12Structure = null;
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
-												   .addField("structureMetadata", record12Structure));
+				.addField("structureMetadata", record12Structure));
 
 		Map<String, String> record13Structure = new HashMap<>();
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
-												   .addField("structureMetadata", record13Structure));
+				.addField("structureMetadata", record13Structure));
 
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2606,17 +2606,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		//TODO AFTER-TEST-VALIDATION-SEQ
 		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichHasFixedSequence("sequence1"))
-											.withAnotherStringMetadata(whichHasFixedSequence("sequence2"), whichHasInputMask("9999")));
+				.withAStringMetadata(whichHasFixedSequence("sequence1"))
+				.withAnotherStringMetadata(whichHasFixedSequence("sequence2"), whichHasInputMask("9999")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
-												   .addField("stringMetadata", "3").addField("anotherStringMetadata", "0003"));
+				.addField("stringMetadata", "3").addField("anotherStringMetadata", "0003"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
-												   .addField("stringMetadata", "4").addField("anotherStringMetadata", "0002"));
+				.addField("stringMetadata", "4").addField("anotherStringMetadata", "0002"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
-												   .addField("stringMetadata", "1").addField("anotherStringMetadata", "0042"));
+				.addField("stringMetadata", "1").addField("anotherStringMetadata", "0042"));
 
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2648,17 +2648,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		sequencesManager.set("sequence2", 20000);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata(whichHasFixedSequence("sequence1"))
-											.withAnotherStringMetadata(whichHasFixedSequence("sequence2"), whichHasInputMask("9999")));
+				.withAStringMetadata(whichHasFixedSequence("sequence1"))
+				.withAnotherStringMetadata(whichHasFixedSequence("sequence2"), whichHasInputMask("9999")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
-												   .addField("stringMetadata", "3").addField("anotherStringMetadata", "0003"));
+				.addField("stringMetadata", "3").addField("anotherStringMetadata", "0003"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
-												   .addField("stringMetadata", "4").addField("anotherStringMetadata", "0002"));
+				.addField("stringMetadata", "4").addField("anotherStringMetadata", "0002"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
-												   .addField("stringMetadata", "1").addField("anotherStringMetadata", "0042"));
+				.addField("stringMetadata", "1").addField("anotherStringMetadata", "0042"));
 
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2685,26 +2685,26 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		//TODO AFTER-TEST-VALIDATION-SEQ
 		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata()
-											.withAnotherStringMetadata(whichHasSequenceDefinedByMetadata("stringMetadata"), whichHasInputMask("9999")));
+				.withAStringMetadata()
+				.withAnotherStringMetadata(whichHasSequenceDefinedByMetadata("stringMetadata"), whichHasInputMask("9999")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
-												   .addField("stringMetadata", "sequence1").addField("anotherStringMetadata", "0042"));
+				.addField("stringMetadata", "sequence1").addField("anotherStringMetadata", "0042"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
-												   .addField("stringMetadata", "sequence2").addField("anotherStringMetadata", "0002"));
+				.addField("stringMetadata", "sequence2").addField("anotherStringMetadata", "0002"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
-												   .addField("stringMetadata", "sequence1").addField("anotherStringMetadata", "0003"));
+				.addField("stringMetadata", "sequence1").addField("anotherStringMetadata", "0003"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("14").addField("title", "Record 4")
-												   .addField("stringMetadata", "sequence2").addField("anotherStringMetadata", "0666"));
+				.addField("stringMetadata", "sequence2").addField("anotherStringMetadata", "0666"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("15").addField("title", "Record 5")
-												   .addField("stringMetadata", null).addField("anotherStringMetadata", "6666"));
+				.addField("stringMetadata", null).addField("anotherStringMetadata", "6666"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("16").addField("title", "Record 6")
-												   .addField("stringMetadata", "").addField("anotherStringMetadata", "7777"));
+				.addField("stringMetadata", "").addField("anotherStringMetadata", "7777"));
 
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
@@ -2738,17 +2738,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
-								   .add(NoZMetadataValidator.class);
+								.add(NoZMetadataValidator.class);
 					}
 				}));
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
 		}
 
 		try {
@@ -2769,25 +2769,25 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
-								   .add(NoZMetadataValidator.class);
+								.add(NoZMetadataValidator.class);
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 					}
 				}));
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
 		}
 
 		for (int i = 1; i <= 300; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + i));
+					.addField("refToZeSchema", "record" + i));
 		}
 
 		try {
@@ -2812,25 +2812,25 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
-								   .add(NoZMetadataValidator.class);
+								.add(NoZMetadataValidator.class);
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 					}
 				}));
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
 		}
 
 		for (int i = 1; i <= 300; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + i));
+					.addField("refToZeSchema", "record" + i));
 		}
 
 		try {
@@ -2856,17 +2856,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
-								   .add(NoZMetadataValidator.class);
+								.add(NoZMetadataValidator.class);
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
 						Map<Language, String> labels = new HashMap<Language, String>();
 						labels.put(Language.French, "Autre type de schéma");
@@ -2880,17 +2880,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
 		}
 
 		for (int i = 1; i <= 302; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
 		}
 
 		for (int i = 1; i <= 303; i++) {
 			thirdSchemaTypeRecords.add(defaultSchemaData().setId("thirdSchemaRecord" + i)
-														  .addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
+					.addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
 		}
 
 		try {
@@ -2929,13 +2929,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata");
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineChildOfRelationshipToType(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineChildOfRelationshipToType(schemaTypes.getSchemaType("zeSchemaType"));
 					}
 				}));
 
@@ -2947,7 +2947,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		for (int i = 1; i <= 4000; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + i));
+					.addField("refToZeSchema", "record" + i));
 		}
 
 		final AtomicInteger queriesCount = new AtomicInteger();
@@ -2974,16 +2974,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").setDefaultRequirement(true);
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
 						Map<Language, String> labels = new HashMap<Language, String>();
 						labels.put(Language.French, "Autre type de schéma");
@@ -2997,23 +2997,23 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? null : "value"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? null : "value"));
 		}
 
 		for (int i = 1; i <= 302; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
 		}
 
 		for (int i = 1; i <= 303; i++) {
 			thirdSchemaTypeRecords.add(defaultSchemaData().setId("thirdSchemaRecord" + i)
-														  .addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
+					.addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
 		}
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
 					new BulkImportParams().setImportErrorsBehavior(CONTINUE)
-										  .setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS));
+							.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
@@ -3045,16 +3045,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").setInputMask("999 999 999");
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
 						Map<Language, String> labels = new HashMap<Language, String>();
 						labels.put(Language.French, "Autre type de schéma");
@@ -3070,12 +3070,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
 		}
 
 		for (int i = 1; i <= 302; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
 		}
 
 		try {
@@ -3106,16 +3106,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").setInputMask("999 999 999");
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
 						Map<Language, String> labels = new HashMap<Language, String>();
 						labels.put(Language.French, "Autre type de schéma");
@@ -3131,12 +3131,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
 		}
 
 		for (int i = 1; i <= 302; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
 		}
 
 		try {
@@ -3189,7 +3189,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 								return invocation.callRealMethod();
 							}
 						}).when(maskedMetadataValidator)
-						  .validateMetadata(any(ValidationErrors.class), any(Metadata.class), anyObject());
+								.validateMetadata(any(ValidationErrors.class), any(Metadata.class), anyObject());
 						return maskedMetadataValidator;
 					}
 				}).when(recordValidationServicesServices).newMaskedMetadataValidator(any(List.class));
@@ -3215,8 +3215,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				return executor;
 			}
 		}).when(services)
-		  .newExecutor(any(ImportDataProvider.class), any(BulkImportProgressionListener.class), any(User.class),
-				  any(List.class), any(BulkImportParams.class));
+				.newExecutor(any(ImportDataProvider.class), any(BulkImportProgressionListener.class), any(User.class),
+						any(List.class), any(BulkImportParams.class));
 		return maskValidatorCount;
 	}
 
@@ -3225,17 +3225,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
-											.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
-								   .add(NoZMetadataValidator.class);
+								.add(NoZMetadataValidator.class);
 
 						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
-								   .defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("content").setType(CONTENT);
 
@@ -3251,17 +3251,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
-													   .addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
 		}
 
 		for (int i = 1; i <= 302; i++) {
 			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
-															.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
 		}
 
 		for (int i = 1; i <= 303; i++) {
 			thirdSchemaTypeRecords.add(defaultSchemaData().setId("thirdSchemaRecord" + i)
-														  .addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
+					.addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
 		}
 
 		try {
@@ -3366,7 +3366,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String logicallyDeletedRecordId = logicallyDeletedRecord.getId();
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-												   .addField(zeSchema.referenceMetadata().getCode(), "1"));
+				.addField(zeSchema.referenceMetadata().getCode(), "1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record importedRecord = recordWithLegacyId("2");

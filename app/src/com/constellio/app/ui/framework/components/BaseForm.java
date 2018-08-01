@@ -326,7 +326,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
 								&& validationError.getParameters().size() > 0
 								&& validationError.getParameters().get(METADATA_CODE)
-												  .equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
+										.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
 								Map<String, Object> params = new HashMap<String, Object>();
 
 								ValidationError newValidationError = new ValidationError(validatorClass,

@@ -91,21 +91,21 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				MetadataBuilder zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 				MetadataBuilder zeRefText = zeType.getDefaultSchema().create("refText");
 				MetadataBuilder pctRef = zeType.getDefaultSchema().create("pct").setType(NUMBER)
-											   .setIncreasedDependencyLevel(true).defineDataEntry().asJexlScript(
+						.setIncreasedDependencyLevel(true).defineDataEntry().asJexlScript(
 								"if (ref.copiedThirdSchemaTypeSum > 0) {number / ref.copiedThirdSchemaTypeSum} else {0}");
 
 				MetadataBuilder anotherSchemaSum = anotherType.getDefaultSchema().create("sum")
-															  .defineDataEntry().asSum(zeRef, zeNumber);
+						.defineDataEntry().asSum(zeRef, zeNumber);
 				MetadataBuilder anotherSchemaSumX10 = anotherType.getDefaultSchema().create("sumX10").setType(NUMBER)
-																 .defineDataEntry().asJexlScript("sum * 10");
+						.defineDataEntry().asJexlScript("sum * 10");
 				MetadataBuilder copiedThirdSchemaTypeSum = anotherType.getDefaultSchema().create("copiedThirdSchemaTypeSum");
 				MetadataBuilder anotherSchemaRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder anotherSchemaText = anotherType.getDefaultSchema().create("text").setType(STRING);
 
 				MetadataBuilder thirdSchemaSum = thirdType.getDefaultSchema().create("sum")
-														  .defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSum);
+						.defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSum);
 				MetadataBuilder thirdSchemaSumX10 = thirdType.getDefaultSchema().create("sumX10")
-															 .defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSumX10);
+						.defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSumX10);
 
 				copiedThirdSchemaTypeSum.setType(NUMBER).defineDataEntry().asCopied(anotherSchemaRef, thirdSchemaSum);
 				zeRefText.setType(STRING).defineDataEntry().asCopied(zeRef, anotherSchemaText);
@@ -136,7 +136,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				MetadataBuilder zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchemaRefCount = anotherType.getDefaultSchema().create("refCount").setType(NUMBER)
-																   .defineDataEntry().asReferenceCount(zeRef);
+						.defineDataEntry().asReferenceCount(zeRef);
 			}
 		}));
 		recordServices = getModelLayerFactory().newRecordServices();

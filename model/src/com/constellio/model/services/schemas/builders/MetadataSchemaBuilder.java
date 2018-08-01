@@ -456,7 +456,7 @@ public class MetadataSchemaBuilder {
 		}
 
 		List<Metadata> contentMetadatas = newMetadatas.onlyWithType(MetadataValueType.CONTENT)
-													  .sortedUsing(new ContentsComparator());
+				.sortedUsing(new ContentsComparator());
 		return new MetadataSchemaCalculatedInfos(steps, automaticMetadatas, contentMetadatas, lazyTransientsMetadatas,
 				eagerTransientsMetadatas);
 	}

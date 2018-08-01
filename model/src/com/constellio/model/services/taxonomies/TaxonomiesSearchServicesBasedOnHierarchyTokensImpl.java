@@ -322,7 +322,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			int recordsStartIndex) {
 		List<TaxonomySearchRecord> concepts = conceptsResponse.records;
 		Set<String> typesParentOfOtherTypes = metadataSchemasManager.getSchemaTypes(ctx.getCollection())
-																	.getTypeParentOfOtherTypes();
+				.getTypeParentOfOtherTypes();
 		List<TaxonomySearchRecord> returnedRecords = new ArrayList<>();
 		SPEQueryResponse facetResponse = queryFindingWhichRecordsHasChildren(ctx, concepts.size(), records);
 
@@ -438,7 +438,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			}
 
 			LogicalSearchQuery facetQuery = context.newQueryWithUserFilter(queryCondition)
-												   .filteredByStatus(ACTIVES).setStartRow(0).setNumberOfRows(0);
+					.filteredByStatus(ACTIVES).setStartRow(0).setNumberOfRows(0);
 
 			int facetCounts = 0;
 			for (int i = visibleConceptsSize;
@@ -666,7 +666,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					visibleRecords.add(null);
 				}
 				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, 100, continueInfos.lastReturnRecordIndex)
-										 .inBatches();
+						.inBatches();
 
 			} else {
 				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, 100).inBatches();
@@ -679,7 +679,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					visibleRecords.add(null);
 				}
 				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100, continueInfos.lastReturnRecordIndex)
-										 .inBatches();
+						.inBatches();
 
 			} else {
 				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100).inBatches();
@@ -710,7 +710,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 			} else if (options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()) {
 				LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection()).where(VISIBLE_IN_TREES)
-																							 .isTrueOrNull();
+						.isTrueOrNull();
 				facetQuery = newQueryForFacets(condition, user, options);
 
 			} else {
@@ -878,7 +878,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 				.getCacheMode(selectedType, options.getRequiredAccess(), options.isShowInvisibleRecordsInLinkingMode(),
 						options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
 		options = options.cloneAddingReturnedField(Schemas.LINKABLE).cloneAddingReturnedField(Schemas.DESCRIPTION_STRING)
-						 .cloneAddingReturnedField(Schemas.DESCRIPTION_TEXT);
+				.cloneAddingReturnedField(Schemas.DESCRIPTION_TEXT);
 
 		SPEQueryResponse mainQueryResponse;
 		if (inRecord == null) {
@@ -918,9 +918,9 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
-					 .sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-					 .setName("getRootConcepts")
-					 .setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
+					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setName("getRootConcepts")
+					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
 
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
 			int lastIteratedRecordIndex = 0;
@@ -1142,23 +1142,23 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 	public boolean hasLinkableConceptInHierarchy(final Record concept, final Taxonomy taxonomy,
 												 TaxonomiesSearchOptions options) {
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(concept.getCollection())
-															  .getSchemaType(taxonomy.getSchemaTypes().get(0));
+				.getSchemaType(taxonomy.getSchemaTypes().get(0));
 		List<Record> records = searchServices.getAllRecords(schemaType);
 		for (final Record record : records) {
 			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
 				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));
 				boolean linkableUsingFilter = options.getFilter().getLinkableConceptsFilter()
-													 .isLinkable(new LinkableConceptFilterParams() {
-														 @Override
-														 public Record getRecord() {
-															 return record;
-														 }
+						.isLinkable(new LinkableConceptFilterParams() {
+							@Override
+							public Record getRecord() {
+								return record;
+							}
 
-														 @Override
-														 public Taxonomy getTaxonomy() {
-															 return taxonomy;
-														 }
-													 });
+							@Override
+							public Taxonomy getTaxonomy() {
+								return taxonomy;
+							}
+						});
 
 				if (linkableFlag && linkableUsingFilter) {
 					return true;

@@ -456,7 +456,7 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 				.getDocumentById(zeCollectionRecordWithFrenchAndEnglishValuesInCustomTextMetadata);
 		assertThat(record.getRecordDTO().getCopyFields()).isEmpty();
 		assertThat(record.getRecordDTO().getFields()).doesNotContainKey("stringMetadata_txt_en")
-													 .doesNotContainKey("stringMetadata_txt_fr");
+				.doesNotContainKey("stringMetadata_txt_fr");
 	}
 
 	private void whenAMultivalueContainsValuesOfDifferentLanguagesThenValuesAreSeparated()
@@ -588,9 +588,9 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 
 		defineSchemasManager().using(
 				zeCollectionSetup.withAStringMetadata(whichIsMultivalue, whichIsSearchable)
-								 .withAContentMetadata(whichIsSearchable));
+						.withAContentMetadata(whichIsSearchable));
 		defineSchemasManager().using(anotherCollectionSetup.withAStringMetadata(whichIsMultivalue, whichIsSearchable)
-														   .withAContentListMetadata(whichIsSearchable));
+				.withAContentListMetadata(whichIsSearchable));
 	}
 
 	private void givenBothCollectionBilingualAndSearchableContentAndMultivalueStringMetadataMetadatas()
@@ -606,9 +606,9 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 
 		defineSchemasManager().using(
 				zeCollectionSetup.withAStringMetadata(whichIsMultivalue, whichIsSearchable)
-								 .withAContentMetadata(whichIsSearchable));
+						.withAContentMetadata(whichIsSearchable));
 		defineSchemasManager().using(anotherCollectionSetup.withALargeTextMetadata(whichIsMultivalue, whichIsSearchable)
-														   .withAContentListMetadata(whichIsSearchable));
+				.withAContentListMetadata(whichIsSearchable));
 	}
 
 	private void givenSomeRecords()

@@ -101,7 +101,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 			ParsedContent parsedContent = getModelLayerFactory().getContentManager().getParsedContent(expectedHash);
 			assertThat(parsedContent).isEqualTo(expectedParsedContent);
 			InputStream contentInputStream = getModelLayerFactory().getContentManager()
-																   .getContentInputStream(expectedHash, SDK_STREAM);
+					.getContentInputStream(expectedHash, SDK_STREAM);
 			assertThat(contentInputStream).describedAs("Content of " + key).hasContentEqualTo(new ByteArrayInputStream(bytes));
 		}
 	}
@@ -149,7 +149,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 			ParsedContent parsedContent = getModelLayerFactory().getContentManager().getParsedContent(expectedHash);
 			assertThat(parsedContent).isEqualTo(expectedParsedContent);
 			InputStream contentInputStream = getModelLayerFactory().getContentManager()
-																   .getContentInputStream(expectedHash, SDK_STREAM);
+					.getContentInputStream(expectedHash, SDK_STREAM);
 			assertThat(contentInputStream).describedAs("Content of " + key).hasContentEqualTo(new ByteArrayInputStream(bytes));
 		}
 	}

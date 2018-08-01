@@ -134,7 +134,7 @@ public class RMMigrationTo5_1_2 implements MigrationScript {
 									 String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-																	.getEmailTemplatesManager();
+				.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

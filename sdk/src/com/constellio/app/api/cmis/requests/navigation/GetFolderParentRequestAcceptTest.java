@@ -70,7 +70,7 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 		Record record = zeCollectionRecords.folder2_1;
 
 		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
-												 .getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
 
 		assertThat(objectDataParent.getId()).isEqualTo(zeCollectionRecords.folder2.getId());
 	}
@@ -81,7 +81,7 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 		Record record = zeCollectionRecords.taxo1_category2_1;
 
 		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
-												 .getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
 
 		assertThat(objectDataParent.getId()).isEqualTo(zeCollectionRecords.taxo1_category2.getId());
 	}
@@ -92,7 +92,7 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 		Record record = zeCollectionRecords.taxo1_category2;
 
 		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
-												 .getFolderParent(cmisSession.getRepositoryInfo().getId(), "taxo_taxo1", null, null);
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), "taxo_taxo1", null, null);
 
 		assertThat(objectDataParent.getId()).isEqualTo("zeCollection");
 	}
@@ -103,7 +103,7 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 		Record record = zeCollectionRecords.taxo1_category2;
 
 		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
-												 .getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
 
 		assertThat(objectDataParent.getId()).isEqualTo(zeCollectionRecords.taxo1_fond1.getId());
 	}
@@ -114,7 +114,7 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 		Record record = zeCollectionRecords.folder4;
 
 		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
-												 .getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
 
 		assertThat(objectDataParent.getId()).isEqualTo(zeCollectionRecords.taxo1_category2.getId());
 	}
@@ -122,6 +122,6 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-									  .build();
+				.build();
 	}
 }

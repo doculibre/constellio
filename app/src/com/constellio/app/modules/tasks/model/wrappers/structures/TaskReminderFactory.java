@@ -44,7 +44,7 @@ public class TaskReminderFactory implements StructureFactory {
 			}
 		};
 		gsonBuilder = new GsonBuilder().setExclusionStrategies(strategy)
-									   .registerTypeAdapter(LocalDate.class, newLocalDateJsonSerializerDeserializer());
+				.registerTypeAdapter(LocalDate.class, newLocalDateJsonSerializerDeserializer());
 		gson = gsonBuilder.create();
 	}
 
@@ -72,9 +72,9 @@ public class TaskReminderFactory implements StructureFactory {
 		boolean processed = taskReminder.isProcessed();
 
 		return new TaskReminder().setBeforeRelativeDate(beforeFlexibleDate).setFixedDate(fixedDate)
-								 .setRelativeDateMetadataCode(flexibleDateMetadataCode)
-								 .setNumberOfDaysToRelativeDate(numberOfDaysInFlexibleDate).setProcessed(processed)
-								 .setDirty(false);
+				.setRelativeDateMetadataCode(flexibleDateMetadataCode)
+				.setNumberOfDaysToRelativeDate(numberOfDaysInFlexibleDate).setProcessed(processed)
+				.setDirty(false);
 	}
 
 	@Override

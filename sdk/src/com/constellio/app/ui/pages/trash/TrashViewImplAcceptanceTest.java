@@ -41,7 +41,7 @@ public class TrashViewImplAcceptanceTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 		users.setUp(getModelLayerFactory().newUserServices());

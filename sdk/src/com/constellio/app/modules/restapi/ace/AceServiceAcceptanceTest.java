@@ -59,7 +59,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp() throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users).withRMTest(records)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -67,7 +67,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
 		new ApplicationHandler(new RestApiResourceConfig()).getInjectionManager().getInstance(ServiceLocator.class)
-														   .inject(this);
+				.inject(this);
 
 		dateFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
 
@@ -94,25 +94,25 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		assertThat(aces).isNotNull();
 		assertThat(aces.getDirectAces()).contains(
 				AceDto.builder()
-					  .principals(toPrincipals(authorization1.getPrincipals()))
-					  .permissions(Sets.newLinkedHashSet(authorization1.getRoles()))
-					  .startDate(authorization1.getStart() != null ? DateUtils.format(authorization1.getStart(), dateFormat) : null)
-					  .endDate(authorization1.getEnd() != null ? DateUtils.format(authorization1.getEnd(), dateFormat) : null)
-					  .build(),
+						.principals(toPrincipals(authorization1.getPrincipals()))
+						.permissions(Sets.newLinkedHashSet(authorization1.getRoles()))
+						.startDate(authorization1.getStart() != null ? DateUtils.format(authorization1.getStart(), dateFormat) : null)
+						.endDate(authorization1.getEnd() != null ? DateUtils.format(authorization1.getEnd(), dateFormat) : null)
+						.build(),
 				AceDto.builder()
-					  .principals(toPrincipals(authorization2.getPrincipals()))
-					  .permissions(Sets.newLinkedHashSet(authorization2.getRoles()))
-					  .startDate(authorization2.getStart() != null ? DateUtils.format(authorization2.getStart(), dateFormat) : null)
-					  .endDate(authorization2.getEnd() != null ? DateUtils.format(authorization2.getEnd(), dateFormat) : null)
-					  .build());
+						.principals(toPrincipals(authorization2.getPrincipals()))
+						.permissions(Sets.newLinkedHashSet(authorization2.getRoles()))
+						.startDate(authorization2.getStart() != null ? DateUtils.format(authorization2.getStart(), dateFormat) : null)
+						.endDate(authorization2.getEnd() != null ? DateUtils.format(authorization2.getEnd(), dateFormat) : null)
+						.build());
 	}
 
 	@Test
 	public void testAddAces() {
 		List<AceDto> aces = asList(
 				AceDto.builder().principals(singleton(alice)).permissions(newHashSet(READ, WRITE))
-					  .startDate(DateUtils.format(new LocalDate(), dateFormat))
-					  .endDate(DateUtils.format(new LocalDate().plusDays(365), dateFormat)).build(),
+						.startDate(DateUtils.format(new LocalDate(), dateFormat))
+						.endDate(DateUtils.format(new LocalDate().plusDays(365), dateFormat)).build(),
 				AceDto.builder().principals(singleton(chuck)).permissions(singleton(READ)).build());
 		aceService.addAces(admin, document.getWrappedRecord(), aces);
 
@@ -134,45 +134,45 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
 		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
+				.containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
 		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate")
-								  .containsOnly(tuple(singletonList(READ), null, null));
+				.containsOnly(tuple(singletonList(READ), null, null));
 	}
 
 	@Test
 	public void testUpdateAcesWithSameAmountAsExisting() {
 		List<AceDto> aces = asList(
 				AceDto.builder().principals(singleton(alice)).permissions(newHashSet(READ, WRITE))
-					  .startDate(DateUtils.format(new LocalDate(), dateFormat))
-					  .endDate(DateUtils.format(new LocalDate().plusDays(365), dateFormat)).build(),
+						.startDate(DateUtils.format(new LocalDate(), dateFormat))
+						.endDate(DateUtils.format(new LocalDate().plusDays(365), dateFormat)).build(),
 				AceDto.builder().principals(singleton(bob)).permissions(singleton(READ)).build());
 		aceService.updateAces(admin, document.getWrappedRecord(), aces);
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(2);
 		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
+				.containsOnly(toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
 		assertThat(authorizations).extracting("detail").extracting("roles").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(Lists.newArrayList(aces.get(0).getPermissions()), Lists.newArrayList(aces.get(1).getPermissions()));
+				.containsOnly(Lists.newArrayList(aces.get(0).getPermissions()), Lists.newArrayList(aces.get(1).getPermissions()));
 		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate")
-								  .containsOnly(tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
-										  tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
+				.containsOnly(tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
+						tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
 	}
 
 	@Test
 	public void testUpdateAcesWithLowerAmountThanExisting() {
 		List<AceDto> aces = singletonList(AceDto.builder().principals(Sets.newHashSet(alice, chuck, bob))
-												.permissions(Sets.newHashSet(READ, WRITE, DELETE)).build());
+				.permissions(Sets.newHashSet(READ, WRITE, DELETE)).build());
 		aceService.updateAces(admin, document.getWrappedRecord(), aces);
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
 		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
+				.containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
 		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(asList(READ, WRITE, DELETE));
+				.containsOnly(asList(READ, WRITE, DELETE));
 		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate")
-								  .containsOnly(tuple(null, null));
+				.containsOnly(tuple(null, null));
 	}
 
 	@Test
@@ -181,8 +181,8 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 				AceDto.builder().principals(singleton(alice)).permissions(singleton(READ)).build(),
 				AceDto.builder().principals(singleton(bob)).permissions(Sets.newHashSet(READ, WRITE, DELETE)).build(),
 				AceDto.builder().principals(singleton(chuck)).permissions(Sets.newHashSet(READ, WRITE))
-					  .startDate(DateUtils.format(new LocalDate(), dateFormat))
-					  .endDate(DateUtils.format(new LocalDate(), dateFormat)).build());
+						.startDate(DateUtils.format(new LocalDate(), dateFormat))
+						.endDate(DateUtils.format(new LocalDate(), dateFormat)).build());
 		aceService.updateAces(admin, document.getWrappedRecord(), aces);
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
@@ -205,21 +205,21 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 	public void testUpdateAcesWithAtLeastOneUnchangedAce() {
 		List<AceDto> aces = asList(
 				AceDto.builder().principals(toPrincipals(authorization2.getPrincipals()))
-					  .permissions(Sets.newLinkedHashSet(authorization2.getRoles()))
-					  .startDate(authorization2.getStart() != null ? DateUtils.format(authorization2.getStart(), dateFormat) : null)
-					  .endDate(authorization2.getEnd() != null ? DateUtils.format(authorization2.getEnd(), dateFormat) : null).build(),
+						.permissions(Sets.newLinkedHashSet(authorization2.getRoles()))
+						.startDate(authorization2.getStart() != null ? DateUtils.format(authorization2.getStart(), dateFormat) : null)
+						.endDate(authorization2.getEnd() != null ? DateUtils.format(authorization2.getEnd(), dateFormat) : null).build(),
 				AceDto.builder().principals(singleton(bob)).permissions(singleton(READ)).build());
 		aceService.updateAces(admin, document.getWrappedRecord(), aces);
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(2);
 		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
+				.containsOnly(toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
 		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(Lists.newArrayList(aces.get(0).getPermissions()), Lists.newArrayList(aces.get(1).getPermissions()));
+				.containsOnly(Lists.newArrayList(aces.get(0).getPermissions()), Lists.newArrayList(aces.get(1).getPermissions()));
 		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate")
-								  .containsOnly(tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
-										  tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
+				.containsOnly(tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
+						tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
 	}
 
 	@Test
@@ -230,7 +230,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
 		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(asList(READ, DELETE));
+				.containsOnly(asList(READ, DELETE));
 	}
 
 	@Test
@@ -241,7 +241,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
 		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(asList(READ, WRITE));
+				.containsOnly(asList(READ, WRITE));
 	}
 
 	@Test
@@ -252,7 +252,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
 		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(asList(READ, WRITE, DELETE));
+				.containsOnly(asList(READ, WRITE, DELETE));
 	}
 
 	@Test
@@ -265,9 +265,9 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
 		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
-								  .containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
+				.containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
 		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate")
-								  .containsOnly(tuple(asList(READ, WRITE), null, null));
+				.containsOnly(tuple(asList(READ, WRITE), null, null));
 	}
 
 	private List<Authorization> filterInherited(List<Authorization> authorizations) {

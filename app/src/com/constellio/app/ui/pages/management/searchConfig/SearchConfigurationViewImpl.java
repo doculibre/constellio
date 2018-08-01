@@ -130,7 +130,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 
 	private Button createSolrFeatureRequestButton() {
 		User user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices()
-											.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
+				.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
 		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
 			   createLink($("AdminView.solrFeature"), new Button.ClickListener() {
 

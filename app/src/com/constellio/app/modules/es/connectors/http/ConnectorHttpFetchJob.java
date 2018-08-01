@@ -152,8 +152,8 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	private void parse(ConnectorHttpDocument httpDocument, Page page)
 			throws ConnectorHttpDocumentFetchException {
 		httpDocument.setFetched(true)
-					.setStatus(ConnectorDocumentStatus.OK)
-					.setFetchedDateTime(TimeProvider.getLocalDateTime());
+				.setStatus(ConnectorDocumentStatus.OK)
+				.setFetchedDateTime(TimeProvider.getLocalDateTime());
 		if (page instanceof HtmlPage) {
 			parseHtml(httpDocument, (HtmlPage) page);
 
@@ -195,7 +195,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
 
 					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
-																		   .forCollection(connectorHttp.getEs().collection.code().getCollection());
+							.forCollection(connectorHttp.getEs().collection.code().getCollection());
 					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
 
 					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
@@ -214,16 +214,16 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			}
 
 			httpDocument.setErrorCode(null)
-						.setErrorMessage(null)
-						.setErrorStackTrace(null)
-						.resetErrorsCount()
-						.setManualTokens(Record.PUBLIC_TOKEN);
+					.setErrorMessage(null)
+					.setErrorStackTrace(null)
+					.resetErrorsCount()
+					.setManualTokens(Record.PUBLIC_TOKEN);
 
 		} catch (Exception e) {
 			httpDocument.setErrorCode(ConnectorHttpFetchJob.class.getSimpleName() + ".parseBinary()")
-						.setErrorMessage(ExceptionUtils.getMessage(e))
-						.setErrorStackTrace(ExceptionUtils.getFullStackTrace(e))
-						.incrementErrorsCount();
+					.setErrorMessage(ExceptionUtils.getMessage(e))
+					.setErrorStackTrace(ExceptionUtils.getFullStackTrace(e))
+					.incrementErrorsCount();
 		}
 
 		saveDocumentDigestAndDetectCopy(httpDocument);
@@ -274,7 +274,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		savedDocuments.add(httpDocument);
 
 		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
-															   .forCollection(connectorHttp.getEs().collection.code().getCollection());
+				.forCollection(connectorHttp.getEs().collection.code().getCollection());
 		ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
 		esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
 				.setConnectorHttpDocument(httpDocument)

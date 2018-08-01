@@ -541,7 +541,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customFolder");
 				types.getSchema(Folder.DEFAULT_SCHEMA).create("zeCalculatedMetadata").setType(STRING)
-					 .defineDataEntry().asCalculated(ZeCategoryCodeCalculator.class);
+						.defineDataEntry().asCalculated(ZeCategoryCodeCalculator.class);
 			}
 		});
 
@@ -549,11 +549,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		recordServices.add(folderType);
 
 		Folder folder = rm.newFolderWithType(folderType)
-						  .setTitle("Ze custom folder")
-						  .setOpenDate(new LocalDate())
-						  .setAdministrativeUnitEntered(records.unitId_10a)
-						  .setCategoryEntered(records.categoryId_X13)
-						  .setRetentionRuleEntered(records.ruleId_1);
+				.setTitle("Ze custom folder")
+				.setOpenDate(new LocalDate())
+				.setAdministrativeUnitEntered(records.unitId_10a)
+				.setCategoryEntered(records.categoryId_X13)
+				.setRetentionRuleEntered(records.ruleId_1);
 		recordServices.add(folder);
 
 		assertThatRecord(rm.getFolder(folder.getId()))
@@ -1309,7 +1309,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						   .setSemiActiveDateMetadata("dateA"),
+						.setSemiActiveDateMetadata("dateA"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1402,7 +1402,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						   .setSemiActiveDateMetadata("dateA").setIgnoreActivePeriod(true),
+						.setSemiActiveDateMetadata("dateA").setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1496,7 +1496,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						   .setSemiActiveDateMetadata("dateB"),
+						.setSemiActiveDateMetadata("dateB"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1579,7 +1579,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						   .setSemiActiveDateMetadata(Folder.TIME_RANGE),
+						.setSemiActiveDateMetadata(Folder.TIME_RANGE),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1646,8 +1646,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		//		assertThat(folderA7.getExpectedDepositDate()).isEqualTo(date(2007, 10, 31));
 
 		Folder folder = rm.newFolderWithId("zeFolder").setTitle("Bouc").setAdministrativeUnitEntered(records.unitId_10a)
-						  .setCategoryEntered(records.categoryId_Z112).setRetentionRuleEntered(records.ruleId_3)
-						  .setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4));
+				.setCategoryEntered(records.categoryId_Z112).setRetentionRuleEntered(records.ruleId_3)
+				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4));
 
 		recordServices.update(folder);
 
@@ -1680,7 +1680,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						   .setSemiActiveDateMetadata(Folder.TIME_RANGE),
+						.setSemiActiveDateMetadata(Folder.TIME_RANGE),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1761,7 +1761,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata(Folder.TIME_RANGE)
-						   .setSemiActiveDateMetadata("dateB"),
+						.setSemiActiveDateMetadata("dateB"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1843,7 +1843,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata(Folder.TIME_RANGE)
-						   .setSemiActiveDateMetadata("dateB"),
+						.setSemiActiveDateMetadata("dateB"),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -1924,7 +1924,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
-						   .setSemiActiveDateMetadata("dateB").setIgnoreActivePeriod(true),
+						.setSemiActiveDateMetadata("dateB").setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -2130,7 +2130,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setSemiActiveDateMetadata("dateA")
-						   .setIgnoreActivePeriod(true),
+						.setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 
@@ -2251,9 +2251,9 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		rule2.setCopyRetentionRules(asList(
 				copyBuilder.newPrincipal(asList(records.PA), "888-75-D").setSemiActiveDateMetadata("dateNaiss")
-						   .setIgnoreActivePeriod(true),
+						.setIgnoreActivePeriod(true),
 				copyBuilder.newPrincipal(asList(records.MD), "75-0-D").setActiveDateMetadata("dateNaiss")
-						   .setIgnoreActivePeriod(true),
+						.setIgnoreActivePeriod(true),
 				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
 		));
 		recordServices.update(rule2);
@@ -2380,11 +2380,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		Folder folderWithoutType_PA_MD = transaction.add(folderBuilder.build()).setMediumTypes(records.PA_MD);
 
 		Folder secondaryFolderType1 = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
-												 .setCopyStatusEntered(CopyType.SECONDARY);
+				.setCopyStatusEntered(CopyType.SECONDARY);
 		Folder secondaryFolderType2 = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA_MD)
-												 .setCopyStatusEntered(CopyType.SECONDARY);
+				.setCopyStatusEntered(CopyType.SECONDARY);
 		Folder secondaryFolder = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
-											.setCopyStatusEntered(CopyType.SECONDARY);
+				.setCopyStatusEntered(CopyType.SECONDARY);
 
 		recordServices.execute(transaction);
 

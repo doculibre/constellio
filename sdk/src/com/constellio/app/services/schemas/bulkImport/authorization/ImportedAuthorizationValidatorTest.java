@@ -70,7 +70,7 @@ public class ImportedAuthorizationValidatorTest extends ConstellioTest {
 				new ImportedAuthorizationTarget("administrativeUnit", "administrativeUnitLegacyId"),
 				new ImportedAuthorizationTarget("userTask", "userTaskLegacyId"));
 		validAuthorization = new ImportedAuthorization().setId("id").setPrincipals(validPrincipals)
-														.setTargets(validTargets).setAccess("r");
+				.setTargets(validTargets).setAccess("r");
 	}
 
 	@Test

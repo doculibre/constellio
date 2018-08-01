@@ -10,7 +10,7 @@ public class ConnectorHttpDocumentExtension {
 	public void onHttpDocumentFetched(OnHttpDocumentFetchedParams onHttpDocumentFetchedParams) {
 		ConnectorHttpDocument connectorHttpDocument = onHttpDocumentFetchedParams.getConnectorHttpDocument();
 		ThesaurusService thesaurusService = onHttpDocumentFetchedParams.getModelLayerFactory().getThesaurusManager()
-																	   .get(connectorHttpDocument.getCollection());
+				.get(connectorHttpDocument.getCollection());
 
 		if (thesaurusService != null) {
 			List<String> thesarusIdMatch = thesaurusService

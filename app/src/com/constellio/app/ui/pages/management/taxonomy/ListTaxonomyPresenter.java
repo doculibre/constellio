@@ -89,9 +89,9 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		String localFolderCode = Folder.DEFAULT_SCHEMA + "_" + taxonomy.getCode() + "Ref";
 		String localDocumentCode = Document.DEFAULT_SCHEMA + "_" + taxonomy.getCode() + "Ref";
 		MetadataSchema defaultFolderSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-															  .getDefaultSchema(Folder.SCHEMA_TYPE);
+				.getDefaultSchema(Folder.SCHEMA_TYPE);
 		MetadataSchema defaultDocumentSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-																.getDefaultSchema(Document.SCHEMA_TYPE);
+				.getDefaultSchema(Document.SCHEMA_TYPE);
 
 		if (defaultFolderSchema.metadataExists(localFolderCode)) {
 			metadataDeletionService().deleteMetadata(localFolderCode);

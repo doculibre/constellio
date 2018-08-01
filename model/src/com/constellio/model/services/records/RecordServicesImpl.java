@@ -171,7 +171,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 
 				newTransaction.getRecordUpdateOptions().getTransactionRecordsReindexation()
-							  .addReindexedMetadatas(impact.getMetadataToReindex());
+						.addReindexedMetadatas(impact.getMetadataToReindex());
 			}
 			execute(newTransaction);
 		}
@@ -293,7 +293,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					if (newRecordVersion != null && record.getVersion() != newRecordVersion.getVersion()) {
 						MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
-																.getSchemaTypes(transaction.getCollection());
+								.getSchemaTypes(transaction.getCollection());
 						MetadataSchema metadataSchema = types.getSchema(newRecordVersion.getSchemaCode());
 						try {
 							((RecordImpl) record).merge((RecordImpl) newRecordVersion, metadataSchema);
@@ -306,7 +306,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					}
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager()
-															.getSchemaTypes(transaction.getCollection());
+							.getSchemaTypes(transaction.getCollection());
 					MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
 				}
 			} else {
@@ -336,7 +336,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : transaction.getRecords()) {
 			if (record.isSaved()) {
 				conditions.add(LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).isEqualTo(record.getId())
-														  .andWhere(Schemas.VERSION).isNotEqual(record.getVersion()));
+						.andWhere(Schemas.VERSION).isNotEqual(record.getVersion()));
 			}
 		}
 
@@ -571,7 +571,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
 				} else {
 					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
-																				.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
+							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
 				}
 
 			}
@@ -949,7 +949,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						modificationImpactHandler.cancel();
 					}
 					LOGGER.trace("Optimistic locking, handling with specified resolution {}", transaction.getRecordUpdateOptions()
-																										 .getOptimisticLockingResolution().name(), e);
+							.getOptimisticLockingResolution().name(), e);
 					handleOptimisticLocking(transactionDTOEntry.getValue(), transaction, modificationImpactHandler, e, attempt);
 				}
 			}

@@ -112,13 +112,13 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		SolrUserCredential userCredential = (SolrUserCredential) userServices.getUserCredential(username);
 
 		userCredential = (SolrUserCredential) userCredential.
-																	withFirstName(profileVO.getFirstName())
-															.withLastName(profileVO.getLastName())
-															.withEmail(profileVO.getEmail())
-															.withJobTitle(profileVO.getJobTitle())
-															.withPhone(profileVO.getPhone())
-															.withAddress(profileVO.getAddress())
-															.withFax(profileVO.getFax());
+				withFirstName(profileVO.getFirstName())
+				.withLastName(profileVO.getLastName())
+				.withEmail(profileVO.getEmail())
+				.withJobTitle(profileVO.getJobTitle())
+				.withPhone(profileVO.getPhone())
+				.withAddress(profileVO.getAddress())
+				.withFax(profileVO.getFax());
 
 		if (profileVO.getPersonalEmails() != null) {
 			userCredential = (SolrUserCredential) userCredential.withPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));

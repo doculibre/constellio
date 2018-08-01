@@ -36,7 +36,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	public UpgradeAppRecoveryServiceImpl(AppLayerFactory appLayerFactory, IOServices ioServices) {
 		this.appLayerFactory = appLayerFactory;
 		this.transactionLogRecoveryManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
-															.getTransactionLogRecoveryManager();
+				.getTransactionLogRecoveryManager();
 		this.ioServices = ioServices;
 		this.oldSetting = ioServices.newTemporaryFolder(WORK_DIR_NAME);
 		systemPropertiesServices = new SystemPropertiesServices(appLayerFactory.getModelLayerFactory().getFoldersLocator(),
@@ -49,7 +49,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	void prepareNextStartup(Throwable exception) {
 		this.upgradeAppRecoveryConfigManager.onVersionMigratedWithException(exception);
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
-																				 .getSystemConfigurationsManager();
+				.getSystemConfigurationsManager();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, false);
 		pointToPreviousValidVersion();
 	}
@@ -79,7 +79,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		transactionLogRecoveryManager.stopRollbackMode();
 		upgradeAppRecoveryConfigManager.onVersionMigratedCorrectly();
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
-																				 .getSystemConfigurationsManager();
+				.getSystemConfigurationsManager();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, false);
 	}
 
@@ -110,7 +110,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	double getTransactionLogFileSizeInGig() {
 		DataLayerConfiguration configuration = appLayerFactory.getModelLayerFactory()
-															  .getDataLayerFactory().getDataLayerConfiguration();
+				.getDataLayerFactory().getDataLayerConfiguration();
 		return this.systemPropertiesServices.getFileSizeInGig(configuration.getSecondTransactionLogBaseFolder());
 	}
 
@@ -118,7 +118,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	public void afterWarUpload(ConstellioVersionInfo currentInstalledVersion, ConstellioVersionInfo uploadedVersion) {
 		this.upgradeAppRecoveryConfigManager.onVersionUploadedCorrectly(currentInstalledVersion, uploadedVersion);
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
-																				 .getSystemConfigurationsManager();
+				.getSystemConfigurationsManager();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, true);
 	}
 
@@ -160,7 +160,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		if (this.oldSetting.exists()) {
 			Map<String, String> currentRecoveryProperties = this.upgradeAppRecoveryConfigManager.getAllProperties();
 			ConfigManager confManager = appLayerFactory.getModelLayerFactory()
-													   .getDataLayerFactory().getConfigManager();
+					.getDataLayerFactory().getConfigManager();
 			confManager.copySettingsFrom(this.oldSetting);
 			this.upgradeAppRecoveryConfigManager.replaceAllProperties(currentRecoveryProperties);
 		}
@@ -168,7 +168,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	File getSettingFolder() {
 		return appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
-							  .getSettingsFileSystemBaseFolder();
+				.getSettingsFileSystemBaseFolder();
 	}
 
 }

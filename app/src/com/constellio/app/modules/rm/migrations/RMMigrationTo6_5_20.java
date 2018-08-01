@@ -35,11 +35,11 @@ public class RMMigrationTo6_5_20 implements MigrationScript {
 			List<DocumentType> emailDocumentTypes = rm.searchDocumentTypes(where(Schemas.TITLE).isEqualTo(title));
 			if (!emailDocumentTypes.isEmpty()) {
 				recordServices.update(emailDocumentTypes.get(0).setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-														.setLinkedSchema(Email.SCHEMA));
+						.setLinkedSchema(Email.SCHEMA));
 			} else {
 
 				recordServices.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-									 .setTitle(title).setLinkedSchema(Email.SCHEMA));
+						.setTitle(title).setLinkedSchema(Email.SCHEMA));
 			}
 		} else if (emailDocumentType.isLogicallyDeletedStatus()) {
 

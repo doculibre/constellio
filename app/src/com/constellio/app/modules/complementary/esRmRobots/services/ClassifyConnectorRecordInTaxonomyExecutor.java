@@ -184,10 +184,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (params.getInTaxonomy() != null) {
 
 			Taxonomy targetTaxonomy = modelLayerFactory.getTaxonomiesManager()
-													   .getEnabledTaxonomyWithCode(connectorFolder.getCollection(), params.getInTaxonomy());
+					.getEnabledTaxonomyWithCode(connectorFolder.getCollection(), params.getInTaxonomy());
 			String conceptTypeCode = targetTaxonomy.getSchemaTypes().get(0);
 			MetadataSchemaType conceptType = modelLayerFactory.getMetadataSchemasManager()
-															  .getSchemaTypes(connectorFolder.getCollection()).getSchemaType(conceptTypeCode);
+					.getSchemaTypes(connectorFolder.getCollection()).getSchemaType(conceptTypeCode);
 			String metadataCode = conceptType.getDefaultSchema().getCode() + "_" + Schemas.CODE.getLocalCode();
 			Metadata codeMetadata = conceptType.getMetadata(metadataCode);
 
@@ -695,7 +695,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					UploadOptions options = new UploadOptions(connectorDocument.getTitle())
 							.setHandleDeletionOfUnreferencedHashes(false);
 					newVersionDataSummary = contentManager.upload(versionStream, options)
-														  .getContentVersionDataSummary();
+							.getContentVersionDataSummary();
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {

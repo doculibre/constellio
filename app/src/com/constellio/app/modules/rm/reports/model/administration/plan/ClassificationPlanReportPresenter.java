@@ -78,8 +78,8 @@ public class ClassificationPlanReportPresenter {
 
 			LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
 					.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
-															 .where(rm.retentionRule.administrativeUnits())
-															 .isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+							.where(rm.retentionRule.administrativeUnits())
+							.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
 			List<String> retentionRulesIds = searchServices.searchRecordIds(retentionRulesQuery);
 
 			for (String retentionRulesId : retentionRulesIds) {
@@ -87,8 +87,8 @@ public class ClassificationPlanReportPresenter {
 				MetadataSchemaType categorySchemaType = rm.category.schemaType();
 				LogicalSearchQuery categoriesQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(categorySchemaType)
-																 .where(rm.category.retentionRules())
-																 .isContaining(Arrays.asList(retentionRulesId)))
+								.where(rm.category.retentionRules())
+								.isContaining(Arrays.asList(retentionRulesId)))
 						.sortAsc(Schemas.CODE);
 
 				List<Record> categoryRecords = searchServices.search(categoriesQuery);
@@ -163,7 +163,7 @@ public class ClassificationPlanReportPresenter {
 	private void init() {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
-													 .setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		searchServices = modelLayerFactory.newSearchServices();

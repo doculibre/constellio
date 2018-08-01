@@ -50,7 +50,7 @@ public class RobotsManager implements StatefulService {
 
 	private void startAutoExecutorThread() {
 		BackgroundThreadsManager manager = robotSchemas.getModelLayerFactory().getDataLayerFactory()
-													   .getBackgroundThreadsManager();
+				.getBackgroundThreadsManager();
 
 		manager.configure(BackgroundThreadConfiguration.repeatingAction("startAutoExecutingRobots", new Runnable() {
 			@Override
@@ -58,7 +58,7 @@ public class RobotsManager implements StatefulService {
 				startAutoExecutingRobots();
 			}
 		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
-													   .executedEvery(Duration.standardHours(24)));
+				.executedEvery(Duration.standardHours(24)));
 	}
 
 	public RegisteredAction registerAction(String code, String parametersSchemaLocalCode, Collection<String> types,

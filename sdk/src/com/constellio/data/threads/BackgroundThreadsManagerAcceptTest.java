@@ -123,7 +123,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 		Runnable runnable = mock(Runnable.class);
 
 		doAnswer(increaseAndThrowException()).doAnswer(increaseAndThrowException()).doAnswer(increaseAndThrowError())
-											 .doAnswer(increase()).when(runnable).run();
+				.doAnswer(increase()).when(runnable).run();
 
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("action", runnable).executedEvery(
 				Duration.standardSeconds(1)).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));

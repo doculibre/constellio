@@ -39,7 +39,7 @@ public class StoredBatchProcessWriter {
 		if (batchProcessIdElements != null) {
 			for (Element batchProcessIdElement : batchProcessIdElements) {
 				if (!batchProcessIdElement.getAttributeValue(BATCH_PROCESS_ID)
-										  .equals(storedBatchProcessPart.getBatchProcessId())) {
+						.equals(storedBatchProcessPart.getBatchProcessId())) {
 					elementsToRemove.add(batchProcessIdElement);
 				}
 			}

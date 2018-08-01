@@ -35,7 +35,7 @@ public class RMMigrationTo6_5_54 implements MigrationScript {
 		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToDisplay(ContainerRecord.ADMINISTRATIVE_UNITS)
-				   .afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
+				.afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
 
 		schemaDisplayManager.execute(transaction.build());
 		setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), provider);

@@ -33,9 +33,9 @@ public class TasksMigrationTo7_5_0_1 implements MigrationScript {
 		String remindersTab = "init.userTask.remindersTab";
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.REMINDER_FREQUENCY)
-							   .withMetadataGroup(remindersTab));
+				.withMetadataGroup(remindersTab));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ESCALATION_ASSIGNEE)
-							   .withMetadataGroup(remindersTab));
+				.withMetadataGroup(remindersTab));
 		manager.execute(transaction);
 	}
 
@@ -49,14 +49,14 @@ public class TasksMigrationTo7_5_0_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.REMINDER_FREQUENCY).setType(MetadataValueType.STRING)
-						.addLabel(Language.French, "Fréquence de rappel").addLabel(Language.English, "Reminder frequency");
+					.addLabel(Language.French, "Fréquence de rappel").addLabel(Language.English, "Reminder frequency");
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.LAST_REMINDER).setType(MetadataValueType.DATE_TIME)
-						.setSystemReserved(true);
+					.setSystemReserved(true);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.NUMBER_OF_REMINDERS).setType(MetadataValueType.NUMBER)
-						.setSystemReserved(true).setDefaultValue(0);
+					.setSystemReserved(true).setDefaultValue(0);
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).createUndeletable(Task.ESCALATION_ASSIGNEE).setType(MetadataValueType.REFERENCE)
-						.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE))
-						.addLabel(Language.French, "Personne assignée à l'escalade").addLabel(Language.English, "Escalation assignee");
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE))
+					.addLabel(Language.French, "Personne assignée à l'escalade").addLabel(Language.English, "Escalation assignee");
 		}
 	}
 }

@@ -26,17 +26,17 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 		new AddGlobalGroupLocallyCreatedMetadata(collection, provider, appLayerFactory).migrate();
 
 		if (appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-						   .hasSchema(SolrGlobalGroup.DEFAULT_SCHEMA)) {
+				.hasSchema(SolrGlobalGroup.DEFAULT_SCHEMA)) {
 			// Set metadata value
 			final boolean locallyCreated = appLayerFactory.
-																  getModelLayerFactory().
-																  newUserServices().
-																  canAddOrModifyUserAndGroup();
+					getModelLayerFactory().
+					newUserServices().
+					canAddOrModifyUserAndGroup();
 
 			final List<GlobalGroup> globalGroupList = appLayerFactory.
-																			 getModelLayerFactory().
-																			 getGlobalGroupsManager().
-																			 getAllGroups();
+					getModelLayerFactory().
+					getGlobalGroupsManager().
+					getAllGroups();
 
 			boolean runGroupMigration = true;
 			while (runGroupMigration) {
@@ -44,9 +44,9 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 				for (final GlobalGroup globalGroup : globalGroupList) {
 					try {
 						appLayerFactory.
-											   getModelLayerFactory().
-											   getGlobalGroupsManager().
-											   addUpdate(globalGroup.withLocallyCreated(locallyCreated));
+								getModelLayerFactory().
+								getGlobalGroupsManager().
+								addUpdate(globalGroup.withLocallyCreated(locallyCreated));
 					} catch (Exception e) {
 						e.printStackTrace();
 						runGroupMigration = true;

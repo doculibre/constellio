@@ -49,23 +49,23 @@ public class MetadataSchemaTypesAcceptanceTest extends ConstellioTest {
 		documentCustomSchema = documetSchemaType.createCustomSchema("custom");
 
 		documentSchema.create("code1").setType(STRING)
-					  .setDefaultValue("default");
+				.setDefaultValue("default");
 		folderSchema.create("code1").setType(STRING)
-					.setDefaultValue("default");
+				.setDefaultValue("default");
 
 		folderSchema.create("code2").setType(STRING)
-					.setDefaultValue("default");
+				.setDefaultValue("default");
 
 		customFolderSchema.create("code3").setType(STRING)
-						  .setDefaultValue("default");
+				.setDefaultValue("default");
 		customFolderSchema2.create("code3").setType(STRING)
-						   .setDefaultValue("default");
+				.setDefaultValue("default");
 
 		documentSchema.create("code4").setType(STRING)
-					  .setDefaultValue("default");
+				.setDefaultValue("default");
 
 		documentCustomSchema.create("code5").setType(STRING)
-							.setDefaultValue("default");
+				.setDefaultValue("default");
 
 		schemaManager.saveUpdateSchemaTypes(schemaTypesBuilder);
 
@@ -87,10 +87,10 @@ public class MetadataSchemaTypesAcceptanceTest extends ConstellioTest {
 	public void whenGetAllMetadatasThenOk() {
 		MetadataSchemaTypes types = schemaManager.getSchemaTypes(zeCollection);
 		assertThat(types.getAllMetadatas()).extracting("code")
-										   .contains(mdInFolderSchemaWithLocalCode1.getCode(), mdInDocumentSchemaWithLocalCode1.getCode(),
-												   mdInFolderSchemaWithLocalCode2.getCode(), mdInCustomFolderSchemaWithLocalCode3.getCode(),
-												   mdInDocumentSchemaWithLocalCode4.getCode(), mdInDocumentCustomSchemaWithLocalCode5.getCode()
-												   , mdInCustomFolderSchema2WithLocalCode3.getCode());
+				.contains(mdInFolderSchemaWithLocalCode1.getCode(), mdInDocumentSchemaWithLocalCode1.getCode(),
+						mdInFolderSchemaWithLocalCode2.getCode(), mdInCustomFolderSchemaWithLocalCode3.getCode(),
+						mdInDocumentSchemaWithLocalCode4.getCode(), mdInDocumentCustomSchemaWithLocalCode5.getCode()
+						, mdInCustomFolderSchema2WithLocalCode3.getCode());
 	}
 
 	//TODO Francis fix @Test

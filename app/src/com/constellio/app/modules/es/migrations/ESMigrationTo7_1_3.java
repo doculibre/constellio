@@ -54,7 +54,7 @@ public class ESMigrationTo7_1_3 extends MigrationHelper implements MigrationScri
 			RecordServices recordServices = es.getModelLayerFactory().newRecordServices();
 
 			LogicalSearchCondition condition = from(es.facet.schemaType()).where(es.facet.fieldDatastoreCode())
-																		  .isEqualTo(es.connectorDocument.mimetype().getDataStoreCode());
+					.isEqualTo(es.connectorDocument.mimetype().getDataStoreCode());
 
 			List<Facet> facets = es.searchFacets(condition);
 			for (Facet facet : facets) {

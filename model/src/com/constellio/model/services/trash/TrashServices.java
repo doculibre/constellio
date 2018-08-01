@@ -65,7 +65,7 @@ public class TrashServices {
 	private LogicalSearchCondition getDeletableRecordsForUnsecuredType(final String selectedType,
 																	   final User currentUser) {
 		ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
-																	.forCollection(collection);
+				.forCollection(collection);
 		final LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(asList(selectedType), collection).returnAll());
 		return extension.getPhysicallyDeletableQueryForSchemaType(new SchemaEvent() {
 
@@ -105,9 +105,9 @@ public class TrashServices {
 	private List<MetadataSchemaType> getTrashSchemaTypes(String collection, final User currentUser) {
 		List<MetadataSchemaType> returnList = new ArrayList<>();
 		ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
-																	.forCollection(collection);
+				.forCollection(collection);
 		List<MetadataSchemaType> allCollectionSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
-																			 .getSchemaTypes(collection).getSchemaTypes();
+				.getSchemaTypes(collection).getSchemaTypes();
 		for (MetadataSchemaType schemaType : allCollectionSchemaTypes) {
 			final String schemaTypeCode = schemaType.getCode();
 			SchemaEvent schemaEvent = new SchemaEvent() {
@@ -200,8 +200,8 @@ public class TrashServices {
 	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection,
 																				 LocalDateTime deleteDate) {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(getTrashSchemaTypes(collection, null))
-																	  .where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
-																	  .andWhere(Schemas.LOGICALLY_DELETED_ON).isLessOrEqualThan(deleteDate);
+				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+				.andWhere(Schemas.LOGICALLY_DELETED_ON).isLessOrEqualThan(deleteDate);
 		return new LogicalSearchQuery(condition).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 

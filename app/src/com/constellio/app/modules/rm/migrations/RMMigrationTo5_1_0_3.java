@@ -34,25 +34,25 @@ public class RMMigrationTo5_1_0_3 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromDisplay(AdministrativeUnit.FILING_SPACES);
+				.removeFromDisplay(AdministrativeUnit.FILING_SPACES);
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromDisplay(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
+				.removeFromDisplay(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromDisplay(AdministrativeUnit.FILING_SPACES_USERS);
+				.removeFromDisplay(AdministrativeUnit.FILING_SPACES_USERS);
 
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromForm(AdministrativeUnit.FILING_SPACES);
+				.removeFromForm(AdministrativeUnit.FILING_SPACES);
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromForm(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
+				.removeFromForm(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromForm(AdministrativeUnit.FILING_SPACES_USERS);
+				.removeFromForm(AdministrativeUnit.FILING_SPACES_USERS);
 
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromSearchResult(AdministrativeUnit.FILING_SPACES);
+				.removeFromSearchResult(AdministrativeUnit.FILING_SPACES);
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromSearchResult(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
+				.removeFromSearchResult(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
 		transactionBuilder.in(AdministrativeUnit.SCHEMA_TYPE)
-						  .removeFromSearchResult(AdministrativeUnit.FILING_SPACES_USERS);
+				.removeFromSearchResult(AdministrativeUnit.FILING_SPACES_USERS);
 
 		manager.execute(transactionBuilder.build());
 	}
@@ -75,11 +75,11 @@ public class RMMigrationTo5_1_0_3 implements MigrationScript {
 
 			MetadataSchemaBuilder adminstrativeUnitSchema = typesBuilder.getSchema(AdministrativeUnit.DEFAULT_SCHEMA);
 			adminstrativeUnitSchema.getMetadata(AdministrativeUnit.FILING_SPACES).setEssential(false)
-								   .setDefaultRequirement(false);
+					.setDefaultRequirement(false);
 			adminstrativeUnitSchema.getMetadata(AdministrativeUnit.FILING_SPACES_ADMINISTRATORS).setEssential(false)
-								   .setDefaultRequirement(false);
+					.setDefaultRequirement(false);
 			adminstrativeUnitSchema.getMetadata(AdministrativeUnit.FILING_SPACES_USERS).setEssential(false)
-								   .setDefaultRequirement(false);
+					.setDefaultRequirement(false);
 		}
 	}
 }

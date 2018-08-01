@@ -530,7 +530,7 @@ public class User extends RecordWrapper {
 
 	public boolean hasGlobalTypeAccess(String typeCode, String access) {
 		return roles.getSchemasRecordsServices().getModelLayerFactory().getSecurityTokenManager()
-					.hasGlobalTypeAccess(this, typeCode, access);
+				.hasGlobalTypeAccess(this, typeCode, access);
 	}
 
 	public SearchPageLength getDefaultPageLength() {

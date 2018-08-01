@@ -257,8 +257,8 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)
-												   .newAddBatchProcessDocumentAlteration(aBatchProcessId, urlQueryString, "zeCollection",
-														   currentDate, 42, action, null, null);
+				.newAddBatchProcessDocumentAlteration(aBatchProcessId, urlQueryString, "zeCollection",
+						currentDate, 42, action, null, null);
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
@@ -324,7 +324,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		inOrder.verify(batchProcessListReader).readCurrent();
 		inOrder.verify(batchProcessListWriter).startNextBatchProcess(any(LocalDateTime.class));
 		inOrder.verify(configManager)
-			   .update(BatchProcessesManager.BATCH_PROCESS_LIST_PATH, initialHash, batchProcessListDocument);
+				.update(BatchProcessesManager.BATCH_PROCESS_LIST_PATH, initialHash, batchProcessListDocument);
 		inOrder.verify(batchProcessListReader).readCurrent();
 
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);

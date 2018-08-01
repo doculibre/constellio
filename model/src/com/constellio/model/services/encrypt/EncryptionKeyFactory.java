@@ -52,7 +52,7 @@ public class EncryptionKeyFactory {
 		File encryptionFile = modelLayerFactory.getConfiguration().getConstellioEncryptionFile();
 
 		if (modelLayerFactory.getConfiguration().getDataLayerConfiguration().getSettingsConfigType()
-							 .equals(ConfigManagerType.ZOOKEEPER)) {
+				.equals(ConfigManagerType.ZOOKEEPER)) {
 			String path = encryptionFile.getName();
 			return modelLayerFactory.getDataLayerFactory().getConfigManager().getText(path).getText();
 		} else {

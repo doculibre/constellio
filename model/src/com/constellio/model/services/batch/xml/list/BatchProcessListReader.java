@@ -272,7 +272,7 @@ public class BatchProcessListReader {
 		}
 		StringBuilder stringBuilder = new StringBuilder(text.replaceFirst("\\[", ""));
 		return Arrays.asList(new StringBuilder(stringBuilder.reverse().toString().replaceFirst("\\]", "")).reverse().toString()
-																										  .split(", "));
+				.split(", "));
 	}
 
 	ParametrizedInstanceUtils newParametrizedInstanceUtils() {

@@ -46,7 +46,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 	}};
 
 	public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "")
-																				 .replacingRegex("[&$%]", "");
+			.replacingRegex("[&$%]", "");
 	public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
 
 	private Record[] recordElements;
@@ -295,7 +295,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 					.equals(recordReferenced.getTypeCode())) {
 				Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ?
 										  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
-																.get(AdministrativeUnit.PARENT) :
+												  .get(AdministrativeUnit.PARENT) :
 										  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
 				String parentMetadataId = recordReferenced.get(parentMetadata);
 				if (parentMetadataId != null) {

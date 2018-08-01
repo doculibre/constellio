@@ -91,14 +91,14 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		userWithToken1And2 = users.chuckNorrisIn(zeCollection);
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
-															   .setTitle("ze connector").setSeeds(asList(folderA, folderB)).setUsername(username).setPassword(password).setDomain(domain)
-															   .setTraversalCode("zeTraversal"));
+				.setTitle("ze connector").setSeeds(asList(folderA, folderB)).setUsername(username).setPassword(password).setDomain(domain)
+				.setTraversalCode("zeTraversal"));
 
 		anotherConnectorInstance = connectorManager
 				.createConnector(es.newConnectorSmbInstance().setCode("anotherConnector").setEnabled(false)
-								   .setTitle("another connector").setSeeds(asList(share)).setUsername(username).setPassword(password)
-								   .setDomain(domain)
-								   .setTraversalCode("anotherConnectorTraversal"));
+						.setTitle("another connector").setSeeds(asList(share)).setUsername(username).setPassword(password)
+						.setDomain(domain)
+						.setTraversalCode("anotherConnectorTraversal"));
 
 	}
 
@@ -107,31 +107,31 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.add(es.newConnectorSmbFolderWithId(folderA, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK))
-				   .setTitle("A").setUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("A").setUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderB, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK))
-				   .setTitle("B").setUrl("smb://B/").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("B").setUrl("smb://B/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAA, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK).setParentUrl("smb://A/"))
-				   .setTitle("AA").setUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("AA").setUrl("smb://A/A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbFolderWithId(folderAB, connectorInstance).setLastFetchedStatus(LastFetchedStatus.OK).setParentUrl("smb://A/"))
-				   .setTitle("AB").setUrl("smb://A/B/").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("AB").setUrl("smb://A/B/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA1, connectorInstance))
-				   .setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentA2, connectorInstance))
-				   .setTitle("2.txt").setUrl("smb://A/2.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("2.txt").setUrl("smb://A/2.txt").setParentUrl("smb://A/").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentB3, connectorInstance))
-				   .setTitle("3.txt").setUrl("smb://B/3.txt").setParentUrl("smb://B/").setManualTokens("rtoken1");
+				.setTitle("3.txt").setUrl("smb://B/3.txt").setParentUrl("smb://B/").setManualTokens("rtoken1");
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA4, connectorInstance).setParentUrl("smb://A/A/"))
-				   .setTitle("4.txt").setUrl("smb://A/A/4.txt").setManualTokens(PUBLIC_TOKEN);
+				.setTitle("4.txt").setUrl("smb://A/A/4.txt").setManualTokens(PUBLIC_TOKEN);
 
 		transaction.add(es.newConnectorSmbDocumentWithId(documentAA5, connectorInstance).setParentUrl("smb://A/A/"))
-				   .setTitle("5.txt").setUrl("smb://A/A/5.txt").setManualTokens("rtoken2");
+				.setTitle("5.txt").setUrl("smb://A/A/5.txt").setManualTokens("rtoken2");
 
 		recordServices.execute(transaction);
 	}
@@ -147,38 +147,38 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		LocalDateTime shishOClock = new LocalDateTime();
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolderFromAnotherConnector, anotherConnectorInstance))
-				   .setTitle("A").setUrl("smb://A/").setFetched(true).setTraversalCode("current");
+				.setTitle("A").setUrl("smb://A/").setFetched(true).setTraversalCode("current");
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolderOfPreviousTraversalFromAnotherConnector,
 				anotherConnectorInstance))
-				   .setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous");
+				.setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous");
 
 		transaction.add(es.newConnectorSmbFolderWithId(unfetchedFolderFromAnotherConnector, anotherConnectorInstance))
-				   .setTitle("AA").setUrl("smb://A/A/").setFetched(false);
+				.setTitle("AA").setUrl("smb://A/A/").setFetched(false);
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolder, connectorInstance))
-				   .setTitle("A").setUrl("smb://A/").setFetched(true).setTraversalCode("current")
-				   .setModifiedOn(shishOClock.plusSeconds(1));
+				.setTitle("A").setUrl("smb://A/").setFetched(true).setTraversalCode("current")
+				.setModifiedOn(shishOClock.plusSeconds(1));
 
 		transaction.add(es.newConnectorSmbFolderWithId(fetchedFolderOfPreviousTraversal, connectorInstance))
-				   .setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous")
-				   .setModifiedOn(shishOClock.plusSeconds(2));
+				.setTitle("B").setUrl("smb://B/").setFetched(true).setTraversalCode("previous")
+				.setModifiedOn(shishOClock.plusSeconds(2));
 
 		transaction.add(es.newConnectorSmbFolderWithId(unfetchedFolder, connectorInstance))
-				   .setTitle("AA").setUrl("smb://A/A/").setFetched(false)
-				   .setModifiedOn(shishOClock.plusSeconds(6));
+				.setTitle("AA").setUrl("smb://A/A/").setFetched(false)
+				.setModifiedOn(shishOClock.plusSeconds(6));
 
 		transaction.add(es.newConnectorSmbDocumentWithId(fetchedDocument, connectorInstance))
-				   .setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setFetched(true).setTraversalCode("current")
-				   .setModifiedOn(shishOClock.plusSeconds(3));
+				.setTitle("1.txt").setUrl("smb://A/1.txt").setParentUrl("smb://A/").setFetched(true).setTraversalCode("current")
+				.setModifiedOn(shishOClock.plusSeconds(3));
 
 		transaction.add(es.newConnectorSmbDocumentWithId(fetchedDocumentOfPreviousTraversal, connectorInstance))
-				   .setTitle("2.txt").setUrl("smb://A/2.txt").setParentUrl("smb://A/").setFetched(true).setTraversalCode("previous")
-				   .setModifiedOn(shishOClock.plusSeconds(4));
+				.setTitle("2.txt").setUrl("smb://A/2.txt").setParentUrl("smb://A/").setFetched(true).setTraversalCode("previous")
+				.setModifiedOn(shishOClock.plusSeconds(4));
 
 		transaction.add(es.newConnectorSmbDocumentWithId(unfetchedDocument, connectorInstance))
-				   .setTitle("3.txt").setUrl("smb://B/3.txt").setParentUrl("smb://A/").setFetched(false)
-				   .setModifiedOn(shishOClock.plusSeconds(5));
+				.setTitle("3.txt").setUrl("smb://B/3.txt").setParentUrl("smb://A/").setFetched(false)
+				.setModifiedOn(shishOClock.plusSeconds(5));
 		recordServices.execute(transaction);
 
 		List<ConnectorDocument<?>> documents = es.searchConnectorDocuments(es.connectorDocumentsToFetchQuery(connectorInstance));
@@ -205,7 +205,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 
 		assertThatVisibleRootRecordsFor(userWithCollectionReadAccess).containsOnly(folderA, folderB);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderA)
-																	  .containsOnly(folderAA, documentA1, documentA2, folderAB);
+				.containsOnly(folderAA, documentA1, documentA2, folderAB);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderB).containsOnly(documentB3);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAA).containsOnly(documentAA4, documentAA5);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAB).isEmpty();
@@ -258,7 +258,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 				new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators
 						.from(asList(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()))
 						.where(es.connectorSmbFolder.parentConnectorUrl()).isNull())
-										.filteredWithUser(user));
+						.filteredWithUser(user));
 		return assertThat(records)
 				.extracting("id");
 	}
@@ -276,7 +276,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 					new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators
 							.from(asList(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()))
 							.where(es.connectorSmbFolder.parentConnectorUrl()).isEqualTo(connectorSmbFolder.getConnectorUrl()))
-											.filteredWithUser(user));
+							.filteredWithUser(user));
 			return assertThat(records)
 					.extracting("id");
 		}

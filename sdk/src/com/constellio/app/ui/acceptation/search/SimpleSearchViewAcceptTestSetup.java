@@ -44,12 +44,12 @@ public class SimpleSearchViewAcceptTestSetup extends SchemasSetup {
 	public void setUp() {
 		MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(DOCUMENT);
 		builder.getDefaultSchema().create("bodyText").addLabel(Language.French, "Body text").setType(MetadataValueType.TEXT)
-			   .setSearchable(true);
+				.setSearchable(true);
 		builder.getDefaultSchema().create("number").addLabel(Language.French, "Number").setType(MetadataValueType.NUMBER)
-			   .setSearchable(true);
+				.setSearchable(true);
 		builder.getDefaultSchema().create("someFacet").addLabel(Language.French, "Some facet").setType(MetadataValueType.NUMBER);
 		builder.getDefaultSchema().create("anotherFacet").addLabel(Language.French, "Another facet")
-			   .setType(MetadataValueType.STRING);
+				.setType(MetadataValueType.STRING);
 		builder.getDefaultSchema().create("date").setType(MetadataValueType.DATE);
 		builder.getDefaultSchema().create("zenum").setType(MetadataValueType.ENUM).defineAsEnum(ZEnum.class);
 	}

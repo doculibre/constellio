@@ -43,7 +43,7 @@ public class DeleteSpellCheckerExclusionsPresenter extends BasePresenter<DeleteS
 	public void deleteExclusionButtonClicked(ExclusionCollectionVO exclusionCollectionVO) {
 		CorrectorExclusion correctorExclusion = new CorrectorExclusion();
 		correctorExclusion.setExclusion(exclusionCollectionVO.getExclusion())
-						  .setCollection(exclusionCollectionVO.getCollection());
+				.setCollection(exclusionCollectionVO.getCollection());
 		correctorExcluderManager.deleteException(correctorExclusion);
 		view.navigate().to().deleteExclusions();
 	}

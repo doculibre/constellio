@@ -99,8 +99,8 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		principals.addAll(authorizationVO.getGroups());
 
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
-									  .forPrincipalsIds(principals).on(authorizationVO.getRecord())
-									  .startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
+				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
+				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
 	}
 
 	private AuthorizationsServices authorizationsServices() {

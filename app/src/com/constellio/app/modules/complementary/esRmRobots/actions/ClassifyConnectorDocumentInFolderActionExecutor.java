@@ -80,8 +80,8 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 				LOGGER.warn("Cannot complete classification of document '" + connectorDocument.getURL() + "'", e);
 				try {
 					appLayerFactory.getModelLayerFactory().newRecordServices()
-								   .add(robots.newRobotLog().setTitle(e.getClass().getCanonicalName() + " : " + e.getMessage())
-											  .setRobot(robotId));
+							.add(robots.newRobotLog().setTitle(e.getClass().getCanonicalName() + " : " + e.getMessage())
+									.setRobot(robotId));
 				} catch (RecordServicesException e1) {
 					throw new RuntimeException("Failed to create the robot error log");
 				}

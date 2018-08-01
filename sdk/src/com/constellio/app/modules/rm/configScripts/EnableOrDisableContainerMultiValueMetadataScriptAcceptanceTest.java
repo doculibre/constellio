@@ -21,7 +21,7 @@ public class EnableOrDisableContainerMultiValueMetadataScriptAcceptanceTest exte
 	public void whenValidateAndContainerIsPresentThenErrorIsPresent() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 		metadataSchemasManager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 

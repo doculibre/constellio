@@ -198,7 +198,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
 		//CREATE COLLECTION
 		Record collectionRecord = appLayerFactory.getCollectionsManager()
-												 .createCollectionInCurrentVersion(collection, asList("fr"));
+				.createCollectionInCurrentVersion(collection, asList("fr"));
 		modelLayerFactory.newRecordServices().update(collectionRecord.set(Schemas.TITLE, title));
 
 		//SETUP MODULES
@@ -335,11 +335,11 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 					}
 
 					Document document = rm.newDocument()
-										  .setFolder(folder)
-										  .setFormCreatedBy(createdBy)
-										  .setFormCreatedOn(new LocalDateTime())
-										  .setTitle(entry.getFileName())
-										  .setContent(contentManager.createMajor(createdBy, entry.getFileName(), contentVersionDataSummary));
+							.setFolder(folder)
+							.setFormCreatedBy(createdBy)
+							.setFormCreatedOn(new LocalDateTime())
+							.setTitle(entry.getFileName())
+							.setContent(contentManager.createMajor(createdBy, entry.getFileName(), contentVersionDataSummary));
 					records.add(document.getWrappedRecord());
 
 					Record documentRecord = document.getWrappedRecord();
@@ -372,32 +372,32 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		for (int i = 0; i < numberOfRootFolders; i++) {
 			List<Record> foldersToAppend = new ArrayList<>();
 			Folder folder = rm.newFolder()
-							  .setTitle("Folder " + i)
-							  .setAdministrativeUnitEntered(administrativeUnitsIds.next())
-							  .setOpenDate(new LocalDate())
-							  .setCategoryEntered(categoriesIds.next())
-							  .setRetentionRuleEntered(ruleId)
-							  .setCopyStatusEntered(CopyType.PRINCIPAL);
+					.setTitle("Folder " + i)
+					.setAdministrativeUnitEntered(administrativeUnitsIds.next())
+					.setOpenDate(new LocalDate())
+					.setCategoryEntered(categoriesIds.next())
+					.setRetentionRuleEntered(ruleId)
+					.setCopyStatusEntered(CopyType.PRINCIPAL);
 
 			folderIds.add(folder.getId());
 			foldersToAppend.add(folder.getWrappedRecord());
 
 			for (int j = 0; j < subFoldersPerFolder; j++) {
 				Folder subFolder = rm.newFolder()
-									 .setTitle("Folder " + i + "-" + j)
-									 .setParentFolder(folder)
-									 .setCopyStatusEntered(CopyType.PRINCIPAL)
-									 .setOpenDate(new LocalDate());
+						.setTitle("Folder " + i + "-" + j)
+						.setParentFolder(folder)
+						.setCopyStatusEntered(CopyType.PRINCIPAL)
+						.setOpenDate(new LocalDate());
 
 				folderIds.add(subFolder.getId());
 				foldersToAppend.add(subFolder.getWrappedRecord());
 
 				for (int k = 0; k < subSubFoldersPerFolder; k++) {
 					Folder subSubFolder = rm.newFolder()
-											.setTitle("Folder " + i + "-" + j + "-" + k)
-											.setParentFolder(subFolder)
-											.setCopyStatusEntered(CopyType.PRINCIPAL)
-											.setOpenDate(new LocalDate());
+							.setTitle("Folder " + i + "-" + j + "-" + k)
+							.setParentFolder(subFolder)
+							.setCopyStatusEntered(CopyType.PRINCIPAL)
+							.setOpenDate(new LocalDate());
 
 					folderIds.add(subSubFolder.getId());
 					foldersToAppend.add(subSubFolder.getWrappedRecord());

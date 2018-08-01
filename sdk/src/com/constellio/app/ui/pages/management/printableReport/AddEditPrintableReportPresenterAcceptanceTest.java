@@ -56,8 +56,8 @@ public class AddEditPrintableReportPresenterAcceptanceTest extends ConstellioTes
 
 		PrintableReport report = rm.newPrintableReport();
 		report.setTitle(titleForFolder)
-			  .set(PrintableReport.RECORD_TYPE, reportTypeForFolder)
-			  .set(PrintableReport.RECORD_SCHEMA, schemaForFolder);
+				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder)
+				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder);
 		transaction.add(report);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 

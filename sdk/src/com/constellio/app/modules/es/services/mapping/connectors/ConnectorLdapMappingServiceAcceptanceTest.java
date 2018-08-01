@@ -38,9 +38,9 @@ public class ConnectorLdapMappingServiceAcceptanceTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		ldapConnectorInstance = connectorManager.createConnector(es.newConnectorLDAPInstance()
-																   .setUsername("bob").setPassword("marley").setUrls(asList("url")).setConnectionUsername("user")
-																   .setUsersBaseContextList(asList("user1"))
-																   .setCode("http").setTitle("Http connector").setEnabled(false));
+				.setUsername("bob").setPassword("marley").setUrls(asList("url")).setConnectionUsername("user")
+				.setUsersBaseContextList(asList("user1"))
+				.setCode("http").setTitle("Http connector").setEnabled(false));
 		ldapConnectorInstance = es.wrapConnectorInstance(ldapConnectorInstance.getWrappedRecord());
 	}
 

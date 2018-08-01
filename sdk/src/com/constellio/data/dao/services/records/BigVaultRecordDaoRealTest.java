@@ -697,7 +697,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		recordDTO = updateFieldsAndGetNewRecordDTO(recordDTO, modifiedFields);
 
 		assertThat(recordDTO.getFields()).containsEntry(savedMetadataFieldName, initialValue).containsEntry("aField_s", "aValue")
-										 .containsEntry("aField_d", 42.0);
+				.containsEntry("aField_d", 42.0);
 	}
 
 	@Test

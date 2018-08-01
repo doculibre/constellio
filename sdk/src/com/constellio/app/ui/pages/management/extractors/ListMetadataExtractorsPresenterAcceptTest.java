@@ -59,13 +59,13 @@ public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 		List<MetadataExtractorVO> metadataExtractorVOs = presenter.getMetadataExtractorVOs(sessionContext, types);
 
 		assertThat(metadataExtractorVOs).extracting("metadataVO.code", "properties", "metadataVO.schema.code")
-										.contains(
-												tuple("document_default_author", Arrays.asList("author"), "document_default"),
-												tuple("document_default_company", Arrays.asList("company"), "document_default"),
-												tuple("document_default_keywords", Arrays.asList("keywords"), "document_default"),
-												tuple("document_default_subject", Arrays.asList("subject"), "document_default"),
-												tuple("document_default_title", Arrays.asList("title"), "document_default")
-										);
+				.contains(
+						tuple("document_default_author", Arrays.asList("author"), "document_default"),
+						tuple("document_default_company", Arrays.asList("company"), "document_default"),
+						tuple("document_default_keywords", Arrays.asList("keywords"), "document_default"),
+						tuple("document_default_subject", Arrays.asList("subject"), "document_default"),
+						tuple("document_default_title", Arrays.asList("title"), "document_default")
+				);
 	}
 
 	@Test

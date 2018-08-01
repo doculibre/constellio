@@ -60,15 +60,15 @@ public class AvailableSpaceReportPresenter {
 		List<Record> rootStorageSpaces = conceptNodesTaxonomySearchServices
 				.getRootConcept(collection, RMTaxonomies.STORAGES, searchOptions.setRows(10000));
 		searchOptions.setReturnedMetadatasFilter(searchOptions.getReturnedMetadatasFilter()
-															  .withIncludedMetadatas(rm.storageSpace.capacity(), rm.storageSpace.availableSize()));
+				.withIncludedMetadatas(rm.storageSpace.capacity(), rm.storageSpace.availableSize()));
 
 		if (rootStorageSpaces != null) {
 			for (Record rootRecord : rootStorageSpaces) {
 				AvailableSpaceReportModelNode parent = new AvailableSpaceReportModelNode();
 				StorageSpace storageSpace = new StorageSpace(rootRecord, types);
 				parent.setCode(storageSpace.getCode()).setTitle(rootRecord.getTitle()).setImage("etagere")
-					  .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
-					  .setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
+						.setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
+						.setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
 				List<Record> childStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(rootRecord, searchOptions.setRows(10000));
 				if (childStorageSpaces != null) {
 					createChildRow(parent, childStorageSpaces);
@@ -96,8 +96,8 @@ public class AvailableSpaceReportPresenter {
 				AvailableSpaceReportModelNode child = new AvailableSpaceReportModelNode();
 				StorageSpace storageSpace = new StorageSpace(childRecord, types);
 				child.setCode(storageSpace.getCode()).setImage("etagere")
-					 .setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
-					 .setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
+						.setCapacity(storageSpace.getCapacity() != null ? storageSpace.getCapacity() : 0)
+						.setTitle(childRecord.getTitle()).setAvailableSpace(storageSpace.getAvailableSize() != null ? storageSpace.getAvailableSize() : 0);
 				List<Record> subChildStorageSpaces = conceptNodesTaxonomySearchServices.getChildConcept(childRecord, searchOptions.setRows(10000));
 				if (subChildStorageSpaces != null) {
 					createChildRow(child, subChildStorageSpaces);

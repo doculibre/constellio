@@ -35,7 +35,7 @@ public class ConnectorContextServices {
 			saveTo(context, tempFile);
 
 			tempFileInputStream = es.getIOServices()
-									.newBufferedFileInputStream(tempFile, CONTEXT_TEMP_FILE_INPUT_STREAM_RESOURCE);
+					.newBufferedFileInputStream(tempFile, CONTEXT_TEMP_FILE_INPUT_STREAM_RESOURCE);
 			String path = "/connectors/" + connectorType + "/" + connectorId + "/context.txt";
 			if (add) {
 				configManager.add(path, tempFileInputStream);

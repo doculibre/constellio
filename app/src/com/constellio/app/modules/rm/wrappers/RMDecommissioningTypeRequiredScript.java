@@ -24,7 +24,7 @@ public class RMDecommissioningTypeRequiredScript implements SystemConfigurationS
 
 				if (types.hasSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 					types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.DECOMMISSIONING_TYPE)
-						 .setDefaultRequirement(value);
+							.setDefaultRequirement(value);
 				}
 			}
 		});

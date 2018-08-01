@@ -59,12 +59,12 @@ public class RMMigrationTo7_1_2 implements MigrationScript {
 			}
 			if (mediumTypesNonAnalogiques.size() == 0) {
 				transaction.add(rm.newMediumType().setCode(driveCode)
-								  .setTitle(driveNewTitle)
-								  .setAnalogical(false));
+						.setTitle(driveNewTitle)
+						.setAnalogical(false));
 			} else {
 				MediumType mediumType = mediumTypesNonAnalogiques.get(0);
 				transaction.add(mediumType.setCode(driveCode)
-										  .setAnalogical(false));
+						.setAnalogical(false));
 			}
 		}
 		try {

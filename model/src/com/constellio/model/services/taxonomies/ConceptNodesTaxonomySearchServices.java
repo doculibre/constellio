@@ -175,7 +175,7 @@ public class ConceptNodesTaxonomySearchServices {
 
 		if (taxonomy.getSchemaTypes().size() == 1) {
 			return from(metadataSchemasManager.getSchemaTypes(taxonomy.getCollection())
-											  .getSchemaType(taxonomy.getSchemaTypes().get(0)));
+					.getSchemaType(taxonomy.getSchemaTypes().get(0)));
 		} else {
 			return from(metadataSchemasManager.getSchemaTypes(taxonomy, taxonomy.getSchemaTypes()));
 		}
@@ -206,7 +206,7 @@ public class ConceptNodesTaxonomySearchServices {
 				.setNumberOfRows(options.getRows())
 				.sortAsc(CODE).sortAsc(TITLE)
 				.setReturnedMetadatas(options.getReturnedMetadatasFilter()
-											 .withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
+						.withIncludedMetadatas(TOKENS, ATTACHED_ANCESTORS, ALL_REMOVED_AUTHS));
 	}
 
 	public static OngoingLogicalSearchCondition fromTypeIn(Taxonomy taxonomy) {

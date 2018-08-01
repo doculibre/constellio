@@ -85,7 +85,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 	public void givenObjectCreatedWithUserThenObjectHasCorrectCreatedByValue()
 			throws Exception {
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true)
-								   .getWrappedRecord());
+				.getWrappedRecord());
 		Session cmisSession = givenAdminSessionOnZeCollection();
 		Record record = new TestRecord(zeCollectionSchemas.getSchema("folder_default"), "aTestFolder");
 		recordServices.execute(new Transaction(record).setUser(users.chuckNorrisIn(zeCollection)));
@@ -163,7 +163,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-									  .build();
+				.build();
 	}
 
 }

@@ -35,7 +35,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 		super(view);
 		provider = new HashMap<>();
 		user = modelLayerFactory.newUserServices()
-								.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
+				.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection());
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 		Record record = recordVO.getRecord();
 		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
 		boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices()
-																			  .hasRestaurationPermissionOnHierarchy(user, record, asList(recordVO.getRecord()));
+				.hasRestaurationPermissionOnHierarchy(user, record, asList(recordVO.getRecord()));
 		return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() || recordVO
 				.get(Schemas.CREATED_BY.getCode()).equals(view.getSessionContext().getCurrentUser().getId()));
 	}
@@ -85,8 +85,8 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 						return LogicalSearchQuery.returningNoResults();
 					} else {
 						User user = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices()
-										.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(),
-												view.getCollection());
+								.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(),
+										view.getCollection());
 						OngoingLogicalSearchCondition FromCondition = from(temporaryRecordSchemaType.getSchema(schema));
 						LogicalSearchCondition condition = user.has(CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally() ?
 														   FromCondition.where(returnAll()) :

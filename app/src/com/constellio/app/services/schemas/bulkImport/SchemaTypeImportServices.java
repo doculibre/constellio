@@ -253,8 +253,8 @@ public class SchemaTypeImportServices implements ImportServices {
 			metadataDisplayConfig = schemasDisplayManager.getMetadata(collection, code);
 		}
 		metadataDisplayConfig = metadataDisplayConfig.withHighlightStatus(importedMetadata.isHighlight())
-													 .withVisibleInAdvancedSearchStatus(importedMetadata.isAdvancedSearch()).withInputType(type)
-													 .withMetadataGroup(importedMetadata.getMetadataGroup());
+				.withVisibleInAdvancedSearchStatus(importedMetadata.isAdvancedSearch()).withInputType(type)
+				.withMetadataGroup(importedMetadata.getMetadataGroup());
 
 		transaction.addReplacing(metadataDisplayConfig);
 	}
@@ -420,7 +420,7 @@ public class SchemaTypeImportServices implements ImportServices {
 			if (importedMetadata.getValueType().equals(MetadataValueType.REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(importedMetadata.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
-													 .getTaxonomyFor(collection, importedMetadata.getReference());
+						.getTaxonomyFor(collection, importedMetadata.getReference());
 				if (taxonomy != null) {
 					builder.defineTaxonomyRelationshipToType(refBuilder);
 				} else {

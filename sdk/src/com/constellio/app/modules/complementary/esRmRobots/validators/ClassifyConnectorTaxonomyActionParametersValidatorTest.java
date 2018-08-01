@@ -85,7 +85,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 		validator.validate(parameters, schema, configProvider, errors);
 
 		assertThat(errors).has(size(1))
-						  .has(error(ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_TAXO_XOR_DEFAULT_PARENT_FOLDER));
+				.has(error(ClassifyConnectorTaxonomyActionParametersValidator.MUST_SPECIFY_TAXO_XOR_DEFAULT_PARENT_FOLDER));
 	}
 
 	@Test

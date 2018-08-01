@@ -287,12 +287,12 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 			UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
 			boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
-												 .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
+					.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
 			sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
 				@Override
 				public void buttonClick(ClickEvent event) {
 					RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
-													.toArray(new RecordVO[0]);
+							.toArray(new RecordVO[0]);
 					sipButton.setAllObject(recordVOS);
 					super.buttonClick(event);
 				}

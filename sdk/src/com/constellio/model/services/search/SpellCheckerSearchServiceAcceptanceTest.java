@@ -40,7 +40,7 @@ public class SpellCheckerSearchServiceAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
 		transaction.addUpdate(recordServices.newRecordWithSchema(zeSchema.instance())
-											.set(zeSchema.stringMetadata(), "This is some amazing text in document number 42"));
+				.set(zeSchema.stringMetadata(), "This is some amazing text in document number 42"));
 		recordServices.execute(transaction);
 	}
 

@@ -93,7 +93,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
 			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-													.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
+					.getSchemaType(schemaTypeCode).getLabel(Language.withLocale(currentLocale)).toLowerCase();
 			Map<String, Object> params = new HashMap<>();
 			params.put("schemaType", schemaTypeLabel);
 			final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);

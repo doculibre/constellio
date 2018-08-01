@@ -47,7 +47,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 		calculator = spy(new ContainerRecordLinearSizeCalculator());
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -167,8 +167,8 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-				 .setTemporaryIdentifier("containerTestTemporary")
-				 .setCapacity(42).setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setTemporaryIdentifier("containerTestTemporary")
+				.setCapacity(42).setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public void addFoldersLinkedToContainer(String containerID)
@@ -176,21 +176,21 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 
 		recordServices
 				.add(rm.newFolderWithId("parentFolder").setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-					   .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-					   .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+						.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+						.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 				);
 		recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-							 .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-							 .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+				.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 		);
 		recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-							 .setParentFolder("parentFolder")
-							 .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-							 .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+				.setParentFolder("parentFolder")
+				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+				.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 		);
 		recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setParentFolder("parentFolder")
-							 .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
-							 .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+				.setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
 		);
 	}
 }

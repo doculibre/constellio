@@ -238,21 +238,21 @@ public class ConversionManager implements StatefulService {
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
 				officeManager = OnlineOfficeManager.builder().poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
-												   .build();
+						.build();
 
 				delegate = OnlineConverter.builder()
-										  .officeManager(officeManager)
-										  .formatRegistry(formatRegistry)
-										  .build();
+						.officeManager(officeManager)
+						.formatRegistry(formatRegistry)
+						.build();
 			} else {
 				int[] portNumbers = getPortNumbers();
 				officeManager = LocalOfficeManager.builder().install().portNumbers(portNumbers).build();
 
 				delegate =
 						LocalConverter.builder()
-									  .officeManager(officeManager)
-									  .formatRegistry(formatRegistry)
-									  .build();
+								.officeManager(officeManager)
+								.formatRegistry(formatRegistry)
+								.build();
 			}
 			try {
 				officeManager.start();

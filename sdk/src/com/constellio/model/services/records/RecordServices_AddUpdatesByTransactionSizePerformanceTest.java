@@ -175,7 +175,7 @@ public class RecordServices_AddUpdatesByTransactionSizePerformanceTest extends C
 	private List<Record> getSomeRecords(int qty) {
 		LogicalSearchCondition condition = from(zeSchema.instance()).returnAll();
 		return getModelLayerFactory().newSearchServices()
-									 .search(new LogicalSearchQuery(condition).setNumberOfRows(qty).sortAsc(Schemas.IDENTIFIER));
+				.search(new LogicalSearchQuery(condition).setNumberOfRows(qty).sortAsc(Schemas.IDENTIFIER));
 	}
 
 	private Record newRecordWithTitleAndContent(String title, String content) {

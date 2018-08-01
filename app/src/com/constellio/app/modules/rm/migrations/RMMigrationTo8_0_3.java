@@ -37,7 +37,7 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 											MigrationResourcesProvider migrationResourcesProvider,
 											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("fr")) {
+				.equals("fr")) {
 			reloadEmailTemplate("approvalRequestDeniedForDecomListTemplate.html",
 					RMEmailTemplateConstants.APPROVAL_REQUEST_DENIED_TEMPLATE_ID, appLayerFactory, migrationResourcesProvider,
 					collection);
@@ -55,7 +55,7 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -74,7 +74,7 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder defaultSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
 			defaultSchema.createUndeletable(Folder.UNIQUE_KEY).setType(MetadataValueType.STRING).setSystemReserved(true)
-						 .setUniqueValue(true).defineDataEntry().asCalculated(FolderUniqueKeyCalculator.class);
+					.setUniqueValue(true).defineDataEntry().asCalculated(FolderUniqueKeyCalculator.class);
 		}
 	}
 }

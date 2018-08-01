@@ -104,9 +104,9 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		return new ImportedCollectionSettings().setCode(collectionCode)
-											   .setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
-											   .setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
-											   .setTypes(getCollectionTypes(collectionElement.getChild(TYPES), language));
+				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
+				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
+				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES), language));
 	}
 
 	private List<ImportedType> getCollectionTypes(Element typesElement, List<String> language) {
@@ -339,7 +339,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private ImportedTab readTab(Element element) {
 		return new ImportedTab().setCode(element.getAttributeValue(CODE))
-								.setValue(element.getAttributeValue("value"));
+				.setValue(element.getAttributeValue("value"));
 	}
 
 	private List<ImportedTaxonomy> getCollectionTaxonomies(Element element, List<String> languageList) {

@@ -72,7 +72,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-											 .build();
+				.build();
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
@@ -135,7 +135,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		Holder<String> objectIdHolder = new Holder<String>(object.getId());
 
 		cmisSession.getBinding().getObjectService()
-				   .moveObject(cmisSession.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
+				.moveObject(cmisSession.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
 
 		recordServices.refresh(record);
 	}

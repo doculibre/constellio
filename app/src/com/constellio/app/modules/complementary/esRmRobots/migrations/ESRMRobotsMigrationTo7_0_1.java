@@ -52,16 +52,16 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 			MetadataSchemaTypeBuilder subdivisionSchemaType = typesBuilder.getSchemaType(UniformSubdivision.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
+					.getCustomSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.create(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-				  .setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
+					.setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
 
 			schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-								 .getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-				  .setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
+					.setDefaultRequirement(false).defineReferencesTo(subdivisionSchemaType);
 		}
 	}
 
@@ -82,7 +82,7 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema,
 				ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		inPlanSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 
@@ -92,7 +92,7 @@ public class ESRMRobotsMigrationTo7_0_1 implements MigrationScript {
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, inPlanSchema,
 				ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_UNIFORM_SUBDIVISION)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

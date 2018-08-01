@@ -70,7 +70,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		doReturn(asList("firstCollection", "secondCollection")).when(collectionsListManager).getCollections();
 		doReturn(script).when(systemConfigurationsManager).getInstanciatedScriptFor(aSystemConfiguration);
 		doReturn(asList(aBatchProcess, anotherBatchProcess)).when(systemConfigurationsManager)
-															.startBatchProcessesToReindex(aSystemConfiguration);
+				.startBatchProcessesToReindex(aSystemConfiguration);
 		doReturn("currentValue").when(systemConfigurationsManager).getValue(aSystemConfiguration);
 
 		systemConfigurationsManager.setValue(aSystemConfiguration, "theNewValue");
@@ -83,7 +83,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		inOrder.verify(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory, "firstCollection");
 		inOrder.verify(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory, "secondCollection");
 		inOrder.verify(configManager)
-			   .updateProperties(eq(SystemConfigurationsManager.CONFIG_FILE_PATH), any(PropertiesAlteration.class));
+				.updateProperties(eq(SystemConfigurationsManager.CONFIG_FILE_PATH), any(PropertiesAlteration.class));
 		inOrder.verify(batchProcessesManager).markAsPending(aBatchProcess);
 		inOrder.verify(batchProcessesManager).markAsPending(anotherBatchProcess);
 	}
@@ -95,7 +95,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		doReturn(asList("firstCollection", "secondCollection")).when(collectionsListManager).getCollections();
 		doReturn(script).when(systemConfigurationsManager).getInstanciatedScriptFor(aSystemConfiguration);
 		doReturn(asList(aBatchProcess, anotherBatchProcess)).when(systemConfigurationsManager)
-															.startBatchProcessesToReindex(aSystemConfiguration);
+				.startBatchProcessesToReindex(aSystemConfiguration);
 		doReturn("currentValue").when(systemConfigurationsManager).getValue(aSystemConfiguration);
 		doThrow(RuntimeException.class).when(script).onValueChanged("currentValue", "theNewValue", modelLayerFactory,
 				"secondCollection");
@@ -118,7 +118,7 @@ public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
 		inOrder.verify(script).onValueChanged("theNewValue", "currentValue", modelLayerFactory, "firstCollection");
 		inOrder.verify(script).onValueChanged("theNewValue", "currentValue", modelLayerFactory, "secondCollection");
 		inOrder.verify(configManager, never())
-			   .updateProperties(anyString(), any(PropertiesAlteration.class));
+				.updateProperties(anyString(), any(PropertiesAlteration.class));
 		inOrder.verify(batchProcessesManager).cancelStandByBatchProcess(aBatchProcess);
 		inOrder.verify(batchProcessesManager).cancelStandByBatchProcess(anotherBatchProcess);
 	}

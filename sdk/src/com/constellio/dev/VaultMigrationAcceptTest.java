@@ -201,8 +201,8 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 
 	public Folder buildDefaultFolder() {
 		return rm.newFolderWithId(FOLDER_ID).setTitle(FOLDER_TITLE).setAdministrativeUnitEntered(records.getUnit10())
-				 .setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
-				 .setCategoryEntered(records.categoryId_X);
+				.setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
+				.setCategoryEntered(records.categoryId_X);
 	}
 
 	@Test
@@ -210,9 +210,9 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 			throws Exception {
 		createDocuments();
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-																		.getSchemaTypes("zeCollection");
+				.getSchemaTypes("zeCollection");
 		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-															.getSchemaTypes("zeCollection").getSchemaType("document");
+				.getSchemaTypes("zeCollection").getSchemaType("document");
 		VaultMigrationScript.improveHashCodes(getAppLayerFactory());
 
 		List<Record> newRecords = searchServices.search(new LogicalSearchQuery(from(schemaType).returnAll()));
@@ -230,9 +230,9 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 			throws Exception {
 		createDocuments();
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-																		.getSchemaTypes("zeCollection");
+				.getSchemaTypes("zeCollection");
 		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-															.getSchemaTypes("zeCollection").getSchemaType("document");
+				.getSchemaTypes("zeCollection").getSchemaType("document");
 
 		List<Record> newRecords = searchServices.search(new LogicalSearchQuery(from(schemaType).returnAll()));
 		for (Record record : newRecords) {
@@ -247,7 +247,7 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 		for (Record record : newRecords) {
 			Document document = new Document(record, metadataSchemaTypes);
 			InputStream inputStream = getModelLayerFactory().getContentManager()
-															.getContentInputStream(document.getContent().getCurrentVersion().getHash(), SDK_STREAM);
+					.getContentInputStream(document.getContent().getCurrentVersion().getHash(), SDK_STREAM);
 
 			assertThat(inputStream).isNotNull();
 		}
@@ -259,9 +259,9 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 		createDocuments();
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-																		.getSchemaTypes("zeCollection");
+				.getSchemaTypes("zeCollection");
 		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-															.getSchemaTypes("zeCollection").getSchemaType("document");
+				.getSchemaTypes("zeCollection").getSchemaType("document");
 		Record oldRecord = searchServices.searchSingleResult(from(schemaType).where(rm.document.title()).is("document6.txt"));
 		Document oldDocument = new Document(oldRecord, metadataSchemaTypes);
 		File file = newTempFileWithContent("document6" + ".txt", "This is new content 6");
@@ -289,9 +289,9 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 			throws Exception {
 		createDocuments();
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-																		.getSchemaTypes("zeCollection");
+				.getSchemaTypes("zeCollection");
 		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-															.getSchemaTypes("zeCollection").getSchemaType("document");
+				.getSchemaTypes("zeCollection").getSchemaType("document");
 		Record oldRecord = searchServices.searchSingleResult(from(schemaType).where(rm.document.title()).is("document6.txt"));
 
 		VaultMigrationScript.improveHashCodes(getAppLayerFactory());

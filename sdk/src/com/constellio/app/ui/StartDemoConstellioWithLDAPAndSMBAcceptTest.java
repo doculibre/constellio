@@ -42,7 +42,7 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 		givenBackgroundThreadsEnabled();
 		givenTransactionLogIsEnabled();
 		prepareSystem(withZeCollection().withAllTestUsers()
-										.withConstellioESModule());
+				.withConstellioESModule());
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -59,12 +59,12 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 		ldapUserSyncConfiguration.setDurationBetweenExecution(new Duration(3600_000));
 
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 
 		// UserServices userServices = getModelLayerFactory().newUserServices();
 		// System.out.println(userServices.getAllUserCredentials().size());
 		getModelLayerFactory().getLdapUserSyncManager()
-							  .synchronizeIfPossible();
+				.synchronizeIfPossible();
 
 		// System.out.println(userServices.getAllUserCredentials().size());
 
@@ -72,7 +72,7 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 		User user = userServices.getUserInCollection("admin", zeCollection);
 		try {
 			getModelLayerFactory().newRecordServices()
-								  .update(user.setCollectionAllAccess(true));
+					.update(user.setCollectionAllAccess(true));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -84,15 +84,15 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 			throws Exception {
 		String share = "shareBig/";
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode("zeConnectorCode")
-															   .setEnabled(false)
-															   .setSeeds(asList(SDKPasswords.testSmbServer() + share))
-															   .setUsername(SDKPasswords.testSmbUsername())
-															   .setPassword(SDKPasswords.testSmbPassword())
-															   .setDomain(SDKPasswords.testSmbDomain())
-															   .setTraversalCode("")
-															   .setInclusions(asList(SDKPasswords.testSmbServer() + share))
-															   .setTitle("New Smb Connector"));
+				.setCode("zeConnectorCode")
+				.setEnabled(false)
+				.setSeeds(asList(SDKPasswords.testSmbServer() + share))
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword(SDKPasswords.testSmbPassword())
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setTraversalCode("")
+				.setInclusions(asList(SDKPasswords.testSmbServer() + share))
+				.setTitle("New Smb Connector"));
 
 		driver = newWebDriver();
 		waitUntilICloseTheBrowsers();
@@ -104,15 +104,15 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 	public void startOnLoginPageWithSeedBeingInvalidDocumentUrl()
 			throws Exception {
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode("zeConnectorCode")
-															   .setEnabled(false)
-															   .setSeeds(asList(SDKPasswords.testSmbServer() + "invalidShareBig/file"))
-															   .setUsername(SDKPasswords.testSmbUsername())
-															   .setPassword(SDKPasswords.testSmbPassword())
-															   .setDomain(SDKPasswords.testSmbDomain())
-															   .setTraversalCode("")
-															   .setInclusions(asList(SDKPasswords.testSmbServer() + "invalidShareBig/file"))
-															   .setTitle("New Smb Connector"));
+				.setCode("zeConnectorCode")
+				.setEnabled(false)
+				.setSeeds(asList(SDKPasswords.testSmbServer() + "invalidShareBig/file"))
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword(SDKPasswords.testSmbPassword())
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setTraversalCode("")
+				.setInclusions(asList(SDKPasswords.testSmbServer() + "invalidShareBig/file"))
+				.setTitle("New Smb Connector"));
 
 		driver = newWebDriver();
 		waitUntilICloseTheBrowsers();
@@ -125,15 +125,15 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 			throws Exception {
 		String share = "shareBig/";
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode("zeConnectorCode")
-															   .setEnabled(false)
-															   .setSeeds(asList(SDKPasswords.testSmbServer() + share + "3D-Modelling.pdf"))
-															   .setUsername(SDKPasswords.testSmbUsername())
-															   .setPassword("invalidPassword")
-															   .setDomain(SDKPasswords.testSmbDomain())
-															   .setTraversalCode("")
-															   .setInclusions(asList(SDKPasswords.testSmbServer() + share + "3D-Modelling.pdf"))
-															   .setTitle("New Smb Connector"));
+				.setCode("zeConnectorCode")
+				.setEnabled(false)
+				.setSeeds(asList(SDKPasswords.testSmbServer() + share + "3D-Modelling.pdf"))
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword("invalidPassword")
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setTraversalCode("")
+				.setInclusions(asList(SDKPasswords.testSmbServer() + share + "3D-Modelling.pdf"))
+				.setTitle("New Smb Connector"));
 
 		driver = newWebDriver();
 		waitUntilICloseTheBrowsers();
@@ -145,15 +145,15 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 			throws Exception {
 		String share = "share With Space/";
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode("zeConnectorCode")
-															   .setEnabled(false)
-															   .setSeeds(asList(SDKPasswords.testSmbServer() + share))
-															   .setUsername(SDKPasswords.testSmbUsername())
-															   .setPassword(SDKPasswords.testSmbPassword())
-															   .setDomain(SDKPasswords.testSmbDomain())
-															   .setTraversalCode("")
-															   .setInclusions(asList(SDKPasswords.testSmbServer() + share))
-															   .setTitle("New Smb Connector"));
+				.setCode("zeConnectorCode")
+				.setEnabled(false)
+				.setSeeds(asList(SDKPasswords.testSmbServer() + share))
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword(SDKPasswords.testSmbPassword())
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setTraversalCode("")
+				.setInclusions(asList(SDKPasswords.testSmbServer() + share))
+				.setTitle("New Smb Connector"));
 
 		driver = newWebDriver();
 		waitUntilICloseTheBrowsers();

@@ -49,18 +49,18 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
 				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
 				MetadataBuilder zeSchema_valueMetadata = zeType.getDefaultSchema().create("numberValue").setType(NUMBER)
-															   .setMultivalue(true);
+						.setMultivalue(true);
 				MetadataBuilder zeSchema_zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchema_minValue = anotherType.getDefaultSchema().create("minValue")
-																	.setType(NUMBER).defineDataEntry().asMin(zeSchema_zeRef, zeSchema_valueMetadata);
+						.setType(NUMBER).defineDataEntry().asMin(zeSchema_zeRef, zeSchema_valueMetadata);
 				MetadataBuilder anotherSchema_maxValue = anotherType.getDefaultSchema().create("maxValue")
-																	.setType(NUMBER).defineDataEntry().asMax(zeSchema_zeRef, zeSchema_valueMetadata);
+						.setType(NUMBER).defineDataEntry().asMax(zeSchema_zeRef, zeSchema_valueMetadata);
 				MetadataBuilder anotherSchema_zeRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder thirdSchema_minValue = thirdType.getDefaultSchema().create("minValue")
-																.setType(NUMBER).defineDataEntry().asMin(anotherSchema_zeRef, anotherSchema_minValue);
+						.setType(NUMBER).defineDataEntry().asMin(anotherSchema_zeRef, anotherSchema_minValue);
 				MetadataBuilder thirdSchema_maxValue = thirdType.getDefaultSchema().create("maxValue")
-																.setType(NUMBER).defineDataEntry().asMax(anotherSchema_zeRef, anotherSchema_maxValue);
+						.setType(NUMBER).defineDataEntry().asMax(anotherSchema_zeRef, anotherSchema_maxValue);
 
 			}
 		}));
@@ -126,18 +126,18 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
 				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
 				MetadataBuilder zeSchema_valueMetadata = zeType.getDefaultSchema().create("dateValue").setType(DATE)
-															   .setMultivalue(true);
+						.setMultivalue(true);
 				MetadataBuilder zeSchema_zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchema_minValue = anotherType.getDefaultSchema().create("minValue")
-																	.setType(DATE_TIME).defineDataEntry().asMin(zeSchema_zeRef, zeSchema_valueMetadata);
+						.setType(DATE_TIME).defineDataEntry().asMin(zeSchema_zeRef, zeSchema_valueMetadata);
 				MetadataBuilder anotherSchema_maxValue = anotherType.getDefaultSchema().create("maxValue")
-																	.setType(DATE).defineDataEntry().asMax(zeSchema_zeRef, zeSchema_valueMetadata);
+						.setType(DATE).defineDataEntry().asMax(zeSchema_zeRef, zeSchema_valueMetadata);
 				MetadataBuilder anotherSchema_zeRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder thirdSchema_minValue = thirdType.getDefaultSchema().create("minValue")
-																.setType(DATE).defineDataEntry().asMin(anotherSchema_zeRef, anotherSchema_minValue);
+						.setType(DATE).defineDataEntry().asMin(anotherSchema_zeRef, anotherSchema_minValue);
 				MetadataBuilder thirdSchema_maxValue = thirdType.getDefaultSchema().create("maxValue")
-																.setType(DATE_TIME).defineDataEntry().asMax(anotherSchema_zeRef, anotherSchema_maxValue);
+						.setType(DATE_TIME).defineDataEntry().asMax(anotherSchema_zeRef, anotherSchema_maxValue);
 
 			}
 		}));

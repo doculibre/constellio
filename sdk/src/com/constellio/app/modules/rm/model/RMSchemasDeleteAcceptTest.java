@@ -28,7 +28,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -63,7 +63,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		User admin = records.getAdmin();
@@ -116,7 +116,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -149,7 +149,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		User admin = users.adminIn(zeCollection);
@@ -204,7 +204,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
@@ -227,13 +227,13 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isTrue();
 
 		CopyRetentionRule principal42_666_T = copyBuilder.newPrincipal(asList(rm.PA()))
-														 .setActiveRetentionPeriod(RetentionPeriod.variable(period42))
-														 .setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
-														 .setInactiveDisposalType(DisposalType.SORT);
+				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
+				.setInactiveDisposalType(DisposalType.SORT);
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA()), "2-0-D");
 		RetentionRule rule = rm.newRetentionRule().setCode("2").setTitle("Rule #2")
-							   .setResponsibleAdministrativeUnits(true).setApproved(true)
-							   .setCopyRetentionRules(asList(principal42_666_T, secondary2_0_D));
+				.setResponsibleAdministrativeUnits(true).setApproved(true)
+				.setCopyRetentionRules(asList(principal42_666_T, secondary2_0_D));
 		recordServices.add(rule);
 
 		assertThat(recordServices.isLogicallyDeletable(period888.getWrappedRecord(), admin)).isFalse();

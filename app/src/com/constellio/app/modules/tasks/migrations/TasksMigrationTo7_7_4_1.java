@@ -49,7 +49,7 @@ public class TasksMigrationTo7_7_4_1 extends MigrationHelper implements Migratio
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
 		transaction.add(manager.getMetadata(collection, USER_TASK_DEFAULT_READ_BY_USER)
-							   .withMetadataGroup(INIT_USER_TASK_TAB).withInputType(MetadataInputType.CHECKBOXES));
+				.withMetadataGroup(INIT_USER_TASK_TAB).withInputType(MetadataInputType.CHECKBOXES));
 
 		manager.execute(transaction);
 	}
@@ -66,7 +66,7 @@ public class TasksMigrationTo7_7_4_1 extends MigrationHelper implements Migratio
 			MetadataSchemaBuilder schema = typesBuilder.getSchema(Task.DEFAULT_SCHEMA);
 			if (!schema.hasMetadata(Task.READ_BY_USER)) {
 				schema.createUndeletable(Task.READ_BY_USER).setType(MetadataValueType.BOOLEAN).setDefaultValue(Boolean.FALSE)
-					  .addLabel(Language.French, LUE).addLabel(Language.English, READ);
+						.addLabel(Language.French, LUE).addLabel(Language.English, READ);
 			}
 		}
 	}

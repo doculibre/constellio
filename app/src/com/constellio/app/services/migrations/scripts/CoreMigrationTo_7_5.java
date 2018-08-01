@@ -30,12 +30,12 @@ public class CoreMigrationTo_7_5 implements MigrationScript {
 		new CoreSchemaAlterationFor_7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, TemporaryRecord.DEFAULT_SCHEMA)
-																			  .withTableMetadataCodes(asList(
-																					  TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
-																					  TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
-																					  TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
-																					  TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT
-																			  )));
+				.withTableMetadataCodes(asList(
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_BY.getLocalCode(),
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode(),
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.DESTRUCTION_DATE,
+						TemporaryRecord.DEFAULT_SCHEMA + "_" + TemporaryRecord.CONTENT
+				)));
 	}
 
 	class CoreSchemaAlterationFor_7_5 extends MetadataSchemasAlterationHelper {

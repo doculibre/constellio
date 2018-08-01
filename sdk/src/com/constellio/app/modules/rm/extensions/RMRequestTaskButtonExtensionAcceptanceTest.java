@@ -70,7 +70,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		extension = spy(new RMRequestTaskButtonExtension(zeCollection, getAppLayerFactory()));
@@ -119,8 +119,8 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(tasks.size()).isEqualTo(1);
 		Task task = tasks.get(0);
 		assertThatRecord(task).extracting(Task.LINKED_FOLDERS, RequestTask.ACCEPTED, RequestTask.APPLICANT, Task.TYPE, Task.TITLE)
-							  .containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
-									  taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du dossier: Crocodile");
+				.containsOnly(asList(records.folder_A42), null, records.getAdmin().getId(),
+						taskSchemas.getTaskTypeByCode(RMTaskType.BORROW_REQUEST).getId(), "Demande d'emprunt du dossier: Crocodile");
 		assertThat(task.getAssigneeUsersCandidates()).containsOnly(records.getChuckNorris().getId(), records.getAdmin().getId());
 	}
 

@@ -41,7 +41,7 @@ public class CmisRecordUtils {
 		}
 		if (newParentRecord != null) {
 			targetSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection())
-											.getSchema(newParentRecord.getSchemaCode());
+					.getSchema(newParentRecord.getSchemaCode());
 		}
 
 		List<Metadata> allReferencesMetadatas = new ArrayList<>();

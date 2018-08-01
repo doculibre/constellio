@@ -29,7 +29,7 @@ public class RMMigrationTo7_6_3 extends MigrationHelper implements MigrationScri
 		for (MetadataSchema schema : rmSchemas(appLayerFactory, collection)) {
 			if (schema.hasMetadataWithCode(Schemas.PATH.getLocalCode())) {
 				transaction.add(schemasDisplayManager.getMetadata(collection, schema.get(Schemas.PATH.getLocalCode()).getCode())
-													 .withVisibleInAdvancedSearchStatus(true));
+						.withVisibleInAdvancedSearchStatus(true));
 			}
 		}
 		schemasDisplayManager.execute(transaction);

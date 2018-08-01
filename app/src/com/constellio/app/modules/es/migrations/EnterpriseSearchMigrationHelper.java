@@ -40,7 +40,7 @@ public class EnterpriseSearchMigrationHelper {
 		Map<Language, String> titles = resourcesProvider
 				.getLanguagesString("init." + schema.getCode().replace("-", ".").replace("_", "."));
 		return es.newConnectorType().setCode(connectorTypeCode).setTitles(titles).setLinkedSchema(schema.getCode())
-				 .setConnectorClassName(connectorClass.getName());
+				.setConnectorClassName(connectorClass.getName());
 	}
 
 	public static class ESSchemaTypesMigrationHelper {
@@ -64,11 +64,11 @@ public class EnterpriseSearchMigrationHelper {
 			MetadataSchemaBuilder schemaBuilder = typeBuilder.getDefaultSchema();
 			typeBuilder.setInTransactionLog(false);
 			MetadataBuilder connectorDocConnector = schemaBuilder.createUndeletable(ConnectorDocument.CONNECTOR)
-																 .setType(REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorInstanceSchema);
+					.setType(REFERENCE).setDefaultRequirement(true).defineReferencesTo(connectorInstanceSchema);
 
 			schemaBuilder.createUndeletable(ConnectorDocument.TRAVERSAL_CODE).setType(STRING).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.CONNECTOR_TYPE).setType(REFERENCE)
-						 .defineReferencesTo(connectorTypeSchemaType).setDefaultRequirement(true);
+					.defineReferencesTo(connectorTypeSchemaType).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.URL).setType(STRING).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.MIMETYPE).setType(STRING);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCHED).setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
@@ -78,7 +78,7 @@ public class EnterpriseSearchMigrationHelper {
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCH_FREQUENCY).defineAsEnum(FetchFrequency.class);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCH_DELAY).setType(NUMBER).setDefaultValue(10);
 			schemaBuilder.createUndeletable(ConnectorDocument.NEXT_FETCH).setType(DATE_TIME)
-						 .defineDataEntry().asCalculated(NextFetchCalculator.class);
+					.defineDataEntry().asCalculated(NextFetchCalculator.class);
 			schemaBuilder.createUndeletable(ConnectorDocument.NEVER_FETCH).setType(BOOLEAN);
 			schemaBuilder.createUndeletable(ConnectorDocument.ERROR_CODE).setType(STRING);
 			schemaBuilder.createUndeletable(ConnectorDocument.ERROR_MESSAGE).setType(STRING);

@@ -28,7 +28,7 @@ public class CoreMigrationTo_6_5_22 implements MigrationScript {
 		MetadataDisplayConfig displayConfig;
 
 		displayConfig = displayManager.getMetadata(collection, User.DEFAULT_SCHEMA + "_" + User.PERSONAL_EMAILS)
-									  .withInputType(MetadataInputType.TEXTAREA);
+				.withInputType(MetadataInputType.TEXTAREA);
 
 		displayManager.saveMetadata(displayConfig);
 	}
@@ -43,11 +43,11 @@ public class CoreMigrationTo_6_5_22 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
 
 			builder.getDefaultSchema(User.SCHEMA_TYPE)
-				   .create(User.PERSONAL_EMAILS).
-						   setType(MetadataValueType.STRING).
-						   setMultivalue(true).
-						   setEnabled(true).
-						   setEssential(false);
+					.create(User.PERSONAL_EMAILS).
+					setType(MetadataValueType.STRING).
+					setMultivalue(true).
+					setEnabled(true).
+					setEssential(false);
 		}
 
 	}

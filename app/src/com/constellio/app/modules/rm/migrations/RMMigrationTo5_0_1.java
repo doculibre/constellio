@@ -148,15 +148,15 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 
 		// Enable search for Folders
 		transaction.add(manager.getType(collection, Folder.SCHEMA_TYPE)
-							   .withSimpleSearchStatus(true).withAdvancedSearchStatus(true));
+				.withSimpleSearchStatus(true).withAdvancedSearchStatus(true));
 
 		// Enable search for Documents
 		transaction.add(manager.getType(collection, Document.SCHEMA_TYPE)
-							   .withSimpleSearchStatus(true).withAdvancedSearchStatus(true));
+				.withSimpleSearchStatus(true).withAdvancedSearchStatus(true));
 
 		// Enable search for ContainerRecords
 		transaction.add(manager.getType(collection, ContainerRecord.SCHEMA_TYPE)
-							   .withSimpleSearchStatus(true).withAdvancedSearchStatus(true));
+				.withSimpleSearchStatus(true).withAdvancedSearchStatus(true));
 
 		transaction.setModifiedCollectionTypes(manager.getTypes(collection).withFacetMetadataCodes(asList(
 				Folder.DEFAULT_SCHEMA + "_schema",
@@ -237,7 +237,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		transaction.add(
 				schemaDisplayFolderConfig.withFormMetadataCodes(schemaFormFolderConfig.getFormMetadataCodes()));
 		transaction.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + Folder.MEDIUM_TYPES)
-							   .withInputType(MetadataInputType.CHECKBOXES));
+				.withInputType(MetadataInputType.CHECKBOXES));
 
 		SchemaDisplayConfig schemaDisplayUserConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, User.DEFAULT_SCHEMA),
@@ -330,7 +330,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 				schemaDisplayContainerConfig.withFormMetadataCodes(schemaFormContainerConfig.getFormMetadataCodes()));
 		transaction.add(
 				manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TYPE)
-					   .withInputType(MetadataInputType.DROPDOWN));
+						.withInputType(MetadataInputType.DROPDOWN));
 
 		// MEDIUM TYPE
 		SchemaDisplayConfig schemaFormMediumTypeConfig = order(collection, appLayerFactory, "form",
@@ -704,7 +704,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.defineValidators().add(RetentionRuleValidator.class);
 
 		defaultSchema.createUndeletable(RetentionRule.CODE).setDefaultRequirement(true).setType(STRING)
-					 .setSearchable(true).setSchemaAutocomplete(true);
+				.setSearchable(true).setSchemaAutocomplete(true);
 
 		defaultSchema.createUndeletable(RetentionRule.APPROVED).setType(BOOLEAN);
 		defaultSchema.createUndeletable(RetentionRule.APPROVAL_DATE).setType(DATE);
@@ -716,7 +716,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(RetentionRule.RESPONSIBLE_ADMINISTRATIVE_UNITS).setType(BOOLEAN);
 
 		defaultSchema.createUndeletable(RetentionRule.ADMINISTRATIVE_UNITS).setMultivalue(true)
-					 .defineReferencesTo(administrativeUnitSchemaType);
+				.defineReferencesTo(administrativeUnitSchemaType);
 
 		defaultSchema.createUndeletable(RetentionRule.DESCRIPTION).setType(TEXT).setMultiLingual(true);
 
@@ -732,14 +732,14 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(RetentionRule.CONFIDENTIAL_DOCUMENTS).setType(BOOLEAN);
 
 		defaultSchema.createUndeletable(RetentionRule.COPY_RETENTION_RULES).setDefaultRequirement(true).setMultivalue(true)
-					 .setType(STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class);
+				.setType(STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class);
 
 		defaultSchema.createUndeletable(RetentionRule.DOCUMENT_TYPES_DETAILS).setMultivalue(true)
-					 .setType(STRUCTURE).defineStructureFactory(RetentionRuleDocumentTypeFactory.class);
+				.setType(STRUCTURE).defineStructureFactory(RetentionRuleDocumentTypeFactory.class);
 
 		defaultSchema.createUndeletable(RetentionRule.DOCUMENT_TYPES).setType(REFERENCE).setMultivalue(true)
-					 .defineReferencesTo(documentType)
-					 .defineDataEntry().asCalculated(RuleDocumentTypesCalculator.class);
+				.defineReferencesTo(documentType)
+				.defineDataEntry().asCalculated(RuleDocumentTypesCalculator.class);
 
 		defaultSchema.createUndeletable(RetentionRule.COPY_RULES_COMMENT).setType(TEXT).setMultivalue(true).setMultiLingual(true);
 		defaultSchema.get(RetentionRule.TITLE).setMultiLingual(true);
@@ -755,9 +755,9 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(UniformSubdivision.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(true);
 		defaultSchema.createUndeletable(UniformSubdivision.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(UniformSubdivision.COMMENTS).setMultivalue(true)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 		defaultSchema.createUndeletable(UniformSubdivision.RETENTION_RULE).setMultivalue(true)
-					 .defineReferencesTo(retentionRuleSchemaType);
+				.defineReferencesTo(retentionRuleSchemaType);
 		defaultSchema.get(UniformSubdivision.TITLE).setMultiLingual(true);
 
 		return schemaType;
@@ -774,7 +774,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(AdministrativeUnit.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(AdministrativeUnit.PARENT).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(AdministrativeUnit.FILING_SPACES).setMultivalue(true)
-					 .defineReferencesTo(filingSpaceSchemaType);
+				.defineReferencesTo(filingSpaceSchemaType);
 
 		defaultSchema.createUndeletable(AdministrativeUnit.ADRESS).setType(STRING);
 
@@ -811,7 +811,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
 		defaultSchema.getMetadata(Schemas.TITLE.getLocalCode()).defineDataEntry().asCalculated(ContainerTitleCalculator.class)
-					 .setDefaultRequirement(true);
+				.setDefaultRequirement(true);
 		defaultSchema.createUndeletable(ContainerRecord.ADMINISTRATIVE_UNIT).defineTaxonomyRelationshipToType(
 				administrativeUnitSchemaType);
 		defaultSchema.createUndeletable(ContainerRecord.BORROW_DATE).setType(DATE);
@@ -828,12 +828,12 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(ContainerRecord.REAL_TRANSFER_DATE).setType(DATE);
 		defaultSchema.createUndeletable(ContainerRecord.STORAGE_SPACE).defineTaxonomyRelationshipToType(storageSpaceSchemaType);
 		defaultSchema.createUndeletable(ContainerRecord.TEMPORARY_IDENTIFIER).setType(STRING)
-					 .setDefaultRequirement(true).setSearchable(true);
+				.setDefaultRequirement(true).setSearchable(true);
 		defaultSchema.createUndeletable(ContainerRecord.TYPE).defineReferencesTo(containerTypeSchemaType)
-					 .setDefaultRequirement(true);
+				.setDefaultRequirement(true);
 		defaultSchema.createUndeletable(ContainerRecord.POSITION).setType(STRING).setSearchable(true);
 		defaultSchema.createUndeletable(ContainerRecord.COMMENTS).setMultivalue(true)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 
 		return schemaType;
 	}
@@ -851,7 +851,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(StorageSpace.PARENT_STORAGE_SPACE).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(StorageSpace.TYPE).defineReferencesTo(storageSpaceTypeSchema);
 		defaultSchema.createUndeletable(StorageSpace.COMMENTS).setMultivalue(true)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 
 		return schemaType;
 	}
@@ -866,11 +866,11 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(Category.DESCRIPTION).setType(STRING).setSearchable(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(Category.PARENT).defineChildOfRelationshipToType(schemaType);
 		defaultSchema.createUndeletable(Category.KEYWORDS).setType(STRING).setMultivalue(true).setSearchable(true)
-					 .setSchemaAutocomplete(true).setMultiLingual(true);
+				.setSchemaAutocomplete(true).setMultiLingual(true);
 		defaultSchema.createUndeletable(Category.COMMENTS).setMultivalue(true)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 		defaultSchema.createUndeletable(Category.RETENTION_RULES).setDefaultRequirement(false).setMultivalue(true)
-					 .defineReferencesTo(retentionRuleSchemaType);
+				.defineReferencesTo(retentionRuleSchemaType);
 		defaultSchema.createUndeletable(Schemas.LINKABLE.getLocalCode()).setType(BOOLEAN).defineDataEntry().asCalculated(
 				CategoryIsLinkableCalculator.class);
 		defaultSchema.get(Category.TITLE).setMultiLingual(true);
@@ -892,46 +892,46 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.get(Schemas.TITLE_CODE).setDefaultRequirement(true);
 
 		defaultSchema.createUndeletable(Folder.PARENT_FOLDER)
-					 .defineChildOfRelationshipToType(schemaType);
+				.defineChildOfRelationshipToType(schemaType);
 
 		defaultSchema.createUndeletable(Folder.ADMINISTRATIVE_UNIT_ENTERED)
-					 .defineTaxonomyRelationshipToType(administrativeUnitSchemaType);
+				.defineTaxonomyRelationshipToType(administrativeUnitSchemaType);
 
 		defaultSchema.createUndeletable(Folder.ADMINISTRATIVE_UNIT)
-					 .defineReferencesTo(administrativeUnitSchemaType)
-					 .defineDataEntry().asCalculated(FolderAppliedAdministrativeUnitCalculator.class)
-					 .setDefaultRequirement(true);
+				.defineReferencesTo(administrativeUnitSchemaType)
+				.defineDataEntry().asCalculated(FolderAppliedAdministrativeUnitCalculator.class)
+				.setDefaultRequirement(true);
 
 		defaultSchema.createUndeletable(Folder.FILING_SPACE_ENTERED)
-					 .defineReferencesTo(filingSpaceSchemaType);
+				.defineReferencesTo(filingSpaceSchemaType);
 
 		defaultSchema.createUndeletable(Folder.FILING_SPACE)
-					 .defineReferencesTo(filingSpaceSchemaType)
-					 .defineDataEntry().asCalculated(FolderAppliedFilingSpaceCalculator.class)
-					 .setDefaultRequirement(true);
+				.defineReferencesTo(filingSpaceSchemaType)
+				.defineDataEntry().asCalculated(FolderAppliedFilingSpaceCalculator.class)
+				.setDefaultRequirement(true);
 
 		defaultSchema.createUndeletable(Folder.CATEGORY_ENTERED)
-					 .defineTaxonomyRelationshipToType(categorySchemaType);
+				.defineTaxonomyRelationshipToType(categorySchemaType);
 
 		defaultSchema.createUndeletable(Folder.CATEGORY)
-					 .defineReferencesTo(categorySchemaType)
-					 .defineDataEntry().asCalculated(FolderApplicableCategoryCalculator.class)
-					 .setDefaultRequirement(true);
+				.defineReferencesTo(categorySchemaType)
+				.defineDataEntry().asCalculated(FolderApplicableCategoryCalculator.class)
+				.setDefaultRequirement(true);
 
 		defaultSchema.createUndeletable(Folder.MAIN_COPY_RULE)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
-					 .defineDataEntry().asCalculated(FolderMainCopyRuleCalculator.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
+				.defineDataEntry().asCalculated(FolderMainCopyRuleCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.APPLICABLE_COPY_RULES).setMultivalue(true)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
-					 .defineDataEntry().asCalculated(FolderApplicableCopyRuleCalculator.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
+				.defineDataEntry().asCalculated(FolderApplicableCopyRuleCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.UNIFORM_SUBDIVISION_ENTERED)
-					 .defineReferencesTo(uniformSubdivisionSchemaType);
+				.defineReferencesTo(uniformSubdivisionSchemaType);
 
 		defaultSchema.createUndeletable(Folder.UNIFORM_SUBDIVISION)
-					 .defineReferencesTo(uniformSubdivisionSchemaType)
-					 .defineDataEntry().asCalculated(FolderAppliedUniformSubdivisionCalculator.class);
+				.defineReferencesTo(uniformSubdivisionSchemaType)
+				.defineDataEntry().asCalculated(FolderAppliedUniformSubdivisionCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.DESCRIPTION).setType(TEXT).setSearchable(true);
 
@@ -944,7 +944,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(Folder.OPENING_DATE).setType(DATE).setDefaultRequirement(true);
 
 		defaultSchema.createUndeletable(Folder.CLOSING_DATE).setType(DATE)
-					 .defineDataEntry().asCalculated(FolderClosingDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderClosingDateCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.ENTERED_CLOSING_DATE).setType(DATE);
 
@@ -955,58 +955,58 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(Folder.ACTUAL_DESTRUCTION_DATE).setType(DATE);
 
 		defaultSchema.createUndeletable(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).setType(DATE).setMultivalue(true)
-					 .defineDataEntry().asCalculated(FolderCopyRulesExpectedTransferDatesCalculator.class);
+				.defineDataEntry().asCalculated(FolderCopyRulesExpectedTransferDatesCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).setType(DATE).setMultivalue(true)
-					 .defineDataEntry().asCalculated(FolderCopyRulesExpectedDepositDatesCalculator.class);
+				.defineDataEntry().asCalculated(FolderCopyRulesExpectedDepositDatesCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setType(DATE).setMultivalue(true)
-					 .defineDataEntry().asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator.class);
+				.defineDataEntry().asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.EXPECTED_TRANSFER_DATE).setType(DATE)
-					 .defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.EXPECTED_DEPOSIT_DATE).setType(DATE)
-					 .defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.EXPECTED_DESTRUCTION_DATE).setType(DATE)
-					 .defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.RETENTION_RULE_ENTERED)
-					 .defineReferencesTo(retentionRuleSchemaType);
+				.defineReferencesTo(retentionRuleSchemaType);
 
 		defaultSchema.createUndeletable(Folder.RETENTION_RULE)
-					 .setDefaultRequirement(true)
-					 .defineReferencesTo(retentionRuleSchemaType)
-					 .defineDataEntry().asCalculated(FolderAppliedRetentionRuleCalculator.class);
+				.setDefaultRequirement(true)
+				.defineReferencesTo(retentionRuleSchemaType)
+				.defineDataEntry().asCalculated(FolderAppliedRetentionRuleCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.ARCHIVISTIC_STATUS).defineAsEnum(FolderStatus.class)
-					 .defineDataEntry().asCalculated(FolderStatusCalculator.class);
+				.defineDataEntry().asCalculated(FolderStatusCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.COPY_STATUS).defineAsEnum(CopyType.class)
-					 .defineDataEntry().asCalculated(FolderCopyStatusCalculator.class).setDefaultRequirement(true);
+				.defineDataEntry().asCalculated(FolderCopyStatusCalculator.class).setDefaultRequirement(true);
 
 		defaultSchema.createUndeletable(Folder.COPY_STATUS_ENTERED).defineAsEnum(CopyType.class);
 
 		defaultSchema.createUndeletable(Folder.ACTIVE_RETENTION_TYPE).defineAsEnum(RetentionType.class)
-					 .defineDataEntry().asCalculated(FolderActiveRetentionTypeCalculator.class);
+				.defineDataEntry().asCalculated(FolderActiveRetentionTypeCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.SEMIACTIVE_RETENTION_TYPE).defineAsEnum(RetentionType.class)
-					 .defineDataEntry().asCalculated(FolderSemiActiveRetentionTypeCalculator.class);
+				.defineDataEntry().asCalculated(FolderSemiActiveRetentionTypeCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.INACTIVE_DISPOSAL_TYPE).defineAsEnum(DisposalType.class)
-					 .defineDataEntry().asCalculated(FolderInactiveDisposalTypeCalculator.class);
+				.defineDataEntry().asCalculated(FolderInactiveDisposalTypeCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.DECOMMISSIONING_DATE).setType(DATE)
-					 .defineDataEntry().asCalculated(FolderDecommissioningDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.MEDIA_TYPE).defineAsEnum(FolderMediaType.class)
-					 .defineDataEntry().asCalculated(FolderMediaTypesCalculator.class);
+				.defineDataEntry().asCalculated(FolderMediaTypesCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.CONTAINER).defineReferencesTo(containerSchemaType);
 
 		defaultSchema.createUndeletable(Folder.COMMENTS).setMultivalue(true)
-					 .setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 
 		copy(categorySchemaType, schemaType, Folder.CATEGORY, Category.CODE, Folder.CATEGORY_CODE);
 		copy(retentionRuleSchemaType, schemaType, Folder.RETENTION_RULE, RetentionRule.ADMINISTRATIVE_UNITS,
@@ -1037,76 +1037,76 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(DecommissioningList.ADMINISTRATIVE_UNIT).defineReferencesTo(administrativeUnitSchemaType);
 
 		defaultSchema.createSystemReserved(DecommissioningList.TYPE).defineAsEnum(DecommissioningListType.class)
-					 .setSearchable(true);
+				.setSearchable(true);
 
 		defaultSchema.createUndeletable(DecommissioningList.VALIDATION_DATE).setType(DATE);
 
 		defaultSchema.createUndeletable(DecommissioningList.VALIDATION_USER).setType(REFERENCE)
-					 .defineReferencesTo(userSchemaType);
+				.defineReferencesTo(userSchemaType);
 
 		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_REQUEST_DATE).setType(DATE);
 
 		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_REQUEST).setType(REFERENCE)
-					 .defineReferencesTo(userSchemaType);
+				.defineReferencesTo(userSchemaType);
 
 		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_DATE).setType(DATE);
 
 		defaultSchema.createUndeletable(DecommissioningList.APPROVAL_USER).setType(REFERENCE)
-					 .defineReferencesTo(userSchemaType);
+				.defineReferencesTo(userSchemaType);
 
 		defaultSchema.createUndeletable(DecommissioningList.PROCESSING_DATE).setType(DATE);
 
 		defaultSchema.createUndeletable(DecommissioningList.PROCESSING_USER).setType(REFERENCE)
-					 .defineReferencesTo(userSchemaType);
+				.defineReferencesTo(userSchemaType);
 
 		defaultSchema.createUndeletable(DecommissioningList.FOLDER_DETAILS).setMultivalue(true)
-					 .setType(STRUCTURE).defineStructureFactory(DecomListFolderDetailFactory.class);
+				.setType(STRUCTURE).defineStructureFactory(DecomListFolderDetailFactory.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.FOLDERS).setMultivalue(true)
-					 .defineReferencesTo(folderSchemaType)
-					 .defineDataEntry().asCalculated(DecomListFoldersCalculator.class);
+				.defineReferencesTo(folderSchemaType)
+				.defineDataEntry().asCalculated(DecomListFoldersCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.CONTAINER_DETAILS).setMultivalue(true)
-					 .setType(STRUCTURE).defineStructureFactory(DecomListContainerDetailFactory.class);
+				.setType(STRUCTURE).defineStructureFactory(DecomListContainerDetailFactory.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.CONTAINERS).setType(REFERENCE)
-					 .defineReferencesTo(containerSchemaType).setMultivalue(true)
-					 .defineDataEntry().asCalculated(DecomListContainersCalculator.class);
+				.defineReferencesTo(containerSchemaType).setMultivalue(true)
+				.defineDataEntry().asCalculated(DecomListContainersCalculator.class);
 
 		copy(folderSchemaType, schemaType, DecommissioningList.FOLDERS, Folder.MEDIA_TYPE,
 				DecommissioningList.FOLDERS_MEDIA_TYPES);
 
 		defaultSchema.createUndeletable(DecommissioningList.ANALOGICAL_MEDIUM).setType(BOOLEAN)
-					 .defineDataEntry().asCalculated(DecomListHasAnalogicalMediumTypesCalculator.class);
+				.defineDataEntry().asCalculated(DecomListHasAnalogicalMediumTypesCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.ELECTRONIC_MEDIUM).setType(BOOLEAN)
-					 .defineDataEntry().asCalculated(DecomListHasElectronicMediumTypesCalculator.class);
+				.defineDataEntry().asCalculated(DecomListHasElectronicMediumTypesCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.UNIFORM).setType(BOOLEAN)
-					 .defineDataEntry().asCalculated(DecomListIsUniform.class);
+				.defineDataEntry().asCalculated(DecomListIsUniform.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.STATUS).defineAsEnum(DecomListStatus.class)
-					 .defineDataEntry().asCalculated(DecomListStatusCalculator.class);
+				.defineDataEntry().asCalculated(DecomListStatusCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_CATEGORY)
-					 .setType(REFERENCE).defineReferencesTo(categorySchemaType)
-					 .defineDataEntry().asCalculated(DecomListUniformCategoryCalculator.class);
+				.setType(REFERENCE).defineReferencesTo(categorySchemaType)
+				.defineDataEntry().asCalculated(DecomListUniformCategoryCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_COPY_RULE)
-					 .setType(STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
-					 .defineDataEntry().asCalculated(DecomListUniformCopyRuleCalculator.class);
+				.setType(STRUCTURE).defineStructureFactory(CopyRetentionRuleFactory.class)
+				.defineDataEntry().asCalculated(DecomListUniformCopyRuleCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_COPY_TYPE).defineAsEnum(CopyType.class)
-					 .defineDataEntry().asCalculated(DecomListUniformCopyTypeCalculator.class);
+				.defineDataEntry().asCalculated(DecomListUniformCopyTypeCalculator.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.UNIFORM_RULE)
-					 .setType(REFERENCE).defineReferencesTo(retentionRuleSchemaType)
-					 .defineDataEntry().asCalculated(DecomListUniformRuleCalculator.class);
+				.setType(REFERENCE).defineReferencesTo(retentionRuleSchemaType)
+				.defineDataEntry().asCalculated(DecomListUniformRuleCalculator.class);
 
 		defaultSchema.createSystemReserved(DecommissioningList.ORIGIN_ARCHIVISTIC_STATUS).defineAsEnum(OriginStatus.class);
 
 		defaultSchema.createUndeletable(DecommissioningList.COMMENTS).setMultivalue(true)
-					 .setType(MetadataValueType.ENUM).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.ENUM).defineStructureFactory(CommentFactory.class);
 
 		return schemaType;
 	}
@@ -1118,13 +1118,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 		defaultSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true);
 		defaultSchema.createUndeletable(Document.FOLDER)
-					 .defineChildOfRelationshipToType(folderSchemaType).setDefaultRequirement(true);
+				.defineChildOfRelationshipToType(folderSchemaType).setDefaultRequirement(true);
 		defaultSchema.createUndeletable(Document.CONTENT).setType(CONTENT).setSearchable(true);
 		defaultSchema.createUndeletable(Document.KEYWORDS).setType(STRING).setMultivalue(true).setSearchable(true);
 		defaultSchema.createUndeletable(Document.DESCRIPTION).setType(TEXT).setSearchable(true);
 		defaultSchema.createUndeletable(Document.TYPE).defineReferencesTo(documentTypeSchema);
 		defaultSchema.createUndeletable(Document.COMMENTS).setMultivalue(true).setType(MetadataValueType.STRUCTURE)
-					 .defineStructureFactory(CommentFactory.class);
+				.defineStructureFactory(CommentFactory.class);
 
 		String ref = Document.FOLDER;
 		copy(folderSchemaType, schemaType, ref, Folder.CATEGORY, Document.FOLDER_CATEGORY);

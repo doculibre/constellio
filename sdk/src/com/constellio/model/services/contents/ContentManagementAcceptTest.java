@@ -120,7 +120,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				try {
 					defineSchemasManager()
 							.using(schemas.withAContentMetadata(whichIsSearchable).withAContentListMetadata()
-										  .withAParentReferenceFromZeSchemaToZeSchema());
+									.withAParentReferenceFromZeSchemaToZeSchema());
 					defineSchemasManager().using(anotherCollectionSchemas.withAContentMetadata());
 
 					recordServices = getModelLayerFactory().newRecordServices();
@@ -194,7 +194,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		assertThat(theRecordContent()).isNot(emptyVersion);
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash);
 	}
 
@@ -203,11 +203,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createEmptyMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()))
-					 .isSaved();
+				.isSaved();
 
 		assertThat(theRecordContent()).is(emptyVersion);
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash);
 	}
 
@@ -235,12 +235,12 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		Content minorContentAddedByBob = contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()).checkOut(bob);
 		Content contentAddedByAliceThenBorrowedByBob = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())
-																	 .checkOut(bob);
+				.checkOut(bob);
 		Content returnedContent = contentManager.createMajor(alice, "ZePdf.pdf", uploadPdf1InputStream());
 		Content minorContentAddedByAlice = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())
-														 .checkOut(alice);
+				.checkOut(alice);
 		Content minorContentAddedByBobThenBorrowedByAlice = contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())
-																		  .checkOut(bob).checkIn().checkOut(alice);
+				.checkOut(bob).checkIn().checkOut(alice);
 
 		givenRecordWithId("bobDoc1").withSingleValueContent(minorContentAddedByBob).isSaved();
 		givenRecordWithId("bobDoc2").withSingleValueContent(contentAddedByAliceThenBorrowedByBob).isSaved();
@@ -266,11 +266,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).isSaved();
 
 		when(theRecord()).withSingleValueContent(contentManager.createMinor(bob, "ZeDocx.docx", uploadDocx1InputStream()))
-						 .isSaved();
+				.isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDocx.docx")).has(
 				docx1HashAndLength())
-														  .has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(docx1Hash);
 	}
 
@@ -281,7 +281,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenRecord().addMultiValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).isSaved();
 
 		assertThat(theRecordFirstMultivalueContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf"))
-																		 .has(pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash);
 
 	}
@@ -541,13 +541,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenRecord().withSingleValueContent(content).isSaved();
 
 		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy", "comment")
-													.isEqualTo(asList(
-															tuple("0.1", "zetest.pdf", aliceId, "version comment 1"),
-															tuple("1.0", "zetest.pdf", bobId, "version comment 2"),
-															tuple("1.1", "zetest.pdf", aliceId, "version comment 3"),
-															tuple("1.2", "zetest.docx", aliceId, "version comment 4"),
-															tuple("2.0", "zetest.docx", bobId, "version comment 5")
-													));
+				.isEqualTo(asList(
+						tuple("0.1", "zetest.pdf", aliceId, "version comment 1"),
+						tuple("1.0", "zetest.pdf", bobId, "version comment 2"),
+						tuple("1.1", "zetest.pdf", aliceId, "version comment 3"),
+						tuple("1.2", "zetest.docx", aliceId, "version comment 4"),
+						tuple("2.0", "zetest.docx", bobId, "version comment 5")
+				));
 
 	}
 
@@ -560,15 +560,15 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenRecord().withSingleValueContent(content).isSaved();
 
 		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy", "comment")
-													.isEqualTo(asList(
-															tuple("0.1", "zetest.pdf", aliceId, null)
-													));
+				.isEqualTo(asList(
+						tuple("0.1", "zetest.pdf", aliceId, null)
+				));
 
 		when(theRecord()).hasItsContentCommentChangedTo("Ze comment").and().isSaved();
 		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy", "comment")
-													.isEqualTo(asList(
-															tuple("0.1", "zetest.pdf", aliceId, "Ze comment")
-													));
+				.isEqualTo(asList(
+						tuple("0.1", "zetest.pdf", aliceId, "Ze comment")
+				));
 	}
 
 	@Test
@@ -583,10 +583,10 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				contentManager.createMajor(bob, "ZeDocx.docx", uploadDocx1InputStream())).isSaved();
 
 		assertThat(theRecordFirstMultivalueContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf2.pdf"))
-																		 .has(pdf2HashAndLength()).has(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(shishOClock));
+				.has(pdf2HashAndLength()).has(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordSecondAndLastMultivalueContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDocx.docx"))
-																				 .has(docx1HashAndLength()).has(version("1.0")).has(modifiedBy(bob)).has(modificationDatetime(shishOClock));
+				.has(docx1HashAndLength()).has(version("1.0")).has(modifiedBy(bob)).has(modificationDatetime(shishOClock));
 		assertThatVaultOnlyContains(docx1Hash, pdf2Hash);
 	}
 
@@ -600,7 +600,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZeUltimatePdf.pdf")).has(
 				pdf1HashAndLength())
-														  .has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 	}
 
 	@Test
@@ -623,15 +623,15 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()))
-					 .contentCheckedOutBy(alice).isSaved();
+				.contentCheckedOutBy(alice).isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).hasItsContentCommentChangedTo("comment 1")
-						 .and().isSaved();
+				.and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(
 				pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(comment(null))
-														  .has(modificationDatetime(smashOClock));
+				.has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent().getCurrentCheckedOutVersion()).has(pdfMimetype()).has(comment("comment 1")).has(
 				pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
@@ -639,7 +639,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentCommentChangedTo("comment 2").and().isSaved();
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(
 				pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(comment(null))
-														  .has(modificationDatetime(smashOClock));
+				.has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent().getCurrentCheckedOutVersion()).has(pdfMimetype()).has(comment("comment 2")).has(
 				pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 	}
@@ -655,8 +655,8 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentUpdated(alice, uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-														  .has(
-																  version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(
+						version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
@@ -676,13 +676,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentUpdated(bob, uploadPdf3InputStream()).and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdf3HashAndLength()).has(version("0.3")).has(modifiedBy(bob))
-														  .has(modificationDatetime(teaOClock));
+				.has(modificationDatetime(teaOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(2);
 		assertThat(theRecordContentHistory().get(0)).has(pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob))
-													.has(modificationDatetime(smashOClock));
+				.has(modificationDatetime(smashOClock));
 		assertThat(theRecordContentHistory().get(1)).has(pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice))
-													.has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash, pdf3Hash);
 	}
 
@@ -722,12 +722,12 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).deleteVersion("0.1", bob).isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdf3HashAndLength()).has(version("0.3")).has(modifiedBy(bob))
-														  .has(modificationDatetime(teaOClock));
+				.has(modificationDatetime(teaOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 
 		assertThat(theRecordContentHistory().get(0)).has(pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice))
-													.has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 		assertThatVaultOnlyContains(pdf2Hash, pdf3Hash);
 	}
 
@@ -749,12 +749,12 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).deleteVersion("0.3", bob).isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice))
-														  .has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 
 		assertThat(theRecordContentHistory().get(0)).has(pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob))
-													.has(modificationDatetime(smashOClock));
+				.has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
 
@@ -788,12 +788,12 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).deleteVersion("0.2", bob).isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdf3HashAndLength()).has(version("0.3")).has(modifiedBy(bob))
-														  .has(modificationDatetime(teaOClock));
+				.has(modificationDatetime(teaOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 
 		assertThat(theRecordContentHistory().get(0)).has(pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob))
-													.has(modificationDatetime(smashOClock));
+				.has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf3Hash);
 	}
 
@@ -812,13 +812,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentFinalized().and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdf3HashAndLength()).has(version("1.0")).has(modifiedBy(bob))
-														  .has(modificationDatetime(teaOClock));
+				.has(modificationDatetime(teaOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(2);
 		assertThat(theRecordContentHistory().get(0)).has(pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob))
-													.has(modificationDatetime(smashOClock));
+				.has(modificationDatetime(smashOClock));
 		assertThat(theRecordContentHistory().get(1)).has(pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice))
-													.has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash, pdf3Hash);
 	}
 
@@ -891,7 +891,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentRenamedTo("3.docx").hasItsContentUpdated(alice, uploadDocx1InputStream()).and().isSaved();
 
 		givenAnotherRecord().withSingleValueContent(contentManager.createMinor(bob, "2.docx", uploadDocx2InputStream()))
-							.withParent(theRecord()).isSaved();
+				.withParent(theRecord()).isSaved();
 
 		recordServices.logicallyDelete(theRecord(), bob);
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash, docx1Hash, docx2Hash);
@@ -912,8 +912,8 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				hasItsContentUpdatedAndFinalized(alice, uploadDocx1InputStream()).and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(docsMimetype()).has(filename("ZeDoc.docx"))
-														  .has(docx1HashAndLength())
-														  .has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(docx1HashAndLength())
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(docx1Hash, pdf1Hash);
@@ -929,7 +929,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedOutBy(alice).and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(checkedOutBy(alice, shishOClock));
 
 	}
@@ -939,14 +939,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).and()
-					 .contentCheckedOutBy(alice).isSaved();
+				.contentCheckedOutBy(alice).isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).contentCheckedIn().and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .has(
-																  version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(
+						version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash);
 
@@ -957,14 +957,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).and()
-					 .contentCheckedOutBy(alice).isSaved();
+				.contentCheckedOutBy(alice).isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).contentCheckedInCancelled().and().isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .has(
-																  version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(
+						version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash);
 
@@ -995,11 +995,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedInAsMinor(uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 		assertThat(theRecordContentHistory().get(0)).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
@@ -1010,13 +1010,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		Record record = givenRecord().withSingleValueContent(
 				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
-									 .isSaved();
+				.isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).contentCheckedInAsMinor(uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContent()).is(notCheckedOut());
@@ -1030,7 +1030,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		Record record = givenRecord().withSingleValueContent(
 				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
-									 .isSaved();
+				.isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).and().isSaved();
@@ -1048,7 +1048,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedIn().and().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf3HashAndLength())
-													.has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(teaOClock));
+				.has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(teaOClock));
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThat(theRecordContent()).isNot(emptyVersion);
@@ -1067,7 +1067,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).hasItsContentUpdated(bob, uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(shishOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(shishOClock));
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThat(theRecordContent()).isNot(emptyVersion);
@@ -1079,13 +1079,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		Record record = givenRecord().withSingleValueContent(
 				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
-									 .isSaved();
+				.isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).contentCheckedInAsMajor(uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContent()).is(notCheckedOut());
@@ -1099,13 +1099,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		Record record = givenRecord().withSingleValueContent(
 				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
-									 .isSaved();
+				.isSaved();
 
 		givenTimeIs(shishOClock);
 		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf"))
-															  .has(pdf2HashAndLength()).has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(pdf2HashAndLength()).has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContent()).is(checkedOutBy(alice, smashOClock));
@@ -1125,11 +1125,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedInAsMajor(uploadPdf2InputStream()).and().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 		assertThat(theRecordContentHistory().get(0)).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
@@ -1147,10 +1147,10 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(
 				pdf2HashAndLength())
-															  .has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(teaOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(teaOClock));
 		assertThat(theRecordContent()).is(checkedOutBy(alice, teaOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 		assertThat(theRecordContentHistory()).isEmpty();
@@ -1166,16 +1166,16 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenTimeIs(shishOClock);
 		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).and().isSaved();
 		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdf2HashAndLength()).has(version("0.2"))
-															  .has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 
 		givenTimeIs(teaOClock);
 		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf3InputStream()).and().isSaved();
 		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdf3HashAndLength()).has(version("0.2"))
-															  .has(modificationDatetime(teaOClock));
+				.has(modificationDatetime(teaOClock));
 
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 
 		assertThat(theRecordContent()).is(checkedOutBy(alice, smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf3Hash);
@@ -1193,11 +1193,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedIn().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 		assertThat(theRecordContentHistory().get(0)).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
@@ -1214,7 +1214,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedInCancelled().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContentHistory()).isEmpty();
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash);
@@ -1232,11 +1232,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).finalizeVersion().isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
-													.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 		assertThat(theRecordContentHistory().get(0)).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
@@ -1253,11 +1253,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedInAsMajor(uploadPdf3InputStream()).isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf3HashAndLength())
-													.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 		assertThat(theRecordContentHistory().get(0)).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf3Hash);
 	}
@@ -1274,11 +1274,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		when(theRecord()).contentCheckedInAsMinor(uploadPdf3InputStream()).isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf3HashAndLength())
-													.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+				.has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 
 		assertThat(theRecordContentHistory()).hasSize(1);
 		assertThat(theRecordContentHistory().get(0)).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-													.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf3Hash);
 	}
@@ -1293,7 +1293,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenTimeIs(shishOClock);
 		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).and().isSaved();
 		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdf2HashAndLength()).has(version("0.2"))
-															  .has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 
 		givenTimeIs(teaOClock);
 		RecordPreparation recordPreparation = when(theRecord());
@@ -1313,7 +1313,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		recordPreparation.isSaved();
 
 		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdf2HashAndLength()).has(version("0.2"))
-															  .has(modificationDatetime(shishOClock));
+				.has(modificationDatetime(shishOClock));
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
 
@@ -1432,7 +1432,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		recordPreparation.isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdf3HashAndLength()).has(modificationDatetime(shishOClock))
-													.has(filename("newFile.pdf")).has(version("0.1"));
+				.has(filename("newFile.pdf")).has(version("0.1"));
 	}
 
 	@Test
@@ -1448,7 +1448,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		recordPreparation.isSaved();
 
 		assertThat(theRecordContentCurrentVersion()).has(pdf3HashAndLength()).has(modificationDatetime(shishOClock))
-													.has(filename("newFile.pdf")).has(version("1.0"));
+				.has(filename("newFile.pdf")).has(version("1.0"));
 	}
 
 	@Test
@@ -1494,7 +1494,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()))
-					 .contentCheckedOutBy(alice).isSaved();
+				.contentCheckedOutBy(alice).isSaved();
 
 		givenTimeIs(shishOClock);
 		RecordPreparation recordPreparation = when(theRecord());
@@ -1545,7 +1545,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		ContentVersionDataSummary zeContent = uploadDocx1InputStream();
 		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
-					 .withRequireConversionFlag(true).isSaved();
+				.withRequireConversionFlag(true).isSaved();
 
 		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
 		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isFalse();
@@ -1574,7 +1574,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		ContentVersionDataSummary zeContent = uploadACorruptedDocx();
 		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
-					 .withRequireConversionFlag(true).isSaved();
+				.withRequireConversionFlag(true).isSaved();
 
 		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
 		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isFalse();
@@ -1641,17 +1641,17 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5"))
-					 .isSaved();
+				.isSaved();
 
 		assertThat(theRecordContent()).isNot(emptyVersion);
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .is(version("3.5")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.is(version("3.5")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 
 		when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "42", "ZeNewPdf.pdf")
-						 .isSaved();
+				.isSaved();
 
 		when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "66.6", "ZeNewPdf.pdf")
-						 .isSaved();
+				.isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("66.6");
 		assertThat(theRecordContent().getHistoryVersions().get(1).getVersion()).isEqualTo("42.0");
@@ -1672,7 +1672,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		}
 
 		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5"))
-					 .isSaved();
+				.isSaved();
 
 		try {
 			when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "42b", "ZeNewPdf.pdf");
@@ -1688,10 +1688,10 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3"))
-					 .isSaved();
+				.isSaved();
 
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
-														  .is(version("3.0")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+				.is(version("3.0")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 
 		try {
 			when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "2.4", "ZeNewPdf.pdf");
@@ -1934,67 +1934,67 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	private ContentVersionDataSummary uploadACorruptedDocx() {
 		return contentManager.upload(getTestResourceInputStream("corrupted.docx"), new UploadOptions())
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf1InputStream() {
 		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), new UploadOptions())
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf1InputStream(UploadOptions options) {
 		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), options)
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf2InputStream() {
 		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), new UploadOptions())
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf3InputStream() {
 		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), new UploadOptions())
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx1InputStream() {
 		return contentManager.upload(getTestResourceInputStream("docx1.docx"), new UploadOptions())
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx2InputStream() {
 		return contentManager.upload(getTestResourceInputStream("docx2.docx"), new UploadOptions())
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf1InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), new UploadOptions("pdf1.pdf")
 				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf2InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), new UploadOptions("pd2.docx.pdf")
 				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf3InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), new UploadOptions("pd3.pdf.pdf")
 				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx1InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("docx1.docx"), new UploadOptions("doc1.docx")
 				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx2InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("docx2.docx"), new UploadOptions("doc2.doc.docx")
 				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
-							 .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 	}
 
 	private void assertThatVaultOnlyContains(String... hashes)
@@ -2045,7 +2045,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		ContentVersionDataSummary retrievedDataSummary = contentManager.getContentVersionSummary(dataSummary.getHash())
-																	   .getContentVersionDataSummary();
+				.getContentVersionDataSummary();
 		assertThat(retrievedDataSummary).isEqualTo(dataSummary);
 
 		InputStream contentStream = contentManager.getContentInputStream(dataSummary.getHash(), SDK_STREAM);

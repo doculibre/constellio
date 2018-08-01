@@ -56,7 +56,7 @@ public class SearchBoostByMetadataPresenter extends SearchBoostPresenter {
 			searchBoostVO
 					.setLabel(metadata.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage())));
 			String analyzedField = metadata.getAnalyzedField(view.getSessionContext().getCurrentLocale().getLanguage())
-										   .getDataStoreCode();
+					.getDataStoreCode();
 			searchBoostVO.setKey(analyzedField);
 			searchBoostVOs.add(searchBoostVO);
 		}

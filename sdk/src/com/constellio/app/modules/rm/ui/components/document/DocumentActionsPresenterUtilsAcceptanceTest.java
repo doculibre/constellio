@@ -74,7 +74,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 		ConstellioFactories constellioFactories = getConstellioFactories();
 
@@ -132,7 +132,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 		content2File = createFileFromContent(content2_title2, folder.getPath() + "/2");
 
 		document11WithContent1HavingTitle1 = rm.newDocument().setType(records.documentTypeId_1)
-											   .setFolder(records.getFolder_A01().getId());
+				.setFolder(records.getFolder_A01().getId());
 		transaction.add(document11WithContent1HavingTitle1.setContent(content1_title1).setTitle("11"));
 
 		document12WithContent1HavingTitle2 = rm.newDocument().setType(records.documentTypeId_1).setFolder(

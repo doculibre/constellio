@@ -244,9 +244,9 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 			if (recordBatchProcess.getQuery() == null && recordBatchProcess.getRecords() == null) {
 				List<String> records = getRecords(batchProcess);
 				LogicalSearchCondition condition = fromAllSchemasIn(batchProcess.getCollection()).where(IDENTIFIER)
-																								 .isIn(records);
+						.isIn(records);
 				ModifiableSolrParams params = modelLayerFactory.newSearchServices()
-															   .addSolrModifiableParams(new LogicalSearchQuery(condition));
+						.addSolrModifiableParams(new LogicalSearchQuery(condition));
 				String query = SolrUtils.toSingleQueryString(params);
 				batchProcess = recordBatchProcess.withQuery(query);
 			}

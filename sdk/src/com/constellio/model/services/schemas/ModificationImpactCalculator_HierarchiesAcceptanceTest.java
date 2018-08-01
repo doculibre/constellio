@@ -81,13 +81,13 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		typesBuilder.getSchema(taxonomy1FirstSchema.code()).create("taxo1FirstSchemaMetaWithTaxoDependency")
-					.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		typesBuilder.getSchema(taxonomy1SecondSchema.code()).create("taxo1SecondSchemaMetaWithTaxoDependency")
-					.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		typesBuilder.getSchema(folderSchema.code()).create("folderMetaWithTaxoDependency")
-					.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		typesBuilder.getSchema(documentSchema.code()).create("documentMetaWithTaxoDependency")
-					.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		schemas.onSchemaBuilt(schemasManager.saveUpdateSchemaTypes(typesBuilder));
 
 		aFolderWithTaxonomy = recordServices.newRecordWithSchema(folderSchema.instance());
@@ -227,7 +227,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 						asList(taxonomy1FirstSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type())
-													  .whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
+						.whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
 	}
 
 	private void assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(TestRecord record,
@@ -236,13 +236,13 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		Metadata taxo1SecondSchemaAllRemovedAuths = taxonomy1SecondSchema.allRemovedAuths();
 
 		assertThat(impacts).extracting("metadataToReindex")
-						   .containsExactly(asList(folderAllRemovedAuths), asList(taxo1SecondSchemaAllRemovedAuths));
+				.containsExactly(asList(folderAllRemovedAuths), asList(taxo1SecondSchemaAllRemovedAuths));
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
 						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
-													  .whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
 	}
 
 	private void assertAttachedAncestorsImpactInFolderAndDocumentSchema(TestRecord record,
@@ -260,7 +260,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 						asList(folderSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(documentSchema.type())
-													  .whereAny(asList(documentSchema.parent())).isIn(asList(record)));
+						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
 	}
 
 	private void assertPathAndAuthorizationsImpactInFirstAndSecondSchema(TestRecord record,
@@ -268,17 +268,17 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
-														 .containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1FirstSchemaMetaWithTaxoDependency",
-																 "inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
+				.containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1FirstSchemaMetaWithTaxoDependency",
+						"inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
-														 .containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
-																 "inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
+						"inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1FirstSchema.type()).whereAny(
 						asList(taxonomy1FirstSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type())
-													  .whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
+						.whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
 	}
 
 	private void assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(TestRecord record,
@@ -286,17 +286,17 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
-														 .containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
-																 "inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
+						"inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
-														 .containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path",
-																 "inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
+				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path",
+						"inheritedauthorizations", NON_TAXONOMY_AUTHORIZATIONS);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
 						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
-													  .whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
 	}
 
 	private void assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(TestRecord record,
@@ -304,17 +304,17 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
-														 .containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
-																 ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS);
+				.containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
+						ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
-														 .containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
-																 ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS);
+				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
+						ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
 						asList(folderSchema.parent())).isIn(asList(record)));
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(documentSchema.type())
-													  .whereAny(asList(documentSchema.parent())).isIn(asList(record)));
+						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
 	}
 
 	private Record newFolder(String title, Record parentFolder, Record taxonomy1, Record... taxonomy2s) {

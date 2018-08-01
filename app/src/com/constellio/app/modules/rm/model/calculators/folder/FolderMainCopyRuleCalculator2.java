@@ -17,7 +17,7 @@ public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<Co
 	LocalDependency<String> enteredCopyRuleParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
 
 	LocalDependency<List<CopyRetentionRule>> copyRulesParam = LocalDependency.toAStructure(Folder.APPLICABLE_COPY_RULES)
-																			 .whichIsRequired();
+			.whichIsRequired();
 
 	LocalDependency<List<LocalDate>> expectedDestructionDatesParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).whichIsMultivalue().whichIsRequired();

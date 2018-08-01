@@ -48,7 +48,7 @@ public class CalculatorMetadataAggregationHandler implements MetadataAggregation
 		List<Metadata> metadatas = new ArrayList<>();
 		try {
 			List<String> metadataDependencies = params.getAggregatedDataEntry().getAggregatedCalculator().newInstance()
-													  .getMetadataDependencies();
+					.getMetadataDependencies();
 			if (metadataDependencies != null) {
 				for (String metadataCode : metadataDependencies) {
 					metadatas.add(params.getMetadata(metadataCode));

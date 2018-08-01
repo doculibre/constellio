@@ -46,7 +46,7 @@ public class CoreMigrationTo_7_7_6 implements MigrationScript {
 			MetadataSchemaBuilder searchEvent = typesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE).getDefaultSchema();
 			if (!searchEvent.hasMetadata(SearchEvent.CAPSULE)) {
 				searchEvent.create(SearchEvent.CAPSULE).setType(REFERENCE).setMultivalue(true)
-						   .defineReferencesTo(typesBuilder.getSchemaType(Capsule.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(Capsule.SCHEMA_TYPE));
 			}
 		}
 	}

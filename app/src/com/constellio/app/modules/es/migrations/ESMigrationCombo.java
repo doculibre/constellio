@@ -104,10 +104,10 @@ public class ESMigrationCombo implements ComboMigrationScript {
 
 		transaction.add(migration
 				.newConnectorType(migration.es.connectorInstance_http.schema(), ConnectorHttp.class, ConnectorType.CODE_HTTP))
-				   .setDefaultAvailableConnectorFields(asList(
-						   field(ConnectorHttpDocument.SCHEMA_TYPE, "charset", STRING),
-						   field(ConnectorHttpDocument.SCHEMA_TYPE, "language", STRING),
-						   field(ConnectorHttpDocument.SCHEMA_TYPE, "lastModification", DATE_TIME)));
+				.setDefaultAvailableConnectorFields(asList(
+						field(ConnectorHttpDocument.SCHEMA_TYPE, "charset", STRING),
+						field(ConnectorHttpDocument.SCHEMA_TYPE, "language", STRING),
+						field(ConnectorHttpDocument.SCHEMA_TYPE, "lastModification", DATE_TIME)));
 
 		transaction.add(migration
 				.newConnectorType(migration.es.connectorInstance_smb.schema(), ConnectorSmb.class, ConnectorType.CODE_SMB));
@@ -132,25 +132,25 @@ public class ESMigrationCombo implements ComboMigrationScript {
 
 		// Facets common to all connectors
 		Facet mimetypeFacet = es.newFacetField()
-								.setUsedByModule(ConstellioESModule.ID)
-								.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
-								.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
+				.setUsedByModule(ConstellioESModule.ID)
+				.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
 		addAllMimetypeLabels(mimetypeFacet);
 		transaction.add(mimetypeFacet);
 
 		// Facets for SMB connector
 		transaction.add(es.newFacetField()
-						  .setUsedByModule(ConstellioESModule.ID)
-						  .setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
-						  .withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
-						  .withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
-						  .withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
+				.setUsedByModule(ConstellioESModule.ID)
+				.setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
+				.withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
+				.withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
+				.withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
 
 		transaction.add(es.newFacetField()
-						  .setUsedByModule(ConstellioESModule.ID)
-						  .setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
+				.setUsedByModule(ConstellioESModule.ID)
+				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
 
 		//		transaction.add(es.newFacetField()
 		//				.setUsedByModule(ConstellioESModule.ID)
@@ -158,12 +158,12 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		//				.setTitle(migrationResourcesProvider.get("init.facet.smbFolder")));
 
 		transaction.add(es.newFacetField()
-						  .setUsedByModule(ConstellioESModule.ID)
-						  .setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
-						  //FIXME
-						  .withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
-						  .withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
+				.setUsedByModule(ConstellioESModule.ID)
+				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
+				//FIXME
+				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
+				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
 
 		return transaction;
 	}

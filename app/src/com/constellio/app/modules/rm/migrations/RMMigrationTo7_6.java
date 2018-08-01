@@ -65,10 +65,10 @@ public class RMMigrationTo7_6 extends MigrationHelper implements MigrationScript
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.CAPTION.getLocalCode())
-						.defineDataEntry().asCalculated(FolderCaptionCalculator.class);
+					.defineDataEntry().asCalculated(FolderCaptionCalculator.class);
 
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.CAPTION.getLocalCode())
-						.defineDataEntry().asCalculated(DocumentCaptionCalculator.class);
+					.defineDataEntry().asCalculated(DocumentCaptionCalculator.class);
 		}
 
 	}

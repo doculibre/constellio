@@ -193,8 +193,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	@Override
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search.setSearchType(SimpleSearchView.SEARCH_TYPE)
-					 .setFreeTextSearch(searchExpression)
-					 .setPageNumber(pageNumber);
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber);
 	}
 
 	private List<MetadataSchemaType> allowedSchemaTypes() {
@@ -214,7 +214,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
 			return false;
 		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
-																				  .globally()) {
+				.globally()) {
 			return false;
 		}
 		return true;

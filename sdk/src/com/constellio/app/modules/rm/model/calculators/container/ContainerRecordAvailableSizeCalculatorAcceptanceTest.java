@@ -48,7 +48,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 		calculator = spy(new ContainerRecordAvailableSizeCalculator());
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -80,7 +80,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 			throws RecordServicesException {
 
 		ContainerRecord containerRecord = buildDefaultContainer().setCapacity(new Double(10)).setLinearSizeEntered(6.0)
-																 .setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -97,7 +97,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 			throws RecordServicesException {
 
 		ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(6.0)
-																 .setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -128,7 +128,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 		ContainerRecord containerRecord = buildDefaultContainer();
 		containerRecord.setFull(Boolean.TRUE);
 		containerRecord.setCapacity(42)
-					   .setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
@@ -153,7 +153,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-				 .setTemporaryIdentifier("containerTestTemporary")
-				 .setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setTemporaryIdentifier("containerTestTemporary")
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 }

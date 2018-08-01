@@ -704,10 +704,10 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
 
 		assertThat(metadatas).extracting("localCode")
-							 .isEqualTo(
-									 asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete", "inheritedauthorizations",
-											 "m2", "parentpath", "path", "tokens", "allauthorizations", "m1", "pathParts", "principalpath",
-											 "tokensHierarchy"));
+				.isEqualTo(
+						asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete", "inheritedauthorizations",
+								"m2", "parentpath", "path", "tokens", "allauthorizations", "m1", "pathParts", "principalpath",
+								"tokensHierarchy"));
 
 	}
 
@@ -741,7 +741,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		Set<String> expectedAnotherTypeDependencies = asSet(aThirdType.getCode());
 
 		assertThat(typesBuilder.getTypesDependencies()).hasSize(2).containsEntry(zeType.getCode(), expectedZeTypeDependencies)
-													   .containsEntry(anotherType.getCode(), expectedAnotherTypeDependencies);
+				.containsEntry(anotherType.getCode(), expectedAnotherTypeDependencies);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata.class)

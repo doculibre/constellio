@@ -238,8 +238,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
 		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		RetentionRule retentionRule = rm.newRetentionRule().setCode("R1").setTitle($("RMDemoData.retentionRule"))
-										.setAdministrativeUnits(asList(adminUnit.getId())).setApproved(true)
-										.setCopyRetentionRules(asList(principal888_5_C, secondary888_0_D));
+				.setAdministrativeUnits(asList(adminUnit.getId())).setApproved(true)
+				.setCopyRetentionRules(asList(principal888_5_C, secondary888_0_D));
 		transaction.add(retentionRule);
 
 		Category category10 = rm.newCategory().setCode("10").setTitle($("RMDemoData.category10")).setRetentionRules(
@@ -247,13 +247,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		transaction.add(category10);
 
 		transaction.add(rm.newCategory().setCode("11").setTitle($("RMDemoData.category11"))
-						  .setParent(category10.getId()).setRetentionRules(asList(retentionRule.getId())));
+				.setParent(category10.getId()).setRetentionRules(asList(retentionRule.getId())));
 
 		transaction.add(rm.newCategory().setCode("12").setTitle($("RMDemoData.category12"))
-						  .setParent(category10.getId()).setRetentionRules(asList(retentionRule.getId())));
+				.setParent(category10.getId()).setRetentionRules(asList(retentionRule.getId())));
 
 		transaction.add(rm.newCategory().setCode("13").setTitle($("RMDemoData.category13"))
-						  .setParent(category10.getId()).setRetentionRules(asList(retentionRule.getId())));
+				.setParent(category10.getId()).setRetentionRules(asList(retentionRule.getId())));
 
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
@@ -394,7 +394,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
 							return user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
-									   .onSomething();
+									.onSomething();
 						} else if (Role.WRITE.equals(access)) {
 							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
 						} else if (Role.DELETE.equals(access)) {

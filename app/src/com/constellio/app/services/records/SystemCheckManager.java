@@ -146,7 +146,7 @@ public class SystemCheckManager implements StatefulService {
 					ValidateRecordsCheckParams validateRecordsCheckParams = new ValidateRecordsCheckParams(record, repair,
 							builder);
 					boolean recordsRepaired2 = appLayerFactory.getExtensions().forCollection(collection)
-															  .validateRecord(validateRecordsCheckParams);
+							.validateRecord(validateRecordsCheckParams);
 
 					if (recordsRepaired || recordsRepaired2) {
 
@@ -154,7 +154,7 @@ public class SystemCheckManager implements StatefulService {
 							Transaction transaction = new Transaction();
 							record.markAsModified(Schemas.TITLE);
 							transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true)
-									   .setSkipMaskedMetadataValidations(true);
+									.setSkipMaskedMetadataValidations(true);
 							transaction.getRecordUpdateOptions().setFullRewrite(true);
 							transaction.getRecordUpdateOptions().setUpdateModificationInfos(false);
 							transaction.add(record);

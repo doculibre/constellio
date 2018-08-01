@@ -291,7 +291,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 
 			for (Record childWithoutAccessToInclude : childrenWithoutAccessToInclude) {
 				if (ctx.options.getFastContinueInfos() == null || !ctx.options.getFastContinueInfos()
-																			  .getShownRecordsWithVisibleChildren().contains(childWithoutAccessToInclude.getId())) {
+						.getShownRecordsWithVisibleChildren().contains(childWithoutAccessToInclude.getId())) {
 					nonNullRecords.add(childWithoutAccessToInclude);
 				}
 			}
@@ -327,7 +327,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 		Set<String> childrenWithoutAccessToIncludeRecordIds = new RecordUtils().toIdSet(childrenWithoutAccessToInclude);
 		List<TaxonomySearchRecord> concepts = conceptsResponse.records;
 		Set<String> typesParentOfOtherTypes = metadataSchemasManager.getSchemaTypes(ctx.getCollection())
-																	.getTypeParentOfOtherTypes();
+				.getTypeParentOfOtherTypes();
 		List<TaxonomySearchRecord> returnedRecords = new ArrayList<>();
 		SPEQueryResponse facetResponse = queryFindingWhichRecordsHasChildren(ctx, concepts.size(), records);
 
@@ -440,7 +440,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 			}
 
 			LogicalSearchQuery facetQuery = context.newQueryWithUserFilter(queryCondition)
-												   .filteredByStatus(ACTIVES).setStartRow(0).setNumberOfRows(0);
+					.filteredByStatus(ACTIVES).setStartRow(0).setNumberOfRows(0);
 
 			int facetCounts = 0;
 			for (int i = visibleConceptsSize;
@@ -729,7 +729,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 					visibleRecords.add(null);
 				}
 				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, 100, continueInfos.lastReturnRecordIndex)
-										 .inBatches();
+						.inBatches();
 
 			} else {
 				iterator = searchServices.cachedRecordsIteratorKeepingOrder(mainQuery, 100).inBatches();
@@ -742,7 +742,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 					visibleRecords.add(null);
 				}
 				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100, continueInfos.lastReturnRecordIndex)
-										 .inBatches();
+						.inBatches();
 
 			} else {
 				iterator = searchServices.recordsIteratorKeepingOrder(mainQuery, 100).inBatches();
@@ -773,7 +773,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 
 			} else if (options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()) {
 				LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection()).where(VISIBLE_IN_TREES)
-																							 .isTrueOrNull();
+						.isTrueOrNull();
 				facetQuery = newQueryForFacets(condition, user, options);
 
 			} else {
@@ -941,7 +941,7 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 				.getCacheMode(selectedType, options.getRequiredAccess(), options.isShowInvisibleRecordsInLinkingMode(),
 						options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
 		options = options.cloneAddingReturnedField(Schemas.LINKABLE).cloneAddingReturnedField(Schemas.DESCRIPTION_STRING)
-						 .cloneAddingReturnedField(Schemas.DESCRIPTION_TEXT);
+				.cloneAddingReturnedField(Schemas.DESCRIPTION_TEXT);
 
 		SPEQueryResponse mainQueryResponse;
 		if (inRecord == null) {
@@ -981,8 +981,8 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 					ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
-					 .sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-					 .setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
+					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
 
 			Iterator<List<Record>> iterator;
 
@@ -1189,23 +1189,23 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 	public boolean hasLinkableConceptInHierarchy(final Record concept, final Taxonomy taxonomy,
 												 TaxonomiesSearchOptions options) {
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(concept.getCollection())
-															  .getSchemaType(taxonomy.getSchemaTypes().get(0));
+				.getSchemaType(taxonomy.getSchemaTypes().get(0));
 		List<Record> records = searchServices.getAllRecords(schemaType);
 		for (final Record record : records) {
 			if (record.getList(Schemas.PATH_PARTS).contains(concept.getId())) {
 				boolean linkableFlag = LangUtils.isTrueOrNull(record.get(Schemas.LINKABLE));
 				boolean linkableUsingFilter = options.getFilter().getLinkableConceptsFilter()
-													 .isLinkable(new LinkableConceptFilterParams() {
-														 @Override
-														 public Record getRecord() {
-															 return record;
-														 }
+						.isLinkable(new LinkableConceptFilterParams() {
+							@Override
+							public Record getRecord() {
+								return record;
+							}
 
-														 @Override
-														 public Taxonomy getTaxonomy() {
-															 return taxonomy;
-														 }
-													 });
+							@Override
+							public Taxonomy getTaxonomy() {
+								return taxonomy;
+							}
+						});
 
 				if (linkableFlag && linkableUsingFilter) {
 					return true;

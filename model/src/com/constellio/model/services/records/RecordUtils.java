@@ -493,7 +493,7 @@ public class RecordUtils {
 		if (hasInterdependency) {
 			List<Record> sorted = new ArrayList<>();
 			DependencyUtilsParams params = new DependencyUtilsParams().withToleratedCyclicDepencies()
-																	  .sortUsingDefaultComparator();
+					.sortUsingDefaultComparator();
 			for (String recordId : new DependencyUtils<String>().sortByDependency(dependencies, params)) {
 				sorted.add(recordMap.get(recordId));
 			}

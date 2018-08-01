@@ -99,7 +99,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 							userInLastCollection = userInCollection;
 							lastLogin = userInCollection.getLastLogin();
 						} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
-																												   .isAfter(lastLogin)) {
+								.isAfter(lastLogin)) {
 							lastCollection = collection;
 							userInLastCollection = userInCollection;
 							lastLogin = userInCollection.getLastLogin();
@@ -160,7 +160,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 			return getLocale(systemLanguage);
 		} else {
 			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager()
-																.getCollectionLanguages(userInLastCollection.getCollection());
+					.getCollectionLanguages(userInLastCollection.getCollection());
 			if (collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages
 					.contains(userPreferredLanguage)) {
 				return getLocale(systemLanguage);

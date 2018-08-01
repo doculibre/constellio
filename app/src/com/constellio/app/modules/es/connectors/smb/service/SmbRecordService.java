@@ -31,14 +31,14 @@ public class SmbRecordService {
 
 	public List<ConnectorSmbDocument> getDocuments(String url) {
 		return es.searchConnectorSmbDocuments(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstance)
-												.andWhere(es.connectorSmbDocument.url())
-												.isEqualTo(url));
+				.andWhere(es.connectorSmbDocument.url())
+				.isEqualTo(url));
 	}
 
 	public List<ConnectorSmbFolder> getFolders(String url) {
 		return es.searchConnectorSmbFolders(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstance)
-											  .andWhere(es.connectorSmbFolder.url())
-											  .isEqualTo(url));
+				.andWhere(es.connectorSmbFolder.url())
+				.isEqualTo(url));
 	}
 
 	public ConnectorSmbDocument convertToSmbDocumentOrNull(ConnectorDocument document) {
@@ -46,7 +46,7 @@ public class SmbRecordService {
 
 		String documentSchemaCode = document.getSchemaCode();
 		String smbDocumentSchemaTypeCode = es.connectorSmbDocument.schemaType()
-																  .getCode();
+				.getCode();
 
 		if (documentSchemaCode.contains(smbDocumentSchemaTypeCode)) {
 			result = es.wrapConnectorSmbDocument(document.getWrappedRecord());
@@ -59,7 +59,7 @@ public class SmbRecordService {
 
 		String documentSchemaCode = document.getSchemaCode();
 		String smbFolderSchemaTypeCode = es.connectorSmbFolder.schemaType()
-															  .getCode();
+				.getCode();
 
 		if (documentSchemaCode.contains(smbFolderSchemaTypeCode)) {
 			result = es.wrapConnectorSmbFolder(document.getWrappedRecord());

@@ -152,7 +152,7 @@ public class ContentManagerTest extends ConstellioTest {
 		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);
 		when(streamFactory.create(anyString())).thenReturn(firstCreatedStream).thenReturn(secondCreatedStream)
-											   .thenThrow(new Error());
+				.thenThrow(new Error());
 		doReturn(addOperation).when(contentManager).addInContentDaoOperation(newContentId);
 		doReturn(addParsedContentOperation).when(contentManager).addInContentDaoOperation(newContentId);
 		doReturn(addWithEmptyContentOperation).when(contentManager).addInContentDaoOperation(newContentId);
@@ -312,7 +312,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doThrow(new FileParserException_CannotParse(mock(Exception.class), "zeMimetype")).when(fileParser)
-																						 .parse(eq(closeableStreamFactory), anyInt());
+				.parse(eq(closeableStreamFactory), anyInt());
 
 		ParsedContent parsedContent = contentManager.tryToParse(closeableStreamFactory);
 
@@ -344,7 +344,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(ContentManagerRuntimeException.class).when(contentManager)
-													 .saveContent(aContentHash, closeableStreamFactory);
+				.saveContent(aContentHash, closeableStreamFactory);
 
 		try {
 			contentManager.upload(aContentNewVersionInputStream);
@@ -367,7 +367,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(IOException.class).when(contentManager)
-								  .getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
+				.getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
 
 		try {
 			contentManager.upload(aContentNewVersionInputStream);
@@ -428,7 +428,7 @@ public class ContentManagerTest extends ConstellioTest {
 		inOrder.verify(contentManager).isReferenced("hash2");
 		inOrder.verify(contentManager).isReferenced("hash3");
 		inOrder.verify(contentDao)
-			   .delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash3", "hash3__parsed", "hash3.preview"));
+				.delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash3", "hash3__parsed", "hash3.preview"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO2, recordDTO3)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash5");
@@ -453,7 +453,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsingResults).when(contentManager).getParsedContent(aContentHash);
 
 		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
-													.getParsedContent();
+				.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager, never()).saveParsedContent(aContentHash, parsingResults);
@@ -470,7 +470,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsingResults).when(contentManager).tryToParse(streamFactory);
 
 		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
-													.getParsedContent();
+				.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager).saveParsedContent(aContentHash, parsingResults);

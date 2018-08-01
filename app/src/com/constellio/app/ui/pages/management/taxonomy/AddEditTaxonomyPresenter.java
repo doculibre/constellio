@@ -86,9 +86,9 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			}
 
 			taxonomy = taxonomy.withTitle(taxonomyVO.getTitleMap())
-							   .withUserIds(taxonomyVO.getUserIds())
-							   .withGroupIds(taxonomyVO.getGroupIds())
-							   .withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
+					.withUserIds(taxonomyVO.getUserIds())
+					.withGroupIds(taxonomyVO.getGroupIds())
+					.withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
 
 			renameTaxonomyType(taxonomy, wasTitleChanged);
 

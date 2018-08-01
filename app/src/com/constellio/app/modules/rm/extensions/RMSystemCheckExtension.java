@@ -146,7 +146,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				folderType = rm.getFolderType(folder.getType());
 			}
 			if (folderType != null && folderType.getLinkedSchema() != null && !record.getSchemaCode()
-																					 .equals(folderType.getLinkedSchema())) {
+					.equals(folderType.getLinkedSchema())) {
 				boolean isSavechangeSchema;
 				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE);
 				if (isRepair) {
@@ -158,8 +158,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 						Map<String, Object> parameter = new HashMap<>();
 						parameter.put("recordId", record.getId());
 						validateRecordsCheckParams.getResultsBuilder()
-												  .addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE,
-														  parameter);
+								.addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE,
+										parameter);
 					}
 				}
 			}
@@ -225,7 +225,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				documentType = rm.getDocumentType(document.getType());
 			}
 			if (documentType != null && documentType.getLinkedSchema() != null && !record.getSchemaCode()
-																						 .equals(documentType.getLinkedSchema())) {
+					.equals(documentType.getLinkedSchema())) {
 				boolean isSavechangeSchema;
 				validateRecordsCheckParams.getResultsBuilder().incrementMetric(METRIC_TYPE_DO_NOT_CORRESPOND_TO_TYPE_TYPE);
 				if (isRepair) {
@@ -237,8 +237,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 						Map<String, Object> parameter = new HashMap<>();
 						parameter.put("recordId", record.getId());
 						validateRecordsCheckParams.getResultsBuilder()
-												  .addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE,
-														  parameter);
+								.addNewValidationError(RMSystemCheckExtension.class, ERROR_TYPE_CANNOT_BE_CHANGE_FOR_TYPE_TYPE,
+										parameter);
 					}
 				}
 			}
@@ -284,10 +284,10 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		}
 
 		MetadataSchemaTypes metadataSchemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-																 .getSchemaTypes(collection);
+				.getSchemaTypes(collection);
 		for (MetadataSchemaType metadataSchemaType : metadataSchemaTypes.getSchemaTypes()) {
 			if (metadataSchemaType.getCode().toLowerCase().equals("document") || metadataSchemaType.getCode().toLowerCase()
-																								   .equals("folder")) {
+					.equals("folder")) {
 				for (MetadataSchema metadataSchema : metadataSchemaType.getAllSchemas()) {
 					if (!metadataSchema.getLocalCode().startsWith("USR") && !metadataSchema.getLocalCode().equals("default") &&
 						!ALLOWED_SCHEMAS_NOT_STARTING_WITH_USR.contains(metadataSchema.getCode())) {
@@ -295,8 +295,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 						parameter.put("schemaCode", metadataSchema.getLocalCode());
 						parameter.put("metadataSchemaType", metadataSchemaType.getCode());
 						params.getResultsBuilder()
-							  .addNewValidationError(RMSystemCheckExtension.class, ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME,
-									  parameter);
+								.addNewValidationError(RMSystemCheckExtension.class, ERROR_MESSAGE_USR_NOT_PRESENT_IN_SCHEMA_NAME,
+										parameter);
 					}
 				}
 			}

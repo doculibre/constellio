@@ -69,7 +69,7 @@ public class ConnectorHttp extends Connector {
 
 	public ConnectorHttpDocument newUnfetchedURLDocument(String url, int level) {
 		return getEs().newConnectorHttpDocument(getConnectorInstance()).setURL(url).setFetched(false).setSearchable(false)
-					  .setLevel(level);
+				.setLevel(level);
 	}
 
 	private ConnectorHttpInstance getConnectorInstance() {

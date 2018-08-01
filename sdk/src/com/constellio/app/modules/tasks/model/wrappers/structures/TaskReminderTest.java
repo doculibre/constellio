@@ -34,7 +34,7 @@ public class TaskReminderTest extends ConstellioTest {
 	public void givenReminderWithRelativeDate2DaysBeforeStartDateWhenComputeDateThenReturn2DaysBeforeStartDate()
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(2)
-													  .setRelativeDateMetadataCode(Task.START_DATE);
+				.setRelativeDateMetadataCode(Task.START_DATE);
 		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.minusDays(2));
 	}
 
@@ -42,7 +42,7 @@ public class TaskReminderTest extends ConstellioTest {
 	public void givenReminderWithRelativeDate0DaysBeforeStartDateWhenComputeDateThenReturnStartDate()
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(0)
-													  .setRelativeDateMetadataCode(Task.START_DATE);
+				.setRelativeDateMetadataCode(Task.START_DATE);
 		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate);
 	}
 
@@ -50,7 +50,7 @@ public class TaskReminderTest extends ConstellioTest {
 	public void givenReminderWithRelativeDate2DaysAfterStartDateWhenComputeDateThenReturn2AfterBeforeStartDate()
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(2)
-													  .setRelativeDateMetadataCode(Task.START_DATE);
+				.setRelativeDateMetadataCode(Task.START_DATE);
 		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.plusDays(2));
 	}
 
@@ -58,7 +58,7 @@ public class TaskReminderTest extends ConstellioTest {
 	public void givenReminderWithRelativeDate0DaysAfterStartDateWhenComputeDateThenReturnStartDate()
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0)
-													  .setRelativeDateMetadataCode(Task.START_DATE);
+				.setRelativeDateMetadataCode(Task.START_DATE);
 		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate);
 	}
 

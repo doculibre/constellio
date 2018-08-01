@@ -37,7 +37,7 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
-								  .withDocumentsHavingContent().withConstellioESModule()
+						.withDocumentsHavingContent().withConstellioESModule()
 		);
 
 		navigator = new MockedNavigation();
@@ -67,7 +67,7 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 		List<String> possibleSchema = asList("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument",
 				"folder", "storageSpace", "userTask", "connectorLdapUserDocument");
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection)
-																		.build(new FakeDataStoreTypeFactory(), getModelLayerFactory());
+				.build(new FakeDataStoreTypeFactory(), getModelLayerFactory());
 		int compteur = 0;
 		for (String schema : possibleSchema) {
 			String titleTest = "test " + (++compteur);

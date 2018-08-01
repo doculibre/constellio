@@ -80,7 +80,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 
 	public RecordVODataProvider getTrashRecords() {
 		MetadataSchema currentDefaultSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-															   .getDefaultSchema(view.getSelectedType());
+				.getDefaultSchema(view.getSelectedType());
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(currentDefaultSchema, VIEW_MODE.TABLE, asList(Schemas.LOGICALLY_DELETED_ON.getLocalCode()),
 						view.getSessionContext(), true);

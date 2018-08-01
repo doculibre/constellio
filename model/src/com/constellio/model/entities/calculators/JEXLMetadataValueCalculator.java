@@ -94,8 +94,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		}
 
 		StringBuilder message = new StringBuilder().append("Jexl Script of metadata '").append(metadataCode)
-												   .append("' failed at column ").append(info.getColumn()).append(" of line ").append(info.getLine())
-												   .append(" : ").append(cause);
+				.append("' failed at column ").append(info.getColumn()).append(" of line ").append(info.getLine())
+				.append(" : ").append(cause);
 
 		if (causeMessage != null) {
 			message.append(" ").append(causeMessage);

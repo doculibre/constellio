@@ -291,7 +291,7 @@ public class RecordDeleteServices {
 			for (final Record recordInHierarchy : records) {
 				String type = new SchemaUtils().getSchemaTypeCode(recordInHierarchy.getSchemaCode());
 				final List<Metadata> metadatas = types.getAllMetadatas().onlyReferencesToType(type).onlyNonParentReferences()
-													  .onlyManuals();
+						.onlyManuals();
 
 				if (!metadatas.isEmpty()) {
 					try {
@@ -592,7 +592,7 @@ public class RecordDeleteServices {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
-																				 .getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
 			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isStartingWithText(paths.get(0)));
 			return searchServices.search(query);
 		}
@@ -602,7 +602,7 @@ public class RecordDeleteServices {
 		List<Record> records = new ArrayList<>();
 		for (String schemaTypeCode : principalTaxonomy.getSchemaTypes()) {
 			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(principalConcept.getCollection())
-																  .getSchemaType(schemaTypeCode);
+					.getSchemaType(schemaTypeCode);
 
 			List<String> paths = principalConcept.getList(Schemas.PATH);
 			LogicalSearchQuery query = new LogicalSearchQuery();
@@ -620,7 +620,7 @@ public class RecordDeleteServices {
 		LogicalSearchQuery query = new LogicalSearchQuery().filteredByStatus(StatusFilter.ACTIVES);
 		if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
-																				 .getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
 			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
 		} else {
 			query.setCondition(
@@ -675,7 +675,7 @@ public class RecordDeleteServices {
 			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaTypes()) {
 
 				List<Metadata> referencesMetadata = schemaType.getDefaultSchema().getMetadatas()
-															  .onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences();
+						.onlyReferencesToType(aHierarchyRecord.getTypeCode()).onlyNonParentReferences();
 				mayBeReferencedOutsideHierarchy |= !referencesMetadata.isEmpty();
 			}
 

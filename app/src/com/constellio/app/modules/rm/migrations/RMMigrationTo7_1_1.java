@@ -73,9 +73,9 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(PERSISTED);
 			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(PERSISTED);
 			folderSchema.getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
-						.defineDataEntry().asCalculated(FolderAutocompleteFieldCalculator.class);
+					.defineDataEntry().asCalculated(FolderAutocompleteFieldCalculator.class);
 			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
-						.defineDataEntry().asCalculated(DocumentAutocompleteFieldCalculator.class);
+					.defineDataEntry().asCalculated(DocumentAutocompleteFieldCalculator.class);
 
 			MetadataSchema defaultUserFolderSchema = types.getSchema(UserFolder.DEFAULT_SCHEMA);
 			MetadataSchemaBuilder defaultUserFolderSchemaBuilder = typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE).getDefaultSchema();
@@ -83,25 +83,25 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 				defaultUserFolderSchema.get(RMUserFolder.ADMINISTRATIVE_UNIT);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.ADMINISTRATIVE_UNIT).setType(MetadataValueType.REFERENCE).setEssential(false)
-											  .defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
 			}
 			try {
 				defaultUserFolderSchema.get(RMUserFolder.CATEGORY);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.CATEGORY).setType(MetadataValueType.REFERENCE).setEssential(false)
-											  .defineReferencesTo(typesBuilder.getSchemaType(Category.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(Category.SCHEMA_TYPE));
 			}
 			try {
 				defaultUserFolderSchema.get(RMUserFolder.RETENTION_RULE);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.RETENTION_RULE).setType(MetadataValueType.REFERENCE).setEssential(false)
-											  .defineReferencesTo(typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE));
 			}
 			try {
 				defaultUserFolderSchema.get(RMUserFolder.PARENT_FOLDER);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.PARENT_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false)
-											  .defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
 			}
 		}
 	}

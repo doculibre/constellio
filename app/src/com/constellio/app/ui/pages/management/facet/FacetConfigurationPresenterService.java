@@ -198,7 +198,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory());
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemasRecords.facetSchemaType()).returnAll())
-			 .sortDesc(schemasRecords.defaultFacet().get(Facet.ORDER));
+				.sortDesc(schemasRecords.defaultFacet().get(Facet.ORDER));
 
 		List<Record> records = searchServices().search(query);
 		return schemasRecords.wrapFacet(records.get(records.size() - 1)).getOrder() + 1;

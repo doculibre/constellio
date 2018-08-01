@@ -193,8 +193,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		givenSystemLanguageIs("en");
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withMockedAvailableModules(false)
-																				  .withConstellioRMModule().withAllTestUsers()
-																				  .withConstellioESModule().withRobotsModule();
+				.withConstellioRMModule().withAllTestUsers()
+				.withConstellioESModule().withRobotsModule();
 		setupPlugins();
 		i18n.setLocale(Locale.ENGLISH);
 		locale = Locale.ENGLISH;
@@ -204,8 +204,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		givenSystemLanguageIs("fr");
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withMockedAvailableModules(false)
-																				  .withConstellioRMModule().withAllTestUsers()
-																				  .withConstellioESModule().withRobotsModule();
+				.withConstellioRMModule().withAllTestUsers()
+				.withConstellioESModule().withRobotsModule();
 		setupPlugins();
 		i18n.setLocale(Locale.FRENCH);
 		locale = Locale.FRENCH;
@@ -215,8 +215,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		givenSystemLanguageIs("ar");
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("ar"), "Collection de test").withMockedAvailableModules(false)
-																				  .withConstellioRMModule().withAllTestUsers()
-																				  .withConstellioESModule().withRobotsModule();
+				.withConstellioRMModule().withAllTestUsers()
+				.withConstellioESModule().withRobotsModule();
 		setupPlugins();
 		i18n.setLocale(new Locale("ar"));
 		locale = new Locale("ar");

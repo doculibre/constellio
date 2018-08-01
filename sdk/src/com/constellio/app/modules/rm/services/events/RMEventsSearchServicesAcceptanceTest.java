@@ -53,7 +53,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).giveReadAccessTo(admin);

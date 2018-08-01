@@ -23,18 +23,18 @@ public class BatchProcessControllerAcceptanceTestSchemasSetup extends TestsSchem
 		referenceToZeSchema.setType(REFERENCE).defineReferences().set(zeSchemaTypeBuilder);
 
 		MetadataBuilder anotherSchemaCopiedText = anOtherDefaultSchemaBuilder.create("copiedTextMetadata")
-																			 .setType(STRING).defineDataEntry().asCopied(referenceToZeSchema, zeSchemaText);
+				.setType(STRING).defineDataEntry().asCopied(referenceToZeSchema, zeSchemaText);
 		anOtherDefaultSchemaBuilder.create("copiedTextLengthMetadata").setType(NUMBER).defineDataEntry()
-								   .asCalculated(TextMetadataLengthCalculator.class);
+				.asCalculated(TextMetadataLengthCalculator.class);
 
 		MetadataBuilder referenceToAnotherSchema = athirdDefaultSchemaBuilder
 				.create("referenceToAnotherSchema");
 		referenceToAnotherSchema.setType(REFERENCE).defineReferences().set(anOtherSchemaTypeBuilder);
 
 		athirdDefaultSchemaBuilder.create("copiedTextMetadata").setType(STRING).defineDataEntry()
-								  .asCopied(referenceToAnotherSchema, anotherSchemaCopiedText);
+				.asCopied(referenceToAnotherSchema, anotherSchemaCopiedText);
 		athirdDefaultSchemaBuilder.create("copiedTextLengthMetadata").setType(NUMBER).defineDataEntry()
-								  .asCalculated(TextMetadataLengthCalculator.class);
+				.asCalculated(TextMetadataLengthCalculator.class);
 
 		return this;
 	}

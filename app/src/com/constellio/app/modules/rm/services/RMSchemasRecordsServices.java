@@ -781,7 +781,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		MetadataSchema documentTypeDefaultSchema = schema(DocumentType.DEFAULT_SCHEMA);
 		Metadata linkedSchemaMetadata = documentTypeDefaultSchema.getMetadata(DocumentType.LINKED_SCHEMA);
 		LogicalSearchCondition condition = from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
-																		  .isEqualTo(Email.SCHEMA);
+				.isEqualTo(Email.SCHEMA);
 		DocumentType emailDocumentType = new DocumentType(
 				searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
 		return emailDocumentType.getId();

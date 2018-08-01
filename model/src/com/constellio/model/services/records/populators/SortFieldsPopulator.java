@@ -52,7 +52,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 
 				if (referencedRecord != null) {
 					String captionForRecord = modelLayerFactory.getExtensions().forCollection(metadata.getCollection())
-															   .getCaptionForRecord(new GetCaptionForRecordParams(referencedRecord, types, locale));
+							.getCaptionForRecord(new GetCaptionForRecordParams(referencedRecord, types, locale));
 
 					if (captionForRecord == null) {
 						LOGGER.warn("Record '" + referencedRecord.getSchemaIdTitle() + "' has no caption");

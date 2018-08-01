@@ -29,7 +29,7 @@ public class CalculatedDataEntry implements DataEntry {
 	@Override
 	public boolean equals(Object obj) {
 		return obj instanceof CalculatedDataEntry && calculator.getClass().getSimpleName()
-															   .equals(((CalculatedDataEntry) obj).getCalculator().getClass().getSimpleName());
+				.equals(((CalculatedDataEntry) obj).getCalculator().getClass().getSimpleName());
 	}
 
 	@Override

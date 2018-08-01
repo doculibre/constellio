@@ -278,7 +278,7 @@ public class RecordsCacheImpl implements RecordsCache {
 										null;
 				if (schemaTypeCode != null) {
 					schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-												  .getSchemaType(schemaTypeCode);
+							.getSchemaType(schemaTypeCode);
 				}
 			}
 		}
@@ -524,7 +524,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		if (cacheConfig.isLoadedInitially()) {
 			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
-															 .getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
+					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
 			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000 || asList(User.SCHEMA_TYPE,
 					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType())) {
 				searchServices.getAllRecords(schemaType);
@@ -580,7 +580,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByUniqueMetadataCacheMiss(metadata, value, 0);
 		} else {
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
-							 .onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, 0);
+					.onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, 0);
 		}
 
 		return foundRecord;

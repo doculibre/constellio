@@ -66,17 +66,17 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("zeConnector")
-								   .setTitle("Ze Connector")
-								   .setTraversalCode("traversalCode").setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("zeConnector")
+						.setTitle("Ze Connector")
+						.setTraversalCode("traversalCode").setEnabled(true)
+						.setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("anotherConnector")
-								   .setTitle("Another Connector")
-								   .setTraversalCode("anotherTraversalCode").setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("anotherConnector")
+						.setTitle("Another Connector")
+						.setTraversalCode("anotherTraversalCode").setEnabled(true)
+						.setSeeds("http://constellio.com"));
 
 		presenter = new DisplayConnectorInstancePresenter(view);
 	}
@@ -207,12 +207,12 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		Transaction transaction = new Transaction();
 
 		transaction.add(es.newConnectorHttpDocumentWithId("olderTraversalRecord", connectorInstance))
-				   .setURL("http://constellio.com/document1").setTitle("Titre1").setFetched(true)
-				   .setModifiedOn(new LocalDateTime()).setTraversalCode(connectorInstance.getTraversalCode());
+				.setURL("http://constellio.com/document1").setTitle("Titre1").setFetched(true)
+				.setModifiedOn(new LocalDateTime()).setTraversalCode(connectorInstance.getTraversalCode());
 
 		transaction.add(es.newConnectorHttpDocumentWithId("record2", connectorInstance))
-				   .setModifiedOn(new LocalDateTime().plusSeconds(3)).setURL("http://constellio.com/document2").setTitle("Titre2")
-				   .setFetched(true).setTraversalCode(connectorInstance.getTraversalCode());
+				.setModifiedOn(new LocalDateTime().plusSeconds(3)).setURL("http://constellio.com/document2").setTitle("Titre2")
+				.setFetched(true).setTraversalCode(connectorInstance.getTraversalCode());
 
 		recordServices.execute(transaction);
 	}

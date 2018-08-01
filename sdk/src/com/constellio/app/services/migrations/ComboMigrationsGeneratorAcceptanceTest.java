@@ -109,21 +109,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedCoreMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(null))
-											  .addMethod(generateDisplayConfigs(new ArrayList<String>()))
-											  .addMethod(generateRoles(new ArrayList<Role>()))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(null))
+				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
+				.addMethod(generateRoles(new ArrayList<Role>()))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.services.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 
 		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(
@@ -162,21 +162,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedSystemMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(null))
-											  .addMethod(generateDisplayConfigs(new ArrayList<String>()))
-											  .addMethod(generateRoles(new ArrayList<Role>()))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(null))
+				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
+				.addMethod(generateRoles(new ArrayList<Role>()))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.services.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 
 		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(
@@ -211,7 +211,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-													   .rewriteInOrderAndGetCodes(collection);
+				.rewriteInOrderAndGetCodes(collection);
 		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
@@ -226,21 +226,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedRMMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(typesBefore))
-											  .addMethod(generateDisplayConfigs(codesBefore))
-											  .addMethod(generateRoles(rolesBefore))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.modules.rm.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 		String newFile = resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
 							 + "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
@@ -271,7 +271,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-													   .rewriteInOrderAndGetCodes(collection);
+				.rewriteInOrderAndGetCodes(collection);
 		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new TaskModule(), collectionsListManager);
@@ -286,21 +286,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedTasksMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(typesBefore))
-											  .addMethod(generateDisplayConfigs(codesBefore))
-											  .addMethod(generateRoles(rolesBefore))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.modules.tasks.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 
 		String fileWithoutProblems = this.resolveProblems(file);
 
@@ -333,7 +333,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-													   .rewriteInOrderAndGetCodes(collection);
+				.rewriteInOrderAndGetCodes(collection);
 		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRobotsModule(), collectionsListManager);
@@ -348,21 +348,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedRobotsMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(typesBefore))
-											  .addMethod(generateDisplayConfigs(codesBefore))
-											  .addMethod(generateRoles(rolesBefore))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.modules.robots.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 
 		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
@@ -394,7 +394,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-													   .rewriteInOrderAndGetCodes(collection);
+				.rewriteInOrderAndGetCodes(collection);
 		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioESModule(), collectionsListManager);
@@ -409,21 +409,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedESMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(typesBefore))
-											  .addMethod(generateDisplayConfigs(codesBefore))
-											  .addMethod(generateRoles(rolesBefore))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.modules.es.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 
 		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
@@ -464,7 +464,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-													   .rewriteInOrderAndGetCodes(collection);
+				.rewriteInOrderAndGetCodes(collection);
 		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).registerModule(new ESRMRobotsModule());
@@ -480,21 +480,21 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec constructor = generateConstructor();
 
 		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedESRMRobotsMigrationCombo")
-											  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-											  .addField(String.class, "collection")
-											  .addField(AppLayerFactory.class, "appLayerFactory")
-											  .addField(MigrationResourcesProvider.class, "resourcesProvider")
-											  //.addMethod(generateRecords())
-											  .addMethod(generateTypes(typesBefore))
-											  .addMethod(generateDisplayConfigs(codesBefore))
-											  .addMethod(generateRoles(rolesBefore))
-											  .addMethod(generateConstructor())
-											  .build();
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
 
 		JavaFile file = JavaFile.builder("com.constellio.app.modules.complementary.esRmRobots.migrations", generatedClassSpec)
-								.addStaticImport(java.util.Arrays.class, "asList")
-								.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-								.build();
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
 
 		String fileWithoutProblems = this.resolveProblems(file);
 		File dest = new File(getFoldersLocator().getAppProject()
@@ -504,12 +504,12 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	protected MethodSpec generateConstructor() {
 		MethodSpec constructor = MethodSpec.constructorBuilder().addParameter(String.class, "collection")
-										   .addParameter(AppLayerFactory.class, "appLayerFactory")
-										   .addParameter(MigrationResourcesProvider.class, "resourcesProvider")
-										   .addStatement("this.$N = $N", "collection", "collection")
-										   .addStatement("this.$N = $N", "appLayerFactory", "appLayerFactory")
-										   .addStatement("this.$N = $N", "resourcesProvider", "resourcesProvider")
-										   .build();
+				.addParameter(AppLayerFactory.class, "appLayerFactory")
+				.addParameter(MigrationResourcesProvider.class, "resourcesProvider")
+				.addStatement("this.$N = $N", "collection", "collection")
+				.addStatement("this.$N = $N", "appLayerFactory", "appLayerFactory")
+				.addStatement("this.$N = $N", "resourcesProvider", "resourcesProvider")
+				.build();
 		System.out.println(constructor.toString());
 		return constructor;
 	}
@@ -601,9 +601,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	protected MethodSpec generateDisplayConfigs(List<String> codesBefore) {
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		Builder main = MethodSpec.methodBuilder("applySchemasDisplay")
-								 .addModifiers(Modifier.PUBLIC)
-								 .addParameter(SchemasDisplayManager.class, "manager")
-								 .returns(void.class);
+				.addModifiers(Modifier.PUBLIC)
+				.addParameter(SchemasDisplayManager.class, "manager")
+				.returns(void.class);
 
 		List<String> codes = manager.rewriteInOrderAndGetCodes(collection);
 
@@ -665,8 +665,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	protected MethodSpec generateRoles(List<Role> rolesBefore) {
 		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
 		Builder main = MethodSpec.methodBuilder("applyGeneratedRoles")
-								 .addModifiers(Modifier.PUBLIC)
-								 .returns(void.class);
+				.addModifiers(Modifier.PUBLIC)
+				.returns(void.class);
 
 		main.addStatement("RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();");
 		for (Role role : rolesManager.getAllRoles(collection)) {
@@ -694,10 +694,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	protected MethodSpec generateRecords() {
 		Builder main = MethodSpec.methodBuilder("createRecordTransaction")
-								 .addModifiers(Modifier.PUBLIC)
-								 .returns(Transaction.class)
-								 .addParameter(RecordServices.class, "recordServices")
-								 .addParameter(MetadataSchemaTypes.class, "types");
+				.addModifiers(Modifier.PUBLIC)
+				.returns(Transaction.class)
+				.addParameter(RecordServices.class, "recordServices")
+				.addParameter(MetadataSchemaTypes.class, "types");
 
 		main.addStatement("List<Record> records = new ArrayList<>()");
 
@@ -751,8 +751,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 						} else if (metadata.getType() == MetadataValueType.STRUCTURE) {
 							String strStructure = metadata.getStructureFactory()
-														  .toString((ModifiableStructure) record.get(metadata))
-														  .replace("\"", "\\\"");
+									.toString((ModifiableStructure) record.get(metadata))
+									.replace("\"", "\\\"");
 							value = "new " + metadata.getStructureFactory().getClass().getName() + "().build(\"" + strStructure
 									+ "\")";
 						} else {
@@ -817,9 +817,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		Builder main = MethodSpec.methodBuilder("applyGeneratedSchemaAlteration")
-								 .addModifiers(Modifier.PUBLIC)
-								 .returns(void.class)
-								 .addParameter(MetadataSchemaTypesBuilder.class, "typesBuilder");
+				.addModifiers(Modifier.PUBLIC)
+				.returns(void.class)
+				.addParameter(MetadataSchemaTypesBuilder.class, "typesBuilder");
 
 		List<MetadataSchemaType> metadataSchemaTypes = sorted(types.getSchemaTypes());
 
@@ -1195,12 +1195,12 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		if (metadata.getInheritance() != null && metadata.isDefaultRequirement() != metadata.getInheritance()
-																							.isDefaultRequirement()) {
+				.isDefaultRequirement()) {
 			method.addStatement("$L.setDefaultRequirement($L)", variable, String.valueOf(metadata.isDefaultRequirement()));
 		}
 
 		if (metadata.getInheritance() != null && metadata.isEnabled() != metadata.getInheritance()
-																				 .isEnabled()) {
+				.isEnabled()) {
 			method.addStatement("$L.setEnabled($L)", variable, String.valueOf(metadata.isEnabled()));
 		}
 	}

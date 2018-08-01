@@ -570,7 +570,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.addUpdate(otherSavedRecord);
 		transaction.setRecordFlushing(recordsFlushing);
 		doReturn(asMap("records", transactionDTO)).when(recordServices)
-												  .createTransactionDTOs(eq(transaction), anyList());
+				.createTransactionDTOs(eq(transaction), anyList());
 		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class), any(RecordProvider.class));
 		doNothing().when(recordServices).handleOptimisticLocking(any(TransactionDTO.class), any(Transaction.class),
@@ -693,17 +693,17 @@ public class RecordServicesTest extends ConstellioTest {
 
 		LogicalSearchCondition condition = query.getValue().getCondition();
 		LogicalSearchCondition firstRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(firstRecordId)
-																				 .andWhere(Schemas.VERSION).isNotEqual(firstRecordVersion);
+				.andWhere(Schemas.VERSION).isNotEqual(firstRecordVersion);
 		LogicalSearchCondition secondRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(secondRecordId)
-																				  .andWhere(Schemas.VERSION).isNotEqual(secondRecordVersion);
+				.andWhere(Schemas.VERSION).isNotEqual(secondRecordVersion);
 		LogicalSearchCondition thirdRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(thirdRecordId)
-																				 .andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
+				.andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
 
 		SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 		assertThat(condition.getSolrQuery(params)).isEqualTo(
 				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection())
-										   .whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
-										   .getSolrQuery(params));
+						.whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
+						.getSolrQuery(params));
 	}
 
 	@Test(expected = RecordServicesException.UnresolvableOptimisticLockingConflict.class)
@@ -818,12 +818,12 @@ public class RecordServicesTest extends ConstellioTest {
 		ModificationImpactCalculatorResponse response = new ModificationImpactCalculatorResponse(
 				asList(aModificationImpact, anotherModificationImpact), new ArrayList<String>());
 		doReturn(response).when(recordServices)
-						  .calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
+				.calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
 		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
 
 		TransactionDTO transactionDTO = mock(TransactionDTO.class);
 		doReturn(asMap("records", transactionDTO)).when(recordServices)
-												  .createTransactionDTOs(eq(transaction), anyList());
+				.createTransactionDTOs(eq(transaction), anyList());
 
 		recordServices.executeWithImpactHandler(transaction, handler);
 
@@ -992,7 +992,7 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = mock(Transaction.class);
 		when(transaction.getCollection()).thenReturn(zeCollection);
 		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
-																				.findContentsModificationsIn(metadataSchemaTypes, transaction);
+				.findContentsModificationsIn(metadataSchemaTypes, transaction);
 		doThrow(zeException).when(recordServices).saveTransactionDTO(eq(transaction),
 				eq(recordModificationImpactHandler), anyInt());
 
@@ -1017,7 +1017,7 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = mock(Transaction.class);
 		when(transaction.getCollection()).thenReturn(zeCollection);
 		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
-																				.findContentsModificationsIn(metadataSchemaTypes, transaction);
+				.findContentsModificationsIn(metadataSchemaTypes, transaction);
 		doThrow(zeException).when(recordServices).saveTransactionDTO(eq(transaction),
 				eq(recordModificationImpactHandler), anyInt());
 

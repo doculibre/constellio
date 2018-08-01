@@ -95,7 +95,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		String path = "/taxo_taxo1";
 		CmisObject object = session.getObjectByPath(path);
 		assertThat(object).has(property("cmis:path", "/taxo_taxo1"))
-						  .has(property("cmis:objectTypeId", "taxonomy"));
+				.has(property("cmis:objectTypeId", "taxonomy"));
 	}
 
 	private void whenGetFirstLevelConceptThenReturnFirstLevelConcept()
@@ -103,7 +103,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1;
 		CmisObject object = session.getObjectByPath("/taxo1/" + zeCollectionRecords.taxo1_fond1);
 		assertThat(object).has(property("cmis:path", path))
-						  .has(property("cmis:objectTypeId", "documentFond_default"));
+				.has(property("cmis:objectTypeId", "documentFond_default"));
 	}
 
 	private void whenGetSecondLevelConceptThenReturnSecondLevelConcept()
@@ -111,7 +111,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2;
 		CmisObject object = session.getObjectByPath(path);
 		assertThat(object).has(property("cmis:path", path))
-						  .has(property("cmis:objectTypeId", "category_default"));
+				.has(property("cmis:objectTypeId", "category_default"));
 	}
 
 	private void whenGetARootFolderThenReturnTheFolder()
@@ -127,7 +127,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(1);
 		assertThat(children.get(0)).has(id("taxo_taxo1")).has(property("cmis:path", "/taxo_taxo1"))
-								   .has(property("cmis:objectTypeId", "taxonomy"));
+				.has(property("cmis:objectTypeId", "taxonomy"));
 		//assertThat(children.get(1)).has(id("taxo2")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
 	}
 
@@ -136,7 +136,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(1);
 		assertThat(children.get(0)).has(id("zetaxo1_fond1")).has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1"))
-								   .has(property("cmis:objectTypeId", "documentFond_default"));
+				.has(property("cmis:objectTypeId", "documentFond_default"));
 	}
 
 	private void givenRootConceptWhenGetChildrenThenObtainSubConcepts() {
@@ -144,11 +144,11 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(2);
 		assertThat(children.get(0)).has(id("zetaxo1_category2"))
-								   .has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2"))
-								   .has(property("cmis:objectTypeId", "category_default"));
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2"))
+				.has(property("cmis:objectTypeId", "category_default"));
 		assertThat(children.get(1)).has(id("zetaxo1_fond1_1"))
-								   .has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1"))
-								   .has(property("cmis:objectTypeId", "documentFond_default"));
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1"))
+				.has(property("cmis:objectTypeId", "documentFond_default"));
 	}
 
 	private void givenSubConceptWhenGetChildrenThenObtainSubSubConceptsAndRecords() {
@@ -156,11 +156,11 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(2);
 		assertThat(children.get(0)).has(id("zetaxo1_category2_1"))
-								   .has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1"))
-								   .has(property("cmis:objectTypeId", "category_default"));
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1"))
+				.has(property("cmis:objectTypeId", "category_default"));
 		assertThat(children.get(1)).has(id("folder4"))
-								   .has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4"))
-								   .has(property("cmis:objectTypeId", "folder_default"));
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4"))
+				.has(property("cmis:objectTypeId", "folder_default"));
 	}
 
 	private Session givenAdminSessionOnZeCollection() {

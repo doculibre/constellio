@@ -94,7 +94,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		withMostReferencesRemoved = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
 		withMostReferencesRemovedPhysicallyDeletingRecords = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true)
-																							  .setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
+				.setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
 		withMostReferencesRemovedPhysicallyDeletingRecordsIfPrincipalTaxonomy = new RecordPhysicalDeleteOptions()
 				.setMostReferencesToNull(true)
 				.setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY);
@@ -165,10 +165,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		valueListItem3 = recordServices.newRecordWithSchema(valueListItemSchema, "value3ListItem").set(TITLE, "Ze item 3");
 
 		rootUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "rootUnclassifiedItem")
-											 .set(TITLE, "rootUnclassifiedItem");
+				.set(TITLE, "rootUnclassifiedItem");
 
 		childUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "childUnclassifiedItem")
-											  .set(TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
+				.set(TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
 
 		recordServices.execute(
 				new Transaction(valueListItem1, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem));
@@ -404,7 +404,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(records.folder3().getSchemaCode()).get("valueListRef")
-					 .setDefaultValue(asList(valueListItem1.getId()));
+						.setDefaultValue(asList(valueListItem1.getId()));
 			}
 		});
 		assertThat(valueListItem1).isNot(logicallyDeletableBy(userWithDeletePermission));
@@ -1525,7 +1525,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		// Search only root folders (Folder1, 2, 3 and 4)
 		LogicalSearchQuery query = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchema.instance())
-																					 .where(folderSchema.taxonomy1()).isNotNull());
+				.where(folderSchema.taxonomy1()).isNotNull());
 
 		assertThat(searchServices.searchRecordIds(query))
 				.containsOnly(idsArray(records.folder1(), records.folder2(), records.folder3(), records.folder4()));
@@ -2036,7 +2036,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				MetadataSchemaTypeBuilder securedUnclassifiedSchemaType = schemaTypes.createNewSchemaType("securedUnclassified");
 				securedUnclassifiedSchemaType.setSecurity(true);
 				securedUnclassifiedSchemaType.getDefaultSchema().create("parent")
-											 .defineChildOfRelationshipToType(securedUnclassifiedSchemaType);
+						.defineChildOfRelationshipToType(securedUnclassifiedSchemaType);
 
 				MetadataSchemaBuilder folderSchema = schemaTypes.getSchemaType("folder").getDefaultSchema();
 				folderSchema.create("valueListRef").defineReferencesTo(aValueListType).setMultivalue(true);
@@ -2044,7 +2044,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				folderSchema.create("securedUnclassified").defineReferencesTo(securedUnclassifiedSchemaType);
 
 				MetadataSchemaTypeBuilder typeSupportingRawDelete = schemaTypes.createNewSchemaType("typeSupportingRawDelete")
-																			   .setInTransactionLog(false);
+						.setInTransactionLog(false);
 			}
 		};
 	}

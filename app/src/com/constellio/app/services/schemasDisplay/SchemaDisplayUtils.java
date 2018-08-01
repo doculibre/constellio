@@ -26,7 +26,7 @@ public class SchemaDisplayUtils {
 
 	public static MetadataList getRequiredMetadatasInSchemaForm(MetadataSchema schema) {
 		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle().onlyManuals()
-														.onlyNonSystemReserved();
+				.onlyNonSystemReserved();
 	}
 
 	public static MetadataList getAvailableMetadatasInSchemaForm(MetadataSchema schema) {

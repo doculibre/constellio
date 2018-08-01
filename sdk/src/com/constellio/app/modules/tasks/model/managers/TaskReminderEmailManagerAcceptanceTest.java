@@ -62,9 +62,9 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		users.aliceIn(zeCollection);
 
 		userServices.addUpdateUserCredential(users.alice().withCollections(asList(zeCollection))
-												  .withGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
+				.withGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
 		userServices.addUpdateUserCredential(users.bob().withCollections(asList(zeCollection))
-												  .withGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
+				.withGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
 		userServices.addUpdateUserCredential(users.chuckNorris().withGlobalGroups(new ArrayList<String>()));
 
 		userServices.setGlobalGroupUsers(users.heroes().getCode(), asList(users.alice(), users.bob()));
@@ -80,10 +80,10 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		allAssigneeGroupsAddresses = asList(aliceEmailAddress, bobEmailAddress);
 		allAssigneesAddresses = asList(aliceEmailAddress, chuckEmailAddress, bobEmailAddress);
 		zeTask = schemas.newTask()
-						.setReminders(asList(reminderBeforeNow, reminderAfterNow, reminderNow))
-						.setAssigneeGroupsCandidates(asList(aliceAndBobGroupId))
-						.setAssigneeUsersCandidates(
-								asList(users.aliceIn(zeCollection).getId(), users.chuckNorrisIn(zeCollection).getId()));
+				.setReminders(asList(reminderBeforeNow, reminderAfterNow, reminderNow))
+				.setAssigneeGroupsCandidates(asList(aliceAndBobGroupId))
+				.setAssigneeUsersCandidates(
+						asList(users.aliceIn(zeCollection).getId(), users.chuckNorrisIn(zeCollection).getId()));
 		zeTask.setTitle("zeTitle");
 		zeTask = saveAndReload(zeTask);
 		assertThat(zeTask.getNextReminderOn()).isEqualTo(now.minusDays(1));
@@ -111,10 +111,10 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		userServices.addUpdateUserCredential(users.alice().withGlobalGroups(new ArrayList<String>()).withEmail(null));
 		zeTask = saveAndReload(zeTask.setAssignee(users.aliceIn(zeCollection).getId())
-									 .setAssignationDate(now)
-									 .setAssigner(users.adminIn(zeCollection).getId())
-									 .setAssigneeGroupsCandidates(new ArrayList<String>())
-									 .setAssigneeUsersCandidates(new ArrayList<String>()));
+				.setAssignationDate(now)
+				.setAssigner(users.adminIn(zeCollection).getId())
+				.setAssigneeGroupsCandidates(new ArrayList<String>())
+				.setAssigneeUsersCandidates(new ArrayList<String>()));
 		manager.generateReminderEmails();
 		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(0);
 	}
@@ -202,11 +202,11 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	private void givenTowValidTasksThenTowEmailsCreated()
 			throws RecordServicesException {
 		Task task2 = schemas.newTask()
-							.setAssignee(users.aliceIn(zeCollection).getId())
-							.setAssignationDate(now)
-							.setAssigner(users.adminIn(zeCollection).getId())
-							.setReminders(asList(reminderBeforeNow))
-							.setTitle("task2");
+				.setAssignee(users.aliceIn(zeCollection).getId())
+				.setAssignationDate(now)
+				.setAssigner(users.adminIn(zeCollection).getId())
+				.setReminders(asList(reminderBeforeNow))
+				.setTitle("task2");
 		recordServices.add(task2);
 		manager.generateReminderEmails();
 		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(2);

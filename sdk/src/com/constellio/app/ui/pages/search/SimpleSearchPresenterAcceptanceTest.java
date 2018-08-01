@@ -86,7 +86,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-										.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
 		when(view.getUIContext()).thenReturn(new FakeUIContext());
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
@@ -104,14 +104,14 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		clearExistingFacets();
 
 		recordServices.add(rm.newFacetQuery(typeFacetId).setOrder(0).setTitle("Type")
-							 .withQuery("schema_s:folder*", "Dossiers")
-							 .withQuery("schema_s:document*", "Documents")
-							 .withQuery("schema_s:containerRecord*", "Contenants"));
+				.withQuery("schema_s:folder*", "Dossiers")
+				.withQuery("schema_s:document*", "Documents")
+				.withQuery("schema_s:containerRecord*", "Contenants"));
 
 		recordServices.add(rm.newFacetField(retentionRuleFacetId).setOrder(1).setTitle("Règles de conservations")
-							 .setFieldDataStoreCode("retentionRuleId_s"));
+				.setFieldDataStoreCode("retentionRuleId_s"));
 		recordServices.add(rm.newFacetField(archivisticStatusFacetId).setOrder(2).setTitle("Archivistic status")
-							 .setFieldDataStoreCode("archivisticStatus_s"));
+				.setFieldDataStoreCode("archivisticStatus_s"));
 
 		allFolderDocumentsContainersCount = searchServices.getResultsCount(
 				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecord.schemaType())).returnAll());
@@ -263,7 +263,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
-																	.contains(rm.defaultFolderSchema().getMetadata("USRnouvelleMetadataTest").getLocalCode());
+				.contains(rm.defaultFolderSchema().getMetadata("USRnouvelleMetadataTest").getLocalCode());
 	}
 
 	@Test
@@ -283,7 +283,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
-																	.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
+				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
 	@Test

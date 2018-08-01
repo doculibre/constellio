@@ -38,7 +38,7 @@ public class ConnectorSmbUtils {
 		}
 
 		if (smbRetrievalConfiguration.getExclusions() != null && !smbRetrievalConfiguration.getExclusions()
-																						   .isEmpty()) {
+				.isEmpty()) {
 			for (String blackRegEx : smbRetrievalConfiguration.getExclusions()) {
 				if (StringUtils.isNotBlank(blackRegEx)) {
 					if (url.startsWith(blackRegEx)) {
@@ -54,7 +54,7 @@ public class ConnectorSmbUtils {
 		}
 
 		if (smbRetrievalConfiguration.getInclusions() != null && !smbRetrievalConfiguration.getInclusions()
-																						   .isEmpty()) {
+				.isEmpty()) {
 			for (String whiteRegEx : smbRetrievalConfiguration.getInclusions()) {
 				if (StringUtils.isNotBlank(whiteRegEx)) {
 					if (url.startsWith(whiteRegEx)) {

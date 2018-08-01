@@ -54,7 +54,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 				LogicalSearchCondition condition;
 				if (!visibleAdminUnitsId.isEmpty()) {
 					condition = LogicalSearchQueryOperators.from(schema)
-														   .where(schema.getMetadata(AdministrativeUnit.PARENT)).isEqualTo(adminUnitId);
+							.where(schema.getMetadata(AdministrativeUnit.PARENT)).isEqualTo(adminUnitId);
 				} else {
 					condition = LogicalSearchQueryOperators.from(schema).where(Schemas.TOKENS).isContaining(Arrays.asList("A38"));
 				}

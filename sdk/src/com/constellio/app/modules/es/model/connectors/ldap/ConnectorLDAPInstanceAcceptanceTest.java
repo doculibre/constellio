@@ -45,10 +45,10 @@ public class ConnectorLDAPInstanceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		ConnectorLDAPInstance connectorInstance = es.newConnectorLDAPInstance();
 		connectorInstance = (ConnectorLDAPInstance) connectorInstance.setUrls(asList("url"))
-																	 .setConnectionUsername("zeUser")
-																	 .setUsersBaseContextList(asList("BC"))
-																	 .setPassword("zePassword")
-																	 .setCode("code").setTitle("title");
+				.setConnectionUsername("zeUser")
+				.setUsersBaseContextList(asList("BC"))
+				.setPassword("zePassword")
+				.setCode("code").setTitle("title");
 		recordServices.add(connectorInstance);
 		assertThat(connectorInstance.getDirectoryType()).isEqualTo(ACTIVE_DIRECTORY);
 		assertThat(connectorInstance.getFirstName()).isEqualTo("givenName");

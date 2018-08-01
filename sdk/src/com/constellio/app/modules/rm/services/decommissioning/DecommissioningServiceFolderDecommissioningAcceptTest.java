@@ -42,7 +42,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = new DecommissioningService(zeCollection, getAppLayerFactory());

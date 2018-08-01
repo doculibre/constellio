@@ -32,7 +32,7 @@ public class RMMigrationTo6_5_33 implements MigrationScript {
 		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToDisplay(ContainerRecord.ADMINISTRATIVE_UNITS)
-				   .afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
+				.afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
 
 		schemaDisplayManager.execute(transaction.build());
 		setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), provider);
@@ -58,7 +58,7 @@ public class RMMigrationTo6_5_33 implements MigrationScript {
 			MetadataSchemaBuilder containerDefaultSchema = types().getSchema(ContainerRecord.DEFAULT_SCHEMA);
 			if (!containerDefaultSchema.hasMetadata(ContainerRecord.ADMINISTRATIVE_UNITS)) {
 				containerDefaultSchema.create(ContainerRecord.ADMINISTRATIVE_UNITS)
-									  .setMultivalue(true).defineReferencesTo(adminUnitSchemaType);
+						.setMultivalue(true).defineReferencesTo(adminUnitSchemaType);
 			}
 		}
 	}

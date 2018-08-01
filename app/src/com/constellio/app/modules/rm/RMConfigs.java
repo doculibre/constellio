@@ -94,7 +94,7 @@ public class RMConfigs {
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
-													  .withReIndexionRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
+				.withReIndexionRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
@@ -130,7 +130,7 @@ public class RMConfigs {
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
 		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31")
-										   .scriptedBy(EndYearValueCalculator.class));
+				.scriptedBy(EndYearValueCalculator.class));
 
 		//Nombre de jours devant précéder la date de fin d'année pour que celle-ci soit considérée dans le calcul des délais pour l'année en cours
 		add(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR = decommissioning
@@ -200,7 +200,7 @@ public class RMConfigs {
 		add(UNIFORM_SUBDIVISION_ENABLED = decommissioning.createBooleanFalseByDefault("uniformSubdivisionEnabled"));
 
 		add(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS = decommissioning.createBooleanTrueByDefault("isDecommissioningTypeRequiredInContainers")
-																			.scriptedBy(RMDecommissioningTypeRequiredScript.class));
+				.scriptedBy(RMDecommissioningTypeRequiredScript.class));
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
@@ -243,7 +243,7 @@ public class RMConfigs {
 		add(MAJOR_VERSION_FOR_NEW_FILE = others.createBooleanFalseByDefault("majorVersionForNewFile"));
 
 		add(DOCUMENTS_TYPES_CHOICE = others.createEnum("documentsTypeChoice", DocumentsTypeChoice.class)
-										   .withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
+				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
@@ -264,7 +264,7 @@ public class RMConfigs {
 				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
-												  .withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
+				.withDefaultValue(DefaultTabInFolderDisplay.CONTENT.getCode()));
 
 		add(CHECK_OUT_DOCUMENT_AFTER_CREATION = others.createBooleanTrueByDefault("checkoutDocumentAfterCreation"));
 
@@ -274,13 +274,13 @@ public class RMConfigs {
 				.createBooleanFalseByDefault("populateBordereauxWithLesserDispositionDate"));
 
 		add(IS_CONTAINER_MULTIVALUE = decommissioning.createBooleanFalseByDefault("multipleContainerStorageSpaces")
-													 .scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class)
-													 .whichIsHidden());
+				.scriptedBy(EnableOrDisableContainerMultiValueMetadataScript.class)
+				.whichIsHidden());
 
 		add(COMPLETE_DECOMMISSIONNING_DATE_WHEN_CREATING_FOLDER_WITH_MANUAL_STATUS =
 				decommissioning.createEnum("completeDecommissioningDateWhenCreatingFolderWithManualStatus",
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
-							   .withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
+						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 

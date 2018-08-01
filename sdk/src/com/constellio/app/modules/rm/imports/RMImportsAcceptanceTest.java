@@ -68,11 +68,11 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 			@Override
 			public ImportDataBuilder get(String id) {
 				return folder().setId(id).addField("title", "Record " + id)
-							   .addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
-							   .addField(Folder.CATEGORY_ENTERED, "code:X13")
-							   .addField(Folder.RETENTION_RULE_ENTERED, "code:1")
-							   .addField(Folder.OPENING_DATE, date(2015, 1, 4))
-							   .addField(Folder.ENTERED_CLOSING_DATE, date(2016, 1, 4));
+						.addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
+						.addField(Folder.CATEGORY_ENTERED, "code:X13")
+						.addField(Folder.RETENTION_RULE_ENTERED, "code:1")
+						.addField(Folder.OPENING_DATE, date(2015, 1, 4))
+						.addField(Folder.ENTERED_CLOSING_DATE, date(2016, 1, 4));
 			}
 		};
 
@@ -80,12 +80,12 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 			@Override
 			public ImportDataBuilder get(String id) {
 				return folder().setId(id).addField("title", "Record " + id)
-							   .addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
-							   .addField(Folder.CATEGORY_ENTERED, "code:X13")
-							   .addField(Folder.RETENTION_RULE_ENTERED, "code:2")
-							   .addField(Folder.COPY_STATUS_ENTERED, "P")
-							   .addField(Folder.OPENING_DATE, date(2014, 1, 4))
-							   .addField(Folder.ENTERED_CLOSING_DATE, date(2015, 1, 4));
+						.addField(Folder.ADMINISTRATIVE_UNIT_ENTERED, "code:10A")
+						.addField(Folder.CATEGORY_ENTERED, "code:X13")
+						.addField(Folder.RETENTION_RULE_ENTERED, "code:2")
+						.addField(Folder.COPY_STATUS_ENTERED, "P")
+						.addField(Folder.OPENING_DATE, date(2014, 1, 4))
+						.addField(Folder.ENTERED_CLOSING_DATE, date(2015, 1, 4));
 			}
 		};
 

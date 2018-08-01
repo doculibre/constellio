@@ -116,7 +116,7 @@ public class ConnectorManager_DeleteDocumentsAcceptanceTest extends ConstellioTe
 
 	private void givenDataSet1Connector() {
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-															   .setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html"));
+				.setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html"));
 	}
 
 	private List<ConnectorHttpDocument> tickAndGetAllDocuments() {

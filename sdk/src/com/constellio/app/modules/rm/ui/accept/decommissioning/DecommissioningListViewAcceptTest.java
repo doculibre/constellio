@@ -23,7 +23,7 @@ public class DecommissioningListViewAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));

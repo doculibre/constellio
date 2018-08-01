@@ -80,13 +80,13 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 			for (UserCredentialVO userCredentialVO : userCredentialVOs) {
 				if ((userCredentialVO.getUsername() != null && userCredentialVO.getUsername().toLowerCase().contains(this.filter))
 					|| (userCredentialVO.getUsername() != null && userCredentialVO.getUsername().toLowerCase()
-																				  .contains(this.filter))
+						.contains(this.filter))
 					|| (userCredentialVO.getEmail() != null && userCredentialVO.getEmail().toLowerCase()
-																			   .contains(this.filter))
+						.contains(this.filter))
 					|| (userCredentialVO.getFirstName() != null && userCredentialVO.getFirstName().toLowerCase()
-																				   .contains(this.filter))
+						.contains(this.filter))
 					|| (userCredentialVO.getLastName() != null && userCredentialVO.getLastName().toLowerCase()
-																				  .contains(this.filter))) {
+						.contains(this.filter))) {
 					filteredUserCredentialVOs.add(userCredentialVO);
 				}
 			}

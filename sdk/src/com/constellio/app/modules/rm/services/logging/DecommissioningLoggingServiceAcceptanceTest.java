@@ -56,7 +56,7 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
@@ -78,7 +78,7 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 		users.setUp(userServices);
 		userServices.addUserToCollection(users.alice(), zeCollection);
 		recordServices.add(users.aliceIn(zeCollection).setCollectionWriteAccess(true).setCollectionDeleteAccess(true)
-								.getWrappedRecord());
+				.getWrappedRecord());
 		userServices.addUserToCollection(users.bob(), zeCollection);
 		users = records.getUsers();
 	}
@@ -109,7 +109,7 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		User bob = users.bobIn(zeCollection);
 		LogicalSearchQuery findDocument = new LogicalSearchQuery(new LogicalSearchQuery(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-																												   .returnAll()).setNumberOfRows(1));
+				.returnAll()).setNumberOfRows(1));
 		Document document = rm.wrapDocument(searchServices.search(findDocument).get(0));
 		loggingServices.logPdfAGeneration(document, bob);
 		recordServices.flush();
@@ -129,7 +129,7 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 	private void whenDecommissioningEventThenAdequateEventCreated(DecommissioningListType decommissioningListType,
 																  String eventType) {
 		DecommissioningList decommissioningList = rm.newDecommissioningList()
-													.setDecommissioningListType(decommissioningListType);
+				.setDecommissioningListType(decommissioningListType);
 		User bob = users.bobIn(zeCollection);
 		loggingServices.logDecommissioning(decommissioningList, bob);
 		recordServices.flush();

@@ -65,10 +65,10 @@ public class ConnectorLDAPCrawlerJobAcceptanceTest extends ConstellioTest {
 
 	private ConnectorLDAPInstance newConnectorLDAPInstance(String code) {
 		String newTraversalCode = UUID.randomUUID()
-									  .toString();
+				.toString();
 		return (ConnectorLDAPInstance) es.newConnectorLDAPInstance().setPassword("pass").setUrls(asList("url"))
-										 .setUsersBaseContextList(asList("url"))
-										 .setConnectionUsername("username").setTitle("title").setCode(code).setTraversalCode(newTraversalCode);
+				.setUsersBaseContextList(asList("url"))
+				.setConnectionUsername("username").setTitle("title").setCode(code).setTraversalCode(newTraversalCode);
 	}
 
 	private List<String> initTestRecords()

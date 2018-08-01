@@ -71,7 +71,7 @@ public class ModulesAndMigrationsTestFeatures {
 			InstallableModule module = moduleClass.newInstance();
 			if (!modulesManager.isInstalled(module)) {
 				modulesManager.installValidModuleAndGetInvalidOnes(module, mainAppLayerFactory.getModelLayerFactory()
-																							  .getCollectionsListManager());
+						.getCollectionsListManager());
 			}
 			if (!modulesManager.isModuleEnabled(collection, module)) {
 				modulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
@@ -116,7 +116,7 @@ public class ModulesAndMigrationsTestFeatures {
 	public ModulesAndMigrationsTestFeatures withAdmin() {
 		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
 		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()
-																	 .newUserPhotosServices();
+				.newUserPhotosServices();
 		if (users == null) {
 			users = new Users();
 			users.setUp(userServices).withPhotos(userPhotosServices);
@@ -132,7 +132,7 @@ public class ModulesAndMigrationsTestFeatures {
 	public ModulesAndMigrationsTestFeatures withAllTest(Users usingUsers) {
 		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
 		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()
-																	 .newUserPhotosServices();
+				.newUserPhotosServices();
 		if (this.users == null) {
 			users = usingUsers;
 			users.setUp(userServices).withPhotos(userPhotosServices);

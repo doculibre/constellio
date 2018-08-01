@@ -863,25 +863,25 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThatDocument(folder1ActiveDocument_2_1_T).isActiveDocument()
-													   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroyAndDeposit(date(2018, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroyAndDeposit(date(2018, 3, 31));
 
 		assertThatDocument(folder1ActiveDocument_4_3_C).isActiveDocument()
-													   .withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2022, 3, 31));
+				.withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2022, 3, 31));
 
 		assertThatDocument(folder1ActiveDocument_5_5_D).isActiveDocument()
-													   .withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(date(2025, 3, 31)).withExpectedDeposit(null);
+				.withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(date(2025, 3, 31)).withExpectedDeposit(null);
 
 		assertThatDocument(folder2ActiveDocument_4_3_C).isActiveDocument()
-													   .withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2023, 3, 31));
+				.withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2023, 3, 31));
 
 		assertThatDocument(semiActiveDocument_2_1_T).isSemiActiveDocument(date(3015, 1, 1))
-													.withExpectedDestroyAndDeposit(date(3016, 3, 31));
+				.withExpectedDestroyAndDeposit(date(3016, 3, 31));
 
 		assertThatDocument(semiActiveDocument_4_3_C).isSemiActiveDocument(date(3015, 1, 1))
-													.withExpectedDestroy(null).withExpectedDeposit(date(3018, 3, 31));
+				.withExpectedDestroy(null).withExpectedDeposit(date(3018, 3, 31));
 
 		assertThatDocument(semiActiveDocumentTransferedNearYearEnd_5_5_D).isSemiActiveDocument(date(3015, 2, 1))
-																		 .withExpectedDestroy(date(3021, 3, 31)).withExpectedDeposit(null);
+				.withExpectedDestroy(date(3021, 3, 31)).withExpectedDeposit(null);
 
 		assertThatDocument(depositedDocument).isDepositedDocument(date(3015, 1, 1), date(4015, 1, 1));
 
@@ -944,25 +944,25 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		//-----
 
 		assertThatDocument(folder1ActiveDocument_888_1_C).isActiveDocument()
-														 .withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2036, 3, 31));
+				.withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2036, 3, 31));
 
 		assertThatDocument(folder1ActiveDocument_4_999_C).isActiveDocument()
-														 .withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2049, 3, 31));
+				.withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2049, 3, 31));
 
 		assertThatDocument(folder1ActiveDocument_888_888_D).isActiveDocument()
-														   .withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(date(2065, 3, 31)).withExpectedDeposit(null);
+				.withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(date(2065, 3, 31)).withExpectedDeposit(null);
 
 		assertThatDocument(folder2ActiveDocument_4_999_C).isActiveDocument()
-														 .withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2050, 3, 31));
+				.withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2050, 3, 31));
 
 		assertThatDocument(semiActiveDocument_888_1_C).isSemiActiveDocument(date(3015, 1, 1))
-													  .withExpectedDestroy(null).withExpectedDeposit(date(3016, 3, 31));
+				.withExpectedDestroy(null).withExpectedDeposit(date(3016, 3, 31));
 
 		assertThatDocument(semiActiveDocument_4_999_C).isSemiActiveDocument(date(3015, 1, 1))
-													  .withExpectedDestroy(null).withExpectedDeposit(date(3045, 3, 31));
+				.withExpectedDestroy(null).withExpectedDeposit(date(3045, 3, 31));
 
 		assertThatDocument(semiActiveDocumentNearYearEnd_888_888_D).isSemiActiveDocument(date(3015, 2, 1))
-																   .withExpectedDestroy(date(3046, 3, 31)).withExpectedDeposit(null);
+				.withExpectedDestroy(date(3046, 3, 31)).withExpectedDeposit(null);
 
 		//-----
 
@@ -972,25 +972,25 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		recordServices.refresh(transaction.getRecords());
 
 		assertThatDocument(folder1ActiveDocument_888_1_C).isActiveDocument()
-														 .withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2036, 3, 31));
+				.withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2036, 3, 31));
 
 		assertThatDocument(folder1ActiveDocument_4_999_C).isActiveDocument()
-														 .withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(null);
 
 		assertThatDocument(folder1ActiveDocument_888_888_D).isActiveDocument()
-														   .withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedTransfer(date(2035, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(null);
 
 		assertThatDocument(folder2ActiveDocument_4_999_C).isActiveDocument()
-														 .withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(null);
 
 		assertThatDocument(semiActiveDocument_888_1_C).isSemiActiveDocument(date(3015, 1, 1))
-													  .withExpectedDestroy(null).withExpectedDeposit(date(3016, 3, 31));
+				.withExpectedDestroy(null).withExpectedDeposit(date(3016, 3, 31));
 
 		assertThatDocument(semiActiveDocument_4_999_C).isSemiActiveDocument(date(3015, 1, 1))
-													  .withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedDestroy(null).withExpectedDeposit(null);
 
 		assertThatDocument(semiActiveDocumentNearYearEnd_888_888_D).isSemiActiveDocument(date(3015, 2, 1))
-																   .withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedDestroy(null).withExpectedDeposit(null);
 
 		//-----
 
@@ -1000,25 +1000,25 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		recordServices.refresh(transaction.getRecords());
 
 		assertThatDocument(folder1ActiveDocument_888_1_C).isActiveDocument()
-														 .withExpectedTransfer(null).withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedTransfer(null).withExpectedDestroy(null).withExpectedDeposit(null);
 
 		assertThatDocument(folder1ActiveDocument_4_999_C).isActiveDocument()
-														 .withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2119, 3, 31));
+				.withExpectedTransfer(date(2019, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2119, 3, 31));
 
 		assertThatDocument(folder1ActiveDocument_888_888_D).isActiveDocument()
-														   .withExpectedTransfer(null).withExpectedDestroy(null).withExpectedDeposit(null);
+				.withExpectedTransfer(null).withExpectedDestroy(null).withExpectedDeposit(null);
 
 		assertThatDocument(folder2ActiveDocument_4_999_C).isActiveDocument()
-														 .withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2120, 3, 31));
+				.withExpectedTransfer(date(2020, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2120, 3, 31));
 
 		assertThatDocument(semiActiveDocument_888_1_C).isSemiActiveDocument(date(3015, 1, 1))
-													  .withExpectedDestroy(null).withExpectedDeposit(date(3016, 3, 31));
+				.withExpectedDestroy(null).withExpectedDeposit(date(3016, 3, 31));
 
 		assertThatDocument(semiActiveDocument_4_999_C).isSemiActiveDocument(date(3015, 1, 1))
-													  .withExpectedDestroy(null).withExpectedDeposit(date(3115, 3, 31));
+				.withExpectedDestroy(null).withExpectedDeposit(date(3115, 3, 31));
 
 		assertThatDocument(semiActiveDocumentNearYearEnd_888_888_D).isSemiActiveDocument(date(3015, 2, 1))
-																   .withExpectedDestroy(date(3116, 3, 31)).withExpectedDeposit(null);
+				.withExpectedDestroy(date(3116, 3, 31)).withExpectedDeposit(null);
 	}
 
 	@Test
@@ -1038,18 +1038,18 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		createDateMetadatasAndCustomSchemas();
 
 		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type1)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(customDocument1DateD().getLocalCode()).setIgnoreActivePeriod(true);
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode()).setIgnoreActivePeriod(true);
 		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type2)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateA().getLocalCode()).setIgnoreActivePeriod(true);
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateA().getLocalCode()).setIgnoreActivePeriod(true);
 		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type3)
-											 .setActiveDateMetadata(customDocument2DateE().getLocalCode()).setIgnoreActivePeriod(true);
+				.setActiveDateMetadata(customDocument2DateE().getLocalCode()).setIgnoreActivePeriod(true);
 		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type4)
-											 .setSemiActiveDateMetadata(documentDateB().getLocalCode()).setIgnoreActivePeriod(true);
+				.setSemiActiveDateMetadata(documentDateB().getLocalCode()).setIgnoreActivePeriod(true);
 		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type5)
-											 .setActiveDateMetadata(documentDateTimeC().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateTimeF().getLocalCode()).setIgnoreActivePeriod(true);
+				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode()).setIgnoreActivePeriod(true);
 
 		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
 		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
@@ -1072,51 +1072,51 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		Folder folder1 = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(new LocalDate(2015, 1, 1));
 
 		Document type1DocWithBothDate = transaction.add(newCustomDocument1(folder1, type1))
-												   .set(documentDateA(), date(2020, 1, 1)).set(customDocument1DateD(), date(2030, 1, 1));
+				.set(documentDateA(), date(2020, 1, 1)).set(customDocument1DateD(), date(2030, 1, 1));
 
 		Document type1DocWithoutActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-														.set(customDocument1DateD(), date(2020, 2, 1));
+				.set(customDocument1DateD(), date(2020, 2, 1));
 		Document type1DocWithoutSemiActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-															.set(documentDateA(), date(2022, 2, 1));
+				.set(documentDateA(), date(2022, 2, 1));
 		Document type1DocWithoutDates = transaction.add(newCustomDocument1(folder1, type1));
 		Document type1CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			  .set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2029, 1, 1));
+				.set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2029, 1, 1));
 
 		Document type1CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			.set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2029, 2, 1));
+				.set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2029, 2, 1));
 
 		// ------
 
 		Document type2DocWithDate = transaction.add(newCustomDocument1(folder1, type2))
-											   .set(documentDateA(), date(2020, 1, 1));
+				.set(documentDateA(), date(2020, 1, 1));
 
 		Document type2DocWithoutDate = transaction.add(newCustomDocument1(folder1, type2));
 
 		// ------
 
 		Document type3DocWithActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-													 .set(customDocument2DateE(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
+				.set(customDocument2DateE(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
 
 		Document type3DocWithoutActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-														.set(documentDateA(), date(2020, 2, 1));
+				.set(documentDateA(), date(2020, 2, 1));
 
 		// ------
 
 		Document type4DocWithSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-														 .set(documentDateB(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
+				.set(documentDateB(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
 
 		Document type4DocWithoutSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-															.set(documentDateA(), date(2020, 2, 1));
+				.set(documentDateA(), date(2020, 2, 1));
 
 		Document type4CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			  .set(documentDateB(), date(2017, 1, 1)).set(documentDateA(), date(2029, 1, 1));
+				.set(documentDateB(), date(2017, 1, 1)).set(documentDateA(), date(2029, 1, 1));
 
 		Document type4CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			.set(documentDateB(), date(2016, 1, 1)).set(documentDateA(), date(2029, 2, 1));
+				.set(documentDateB(), date(2016, 1, 1)).set(documentDateA(), date(2029, 2, 1));
 
 		Document type5WithBothDateTimeValues = transaction.add(newCustomDocument2(folder1, type5))
-														  .set(documentDateTimeC(), new LocalDateTime(2016, 1, 1, 1, 2, 3))
-														  .set(documentDateTimeF(), new LocalDateTime(2029, 2, 1, 4, 5, 6));
+				.set(documentDateTimeC(), new LocalDateTime(2016, 1, 1, 1, 2, 3))
+				.set(documentDateTimeF(), new LocalDateTime(2029, 2, 1, 4, 5, 6));
 
 		recordServices.execute(transaction);
 
@@ -1125,57 +1125,57 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(type1DocWithBothDate.getMainCopyRule()).isEqualTo(copy1);
 
 		assertThatDocument(type1DocWithBothDate).isActiveDocument()
-												.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2033, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2033, 3, 31));
 
 		assertThatDocument(type1DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2024, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2024, 3, 31));
 
 		assertThatDocument(type1DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2025, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2028, 3, 31));
+				.withExpectedTransfer(date(2025, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2028, 3, 31));
 
 		assertThatDocument(type1DocWithoutDates).isActiveDocument()
-												.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		assertThatDocument(type1CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
+				.withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
 
 		assertThatDocument(type1CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2033, 3, 31));
+				.withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2033, 3, 31));
 
 		// -------
 
 		assertThatDocument(type2DocWithDate).isActiveDocument()
-											.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type2DocWithoutDate).isActiveDocument()
-											   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type3DocWithActiveDate).isActiveDocument()
-												  .withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
 
 		assertThatDocument(type3DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type4DocWithSemiActiveDate).isActiveDocument()
-													  .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2023, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2023, 3, 31));
 
 		assertThatDocument(type4DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type5WithBothDateTimeValues).isActiveDocument()
-													   .withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2033, 3, 31));
+				.withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2033, 3, 31));
 
 	}
 
@@ -1196,18 +1196,18 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		createDateMetadatasAndCustomSchemas();
 
 		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type1)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(customDocument1DateD().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type2)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateA().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateA().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type3)
-											 .setActiveDateMetadata(customDocument2DateE().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(customDocument2DateE().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type4)
-											 .setSemiActiveDateMetadata(documentDateB().getLocalCode()).setIgnoreActivePeriod(false);
+				.setSemiActiveDateMetadata(documentDateB().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type5)
-											 .setActiveDateMetadata(documentDateTimeC().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateTimeF().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode()).setIgnoreActivePeriod(false);
 
 		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
 		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
@@ -1230,51 +1230,51 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		Folder folder1 = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(new LocalDate(2015, 1, 1));
 
 		Document type1DocWithBothDate = transaction.add(newCustomDocument1(folder1, type1))
-												   .set(documentDateA(), date(2020, 1, 1)).set(customDocument1DateD(), date(2030, 1, 1));
+				.set(documentDateA(), date(2020, 1, 1)).set(customDocument1DateD(), date(2030, 1, 1));
 
 		Document type1DocWithoutActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-														.set(customDocument1DateD(), date(2020, 2, 1));
+				.set(customDocument1DateD(), date(2020, 2, 1));
 		Document type1DocWithoutSemiActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-															.set(documentDateA(), date(2022, 2, 1));
+				.set(documentDateA(), date(2022, 2, 1));
 		Document type1DocWithoutDates = transaction.add(newCustomDocument1(folder1, type1));
 		Document type1CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			  .set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2027, 1, 1));
+				.set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2027, 1, 1));
 
 		Document type1CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			.set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2027, 2, 1));
+				.set(documentDateA(), date(2026, 2, 1)).set(customDocument1DateD(), date(2027, 2, 1));
 
 		// ------
 
 		Document type2DocWithDate = transaction.add(newCustomDocument1(folder1, type2))
-											   .set(documentDateA(), date(2020, 1, 1));
+				.set(documentDateA(), date(2020, 1, 1));
 
 		Document type2DocWithoutDate = transaction.add(newCustomDocument1(folder1, type2));
 
 		// ------
 
 		Document type3DocWithActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-													 .set(customDocument2DateE(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
+				.set(customDocument2DateE(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
 
 		Document type3DocWithoutActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-														.set(documentDateA(), date(2020, 2, 1));
+				.set(documentDateA(), date(2020, 2, 1));
 
 		// ------
 
 		Document type4DocWithSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-														 .set(documentDateB(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
+				.set(documentDateB(), date(2020, 1, 1)).set(documentDateA(), date(2030, 1, 1));
 
 		Document type4DocWithoutSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-															.set(documentDateA(), date(2020, 2, 1));
+				.set(documentDateA(), date(2020, 2, 1));
 
 		Document type4CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			  .set(documentDateB(), date(2015, 1, 1)).set(documentDateA(), date(2029, 1, 1));
+				.set(documentDateB(), date(2015, 1, 1)).set(documentDateA(), date(2029, 1, 1));
 
 		Document type4CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			.set(documentDateB(), date(2014, 1, 1)).set(documentDateA(), date(2029, 2, 1));
+				.set(documentDateB(), date(2014, 1, 1)).set(documentDateA(), date(2029, 2, 1));
 
 		Document type5WithBothDateTimeValues = transaction.add(newCustomDocument2(folder1, type5))
-														  .set(documentDateTimeC(), new LocalDateTime(2016, 1, 1, 1, 2, 3))
-														  .set(documentDateTimeF(), new LocalDateTime(2029, 2, 1, 4, 5, 6));
+				.set(documentDateTimeC(), new LocalDateTime(2016, 1, 1, 1, 2, 3))
+				.set(documentDateTimeF(), new LocalDateTime(2029, 2, 1, 4, 5, 6));
 
 		recordServices.execute(transaction);
 
@@ -1283,57 +1283,57 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(type1DocWithBothDate.getMainCopyRule()).isEqualTo(copy1);
 
 		assertThatDocument(type1DocWithBothDate).isActiveDocument()
-												.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2035, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2035, 3, 31));
 
 		assertThatDocument(type1DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2026, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2026, 3, 31));
 
 		assertThatDocument(type1DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2025, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2028, 3, 31));
+				.withExpectedTransfer(date(2025, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2028, 3, 31));
 
 		assertThatDocument(type1DocWithoutDates).isActiveDocument()
-												.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		assertThatDocument(type1CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
+				.withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
 
 		assertThatDocument(type1CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2033, 3, 31));
+				.withExpectedTransfer(date(2029, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2033, 3, 31));
 
 		// -------
 
 		assertThatDocument(type2DocWithDate).isActiveDocument()
-											.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type2DocWithoutDate).isActiveDocument()
-											   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type3DocWithActiveDate).isActiveDocument()
-												  .withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
 
 		assertThatDocument(type3DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type4DocWithSemiActiveDate).isActiveDocument()
-													  .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type4DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type5WithBothDateTimeValues).isActiveDocument()
-													   .withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2035, 3, 31));
+				.withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2035, 3, 31));
 	}
 
 	@Test
@@ -1353,18 +1353,18 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		createDateMetadatasAndCustomSchemas();
 
 		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type1)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(customDocument1DateD().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type2)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateA().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateA().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type3)
-											 .setActiveDateMetadata(customDocument2DateE().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(customDocument2DateE().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type4)
-											 .setSemiActiveDateMetadata(documentDateB().getLocalCode()).setIgnoreActivePeriod(false);
+				.setSemiActiveDateMetadata(documentDateB().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type5)
-											 .setActiveDateMetadata(documentDateTimeC().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateTimeF().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode()).setIgnoreActivePeriod(false);
 
 		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
 		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
@@ -1387,51 +1387,51 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		Folder folder1 = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(new LocalDate(2015, 1, 1));
 
 		Document type1DocWithBothDate = transaction.add(newCustomDocument1(folder1, type1))
-												   .set(documentDateA(), date(2020, 3, 31)).set(customDocument1DateD(), date(2030, 3, 31));
+				.set(documentDateA(), date(2020, 3, 31)).set(customDocument1DateD(), date(2030, 3, 31));
 
 		Document type1DocWithoutActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-														.set(customDocument1DateD(), date(2020, 3, 31));
+				.set(customDocument1DateD(), date(2020, 3, 31));
 		Document type1DocWithoutSemiActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-															.set(documentDateA(), date(2022, 3, 31));
+				.set(documentDateA(), date(2022, 3, 31));
 		Document type1DocWithoutDates = transaction.add(newCustomDocument1(folder1, type1));
 		Document type1CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			  .set(documentDateA(), date(2026, 3, 31)).set(customDocument1DateD(), date(2027, 3, 31));
+				.set(documentDateA(), date(2026, 3, 31)).set(customDocument1DateD(), date(2027, 3, 31));
 
 		Document type1CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			.set(documentDateA(), date(2026, 3, 31)).set(customDocument1DateD(), date(2027, 3, 31));
+				.set(documentDateA(), date(2026, 3, 31)).set(customDocument1DateD(), date(2027, 3, 31));
 
 		// ------
 
 		Document type2DocWithDate = transaction.add(newCustomDocument1(folder1, type2))
-											   .set(documentDateA(), date(2020, 3, 31));
+				.set(documentDateA(), date(2020, 3, 31));
 
 		Document type2DocWithoutDate = transaction.add(newCustomDocument1(folder1, type2));
 
 		// ------
 
 		Document type3DocWithActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-													 .set(customDocument2DateE(), date(2020, 3, 31)).set(documentDateA(), date(2030, 3, 31));
+				.set(customDocument2DateE(), date(2020, 3, 31)).set(documentDateA(), date(2030, 3, 31));
 
 		Document type3DocWithoutActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-														.set(documentDateA(), date(2020, 3, 31));
+				.set(documentDateA(), date(2020, 3, 31));
 
 		// ------
 
 		Document type4DocWithSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-														 .set(documentDateB(), date(2020, 3, 31)).set(documentDateA(), date(2030, 3, 31));
+				.set(documentDateB(), date(2020, 3, 31)).set(documentDateA(), date(2030, 3, 31));
 
 		Document type4DocWithoutSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-															.set(documentDateA(), date(2020, 3, 31));
+				.set(documentDateA(), date(2020, 3, 31));
 
 		Document type4CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			  .set(documentDateB(), date(2015, 3, 31)).set(documentDateA(), date(2029, 3, 31));
+				.set(documentDateB(), date(2015, 3, 31)).set(documentDateA(), date(2029, 3, 31));
 
 		Document type4CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			.set(documentDateB(), date(2014, 3, 31)).set(documentDateA(), date(2029, 3, 31));
+				.set(documentDateB(), date(2014, 3, 31)).set(documentDateA(), date(2029, 3, 31));
 
 		Document type5WithBothDateTimeValues = transaction.add(newCustomDocument2(folder1, type5))
-														  .set(documentDateTimeC(), new LocalDateTime(2016, 3, 31, 1, 2, 3))
-														  .set(documentDateTimeF(), new LocalDateTime(2029, 3, 31, 4, 5, 6));
+				.set(documentDateTimeC(), new LocalDateTime(2016, 3, 31, 1, 2, 3))
+				.set(documentDateTimeF(), new LocalDateTime(2029, 3, 31, 4, 5, 6));
 
 		recordServices.execute(transaction);
 
@@ -1440,59 +1440,59 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(type1DocWithBothDate.getMainCopyRule()).isEqualTo(copy1);
 
 		assertThatDocument(type1DocWithBothDate).isActiveDocument()
-												.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2035, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2035, 3, 31));
 
 		//will not be adjusted since we use CalculatorUtils.toNextEndOfYearDate in document calculators
 		assertThatDocument(type1DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
 
 		assertThatDocument(type1DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2024, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2027, 3, 31));
+				.withExpectedTransfer(date(2024, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2027, 3, 31));
 
 		assertThatDocument(type1DocWithoutDates).isActiveDocument()
-												.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		//will not be adjusted since we use CalculatorUtils.toNextEndOfYearDate in document calculators
 		assertThatDocument(type1CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
+				.withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
 
 		assertThatDocument(type1CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
+				.withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
 
 		// -------
 
 		assertThatDocument(type2DocWithDate).isActiveDocument()
-											.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type2DocWithoutDate).isActiveDocument()
-											   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type3DocWithActiveDate).isActiveDocument()
-												  .withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
 
 		assertThatDocument(type3DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type4DocWithSemiActiveDate).isActiveDocument()
-													  .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type4DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type5WithBothDateTimeValues).isActiveDocument()
-													   .withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2034, 3, 31));
+				.withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2034, 3, 31));
 	}
 
 	@Test
@@ -1512,18 +1512,18 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		createDateMetadatasAndCustomSchemas();
 
 		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type1)
-											 .setActiveDateMetadata(documentNumberA().getLocalCode())
-											 .setSemiActiveDateMetadata(customDocument1NumberD().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentNumberA().getLocalCode())
+				.setSemiActiveDateMetadata(customDocument1NumberD().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type2)
-											 .setActiveDateMetadata(documentNumberA().getLocalCode())
-											 .setSemiActiveDateMetadata(documentNumberA().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentNumberA().getLocalCode())
+				.setSemiActiveDateMetadata(documentNumberA().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type3)
-											 .setActiveDateMetadata(customDocument2NumberE().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(customDocument2NumberE().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type4)
-											 .setSemiActiveDateMetadata(documentNumberB().getLocalCode()).setIgnoreActivePeriod(false);
+				.setSemiActiveDateMetadata(documentNumberB().getLocalCode()).setIgnoreActivePeriod(false);
 		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type5)
-											 .setActiveDateMetadata(documentNumberC().getLocalCode())
-											 .setSemiActiveDateMetadata(documentNumberF().getLocalCode()).setIgnoreActivePeriod(false);
+				.setActiveDateMetadata(documentNumberC().getLocalCode())
+				.setSemiActiveDateMetadata(documentNumberF().getLocalCode()).setIgnoreActivePeriod(false);
 
 		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
 		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
@@ -1546,51 +1546,51 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		Folder folder1 = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(new LocalDate(2015, 1, 1));
 
 		Document type1DocWithBothDate = transaction.add(newCustomDocument1(folder1, type1))
-												   .set(documentNumberA(), 2020).set(customDocument1NumberD(), 2030);
+				.set(documentNumberA(), 2020).set(customDocument1NumberD(), 2030);
 
 		Document type1DocWithoutActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-														.set(customDocument1NumberD(), 2020);
+				.set(customDocument1NumberD(), 2020);
 		Document type1DocWithoutSemiActiveDate = transaction.add(newCustomDocument1(folder1, type1))
-															.set(documentNumberA(), 2022);
+				.set(documentNumberA(), 2022);
 		Document type1DocWithoutDates = transaction.add(newCustomDocument1(folder1, type1));
 		Document type1CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			  .set(documentNumberA(), 2026).set(customDocument1NumberD(), 2027);
+				.set(documentNumberA(), 2026).set(customDocument1NumberD(), 2027);
 
 		Document type1CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument1(folder1, type1))
-																			.set(documentNumberA(), 2026).set(customDocument1NumberD(), 2027);
+				.set(documentNumberA(), 2026).set(customDocument1NumberD(), 2027);
 
 		// ------
 
 		Document type2DocWithDate = transaction.add(newCustomDocument1(folder1, type2))
-											   .set(documentNumberA(), 2020);
+				.set(documentNumberA(), 2020);
 
 		Document type2DocWithoutDate = transaction.add(newCustomDocument1(folder1, type2));
 
 		// ------
 
 		Document type3DocWithActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-													 .set(customDocument2NumberE(), 2020).set(documentNumberA(), 2030);
+				.set(customDocument2NumberE(), 2020).set(documentNumberA(), 2030);
 
 		Document type3DocWithoutActiveDate = transaction.add(newCustomDocument2(folder1, type3))
-														.set(documentNumberA(), 2020);
+				.set(documentNumberA(), 2020);
 
 		// ------
 
 		Document type4DocWithSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-														 .set(documentNumberB(), 2020).set(documentNumberA(), 2030);
+				.set(documentNumberB(), 2020).set(documentNumberA(), 2030);
 
 		Document type4DocWithoutSemiActiveDate = transaction.add(newCustomDocument2(folder1, type4))
-															.set(documentNumberA(), 2020);
+				.set(documentNumberA(), 2020);
 
 		Document type4CalculatedSemiActiveEqualToAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			  .set(documentNumberB(), 2015).set(documentNumberA(), 2029);
+				.set(documentNumberB(), 2015).set(documentNumberA(), 2029);
 
 		Document type4CalculatedSemiActiveAfterAjustedInactive = transaction.add(newCustomDocument2(folder1, type4))
-																			.set(documentNumberB(), 2014).set(documentNumberA(), 2029);
+				.set(documentNumberB(), 2014).set(documentNumberA(), 2029);
 
 		Document type5WithBothDateTimeValues = transaction.add(newCustomDocument2(folder1, type5))
-														  .set(documentNumberC(), 2016)
-														  .set(documentNumberF(), 2029);
+				.set(documentNumberC(), 2016)
+				.set(documentNumberF(), 2029);
 
 		recordServices.execute(transaction);
 
@@ -1599,59 +1599,59 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(type1DocWithBothDate.getMainCopyRule()).isEqualTo(copy1);
 
 		assertThatDocument(type1DocWithBothDate).isActiveDocument()
-												.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2035, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2035, 3, 31));
 
 		//will not be adjusted since we use CalculatorUtils.toNextEndOfYearDate in document calculators
 		assertThatDocument(type1DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
 
 		assertThatDocument(type1DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2024, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2027, 3, 31));
+				.withExpectedTransfer(date(2024, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2027, 3, 31));
 
 		assertThatDocument(type1DocWithoutDates).isActiveDocument()
-												.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		//will not be adjusted since we use CalculatorUtils.toNextEndOfYearDate in document calculators
 		assertThatDocument(type1CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
+				.withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
 
 		assertThatDocument(type1CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
+				.withExpectedTransfer(date(2028, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2032, 3, 31));
 
 		// -------
 
 		assertThatDocument(type2DocWithDate).isActiveDocument()
-											.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type2DocWithoutDate).isActiveDocument()
-											   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type3DocWithActiveDate).isActiveDocument()
-												  .withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
+				.withExpectedTransfer(date(2022, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2025, 3, 31));
 
 		assertThatDocument(type3DocWithoutActiveDate).isActiveDocument()
-													 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDestroy(null).withExpectedDeposit(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type4DocWithSemiActiveDate).isActiveDocument()
-													  .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2025, 3, 31));
 
 		assertThatDocument(type4DocWithoutSemiActiveDate).isActiveDocument()
-														 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveEqualToAjustedInactive).isActiveDocument()
-																		   .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		assertThatDocument(type4CalculatedSemiActiveAfterAjustedInactive).isActiveDocument()
-																		 .withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
+				.withExpectedTransfer(date(2017, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2020, 3, 31));
 
 		// -------
 
 		assertThatDocument(type5WithBothDateTimeValues).isActiveDocument()
-													   .withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2034, 3, 31));
+				.withExpectedTransfer(date(2018, 3, 31)).withExpectedDeposit(null).withExpectedDestroy(date(2034, 3, 31));
 	}
 
 	@Test
@@ -1669,18 +1669,18 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		createDateMetadatasAndCustomSchemas();
 
 		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type1)
-											 .setActiveDateMetadata(documentDateA().getLocalCode())
-											 .setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
+				.setActiveDateMetadata(documentDateA().getLocalCode())
+				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
 		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type2)
-											 .setActiveDateMetadata(documentDateB().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateA().getLocalCode());
+				.setActiveDateMetadata(documentDateB().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateA().getLocalCode());
 		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setTypeId(type3)
-											 .setActiveDateMetadata(customDocument2DateE().getLocalCode());
+				.setActiveDateMetadata(customDocument2DateE().getLocalCode());
 		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type4)
-											 .setSemiActiveDateMetadata(documentDateB().getLocalCode());
+				.setSemiActiveDateMetadata(documentDateB().getLocalCode());
 		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setTypeId(type5)
-											 .setActiveDateMetadata(documentDateTimeC().getLocalCode())
-											 .setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
+				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
+				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
 
 		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
 		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
@@ -1704,44 +1704,44 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 		Document activeDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1));
 		Document semiActiveDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
-															   .setActualTransferDateEntered(date(2015, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1));
 		Document depositedDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
-															  .setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
 		Document destroyedDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
-															  .setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
 
 		Folder semiActiveFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2015, 1, 1))
-											 .setActualTransferDate(date(2025, 1, 1));
+				.setActualTransferDate(date(2025, 1, 1));
 
 		Document activeDocumentInSemiActiveFolder = transaction.add(newCustomDocument1(semiActiveFolder, type1));
 		Document semiActiveDocumentInSemiActiveFolder = transaction.add(newCustomDocument1(semiActiveFolder, type1))
-																   .setActualTransferDateEntered(date(2015, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1));
 		Document depositedDocumentInSemiActiveFolder = transaction.add(newCustomDocument1(semiActiveFolder, type1))
-																  .setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
 		Document destroyedDocumentInSemiActiveFolder = transaction.add(newCustomDocument1(semiActiveFolder, type1))
-																  .setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
 
 		Folder depositedFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2015, 1, 1))
-											.setActualTransferDate(date(2020, 1, 1)).setActualDepositDate(date(2025, 1, 1));
+				.setActualTransferDate(date(2020, 1, 1)).setActualDepositDate(date(2025, 1, 1));
 
 		Document activeDocumentInDepositedFolder = transaction.add(newCustomDocument1(depositedFolder, type1));
 		Document semiActiveDocumentInDepositedFolder = transaction.add(newCustomDocument1(depositedFolder, type1))
-																  .setActualTransferDateEntered(date(2015, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1));
 		Document depositedDocumentInDepositedeFolder = transaction.add(newCustomDocument1(depositedFolder, type1))
-																  .setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
 		Document destroyedDocumentInDepositedFolder = transaction.add(newCustomDocument1(depositedFolder, type1))
-																 .setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
 
 		Folder destroyedFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2015, 1, 1))
-											.setActualTransferDate(date(2020, 1, 1)).setActualDestructionDate(date(2025, 1, 1));
+				.setActualTransferDate(date(2020, 1, 1)).setActualDestructionDate(date(2025, 1, 1));
 
 		Document activeDocumentInDestroyedFolder = transaction.add(newCustomDocument1(destroyedFolder, type1));
 		Document semiActiveDocumentInDestroyedFolder = transaction.add(newCustomDocument1(destroyedFolder, type1))
-																  .setActualTransferDateEntered(date(2015, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1));
 		Document depositedDocumentInDestroyedFolder = transaction.add(newCustomDocument1(destroyedFolder, type1))
-																 .setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
 		Document destroyedDocumentInDestroyedFolder = transaction.add(newCustomDocument1(destroyedFolder, type1))
-																 .setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
+				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
 
 		recordServices.execute(transaction);
 
@@ -1813,29 +1813,29 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThatDocument(documentWithCopy1).isActiveDocument()
-											 .withMainCopyRetentionRule(copy1)
-											 .withExpectedTransfer(date(2011, 3, 31))
-											 .withExpectedDeposit(date(2014, 3, 31));
+				.withMainCopyRetentionRule(copy1)
+				.withExpectedTransfer(date(2011, 3, 31))
+				.withExpectedDeposit(date(2014, 3, 31));
 
 		assertThatDocument(documentWithCopy2).isActiveDocument()
-											 .withMainCopyRetentionRule(copy2)
-											 .withExpectedTransfer(date(2012, 3, 31))
-											 .withExpectedDestroy(date(2015, 3, 31));
+				.withMainCopyRetentionRule(copy2)
+				.withExpectedTransfer(date(2012, 3, 31))
+				.withExpectedDestroy(date(2015, 3, 31));
 
 		assertThatDocument(documentWithCopy3).isActiveDocument()
-											 .withMainCopyRetentionRule(copy3)
-											 .withExpectedTransfer(date(2013, 3, 31))
-											 .withExpectedDeposit(date(2016, 3, 31));
+				.withMainCopyRetentionRule(copy3)
+				.withExpectedTransfer(date(2013, 3, 31))
+				.withExpectedDeposit(date(2016, 3, 31));
 
 		assertThatDocument(documentWithCopy4).isActiveDocument()
-											 .withMainCopyRetentionRule(copy4)
-											 .withExpectedTransfer(date(2014, 3, 31))
-											 .withExpectedDestroy(date(2017, 3, 31));
+				.withMainCopyRetentionRule(copy4)
+				.withExpectedTransfer(date(2014, 3, 31))
+				.withExpectedDestroy(date(2017, 3, 31));
 
 		assertThatDocument(documentWithCopy5).isActiveDocument()
-											 .withMainCopyRetentionRule(copy5)
-											 .withExpectedTransfer(date(2015, 3, 31))
-											 .withExpectedDestroyAndDeposit(date(2018, 3, 31));
+				.withMainCopyRetentionRule(copy5)
+				.withExpectedTransfer(date(2015, 3, 31))
+				.withExpectedDestroyAndDeposit(date(2018, 3, 31));
 
 		try {
 			recordServices.add(newCustomDocument1(folder, type1));
@@ -1871,31 +1871,31 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 	private Folder newPrincipalFolderInCategoryWithRule(String category, RetentionRule rule) {
 		return rm.newFolder().setCategoryEntered(category).setRetentionRuleEntered(rule).setOpenDate(squatreNovembre)
-				 .setCopyStatusEntered(CopyType.PRINCIPAL).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
+				.setCopyStatusEntered(CopyType.PRINCIPAL).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
 	}
 
 	private Folder newPrincipalFolderWithRule(RetentionRule rule) {
 		return rm.newFolder().setCategoryEntered(zeCategory).setRetentionRuleEntered(rule)
-				 .setOpenDate(squatreNovembre)
-				 .setCopyStatusEntered(CopyType.PRINCIPAL).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
+				.setOpenDate(squatreNovembre)
+				.setCopyStatusEntered(CopyType.PRINCIPAL).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
 	}
 
 	private Folder newSecondaryFolderWithRule(RetentionRule rule) {
 		return rm.newFolder().setCategoryEntered(zeCategory).setRetentionRuleEntered(rule)
-				 .setOpenDate(squatreNovembre)
-				 .setCopyStatusEntered(CopyType.SECONDARY).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
+				.setOpenDate(squatreNovembre)
+				.setCopyStatusEntered(CopyType.SECONDARY).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
 	}
 
 	private Folder newPrincipalFolderWithRule(String folderId, RetentionRule rule) {
 		return rm.newFolderWithId(folderId).setCategoryEntered(zeCategory).setRetentionRuleEntered(rule)
-				 .setOpenDate(squatreNovembre)
-				 .setCopyStatusEntered(CopyType.PRINCIPAL).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
+				.setOpenDate(squatreNovembre)
+				.setCopyStatusEntered(CopyType.PRINCIPAL).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
 	}
 
 	private Folder newSecondaryFolderWithRule(String folderId, RetentionRule rule) {
 		return rm.newFolderWithId(folderId).setCategoryEntered(zeCategory).setRetentionRuleEntered(rule)
-				 .setOpenDate(squatreNovembre)
-				 .setCopyStatusEntered(CopyType.SECONDARY).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
+				.setOpenDate(squatreNovembre)
+				.setCopyStatusEntered(CopyType.SECONDARY).setAdministrativeUnitEntered(records.getUnit10()).setTitle("test");
 	}
 
 	private Document newDocumentInFolderWithType(Folder folder, String typeId) {
@@ -1921,7 +1921,7 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		LogicalSearchCondition condition = from(
 				metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType(Document.SCHEMA_TYPE))
 				.where(metadataSchemasManager.getSchemaTypes(zeCollection)
-											 .getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).is(folderId);
+						.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).is(folderId);
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		return searchServices.search(query);

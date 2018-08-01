@@ -194,10 +194,10 @@ public class DocumentService extends BaseService {
 
 				document.setType(documentTypeRecord == null ? null :
 								 DocumentTypeDto.builder()
-												.id(documentTypeRecord.getId())
-												.code(this.<String>getMetadataValue(documentTypeRecord, DocumentType.CODE))
-												.title(documentTypeRecord.getTitle())
-												.build());
+										 .id(documentTypeRecord.getId())
+										 .code(this.<String>getMetadataValue(documentTypeRecord, DocumentType.CODE))
+										 .title(documentTypeRecord.getTitle())
+										 .build());
 			}
 		} else {
 			document.setType(null);
@@ -207,11 +207,11 @@ public class DocumentService extends BaseService {
 			Content content = getMetadataValue(documentRecord, Document.CONTENT);
 			if (content != null) {
 				document.setContent(ContentDto.builder()
-											  .filename(content.getCurrentVersion().getFilename())
-											  .versionType(content.getCurrentVersion().isMajor() ? MAJOR : MINOR)
-											  .version(content.getCurrentVersion().getVersion())
-											  .hash(content.getCurrentVersion().getHash())
-											  .build());
+						.filename(content.getCurrentVersion().getFilename())
+						.versionType(content.getCurrentVersion().isMajor() ? MAJOR : MINOR)
+						.version(content.getCurrentVersion().getVersion())
+						.hash(content.getCurrentVersion().getHash())
+						.build());
 			}
 		} else {
 			document.setContent(null);

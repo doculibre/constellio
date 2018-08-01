@@ -50,7 +50,7 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withEvents().withDocumentsHavingContent()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -159,14 +159,14 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
 
 	private DecommissioningList buildDefaultFolderDecommissioningList() {
 		return rm.newDecommissioningListWithId("decomTest").setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				 .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
-				 .addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
+				.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
+				.addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
 	}
 
 	private DecommissioningList buildDefaultDocumentDecommissioningList() {
 		return rm.newDecommissioningListWithId("decomTestDoc").setTitle("decomTestDoc").setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				 .setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
-				 .setDocuments(asList(records.document_A19, records.document_A49, records.document_A79, records.document_B30));
+				.setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER).setAdministrativeUnit(records.unitId_10)
+				.setDocuments(asList(records.document_A19, records.document_A49, records.document_A79, records.document_B30));
 	}
 }
 

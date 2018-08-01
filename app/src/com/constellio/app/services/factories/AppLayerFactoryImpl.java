@@ -305,7 +305,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			List<RecordMigrationScript> scripts = newMigrationServices().getAllRecordMigrationScripts(collection);
 			//TODO Check if master node
 			Set<String> typesWithNewScripts = getModelLayerFactory().getRecordMigrationsManager()
-																	.registerReturningTypesWithNewScripts(collection, scripts, true);
+					.registerReturningTypesWithNewScripts(collection, scripts, true);
 			typesWithNewScriptsInCollections.put(collection, typesWithNewScripts);
 		}
 

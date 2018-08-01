@@ -73,7 +73,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 
 	private void setupBackgroundThreadsManager(String collection, AppLayerFactory appLayerFactory) {
 		ModelLayerBackgroundThreadsManager manager = appLayerFactory.getModelLayerFactory()
-																	.getModelLayerBackgroundThreadsManager();
+				.getModelLayerBackgroundThreadsManager();
 		manager.configureBackgroundThreadConfiguration(repeatingAction("alertOverdueTasksBackgroundAction-" + collection,
 				new AlertOverdueTasksBackgroundAction(appLayerFactory, collection))
 				.executedEvery(standardMinutes(30)).handlingExceptionWith(CONTINUE));
@@ -88,7 +88,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		ModelLayerCollectionExtensions extensions = appLayerFactory.getModelLayerFactory().getExtensions()
-																   .forCollection(collection);
+				.forCollection(collection);
 		extensions.recordImportExtensions.add(new TaskImportExtension(collection, appLayerFactory.getModelLayerFactory()));
 		extensions.recordExtensions.add(new TaskRecordExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));

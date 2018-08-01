@@ -31,7 +31,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

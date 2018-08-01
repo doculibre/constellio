@@ -41,7 +41,7 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.add(manager.getMetadata(collection, Capsule.DEFAULT_SCHEMA + "_" + Capsule.HTML)
-									  .withInputType(MetadataInputType.RICHTEXT));
+				.withInputType(MetadataInputType.RICHTEXT));
 		manager.execute(transactionBuilder.build());
 	}
 

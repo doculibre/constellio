@@ -391,7 +391,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					UserSearchEvent param = new UserSearchEvent(response, query, search, queryDateTime, language, username);
 
 					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
-								   .notifyNewUserSearch(param);
+							.notifyNewUserSearch(param);
 				}
 			}
 
@@ -422,7 +422,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			query.setNumberOfRows(rows);
 
 			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-																		 .addSolrModifiableParams(query);
+					.addSolrModifiableParams(query);
 
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
@@ -597,7 +597,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			@Override
 			public InputStream getStream() {
 				File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
-											   .newTemporaryFolder(ZIP_CONTENT_RESOURCE);
+						.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
 				File file = new File(folder, getZippedContentsFilename());
 				try {
 					new ZipContentsService(modelLayerFactory, collection)
@@ -702,7 +702,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 				.setNumberOfRows(0)
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-													 .getFieldFacetValues("schema_s");
+				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
 		if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
 			if (schema_s != null) {
@@ -752,7 +752,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-											   .getTaxonomyFor(collection, referencedSchemaType);
+					.getTaxonomyFor(collection, referencedSchemaType);
 			if (taxonomy != null) {
 				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 				List<String> taxonomyUserIds = taxonomy.getUserIds();

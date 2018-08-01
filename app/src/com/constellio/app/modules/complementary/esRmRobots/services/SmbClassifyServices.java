@@ -194,7 +194,7 @@ public class SmbClassifyServices {
 					.setHandleDeletionOfUnreferencedHashes(false);
 
 			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(availableVersionInputStream, options)
-																				.getContentVersionDataSummary();
+					.getContentVersionDataSummary();
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();

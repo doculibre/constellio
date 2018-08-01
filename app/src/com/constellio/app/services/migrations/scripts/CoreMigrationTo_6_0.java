@@ -47,7 +47,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 			if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-								  .hasType(SolrUserCredential.SCHEMA_TYPE)) {
+					.hasType(SolrUserCredential.SCHEMA_TYPE)) {
 
 				new CoreSchemaAlterationFor6_0(collection, provider, appLayerFactory).migrate();
 
@@ -125,27 +125,27 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			credentials.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCalculated(UserTitleCalculator.class);
 
 			credentials.createUndeletable(SolrUserCredential.USERNAME).setType(MetadataValueType.STRING)
-					   .setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
+					.setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
 			credentials.createUndeletable(SolrUserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
 			credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
 			credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
-					   .setUniqueValue(false).addValidator(EmailValidator.class);
+					.setUniqueValue(false).addValidator(EmailValidator.class);
 			credentials.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
-					   .setMultivalue(true);
+					.setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
 			credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
-					   .setEncrypted(true);
+					.setEncrypted(true);
 			credentials.createUndeletable(SolrUserCredential.TOKEN_EXPIRATIONS).setType(MetadataValueType.DATE_TIME)
-					   .setMultivalue(true);
+					.setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.SYSTEM_ADMIN).setType(MetadataValueType.BOOLEAN)
-					   .setDefaultRequirement(true).setDefaultValue(false);
+					.setDefaultRequirement(true).setDefaultValue(false);
 			credentials.createUndeletable(SolrUserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class)
-					   .setDefaultRequirement(true);
+					.setDefaultRequirement(true);
 			credentials.createUndeletable(SolrUserCredential.DOMAIN).setType(MetadataValueType.STRING);
 			credentials.createUndeletable(SolrUserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
-					   .setMultivalue(true);
+					.setMultivalue(true);
 			credentials.createUndeletable(SolrUserCredential.DN).setType(MetadataValueType.STRING);
 		}
 

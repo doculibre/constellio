@@ -72,8 +72,8 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenDisabledAfterTestValidations();
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
-										.withRMTest(records).withFoldersAndContainersOfEveryStatus()
-										.withDocumentsHavingContent());
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+				.withDocumentsHavingContent());
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -120,7 +120,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		as(gandalf).session.getObject(records.folder_A02);
 		as(chuckNorris).session.getObjectByPath("/taxo_plan/categoryId_X/categoryId_X100/" + records.folder_C30);
 		as(admin).session.getBinding().getObjectService()
-						 .getProperties(session.getRepositoryInfo().getId(), records.folder_A06, null, null);
+				.getProperties(session.getRepositoryInfo().getId(), records.folder_A06, null, null);
 		recordServices.flush();
 		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").isEmpty();
 		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, true);
@@ -128,7 +128,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		as(gandalf).session.getObject(records.folder_A02);
 		as(chuckNorris).session.getObjectByPath("/taxo_plan/categoryId_X/categoryId_X100/" + records.folder_C30);
 		as(admin).session.getBinding().getObjectService()
-						 .getProperties(session.getRepositoryInfo().getId(), records.folder_A06, null, null);
+				.getProperties(session.getRepositoryInfo().getId(), records.folder_A06, null, null);
 		recordServices.flush();
 		assertThatRecords(rm.searchEvents(ALL)).extracting("type", "username", "recordId").containsOnly(
 				tuple("view_folder", "gandalf", "A02"),
@@ -139,7 +139,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		clearLogs();
 
 		as(gandalf).session.getObject(records.folder_A02).updateProperties(asMap("title", "newTitle1"))
-						   .updateProperties(asMap("title", "newTitle2"));
+				.updateProperties(asMap("title", "newTitle2"));
 		MutableProperties properties = new PropertiesImpl();
 
 		as(chuckNorris).session.getObject(records.folder_C30).rename("newTitle3");
@@ -147,7 +147,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 				.move(new ObjectIdImpl(records.unitId_10a), new ObjectIdImpl(records.unitId_20));
 		String newFolderId = ((Folder) as(gandalf).session.getObject(records.folder_A07)).createFolder(
 				asMap("title", "test", PropertyIds.OBJECT_TYPE_ID, "folder_default", "openingDate", Calendar.getInstance()))
-																						 .getId();
+				.getId();
 		((Folder) as(chuckNorris).session.getObject(records.folder_A12)).deleteTree(true, UnfileObject.DELETE, true);
 		recordServices.flush();
 
@@ -206,7 +206,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		clearLogs();
 
 		as(gandalf).session.getObject(records.document_B30).updateProperties(asMap("title", "newTitle1"))
-						   .updateProperties(asMap("title", "newTitle2"));
+				.updateProperties(asMap("title", "newTitle2"));
 		MutableProperties properties = new PropertiesImpl();
 		((Folder) as(chuckNorris).session.getObject(records.document_B33)).deleteTree(true, UnfileObject.DELETE, true);
 		as(chuckNorris).session.getObject(records.document_A49).rename("newTitle3");
@@ -217,7 +217,7 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 				.createFolder(asMap("title", "test", PropertyIds.OBJECT_TYPE_ID, "document_default")).getId();
 
 		Document contentA19 = (Document) ((Folder) as(chuckNorris).session.getObject(records.document_A19)).getChildren()
-																										   .iterator().next();
+				.iterator().next();
 		contentA19.checkOut();
 		contentA19.checkIn(false, new HashMap<String, Object>(), null, null);
 

@@ -83,7 +83,7 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 	private List<String> getCollectionLanguages() {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		return ConstellioFactories.getInstance().getModelLayerFactory().getCollectionsListManager()
-								  .getCollectionLanguages(collection);
+				.getCollectionLanguages(collection);
 	}
 
 	public void validateFields() throws Validator.InvalidValueException {

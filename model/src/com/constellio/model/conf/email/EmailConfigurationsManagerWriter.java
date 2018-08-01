@@ -51,7 +51,7 @@ public class EmailConfigurationsManagerWriter {
 		}
 		collectionConfigElement.getChild(EmailConfigurationsManager.USERNAME).setText(emailServerConfiguration.getUsername());
 		collectionConfigElement.getChild(EmailConfigurationsManager.DEFAULT_SENDER_EMAIL)
-							   .setText(emailServerConfiguration.getDefaultSenderEmail());
+				.setText(emailServerConfiguration.getDefaultSenderEmail());
 		collectionConfigElement.getChild(EmailConfigurationsManager.PASSWORD).setText(emailServerConfiguration.getPassword());
 
 		Element enabledElement = collectionConfigElement.getChild(EmailConfigurationsManager.ENABLED);

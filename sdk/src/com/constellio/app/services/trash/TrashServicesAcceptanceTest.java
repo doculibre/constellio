@@ -57,7 +57,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent(),
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent(),
 				withCollection(businessCollection).withTasksModule().withAllTestUsers()
 		);
 

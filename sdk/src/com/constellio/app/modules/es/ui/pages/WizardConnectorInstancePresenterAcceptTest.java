@@ -72,19 +72,19 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	private void configureConnectorsInstances() {
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("zeConnector")
-								   .setTitle("Ze Connector")
-								   .setTraversalCode("traversalCode")
-								   .setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("zeConnector")
+						.setTitle("Ze Connector")
+						.setTraversalCode("traversalCode")
+						.setEnabled(true)
+						.setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("anotherConnector")
-								   .setTitle("Another Connector")
-								   .setTraversalCode("anotherTraversalCode")
-								   .setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("anotherConnector")
+						.setTitle("Another Connector")
+						.setTraversalCode("anotherTraversalCode")
+						.setEnabled(true)
+						.setSeeds("http://constellio.com"));
 	}
 
 	@Test

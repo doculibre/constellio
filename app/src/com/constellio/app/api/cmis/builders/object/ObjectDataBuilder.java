@@ -178,7 +178,7 @@ public class ObjectDataBuilder {
 	private void addPropertiesForMetadatas(Record record, PropertiesBuilder propertiesBuilder) {
 		SchemaUtils schemaUtils = new SchemaUtils();
 		for (Metadata metadata : modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection())
-												  .getSchema(record.getSchemaCode()).getMetadatas()) {
+				.getSchema(record.getSchemaCode()).getMetadatas()) {
 			Object value = record.get(metadata);
 			String propertyCode = schemaUtils.getLocalCodeFromMetadataCode(metadata.getCode());
 			if (value != null) {
@@ -193,7 +193,7 @@ public class ObjectDataBuilder {
 
 	private void setupObjectInfo(ObjectInfoImpl objectInfo, String typeId) {
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(repository.getCollection())
-												   .getSchemaType(new SchemaUtils().getSchemaTypeCode(typeId));
+				.getSchemaType(new SchemaUtils().getSchemaTypeCode(typeId));
 
 		objectInfo.setBaseType(BaseTypeId.CMIS_FOLDER);
 		objectInfo.setTypeId(typeId);

@@ -104,9 +104,9 @@ public class ConnectorLDAPUserDocumentFactoryRealTest extends ConstellioTest {
 
 	private ConnectorLDAPInstance newConnectorLDAPInstance() {
 		String newTraversalCode = UUID.randomUUID()
-									  .toString();
+				.toString();
 		return (ConnectorLDAPInstance) es.newConnectorLDAPInstance().setPassword("pass").setUrls(asList("url"))
-										 .setConnectionUsername(
-												 "username").setTitle("title").setCode("code").setTraversalCode(newTraversalCode);
+				.setConnectionUsername(
+						"username").setTitle("title").setCode("code").setTraversalCode(newTraversalCode);
 	}
 }

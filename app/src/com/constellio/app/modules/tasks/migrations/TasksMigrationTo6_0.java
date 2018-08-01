@@ -47,12 +47,12 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 	private void configureDisplayConfig(String collection, AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection)
-																		 .in(Task.SCHEMA_TYPE)
-																		 .addToForm(Task.DECISION, Task.RELATIVE_DUE_DATE)
-																		 .atTheEnd()
-																		 .in(Task.SCHEMA_TYPE)
-																		 .addToDisplay(Task.DECISION, Task.BETA_WORKFLOW, Task.BETA_WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
-																		 .atTheEnd();
+				.in(Task.SCHEMA_TYPE)
+				.addToForm(Task.DECISION, Task.RELATIVE_DUE_DATE)
+				.atTheEnd()
+				.in(Task.SCHEMA_TYPE)
+				.addToDisplay(Task.DECISION, Task.BETA_WORKFLOW, Task.BETA_WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
+				.atTheEnd();
 		manager.execute(transactionBuilder.build());
 	}
 
@@ -96,7 +96,7 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 			workflowInstanceSchema.create(BetaWorkflowInstance.STATUS).defineAsEnum(WorkflowInstanceStatus.class);
 			workflowInstanceSchema.create(BetaWorkflowInstance.WORKFLOW).defineReferencesTo(workflowSchemaType);
 			workflowInstanceSchema.create(BetaWorkflowInstance.EXTRA_FIELDS)
-								  .defineStructureFactory(MapStringListStringStructureFactory.class);
+					.defineStructureFactory(MapStringListStringStructureFactory.class);
 
 			MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.getSchemaType(Task.SCHEMA_TYPE);
 			MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
@@ -112,10 +112,10 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 			taskSchema.create(Task.IS_MODEL).setType(MetadataValueType.BOOLEAN);
 			taskSchema.create(Task.BETA_NEXT_TASK_CREATED).setType(MetadataValueType.BOOLEAN);
 			taskSchema.create(Task.BETA_WORKFLOW_TASK_SORT).setType(MetadataValueType.NUMBER)
-					  .defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
+					.defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
 			taskSchema.create(Task.BETA_NEXT_TASKS).setType(MetadataValueType.REFERENCE).setMultivalue(true)
-					  .defineReferencesTo(taskSchemaType)
-					  .defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
+					.defineReferencesTo(taskSchemaType)
+					.defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
 			taskSchema.create(Task.BETA_NEXT_TASKS_DECISIONS).defineStructureFactory(MapStringStringStructureFactory.class);
 			taskSchema.create(Task.RELATIVE_DUE_DATE).setType(MetadataValueType.NUMBER);
 

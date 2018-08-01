@@ -52,7 +52,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(rmTestRecords)
-								  .withFoldersAndContainersOfEveryStatus(),
+						.withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withAllTestUsers().withConstellioRMModule()
 		);
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);

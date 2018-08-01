@@ -34,7 +34,7 @@ public class PrintRMSchemasAcceptTest extends ConstellioTest {
 		System.out.println("Utiliser http://yuml.me pour générer le diagramme.");
 
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-															 .getSchemaTypes()) {
+				.getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
 				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel(Language.French) + "' ");
 				for (Metadata metadata : type.getAllMetadatas()) {

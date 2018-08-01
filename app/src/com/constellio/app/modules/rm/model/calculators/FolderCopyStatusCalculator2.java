@@ -21,7 +21,7 @@ public class FolderCopyStatusCalculator2 implements MetadataValueCalculator<Copy
 	LocalDependency<String> folderUnitParam = LocalDependency.toAReference(Folder.ADMINISTRATIVE_UNIT);
 
 	LocalDependency<List<String>> folderUnitAncestorsParam = LocalDependency.toAReference(Folder.ADMINISTRATIVE_UNIT_ANCESTORS)
-																			.whichIsMultivalue();
+			.whichIsMultivalue();
 
 	ReferenceDependency<List<CopyRetentionRule>> ruleCopyRulesParam = ReferenceDependency.toAStructure(Folder.RETENTION_RULE,
 			RetentionRule.COPY_RETENTION_RULES).whichIsMultivalue().whichIsRequired();

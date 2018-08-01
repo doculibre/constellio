@@ -21,7 +21,7 @@ public class RMMigrationTo7_6_10 extends MigrationHelper implements MigrationScr
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("fr")) {
+				.equals("fr")) {
 			reloadEmailTemplate("alertReactivatedTemplate.html", RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED,
 					appLayerFactory, migrationResourcesProvider, collection);
 			reloadEmailTemplate("alertReactivatedTemplateDenied.html", RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED,
@@ -36,7 +36,7 @@ public class RMMigrationTo7_6_10 extends MigrationHelper implements MigrationScr
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {

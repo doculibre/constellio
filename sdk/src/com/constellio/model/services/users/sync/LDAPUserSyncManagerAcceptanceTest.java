@@ -55,7 +55,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
@@ -63,7 +63,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(
 				asList(businessCollection));
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	@Test
@@ -149,7 +149,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getExchangeLDAPServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getExchangeLDAPUserSyncConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	private GlobalGroup group(String code) {
@@ -357,7 +357,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 				ldapUserSyncConfiguration.getUserFilterGroupsList(),
 				ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated());
 		getModelLayerFactory().getLdapConfigurationManager()
-							  .saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 
 		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
 
@@ -375,39 +375,39 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		final LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 
 		getModelLayerFactory().
-									  getLdapConfigurationManager().
-									  saveLDAPConfiguration(
-											  LDAPTestConfig.getLDAPServerConfiguration(),
-											  new LDAPUserSyncConfiguration(
-													  ldapUserSyncConfiguration.getUser(),
-													  ldapUserSyncConfiguration.getPassword(),
-													  new RegexFilter(
-															  "",
-															  "Sharepoint.*"
-													  ),
-													  new RegexFilter(
-															  "",
-															  "group105"
-													  ),
-													  ldapUserSyncConfiguration.getDurationBetweenExecution(),
-													  ldapUserSyncConfiguration.getScheduleTime(),
-													  Arrays.asList(
-															  "CN=group100,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
-															  "CN=group101,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
-															  "CN=group102,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
-															  "CN=group103,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
-															  "CN=group104,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
-															  "CN=group105,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca"
-													  ),
-													  Arrays.asList(
-															  "CN=Users,DC=test,DC=doculibre,DC=ca"
-													  ),
-													  Arrays.asList(
-															  "CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
-													  ),
-													  false
-											  )
-									  );
+				getLdapConfigurationManager().
+				saveLDAPConfiguration(
+						LDAPTestConfig.getLDAPServerConfiguration(),
+						new LDAPUserSyncConfiguration(
+								ldapUserSyncConfiguration.getUser(),
+								ldapUserSyncConfiguration.getPassword(),
+								new RegexFilter(
+										"",
+										"Sharepoint.*"
+								),
+								new RegexFilter(
+										"",
+										"group105"
+								),
+								ldapUserSyncConfiguration.getDurationBetweenExecution(),
+								ldapUserSyncConfiguration.getScheduleTime(),
+								Arrays.asList(
+										"CN=group100,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+										"CN=group101,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+										"CN=group102,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+										"CN=group103,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+										"CN=group104,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+										"CN=group105,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca"
+								),
+								Arrays.asList(
+										"CN=Users,DC=test,DC=doculibre,DC=ca"
+								),
+								Arrays.asList(
+										"CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
+								),
+								false
+						)
+				);
 
 		// When
 		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
@@ -443,34 +443,34 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		final LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 
 		getModelLayerFactory().
-									  getLdapConfigurationManager().
-									  saveLDAPConfiguration(
-											  LDAPTestConfig.getLDAPServerConfiguration(),
-											  new LDAPUserSyncConfiguration(
-													  ldapUserSyncConfiguration.getUser(),
-													  ldapUserSyncConfiguration.getPassword(),
-													  new RegexFilter(
-															  "",
-															  ""
-													  ),
-													  new RegexFilter(
-															  "",
-															  ""
-													  ),
-													  ldapUserSyncConfiguration.getDurationBetweenExecution(),
-													  ldapUserSyncConfiguration.getScheduleTime(),
-													  Arrays.asList(
-															  "CN=emptyGroup,OU=Departement4,OU=doculibre,DC=test,DC=doculibre,DC=ca"
-													  ),
-													  Arrays.asList(
-															  "CN=Users,DC=test,DC=doculibre,DC=ca"
-													  ),
-													  Arrays.asList(
-															  "CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
-													  ),
-													  false
-											  )
-									  );
+				getLdapConfigurationManager().
+				saveLDAPConfiguration(
+						LDAPTestConfig.getLDAPServerConfiguration(),
+						new LDAPUserSyncConfiguration(
+								ldapUserSyncConfiguration.getUser(),
+								ldapUserSyncConfiguration.getPassword(),
+								new RegexFilter(
+										"",
+										""
+								),
+								new RegexFilter(
+										"",
+										""
+								),
+								ldapUserSyncConfiguration.getDurationBetweenExecution(),
+								ldapUserSyncConfiguration.getScheduleTime(),
+								Arrays.asList(
+										"CN=emptyGroup,OU=Departement4,OU=doculibre,DC=test,DC=doculibre,DC=ca"
+								),
+								Arrays.asList(
+										"CN=Users,DC=test,DC=doculibre,DC=ca"
+								),
+								Arrays.asList(
+										"CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
+								),
+								false
+						)
+				);
 
 		// When
 		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();

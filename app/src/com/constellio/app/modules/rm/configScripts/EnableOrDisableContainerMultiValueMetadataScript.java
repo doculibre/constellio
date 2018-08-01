@@ -107,9 +107,9 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
-					 .asCalculated(StorageSpaceAvailableSizeCalculator.class);
+						.asCalculated(StorageSpaceAvailableSizeCalculator.class);
 				types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
-					 .asCalculated(ContainerRecordLocalizationCalculator.class);
+						.asCalculated(ContainerRecordLocalizationCalculator.class);
 			}
 		});
 	}
@@ -121,9 +121,9 @@ public class EnableOrDisableContainerMultiValueMetadataScript extends
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(StorageSpace.DEFAULT_SCHEMA).get(StorageSpace.AVAILABLE_SIZE).defineDataEntry()
-					 .asCalculated(StorageSpaceSingleContainerAvailableSizeCalculator.class);
+						.asCalculated(StorageSpaceSingleContainerAvailableSizeCalculator.class);
 				types.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.LOCALIZATION).defineDataEntry()
-					 .asManual();
+						.asManual();
 			}
 		});
 	}

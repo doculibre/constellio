@@ -49,7 +49,7 @@ public class PermissionsManagementPresenter extends BasePresenter<PermissionsMan
 	public void saveRequested(List<RoleVO> modifiedRoles) {
 		for (RoleVO roleVO : modifiedRoles) {
 			Role role = roleManager().getRole(view.getCollection(), roleVO.getCode())
-									 .withPermissions(roleVO.getPermissions());
+					.withPermissions(roleVO.getPermissions());
 			roleManager().updateRole(role);
 			roleVO.markClean();
 		}

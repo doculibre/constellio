@@ -53,8 +53,8 @@ public class RMMigrationTo5_1_0_4 implements MigrationScript {
 
 			MetadataSchemaBuilder ddvDocumentDefaultSchemaBuilder = ddvDocumentTypeSchemaTypeBuilder.getDefaultSchema();
 			MetadataBuilder metadataBuilder = ddvDocumentDefaultSchemaBuilder.createUndeletable(DocumentType.TEMPLATES)
-																			 .setType(MetadataValueType.CONTENT)
-																			 .setMultivalue(true);
+					.setType(MetadataValueType.CONTENT)
+					.setMultivalue(true);
 
 			for (Language language : typesBuilder.getLanguages()) {
 				metadataBuilder.addLabel(language, $("DocumentType.templates"));
@@ -68,8 +68,8 @@ public class RMMigrationTo5_1_0_4 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.in(DocumentType.SCHEMA_TYPE)
-						  .addToForm(DocumentType.TEMPLATES)
-						  .atTheEnd();
+				.addToForm(DocumentType.TEMPLATES)
+				.atTheEnd();
 
 		manager.execute(transactionBuilder.build());
 	}

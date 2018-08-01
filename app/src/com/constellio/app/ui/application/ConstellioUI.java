@@ -185,7 +185,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 							userInLastCollection = userInCollection;
 							lastLogin = userInCollection.getLastLogin();
 						} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
-																												   .isAfter(lastLogin)) {
+								.isAfter(lastLogin)) {
 							lastCollection = collection;
 							userInLastCollection = userInCollection;
 							lastLogin = userInCollection.getLastLogin();

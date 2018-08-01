@@ -37,7 +37,7 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		getDataLayerFactory().getDataLayerLogger().monitor("idx_rfc_00000000001");
 
@@ -114,7 +114,7 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		AdministrativeUnit administrativeUnit = rmSchemasRecordsServices.newAdministrativeUnitWithId("deletedAdministrativeUnit")
-																		.setCode("deletedAdministrativeUnit").setTitle("deletedAdministrativeUnit");
+				.setCode("deletedAdministrativeUnit").setTitle("deletedAdministrativeUnit");
 		recordServices.add(administrativeUnit);
 		recordServices.logicallyDelete(administrativeUnit.getWrappedRecord(), User.GOD);
 		assertThat(administrativeUnit.getWrappedRecord().get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);

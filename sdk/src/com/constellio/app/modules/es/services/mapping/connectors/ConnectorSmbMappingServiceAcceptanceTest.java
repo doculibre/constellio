@@ -37,8 +37,8 @@ public class ConnectorSmbMappingServiceAcceptanceTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		smbConnectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-																  .setCode("smb").setTitle("Smb connector").setEnabled(false)
-																  .setDomain("domain").setSeeds(asList("seeds")).setUsername("username").setPassword("password"));
+				.setCode("smb").setTitle("Smb connector").setEnabled(false)
+				.setDomain("domain").setSeeds(asList("seeds")).setUsername("username").setPassword("password"));
 		smbConnectorInstance = es.wrapConnectorInstance(smbConnectorInstance.getWrappedRecord());
 	}
 

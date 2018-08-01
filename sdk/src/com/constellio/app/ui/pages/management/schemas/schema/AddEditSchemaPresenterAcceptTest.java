@@ -54,8 +54,8 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
-							.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
-							.withADateMetadata(whichIsEnabled));
+						.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
+						.withADateMetadata(whichIsEnabled));
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
@@ -117,7 +117,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked();
 
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema")
-										 .getLabel(Language.French))
+				.getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
 

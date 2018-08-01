@@ -65,8 +65,8 @@ public class DecommissioningListReportPresenter {
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(folderSchemaType)
-														 .where(Schemas.IDENTIFIER)
-														 .isIn(processedFolders));
+						.where(Schemas.IDENTIFIER)
+						.isIn(processedFolders));
 
 		if (folderDetailTableExtension != null) {
 			model.setWithMediumType(true);

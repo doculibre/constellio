@@ -73,7 +73,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 		prepareSystem(
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
@@ -652,7 +652,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = toTitle(i);
 			rootCategories.add(rm.newCategoryWithId(code).setCode(code).setTitle("Title " + toTitle((20000 - i)))
-								 .setRetentionRules(asList(records.ruleId_1)));
+					.setRetentionRules(asList(records.ruleId_1)));
 		}
 		Category category42 = rootCategories.get(41);
 		addRecordsInRandomOrder(rootCategories);
@@ -661,7 +661,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = "42_" + toTitle(i);
 			childCategories.add(rm.newCategoryWithId(code).setRetentionRules(asList(records.ruleId_1))
-								  .setParent(category42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
+					.setParent(category42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
 		}
 		Category category42_42 = childCategories.get(41);
 		addRecordsInRandomOrder(childCategories);
@@ -719,7 +719,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = toTitle(1000 + i);
 			rootAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code).setCode(code)
-										  .setTitle("Title " + toTitle(20000 - i)));
+					.setTitle("Title " + toTitle(20000 - i)));
 		}
 		AdministrativeUnit unit42 = rootAdministrativeUnits.get(41);
 		addRecordsInRandomOrder(rootAdministrativeUnits);
@@ -728,7 +728,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 		for (int i = 1; i <= 100; i++) {
 			String code = "42_" + toTitle(i);
 			childAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code)
-										   .setParent(unit42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
+					.setParent(unit42).setCode(code).setTitle("Title " + toTitle((20000 - i))));
 		}
 		AdministrativeUnit unit42_666 = childAdministrativeUnits.get(41);
 		addRecordsInRandomOrder(childAdministrativeUnits);
@@ -779,12 +779,12 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 	private Folder newFolderInCategory(Category category, String title) {
 		return rm.newFolder().setCategoryEntered(category).setTitle(title).setOpenDate(new LocalDate())
-				 .setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(records.unitId_10a);
+				.setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(records.unitId_10a);
 	}
 
 	private Folder newFolderInUnit(AdministrativeUnit unit, String title) {
 		return rm.newFolder().setCategoryEntered(records.categoryId_X100).setTitle(title).setOpenDate(new LocalDate())
-				 .setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(unit);
+				.setRetentionRuleEntered(records.ruleId_1).setAdministrativeUnitEntered(unit);
 	}
 
 	private String toTitle(int i) {
@@ -817,14 +817,14 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				assertThat(value.firstAnswer().getNumFound()).describedAs(description().toString() + " NumFound")
-															 .isEqualTo(expectedCount);
+						.isEqualTo(expectedCount);
 				assertThat(value.firstAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
-																   .isEqualTo(expectedCount);
+						.isEqualTo(expectedCount);
 
 				assertThat(value.secondAnswer().getNumFound()).describedAs(description().toString() + " NumFound")
-															  .isEqualTo(expectedCount);
+						.isEqualTo(expectedCount);
 				assertThat(value.secondAnswer().getRecords().size()).describedAs(description().toString() + " records list size")
-																	.isEqualTo(expectedCount);
+						.isEqualTo(expectedCount);
 				return true;
 			}
 		};
@@ -1110,7 +1110,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				LinkableTaxonomySearchResponse response = service
 						.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
 								new TaxonomiesSearchOptions().setStartRow(start).setRows(rows)
-															 .setHasChildrenFlagCalculated(NEVER));
+										.setHasChildrenFlagCalculated(NEVER));
 
 				if (rows == 10000) {
 					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
@@ -1226,7 +1226,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-									   .isEqualTo(expected);
+							.isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);
@@ -1250,7 +1250,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-									   .isEqualTo(expected);
+							.isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);

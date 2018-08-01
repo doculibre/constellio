@@ -125,7 +125,7 @@ public class JSPFPluginServices implements PluginServices {
 		}
 
 		return new ConstellioPluginInfo().setCode(code).setTitle(title).setRequiredConstellioVersion(requiredConstellioVersion)
-										 .setVersion(version);
+				.setVersion(version);
 	}
 
 	@Override

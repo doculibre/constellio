@@ -43,7 +43,7 @@ public class RMMigrationTo7_7_4_33 extends MigrationHelper implements MigrationS
 			SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 			transaction.add(displayManager.getSchema(collection, User.DEFAULT_SCHEMA)
-										  .withNewDisplayMetadataQueued(RMUser.HIDE_NOT_ACTIVE));
+					.withNewDisplayMetadataQueued(RMUser.HIDE_NOT_ACTIVE));
 		}
 	}
 }

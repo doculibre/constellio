@@ -110,7 +110,7 @@ public class ConstellioJobManagerAcceptTest extends ConstellioTest {
 		final Runnable runnable = mock(Runnable.class);
 
 		doAnswer(increaseAndThrowException()).doAnswer(increaseAndThrowException()).doAnswer(increaseAndThrowError())
-											 .doAnswer(increase()).when(runnable).run();
+				.doAnswer(increase()).when(runnable).run();
 
 		backgroundThreadsManager.addJob(new Job1(), false);
 

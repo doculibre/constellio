@@ -42,7 +42,7 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 

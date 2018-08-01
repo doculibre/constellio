@@ -117,7 +117,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 			}
 			if (!isLDAPAuthentication() && !(entity.getPassword() != null && StringUtils.isNotBlank(entity.getPassword())
 											 && entity.getPassword()
-													  .equals(entity.getConfirmPassword()))) {
+													 .equals(entity.getConfirmPassword()))) {
 				showErrorMessageView("AddEditUserCredentialView.passwordsFieldsMustBeEquals");
 				return false;
 			} else {

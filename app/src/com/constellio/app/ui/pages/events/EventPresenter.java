@@ -208,7 +208,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.RECORD_ID) || metadataValue.getMetadata().getCode()
-																							   .contains(CommonMetadataBuilder.ID);
+				.contains(CommonMetadataBuilder.ID);
 	}
 
 	public boolean isDeltaMetadata(MetadataValueVO metadataValue) {
@@ -262,7 +262,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			Record linkedRecord = recordServices().getDocumentById(eventVO.getId());
 			if (Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 				String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-														.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
+						.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
 				params.put("schemaType", schemaTypeLabel);
 				final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
 				view.showErrorMessage(errorMessage);
@@ -281,7 +281,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 				if (Boolean.TRUE.equals(linkedRecord.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 					String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-															.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
+							.getSchemaType(linkedRecord.getTypeCode()).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())).toLowerCase();
 					params.put("schemaType", schemaTypeLabel);
 					final String errorMessage = $("ReferenceDisplay.cannotDisplayLogicallyDeletedRecord", params);
 					view.showErrorMessage(errorMessage);
@@ -328,8 +328,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
 				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
-																						   .where(borrowedMetadata).isTrue()
-																						   .andWhere(borrowDateMetadata).isEqualTo(
+						.where(borrowedMetadata).isTrue()
+						.andWhere(borrowDateMetadata).isEqualTo(
 								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
 
 				SearchServices searchServices = modelLayerFactory.newSearchServices();

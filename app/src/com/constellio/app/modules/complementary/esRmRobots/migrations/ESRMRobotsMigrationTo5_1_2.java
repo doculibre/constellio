@@ -48,20 +48,20 @@ public class ESRMRobotsMigrationTo5_1_2 implements MigrationScript {
 
 		private void setupClassifySmbDocumentInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .createCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
+					.createCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
 			schema.create(ClassifyConnectorDocumentInFolderActionParameters.IN_FOLDER).setDefaultRequirement(true)
-				  .defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
+					.defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
 			schema.create(ClassifyConnectorDocumentInFolderActionParameters.MAJOR_VERSIONS).setDefaultRequirement(true)
-				  .setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
+					.setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
 		}
 
 		private void setupClassifySmbFolderInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .createCustomSchema(ClassifySmbFolderInFolderActionParameters.SCHEMA_LOCAL_CODE);
+					.createCustomSchema(ClassifySmbFolderInFolderActionParameters.SCHEMA_LOCAL_CODE);
 			schema.create(ClassifySmbFolderInFolderActionParameters.IN_FOLDER).setDefaultRequirement(true)
-				  .defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
+					.defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
 			schema.create(ClassifySmbFolderInFolderActionParameters.MAJOR_VERSIONS).setDefaultRequirement(true)
-				  .setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
+					.setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
 		}
 
 	}

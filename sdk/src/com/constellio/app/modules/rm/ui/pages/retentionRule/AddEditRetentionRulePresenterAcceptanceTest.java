@@ -30,7 +30,7 @@ public class AddEditRetentionRulePresenterAcceptanceTest extends ConstellioTest 
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		when(view.getSessionContext()).thenReturn(sessionContext);

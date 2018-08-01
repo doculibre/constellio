@@ -263,7 +263,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 
 		InputStream expectedContentInputStream = expectedBinaryConfiguration.getInputStreamFactory().create(SDK_STREAM);
 		InputStream wasContentInputStream = closeAfterTest(configManager.getBinary(binaryConfigurationPath)
-																		.getInputStreamFactory().create(SDK_STREAM));
+				.getInputStreamFactory().create(SDK_STREAM));
 
 		byte[] expectedBytes = ioServices.readBytes(expectedContentInputStream);
 		byte[] wasBytes = ioServices.readBytes(wasContentInputStream);

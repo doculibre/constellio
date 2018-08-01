@@ -67,7 +67,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 						AppLayerFactory appLayerFactory) {
 
 		if (!appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-							.hasType(RMTask.SCHEMA_TYPE)) {
+				.hasType(RMTask.SCHEMA_TYPE)) {
 
 			new TaskStatusSchemaAlterationFor5_0_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
 			createTaskStatusTypes(collection, appLayerFactory, migrationResourcesProvider);
@@ -108,45 +108,45 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 						Task.DEFAULT_SCHEMA + "_" + Task.DUE_DATE)));
 
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.CONTENTS)
-							   .withMetadataGroup(filesTab).withInputType(MetadataInputType.CONTENT).withVisibleInAdvancedSearchStatus(true));
+				.withMetadataGroup(filesTab).withInputType(MetadataInputType.CONTENT).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.DESCRIPTION)
-							   .withInputType(RICHTEXT).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(RICHTEXT).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNEE_USERS_CANDIDATES)
-							   .withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNEE_GROUPS_CANDIDATES)
-							   .withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNEE)
-							   .withMetadataGroup(assignmentTab).withVisibleInAdvancedSearchStatus(true));
+				.withMetadataGroup(assignmentTab).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.STATUS)
-							   .withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNER)
-							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.ASSIGNED_ON)
-							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.END_DATE)
-							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, TaskStatus.DEFAULT_SCHEMA, TaskStatus.STATUS_TYPE)
-							   .withInputType(DROPDOWN).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(DROPDOWN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.REMINDERS)
-							   .withMetadataGroup(remindersTab));
+				.withMetadataGroup(remindersTab));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TASK_FOLLOWERS)
-							   .withMetadataGroup(followersTab));
+				.withMetadataGroup(followersTab));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.PARENT_TASK)
-							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.START_DATE)
-							   .withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
+				.withInputType(HIDDEN).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TYPE)
-							   .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TITLE)
-							   .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.DUE_DATE)
-							   .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.PARENT_TASK_DUE_DATE)
-							   .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.FOLLOWERS_IDS)
-							   .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.PROGRESS_PERCENTAGE)
-							   .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 
 		manager.execute(transaction);
 
@@ -170,17 +170,17 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		String closedCode = CLOSED_CODE;
 
 		transaction.add(schemas.newTaskStatus().setCode(standByCode)
-							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
-							   .setStatusType(STANDBY));
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+				.setStatusType(STANDBY));
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
-							   .setStatusType(IN_PROGRESS));
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
+				.setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
-							   .setStatusType(FINISHED));
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
+				.setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-							   .setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
-							   .setStatusType(CLOSED));
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
+				.setStatusType(CLOSED));
 
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
@@ -214,7 +214,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
+					.addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
 		} catch (IOException | OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -247,7 +247,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
 			defaultSchema.getMetadata(CODE).setUniqueValue(true).setUnmodifiable(true);
 			defaultSchema.createUndeletable(TaskStatus.STATUS_TYPE).defineAsEnum(TaskStatusType.class)
-						 .setDefaultRequirement(true);
+					.setDefaultRequirement(true);
 
 			return schemaType;
 		}
@@ -291,13 +291,13 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			defaultSchema.createUndeletable(Task.ASSIGNEE).defineReferencesTo(userSchemaBuilder);
 			defaultSchema.createUndeletable(Task.ASSIGNER).defineReferencesTo(userSchemaBuilder);
 			defaultSchema.createUndeletable(Task.ASSIGNEE_GROUPS_CANDIDATES)
-						 .defineReferencesTo(typesBuilder.getDefaultSchema(Group.SCHEMA_TYPE)).setMultivalue(true);
+					.defineReferencesTo(typesBuilder.getDefaultSchema(Group.SCHEMA_TYPE)).setMultivalue(true);
 			defaultSchema.createUndeletable(Task.ASSIGNEE_USERS_CANDIDATES).defineReferencesTo(
 					typesBuilder.getDefaultSchema(User.SCHEMA_TYPE)).setMultivalue(true);
 			defaultSchema.createUndeletable(Task.ASSIGNED_ON).setType(DATE);
 			defaultSchema.createUndeletable(Task.FOLLOWERS_IDS).defineReferencesTo(userSchemaBuilder).setMultivalue(true)
-						 .defineDataEntry()
-						 .asCalculated(TaskFollowersCalculator.class);
+					.defineDataEntry()
+					.asCalculated(TaskFollowersCalculator.class);
 			defaultSchema.createUndeletable(Task.TASK_FOLLOWERS).setType(STRUCTURE).setMultivalue(true).defineStructureFactory(
 					TaskFollowerFactory.class);
 			defaultSchema.createUndeletable(Task.DESCRIPTION).setType(TEXT).setSearchable(true);
@@ -310,14 +310,14 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			MetadataBuilder dueDate = defaultSchema.createUndeletable(Task.DUE_DATE).setType(DATE);
 			defaultSchema.createUndeletable(Task.END_DATE).setType(DATE);
 			defaultSchema.createUndeletable(Task.STATUS).defineReferencesTo(taskStatusType).setDefaultRequirement(true)
-						 .setDefaultValue(standbyStatus.getId());
+					.setDefaultValue(standbyStatus.getId());
 			defaultSchema.createUndeletable(Task.PROGRESS_PERCENTAGE).setType(NUMBER).addValidator(PercentageValidator.class);
 			MetadataBuilder parent = defaultSchema.createUndeletable(Task.PARENT_TASK)
-												  .defineChildOfRelationshipToType(schemaType);
+					.defineChildOfRelationshipToType(schemaType);
 			defaultSchema.createUndeletable(Task.PARENT_TASK_DUE_DATE).setType(DATE).defineDataEntry().asCopied(
 					parent, dueDate);
 			defaultSchema.createUndeletable(Task.COMMENTS).setType(STRUCTURE).defineStructureFactory(CommentFactory.class)
-						 .setMultivalue(true);
+					.setMultivalue(true);
 			defaultSchema.get(Schemas.TITLE.getLocalCode()).setDefaultRequirement(true);
 			defaultSchema.get(Schemas.TOKENS.getLocalCode()).defineDataEntry().asCalculated(TaskTokensCalculator.class);
 			return schemaType;

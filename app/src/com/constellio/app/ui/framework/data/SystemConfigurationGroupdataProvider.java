@@ -32,7 +32,7 @@ public class SystemConfigurationGroupdataProvider extends AbstractDataProvider {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		systemConfigurationGroupVOSortedMap = new TreeMap<>();
 		SystemConfigurationsManager systemConfigurationsManager = constellioFactories.getModelLayerFactory()
-																					 .getSystemConfigurationsManager();
+				.getSystemConfigurationsManager();
 		SystemConfigurationToVOBuilder builder = new SystemConfigurationToVOBuilder();
 
 		List<SystemConfigurationGroup> sysConfigGroup = systemConfigurationsManager.getConfigurationGroups();

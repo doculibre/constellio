@@ -233,8 +233,8 @@ public class ReindexingServices {
 
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
-						  .setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-						  .setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
+				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
+				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -306,7 +306,7 @@ public class ReindexingServices {
 
 						MetadataSchemaType type = types.getSchemaType(typeCode);
 						boolean writeZZrecords = modelLayerFactory.getSystemConfigurationsManager()
-																  .getValue(WRITE_ZZRECORDS_IN_TLOG);
+								.getValue(WRITE_ZZRECORDS_IN_TLOG);
 						boolean typeReindexed = type.isInTransactionLog() || writeZZrecords;
 
 						FoldersLocator foldersLocator = new FoldersLocator();

@@ -42,7 +42,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 				modelLayerFactory.getUserCredentialsManager().removeTimedOutTokens();
 			}
 		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
-																		.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
+				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
 
 		temporaryRecordsDeletionBackgroundAction = new TemporaryRecordsDeletionBackgroundAction(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("temporaryRecordsDeletionBackgroundAction",

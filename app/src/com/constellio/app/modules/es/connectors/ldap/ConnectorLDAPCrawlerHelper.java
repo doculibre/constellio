@@ -68,9 +68,9 @@ public class ConnectorLDAPCrawlerHelper {
 	ConnectorDocument getOrCreateDocumentByDNAndUrl(String dn, String url, ConnectorLDAPInstance connectorInstance) {
 		List<ConnectorLDAPUserDocument> singleResult = esSchemas
 				.searchConnectorLDAPUserDocuments(where(esSchemas.connectorLdapUserDocument.distinguishedName()).is(dn)
-																												.andWhere(esSchemas.connectorDocument.url()).is(url)
-																												.andWhere(esSchemas.connectorDocument.connectorType()).is(connectorInstance.getConnectorType())
-																												.andWhere(esSchemas.connectorDocument.connector()).is(connectorInstance.getId()));
+						.andWhere(esSchemas.connectorDocument.url()).is(url)
+						.andWhere(esSchemas.connectorDocument.connectorType()).is(connectorInstance.getConnectorType())
+						.andWhere(esSchemas.connectorDocument.connector()).is(connectorInstance.getId()));
 		if (singleResult.size() > 1) {
 			throw new RuntimeException(
 					"Distinguished name " + dn + " is not unique in connector instance " + connectorInstance.getId());

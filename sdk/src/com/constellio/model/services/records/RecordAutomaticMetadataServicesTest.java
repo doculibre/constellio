@@ -152,9 +152,9 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 		List<Metadata> sortedAutomaticMetadatas = asList(firstMetadata, secondMetadata);
 
 		doNothing().when(services)
-				   .updateAutomaticMetadata(any(TransactionExecutionContext.class), any(RecordImpl.class), any(RecordProvider.class),
-						   any(Metadata.class),
-						   eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
+				.updateAutomaticMetadata(any(TransactionExecutionContext.class), any(RecordImpl.class), any(RecordProvider.class),
+						any(Metadata.class),
+						eq(reindexedMetadata), any(MetadataSchemaTypes.class), any(Transaction.class));
 
 		MetadataSchemaTypes types = mock(MetadataSchemaTypes.class);
 		MetadataSchema schema = mock(MetadataSchema.class);
@@ -167,11 +167,11 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 
 		InOrder inOrder = Mockito.inOrder(services);
 		inOrder.verify(services)
-			   .updateAutomaticMetadata(any(TransactionExecutionContext.class), eq(record), eq(recordProvider),
-					   eq(firstMetadata), eq(reindexedMetadata), eq(types), eq(zeTransaction));
+				.updateAutomaticMetadata(any(TransactionExecutionContext.class), eq(record), eq(recordProvider),
+						eq(firstMetadata), eq(reindexedMetadata), eq(types), eq(zeTransaction));
 		inOrder.verify(services)
-			   .updateAutomaticMetadata(any(TransactionExecutionContext.class), eq(record), eq(recordProvider),
-					   eq(secondMetadata), eq(reindexedMetadata), eq(types), eq(zeTransaction));
+				.updateAutomaticMetadata(any(TransactionExecutionContext.class), eq(record), eq(recordProvider),
+						eq(secondMetadata), eq(reindexedMetadata), eq(types), eq(zeTransaction));
 
 	}
 

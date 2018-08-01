@@ -123,7 +123,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private SavedSearch buildTemporarySearch(Record tmpSearchRecord, String expression, String searchType) {
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = modelLayerFactory.newRecordServices()
-											   .newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
+					.newRecordWithSchema(types().getSchema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		}
 		SortParameters sortParameters = buildSortParameters();
 
@@ -145,7 +145,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		if (AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
 			search.setSchemaFilter(schemaTypeCode).setAdvancedSearch(header.getAdvancedSearchCriteria())
-				  .setTitle($("SearchView.savedSearch.temporaryAdvance"));
+					.setTitle($("SearchView.savedSearch.temporaryAdvance"));
 		} else {
 			search.setTitle($("SearchView.savedSearch.temporarySimple"));
 		}
@@ -153,7 +153,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(header.getCollection())
-							 .forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
+					.forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
 			return search;
 
 		} catch (Exception e) {
@@ -278,7 +278,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.onSomething()) {
 			return false;
 		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
-																				  .globally()) {
+				.globally()) {
 			return false;
 		}
 		return true;
@@ -305,7 +305,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 					.setNumberOfRows(0)
 					.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-														 .getFieldFacetValues("schema_s");
+					.getFieldFacetValues("schema_s");
 
 			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
 				if (schema_s != null) {
@@ -363,7 +363,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-											   .getTaxonomyFor(header.getCollection(), referencedSchemaType);
+					.getTaxonomyFor(header.getCollection(), referencedSchemaType);
 			if (taxonomy != null) {
 				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 				List<String> taxonomyUserIds = taxonomy.getUserIds();
@@ -508,7 +508,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			return getLocale(systemLanguage);
 		} else {
 			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager()
-																.getCollectionLanguages(userInLastCollection.getCollection());
+					.getCollectionLanguages(userInLastCollection.getCollection());
 			if (collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages
 					.contains(userPreferredLanguage)) {
 				return getLocale(systemLanguage);
@@ -596,7 +596,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		String currentCollection = sessionContext.getCurrentCollection();
 		for (String id : selectedRecordIds) {
 			Record record = searchServices.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(currentCollection)
-																						 .where(Schemas.IDENTIFIER).isEqualTo(id));
+					.where(Schemas.IDENTIFIER).isEqualTo(id));
 			String schemaTypeCode = record == null ? null : record.getTypeCode();
 			sessionContext.removeSelectedRecordId(id, schemaTypeCode);
 		}
@@ -647,7 +647,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	 */
 	public void buildSelectionPanelActionButtons(Component actionMenuLayout) {
 		appLayerFactory.getExtensions().forCollection(header.getCollection())
-					   .addAvailableActions(buildAvailableActionsParam(actionMenuLayout));
+				.addAvailableActions(buildAvailableActionsParam(actionMenuLayout));
 	}
 
 	public AvailableActionsParam buildAvailableActionsParam(Component actionMenuLayout) {
@@ -723,7 +723,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
-																   .isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -737,7 +737,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
-																   .isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}

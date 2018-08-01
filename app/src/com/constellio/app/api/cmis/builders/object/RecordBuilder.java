@@ -44,7 +44,7 @@ public class RecordBuilder {
 	public void setMetadataFromProperties(Record record) {
 		String collection = context.get(ConstellioCmisContextParameters.COLLECTION).toString();
 		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
-												 .getSchemaTypes(collection).getSchema(record.getSchemaCode());
+				.getSchemaTypes(collection).getSchema(record.getSchemaCode());
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 				setMetadataFromProperty(record, metadata);

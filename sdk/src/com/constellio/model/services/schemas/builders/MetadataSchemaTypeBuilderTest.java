@@ -57,7 +57,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(zeCollectionInfo, CODE_SCHEMA_TYPE, typesBuilder)
-													 .addLabel(Language.French, "aLabel");
+				.addLabel(Language.French, "aLabel");
 	}
 
 	@Test
@@ -471,7 +471,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 		MetadataBuilder customSchemaMetadataInheritingDefaultSchemaMetadata = customSchema.get("first");
 
 		assertThat(schemaTypeBuilder.getAllMetadatas()).contains(defaultSchemaMetadata, customSchemaMetadata)
-													   .doesNotContain(customSchemaMetadataInheritingDefaultSchemaMetadata);
+				.doesNotContain(customSchemaMetadataInheritingDefaultSchemaMetadata);
 	}
 
 	private void build() {

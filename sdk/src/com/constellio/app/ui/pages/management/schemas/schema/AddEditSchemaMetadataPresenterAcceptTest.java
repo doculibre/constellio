@@ -45,8 +45,8 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
-							.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
-							.withADateMetadata(whichIsEnabled));
+						.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
+						.withADateMetadata(whichIsEnabled));
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);

@@ -51,7 +51,7 @@ public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 		tx.add(records.getCategory_X().setTitle("chat"));
 
 		Folder heroesFolder = tx.add(records.newFolderWithValuesAndId("heroesFolderId").setTitle("Super héros")
-											.setCategoryEntered(records.categoryId_X));
+				.setCategoryEntered(records.categoryId_X));
 		Folder chuckFolder = tx.add(records.newChildFolderWithIdIn("chuckFolderId", heroesFolder).setTitle("Chuck Norris"));
 		Folder dakotaFolder = tx.add(records.newChildFolderWithIdIn("dakotaFolderId", heroesFolder).setTitle("Dakota l'indien"));
 		tx.add(records.newDocumentWithIdIn("roundhousekick", chuckFolder).setTitle("Round house kick"));

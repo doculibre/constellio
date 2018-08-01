@@ -28,7 +28,7 @@ public class RMMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 											MigrationResourcesProvider migrationResourcesProvider,
 											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("fr")) {
+				.equals("fr")) {
 			reloadEmailTemplate("approvalRequestForDecomListTemplate.html",
 					RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, appLayerFactory, migrationResourcesProvider,
 					collection);
@@ -45,7 +45,7 @@ public class RMMigrationTo7_7_0_42 extends MigrationHelper implements MigrationS
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {

@@ -38,7 +38,7 @@ public class ReportServicesAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		reportServices = new ReportServices(getModelLayerFactory(), zeCollection);

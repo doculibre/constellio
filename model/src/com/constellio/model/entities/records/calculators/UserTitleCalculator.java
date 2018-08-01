@@ -31,7 +31,7 @@ public class UserTitleCalculator implements MetadataValueCalculator<String> {
 		username = username == null ? "" : username;
 
 		titlePattern = titlePattern.replace("${firstName}", firstName).replace("${lastName}", lastName)
-								   .replace("${username}", username);
+				.replace("${username}", username);
 
 		String pattern = ".*[A-Za-z0-9]+.*";
 		boolean isValid = titlePattern.matches(pattern);

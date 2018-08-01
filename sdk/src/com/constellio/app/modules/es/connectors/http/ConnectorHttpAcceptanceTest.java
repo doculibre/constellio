@@ -96,7 +96,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 		givenTestWebsiteInState1();
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-															   .setTitle("Ze connector").setEnabled(true).setSeeds("http://www.perdu.com"));
+				.setTitle("Ze connector").setEnabled(true).setSeeds("http://www.perdu.com"));
 
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(connectorDocuments).extracting("URL", "fetched", "searchable", "level").containsOnly(
@@ -1103,9 +1103,9 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void givenAppropriateTimeForScheduleThenConnectorCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-							  .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(12)
-													   .withMinuteOfHour(50);
+				.withMinuteOfHour(50);
 		givenTimeIs(shishOClock);
 		TraversalSchedule schedule1 = new TraversalSchedule(DateTimeConstants.WEDNESDAY, "11:40", "13:30");
 		connectorInstance.setTraversalSchedule(asList(schedule1));
@@ -1116,9 +1116,9 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void givenFullDailyScheduleThenConnectorCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-							  .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(12)
-													   .withMinuteOfHour(50);
+				.withMinuteOfHour(50);
 		givenTimeIs(shishOClock);
 		TraversalSchedule schedule1 = new TraversalSchedule(DateTimeConstants.WEDNESDAY, "00:00", "00:00");
 		connectorInstance.setTraversalSchedule(asList(schedule1));
@@ -1129,9 +1129,9 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void givenTimeAfterScheduleThenConnectorNotCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-							  .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(14)
-													   .withMinuteOfHour(10);
+				.withMinuteOfHour(10);
 		givenTimeIs(shishOClock);
 		TraversalSchedule schedule1 = new TraversalSchedule(DateTimeConstants.WEDNESDAY, "11:40", "13:30");
 		connectorInstance.setTraversalSchedule(asList(schedule1));
@@ -1142,9 +1142,9 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void givenTimeBeforeScheduleThenConnectorNotCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-							  .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(11)
-													   .withMinuteOfHour(10);
+				.withMinuteOfHour(10);
 		givenTimeIs(shishOClock);
 		TraversalSchedule schedule1 = new TraversalSchedule(DateTimeConstants.WEDNESDAY, "11:40", "13:30");
 		connectorInstance.setTraversalSchedule(asList(schedule1));
@@ -1155,9 +1155,9 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void givenNoScheduleThenConnectorCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-							  .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(11)
-													   .withMinuteOfHour(10);
+				.withMinuteOfHour(10);
 		givenTimeIs(shishOClock);
 		connectorInstance.setTraversalSchedule(new ArrayList<TraversalSchedule>());
 		assertThat(connectorInstance.isCurrentlyRunning()).isTrue();
@@ -1167,9 +1167,9 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	public void givenNullScheduleThenConnectorCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-							  .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(11)
-													   .withMinuteOfHour(10);
+				.withMinuteOfHour(10);
 		givenTimeIs(shishOClock);
 		assertThat(connectorInstance.isCurrentlyRunning()).isTrue();
 	}
@@ -1426,14 +1426,14 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 	private void givenDataSet1Connector() {
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-															   .setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html").setIncludePatterns(WEBSITE));
+				.setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html").setIncludePatterns(WEBSITE));
 	}
 
 	private void givenDataSet1ConnectorWithNtlmAuthentication() {
 		connectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance().setCode("zeConnector")
-															   .setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html").setIncludePatterns(WEBSITE)
-															   .setAuthenticationScheme(AuthenticationScheme.NTLM)
-															   .setUsername(NtlmAuthenticationFilter.USER).setPassword("password").setDomain(NtlmAuthenticationFilter.DOMAIN));
+				.setTitle("Ze connector").setEnabled(true).setSeeds(WEBSITE + "index.html").setIncludePatterns(WEBSITE)
+				.setAuthenticationScheme(AuthenticationScheme.NTLM)
+				.setUsername(NtlmAuthenticationFilter.USER).setPassword("password").setDomain(NtlmAuthenticationFilter.DOMAIN));
 	}
 
 	private void stopWebsiteServer() {

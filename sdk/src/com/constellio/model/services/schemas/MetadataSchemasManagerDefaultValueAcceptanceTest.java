@@ -61,7 +61,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(record1Id);
+						.setDefaultValue(record1Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record1Id);
@@ -72,7 +72,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(record2Id);
+						.setDefaultValue(record2Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
@@ -94,7 +94,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(record2Id);
+						.setDefaultValue(record2Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
@@ -116,7 +116,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(record2Id);
+						.setDefaultValue(record2Id);
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue()).isEqualTo(record2Id);
@@ -142,7 +142,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(asList(record1Id, record2Id));
+						.setDefaultValue(asList(record1Id, record2Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -154,7 +154,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(asList(record1Id, record3Id));
+						.setDefaultValue(asList(record1Id, record3Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -177,7 +177,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(asList(record1Id, record2Id));
+						.setDefaultValue(asList(record1Id, record2Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -205,7 +205,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(anotherSchema.typeCode()).getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema")
-					 .setDefaultValue(asList(record1Id, record3Id));
+						.setDefaultValue(asList(record1Id, record3Id));
 			}
 		});
 		assertThat(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema").getDefaultValue())
@@ -458,6 +458,6 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 		Record parentOfRecord3 = new TestRecord(zeSchema, parentOfRecord3Id);
 
 		getModelLayerFactory().newRecordServices()
-							  .execute(new Transaction().addAll(record1, record2, record3, parentOfRecord12, parentOfRecord3));
+				.execute(new Transaction().addAll(record1, record2, record3, parentOfRecord12, parentOfRecord3));
 	}
 }

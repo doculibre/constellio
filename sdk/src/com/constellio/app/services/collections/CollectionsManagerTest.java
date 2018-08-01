@@ -104,7 +104,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 
 		doNothing().when(collectionsManager).createCollectionConfigs("zeCollection");
 		doReturn(aNewCollection).when(collectionsManager)
-								.createCollectionRecordWithCode("zeCollection", "zeCollection", Arrays.asList("fr"));
+				.createCollectionRecordWithCode("zeCollection", "zeCollection", Arrays.asList("fr"));
 		doNothing().when(collectionsManager).initializeCollection(anyString());
 
 		collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));

@@ -78,7 +78,7 @@ public class MetadataSchemaTypesBuilder {
 		List<String> referenceDefaultValues = new ArrayList<>();
 		for (MetadataSchemaType buildedSchemaType : buildedSchemaTypes) {
 			for (Metadata metadata : buildedSchemaType.getAllMetadatas().onlyWithType(MetadataValueType.REFERENCE)
-													  .onlyWithDefaultValue()) {
+					.onlyWithDefaultValue()) {
 				if (metadata.getDefaultValue() instanceof List) {
 					referenceDefaultValues.addAll((List) metadata.getDefaultValue());
 				} else if (metadata.getDefaultValue() instanceof String) {
@@ -424,7 +424,7 @@ public class MetadataSchemaTypesBuilder {
 			dependencyRefMetadataBuilder.markAsDependencyOfAutomaticMetadata();
 			if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
 				String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
-																				.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
+						.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
 				MetadataBuilder dependencyMetadata;
 				try {
 					dependencyMetadata = getMetadata(dependencyMetaCompleteCode);

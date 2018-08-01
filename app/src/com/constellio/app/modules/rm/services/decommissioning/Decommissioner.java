@@ -267,7 +267,7 @@ public abstract class Decommissioner {
 			return;
 		}
 		FileService fileService = modelLayerFactory.getIOServicesFactory()
-												   .newFileService();
+				.newFileService();
 		DecomCertificateService service = new DecomCertificateService(rm, searchServices, contentManager, fileService,
 				user, decommissioningList, appLayerFactory);
 		service.computeContents();

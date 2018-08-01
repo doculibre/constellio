@@ -177,7 +177,7 @@ public class RMFolderExtension extends RecordExtension {
 																					 RetentionRule rule) {
 		List<String> creatorAdminUnits = getUserAdminUnits(user);
 		boolean creatorInRuleAdminUnits = !CollectionUtils.intersection(creatorAdminUnits, getRuleHierarchyUnits(rule))
-														  .isEmpty();
+				.isEmpty();
 		if (creatorInRuleAdminUnits) {
 			folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		}
@@ -198,9 +198,9 @@ public class RMFolderExtension extends RecordExtension {
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema())
-																	  .returnAll();
+				.returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
-																						   .setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {
 			returnList.add(record.getId());
 		}

@@ -84,7 +84,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		boolean flushNow = false;
 		for (Record record : documentRecords) {
 			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
-							  .getCacheConfigOf(record.getSchemaCode()) != null) {
+									.getCacheConfigOf(record.getSchemaCode()) != null) {
 				flushNow = true;
 			}
 		}
@@ -126,7 +126,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		boolean flushNow = false;
 		for (Record record : documentRecords) {
 			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
-							  .getCacheConfigOf(record.getSchemaCode()) != null) {
+									.getCacheConfigOf(record.getSchemaCode()) != null) {
 				flushNow = true;
 			}
 		}

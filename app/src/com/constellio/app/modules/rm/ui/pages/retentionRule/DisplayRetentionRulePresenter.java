@@ -87,8 +87,8 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : records) {
 			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
-																								 .setTitle((String) record.get(
-																										 Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
+					.setTitle((String) record.get(
+							Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
 			returnList.add(variableRetentionPeriodVO);
 		}
 		return returnList;

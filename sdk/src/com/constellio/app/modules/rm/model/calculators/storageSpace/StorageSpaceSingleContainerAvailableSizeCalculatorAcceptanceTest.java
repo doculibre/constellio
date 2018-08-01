@@ -47,7 +47,7 @@ public class StorageSpaceSingleContainerAvailableSizeCalculatorAcceptanceTest ex
 		calculator = spy(new StorageSpaceSingleContainerAvailableSizeCalculator());
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records)
+						.withRMTest(records)
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -117,9 +117,9 @@ public class StorageSpaceSingleContainerAvailableSizeCalculatorAcceptanceTest ex
 
 	public ContainerRecord buildDefaultContainer(String id) {
 		return rm.newContainerRecordWithId(id).setType("containerTypeTest")
-				 .setTemporaryIdentifier("containerTestTemporary")
-				 .setAdministrativeUnits(asList(records.unitId_10))
-				 .setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setTemporaryIdentifier("containerTestTemporary")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public ContainerRecordType buildDefaultContainerType() {

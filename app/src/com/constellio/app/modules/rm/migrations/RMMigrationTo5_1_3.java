@@ -39,9 +39,9 @@ public class RMMigrationTo5_1_3 implements MigrationScript {
 				.addToDisplay(DocumentType.TEMPLATES).atTheEnd()
 				.build()
 				.add(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.ADMINISTRATIVE_UNIT)
-							.withInputType(MetadataInputType.LOOKUP))
+						.withInputType(MetadataInputType.LOOKUP))
 				.add(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.DECOMMISSIONING_TYPE)
-							.withInputType(MetadataInputType.DROPDOWN));
+						.withInputType(MetadataInputType.DROPDOWN));
 
 		manager.execute(transaction);
 	}

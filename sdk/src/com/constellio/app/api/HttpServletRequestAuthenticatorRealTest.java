@@ -58,7 +58,7 @@ public class HttpServletRequestAuthenticatorRealTest extends ConstellioTest {
 
 	private String getToken(User bob, String bobServiceKey, String bobPassword) {
 		return getModelLayerFactory().newUserServices()
-									 .getToken(bobServiceKey, bob.getUsername(), bobPassword);
+				.getToken(bobServiceKey, bob.getUsername(), bobPassword);
 	}
 
 	@Test

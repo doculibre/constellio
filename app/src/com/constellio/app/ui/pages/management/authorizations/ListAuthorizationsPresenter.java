@@ -153,8 +153,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		principals.addAll(authorizationVO.getUsers());
 		principals.addAll(authorizationVO.getGroups());
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
-									  .forPrincipalsIds(principals).on(authorizationVO.getRecord())
-									  .startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
+				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
+				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
 	}
 
 	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {

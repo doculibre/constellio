@@ -79,10 +79,10 @@ public class BulkUploader {
 					inputStream = streamFactory.create(READ_STREAM_RESOURCE);
 
 					UploadOptions options = new UploadOptions(fileName).setParse(parse)
-																	   .setHandleDeletionOfUnreferencedHashes(handleDeletionOfUnreferencedHashes);
+							.setHandleDeletionOfUnreferencedHashes(handleDeletionOfUnreferencedHashes);
 
 					ContentVersionDataSummary summary = contentManager.upload(inputStream, options)
-																	  .getContentVersionDataSummary();
+							.getContentVersionDataSummary();
 					writeToMap(key, summary);
 
 				} catch (ContentManagerRuntimeException_CannotReadParsedContent e) {

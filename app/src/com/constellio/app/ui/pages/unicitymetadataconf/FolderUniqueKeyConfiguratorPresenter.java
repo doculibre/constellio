@@ -81,7 +81,7 @@ public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresen
 				FolderUnicityVO folderUnicityVO = new FolderUnicityVO();
 				String metadataCode = (String) mapObject.get("metadataCode");
 				Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(TypeConvertionUtil.getSchemaCode(metadataCode))
-												  .getMetadatas().getMetadataWithLocalCode(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
+						.getMetadatas().getMetadataWithLocalCode(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
 				MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
 				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, view.getSessionContext());
 

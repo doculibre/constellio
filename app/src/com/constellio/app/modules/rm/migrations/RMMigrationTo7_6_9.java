@@ -46,11 +46,11 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 		)));
 
 		manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.RESTRICTION_ACCESSIBILITE)
-									.withInputType(MetadataInputType.RICHTEXT));
+				.withInputType(MetadataInputType.RICHTEXT));
 		manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.NOTE)
-									.withInputType(MetadataInputType.RICHTEXT));
+				.withInputType(MetadataInputType.RICHTEXT));
 		manager.saveMetadata(manager.getMetadata(collection, BagInfo.DEFAULT_SCHEMA + "_" + BagInfo.DESCRIPTION_SOMMAIRE)
-									.withInputType(MetadataInputType.RICHTEXT));
+				.withInputType(MetadataInputType.RICHTEXT));
 	}
 
 	class SchemaAlterationFor7_6_9 extends MetadataSchemasAlterationHelper {
@@ -86,7 +86,7 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 			}
 			if (!defaultSchemaBuilder.hasMetadata(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR)) {
 				defaultSchemaBuilder.create(BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR)
-									.setType(MetadataValueType.STRING);
+						.setType(MetadataValueType.STRING);
 			}
 			if (!defaultSchemaBuilder.hasMetadata(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR)) {
 				defaultSchemaBuilder.create(BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR).setType(MetadataValueType.STRING);

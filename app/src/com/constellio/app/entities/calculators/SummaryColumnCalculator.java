@@ -258,8 +258,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 			if (list != null) {
 				for (Map listItem : (List<Map>) list) {
 					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE))
-										  .equals(metadata.getLocalCode()) || metadata.getLocalCode()
-																					  .equals(Schemas.TITLE.getLocalCode())) {
+								.equals(metadata.getLocalCode()) || metadata.getLocalCode()
+								.equals(Schemas.TITLE.getLocalCode())) {
 						return true;
 					}
 				}

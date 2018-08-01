@@ -85,7 +85,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		givenBackgroundThreadsEnabled();
 		givenRollbackCheckDisabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
-										.withAllTest(users));
+				.withAllTest(users));
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordService = getModelLayerFactory().newRecordServices();
@@ -153,10 +153,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A04, records.folder_A05))))
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_1)
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, principal5_2_C.getId());
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04, records.folder_A05))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_1)
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, principal5_2_C.getId());
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 		Map<String, Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
@@ -184,9 +184,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A04))))
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_30);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_30);
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -224,9 +224,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		recordService.update(retentionRule);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A04))))
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -251,9 +251,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A04))))
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -273,9 +273,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A05, records.folder_A16))))
-															   .addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A05, records.folder_A16))))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
 			BatchProcessResults results = presenterService.simulateWithQuery(request);
@@ -315,8 +315,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(records.folder_A05, records.folder_A16))
-															   .addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+				.setIds(asList(records.folder_A05, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
 			BatchProcessResults results = presenterService.simulateWithIds(request);
@@ -356,9 +356,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 		givenRollbackCheckDisabled();
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A05, records.folder_A16))))
-															   .addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A05, records.folder_A16))))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
 			BatchProcessResults results = presenterService.simulateWithQuery(request);
@@ -397,8 +397,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	public void whenSetCopyRuleEnteredWithIdsThenApplied()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(records.folder_A05, records.folder_A16))
-															   .addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+				.setIds(asList(records.folder_A05, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 
 		try {
 			BatchProcessResults results = presenterService.simulateWithIds(request);
@@ -442,10 +442,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A04, records.folder_A16))))
-															   .addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
-															   .addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04, records.folder_A16))))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
+				.addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
@@ -456,9 +456,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		waitForBatchProcess();
 
 		assertThatRecord(records.getFolder_A04()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS)
-												 .containsOnly(
-														 records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
-												 );
+				.containsOnly(
+						records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
+				);
 		assertThatRecord(records.getFolder_A16()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS,
 				Folder.EXPECTED_TRANSFER_DATE, Folder.EXPECTED_DESTRUCTION_DATE, Folder.EXPECTED_DEPOSIT_DATE).containsOnly(
 				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY, null,
@@ -471,9 +471,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(records.folder_A04, records.folder_A16))
-															   .addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
-															   .addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+				.setIds(asList(records.folder_A04, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
+				.addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
@@ -484,9 +484,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		waitForBatchProcess();
 
 		assertThatRecord(records.getFolder_A04()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS)
-												 .containsOnly(
-														 records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
-												 );
+				.containsOnly(
+						records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY
+				);
 		assertThatRecord(records.getFolder_A16()).extracting(Folder.RETENTION_RULE, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS,
 				Folder.EXPECTED_TRANSFER_DATE, Folder.EXPECTED_DESTRUCTION_DATE, Folder.EXPECTED_DEPOSIT_DATE).containsOnly(
 				records.ruleId_2, records.getRule2().getCopyRetentionRuleByString("2-0-D"), CopyType.SECONDARY, null,
@@ -504,9 +504,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Document document3 = folderA04Documents.get(2);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(document1.getId(), document2.getId(), document3.getId()))))
-															   .addModifiedMetadata(Document.FOLDER, records.folder_A07);
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(document1.getId(), document2.getId(), document3.getId()))))
+				.addModifiedMetadata(Document.FOLDER, records.folder_A07);
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -554,8 +554,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Document document3 = folderA04Documents.get(2);
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(document1.getId(), document2.getId(), document3.getId()))
-															   .addModifiedMetadata(Document.FOLDER, records.folder_A07);
+				.setIds(asList(document1.getId(), document2.getId(), document3.getId()))
+				.addModifiedMetadata(Document.FOLDER, records.folder_A07);
 
 		BatchProcessResults results = presenterService.simulateWithIds(request);
 
@@ -589,10 +589,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
-															   .addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
-															   .addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNITS, asList(records.unitId_20d));
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(container1.getId(), container2.getId(), container3.getId()))))
+				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
+				.addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNITS, asList(records.unitId_20d));
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -622,9 +622,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		getModelLayerFactory().newRecordServices().update(container3.setFull(null));
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(container1.getId(), container2.getId(), container3.getId()))
-															   .addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
-															   .addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNITS, asList(records.unitId_20d));
+				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
+				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
+				.addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNITS, asList(records.unitId_20d));
 
 		BatchProcessResults results = presenterService.simulateWithIds(request);
 
@@ -646,9 +646,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A03, records.folder_A04))))
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A03, records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -687,8 +687,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(records.folder_A03, records.folder_A04))
-															   .addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
+				.setIds(asList(records.folder_A03, records.folder_A04))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.TITLE, "Mon dossier");
 
 		BatchProcessResults results = presenterService.simulateWithIds(request);
 
@@ -746,31 +746,31 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				defaultSchema.create("enumMeta").setType(ENUM).defineAsEnum(FolderStatus.class);
 				defaultSchema.create("enumsMeta").setType(ENUM).defineAsEnum(FolderStatus.class).setMultivalue(true);
 				defaultSchema.create("referencedFolderMeta").setType(MetadataValueType.REFERENCE)
-							 .defineReferencesTo(folderSchemaType);
+						.defineReferencesTo(folderSchemaType);
 				defaultSchema.create("referencedFoldersMeta").setType(MetadataValueType.REFERENCE)
-							 .defineReferencesTo(folderSchemaType).setMultivalue(true);
+						.defineReferencesTo(folderSchemaType).setMultivalue(true);
 			}
 		});
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A03, records.folder_A04))))
-															   .addModifiedMetadata(Folder.TITLE, "Mon dossier")
-															   .addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
-															   .addModifiedMetadata("textMeta", "zeTextValue")
-															   .addModifiedMetadata("textsMeta", asList("textValue1", "textValue2"))
-															   .addModifiedMetadata("dateMeta", date1)
-															   .addModifiedMetadata("datesMeta", asList(date2, date3))
-															   .addModifiedMetadata("dateTimeMeta", dateTime1)
-															   .addModifiedMetadata("dateTimesMeta", asList(dateTime2, dateTime3))
-															   .addModifiedMetadata("booleanMeta", true)
-															   .addModifiedMetadata("booleansMeta", asList(true, false))
-															   .addModifiedMetadata("numberMeta", 66.6)
-															   .addModifiedMetadata("numbersMeta", asList(66.6, 42))
-															   .addModifiedMetadata("enumMeta", INACTIVE_DEPOSITED)
-															   .addModifiedMetadata("enumsMeta", asList(FolderStatus.SEMI_ACTIVE, FolderStatus.ACTIVE))
-															   .addModifiedMetadata("referencedFolderMeta", records.folder_A06)
-															   .addModifiedMetadata("referencedFoldersMeta", asList(records.folder_A07, records.folder_A08));
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A03, records.folder_A04))))
+				.addModifiedMetadata(Folder.TITLE, "Mon dossier")
+				.addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
+				.addModifiedMetadata("textMeta", "zeTextValue")
+				.addModifiedMetadata("textsMeta", asList("textValue1", "textValue2"))
+				.addModifiedMetadata("dateMeta", date1)
+				.addModifiedMetadata("datesMeta", asList(date2, date3))
+				.addModifiedMetadata("dateTimeMeta", dateTime1)
+				.addModifiedMetadata("dateTimesMeta", asList(dateTime2, dateTime3))
+				.addModifiedMetadata("booleanMeta", true)
+				.addModifiedMetadata("booleansMeta", asList(true, false))
+				.addModifiedMetadata("numberMeta", 66.6)
+				.addModifiedMetadata("numbersMeta", asList(66.6, 42))
+				.addModifiedMetadata("enumMeta", INACTIVE_DEPOSITED)
+				.addModifiedMetadata("enumsMeta", asList(FolderStatus.SEMI_ACTIVE, FolderStatus.ACTIVE))
+				.addModifiedMetadata("referencedFolderMeta", records.folder_A06)
+				.addModifiedMetadata("referencedFoldersMeta", asList(records.folder_A07, records.folder_A08));
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -847,30 +847,30 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				defaultSchema.create("enumMeta").setType(ENUM).defineAsEnum(FolderStatus.class);
 				defaultSchema.create("enumsMeta").setType(ENUM).defineAsEnum(FolderStatus.class).setMultivalue(true);
 				defaultSchema.create("referencedFolderMeta").setType(MetadataValueType.REFERENCE)
-							 .defineReferencesTo(folderSchemaType);
+						.defineReferencesTo(folderSchemaType);
 				defaultSchema.create("referencedFoldersMeta").setType(MetadataValueType.REFERENCE)
-							 .defineReferencesTo(folderSchemaType).setMultivalue(true);
+						.defineReferencesTo(folderSchemaType).setMultivalue(true);
 			}
 		});
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(records.folder_A03, records.folder_A04))
-															   .addModifiedMetadata(Folder.TITLE, "Mon dossier")
-															   .addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
-															   .addModifiedMetadata("textMeta", "zeTextValue")
-															   .addModifiedMetadata("textsMeta", asList("textValue1", "textValue2"))
-															   .addModifiedMetadata("dateMeta", date1)
-															   .addModifiedMetadata("datesMeta", asList(date2, date3))
-															   .addModifiedMetadata("dateTimeMeta", dateTime1)
-															   .addModifiedMetadata("dateTimesMeta", asList(dateTime2, dateTime3))
-															   .addModifiedMetadata("booleanMeta", true)
-															   .addModifiedMetadata("booleansMeta", asList(true, false))
-															   .addModifiedMetadata("numberMeta", 66.6)
-															   .addModifiedMetadata("numbersMeta", asList(66.6, 42))
-															   .addModifiedMetadata("enumMeta", INACTIVE_DEPOSITED)
-															   .addModifiedMetadata("enumsMeta", asList(FolderStatus.SEMI_ACTIVE, FolderStatus.ACTIVE))
-															   .addModifiedMetadata("referencedFolderMeta", records.folder_A06)
-															   .addModifiedMetadata("referencedFoldersMeta", asList(records.folder_A07, records.folder_A08));
+				.setIds(asList(records.folder_A03, records.folder_A04))
+				.addModifiedMetadata(Folder.TITLE, "Mon dossier")
+				.addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
+				.addModifiedMetadata("textMeta", "zeTextValue")
+				.addModifiedMetadata("textsMeta", asList("textValue1", "textValue2"))
+				.addModifiedMetadata("dateMeta", date1)
+				.addModifiedMetadata("datesMeta", asList(date2, date3))
+				.addModifiedMetadata("dateTimeMeta", dateTime1)
+				.addModifiedMetadata("dateTimesMeta", asList(dateTime2, dateTime3))
+				.addModifiedMetadata("booleanMeta", true)
+				.addModifiedMetadata("booleansMeta", asList(true, false))
+				.addModifiedMetadata("numberMeta", 66.6)
+				.addModifiedMetadata("numbersMeta", asList(66.6, 42))
+				.addModifiedMetadata("enumMeta", INACTIVE_DEPOSITED)
+				.addModifiedMetadata("enumsMeta", asList(FolderStatus.SEMI_ACTIVE, FolderStatus.ACTIVE))
+				.addModifiedMetadata("referencedFolderMeta", records.folder_A06)
+				.addModifiedMetadata("referencedFoldersMeta", asList(records.folder_A07, records.folder_A08));
 
 		BatchProcessResults results = presenterService.simulateWithIds(request);
 
@@ -929,7 +929,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.setType(records.getFolder_A01(), records.folderTypeEmploye())).set("subType", "customSubType")
-				   .setTitle("zetest");
+				.setTitle("zetest");
 		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye())).setTitle("zetest");
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
@@ -937,9 +937,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																																			 .isIn(asList(records.folder_A01, records.folder_A02))))
-															   .addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting().getId());
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02))))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting().getId());
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
@@ -951,10 +951,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
 
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-										   .setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-																														 .isIn(asList(records.folder_A01, records.folder_A02))))
-										   .addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
-										   .addModifiedMetadata("subType", "");
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A01, records.folder_A02))))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
+				.addModifiedMetadata("subType", "");
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
@@ -984,7 +984,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.setType(records.getFolder_A01(), records.folderTypeEmploye())).set("subType", "customSubType")
-				   .setTitle("zetest");
+				.setTitle("zetest");
 		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye())).setTitle("zetest");
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
@@ -992,8 +992,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-															   .setIds(asList(records.folder_A01, records.folder_A02))
-															   .addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting().getId());
+				.setIds(asList(records.folder_A01, records.folder_A02))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting().getId());
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
@@ -1005,9 +1005,9 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
 
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-										   .setIds(asList(records.folder_A01, records.folder_A02))
-										   .addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
-										   .addModifiedMetadata("subType", "");
+				.setIds(asList(records.folder_A01, records.folder_A02))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
+				.addModifiedMetadata("subType", "");
 
 		BatchProcessResults results = presenterService.simulateWithIds(request);
 
@@ -1045,8 +1045,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
-													  records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
+						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03,
+								records.folder_A04, records.folder_A05, records.folder_A06))))).isNull();
 
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04, records.folder_A06)))))
@@ -1056,13 +1056,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.isNull();
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
+						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))))).isNull();
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
+						.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A05))))).isNull();
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
+						.isIn(asList(records.folder_A05, records.folder_A01, records.folder_A02))))).isNull();
 		assertThat(presenterService.getOriginType(new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isIn(asList(records.folder_A04)))))
 				.isEqualTo(records.folderTypeOther().getId());

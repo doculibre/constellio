@@ -78,7 +78,7 @@ public class ResetRMModificationDatesFromEventsScript {
 
 				SearchResponseIterator<Record> eventIterator = searchServices.recordsIterator(
 						LogicalSearchQueryOperators.from(rm.eventSchemaType())
-												   .where(rm.eventType()).is(EventType.MODIFY_DOCUMENT), 100);
+								.where(rm.eventType()).is(EventType.MODIFY_DOCUMENT), 100);
 				while (eventIterator.hasNext()) {
 					Event event = rm.wrapEvent(eventIterator.next());
 					String recordId = event.getRecordId();

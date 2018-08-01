@@ -52,7 +52,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus()
-								  .withEvents()
+						.withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 

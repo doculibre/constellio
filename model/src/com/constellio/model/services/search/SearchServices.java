@@ -656,7 +656,7 @@ public class SearchServices {
 
 			if (sort instanceof FieldLogicalSearchQuerySort) {
 				if (query.getLanguage() != null && !query.getLanguage()
-														 .equals(modelLayerFactory.getCollectionsListManager().getMainDataLanguage())) {
+						.equals(modelLayerFactory.getCollectionsListManager().getMainDataLanguage())) {
 					DataStoreField dataStoreField = ((FieldLogicalSearchQuerySort) sort).getField();
 					//Metadata may not be multilingual, fields of main data language.
 
@@ -751,7 +751,7 @@ public class SearchServices {
 						sb.append("^20 ");
 					} else {
 						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
-													   .getDataStoreCode();
+								.getDataStoreCode();
 						if (!fields.contains(analyzedField)) {
 							sb.append(analyzedField + " ");
 						}

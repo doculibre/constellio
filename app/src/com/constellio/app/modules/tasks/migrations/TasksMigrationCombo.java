@@ -98,17 +98,17 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 		String standbyId =
 				transaction.add(schemas.newTaskStatus().setCode(standByCode)
-									   .setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.STitle"))
-									   .setStatusType(STANDBY)).getId();
+						.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.STitle"))
+						.setStatusType(STANDBY)).getId();
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-							   .setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.ITitle"))
-							   .setStatusType(IN_PROGRESS));
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.ITitle"))
+				.setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-							   .setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.FTitle"))
-							   .setStatusType(FINISHED));
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.FTitle"))
+				.setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-							   .setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.CTitle"))
-							   .setStatusType(CLOSED));
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.CTitle"))
+				.setStatusType(CLOSED));
 
 		return standbyId;
 	}
@@ -171,7 +171,7 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		String taskStatusModificationTemplate;
 		String taskStatusModificationToCompletedTemplate;
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("en")) {
+				.equals("en")) {
 			taskReminderTemplate = "taskReminderTemplate_en.html";
 			subTasksModificationTemplate = "subTasksModificationTemplate_en.html";
 			taskAssigneeModificationTemplate = "taskAssigneeModificationTemplate_en.html";
@@ -212,7 +212,7 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 								   String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-																	.getEmailTemplatesManager();
+				.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

@@ -23,7 +23,7 @@ public class FolderDecommissioningDateCalculator2 implements MetadataValueCalcul
 	LocalDependency<LocalDate> closingDateParam = LocalDependency.toADate(Folder.CLOSING_DATE);
 	LocalDependency<LocalDate> actualTransferDateParam = LocalDependency.toADate(Folder.ACTUAL_TRANSFER_DATE);
 	LocalDependency<List<LocalDate>> reactivationDatesParam = LocalDependency.toADate(Folder.REACTIVATION_DATES)
-																			 .whichIsMultivalue();
+			.whichIsMultivalue();
 	LocalDependency<LocalDate> reactivationDecommissioningDateParam = LocalDependency
 			.toADate(Folder.REACTIVATION_DECOMMISSIONING_DATE);
 	LocalDependency<FolderStatus> folderStatusParam = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);

@@ -32,38 +32,38 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 		new SchemaAlterationFor7_4_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.CONNECTOR_URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.CONNECTOR_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_CONNECTOR_URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_CONNECTOR_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.LAST_MODIFIED));
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.LAST_MODIFIED));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbDocument.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.SIZE));
+				.withNewSearchResultMetadataCode(ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.SIZE));
 
 
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.CONNECTOR_URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.CONNECTOR_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_URL));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.LAST_MODIFIED));
+				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.LAST_MODIFIED));
 		metadataSchemasDisplayManager.saveSchema(metadataSchemasDisplayManager.getSchema(collection, ConnectorSmbFolder.DEFAULT_SCHEMA)
-																			  .withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.URL));
+				.withNewSearchResultMetadataCode(ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.URL));
 
 		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(collection, ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL)
-																				.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(collection, ConnectorSmbFolder.DEFAULT_SCHEMA + "_" + Schemas.PATH.getLocalCode())
-																				.withVisibleInAdvancedSearchStatus(false));
+				.withVisibleInAdvancedSearchStatus(false));
 		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + ConnectorSmbDocument.PARENT_CONNECTOR_URL)
-																				.withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		metadataSchemasDisplayManager.saveMetadata(metadataSchemasDisplayManager.getMetadata(collection, ConnectorSmbDocument.DEFAULT_SCHEMA + "_" + Schemas.PATH.getLocalCode())
-																				.withVisibleInAdvancedSearchStatus(false));
+				.withVisibleInAdvancedSearchStatus(false));
 	}
 
 	static class SchemaAlterationFor7_4_2 extends MetadataSchemasAlterationHelper {
@@ -78,13 +78,13 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder documentDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbDocument.SCHEMA_TYPE).getDefaultSchema();
 			documentDefaultSchema.create(ConnectorSmbDocument.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
-								 .setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(DocumentSmbConnectorUrlCalculator.class)
-								 .setDefaultRequirement(true);
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(DocumentSmbConnectorUrlCalculator.class)
+					.setDefaultRequirement(true);
 			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_URL).setType(MetadataValueType.STRING)
-								 .setSystemReserved(true).setEssentialInSummary(true);
+					.setSystemReserved(true).setEssentialInSummary(true);
 			documentDefaultSchema.create(ConnectorSmbDocument.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
-								 .setSystemReserved(true).setEssentialInSummary(true)
-								 .setSearchable(true).defineDataEntry().asCalculated(DocumentSmbParentConnectorUrlCalculator.class);
+					.setSystemReserved(true).setEssentialInSummary(true)
+					.setSearchable(true).defineDataEntry().asCalculated(DocumentSmbParentConnectorUrlCalculator.class);
 			documentDefaultSchema.get(ConnectorSmbDocument.LAST_MODIFIED).setEssentialInSummary(true);
 			documentDefaultSchema.get(ConnectorSmbDocument.URL).setEssentialInSummary(true);
 			documentDefaultSchema.get(ConnectorSmbDocument.PERMISSIONS_HASH).setEssentialInSummary(true);
@@ -93,12 +93,12 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 
 			MetadataSchemaBuilder folderDefaultSchema = typesBuilder.getSchemaType(ConnectorSmbFolder.SCHEMA_TYPE).getDefaultSchema();
 			folderDefaultSchema.create(ConnectorSmbFolder.CONNECTOR_URL).setType(MetadataValueType.STRING).setUniqueValue(true)
-							   .setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbConnectorUrlCalculator.class)
-							   .setDefaultRequirement(true);
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbConnectorUrlCalculator.class)
+					.setDefaultRequirement(true);
 			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_URL).setType(MetadataValueType.STRING)
-							   .setSystemReserved(true).setEssentialInSummary(true).setSearchable(true);
+					.setSystemReserved(true).setEssentialInSummary(true).setSearchable(true);
 			folderDefaultSchema.create(ConnectorSmbFolder.PARENT_CONNECTOR_URL).setType(MetadataValueType.STRING)
-							   .setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbParentConnectorUrlCalculator.class);
+					.setSystemReserved(true).setEssentialInSummary(true).defineDataEntry().asCalculated(FolderSmbParentConnectorUrlCalculator.class);
 			folderDefaultSchema.deleteMetadataWithoutValidation("parent");
 		}
 	}

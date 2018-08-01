@@ -55,7 +55,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).giveReadAccessTo(admin).setCollectionTitleTo("Collection de test");
 
@@ -521,22 +521,22 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 
 	private void navigateToUsersAndGroupsAddOrRemove() {
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.USERS_AND_GROUPS_ADD_OR_REMOVE);
+				.url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.USERS_AND_GROUPS_ADD_OR_REMOVE);
 	}
 
 	private void navigateToFoldersAndDocumentsCreation() {
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_CREATION);
+				.url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_CREATION);
 	}
 
 	private void navigateToFoldersAndDocumentsModification() {
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_MODIFICATION);
+				.url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_MODIFICATION);
 	}
 
 	private void navigateToFoldersAndDocumentsDeletion() {
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_DELETION);
+				.url(NavigatorConfigurationService.EVENT_CATEGORY + "/" + EventCategory.FOLDERS_AND_DOCUMENTS_DELETION);
 	}
 
 	private void navigateToCurrentlyBorrowedDocumentsCategory() {
@@ -592,7 +592,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 		String folderId = folder.getId();
 		String principalPath = folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH);
 		Event event = rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER).setRecordId(folderId)
-						.setEventPrincipalPath(principalPath);
+				.setEventPrincipalPath(principalPath);
 
 		return event;
 	}

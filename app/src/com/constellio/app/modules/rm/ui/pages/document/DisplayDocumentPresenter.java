@@ -291,7 +291,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void createPDFAButtonClicked() {
 		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
-																										 .getExtension().toUpperCase().equals("PDFA")) {
+				.getExtension().toUpperCase().equals("PDFA")) {
 			presenterUtils.createPDFA();
 		} else {
 			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
@@ -349,7 +349,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
-																   .isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -360,7 +360,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
-																   .isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -427,7 +427,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
 		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
-							   .on(getRecord(presenterUtils.getDocumentVO().getId()));
+				.on(getRecord(presenterUtils.getDocumentVO().getId()));
 	}
 
 	public boolean hasCurrentUserPermissionToUseCart() {
@@ -490,7 +490,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public List<Button> getButtonsFromExtension() {
 		return appLayerFactory.getExtensions().forCollection(collection)
-							  .getDocumentViewButtonExtension(this.record, getCurrentUser());
+				.getDocumentViewButtonExtension(this.record, getCurrentUser());
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {

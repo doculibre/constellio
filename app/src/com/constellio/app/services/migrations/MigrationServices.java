@@ -155,7 +155,7 @@ public class MigrationServices {
 		for (InstallableModule module : modules) {
 			if (module instanceof InstallableSystemModuleWithRecordMigrations) {
 				for (RecordMigrationScript script : ((InstallableSystemModuleWithRecordMigrations) module).
-																												  getRecordMigrationScripts(collection, appLayerFactory)) {
+						getRecordMigrationScripts(collection, appLayerFactory)) {
 					migrations.add(script);
 				}
 			}
@@ -279,7 +279,7 @@ public class MigrationServices {
 		if (configManager.exist(VERSION_PROPERTIES_FILE)) {
 			String propertyKey = collection + "_completedMigrations";
 			String completedMigrations = dataLayerFactory.getConfigManager().getProperties(VERSION_PROPERTIES_FILE)
-														 .getProperties().get(propertyKey);
+					.getProperties().get(propertyKey);
 
 			if (completedMigrations == null) {
 				return migrations;
@@ -391,7 +391,7 @@ public class MigrationServices {
 	public List<String> getCompletedMigrations(String collection) {
 
 		Map<String, String> properties = dataLayerFactory.getConfigManager()
-														 .getProperties(VERSION_PROPERTIES_FILE).getProperties();
+				.getProperties(VERSION_PROPERTIES_FILE).getProperties();
 		String completedMigrations = properties.get(collection + "_completedMigrations");
 		if (StringUtils.isNotBlank(completedMigrations)) {
 			return asList(completedMigrations.split(","));

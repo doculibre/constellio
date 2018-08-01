@@ -28,7 +28,7 @@ public class RecordLazyTreeDataProvider extends BaseRecordTreeDataProvider imple
 		RecordTreeNodesDataProvider recordTreeNodesDataProvider = null;
 
 		for (TreeNodeExtension treeNodeAppExtension : appLayerFactory.getExtensions()
-																	 .forCollection(collection).treeNodeAppExtension) {
+				.forCollection(collection).treeNodeAppExtension) {
 			recordTreeNodesDataProvider = treeNodeAppExtension.getTreeNodeFor(taxnomieCode, appLayerFactory);
 			if (recordTreeNodesDataProvider != null) {
 				break;

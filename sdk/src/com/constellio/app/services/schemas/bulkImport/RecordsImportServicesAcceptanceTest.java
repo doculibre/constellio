@@ -382,11 +382,11 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(content3).isNotNull();
 
 		assertThat(content3.getVersions()).extracting("filename", "version", "comment")
-										  .isEqualTo(asList(
-												  tuple("The Kings Return1", "1.0", "DVD #1"),
-												  tuple("The Kings Return2", "1.1", "DVD #2"),
-												  tuple("The Kings Return3", "2.0", "DVD #3 : extras")
-										  ));
+				.isEqualTo(asList(
+						tuple("The Kings Return1", "1.0", "DVD #1"),
+						tuple("The Kings Return2", "1.1", "DVD #2"),
+						tuple("The Kings Return3", "2.0", "DVD #3 : extras")
+				));
 
 		assertThat(content3.getCurrentVersion().getHash()).isEqualTo(testSecondResourceHash);
 		assertThat(content3.getCurrentVersion().getFilename()).isEqualTo("The Kings Return3");
@@ -551,7 +551,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(retentionRulesFromCategory("Z999").containsAll(asList(rule1.getId(), ruleAdministration.getId()))).isTrue();
 
 		update(rm.getUniformSubdivision("subdivId_2").setRetentionRules(asList(ruleAdministration.getId()))
-				 .getWrappedRecord());
+				.getWrappedRecord());
 		assertThat(retentionRulesFromSubdivion("subdivId_2").contains(ruleAdministration.getId())).isTrue();
 	}
 

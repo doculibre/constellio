@@ -67,7 +67,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO, presenter.getUser());
 
 				Component windowComponent = appLayerFactory.getExtensions()
-														   .forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);
+						.forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);
 				if (windowComponent == null) {
 					windowComponent = new RecordDisplay(recordVO);
 				}

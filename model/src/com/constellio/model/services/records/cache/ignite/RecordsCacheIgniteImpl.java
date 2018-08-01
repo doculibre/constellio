@@ -88,7 +88,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordsCacheManager = (ConstellioIgniteCacheManager) modelLayerFactory.getDataLayerFactory()
-																				   .getRecordsCacheManager();
+				.getRecordsCacheManager();
 
 		this.permanentRecordHoldersCacheName = collection + ".recordHolders.permanent";
 		this.volatileRecordHoldersCacheName = collection + ".recordHolders.volatile";
@@ -531,7 +531,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			long end = new Date().getTime();
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
-							 .onPutQueryResultsInCache(signature, recordIds, end - start);
+					.onPutQueryResultsInCache(signature, recordIds, end - start);
 
 		}
 	}
@@ -547,7 +547,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			long end = new Date().getTime();
 
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
-							 .onPutQueryResultsInCache(signature, recordIds, end - start);
+					.onPutQueryResultsInCache(signature, recordIds, end - start);
 
 		}
 	}
@@ -902,7 +902,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		if (cacheConfig.isLoadedInitially()) {
 			LOGGER.info("Loading cache of type '" + schemaTypeCode + "' of collection '" + collection + "'");
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
-															 .getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
 			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 100000 || asList(User.SCHEMA_TYPE,
 					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(schemaTypeCode)) {
 				searchServices.getAllRecords(schemaType);
@@ -958,10 +958,10 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		long end = new Date().getTime();
 		if (foundRecord == null) {
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
-							 .onGetByUniqueMetadataCacheMiss(metadata, value, end - start);
+					.onGetByUniqueMetadataCacheMiss(metadata, value, end - start);
 		} else {
 			modelLayerFactory.getExtensions().getSystemWideExtensions()
-							 .onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, end - start);
+					.onGetByUniqueMetadataCacheHit(foundRecord, metadata, value, end - start);
 		}
 
 		return foundRecord;

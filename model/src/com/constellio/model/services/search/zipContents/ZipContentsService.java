@@ -293,7 +293,7 @@ public class ZipContentsService {
 			return new ArrayList<>();
 		}
 		LogicalSearchCondition recordContentQuery = fromAllSchemasInExceptEvents(collection).where(Schemas.PRINCIPAL_PATH)
-																							.isContainingText(recordPrincipalPath).andWhereAny(contentDataStoreFields).isNotNull();
+				.isContainingText(recordPrincipalPath).andWhereAny(contentDataStoreFields).isNotNull();
 		return searchServices.search(new LogicalSearchQuery(recordContentQuery));
 	}
 
@@ -308,13 +308,13 @@ public class ZipContentsService {
 	public boolean canHaveChildren(MetadataSchema schema) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(schema.getCode());
 		return !metadataSchemaManager.getSchemaTypes(schema.getCollection()).getAllMetadatas()
-									 .onlyParentReferenceToSchemaType(schemaType).isEmpty();
+				.onlyParentReferenceToSchemaType(schemaType).isEmpty();
 	}
 
 	List<RelatedContent> getRecordDirectContents(Record record) {
 		List<RelatedContent> returnList = new ArrayList<>();
 		MetadataSchema schema = metadataSchemaManager.getSchemaTypes(collection)
-													 .getSchema(record.getSchemaCode());
+				.getSchema(record.getSchemaCode());
 		String containerRecordId, containerRecordPrincipalPath;
 		if (canHaveChildren(schema)) {
 			containerRecordId = record.getId();

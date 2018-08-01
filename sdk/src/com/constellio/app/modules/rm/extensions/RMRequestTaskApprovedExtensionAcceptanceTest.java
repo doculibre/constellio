@@ -63,7 +63,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 		givenTimeIs(LocalDateTime.now());
 		localDateTime = TimeProvider.getLocalDateTime();
@@ -365,7 +365,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	public void givenBorrowExtendedRequestCompletedAndApprovedThenExtendFolder()
 			throws RecordServicesException {
 		recordServices.update(records.getFolder_A42().setBorrowed(true).setBorrowUser(records.getChuckNorris().getId())
-									 .setBorrowPreviewReturnDate(LocalDate.now()));
+				.setBorrowPreviewReturnDate(LocalDate.now()));
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
@@ -403,7 +403,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	public void givenBorrowExtendedRequestCompletedAndDeniedThenDoNotExtendFolder()
 			throws RecordServicesException {
 		recordServices.update(records.getFolder_A42().setBorrowed(true).setBorrowUser(records.getChuckNorris().getId())
-									 .setBorrowPreviewReturnDate(LocalDate.now()));
+				.setBorrowPreviewReturnDate(LocalDate.now()));
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowFolderExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.folder_A42,
 				records.getFolder_A42().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
@@ -441,7 +441,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	public void givenBorrowExtendedCompletedAndApprovedThenExtendContainer()
 			throws RecordServicesException {
 		recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId())
-									 .setPlanifiedReturnDate(LocalDate.now()));
+				.setPlanifiedReturnDate(LocalDate.now()));
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());
@@ -479,7 +479,7 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 	public void givenBorrowExtendedCompletedAndDeniedThenDoNotExtendContainer()
 			throws RecordServicesException {
 		recordServices.update(records.getContainerBac13().setBorrowed(true).setBorrower(records.getChuckNorris().getId())
-									 .setPlanifiedReturnDate(LocalDate.now()));
+				.setPlanifiedReturnDate(LocalDate.now()));
 		RMTask task = rm.wrapRMTask(taskSchemas.newBorrowContainerExtensionRequestTask(records.getChuckNorris().getId(),
 				asList(records.getAdmin().getId(), records.getChuckNorris().getId()), records.containerId_bac13,
 				records.getContainerBac13().getTitle(), LocalDate.now().plusDays(7)).getWrappedRecord());

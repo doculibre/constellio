@@ -93,7 +93,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-											 .build();
+				.build();
 
 		thenCanConnectOnEachCollections();
 		thenAllPropertiesAreSetted();
@@ -118,61 +118,61 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(classificationStationType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 		assertThat(
 				classificationStationType.getPropertyDefinitions()
-										 .get("allauthorizations").getCardinality()).isEqualTo(
+						.get("allauthorizations").getCardinality()).isEqualTo(
 				Cardinality.MULTI);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("datecreation")
-										 .getCardinality()).isEqualTo(Cardinality.SINGLE);
+						.getCardinality()).isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("datecreation")
-										 .getPropertyType()).isEqualTo(PropertyType.DATETIME);
+						.getPropertyType()).isEqualTo(PropertyType.DATETIME);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("datecreation")
-										 .getUpdatability()).isEqualTo(Updatability.READONLY);
+						.getUpdatability()).isEqualTo(Updatability.READONLY);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("datecreation")
-										 .isInherited()).isEqualTo(false);
+						.isInherited()).isEqualTo(false);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("datecreation")
-										 .isRequired()).isEqualTo(false);
+						.isRequired()).isEqualTo(false);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("number")
-										 .getPropertyType()).isEqualTo(PropertyType.DECIMAL);
+						.getPropertyType()).isEqualTo(PropertyType.DECIMAL);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("booleanTest")
-										 .getPropertyType()).isEqualTo(PropertyType.BOOLEAN);
+						.getPropertyType()).isEqualTo(PropertyType.BOOLEAN);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("reference")
-										 .getPropertyType()).isEqualTo(PropertyType.STRING);
+						.getPropertyType()).isEqualTo(PropertyType.STRING);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("id")
-										 .getCardinality()).isEqualTo(Cardinality.SINGLE);
+						.getCardinality()).isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				classificationStationType.getPropertyDefinitions()
-										 .get("inheritedauthorizations").getCardinality()).isEqualTo(
+						.get("inheritedauthorizations").getCardinality()).isEqualTo(
 				Cardinality.MULTI);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("parent")
-										 .getCardinality()).isEqualTo(Cardinality.SINGLE);
+						.getCardinality()).isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("parentpath")
-										 .getCardinality()).isEqualTo(Cardinality.MULTI);
+						.getCardinality()).isEqualTo(Cardinality.MULTI);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("path")
-										 .getCardinality()).isEqualTo(Cardinality.MULTI);
+						.getCardinality()).isEqualTo(Cardinality.MULTI);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("schema")
-										 .getCardinality()).isEqualTo(Cardinality.SINGLE);
+						.getCardinality()).isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				classificationStationType.getPropertyDefinitions()
-										 .get("removedauthorizations").getCardinality()).isEqualTo(
+						.get("removedauthorizations").getCardinality()).isEqualTo(
 				Cardinality.MULTI);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("title")
-										 .getCardinality()).isEqualTo(Cardinality.SINGLE);
+						.getCardinality()).isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("tokens")
-										 .getCardinality()).isEqualTo(Cardinality.MULTI);
+						.getCardinality()).isEqualTo(Cardinality.MULTI);
 
 		ObjectType administrativeUnitDefault = typesMap.get("administrativeUnit_default");
 		assertThat(administrativeUnitDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
@@ -182,12 +182,12 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(administrativeUnitDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 		assertThat(
 				administrativeUnitDefault.getPropertyDefinitions().get("allauthorizations")
-										 .getCardinality()).isEqualTo(Cardinality.MULTI);
+						.getCardinality()).isEqualTo(Cardinality.MULTI);
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("id").getCardinality())
 				.isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				administrativeUnitDefault.getPropertyDefinitions().get("inheritedauthorizations")
-										 .getCardinality()).isEqualTo(Cardinality.MULTI);
+						.getCardinality()).isEqualTo(Cardinality.MULTI);
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("parent").getCardinality())
 				.isEqualTo(Cardinality.SINGLE);
 		assertThat(
@@ -199,7 +199,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 				.isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				administrativeUnitDefault.getPropertyDefinitions().get("removedauthorizations")
-										 .getCardinality()).isEqualTo(Cardinality.MULTI);
+						.getCardinality()).isEqualTo(Cardinality.MULTI);
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("title").getCardinality())
 				.isEqualTo(Cardinality.SINGLE);
 		assertThat(administrativeUnitDefault.getPropertyDefinitions().get("tokens").getCardinality())
@@ -360,7 +360,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 	private void whenChangeTypeDefinitionThenRefreshProperties() {
 		MetadataSchemaTypesBuilder typesBuilder = metadataSchemasManager.modify(zeCollection);
 		typesBuilder.getSchema("administrativeUnit_classificationStation").create("newMetadata")
-					.setType(MetadataValueType.STRING);
+				.setType(MetadataValueType.STRING);
 		try {
 			metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
 		} catch (OptimisticLocking e) {
@@ -368,7 +368,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		}
 
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-											 .build();
+				.build();
 
 		ObjectType baseFolderType = cmisSession.getTypeDefinition("cmis:folder");
 		Iterator<ObjectType> iterator = baseFolderType.getChildren().iterator();
@@ -383,9 +383,9 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(classificationStationType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("datecreation")
-										 .getCardinality()).isEqualTo(Cardinality.SINGLE);
+						.getCardinality()).isEqualTo(Cardinality.SINGLE);
 		assertThat(
 				classificationStationType.getPropertyDefinitions().get("newMetadata")
-										 .getPropertyType()).isEqualTo(PropertyType.STRING);
+						.getPropertyType()).isEqualTo(PropertyType.STRING);
 	}
 }

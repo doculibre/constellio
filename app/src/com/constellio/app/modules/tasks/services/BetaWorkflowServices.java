@@ -585,14 +585,14 @@ public class BetaWorkflowServices {
 		workflowInstance.setWorkflowStatus(WorkflowInstanceStatus.IN_PROGRESS);
 
 		Record event = tasks.newEvent()
-							.setUsername(user.getUsername())
-							.setUserRoles(StringUtils.join(user.getAllRoles().toArray(), "; "))
-							.setIp(workflow.getTitle())        // Looky looky, the nice trick!
-							.setRecordId(workflowInstance.getId())
-							.setType(EventType.WORKFLOW_STARTED)
-							.setTitle(workflow.getTitle())
-							.setCreatedOn(TimeProvider.getLocalDateTime())
-							.getWrappedRecord();
+				.setUsername(user.getUsername())
+				.setUserRoles(StringUtils.join(user.getAllRoles().toArray(), "; "))
+				.setIp(workflow.getTitle())        // Looky looky, the nice trick!
+				.setRecordId(workflowInstance.getId())
+				.setType(EventType.WORKFLOW_STARTED)
+				.setTitle(workflow.getTitle())
+				.setCreatedOn(TimeProvider.getLocalDateTime())
+				.getWrappedRecord();
 
 		Transaction transaction = new Transaction();
 		transaction.add(workflowInstance);

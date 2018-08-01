@@ -23,7 +23,7 @@ public class RMCachingAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers()
-										.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		cache.invalidateAll();

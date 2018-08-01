@@ -70,7 +70,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
 		getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
-							.setValue(ConstellioEIMConfigs.CLEAN_DURING_INSTALL, true);
+				.setValue(ConstellioEIMConfigs.CLEAN_DURING_INSTALL, true);
 		foldersLocator = new FoldersLocator() {
 
 			@Override
@@ -160,7 +160,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 				.prepareInstallablePluginInNextWebapp(installedPluginsCaptor.capture(), any(File.class));
 
 		assertThat(installedPluginsCaptor.getAllValues()).extracting("name")
-														 .containsOnly("plugin1.jar", "PLUGIN2.JAR");
+				.containsOnly("plugin1.jar", "PLUGIN2.JAR");
 
 		assertThat(newWebappUpdatedPlugins).doesNotExist();
 

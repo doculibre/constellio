@@ -42,7 +42,7 @@ public class RMMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 
 	private void reloadEmailTemplates() {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("en")) {
+				.equals("en")) {
 			reloadEmailTemplate("remindReturnBorrowedFolderTemplate_en.html", RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		} else {
 			reloadEmailTemplate("remindReturnBorrowedFolderTemplate.html", RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
@@ -54,7 +54,7 @@ public class RMMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {

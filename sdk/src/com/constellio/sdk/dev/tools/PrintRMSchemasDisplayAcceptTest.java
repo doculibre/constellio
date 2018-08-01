@@ -47,7 +47,7 @@ public class PrintRMSchemasDisplayAcceptTest extends ConstellioTest {
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-															 .getSchemaTypes()) {
+				.getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
 				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel(Language.French) + "' ");
 

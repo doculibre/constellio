@@ -48,10 +48,10 @@ public class DefaultConnectorEventObserverAcceptTest extends ConstellioTest {
 		recordServices.update(users.chuckNorrisIn(zeCollection).setManualTokens("rtoken1", "rtoken2"));
 
 		connector1 = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("connector1").setEnabled(false)
-														.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain));
+				.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain));
 
 		connector2 = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("connector2").setEnabled(false)
-														.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain));
+				.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain));
 
 		observer = new DefaultConnectorEventObserver(es, logger, "observer");
 	}

@@ -17,7 +17,7 @@ public class TaxonomyPresentersService {
 	public boolean canManage(String taxonomyCode, final User user) {
 
 		final Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-												 .getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
+				.getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
 
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 		boolean defaultValue = user.has(CorePermissions.MANAGE_TAXONOMIES).globally();
@@ -29,7 +29,7 @@ public class TaxonomyPresentersService {
 	public boolean displayTaxonomy(String taxonomyCode, final User user) {
 
 		final Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-												 .getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
+				.getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
 
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 		boolean defaultValue = user.has(CorePermissions.MANAGE_TAXONOMIES).globally();

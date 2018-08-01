@@ -297,7 +297,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 					// clear previously fixed width
 					menu.setWidth("");
 					menu.getElement().getFirstChildElement().getStyle()
-						.clearWidth();
+							.clearWidth();
 
 					setPopupPositionAndShow(popup);
 					// Fix for #14173
@@ -720,7 +720,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 					&& suggestionPopup.isAttached()) {
 					setWidth("");
 					getElement().getFirstChildElement().getStyle()
-								.clearWidth();
+							.clearWidth();
 					suggestionPopup
 							.setPopupPositionAndShow(suggestionPopup);
 				}
@@ -976,7 +976,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 		int getItemOffsetHeight() {
 			List<MenuItem> items = getItems();
 			return items != null && items.size() > 0 ? items.get(0)
-															.getOffsetHeight() : 0;
+					.getOffsetHeight() : 0;
 		}
 
 		/*
@@ -985,7 +985,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 		int getItemOffsetWidth() {
 			List<MenuItem> items = getItems();
 			return items != null && items.size() > 0 ? items.get(0)
-															.getOffsetWidth() : 0;
+					.getOffsetWidth() : 0;
 		}
 
 		/**
@@ -1282,7 +1282,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 
 		popupOpener.sinkEvents(Event.ONMOUSEDOWN);
 		Roles.getButtonRole()
-			 .setAriaHiddenState(popupOpener.getElement(), true);
+				.setAriaHiddenState(popupOpener.getElement(), true);
 		Roles.getButtonRole().set(popupOpener.getElement());
 
 		panel.add(tb);
@@ -1627,7 +1627,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 		int iconHeight = Util.getRequiredHeight(selectedItemIcon);
 		int marginTop = (availableHeight - iconHeight) / 2;
 		selectedItemIcon.getElement().getStyle()
-						.setMarginTop(marginTop, Unit.PX);
+				.setMarginTop(marginTop, Unit.PX);
 	}
 
 	private static Set<Integer> navigationKeyCodes = new HashSet<Integer>();
@@ -2063,7 +2063,7 @@ public class VFilterSelect extends Composite implements Field, KeyDownHandler,
 			Element focusedElement = Util.getIEFocusedElement();
 			if (getElement().isOrHasChild(focusedElement)
 				|| suggestionPopup.getElement()
-								  .isOrHasChild(focusedElement)) {
+						.isOrHasChild(focusedElement)) {
 
 				// IF the suggestion popup or another part of the VFilterSelect
 				// was focused, move the focus back to the textfield and prevent

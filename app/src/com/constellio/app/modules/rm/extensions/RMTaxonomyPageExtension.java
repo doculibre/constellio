@@ -110,7 +110,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	@Override
 	public ExtensionBooleanResult displayTaxonomy(User user, Taxonomy taxonomy) {
 		if (taxonomy.getCode().equals(RMTaxonomies.ADMINISTRATIVE_UNITS) || taxonomy.getCode()
-																					.equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
+				.equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
 			return ExtensionBooleanResult.FALSE;
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;

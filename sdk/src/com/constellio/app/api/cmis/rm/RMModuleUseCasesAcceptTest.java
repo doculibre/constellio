@@ -44,7 +44,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
@@ -58,7 +58,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-											 .build();
+				.build();
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 

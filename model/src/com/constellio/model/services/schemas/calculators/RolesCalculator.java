@@ -14,7 +14,7 @@ import java.util.List;
 public class RolesCalculator implements MetadataValueCalculator<List<String>> {
 	LocalDependency<List<String>> userRolesParam = LocalDependency.toARequiredStringList("userroles");
 	ReferenceDependency<List<String>> groupsParam = ReferenceDependency.toAString("groups", "roles").whichIsMultivalue()
-																	   .whichIsRequired();
+			.whichIsRequired();
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {

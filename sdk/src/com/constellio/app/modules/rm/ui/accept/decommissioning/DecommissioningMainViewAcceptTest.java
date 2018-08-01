@@ -26,7 +26,7 @@ public class DecommissioningMainViewAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		driver = newWebDriver(loggedAsUserInCollection(chuckNorris, zeCollection));

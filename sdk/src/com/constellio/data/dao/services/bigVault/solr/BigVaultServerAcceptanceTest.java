@@ -29,8 +29,8 @@ public class BigVaultServerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule()
-										.withAllTestUsers().withRMTest(records).withDocumentsHavingContent()
-										.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+				.withAllTestUsers().withRMTest(records).withDocumentsHavingContent()
+				.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();

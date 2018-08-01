@@ -78,16 +78,16 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorManager = es.getConnectorManager();
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode("zeConnectorCode")
-															   .setEnabled(true)
-															   .setSeeds(Arrays.asList(SDKPasswords.testSmbServer()))
-															   .setUsername(SDKPasswords.testSmbUsername())
-															   .setPassword(SDKPasswords.testSmbPassword())
-															   .setDomain(SDKPasswords.testSmbDomain())
-															   .setTraversalCode("")
-															   .setInclusions(Arrays.asList(SDKPasswords.testSmbServer()))
-															   .setTitle("New Smb Connector")
-															   .setSkipShareAccessControl(true));
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(Arrays.asList(SDKPasswords.testSmbServer()))
+				.setUsername(SDKPasswords.testSmbUsername())
+				.setPassword(SDKPasswords.testSmbPassword())
+				.setDomain(SDKPasswords.testSmbDomain())
+				.setTraversalCode("")
+				.setInclusions(Arrays.asList(SDKPasswords.testSmbServer()))
+				.setTitle("New Smb Connector")
+				.setSkipShareAccessControl(true));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 
@@ -120,13 +120,13 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("wikipedia")
-								   .setTitle("Wikipedia")
-								   .setEnabled(true)
-								   .setSeeds("http://www.servicecanada.gc.ca/")
-								   .setDocumentsPerJobs(20)
-								   .setNumberOfJobsInParallel(20)
-								   .setIncludePatterns(".*"));
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("http://www.servicecanada.gc.ca/")
+						.setDocumentsPerJobs(20)
+						.setNumberOfJobsInParallel(20)
+						.setIncludePatterns(".*"));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -142,11 +142,11 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("wikipedia")
-								   .setTitle("Wikipedia")
-								   .setEnabled(true)
-								   .setSeeds("https://fr.wikipedia.org/wiki/Wikipédia:Accueil_principal")
-								   .setIncludePatterns("https://fr.wikipedia.org/wiki/"));
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("https://fr.wikipedia.org/wiki/Wikipédia:Accueil_principal")
+						.setIncludePatterns("https://fr.wikipedia.org/wiki/"));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -162,24 +162,24 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorLDAPInstance()
-								   .setNumberOfJobsInParallel(15)
-								   .setNumberOfJobsInParallel(30)
-								   .setUrls(LDAPTestConfig.getUrls())
-								   .setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
-								   .setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
-								   .setPassword(LDAPTestConfig.getPassword())
-								   .setCode("ldap")
-								   .setTitle("users")
-								   .setEnabled(true)
+						.setNumberOfJobsInParallel(15)
+						.setNumberOfJobsInParallel(30)
+						.setUrls(LDAPTestConfig.getUrls())
+						.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
+						.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
+						.setPassword(LDAPTestConfig.getPassword())
+						.setCode("ldap")
+						.setTitle("users")
+						.setEnabled(true)
 				);
 
 		connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("wikipedia")
-								   .setTitle("Wikipedia")
-								   .setEnabled(true)
-								   .setSeeds("https://fr.wikipedia.org/wiki/Wikipédia:Accueil_principal")
-								   .setIncludePatterns("https://fr.wikipedia.org/wiki/"));
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("https://fr.wikipedia.org/wiki/Wikipédia:Accueil_principal")
+						.setIncludePatterns("https://fr.wikipedia.org/wiki/"));
 
 		String host = SDKPasswords.testSmbServer();
 		String share = SDKPasswords.testSmbShare();
@@ -189,15 +189,15 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
 
-															   .setCode("zeConnectorCode")
-															   .setEnabled(true)
-															   .setSeeds(asList(host + share))
-															   .setUsername(username)
-															   .setPassword(password)
-															   .setDomain(domain)
-															   .setInclusions(Arrays.asList("smb://127.0.0.1/"))
-															   .setExclusions(new ArrayList<String>())
-															   .setTitle("zeConnectorTitle"));
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(asList(host + share))
+				.setUsername(username)
+				.setPassword(password)
+				.setDomain(domain)
+				.setInclusions(Arrays.asList("smb://127.0.0.1/"))
+				.setExclusions(new ArrayList<String>())
+				.setTitle("zeConnectorTitle"));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -215,15 +215,15 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorLDAPInstance()
-								   .setNumberOfJobsInParallel(15)
-								   .setNumberOfJobsInParallel(30)
-								   .setUrls(LDAPTestConfig.getUrls())
-								   .setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
-								   .setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
-								   .setPassword(LDAPTestConfig.getPassword())
-								   .setCode("ldap")
-								   .setTitle("users")
-								   .setEnabled(true)
+						.setNumberOfJobsInParallel(15)
+						.setNumberOfJobsInParallel(30)
+						.setUrls(LDAPTestConfig.getUrls())
+						.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
+						.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
+						.setPassword(LDAPTestConfig.getPassword())
+						.setCode("ldap")
+						.setTitle("users")
+						.setEnabled(true)
 				);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
@@ -245,12 +245,12 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("wikipedia")
-								   .setTitle("Wikipedia")
-								   .setEnabled(true)
-								   .setDocumentsPerJobs(15)
-								   .setNumberOfJobsInParallel(30)
-								   .setSeeds("http://localhost:4242/index.html"));
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setDocumentsPerJobs(15)
+						.setNumberOfJobsInParallel(30)
+						.setSeeds("http://localhost:4242/index.html"));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -271,11 +271,11 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("wikipedia")
-								   .setTitle("Wikipedia")
-								   .setEnabled(true)
-								   .setSeeds("http://localhost:4242/index.html")
-								   .setIncludePatterns("http://localhost:4242/"));
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("http://localhost:4242/index.html")
+						.setIncludePatterns("http://localhost:4242/"));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -300,15 +300,15 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
 
-															   .setCode("zeConnectorCode")
-															   .setEnabled(true)
-															   .setSeeds(asList(host + share))
-															   .setUsername(username)
-															   .setPassword(password)
-															   .setDomain(domain)
-															   .setInclusions(Arrays.asList("smb://127.0.0.1/"))
-															   .setExclusions(new ArrayList<String>())
-															   .setTitle("zeConnectorTitle"));
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(asList(host + share))
+				.setUsername(username)
+				.setPassword(password)
+				.setDomain(domain)
+				.setInclusions(Arrays.asList("smb://127.0.0.1/"))
+				.setExclusions(new ArrayList<String>())
+				.setTitle("zeConnectorTitle"));
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -382,19 +382,19 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 	private void configureConnectorsInstances() {
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("zeConnector")
-								   .setTitle("Ze Connector")
-								   .setTraversalCode("traversalCode")
-								   .setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("zeConnector")
+						.setTitle("Ze Connector")
+						.setTraversalCode("traversalCode")
+						.setEnabled(true)
+						.setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("anotherConnector")
-								   .setTitle("Another Connector")
-								   .setTraversalCode("anotherTraversalCode")
-								   .setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("anotherConnector")
+						.setTitle("Another Connector")
+						.setTraversalCode("anotherTraversalCode")
+						.setEnabled(true)
+						.setSeeds("http://constellio.com"));
 	}
 }
 

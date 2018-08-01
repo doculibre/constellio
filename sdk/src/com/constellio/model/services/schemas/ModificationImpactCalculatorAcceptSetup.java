@@ -34,7 +34,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		MetadataBuilder dateMetadata = zeDefaultSchemaBuilder.create("dateTimeMetadata").setType(DATE_TIME);
 
 		anOtherDefaultSchemaBuilder.create("reference1ToZeSchema")
-								   .defineReferencesTo(zeSchemaTypeBuilder);
+				.defineReferencesTo(zeSchemaTypeBuilder);
 
 		MetadataBuilder anotherSchemaReference2ToZeSchema = anOtherDefaultSchemaBuilder
 				.create("reference2ToZeSchema").defineReferencesTo(zeSchemaTypeBuilder);
@@ -43,20 +43,20 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 				"referenceToZeSchema").defineReferencesTo(zeSchemaTypeBuilder);
 
 		anOtherDefaultSchemaBuilder.create("calculatedNumberMetadata")
-								   .setType(NUMBER).defineDataEntry()
-								   .asCalculated(CalculatorUsingZeSchemaStringMetadata.class);
+				.setType(NUMBER).defineDataEntry()
+				.asCalculated(CalculatorUsingZeSchemaStringMetadata.class);
 
 		aThirdSchemaTypeBuilder.getDefaultSchema().create("copiedDate")
-							   .setType(DATE_TIME).defineDataEntry().asCopied(aThirdSchemaReferenceToZeSchema, dateMetadata);
+				.setType(DATE_TIME).defineDataEntry().asCopied(aThirdSchemaReferenceToZeSchema, dateMetadata);
 
 		aThirdSchemaTypeBuilder.createCustomSchema("custom1").create("custom1CopiedDate")
-							   .setType(DATE_TIME).defineDataEntry().asCopied(aThirdSchemaReferenceToZeSchema, dateMetadata);
+				.setType(DATE_TIME).defineDataEntry().asCopied(aThirdSchemaReferenceToZeSchema, dateMetadata);
 
 		aThirdSchemaTypeBuilder.createCustomSchema("custom2").create("custom2CopiedDate")
-							   .setType(DATE_TIME).defineDataEntry().asCopied(aThirdSchemaReferenceToZeSchema, dateMetadata);
+				.setType(DATE_TIME).defineDataEntry().asCopied(aThirdSchemaReferenceToZeSchema, dateMetadata);
 
 		anOtherDefaultSchemaBuilder.create("copiedDateMetadata").setType(DATE_TIME).defineDataEntry()
-								   .asCopied(anotherSchemaReference2ToZeSchema, dateMetadata);
+				.asCopied(anotherSchemaReference2ToZeSchema, dateMetadata);
 
 		return this;
 	}
@@ -67,7 +67,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		withAReferenceFromAnotherSchemaToZeSchema();
 
 		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(mode)
-															.defineDataEntry().asCalculated(TitleLengthCalculator.class);
+				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("copiedTitleLength").setType(NUMBER).defineDataEntry().asCopied(
 				anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema"), titleLength);
@@ -82,10 +82,10 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		withAReferenceFromAnotherSchemaToZeSchema();
 
 		zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).defineDataEntry().asCalculated(TitleLengthCalculator.class)
-							  .setTransiency(mode);
+				.setTransiency(mode);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("calculatedTitleLength").setType(NUMBER).defineDataEntry()
-								.asCalculated(CalculatorCopyingZeSchemaTitleLengthPlusTwo.class);
+				.asCalculated(CalculatorCopyingZeSchemaTitleLengthPlusTwo.class);
 
 		return this;
 	}
@@ -93,11 +93,11 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 	public ModificationImpactCalculatorAcceptSetup withTaxonomyOfZeSchemaAndAnotherSchemaTypes() {
 
 		MetadataBuilder zeSchemaParent = zeSchemaTypeBuilder.getDefaultSchema().create("zeSchemaParent")
-															.defineReferencesTo(zeSchemaTypeBuilder);
+				.defineReferencesTo(zeSchemaTypeBuilder);
 		MetadataBuilder anotherSchemaAnotherSchemaParent = zeSchemaTypeBuilder.getDefaultSchema()
-																			  .create("anotherSchemaAnotherSchemaParent").defineReferencesTo(anOtherSchemaTypeBuilder);
+				.create("anotherSchemaAnotherSchemaParent").defineReferencesTo(anOtherSchemaTypeBuilder);
 		MetadataBuilder anotherSchemaZeSchemaParent = anOtherSchemaTypeBuilder.getDefaultSchema()
-																			  .create("anotherSchemaZeSchemaParent").defineReferencesTo(zeSchemaTypeBuilder);
+				.create("anotherSchemaZeSchemaParent").defineReferencesTo(zeSchemaTypeBuilder);
 
 		List<String> relations = Arrays.asList(zeSchemaParent.getCode(),
 				anotherSchemaAnotherSchemaParent.getCode(), anotherSchemaZeSchemaParent.getCode());
@@ -223,7 +223,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING);
 		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setTransiency(TRANSIENT_LAZY)
-								.defineDataEntry().asCalculated(ZeReferenceToZeSchemaCalculator.class);
+				.defineDataEntry().asCalculated(ZeReferenceToZeSchemaCalculator.class);
 
 		return this;
 	}
@@ -235,15 +235,15 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		withAReferenceFromAnotherSchemaToZeSchema();
 
 		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(transiency)
-															.defineDataEntry().asCalculated(TitleLengthCalculator.class);
+				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("copiedTitleLength").setType(NUMBER).setMultivalue(true)
-								.defineDataEntry()
-								.asCopied(anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema"), titleLength);
+				.defineDataEntry()
+				.asCopied(anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema"), titleLength);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING).setMultivalue(true);
 		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setMultivalue(true)
-								.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
+				.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
 
 		return this;
 	}
@@ -255,15 +255,15 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		withAReferenceFromAnotherSchemaToZeSchema();
 
 		MetadataBuilder titleLength = zeDefaultSchemaBuilder.create("titleLength").setType(NUMBER).setTransiency(transiency)
-															.defineDataEntry().asCalculated(TitleLengthCalculator.class);
+				.defineDataEntry().asCalculated(TitleLengthCalculator.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("calculatedTitleLength").setType(NUMBER).setMultivalue(true)
-								.defineDataEntry()
-								.asCalculated(CalculatorCopyingZeSchemaTitleLengths.class);
+				.defineDataEntry()
+				.asCalculated(CalculatorCopyingZeSchemaTitleLengths.class);
 
 		anOtherSchemaTypeBuilder.getDefaultSchema().create("aString").setType(STRING).setMultivalue(true);
 		anOtherSchemaTypeBuilder.getDefaultSchema().get("referenceFromAnotherSchemaToZeSchema").setMultivalue(true)
-								.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
+				.setTransiency(transiency).defineDataEntry().asCalculated(MultivalueZeReferenceToZeSchemaCalculator.class);
 
 		return this;
 	}
@@ -366,7 +366,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 	public static class MultivalueZeReferenceToZeSchemaCalculator implements MetadataValueCalculator<List<String>> {
 
 		LocalDependency<List<String>> aStringDependency = LocalDependency.toAString("aString").whichIsRequired()
-																		 .whichIsMultivalue();
+				.whichIsMultivalue();
 
 		@Override
 		public List<String> calculate(CalculatorParameters parameters) {

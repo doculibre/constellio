@@ -83,15 +83,15 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB, complementaryPluginDependentOfModuleAB,
 				complementaryPluginWithoutDependencies,
 				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManagerOfAnotherInstance)
-																	  .getRegistredModulesAndActivePlugins();
+				.getRegistredModulesAndActivePlugins();
 
 		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB)).when(pluginManagerOfAnotherInstance)
-																		.getRegisteredModules();
+				.getRegisteredModules();
 
 		doReturn(Arrays.asList(complementaryPluginDependentOfModuleAB,
 				complementaryPluginWithoutDependencies,
 				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManagerOfAnotherInstance)
-																	  .getActivePluginModules();
+				.getActivePluginModules();
 
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 		manager = (ConstellioModulesManagerImpl) getAppLayerFactory().getModulesManager();
@@ -335,13 +335,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.enableValidModuleAndGetInvalidOnes(zeCollection, moduleC);
 
 		inOrder.verify(moduleBMigrationScript111)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleCMigrationScript111)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleBMigrationScript112)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleCMigrationScript112)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 	}
 
 	@Test
@@ -360,13 +360,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.enableValidModuleAndGetInvalidOnes("zeCollection", moduleC);
 
 		inOrder.verify(moduleBMigrationScript111)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleBMigrationScript112)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleCMigrationScript111)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleCMigrationScript112)
-			   .migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 	}
 
 	@Test
@@ -400,9 +400,9 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.installValidModuleAndGetInvalidOnes(moduleA, collectionsListManager);
 
 		inOrder.verify(moduleAMigrationScript111, never())
-			   .migrate(anyString(), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(anyString(), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleAMigrationScript112, never())
-			   .migrate(anyString(), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+				.migrate(anyString(), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		assertThat(manager.getAllModules()).contains(moduleA, moduleB);
 		assertThat(manager.getModulesAvailableForInstallation()).contains(moduleB);
 		assertThat(manager.getEnabledModules(zeCollection)).isEmpty();

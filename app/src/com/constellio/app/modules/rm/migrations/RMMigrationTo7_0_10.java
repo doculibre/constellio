@@ -34,9 +34,9 @@ public class RMMigrationTo7_0_10 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
-						.defineDataEntry().asCalculated(FolderAutocompleteFieldCalculator.class);
+					.defineDataEntry().asCalculated(FolderAutocompleteFieldCalculator.class);
 			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
-						.defineDataEntry().asCalculated(DocumentAutocompleteFieldCalculator.class);
+					.defineDataEntry().asCalculated(DocumentAutocompleteFieldCalculator.class);
 		}
 	}
 

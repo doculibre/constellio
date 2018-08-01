@@ -52,7 +52,7 @@ public class RMModulePageExtension extends PageExtension {
 		} else if (restrictedRecord.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
 			return ExtensionBooleanResult
 					.trueIf(user.hasAny(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.SHARE_DOCUMENT)
-								.on(restrictedRecord));
+							.on(restrictedRecord));
 
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;

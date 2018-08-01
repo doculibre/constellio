@@ -78,13 +78,13 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder folderSchemaBuilder = types.getDefaultSchema(Folder.SCHEMA_TYPE);
 				folderSchemaBuilder.getMetadata(Folder.EXPECTED_TRANSFER_DATE).defineDataEntry()
-								   .asCalculated(FolderExpectedTransferDateCalculator2.class);
+						.asCalculated(FolderExpectedTransferDateCalculator2.class);
 				folderSchemaBuilder.getMetadata(Folder.EXPECTED_DEPOSIT_DATE).defineDataEntry()
-								   .asCalculated(FolderExpectedDepositDateCalculator2.class);
+						.asCalculated(FolderExpectedDepositDateCalculator2.class);
 				folderSchemaBuilder.getMetadata(Folder.EXPECTED_DESTRUCTION_DATE).defineDataEntry()
-								   .asCalculated(FolderExpectedDestructionDateCalculator2.class);
+						.asCalculated(FolderExpectedDestructionDateCalculator2.class);
 				folderSchemaBuilder.getMetadata(Folder.ARCHIVISTIC_STATUS).defineDataEntry()
-								   .asCalculated(FolderArchivisticStatusCalculator2.class);
+						.asCalculated(FolderArchivisticStatusCalculator2.class);
 
 			}
 		});
@@ -108,12 +108,12 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 
 		private void createFolderTimeRangeMetadata(MetadataSchemaBuilder folderDefaultSchema) {
 			folderDefaultSchema.create(Folder.TIME_RANGE).setType(STRING)
-							   .setInputMask("9999-9999").setEnabled(false);
+					.setInputMask("9999-9999").setEnabled(false);
 		}
 
 		private void createArchivisticManualMetadata(MetadataSchemaBuilder folderDefaultSchema) {
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_ARCHIVISTIC_STATUS).setType(ENUM).defineAsEnum(FolderStatus.class)
-							   .setEnabled(false);
+					.setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DEPOSIT_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_TRANSFER_DATE).setType(DATE).setEnabled(false);
@@ -138,10 +138,10 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 										   String collection,
 										   AppLayerFactory appLayerFactory) {
 			MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory()
-																  .getMetadataSchemasManager();
+					.getMetadataSchemasManager();
 			try {
 				final Metadata metadata = schemaManager.getSchemaTypes(collection).getDefaultSchema(schemaTypeCode)
-													   .getMetadata(metadataLocalCode);
+						.getMetadata(metadataLocalCode);
 				schemaManager.modify(collection, new MetadataSchemaTypesAlteration() {
 							@Override
 							public void alter(MetadataSchemaTypesBuilder types) {
@@ -160,7 +160,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 										   String collection,
 										   AppLayerFactory appLayerFactory) {
 			MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory()
-																  .getMetadataSchemasManager();
+					.getMetadataSchemasManager();
 			schemaManager.modify(collection, new MetadataSchemaTypesAlteration() {
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
@@ -176,13 +176,13 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		public static boolean isUsed(String metadataLocalCode, String schemaTypeCode, String collection,
 									 AppLayerFactory appLayerFactory) {
 			MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory()
-																  .getMetadataSchemasManager();
+					.getMetadataSchemasManager();
 			MetadataSchemaTypes types = schemaManager.getSchemaTypes(collection);
 			try {
 				Metadata metadata = types.getDefaultSchema(schemaTypeCode)
-										 .getMetadata(metadataLocalCode);
+						.getMetadata(metadataLocalCode);
 				LogicalSearchCondition query = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode))
-																		  .where(metadata).isNotNull();
+						.where(metadata).isNotNull();
 				SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 				return searchServices.hasResults(new LogicalSearchQuery(query));
 			} catch (MetadataSchemasRuntimeException.NoSuchSchemaType | MetadataSchemasRuntimeException.NoSuchMetadata e) {

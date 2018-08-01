@@ -15,7 +15,7 @@ import static java.util.Arrays.asList;
 
 public class TaskNextReminderOnCalculator implements MetadataValueCalculator<LocalDate> {
 	LocalDependency<List<TaskReminder>> remindersLocalDependency = LocalDependency.toAStructure(Task.REMINDERS)
-																				  .whichIsMultivalue().whichIsRequired();
+			.whichIsMultivalue().whichIsRequired();
 	LocalDependency<LocalDate> startDateLocalDependency = LocalDependency.toADate(Task.START_DATE);
 	LocalDependency<LocalDate> endDateLocalDependency = LocalDependency.toADate(Task.DUE_DATE);
 

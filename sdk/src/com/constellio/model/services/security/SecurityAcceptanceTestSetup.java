@@ -132,13 +132,13 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		folderType.getDefaultSchema().create("parent").defineChildOfRelationshipToType(folderType);
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(category);
 		folderType.getDefaultSchema().create("taxonomy2")
-				  .defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
+				.defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
 		folderType.getDefaultSchema().create("linkToOtherFolders").setMultivalue(true).defineReferencesTo(folderType);
 		folderType.getDefaultSchema().create("linkToOtherFolder").setMultivalue(false).defineReferencesTo(folderType);
 		folderType.getDefaultSchema().create("firstReference").defineReferencesTo(folderTypeType)
-				  .setRelationshipProvidingSecurity(true);
+				.setRelationshipProvidingSecurity(true);
 		folderType.getDefaultSchema().create("secondReference").defineReferencesTo(folderTypeType)
-				  .setRelationshipProvidingSecurity(true);
+				.setRelationshipProvidingSecurity(true);
 		folderType.getDefaultSchema().create("thirdReference").defineReferencesTo(folderTypeType);
 
 	}

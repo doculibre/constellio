@@ -210,7 +210,7 @@ public class TaskPresenterServices {
 
 		List<Record> tasksSearchServices = searchServices.search(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(tasksSchemas.taskSchemaType())
-										   .where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
+						.where(tasksSchemas.userTask.parentTask()).isEqualTo(id)));
 
 		boolean isSubTaskWithRequiredStatusFound = false;
 
@@ -289,6 +289,6 @@ public class TaskPresenterServices {
 		}
 		Task task = tasksSchemas.getTask(record.getId());
 		return task.getAssignee() == null && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates()
-																							   .isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
+				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
 	}
 }

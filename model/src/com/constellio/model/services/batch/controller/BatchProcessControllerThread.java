@@ -261,10 +261,10 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			String userId = user != null ? user.getId() : null;
 			try {
 				MetadataSchema batchProcessReportSchema = schemasManager.getSchemaTypes(collection)
-																		.getSchema(BatchProcessReport.FULL_SCHEMA);
+						.getSchema(BatchProcessReport.FULL_SCHEMA);
 				Record reportRecord = searchServices.searchSingleResult(LogicalSearchQueryOperators.from(batchProcessReportSchema)
-																								   .where(batchProcessReportSchema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS))
-																								   .isEqualTo(batchProcess.getId()));
+						.where(batchProcessReportSchema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS))
+						.isEqualTo(batchProcess.getId()));
 				if (reportRecord != null) {
 					report = new BatchProcessReport(reportRecord, schemasManager.getSchemaTypes(collection));
 				} else {

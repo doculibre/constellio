@@ -59,7 +59,7 @@ public class EventService implements Runnable {
 
 	public LocalDateTime getDeletetionDateCutOff() {
 		Integer periodInMonth = modelayerFactory.getSystemConfigurationsManager()
-												.getValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH);
+				.getValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH);
 		LocalDateTime nowLocalDateTime = TimeProvider.getLocalDateTime();
 		nowLocalDateTime = nowLocalDateTime.withSecondOfMinute(0).withHourOfDay(0).withMillisOfSecond(0).withMinuteOfHour(0);
 		LocalDateTime cutoffLocalDateTime;
@@ -72,7 +72,7 @@ public class EventService implements Runnable {
 
 	public LocalDateTime getLastDayTimeArchived() {
 		String dateTimeAsString = modelayerFactory.getSystemConfigurationsManager()
-												  .getValue(ConstellioEIMConfigs.LAST_BACKUP_DAY);
+				.getValue(ConstellioEIMConfigs.LAST_BACKUP_DAY);
 		LocalDateTime dateTime = null;
 
 		if (dateTimeAsString != null) {
@@ -118,7 +118,7 @@ public class EventService implements Runnable {
 
 				zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
 				modelayerFactory.getContentManager()
-								.getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
+						.getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
 			}
 		} catch (XMLStreamException e) {
 			throw new RuntimeException("Error while closing the Event writer outputStream. File : " + fileName, e);
@@ -246,9 +246,9 @@ public class EventService implements Runnable {
 	public LogicalSearchQuery getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery() {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
 		LogicalSearchCondition logicalSearchCondition = fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA)
-																						 .isStartingWithText("event_")
-																						 .andWhere(Schemas.CREATED_ON).isGreaterThan(getLastDayTimeArchived()).andWhere(Schemas.CREATED_ON)
-																						 .isLessThan(getArchivedUntilLocalDate());
+				.isStartingWithText("event_")
+				.andWhere(Schemas.CREATED_ON).isGreaterThan(getLastDayTimeArchived()).andWhere(Schemas.CREATED_ON)
+				.isLessThan(getArchivedUntilLocalDate());
 		logicalSearchQuery.setCondition(logicalSearchCondition);
 		logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
 		return logicalSearchQuery;

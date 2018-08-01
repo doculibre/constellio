@@ -242,7 +242,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		Record record = searchServices
 				.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
-															   .where(Schemas.IDENTIFIER).isEqualTo(recordId));
+						.where(Schemas.IDENTIFIER).isEqualTo(recordId));
 		String schemaTypeCode = record == null ? null : record.getTypeCode();
 		if (selected) {
 			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);

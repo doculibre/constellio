@@ -69,8 +69,8 @@ public class DocumentRestfulService {
 
 		DocumentContentDto documentContentDto = documentService.getContent(host, id, serviceKey, method, date, expiration, version, signature);
 		return Response.ok(documentContentDto.getContent(), documentContentDto.getMimeType())
-					   .header("Content-Disposition", "attachment; filename=\"" + documentContentDto.getFilename() + "\"")
-					   .build();
+				.header("Content-Disposition", "attachment; filename=\"" + documentContentDto.getFilename() + "\"")
+				.build();
 	}
 
 	@GET

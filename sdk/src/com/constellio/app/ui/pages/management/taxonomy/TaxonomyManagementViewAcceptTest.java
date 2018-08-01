@@ -25,7 +25,7 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -52,9 +52,9 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("X100", "X13");
 
 		taxoManagementWebElement.add()
-								.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEW")
-								.setValue(Category.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode(), "New category")
-								.clickSaveButtonAndWaitForPageReload();
+				.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEW")
+				.setValue(Category.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode(), "New category")
+				.clickSaveButtonAndWaitForPageReload();
 
 		assertThat(taxoManagementWebElement.getCurrentConceptCode()).isEqualTo("X");
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("X100", "X13", "NEW");
@@ -65,8 +65,8 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		assertThat(taxoManagementWebElement.getCurrentConceptTitle()).isEqualTo("New category");
 
 		taxoManagementWebElement.add()
-								.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEWER")
-								.clickCancelButtonAndWaitForPageReload();
+				.setValue(Category.DEFAULT_SCHEMA + "_" + Category.CODE, "NEWER")
+				.clickCancelButtonAndWaitForPageReload();
 
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).isEmpty();
 	}

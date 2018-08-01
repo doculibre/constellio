@@ -61,7 +61,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder fixedDateReminder = new TaskReminder().setFixedDate(now.plusDays(1))
-														   .setProcessed(true);
+				.setProcessed(true);
 		reminders.add(fixedDateReminder);
 
 		assertThat(calculate()).isNull();
@@ -94,7 +94,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder reminderWithTodayDate = new TaskReminder().setFixedDate(now)
-															   .setProcessed(true);
+				.setProcessed(true);
 		reminders.add(reminderWithTodayDate);
 		TaskReminder reminderWithTomorrowDate = new TaskReminder().setFixedDate(now.plusDays(1));
 		reminders.add(reminderWithTomorrowDate);
@@ -107,7 +107,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(2)
-													  .setRelativeDateMetadataCode(Task.DUE_DATE);
+				.setRelativeDateMetadataCode(Task.DUE_DATE);
 		reminders.add(taskReminder);
 
 		assertThat(calculate()).isEqualTo(endDate.plusDays(2));
@@ -118,7 +118,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 			throws Exception {
 		reminders = new ArrayList<>();
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(3)
-													  .setRelativeDateMetadataCode(Task.START_DATE);
+				.setRelativeDateMetadataCode(Task.START_DATE);
 		reminders.add(taskReminder);
 
 		assertThat(calculate()).isEqualTo(startDate.minusDays(3));

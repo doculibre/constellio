@@ -269,7 +269,7 @@ public abstract class GenericConnector extends DefaultAbstractConnector {
 					this.allObjectsToRemoveConstellioIds.add(documentInfo.getConstellioRecordId());
 				} else {
 					LocalDateTime documentExpirationTime = documentInfo.getLastFetch()
-																	   .plus(connectorInstance.getMaxDurationBetweenTraversals());
+							.plus(connectorInstance.getMaxDurationBetweenTraversals());
 					if (documentExpirationTime.isBefore(traversalStart) || documentExpirationTime.equals(traversalStart)) {
 						this.allObjectsToUpdate.add(remoteId);
 					}

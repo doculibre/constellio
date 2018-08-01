@@ -156,7 +156,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions()
-																 .forCollection(collection);
+				.forCollection(collection);
 		extensions.moduleExtensionsMap.put(ID, new ESModuleExtensions());
 		extensions.taxonomyAccessExtensions.add(new ESTaxonomyPageExtension(collection));
 		extensions.recordAppExtensions.add(new ESRecordAppExtension(collection, appLayerFactory));
@@ -169,12 +169,12 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		ModelLayerCollectionExtensions extensions = appLayerFactory.getModelLayerFactory()
-																   .getExtensions()
-																   .forCollection(collection);
+				.getExtensions()
+				.forCollection(collection);
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches()
-													 .getCache(collection);
+				.getCache(collection);
 
 		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
 		recordsCache.configureCache(CacheConfig.permanentCache(es.connectorInstance.schemaType()));

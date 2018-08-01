@@ -140,7 +140,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 		assertThat(types().getMetadata(schemaVo.getCode() + "_" + Email.DESCRIPTION).getPopulateConfigs().getRegexes())
 				.hasSize(1);
 		RegexConfig regexConfig = types().getMetadata(schemaVo.getCode() + "_" + Email.DESCRIPTION).getPopulateConfigs()
-										 .getRegexes().get(0);
+				.getRegexes().get(0);
 		assertThat(regexConfig.getInputMetadata()).isEqualTo(regexConfigVO.getInputMetadata());
 		assertThat(regexConfig.getValue()).isEqualTo(regexConfigVO.getValue());
 		assertThat(regexConfig.getRegex().toString()).isEqualTo(Pattern.compile(regexConfigVO.getRegex()).toString());
@@ -180,7 +180,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 		presenter.forParams(metadataCode);
 
 		assertThat(presenter.getMetadataVOsForRegexes(Document.DEFAULT_SCHEMA, presenter.getMetadataVO())).extracting("code")
-																										  .doesNotContain(metadataCode);
+				.doesNotContain(metadataCode);
 
 	}
 

@@ -69,7 +69,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 		List<Language> valueLanguageError = canAlterOrCreateLabels(newLabel, oldValue);
 		if (valueLanguageError != null && valueLanguageError.size() == 0) {
 			MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = modelLayerFactory.getMetadataSchemasManager()
-																					 .modify(view.getCollection());
+					.modify(view.getCollection());
 
 			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).setLabels(newLabel);
 			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).getDefaultSchema().setLabels(newLabel);

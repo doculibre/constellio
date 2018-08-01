@@ -558,8 +558,8 @@ public class TestUtils {
 
 		private Object getMetadataValue(Record record, String metadataLocalCode) {
 			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
-													   .getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
-													   .getSchema(((Record) record).getSchemaCode());
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
 			Metadata metadata = schema.getMetadata(metadataLocalCode);
 			if (metadata.isMultivalue()) {
 				return record.getList(metadata);
@@ -592,7 +592,7 @@ public class TestUtils {
 
 					if (refMetadata != null && objects[i] != null) {
 						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-																	 .getDocumentById((String) objects[i]);
+								.getDocumentById((String) objects[i]);
 						objects[i] = getMetadataValue(referencedRecord, refMetadata);
 					}
 				}
@@ -609,7 +609,7 @@ public class TestUtils {
 
 					if (refMetadata != null && objects[i] != null) {
 						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-																	 .getDocumentById((String) objects[i]);
+								.getDocumentById((String) objects[i]);
 						objects[i] = getMetadataValue(referencedRecord, refMetadata);
 					}
 				}
@@ -658,8 +658,8 @@ public class TestUtils {
 
 		private Object getMetadataValue(Record record, String metadataLocalCode) {
 			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
-													   .getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
-													   .getSchema(((Record) record).getSchemaCode());
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
 			Metadata metadata = schema.getMetadata(metadataLocalCode);
 			if (metadata.isMultivalue()) {
 				return record.getList(metadata, locale, mode);
@@ -698,7 +698,7 @@ public class TestUtils {
 
 						if (refMetadata != null && objects[i] != null) {
 							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-																		 .getDocumentById((String) objects[i]);
+									.getDocumentById((String) objects[i]);
 							objects[i] = getMetadataValue(referencedRecord, refMetadata);
 						}
 					}
@@ -717,14 +717,14 @@ public class TestUtils {
 							if (objects[i] instanceof String) {
 
 								Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
-																			 .newRecordServices().getDocumentById((String) objects[i]);
+										.newRecordServices().getDocumentById((String) objects[i]);
 								objects[i] = getMetadataValue(referencedRecord, refMetadata);
 							} else if (objects[i] instanceof List) {
 								List<Object> referencedMetas = new ArrayList<>();
 
 								for (String id : (List<String>) objects[i]) {
 									Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
-																				 .newRecordServices().getDocumentById(id);
+											.newRecordServices().getDocumentById(id);
 									referencedMetas.add(getMetadataValue(referencedRecord, refMetadata));
 								}
 
@@ -781,7 +781,7 @@ public class TestUtils {
 				@Override
 				public boolean matches(RecordWrapper value) {
 					assertThat((Object) actual.getWrappedRecord().get(metadata)).as((metadata.getCode()))
-																				.isEqualTo(expectedValue);
+							.isEqualTo(expectedValue);
 					return true;
 				}
 			});
@@ -821,8 +821,8 @@ public class TestUtils {
 
 		private Object getMetadataValue(Record record, String metadataLocalCode) {
 			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
-													   .getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
-													   .getSchema(((Record) record).getSchemaCode());
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
 			Metadata metadata = schema.getMetadata(metadataLocalCode);
 			if (metadata.isMultivalue()) {
 				return record.getList(metadata);
@@ -847,7 +847,7 @@ public class TestUtils {
 
 					if (refMetadata != null && objects[i] != null) {
 						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-																	 .getDocumentById((String) objects[i]);
+								.getDocumentById((String) objects[i]);
 						objects[i] = getMetadataValue(referencedRecord, refMetadata);
 					}
 				}
@@ -865,14 +865,14 @@ public class TestUtils {
 					if (refMetadata != null && objects[i] != null) {
 						if (objects[i] instanceof String) {
 							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
-																		 .getDocumentById((String) objects[i]);
+									.getDocumentById((String) objects[i]);
 							objects[i] = getMetadataValue(referencedRecord, refMetadata);
 						} else if (objects[i] instanceof List) {
 							List<Object> values = new ArrayList<>();
 							for (Object ref : (List) objects[i]) {
 								Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory()
-																			 .newRecordServices()
-																			 .getDocumentById((String) ref);
+										.newRecordServices()
+										.getDocumentById((String) ref);
 								values.add(getMetadataValue(referencedRecord, refMetadata));
 							}
 							objects[i] = values;
@@ -1041,7 +1041,7 @@ public class TestUtils {
 		SearchServices searchServices = ConstellioFactories.getInstance().getModelLayerFactory().newSearchServices();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaShortcuts.code());
 		MetadataSchemaType type = ConstellioFactories.getInstance().getModelLayerFactory().getMetadataSchemasManager()
-													 .getSchemaTypes(schemaShortcuts.collection()).getSchemaType(schemaTypeCode);
+				.getSchemaTypes(schemaShortcuts.collection()).getSchemaType(schemaTypeCode);
 
 		return assertThatRecords(searchServices.search(query(from(type).returnAll())));
 	}

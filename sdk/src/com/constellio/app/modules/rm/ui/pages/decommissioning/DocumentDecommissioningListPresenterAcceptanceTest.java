@@ -45,7 +45,7 @@ public class DocumentDecommissioningListPresenterAcceptanceTest extends Constell
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records).withDocumentsHavingContent()
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -73,7 +73,7 @@ public class DocumentDecommissioningListPresenterAcceptanceTest extends Constell
 	@Test
 	public void givenDecommissioningListThenCalculateGoodSearchType() {
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-						   .setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER);
+				.setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER);
 		assertThat(presenter.calculateSearchType()).isEqualTo(SearchType.documentTransfer);
 
 		decommissioningList.setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_DEPOSIT);
@@ -83,7 +83,7 @@ public class DocumentDecommissioningListPresenterAcceptanceTest extends Constell
 		assertThat(presenter.calculateSearchType()).isEqualTo(SearchType.documentActiveToDestroy);
 
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-						   .setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_DEPOSIT);
+				.setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_DEPOSIT);
 		assertThat(presenter.calculateSearchType()).isEqualTo(SearchType.documentSemiActiveToDeposit);
 
 		decommissioningList.setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_DESTROY);
@@ -106,8 +106,8 @@ public class DocumentDecommissioningListPresenterAcceptanceTest extends Constell
 
 	private DecommissioningList buildDefaultDecommissioningList() {
 		return rm.newDecommissioningListWithId("decomTest").setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				 .setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER)
-				 .addDocuments(records.document_A19, records.document_A49, records.document_A79, records.document_B30);
+				.setDecommissioningListType(DecommissioningListType.DOCUMENTS_TO_TRANSFER)
+				.addDocuments(records.document_A19, records.document_A49, records.document_A79, records.document_B30);
 	}
 
 	private HashMap<Integer, Boolean> buildSelectedMap(boolean... selected) {

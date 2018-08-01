@@ -121,12 +121,12 @@ public class SchemaServicesClient {
 
 	private Builder requestJson(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request(MediaType.APPLICATION_JSON_TYPE)
-										 .header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+				.header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder request(String service, Map<String, String> queryParams) {
 		return path(service, queryParams).request(MediaType.TEXT_PLAIN).header(AdminServicesConstants.AUTH_TOKEN, token)
-										 .header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+				.header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private WebTarget path(String service, Map<String, String> queryParams) {

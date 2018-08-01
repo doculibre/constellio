@@ -109,7 +109,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		String bobId = users.bobIn(zeCollection).getId();
 		String aliceId = users.aliceIn(zeCollection).getId();
 		Task zeTask = tasksSchemas.newTask().setTitle("zeTask").setAssignee(aliceId).setAssignationDate(shishDate.minusDays(1))
-								  .setAssigner(bobId);
+				.setAssigner(bobId);
 
 		RecordVO taskVO = new RecordToVOBuilder().build(zeTask.getWrappedRecord(), FORM, sessionContext);
 		presenter.saveButtonClicked(taskVO);
@@ -127,7 +127,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		String bobId = users.bobIn(zeCollection).getId();
 		String aliceId = users.aliceIn(zeCollection).getId();
 		Task zeTask = tasksSchemas.newTask().setTitle("zeTask").setAssignee(aliceId).setAssignationDate(shishDate.minusDays(1))
-								  .setAssigner(bobId);
+				.setAssigner(bobId);
 		recordServices.add(zeTask);
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 
@@ -183,7 +183,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		return tasksSchemas
 				.wrapUser(searchServices.searchSingleResult(
 						from(tasksSchemas.userSchema()).where(tasksSchemas.userSchema().getMetadata(User.USERNAME))
-													   .isEqualTo(sessionContext.getCurrentUser().getUsername()))).getId();
+								.isEqualTo(sessionContext.getCurrentUser().getUsername()))).getId();
 	}
 
 }

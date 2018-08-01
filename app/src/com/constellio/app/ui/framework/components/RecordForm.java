@@ -63,8 +63,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	private static boolean isVisibleField(MetadataVO metadataVO, RecordVO recordVO) {
 		return ConstellioFactories.getInstance().getAppLayerFactory().getExtensions()
-								  .forCollection(recordVO.getSchema().getCollection())
-								  .isMetadataEnabledInRecordForm(recordVO, metadataVO);
+				.forCollection(recordVO.getSchema().getCollection())
+				.isMetadataEnabledInRecordForm(recordVO, metadataVO);
 	}
 
 	protected RecordFieldFactory getFormFieldFactory() {
@@ -116,7 +116,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		for (ValidationError validationError : validationErrors.getValidationErrors()) {
 			String errorMessage = $(validationError);
 			Object metadataCode = validationError.getParameters()
-												 .get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
+					.get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
 			if (metadataCode != null) {
 				MetadataVO metadata = viewObject.getMetadataOrNull((String) metadataCode);
 				if (metadata != null) {

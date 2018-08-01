@@ -31,21 +31,21 @@ public class SmbRecordTreeNodesDataProviderAcceptanceTest extends ConstellioTest
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		connectorInstance = es.newConnectorSmbInstance()
-							  .setDomain(SmbTestParams.DOMAIN)
-							  .setUsername(SmbTestParams.USERNAME)
-							  .setPassword(SmbTestParams.PASSWORD)
-							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-							  .setCode(SmbTestParams.INSTANCE_CODE)
-							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-							  .setExclusions(asList(""))
-							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
+				.setDomain(SmbTestParams.DOMAIN)
+				.setUsername(SmbTestParams.USERNAME)
+				.setPassword(SmbTestParams.PASSWORD)
+				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+				.setCode(SmbTestParams.INSTANCE_CODE)
+				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+				.setExclusions(asList(""))
+				.setTitle(SmbTestParams.CONNECTOR_TITLE);
 
 		recordService.update(connectorInstance);
 		recordService.flush();
 
 		es.getConnectorManager()
-		  .createConnector(connectorInstance);
+				.createConnector(connectorInstance);
 
 		ConnectorSmbFolder connectorSmbFolder1 = es.newConnectorSmbFolder(connectorInstance).setUrl("smb://127.0.0.1/share/folerTest1");
 		ConnectorSmbFolder connectorSmbFolder2 = es.newConnectorSmbFolder(connectorInstance).setUrl("smb://127.0.0.1/share/folderTest2");

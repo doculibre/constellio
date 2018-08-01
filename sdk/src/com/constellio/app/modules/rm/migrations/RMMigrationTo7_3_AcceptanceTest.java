@@ -89,7 +89,7 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 		rm.getModelLayerFactory().newRecordServices().add(containerRecordType);
 
 		ContainerRecord record = rm.newContainerRecord().setIdentifier("identifier").setType(containerRecordType)
-								   .setDecommissioningType(DecommissioningType.DEPOSIT).setAdministrativeUnits(asList(records.unitId_10a));
+				.setDecommissioningType(DecommissioningType.DEPOSIT).setAdministrativeUnits(asList(records.unitId_10a));
 		getModelLayerFactory().newRecordServices().add(record);
 		assertThat(record.<Double>get(Schemas.MIGRATION_DATA_VERSION)).isGreaterThan(0.0);
 	}

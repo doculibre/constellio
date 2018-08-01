@@ -419,12 +419,12 @@ public class MetadataSchemaXMLWriter3 {
 			different = true;
 		}
 		if (metadata.getStructureFactory() != null && !metadata.getStructureFactory().getClass()
-															   .equals(globalMetadataInCollection.getStructureFactory().getClass())) {
+				.equals(globalMetadataInCollection.getStructureFactory().getClass())) {
 			metadataElement.setAttribute("structureFactory", metadata.getStructureFactory().getClass().getName());
 			different = true;
 		}
 		if (metadata.getEnumClass() != null && !metadata.getEnumClass()
-														.equals(globalMetadataInCollection.getEnumClass())) {
+				.equals(globalMetadataInCollection.getEnumClass())) {
 			metadataElement.setAttribute("enumClass", metadata.getEnumClass().getName());
 			different = true;
 		}
@@ -491,12 +491,12 @@ public class MetadataSchemaXMLWriter3 {
 			differentFromInheritance = true;
 		}
 		if (metadata.getLabels() != null && !metadata.getLabels().isEmpty() && !metadata.getLabels()
-																						.equals(metadata.getInheritance().getLabels())) {
+				.equals(metadata.getInheritance().getLabels())) {
 			writeLabels(metadataElement, metadata.getLabels());
 			differentFromInheritance = true;
 		}
 		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue()
-														   .equals(metadata.getInheritance().getDefaultValue())) {
+				.equals(metadata.getInheritance().getDefaultValue())) {
 			ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
 			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
 			differentFromInheritance = true;

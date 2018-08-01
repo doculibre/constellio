@@ -72,10 +72,10 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 
 		List<AvailableFacetFieldMetadata> availableDataStoreCodes = service.getAvailableDataStoreCodes();
 		assertThat(availableDataStoreCodes).extracting("code")
-										   .containsOnlyOnce("createdById_s", "retentionRuleId_s", "keywords_ss", "copyStatus_s", "borrowed_s", "schema_s")
-										   .doesNotContain(Schemas.TITLE.getDataStoreCode(), Schemas.CREATED_ON.getDataStoreCode(),
-												   Schemas.TOKENS.getDataStoreCode(), "title_s", "createdOn_dt", "content_s", "tokens_ss", "username_s",
-												   "description_txt", "pendingAlerts_ss");
+				.containsOnlyOnce("createdById_s", "retentionRuleId_s", "keywords_ss", "copyStatus_s", "borrowed_s", "schema_s")
+				.doesNotContain(Schemas.TITLE.getDataStoreCode(), Schemas.CREATED_ON.getDataStoreCode(),
+						Schemas.TOKENS.getDataStoreCode(), "title_s", "createdOn_dt", "content_s", "tokens_ss", "username_s",
+						"description_txt", "pendingAlerts_ss");
 
 	}
 

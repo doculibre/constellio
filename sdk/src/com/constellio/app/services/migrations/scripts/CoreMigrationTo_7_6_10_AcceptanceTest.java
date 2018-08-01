@@ -20,8 +20,8 @@ public class CoreMigrationTo_7_6_10_AcceptanceTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 
 		getCurrentTestSession().getFactoriesTestFeatures()
-							   .givenSystemInState(getTestResourceFile("saveStateWithContentToConvert.zip")).withPasswordsReset()
-							   .withFakeEncryptionServices();
+				.givenSystemInState(getTestResourceFile("saveStateWithContentToConvert.zip")).withPasswordsReset()
+				.withFakeEncryptionServices();
 
 		ContentDao contentDao = getDataLayerFactory().getContentsDao();
 		assertThat(contentDao.getContentLength("DVWQVPBPGDRIYQWFTEEU2X6EO6KQ5EXR.preview")).isEqualTo(0);

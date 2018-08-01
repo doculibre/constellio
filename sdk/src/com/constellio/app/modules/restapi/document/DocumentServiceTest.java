@@ -62,9 +62,9 @@ public class DocumentServiceTest {
 		when(documentDao.getRecordById(documentId)).thenReturn(documentRecord);
 		when(documentDao.getMetadataSchema(documentRecord)).thenReturn(metadataSchema);
 		when(aceService.getAces(documentRecord)).thenReturn(AceListDto.builder()
-																	  .directAces(Collections.<AceDto>emptyList())
-																	  .inheritedAces(Collections.<AceDto>emptyList())
-																	  .build());
+				.directAces(Collections.<AceDto>emptyList())
+				.inheritedAces(Collections.<AceDto>emptyList())
+				.build());
 
 		when(documentRecord.getId()).thenReturn(documentId);
 		when(documentRecord.getTitle()).thenReturn(documentTitle);
@@ -82,13 +82,13 @@ public class DocumentServiceTest {
 				signature, Collections.<String>emptySet());
 
 		assertThat(documentDto).isNotNull().isEqualTo(DocumentDto.builder()
-																 .id(documentId)
-																 .title(documentTitle)
-																 .directAces(Collections.<AceDto>emptyList())
-																 .inheritedAces(Collections.<AceDto>emptyList())
-																 .extendedAttributes(Collections.<ExtendedAttributeDto>emptyList())
-																 .eTag(eTag)
-																 .build());
+				.id(documentId)
+				.title(documentTitle)
+				.directAces(Collections.<AceDto>emptyList())
+				.inheritedAces(Collections.<AceDto>emptyList())
+				.extendedAttributes(Collections.<ExtendedAttributeDto>emptyList())
+				.eTag(eTag)
+				.build());
 	}
 
 	@Test(expected = RecordNotFoundException.class)

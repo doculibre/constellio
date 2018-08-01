@@ -237,9 +237,9 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(localEventBus1ReceivedEvents).extracting("type")
-												.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
 		assertThat(remoteEventBus1ReceivedEvents).extracting("type")
-												 .containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
 	}
@@ -276,9 +276,9 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(localEventBus1ReceivedEvents).extracting("type")
-												.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6");
 		assertThat(remoteEventBus1ReceivedEvents).extracting("type")
-												 .containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
+				.containsOnly("anEvent", "anEvent2", "anEvent3", "anEvent4", "anEvent5", "anEvent6", "anInvalidEvent");
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);
 	}
@@ -326,7 +326,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 		Thread.sleep(4000);
 
 		assertThat(thirdInstanceBus1ReceivedEvents).extracting("type")
-												   .containsOnly("anEvent5", "anEvent7", "anEvent10", "anEvent11");
+				.containsOnly("anEvent5", "anEvent7", "anEvent10", "anEvent11");
 		assertThat(thirdInstanceBus2ReceivedEvents).extracting("type").containsOnly("anEvent6", "anEvent8", "anEvent9");
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(6);

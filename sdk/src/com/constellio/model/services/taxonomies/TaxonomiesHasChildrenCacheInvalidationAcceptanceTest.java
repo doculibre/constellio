@@ -96,11 +96,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		Transaction tx = new Transaction();
 
 		tx.add(rm.newFolderWithId(FOLDER1)
-				 .setAdministrativeUnitEntered(records.unitId_10a)
-				 .setCategoryEntered(records.categoryId_X110)
-				 .setRetentionRuleEntered(records.ruleId_1)
-				 .setOpenDate(aDate())
-				 .setTitle(FOLDER1));
+				.setAdministrativeUnitEntered(records.unitId_10a)
+				.setCategoryEntered(records.categoryId_X110)
+				.setRetentionRuleEntered(records.ruleId_1)
+				.setOpenDate(aDate())
+				.setTitle(FOLDER1));
 
 		recordServices.execute(tx);
 
@@ -116,11 +116,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 			throws Exception {
 
 		recordServices.add(rm.newFolderWithId("newFolder")
-							 .setAdministrativeUnitEntered(records.unitId_30)
-							 .setCategoryEntered(records.categoryId_Z100)
-							 .setRetentionRuleEntered(records.ruleId_1)
-							 .setOpenDate(aDate())
-							 .setTitle("New folder"));
+				.setAdministrativeUnitEntered(records.unitId_30)
+				.setCategoryEntered(records.categoryId_Z100)
+				.setRetentionRuleEntered(records.ruleId_1)
+				.setOpenDate(aDate())
+				.setTitle("New folder"));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
@@ -138,11 +138,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		recordServices.add(rm.newFolderWithId("newFolder2")
-							 .setAdministrativeUnitEntered(records.unitId_30c)
-							 .setCategoryEntered(records.categoryId_Z120)
-							 .setRetentionRuleEntered(records.ruleId_1)
-							 .setOpenDate(aDate())
-							 .setTitle("New folder 2"));
+				.setAdministrativeUnitEntered(records.unitId_30c)
+				.setCategoryEntered(records.categoryId_Z120)
+				.setRetentionRuleEntered(records.ruleId_1)
+				.setOpenDate(aDate())
+				.setTitle("New folder 2"));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
@@ -160,9 +160,9 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		recordServices.add(rm.newFolderWithId("newFolder3")
-							 .setParentFolder("newFolder2")
-							 .setOpenDate(aDate())
-							 .setTitle("New folder 2"));
+				.setParentFolder("newFolder2")
+				.setOpenDate(aDate())
+				.setTitle("New folder 2"));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
@@ -209,7 +209,7 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		);
 
 		recordServices.update(folder1.setCategoryEntered(records.categoryId_Z120)
-									 .setAdministrativeUnitEntered(records.unitId_30c));
+				.setAdministrativeUnitEntered(records.unitId_30c));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
@@ -977,18 +977,18 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 				TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(100);
 				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
-																		 .getVisibleRootConcept(user, zeCollection, taxonomy.getCode(), options)) {
+						.getVisibleRootConcept(user, zeCollection, taxonomy.getCode(), options)) {
 					navigateVisible(user, taxonomy.getCode(), record.getRecord(), options);
 				}
 
 				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
-																		 .getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Folder.SCHEMA_TYPE, options)) {
+						.getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Folder.SCHEMA_TYPE, options)) {
 
 					navigateLinkableSelectingAFolder(user, taxonomy.getCode(), record.getRecord(), options);
 				}
 
 				for (TaxonomySearchRecord record : getModelLayerFactory().newTaxonomiesSearchService()
-																		 .getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Document.SCHEMA_TYPE, options)) {
+						.getLinkableRootConcept(user, zeCollection, taxonomy.getCode(), Document.SCHEMA_TYPE, options)) {
 
 					navigateLinkableSelectingADocument(user, taxonomy.getCode(), record.getRecord(), options);
 				}

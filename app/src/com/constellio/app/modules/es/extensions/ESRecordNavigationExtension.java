@@ -123,7 +123,7 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 					page.open(agentSmbPath, null);
 				} else {
 					Metadata smbUrlMetadata = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-															 .getMetadata(typeCode + "_default_" + smbMetadataCode);
+							.getMetadata(typeCode + "_default_" + smbMetadataCode);
 					String smbPath = record.get(smbUrlMetadata);
 					String path = smbPath;
 					if (StringUtils.startsWith(path, "smb://")) {

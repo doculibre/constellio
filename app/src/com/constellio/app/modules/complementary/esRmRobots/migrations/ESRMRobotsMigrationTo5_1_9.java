@@ -56,15 +56,15 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 
 		private void setupClassifyConnectorDocumentInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
+					.getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
 			//
 			// schema.createUndeletable(ClassifyConnectorDocumentInFolderActionParameters.VERSIONS)
 			// .setType(MetadataValueType.STRING);
 
 			schema.createUndeletable(ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION)
-				  .setDefaultRequirement(true)
-				  .defineAsEnum(ActionAfterClassification.class)
-				  .setDefaultValue(ActionAfterClassification.DO_NOTHING);
+					.setDefaultRequirement(true)
+					.defineAsEnum(ActionAfterClassification.class)
+					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE)
-											 .withNewMetadataGroup(groups));
+				.withNewMetadataGroup(groups));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema).withFormMetadataCodes(asList(
 				parametersSchema + "_" + IN_FOLDER,
@@ -93,13 +93,13 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 		)));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, IN_FOLDER)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, MAJOR_VERSIONS)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, ACTION_AFTER_CLASSIFICATION)
-											 .withMetadataGroup(optionsTab));
+				.withMetadataGroup(optionsTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

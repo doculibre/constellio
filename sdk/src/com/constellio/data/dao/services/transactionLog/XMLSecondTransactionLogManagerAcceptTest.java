@@ -148,7 +148,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		schemas.refresh();
 
 		getModelLayerFactory().getSystemConfigurationsManager()
-							  .setValue(ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG, false);
+				.setValue(ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG, false);
 
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		ContentManager contentManager = getModelLayerFactory().getContentManager();

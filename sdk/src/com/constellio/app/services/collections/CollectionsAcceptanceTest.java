@@ -113,15 +113,15 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
 		userServices.addUserToCollection(userServices.getUser(admin), "anotherCollection");
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
-																							.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
-																									"com.constellio.app.modules.rm.ConstellioRMModule");
+				.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
+						"com.constellio.app.modules.rm.ConstellioRMModule");
 
 		collectionsManager.deleteCollection(zeCollection);
 		givenCollection(zeCollection).withConstellioRMModule().withRobotsModule();
 		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
-																							.containsOnly("com.constellio.app.modules.tasks.TaskModule",
-																									"com.constellio.app.modules.robots.ConstellioRobotsModule",
-																									"com.constellio.app.modules.rm.ConstellioRMModule");
+				.containsOnly("com.constellio.app.modules.tasks.TaskModule",
+						"com.constellio.app.modules.robots.ConstellioRobotsModule",
+						"com.constellio.app.modules.rm.ConstellioRMModule");
 
 		assertThat(userServices.getUser(admin).getCollections()).containsOnly("anotherCollection");
 		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
@@ -231,7 +231,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 		assertThat(userServices.getUser(bobGratton).getCollections()).doesNotContain("constellio");
 		assertThat(userServices.getGroup("legends").getUsersAutomaticallyAddedToCollections()).doesNotContain("constellio")
-																							  .contains("doculibre");
+				.contains("doculibre");
 	}
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {
@@ -245,7 +245,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 	private Set<String> getAllCollectionsInVersionPropertiesFile() {
 		PropertiesConfiguration propertiesConfiguration = getDataLayerFactory().getConfigManager()
-																			   .getProperties("version.properties");
+				.getProperties("version.properties");
 		Set<String> collectionsInVersionProperties = propertiesConfiguration.getProperties().keySet();
 		return collectionsInVersionProperties;
 	}
@@ -280,10 +280,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 				.legendsIn("doculibre").getId(), users.heroesIn("doculibre").getId());
 
 		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
-																		 .forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem1));
+				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem1));
 
 		authorizationsServices.add(authorizationInCollection("doculibre").givingReadWriteAccess()
-																		 .forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem2));
+				.forPrincipalsIds(doculibreUserAuthorizationPrincipals).on(doculibreTaxos.taxo1_firstTypeItem2));
 	}
 
 	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
@@ -293,10 +293,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 				.legendsIn("constellio").getId(), users.heroesIn("constellio").getId());
 
 		authorizationsServices.add(authorizationInCollection("constellio").givingReadAccess()
-																		  .forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem1));
+				.forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem1));
 
 		authorizationsServices.add(authorizationInCollection("constellio").givingReadAccess()
-																		  .forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem2));
+				.forPrincipalsIds(constellioUserAuthorizationPrincipals).on(constellioTaxos.taxo1_firstTypeItem2));
 
 	}
 

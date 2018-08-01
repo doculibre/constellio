@@ -190,7 +190,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		SchemaDisplayConfig userDocument = manager.getSchema(collection, "userDocument_default");
 		transaction.add(userDocument.withRemovedDisplayMetadatas("userDocument_default_folder")
-									.withRemovedFormMetadatas("userDocument_default_folder"));
+				.withRemovedFormMetadatas("userDocument_default_folder"));
 
 		SchemaDisplayConfig container = manager.getSchema(collection, ContainerRecord.DEFAULT_SCHEMA);
 		//container = container.withNewFormMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FILL_RATIO_ENTRED);
@@ -207,40 +207,40 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
-						  .setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
-						  .setAnalogical(true));
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
+				.setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
-						  .setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
-						  .setAnalogical(true));
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
+				.setAnalogical(true));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
-						  .setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
-						  .setAnalogical(false));
+				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
+				.setAnalogical(false));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-						  .setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
-						  .setLinkedSchema(Email.SCHEMA));
+				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
+				.setLinkedSchema(Email.SCHEMA));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("888")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888")));
 
 		transaction.add(rm.newVariableRetentionPeriod().setCode("999")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999")));
 
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
 		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
 
 		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.folderType"))
-						  .setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
+				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
 		transaction.add(rm.newFacetField().setTitles(migrationResourcesProvider.getLanguagesString("facets.documentType"))
-						  .setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
+				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
 		try {
 			transaction = createDefaultLabel(collection, appLayerFactory, migrationResourcesProvider, transaction);
@@ -270,7 +270,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		RecordServices rs = model.newRecordServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, factory);
 		MetadataSchemaType metaBuilder = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-												.getSchemaType(Printable.SCHEMA_TYPE);
+				.getSchemaType(Printable.SCHEMA_TYPE);
 		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
 		ContentManager contentManager = model.getContentManager();
 		UserServices userServices = model.newUserServices();
@@ -299,9 +299,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), true);
 			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type).setParse(false)
-																								.setHandleDeletionOfUnreferencedHashes(false);
+					.setHandleDeletionOfUnreferencedHashes(false);
 			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), options)
-															 .getContentVersionDataSummary();
+					.getContentVersionDataSummary();
 			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
 			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
 					contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
@@ -363,10 +363,10 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
 
 			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).getMetadata(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
-						.addProperty("subject").addProperty("title");
+					.addProperty("subject").addProperty("title");
 
 			typesBuilder.getSchema(Email.SCHEMA).getMetadata(Schemas.TITLE_CODE).getPopulateConfigsBuilder()
-						.addProperty("subject");
+					.addProperty("subject");
 
 			for (String metadata : asList("administrativeUnit_default_description", "administrativeUnit_default_title",
 					"category_default_description", "category_default_keywords", "category_default_title",
@@ -411,7 +411,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 								   String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
-																	.getEmailTemplatesManager();
+				.getEmailTemplatesManager();
 		try {
 			emailTemplateManager.addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
 		} catch (IOException | OptimisticLockingConfiguration e) {

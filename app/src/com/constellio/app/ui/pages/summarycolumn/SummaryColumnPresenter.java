@@ -264,7 +264,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 		for (int i = 0; i < listMap1.size(); i++) {
 			for (String stringObjectMap : listMap1.get(i).keySet()) {
 				if (!listMap1.get(i).get(stringObjectMap)
-							 .equals(listMap2.get(i).get(stringObjectMap))) {
+						.equals(listMap2.get(i).get(stringObjectMap))) {
 					return false;
 				}
 			}

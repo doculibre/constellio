@@ -99,7 +99,7 @@ public class DisplayGlobalGroupPage extends PageHelper {
 
 	private List<ConstellioWebElement> getTableRowsByClassName(String className) {
 		ConstellioWebElement tableElement = driver.findAdaptElements(By.className(className))
-												  .get(0);
+				.get(0);
 		tableElement = tableElement.findAdaptElements(By.tagName("table")).get(1);
 		List<ConstellioWebElement> rows = tableElement.findAdaptElements(By.tagName("tr"));
 		return rows;

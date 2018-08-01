@@ -43,7 +43,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -64,15 +64,15 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))).sortAsc(Schemas.TITLE);
 	}
 
 	private void updateFolderA01Metadata() {
 		try {
 			recordServices.update(records.getFolder_A01()
-										 .setTitle(reportTestUtils.getExpectedFolderTitle_A01())
-										 .setDescription(reportTestUtils.getExpectedFolderDescription_A01())
-										 .setCreatedBy(reportTestUtils.getExpectedFolderCreator_A01()));
+					.setTitle(reportTestUtils.getExpectedFolderTitle_A01())
+					.setDescription(reportTestUtils.getExpectedFolderDescription_A01())
+					.setCreatedBy(reportTestUtils.getExpectedFolderCreator_A01()));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -81,9 +81,9 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	private void updateFolderA02Metadata() {
 		try {
 			recordServices.update(records.getFolder_A02()
-										 .setTitle(reportTestUtils.getExpectedFolderTitle_A02())
-										 .setDescription(reportTestUtils.getExpectedFolderDescription_A02())
-										 .setCreatedBy(reportTestUtils.getExpectedFolderCreator_A02()));
+					.setTitle(reportTestUtils.getExpectedFolderTitle_A02())
+					.setDescription(reportTestUtils.getExpectedFolderDescription_A02())
+					.setCreatedBy(reportTestUtils.getExpectedFolderCreator_A02()));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -92,9 +92,9 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	private void updateFolderA03Metadata() {
 		try {
 			recordServices.update(records.getFolder_A03()
-										 .setTitle(reportTestUtils.getExpectedFolderTitle_A03())
-										 .setDescription(reportTestUtils.getExpectedFolderDescription_A03())
-										 .setCreatedBy(reportTestUtils.getExpectedFolderCreator_A02()));
+					.setTitle(reportTestUtils.getExpectedFolderTitle_A03())
+					.setDescription(reportTestUtils.getExpectedFolderDescription_A03())
+					.setCreatedBy(reportTestUtils.getExpectedFolderCreator_A02()));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -103,7 +103,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	@Test(expected = NoSuchReportRuntimeException.class)
 	public void whenInvalidReportThenThrowsNoSuchReportRuntimeException() {
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		presenter.buildModel(getModelLayerFactory());
@@ -135,7 +135,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	public void givenValidReportWhenTwoFoldersThenGenerateValidReportWithValidData() {
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -147,7 +147,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		reportTestUtils.disableAUserReportMetadata();
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -159,7 +159,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		reportTestUtils.addUserReport(reportTitle, chuckNorris);
 		reportTestUtils.addDefaultReport(reportTitle);
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -171,7 +171,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		reportTestUtils.addUserReport(reportTitle, chuckNorris);
 		reportTestUtils.addDefaultReport(reportTitle);
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				bobGratton, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -191,7 +191,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		recordServices.update(folder2.getWrappedRecord());
 		reportTestUtils.addDefaultReportWithMultivalue(reportTitle);
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				admin, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -225,7 +225,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		recordServices.update(folder2.getWrappedRecord());
 		reportTestUtils.addDefaultReportWithBoolean(reportTitle);
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				admin, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -260,7 +260,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		recordServices.update(folder2.getWrappedRecord());
 		reportTestUtils.addDefaultReportWithRichText(reportTitle);
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				admin, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
@@ -277,7 +277,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		recordServices.update(folder1.getWrappedRecord());
 		reportTestUtils.addDefaultReportWithReference(reportTitle);
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
-																			 .isIn(asList(records.folder_A01))).sortAsc(Schemas.TITLE);
+				.isIn(asList(records.folder_A01))).sortAsc(Schemas.TITLE);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), asList(records.folder_A01), folderSchemaType, zeCollection,
 				admin, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());

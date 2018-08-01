@@ -47,7 +47,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 											MigrationResourcesProvider migrationResourcesProvider,
 											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
-						   .equals("en")) {
+				.equals("en")) {
 			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED,
 					appLayerFactory, migrationResourcesProvider, collection);
 			reloadEmailTemplate("alertReturnedTemplate_en.html", RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED,
@@ -94,7 +94,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .replaceCollectionTemplate(templateId, collection, templateInputStream);
+					.replaceCollectionTemplate(templateId, collection, templateInputStream);
 		} catch (IOException | ConfigManagerException.OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -118,30 +118,30 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 			typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSmallCode("c");
 
 			if (typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
-							.getType() == MetadataValueType.REFERENCE) {
+						.getType() == MetadataValueType.REFERENCE) {
 
 				typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.TOKENS.getLocalCode())
-							.defineDataEntry().asCalculated(TokensCalculator4.class);
+						.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(Schemas.TOKENS.getLocalCode())
-							.defineDataEntry().asCalculated(TokensCalculator4.class);
+						.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				MetadataBuilder folderParent = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.PARENT_FOLDER);
 				MetadataBuilder documentFolder = typesBuilder.getSchema(Document.DEFAULT_SCHEMA).get(Document.FOLDER);
 				MetadataBuilder documentTokensHierarchy = typesBuilder.getSchema(Document.DEFAULT_SCHEMA)
-																	  .get(TOKENS_OF_HIERARCHY);
+						.get(TOKENS_OF_HIERARCHY);
 
 				MetadataBuilder tokensHierarchy = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).getMetadata(TOKENS_OF_HIERARCHY)
-															  .defineDataEntry().asCalculated(FolderTokensOfHierarchyCalculator.class);
+						.defineDataEntry().asCalculated(FolderTokensOfHierarchyCalculator.class);
 
 				if (!typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).hasMetadata(Folder.SUB_FOLDERS_TOKENS)) {
 					typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.SUB_FOLDERS_TOKENS)
-								.setType(STRING).setMultivalue(true)
-								.defineDataEntry().asUnion(folderParent, tokensHierarchy);
+							.setType(STRING).setMultivalue(true)
+							.defineDataEntry().asUnion(folderParent, tokensHierarchy);
 
 					typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).create(Folder.DOCUMENTS_TOKENS)
-								.setType(STRING).setMultivalue(true)
-								.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
+							.setType(STRING).setMultivalue(true)
+							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
 				}
 			}
 			MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);

@@ -37,7 +37,7 @@ public class RMMigrationTo7_5_5 extends MigrationHelper implements MigrationScri
 		new RMMigrationTo7_5_5.SchemaAlterationFor7_5_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		displayManager.saveMetadata(displayManager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_CODE)
-												  .withVisibleInAdvancedSearchStatus(true));
+				.withVisibleInAdvancedSearchStatus(true));
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
@@ -51,8 +51,8 @@ public class RMMigrationTo7_5_5 extends MigrationHelper implements MigrationScri
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.MAIN_COPY_RULE_CODE)
-						.setType(MetadataValueType.STRING).setSystemReserved(true).setSearchable(true).defineDataEntry()
-						.asCalculated(FolderMainCopyRuleCodeCalculator.class);
+					.setType(MetadataValueType.STRING).setSystemReserved(true).setSearchable(true).defineDataEntry()
+					.asCalculated(FolderMainCopyRuleCodeCalculator.class);
 		}
 
 	}

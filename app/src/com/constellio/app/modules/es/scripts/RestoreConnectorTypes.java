@@ -83,7 +83,7 @@ public class RestoreConnectorTypes extends ScriptWithLogOutput {
 	public ConnectorType newConnectorType(ESSchemasRecordsServices es, MetadataSchema schema, Class<?> connectorClass,
 										  String connectorTypeCode, String title) {
 		return es.newConnectorType().setCode(connectorTypeCode).setTitle(title).setLinkedSchema(schema.getCode())
-				 .setConnectorClassName(connectorClass.getName());
+				.setConnectorClassName(connectorClass.getName());
 	}
 
 	private ConnectorField field(String schemaType, String code, MetadataValueType type) {

@@ -74,7 +74,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
@@ -103,18 +103,18 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 			throws Exception {
 
 		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C")
-														.setTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_2_C = copyBuilder.newPrincipal(asList(records.PA), "888-2-C")
-														.setTypeId(type2);
+				.setTypeId(type2);
 		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(asList(records.PA), "888-3-C")
-														.setTypeId(type3);
+				.setTypeId(type3);
 
 		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(asList(records.PA), "888-4-C");
 		CopyRetentionRule secondary888_5_C = copyBuilder.newSecondary(asList(records.PA), "888-5-C");
 		CopyRetentionRule principal888_6_C = copyBuilder.newPrincipal(asList(records.MD), "888-6-C")
-														.setTypeId(type3);
+				.setTypeId(type3);
 		CopyRetentionRule principal888_7_C = copyBuilder.newPrincipal(asList(records.MD), "888-7-C")
-														.setTypeId(type3);
+				.setTypeId(type3);
 
 		Transaction transaction = new Transaction();
 
@@ -131,15 +131,15 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 				principal888_6_C, principal888_7_C);
 
 		Category w = transaction.add(rm.newCategoryWithId("w").setCode("W").setTitle("W")
-									   .setRetentionRules(asList(rule1)));
+				.setRetentionRules(asList(rule1)));
 
 		Folder folderWithoutType = transaction.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("1")
-													 .setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
-											  .setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("PA")));
+				.setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
+				.setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("PA")));
 
 		Folder folderWithType3 = transaction.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("1")
-												   .setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
-											.setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("DM"))).setType(type3);
+				.setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
+				.setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("DM"))).setType(type3);
 
 		recordServices.execute(transaction);
 		MetadataSchemaType folderSchemaType = rm.folder.schemaType();
@@ -150,7 +150,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		when(fields.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		when(fields.getQuery()).thenReturn(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
+						.isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
 		assertThat(presenter.getOptions(presenter.toRequest())).containsOnly(principal888_1_C);
 
 		doReturn(null).when(presenter).getDependencyValue();
@@ -158,7 +158,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		when(fields.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		when(fields.getQuery()).thenReturn(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
+						.isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
 		assertThat(presenter.getOptions(presenter.toRequest())).containsOnly(principal888_2_C);
 
 		doReturn(null).when(presenter).getDependencyValue();
@@ -166,7 +166,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		when(fields.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		when(fields.getQuery()).thenReturn(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
+						.isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
 		assertThat(presenter.getOptions(presenter.toRequest()))
 				.containsOnly(principal888_3_C, principal888_6_C, principal888_7_C);
 
@@ -174,7 +174,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		when(fields.getType()).thenReturn(type4);
 		when(fields.getQuery()).thenReturn(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
+						.isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
 		when(fields.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		assertThat(presenter.getOptions(presenter.toRequest())).containsOnly(principal888_4_C);
 
@@ -182,7 +182,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 		when(fields.getType()).thenReturn(null);
 		when(fields.getQuery()).thenReturn(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
-											  .isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
+						.isIn(asList(folderWithType3.getId(), folderWithoutType.getId()))));
 		when(fields.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
 		assertThat(presenter.getOptions(presenter.toRequest())).isEmpty();
 
@@ -207,17 +207,17 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 			throws Exception {
 
 		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C")
-														.setTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_2_C = copyBuilder.newPrincipal(asList(records.PA), "888-2-C")
-														.setTypeId(type2);
+				.setTypeId(type2);
 		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(asList(records.PA), "888-3-C")
-														.setTypeId(type3);
+				.setTypeId(type3);
 		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(asList(records.PA), "888-4-C");
 		CopyRetentionRule secondary888_5_C = copyBuilder.newSecondary(asList(records.PA), "888-5-C");
 		CopyRetentionRule principal888_6_C = copyBuilder.newPrincipal(asList(records.MD), "888-6-C")
-														.setTypeId(type3);
+				.setTypeId(type3);
 		CopyRetentionRule principal888_7_C = copyBuilder.newPrincipal(asList(records.MD), "888-6-C")
-														.setTypeId(type3);
+				.setTypeId(type3);
 
 		Transaction transaction = new Transaction();
 
@@ -234,15 +234,15 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 				principal888_6_C, principal888_7_C);
 
 		Category w = transaction.add(rm.newCategoryWithId("w").setCode("W").setTitle("W")
-									   .setRetentionRules(asList(rule1)));
+				.setRetentionRules(asList(rule1)));
 
 		Folder folderWithoutType = transaction.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("1")
-													 .setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
-											  .setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("PA")));
+				.setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
+				.setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("PA")));
 
 		Folder folderWithType3 = transaction.add(rm.newFolder().setAdministrativeUnitEntered(records.unitId_10a).setTitle("1")
-												   .setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
-											.setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("DM"))).setType(type3);
+				.setCategoryEntered("w").setRetentionRuleEntered(rule1)).setOpenDate(new LocalDate())
+				.setCopyStatusEntered(PRINCIPAL).setMediumTypes(asList(rm.getMediumTypeByCode("DM"))).setType(type3);
 
 		recordServices.execute(transaction);
 		MetadataSchemaType folderSchemaType = rm.folder.schemaType();
@@ -297,9 +297,9 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 	@Test
 	public void givenRequestWithQueryThenGetOptionsReturnExpectedRules() {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection)).setSchemaType(rm.documentSchemaType())
-															   .setQuery(new LogicalSearchQuery().setCondition(from(rm.documentSchemaType()).where(rm.document.title())
-																																			.isContainingText("Chat")))
-															   .addModifiedMetadata(Document.AUTHOR, "Gandalf");
+				.setQuery(new LogicalSearchQuery().setCondition(from(rm.documentSchemaType()).where(rm.document.title())
+						.isContainingText("Chat")))
+				.addModifiedMetadata(Document.AUTHOR, "Gandalf");
 		List<CopyRetentionRule> copyRuleOptions = presenter.getOptions(request);
 		assertThat(copyRuleOptions).extractingResultOf("toString").containsOnly("42-5-C");
 	}
@@ -307,11 +307,11 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 	@Test
 	public void givenRequestWithIdsThenGetOptionsReturnExpectedRules() {
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(rm.documentSchemaType()).where(rm.document.title())
-																									  .isContainingText("Chat"));
+				.isContainingText("Chat"));
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection)).setSchemaType(rm.documentSchemaType())
-															   .setIds(searchServices.searchRecordIds(query))
-															   .addModifiedMetadata(Document.AUTHOR, "Gandalf");
+				.setIds(searchServices.searchRecordIds(query))
+				.addModifiedMetadata(Document.AUTHOR, "Gandalf");
 		List<CopyRetentionRule> copyRuleOptions = presenter.getOptions(request);
 		assertThat(copyRuleOptions).extractingResultOf("toString").containsOnly("42-5-C");
 	}

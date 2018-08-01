@@ -33,7 +33,7 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -51,7 +51,7 @@ public class ContainerRecordAcceptanceTest extends ConstellioTest {
 		String type = searchServices.searchRecordIds(from(rm.containerRecordTypeSchemaType()).returnAll()).get(0);
 		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("storageTest");
 		containerRecord.setIdentifier(containerRecord.getId()).setType(type).setAdministrativeUnits(Arrays.asList(records.unitId_10a))
-					   .setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setDecommissioningType(DecommissioningType.DEPOSIT);
 		return containerRecord;
 	}
 

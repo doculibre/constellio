@@ -97,7 +97,7 @@ public class BatchProcessingPresenterService {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
 		Map<String, List<FacetValue>> typeId_s = searchServices.query(query.setNumberOfRows(0).addFieldFacet("typeId_s"))
-															   .getFieldFacetValues();
+				.getFieldFacetValues();
 		Set<String> types = new HashSet<>();
 		for (FacetValue facetValue : typeId_s.get("typeId_s")) {
 			if (facetValue.getQuantity() == resultsCount) {
@@ -152,7 +152,7 @@ public class BatchProcessingPresenterService {
 	public List<String> getDestinationSchemata(String schemaType) {
 		List<String> schemataCodes = new ArrayList<>();
 		List<MetadataSchema> schemata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-														 .getSchemaType(schemaType).getAllSchemas();
+				.getSchemaType(schemaType).getAllSchemas();
 		for (MetadataSchema currentSchema : schemata) {
 			schemataCodes.add(currentSchema.getCode());
 		}
@@ -162,7 +162,7 @@ public class BatchProcessingPresenterService {
 	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext,
 								final List<String> selectedRecordIds) {
 		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-													   .getSchema(schemaCode);
+				.getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
@@ -275,7 +275,7 @@ public class BatchProcessingPresenterService {
 	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext,
 								final LogicalSearchQuery query) {
 		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-													   .getSchema(schemaCode);
+				.getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
@@ -624,8 +624,8 @@ public class BatchProcessingPresenterService {
 
 
 			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
-																			   .forCollection(collection)
-																			   .batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
+					.forCollection(collection)
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
 			if (temporaryMetadataChangeHash.size() > 0) {
 				specialCaseModificationByRecordId.put(record.getId(), temporaryMetadataChangeHash);
 			}
@@ -676,8 +676,8 @@ public class BatchProcessingPresenterService {
 			}
 
 			Map<String, Object> temporaryMetadataChangeHash = modelLayerFactory.getExtensions()
-																			   .forCollection(collection)
-																			   .batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
+					.forCollection(collection)
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, request.getUser()));
 			if (temporaryMetadataChangeHash.size() > 0) {
 				specialCaseModificationByRecordId.put(record.getId(), temporaryMetadataChangeHash);
 			}
@@ -743,7 +743,7 @@ public class BatchProcessingPresenterService {
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
-																									  .forCollection(collection).recordFieldFactoryExtensions;
+				.forCollection(collection).recordFieldFactoryExtensions;
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			recordFieldFactory = extension.newRecordFieldFactory(params);
 			if (recordFieldFactory != null) {
@@ -763,7 +763,7 @@ public class BatchProcessingPresenterService {
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
-																									  .forCollection(collection).recordFieldFactoryExtensions;
+				.forCollection(collection).recordFieldFactoryExtensions;
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			recordFieldFactory = extension.newRecordFieldFactory(params);
 			if (recordFieldFactory != null) {

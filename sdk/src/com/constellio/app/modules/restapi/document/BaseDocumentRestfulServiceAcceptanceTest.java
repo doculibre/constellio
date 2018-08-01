@@ -102,7 +102,7 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp() throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users)
-										.withRMTest(records).withFoldersAndContainersOfEveryStatus());
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -117,16 +117,16 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 		dateTimeFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
 
 		userServices.addUpdateUserCredential(users.bob().withServiceKey(serviceKey)
-												  .withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
+				.withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
 		userServices.addUpdateUserCredential(users.sasquatch().withServiceKey(sasquatchServiceKey)
-												  .withAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
+				.withAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 		givenTimeIs(fakeDate);
 
 		ObjectMapper mapper = new ObjectMapper().addMixIn(ContentDto.class, MixinContentDto.class)
-												.addMixIn(DocumentDto.class, MixinDocumentDto.class)
-												.addMixIn(DocumentTypeDto.class, MixinDocumentTypeDto.class);
+				.addMixIn(DocumentDto.class, MixinDocumentDto.class)
+				.addMixIn(DocumentTypeDto.class, MixinDocumentTypeDto.class);
 		webTarget = newWebTarget("v1/documents", mapper);
 
 		expectedChecksumV1 = HashingUtils.md5(fakeFileContentV1);
@@ -163,8 +163,8 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 		recordServices.add(fakeDocumentType);
 
 		fakeDocument = rm.newDocument().setFolder(folderId).setType(fakeDocumentType).setTitle("Title").setAuthor("Toto")
-						 .setContent(contentManager.createMajor(users.adminIn(zeCollection), fakeFilename, dataSummaryV1))
-						 .setKeywords(asList("keyword1", "keyword2")).setSubject("Subject").setCompany("Organization");
+				.setContent(contentManager.createMajor(users.adminIn(zeCollection), fakeFilename, dataSummaryV1))
+				.setKeywords(asList("keyword1", "keyword2")).setSubject("Subject").setCompany("Organization");
 		recordServices.add(fakeDocument);
 
 		fakeDocument.getContent().updateContent(users.adminIn(zeCollection), dataSummaryV2, true);
@@ -204,10 +204,10 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected void createAuthorizations() {
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		authorization1 = authorizationInCollection(zeCollection).forUsers(users.bobIn(zeCollection))
-																.on(fakeDocument).givingReadWriteDeleteAccess();
+				.on(fakeDocument).givingReadWriteDeleteAccess();
 		authorizationsServices.add(authorization1, users.adminIn(zeCollection));
 		authorization2 = authorizationInCollection(zeCollection).forUsers(users.aliceIn(zeCollection))
-																.on(fakeDocument).givingReadWriteAccess();
+				.on(fakeDocument).givingReadWriteAccess();
 		authorizationsServices.add(authorization2, users.adminIn(zeCollection));
 	}
 

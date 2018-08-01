@@ -430,7 +430,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, String grantedOnRecord,
 										  LocalDate startDate, LocalDate endDate) {
 		authorizationsServices.add(authorizationInCollection(zeCollection).forPrincipalsIds(grantedToPrincipals)
-																		  .on(grantedOnRecord).giving(roles).startingOn(startDate).endingOn(endDate));
+				.on(grantedOnRecord).giving(roles).startingOn(startDate).endingOn(endDate));
 	}
 
 }

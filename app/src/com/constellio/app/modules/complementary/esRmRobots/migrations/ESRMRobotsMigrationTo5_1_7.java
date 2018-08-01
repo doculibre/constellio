@@ -57,9 +57,9 @@ public class ESRMRobotsMigrationTo5_1_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder folderType = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 			schema.createUndeletable(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_PARENT_FOLDER).setDefaultRequirement(false)
-				  .defineReferencesTo(folderType);
+					.defineReferencesTo(folderType);
 			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(false);
 			schema.defineValidators().add(ClassifyConnectorTaxonomyActionParametersValidator.class);
 		}
@@ -87,7 +87,7 @@ public class ESRMRobotsMigrationTo5_1_7 implements MigrationScript {
 		transaction.add(displayConfig);
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DEFAULT_PARENT_FOLDER)
-											 .withMetadataGroup(defaultValuesTab).withInputType(MetadataInputType.LOOKUP));
+				.withMetadataGroup(defaultValuesTab).withInputType(MetadataInputType.LOOKUP));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

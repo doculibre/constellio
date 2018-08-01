@@ -18,7 +18,7 @@ public class CoreMigrationTo_5_2 implements MigrationScript {
 			throws Exception {
 
 		String titleTitle = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-										   .getSchema(Collection.DEFAULT_SCHEMA).get(Collection.TITLE).getLabel(Language.French);
+				.getSchema(Collection.DEFAULT_SCHEMA).get(Collection.TITLE).getLabel(Language.French);
 		SearchBoost boost = new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", titleTitle, 20d);
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection, boost);

@@ -103,7 +103,7 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		folderType.getDefaultSchema().create("parent").defineChildOfRelationshipToType(folderType);
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(category);
 		folderType.getDefaultSchema().create("taxonomy2")
-				  .defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
+				.defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
 		folderType.getDefaultSchema().create("linkToOtherFolders").setMultivalue(true).defineReferencesTo(folderType);
 		folderType.getDefaultSchema().create("numberMeta").setType(MetadataValueType.NUMBER);
 
@@ -123,11 +123,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 	private void setupTaxonomy2(MetadataSchemaTypeBuilder administrativeUnit) {
 		administrativeUnit.getDefaultSchema().create("parent").defineChildOfRelationshipToType(administrativeUnit);
 		administrativeUnit.createCustomSchema("classificationStation").create("datecreation")
-						  .setType(MetadataValueType.DATE_TIME).setUndeletable(true).setUnmodifiable(true);
+				.setType(MetadataValueType.DATE_TIME).setUndeletable(true).setUnmodifiable(true);
 		administrativeUnit.getSchema("classificationStation").create("number").setType(MetadataValueType.NUMBER)
-						  .setUndeletable(true).setUnmodifiable(true);
+				.setUndeletable(true).setUnmodifiable(true);
 		administrativeUnit.getSchema("classificationStation").create("booleanTest")
-						  .setType(MetadataValueType.BOOLEAN).setUndeletable(true).setUnmodifiable(true);
+				.setType(MetadataValueType.BOOLEAN).setUndeletable(true).setUnmodifiable(true);
 		administrativeUnit.getSchema("classificationStation").create("reference").defineReferencesTo(categoryType);
 	}
 
@@ -154,7 +154,7 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 
 	public static void allSchemaTypesSupported(AppLayerFactory appLayerFactory) {
 		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
-												.getCollectionsExcludingSystem()) {
+				.getCollectionsExcludingSystem()) {
 			appLayerFactory.getExtensions().forCollection(collection).cmisExtensions.add(new CmisExtension() {
 				@Override
 				public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {

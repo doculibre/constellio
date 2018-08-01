@@ -46,7 +46,7 @@ public class ConnectorHttpContextServices {
 				String vaultFilePath = "connectors/" + context.getConnectorId() + "/fetchedUrls.txt";
 
 				tempFileInputStream = es.getIOServices()
-										.newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
+						.newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
 				//String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
 				contentDao.add(vaultFilePath, tempFileInputStream);
 				//			if (add) {

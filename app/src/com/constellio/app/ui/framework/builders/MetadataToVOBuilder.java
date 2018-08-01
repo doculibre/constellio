@@ -114,7 +114,7 @@ public class MetadataToVOBuilder implements Serializable {
 			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
 			String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
 			Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
-																			 .getMetadataGroup();
+					.getMetadataGroup();
 			if (StringUtils.isBlank(metadataGroup)) {
 				if (groups.keySet().isEmpty()) {
 					metadataGroup = null;

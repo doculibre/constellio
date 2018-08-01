@@ -45,7 +45,7 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder tx = schemaDisplayManager.newTransactionBuilderFor(collection);
 		tx.add(schemaDisplayManager.getMetadata(collection, Folder.DEFAULT_SCHEMA, Folder.MANUAL_DISPOSAL_TYPE)
-								   .withInputType(MetadataInputType.DROPDOWN));
+				.withInputType(MetadataInputType.DROPDOWN));
 
 		schemaDisplayManager.execute(tx.build());
 	}
@@ -62,7 +62,7 @@ public class RMMigrationTo7_5_3 extends MigrationHelper implements MigrationScri
 			MetadataSchemaBuilder defaultFolderSchema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			if (!defaultFolderSchema.hasMetadata(Folder.MANUAL_DISPOSAL_TYPE)) {
 				defaultFolderSchema.createUndeletable(Folder.MANUAL_DISPOSAL_TYPE).defineAsEnum(DisposalType.class)
-								   .setDefaultRequirement(false).setEnabled(false);
+						.setDefaultRequirement(false).setEnabled(false);
 			}
 		}
 

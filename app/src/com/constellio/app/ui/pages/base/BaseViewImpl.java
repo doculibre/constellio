@@ -87,7 +87,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			if (collection != null) {
 				((ConstellioUI) UI.getCurrent()).getHeader().setCurrentCollectionQuietly();
 				appLayerFactory.getExtensions().forCollection(collection)
-							   .decorateMainComponentBeforeViewAssembledOnViewEntered(params);
+						.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 			}
 
 			try {
@@ -188,7 +188,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
 			if (collection != null) {
 				appLayerFactory.getExtensions().forCollection(collection)
-							   .decorateMainComponentAfterViewAssembledOnViewEntered(params);
+						.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 			}
 
 			afterViewAssembled(event);

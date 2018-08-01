@@ -639,7 +639,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
 			appLayerFactory.getExtensions().forCollection(collection)
-						   .notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
+					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 			delete(record, reason, false, WAIT_ONE_SECOND);
 			if (parentId != null) {
 				navigate().to(RMViews.class).displayFolder(parentId);
@@ -742,7 +742,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Metadata titleMetadata = documentsSchema.getMetadata(Schemas.TITLE.getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record)
-																		  .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		query.setCondition(parentCondition.andWhere(titleMetadata).is(fileName));
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -762,8 +762,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 							.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-																	 .where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
-																	 .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+									.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
+									.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 							)
 							.filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
@@ -982,7 +982,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartOwner())
-																   .isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+								.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -995,7 +995,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartSharedWithUsers())
-																   .isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+								.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -1162,7 +1162,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public boolean isLogicallyDeleted() {
 		return Boolean.TRUE
 				.equals(folderVO.getMetadataValue(folderVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()))
-								.getValue());
+						.getValue());
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {

@@ -36,11 +36,11 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		instance1 = es.newConnectorHttpInstanceWithId("instance1").setCode("connector1").setTitle("connector1").setEnabled(false)
-					  .setSeeds("http://constellio.com");
+				.setSeeds("http://constellio.com");
 		instance2 = es.newConnectorHttpInstanceWithId("instance2").setCode("connector2").setTitle("connector2").setEnabled(false)
-					  .setSeeds("http://doculibre.com");
+				.setSeeds("http://doculibre.com");
 		instance3 = es.newConnectorHttpInstanceWithId("instance3").setCode("connector3").setTitle("connector3").setEnabled(false)
-					  .setSeeds("http://perdu.com");
+				.setSeeds("http://perdu.com");
 
 		connectorManager = spy(es.getConnectorManager());
 		connectorManager.save(instance1);
@@ -63,7 +63,7 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		ConnectorInstance zeInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
-										 .setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		connectorManager.createConnector(zeInstance);
 		String schemaCode = ConnectorHttpDocument.SCHEMA_TYPE + "_" + zeInstance.getId();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel(Language.French)).isEqualTo("Ze connector");

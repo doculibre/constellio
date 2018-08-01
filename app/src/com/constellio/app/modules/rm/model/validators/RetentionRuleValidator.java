@@ -225,7 +225,7 @@ public class RetentionRuleValidator implements RecordValidator {
 						LogicalSearchQuery usedByFolderQuery = new LogicalSearchQuery()
 								.setName(FIND_FOLDERS_USING_COPY_RULE_QUERY);
 						usedByFolderQuery.setCondition(from(foldersSchemaType).where(folderMainCopyRuleRuleMetadata)
-																			  .isContainingText(originalCopyRetentionRule.getId()));
+								.isContainingText(originalCopyRetentionRule.getId()));
 						boolean usedByFolders = searchServices.hasResults(usedByFolderQuery);
 						if (usedByFolders) {
 							Map<String, Object> parameters = nullRequired(j, originalCopyRetentionRule, "type",
@@ -366,7 +366,7 @@ public class RetentionRuleValidator implements RecordValidator {
 				.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.MAIN_COPY_RULE);
 		LogicalSearchQuery usedByDocumentQuery = new LogicalSearchQuery().setName(FIND_DOCUMENTS_USING_COPY_RULE_QUERY);
 		usedByDocumentQuery.setCondition(from(documentsSchemaType).where(documentMainCopyRuleRuleMetadata)
-																  .isContainingText(originalCopyRetentionRule.getId()));
+				.isContainingText(originalCopyRetentionRule.getId()));
 		return searchServices.hasResults(usedByDocumentQuery);
 	}
 

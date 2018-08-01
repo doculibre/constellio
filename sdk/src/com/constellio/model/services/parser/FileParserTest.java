@@ -69,7 +69,7 @@ public class FileParserTest extends ConstellioTest {
 			throws Exception {
 		doReturn(forkParser).when(forkParsers).getForkParser();
 		doReturn(new HashMap<String, Object>()).when(fileParserWithForkProcess)
-											   .getPropertiesHashMap(any(Metadata.class), anyString());
+				.getPropertiesHashMap(any(Metadata.class), anyString());
 
 		fileParserWithForkProcess.parse(inputStreamFactory, 42);
 
@@ -82,7 +82,7 @@ public class FileParserTest extends ConstellioTest {
 			throws Exception {
 		doReturn(autoDetectParser).when(fileParserWithoutForkProcess).newAutoDetectParser();
 		doReturn(new HashMap<String, Object>()).when(fileParserWithoutForkProcess)
-											   .getPropertiesHashMap(any(Metadata.class), anyString());
+				.getPropertiesHashMap(any(Metadata.class), anyString());
 
 		fileParserWithoutForkProcess.parse(inputStreamFactory, 42);
 		verify(autoDetectParser, times(1)).parse(eq(stream), any(BodyContentHandler.class), any(Metadata.class));

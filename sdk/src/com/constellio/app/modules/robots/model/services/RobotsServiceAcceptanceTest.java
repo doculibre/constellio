@@ -54,11 +54,11 @@ public class RobotsServiceAcceptanceTest extends ConstellioTest {
 		robotsService = new RobotsService(zeCollection, getAppLayerFactory());
 
 		robotSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-											.getSchema(Robot.DEFAULT_SCHEMA);
+				.getSchema(Robot.DEFAULT_SCHEMA);
 		parentMetadata = robotSchema.getMetadata(Robot.PARENT);
 
 		actionParameterSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-													  .getSchema(ActionParameters.DEFAULT_SCHEMA);
+				.getSchema(ActionParameters.DEFAULT_SCHEMA);
 
 		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(rootRobotActionParametersId));
 		getModelLayerFactory().newRecordServices().add(robots.newActionParametersWithId(child1ActionParametersId));

@@ -60,7 +60,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withTasksModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 		users.setUp(getModelLayerFactory().newUserServices());
@@ -88,9 +88,9 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 		long oldTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schema()).returnAll());
 		long oldTotalNumDocument = searchServices.getResultsCount(from(rm.document.schema()).returnAll());
 		long oldNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schema()).where(Schemas.PRINCIPAL_PATH)
-																							  .isContainingText(administrativeUnit.getId()));
+				.isContainingText(administrativeUnit.getId()));
 		long oldNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schema()).where(Schemas.PRINCIPAL_PATH)
-																								  .isContainingText(administrativeUnit.getId()));
+				.isContainingText(administrativeUnit.getId()));
 		assertThat(oldTotalNumFolder).isNotEqualTo(0);
 		assertThat(oldTotalNumDocument).isNotEqualTo(0);
 		assertThat(oldNumFolderInAdminUnit).isNotEqualTo(0);
@@ -102,9 +102,9 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 		long newTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schema()).returnAll());
 		long newTotalNumDocument = searchServices.getResultsCount(from(rm.document.schema()).returnAll());
 		long newNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schema()).where(Schemas.PRINCIPAL_PATH)
-																							  .isContainingText(administrativeUnit.getId()));
+				.isContainingText(administrativeUnit.getId()));
 		long newNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schema()).where(Schemas.PRINCIPAL_PATH)
-																								  .isContainingText(administrativeUnit.getId()));
+				.isContainingText(administrativeUnit.getId()));
 		assertThat(newNumFolderInAdminUnit).isEqualTo(0);
 		assertThat(newNumDocumentInAdminUnit).isEqualTo(0);
 		assertThat(newTotalNumFolder).isEqualTo(oldTotalNumFolder - oldNumFolderInAdminUnit);
@@ -118,7 +118,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 
 		long oldTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schema()).returnAll());
 		long oldNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schema()).where(Schemas.PRINCIPAL_PATH)
-																										  .isContainingText(administrativeUnit.getId()));
+				.isContainingText(administrativeUnit.getId()));
 		assertThat(oldTotalNumContainer).isNotEqualTo(0);
 		assertThat(oldNumContainerInAdminUnit).isNotEqualTo(0);
 
@@ -126,7 +126,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 
 		long newTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schema()).returnAll());
 		long newNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schema()).where(Schemas.PRINCIPAL_PATH)
-																										  .isContainingText(administrativeUnit.getId()));
+				.isContainingText(administrativeUnit.getId()));
 		assertThat(newNumContainerInAdminUnit).isEqualTo(0);
 		assertThat(newTotalNumContainer).isEqualTo(oldTotalNumContainer - oldNumContainerInAdminUnit);
 	}
@@ -139,7 +139,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 				from(rm.folder.schema()).where(Schemas.IDENTIFIER).isEqualTo("A49"))).get(0);
 		Record document = searchServices.search(new LogicalSearchQuery().setCondition(
 				from(rm.document.schema()).where(Schemas.TITLE)
-										  .isEqualTo("Grenouille - Document procès verbal numérique avec un autre exemplaire"))).get(0);
+						.isEqualTo("Grenouille - Document procès verbal numérique avec un autre exemplaire"))).get(0);
 		Record container = searchServices.search(new LogicalSearchQuery().setCondition(
 				from(rm.containerRecord.schema()).where(Schemas.TITLE).isEqualTo("10_A_04"))).get(0);
 
@@ -165,17 +165,17 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 				.where(rm.administrativeUnit.code()).isEqualTo("30C"));
 		Record document = searchServices.search(new LogicalSearchQuery().setCondition(
 				from(rm.document.schema()).where(Schemas.TITLE)
-										  .isEqualTo("Grenouille - Document procès verbal numérique avec un autre exemplaire"))).get(0);
+						.isEqualTo("Grenouille - Document procès verbal numérique avec un autre exemplaire"))).get(0);
 		Record folder = searchServices.search(new LogicalSearchQuery().setCondition(
 				from(rm.folder.schema()).where(Schemas.IDENTIFIER).isEqualTo("A49"))).get(0);
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RMTask taskDocument = new RMTask(taskSchemas.newTask().setTitle("taskDocument")).setLinkedDocuments(asList(document.getId()))
-																						.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
+				.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
 		RMTask taskFolder = new RMTask(taskSchemas.newTask().setTitle("taskFolder")).setLinkedFolders(asList(folder.getId()))
-																					.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
+				.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
 		RMTask taskWithBoth = new RMTask(taskSchemas.newTask().setTitle("taskWithBoth")).setLinkedDocuments(asList(document.getId()))
-																						.setLinkedFolders(asList(folder.getId())).setAdministrativeUnit(administrativeUnitContainingTasks.getId());
+				.setLinkedFolders(asList(folder.getId())).setAdministrativeUnit(administrativeUnitContainingTasks.getId());
 		recordServices.add(taskDocument.getWrappedRecord());
 		recordServices.add(taskFolder.getWrappedRecord());
 		recordServices.add(taskWithBoth.getWrappedRecord());
@@ -202,17 +202,17 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 				.where(rm.administrativeUnit.code()).isEqualTo("10A"));
 		Record document = searchServices.search(new LogicalSearchQuery().setCondition(
 				from(rm.document.schema()).where(Schemas.TITLE)
-										  .isEqualTo("Grenouille - Document procès verbal numérique avec un autre exemplaire"))).get(0);
+						.isEqualTo("Grenouille - Document procès verbal numérique avec un autre exemplaire"))).get(0);
 		Record folder = searchServices.search(new LogicalSearchQuery().setCondition(
 				from(rm.folder.schema()).where(Schemas.IDENTIFIER).isEqualTo("A49"))).get(0);
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RMTask taskDocument = new RMTask(taskSchemas.newTask().setTitle("taskDocument")).setLinkedDocuments(asList(document.getId()))
-																						.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
+				.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
 		RMTask taskFolder = new RMTask(taskSchemas.newTask().setTitle("taskFolder")).setLinkedFolders(asList(folder.getId()))
-																					.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
+				.setAdministrativeUnit(administrativeUnitContainingTasks.getId());
 		RMTask taskWithBoth = new RMTask(taskSchemas.newTask().setTitle("taskWithBoth")).setLinkedDocuments(asList(document.getId()))
-																						.setLinkedFolders(asList(folder.getId())).setAdministrativeUnit(administrativeUnitContainingTasks.getId());
+				.setLinkedFolders(asList(folder.getId())).setAdministrativeUnit(administrativeUnitContainingTasks.getId());
 		recordServices.add(taskDocument.getWrappedRecord());
 		recordServices.add(taskFolder.getWrappedRecord());
 		recordServices.add(taskWithBoth.getWrappedRecord());
@@ -248,10 +248,10 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
 		RetentionRule retentionRule = rm.newRetentionRule()
-										.setTitle("rule1")
-										.setCode("r1")
-										.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
-										.setAdministrativeUnits(Collections.singletonList(administrativeUnit));
+				.setTitle("rule1")
+				.setCode("r1")
+				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+				.setAdministrativeUnits(Collections.singletonList(administrativeUnit));
 
 		Transaction t = new Transaction();
 		t.add(retentionRule);
@@ -275,10 +275,10 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
 		RetentionRule retentionRule = rm.newRetentionRule()
-										.setTitle("rule1")
-										.setCode("r1")
-										.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
-										.setAdministrativeUnits(asList(administrativeUnit1, administrativeUnit2));
+				.setTitle("rule1")
+				.setCode("r1")
+				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+				.setAdministrativeUnits(asList(administrativeUnit1, administrativeUnit2));
 
 		Transaction t = new Transaction();
 		t.add(retentionRule);
@@ -302,20 +302,20 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
 		List<RetentionRule> rules = asList(
 				rm.newRetentionRule()
-				  .setTitle("rule1")
-				  .setCode("r1")
-				  .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
-				  .setAdministrativeUnits(Collections.singletonList(administrativeUnit1)),
+						.setTitle("rule1")
+						.setCode("r1")
+						.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+						.setAdministrativeUnits(Collections.singletonList(administrativeUnit1)),
 				rm.newRetentionRule()
-				  .setTitle("rule2")
-				  .setCode("r2")
-				  .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
-				  .setAdministrativeUnits(asList(administrativeUnit1, records.getUnit11b())),
+						.setTitle("rule2")
+						.setCode("r2")
+						.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+						.setAdministrativeUnits(asList(administrativeUnit1, records.getUnit11b())),
 				rm.newRetentionRule()
-				  .setTitle("rule3")
-				  .setCode("r3")
-				  .setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
-				  .setAdministrativeUnits(Collections.singletonList(administrativeUnit1))
+						.setTitle("rule3")
+						.setCode("r3")
+						.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
+						.setAdministrativeUnits(Collections.singletonList(administrativeUnit1))
 		);
 		Transaction t = new Transaction();
 		t.addAll(rules);
@@ -372,7 +372,7 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 
 	public List<String> getLinkedRecords(Record task) {
 		MetadataSchema schema = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-													.getSchemaTypes(zeCollection).getSchema(task.getSchemaCode());
+				.getSchemaTypes(zeCollection).getSchema(task.getSchemaCode());
 		List<String> linkedDocuments = task.get(schema.getMetadata(RMTask.LINKED_DOCUMENTS));
 		List<String> linkedFolder = task.get(schema.getMetadata(RMTask.LINKED_DOCUMENTS));
 		ArrayList<String> linkedRecords = new ArrayList<>();

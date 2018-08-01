@@ -53,12 +53,12 @@ public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 
 		private void setupClassifyConnectorDocumentInFolderActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
+					.getCustomSchema(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE);
 
 			MetadataSchemaTypeBuilder documentTypeSchemaType = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE);
 
 			schema.createUndeletable(ClassifyConnectorDocumentInFolderActionParameters.DOCUMENT_TYPE)
-				  .defineReferencesTo(documentTypeSchemaType);
+					.defineReferencesTo(documentTypeSchemaType);
 		}
 	}
 
@@ -81,13 +81,13 @@ public class ESRMRobotsMigrationTo6_0 implements MigrationScript {
 		)));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, IN_FOLDER)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, MAJOR_VERSIONS)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

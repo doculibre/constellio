@@ -249,7 +249,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		labels.put(Language.French, "Ze magic group");
 		groups.put("ZeMagicGroup", labels);
 		schemasDisplayManager.saveType(schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE)
-															.withNewMetadataGroup(groups));
+				.withNewMetadataGroup(groups));
 
 		createMetadataAndValidate();
 	}
@@ -343,7 +343,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices
 				.add(recordServices.newRecordWithSchema(zoraDomain.getDefaultSchema()).set(TITLE, "test")
-								   .set(Schemas.CODE, "test"));
+						.set(Schemas.CODE, "test"));
 
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasType("ddvUSRZora")).isTrue();
 		assertThat(schemasManager.getSchemaTypes(zeCollection).hasMetadata("administrativeUnit_default_USRZora")).isTrue();

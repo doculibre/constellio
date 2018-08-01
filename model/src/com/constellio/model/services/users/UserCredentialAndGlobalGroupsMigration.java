@@ -74,7 +74,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchema(SolrUserCredential.DEFAULT_SCHEMA).get(SolrUserCredential.EMAIL)
-						 .setDefaultRequirement(false).setUniqueValue(false);
+							.setDefaultRequirement(false).setUniqueValue(false);
 				}
 			});
 			schemasRecordsServices = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
@@ -90,7 +90,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 					@Override
 					public void alter(MetadataSchemaTypesBuilder types) {
 						types.getSchema(User.DEFAULT_SCHEMA).get(User.EMAIL)
-							 .setDefaultRequirement(false).setUniqueValue(false);
+								.setDefaultRequirement(false).setUniqueValue(false);
 					}
 				});
 				schemasRecordsServices = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);

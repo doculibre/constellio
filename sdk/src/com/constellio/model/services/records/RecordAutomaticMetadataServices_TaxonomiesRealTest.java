@@ -95,13 +95,13 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 
 		MetadataSchemaTypesBuilder types = schemaManager.modify(zeCollection);
 		types.getSchema(taxonomy1FirstSchema.code()).create("taxo1FirstSchemaMetaWithTaxoDependency")
-			 .setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		types.getSchema(taxonomy1SecondSchema.code()).create("taxo1SecondSchemaMetaWithTaxoDependency")
-			 .setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		types.getSchema(folderSchema.code()).create("folderMetaWithTaxoDependency")
-			 .setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		types.getSchema(documentSchema.code()).create("documentMetaWithTaxoDependency")
-			 .setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		schemas.onSchemaBuilt(schemaManager.saveUpdateSchemaTypes(types));
 
 		for (Taxonomy taxonomy : schemas.getTaxonomies()) {

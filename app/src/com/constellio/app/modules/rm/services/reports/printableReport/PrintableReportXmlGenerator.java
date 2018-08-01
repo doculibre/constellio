@@ -156,7 +156,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		for (List<String> idChunk : splittedIds) {
 			LogicalSearchCondition condition = from(
 					metadataSchemasManager.getSchemaTypes(getCollection()).getSchemaType(schemaType)).where(Schemas.IDENTIFIER)
-																									 .isIn(idChunk);
+					.isIn(idChunk);
 			List<Record> recordChunk = searchServices.search(new LogicalSearchQuery(condition));
 			allRecords.addAll(recordChunk);
 		}

@@ -85,7 +85,7 @@ public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 	@Test
 	public void givenDataEntryDefinedAsCopiedWhenBuildingThenHasCorrectAttributes() {
 		metadataWithoutInheritanceBuilder.setType(STRING).defineDataEntry()
-										 .asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
+				.asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
 
 		build();
 		DataEntry dataEntry = metadataWithoutInheritance.getDataEntry();
@@ -100,7 +100,7 @@ public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 	@Test
 	public void givenDataEntryDefinedAsCopiedWhenModifyingThenHasCorrectAttributes() {
 		metadataWithoutInheritanceBuilder.setType(STRING).defineDataEntry()
-										 .asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
+				.asCopied(referenceOtherSchemaMetadataBuilder, anotherSchemaMetadataBuilder);
 
 		buildAndModify();
 		DataEntry dataEntry = metadataWithoutInheritanceBuilder.getDataEntry();

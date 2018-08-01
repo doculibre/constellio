@@ -39,7 +39,7 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 		prepareSystem(withZeCollection().withConstellioRMModule()
-										.withRMTest(records).withAllTest(users).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withDocumentsDecommissioningList());
+				.withRMTest(records).withAllTest(users).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withDocumentsDecommissioningList());
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 

@@ -168,7 +168,7 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 			MetadataSchemaTypes types = types();
 			MetadataSchema schema = types.getSchema(schemaCode);
 			for (Metadata metadata : schema.getMetadatas().onlyWithType(TEXT, STRING).onlyManuals().onlyNotSystemReserved()
-										   .onlyEnabled()) {
+					.onlyEnabled()) {
 				metadataOptions.add(metadataToVOBuilder.build(metadata, sessionContext));
 			}
 		}
@@ -182,8 +182,8 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 			MetadataSchemaTypes types = types();
 			MetadataSchema schema = types.getSchema(schemaCode);
 			for (Metadata metadata : schema.getMetadatas().onlyWithType(TEXT, STRING, CONTENT).onlyManuals()
-										   .onlyNotSystemReserved()
-										   .onlyEnabled()) {
+					.onlyNotSystemReserved()
+					.onlyEnabled()) {
 				if (excludeMetadataVO.getCode() != metadata.getCode()) {
 					metadataOptionsForRegexes.add(metadataToVOBuilder.build(metadata, sessionContext));
 				}

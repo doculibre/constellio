@@ -45,7 +45,7 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);

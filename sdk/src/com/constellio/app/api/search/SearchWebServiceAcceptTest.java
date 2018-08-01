@@ -445,7 +445,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeCollectionSchema, "00000042666");
 		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1)
-								 .set(zeCollectionSchema.numberMetadata(), asList(475.0, 333)));
+				.set(zeCollectionSchema.numberMetadata(), asList(475.0, 333)));
 
 		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475.0d))).isNotEmpty();
 		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475))).isNotEmpty();
@@ -504,7 +504,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeCollectionSchema, "00000042666");
 		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1)
-								 .set(zeCollectionSchema.dateMetadata(), asList(date, date2)));
+				.set(zeCollectionSchema.dateMetadata(), asList(date, date2)));
 
 		reindex();
 
@@ -660,20 +660,20 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 			if (expectedFoundWords.contains(aSearchableQuoteWord)) {
 				if (aSearchableQuoteWord.english) {
 					assertThat(resultsIdsOf(paramsWithQ(englishSearchField + ":" + word))).describedAs(wordsNotFoundDescription)
-																						  .hasSize(1);
+							.hasSize(1);
 					assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + word))).describedAs(wordsFoundDescription)
-																						 .isEmpty();
+							.isEmpty();
 				} else {
 					assertThat(resultsIdsOf(paramsWithQ(englishSearchField + ":" + word))).describedAs(wordsFoundDescription)
-																						  .isEmpty();
+							.isEmpty();
 					assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + word))).describedAs(wordsNotFoundDescription)
-																						 .hasSize(1);
+							.hasSize(1);
 				}
 			} else {
 				assertThat(resultsIdsOf(paramsWithQ(englishSearchField + ":" + word))).describedAs(wordsFoundDescription)
-																					  .isEmpty();
+						.isEmpty();
 				assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + word))).describedAs(wordsFoundDescription)
-																					 .isEmpty();
+						.isEmpty();
 			}
 		}
 	}

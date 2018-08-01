@@ -49,24 +49,24 @@ public class SmbJobFactoryImplRealTest extends ConstellioTest {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 		prepareSystem(withZeCollection().withConstellioESModule()
-										.withAllTestUsers());
+				.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		smbUtils = new ConnectorSmbUtils();
 
 		connectorInstance = es.newConnectorSmbInstance()
-							  .setDomain(SmbTestParams.DOMAIN)
-							  .setUsername(SmbTestParams.USERNAME)
-							  .setPassword(SmbTestParams.PASSWORD)
-							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-							  .setCode(SmbTestParams.INSTANCE_CODE)
-							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-							  .setExclusions(asList(""))
-							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
+				.setDomain(SmbTestParams.DOMAIN)
+				.setUsername(SmbTestParams.USERNAME)
+				.setPassword(SmbTestParams.PASSWORD)
+				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+				.setCode(SmbTestParams.INSTANCE_CODE)
+				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+				.setExclusions(asList(""))
+				.setTitle(SmbTestParams.CONNECTOR_TITLE);
 
 		es.getConnectorManager()
-		  .createConnector(connectorInstance);
+				.createConnector(connectorInstance);
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
@@ -87,11 +87,11 @@ public class SmbJobFactoryImplRealTest extends ConstellioTest {
 		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater);
 
 		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance)
-									  .setUrl(SmbTestParams.EXISTING_SHARE);
+				.setUrl(SmbTestParams.EXISTING_SHARE);
 		es.getRecordServices()
-		  .update(folder.getWrappedRecord());
+				.update(folder.getWrappedRecord());
 		es.getRecordServices()
-		  .flush();
+				.flush();
 
 		long average = 0;
 		long firstLockTime = 0;

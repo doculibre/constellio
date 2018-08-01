@@ -57,10 +57,10 @@ public class TasksMigrationTo7_6_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata(Task.LAST_REMINDER)
-						.addLabel(Language.French, "Dernier rappel").addLabel(Language.English, "Last reminder");
+					.addLabel(Language.French, "Dernier rappel").addLabel(Language.English, "Last reminder");
 
 			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata(Task.NUMBER_OF_REMINDERS)
-						.addLabel(Language.French, "Nombre de rappels").addLabel(Language.English, "Number of reminders");
+					.addLabel(Language.French, "Nombre de rappels").addLabel(Language.English, "Number of reminders");
 		}
 	}
 }

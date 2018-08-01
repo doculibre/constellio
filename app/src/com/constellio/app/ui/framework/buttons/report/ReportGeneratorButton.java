@@ -74,7 +74,7 @@ public class ReportGeneratorButton extends WindowButton {
 		MetadataSchema metadataSchema = null;
 		if (this.elements != null && this.elements.length >= 1) {
 			metadataSchema = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-									.getSchema(this.elements[0].getSchema().getCode());
+					.getSchema(this.elements[0].getSchema().getCode());
 		}
 		return metadataSchema;
 	}

@@ -38,9 +38,9 @@ public class ImportedAuthorizationReader {
 	private ImportedAuthorization readAuthorization(Element authorizationElement) {
 		return new ImportedAuthorization().setId(readId(authorizationElement)).setAccess(
 				readAccess(authorizationElement)).setRoles(readRoles(authorizationElement))
-										  .setPrincipals(readPrincipals(authorizationElement))
-										  .setTargets(readTargets(authorizationElement))
-										  .setOverrideInherited(readOverrideInherited(authorizationElement));
+				.setPrincipals(readPrincipals(authorizationElement))
+				.setTargets(readTargets(authorizationElement))
+				.setOverrideInherited(readOverrideInherited(authorizationElement));
 	}
 
 	private Boolean readOverrideInherited(Element authorizationElement) {

@@ -297,11 +297,11 @@ public class ConnectorMappingService {
 		protected void execute() {
 			for (Alteration alteration : alterations) {
 				MetadataBuilder builder = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(alteration.schema))
-											   .getSchema(alteration.schema)
-											   .create(alteration.localCode)
-											   .setType(alteration.params.getType())
-											   .setMultivalue(alteration.params.isMultivalue())
-											   .setSearchable(alteration.params.isSearchable());
+						.getSchema(alteration.schema)
+						.create(alteration.localCode)
+						.setType(alteration.params.getType())
+						.setMultivalue(alteration.params.isMultivalue())
+						.setSearchable(alteration.params.isSearchable());
 
 				for (String languageStr : collectionsManager.getCollectionLanguages(es.getCollection())) {
 					builder.addLabel(Language.withCode(languageStr),
@@ -312,7 +312,7 @@ public class ConnectorMappingService {
 
 			for (Alteration alteration : alterations) {
 				transaction.add(schemasDisplayManager.getMetadata(es.getCollection(), alteration.schema, alteration.localCode)
-													 .withVisibleInAdvancedSearchStatus(alteration.params.isAdvancedSearch()));
+						.withVisibleInAdvancedSearchStatus(alteration.params.isAdvancedSearch()));
 
 				if (alteration.params.isSearchResults()) {
 					SchemaDisplayConfig schema = transaction.getModifiedSchema(alteration.schema);

@@ -33,7 +33,7 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 		SchemasDisplayManager manager = factory.getMetadataSchemasDisplayManager();
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection)
-																		 .in(Robot.SCHEMA_TYPE).addToForm(Robot.AUTO_EXECUTE).atTheEnd();
+				.in(Robot.SCHEMA_TYPE).addToForm(Robot.AUTO_EXECUTE).atTheEnd();
 
 		List<String> metas = new ArrayList<>();
 		metas.addAll(manager.getSchema(collection, RobotLog.DEFAULT_SCHEMA).getTableMetadataCodes());
@@ -62,7 +62,7 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 			MetadataSchemaBuilder robotSchema = robot.getDefaultSchema();
 
 			robotSchema.createUndeletable(Robot.AUTO_EXECUTE).setType(MetadataValueType.BOOLEAN)
-					   .setDefaultRequirement(true).setDefaultValue(false);
+					.setDefaultRequirement(true).setDefaultValue(false);
 
 			MetadataSchemaTypeBuilder robotLogSchemaType = types.getOrCreateNewSchemaType(RobotLog.SCHEMA_TYPE);
 			MetadataSchemaBuilder robotLogSchema = robotLogSchemaType.getDefaultSchema();

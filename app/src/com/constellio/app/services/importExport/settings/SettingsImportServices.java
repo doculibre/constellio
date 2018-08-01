@@ -232,7 +232,7 @@ public class SettingsImportServices {
 		List<String> specifiedLocalCodes = toCodes(localCodes, schema);
 
 		for (Metadata metadata : schema.getMetadatas().onlyEssentialMetadatasAndCodeTitle().onlyNonSystemReserved()
-									   .onlyManuals()) {
+				.onlyManuals()) {
 			if (!specifiedLocalCodes.contains(metadata.getCode())) {
 				if (metadata.isDefaultRequirement()) {
 					requiredEssentialMetadatas.add(metadata.getCode());
@@ -633,7 +633,7 @@ public class SettingsImportServices {
 						MetadataSchemaTypeBuilder referencedSchemaType = typesBuilder
 								.getSchemaType(referenceMetadataBuilder.getAllowedReferencesBuilder().getSchemaType());
 						MetadataBuilder copiedMetadataBuilder = referencedSchemaType.getDefaultSchema()
-																					.getMetadata(dataEntry.getCopiedMetadata());
+								.getMetadata(dataEntry.getCopiedMetadata());
 
 						metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
 
@@ -682,8 +682,8 @@ public class SettingsImportServices {
 						}
 
 						taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle())
-										   .withUserIds(importedTaxonomy.getUserIds())
-										   .withGroupIds(importedTaxonomy.getGroupIds());
+								.withUserIds(importedTaxonomy.getUserIds())
+								.withGroupIds(importedTaxonomy.getGroupIds());
 
 						taxonomies.put(taxonomy, importedTaxonomy);
 
@@ -743,7 +743,7 @@ public class SettingsImportServices {
 			ImportedTaxonomy importedTaxonomy = entry.getValue();
 
 			appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-						   .addTaxonomy(taxonomy, schemasManager);
+					.addTaxonomy(taxonomy, schemasManager);
 
 			String groupLabel = CLASSIFIED_IN_GROUP_LABEL;
 			for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
@@ -755,7 +755,7 @@ public class SettingsImportServices {
 
 	private Taxonomy getTaxonomyFor(String collectionCode, ImportedTaxonomy importedTaxonomy) {
 		return appLayerFactory.getModelLayerFactory()
-							  .getTaxonomiesManager().getTaxonomyFor(collectionCode, importedTaxonomy.getCode() + "Type");
+				.getTaxonomiesManager().getTaxonomyFor(collectionCode, importedTaxonomy.getCode() + "Type");
 	}
 
 	private void importCollectionsValueLists(final ImportedCollectionSettings collectionSettings,
@@ -790,11 +790,11 @@ public class SettingsImportServices {
 							builder.createValueListItemSchema(code,
 									importedValueList.getTitle(),
 									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode)
-																		 .setMultilingual(isMultiLingual));
+											.setMultilingual(isMultiLingual));
 						} else {
 							builder.createHierarchicalValueListItemSchema(code, importedValueList.getTitle(),
 									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode)
-																		 .setMultilingual(isMultiLingual));
+											.setMultilingual(isMultiLingual));
 						}
 
 					} else {
@@ -832,7 +832,7 @@ public class SettingsImportServices {
 
 	private void importSequences(ImportedSettings settings) {
 		SequencesManager sequenceManager = appLayerFactory.getModelLayerFactory()
-														  .getDataLayerFactory().getSequencesManager();
+				.getDataLayerFactory().getSequencesManager();
 		for (ImportedSequence sequence : settings.getSequences()) {
 			sequenceManager.set(sequence.getKey(), Integer.parseInt(sequence.getValue()));
 		}

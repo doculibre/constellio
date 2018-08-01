@@ -247,16 +247,16 @@ public class ConstellioIgniteCacheManager implements ConstellioCacheManager {
 				EventType.EVT_CACHE_OBJECT_REMOVED);
 
 		igniteClient.message(igniteClient.cluster().forRemotes())
-					.localListen(ConstellioIgniteCache.CLEAR_MESSAGE_TOPIC, new IgniteBiPredicate<UUID, String>() {
-						@Override
-						public boolean apply(UUID nodeId, String cacheName) {
-							if (caches.containsKey(cacheName)) {
-								ConstellioIgniteCache cache = (ConstellioIgniteCache) getCache(cacheName);
-								cache.clearLocal();
-							}
-							return true;
+				.localListen(ConstellioIgniteCache.CLEAR_MESSAGE_TOPIC, new IgniteBiPredicate<UUID, String>() {
+					@Override
+					public boolean apply(UUID nodeId, String cacheName) {
+						if (caches.containsKey(cacheName)) {
+							ConstellioIgniteCache cache = (ConstellioIgniteCache) getCache(cacheName);
+							cache.clearLocal();
 						}
-					});
+						return true;
+					}
+				});
 	}
 
 	public void beginPutTransaction() {

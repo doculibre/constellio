@@ -79,7 +79,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
 
 		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-											   .when(recordServices).execute(any(Transaction.class));
+				.when(recordServices).execute(any(Transaction.class));
 
 		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
 
@@ -123,7 +123,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 
 		assertThat(transactionWithExceptionRecord.getRecords()).contains(theRecordThrowingAnException);
 		assertThat(transactionWithExceptionRecord.getReferencedRecords()).hasSize(2).containsValue(anotherReferencedRecord)
-																		 .containsValue(aThirdReferencedRecord);
+				.containsValue(aThirdReferencedRecord);
 		assertThat(transactionWithExceptionRecord.getRecordUpdateOptions().getRecordsFlushing())
 				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
 
@@ -136,7 +136,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
 
 		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-											   .when(recordServices).execute(any(Transaction.class));
+				.when(recordServices).execute(any(Transaction.class));
 
 		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
 
@@ -182,7 +182,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
-											   .when(recordServices).execute(any(Transaction.class));
+				.when(recordServices).execute(any(Transaction.class));
 
 		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
 

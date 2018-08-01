@@ -74,8 +74,8 @@ public class AllowableActionsBuilder {
 
 	public AllowableActions build(Record record) {
 		MetadataSchemaType type = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-												 .getSchemaTypes(repository.getCollection())
-												 .getSchemaType(new SchemaUtils().getSchemaTypeCode(record.getSchemaCode()));
+				.getSchemaTypes(repository.getCollection())
+				.getSchemaType(new SchemaUtils().getSchemaTypeCode(record.getSchemaCode()));
 
 		boolean readAccess = user.hasReadAccess().on(record);
 		boolean writeAccess = user.hasWriteAccess().on(record);

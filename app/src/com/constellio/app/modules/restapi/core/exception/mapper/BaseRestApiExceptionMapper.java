@@ -32,9 +32,9 @@ abstract class BaseRestApiExceptionMapper {
 
 	Response buildResponse(RestApiErrorResponse errorResponse) {
 		return Response.status(errorResponse.getCode())
-					   .entity(errorResponse)
-					   .type(MediaType.APPLICATION_JSON)
-					   .build();
+				.entity(errorResponse)
+				.type(MediaType.APPLICATION_JSON)
+				.build();
 	}
 
 }

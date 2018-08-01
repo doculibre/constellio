@@ -89,7 +89,7 @@ public class EventToVOBuilder extends RecordToVOBuilder {
 		recordVO.setRecord(record);
 		BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);
 		constellioFactories.getAppLayerFactory().getExtensions()
-						   .forCollection(record.getCollection()).buildRecordVO(buildRecordVOParams);
+				.forCollection(record.getCollection()).buildRecordVO(buildRecordVOParams);
 
 		return recordVO;
 	}

@@ -143,7 +143,7 @@ public class StreamsTestFeatures {
 		T mockedStream = Mockito.spy(closeable);
 		try {
 			doThrow(new RuntimeException("The closeable must be closed at the same place it has been opened")).when(mockedStream)
-																											  .close();
+					.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

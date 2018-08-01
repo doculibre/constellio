@@ -59,7 +59,7 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("myNewTaxonomy").setType(MetadataValueType.REFERENCE)
-					 .setTaxonomyRelationship(true).defineReferencesTo(types.getSchemaType(ContainerRecord.SCHEMA_TYPE));
+						.setTaxonomyRelationship(true).defineReferencesTo(types.getSchemaType(ContainerRecord.SCHEMA_TYPE));
 			}
 		});
 		MetadataSchemaTypes newSchemaTypes = schemaManager.getSchemaTypes(zeCollection);

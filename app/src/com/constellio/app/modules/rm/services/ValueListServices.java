@@ -155,9 +155,9 @@ public class ValueListServices {
 			for (String schemaType : options.getTypesWithReferenceMetadata()) {
 				String metadataCode = code.replace("ddv", "");
 				types.getSchemaType(schemaType).getDefaultSchema().create(metadataCode).setType(REFERENCE)
-					 .setMultivalue(options.isCreateMetadatasAsMultivalued())
-					 .setLabels(valueListSchemaType.getLabels())
-					 .defineReferencesTo(valueListSchemaType);
+						.setMultivalue(options.isCreateMetadatasAsMultivalued())
+						.setLabels(valueListSchemaType.getLabels())
+						.defineReferencesTo(valueListSchemaType);
 			}
 		}
 
@@ -184,7 +184,7 @@ public class ValueListServices {
 
 		builder.createHierarchicalValueListItemSchema(typeCode, title,
 				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false)
-													 .setMultilingual(isMultiLingual));
+						.setMultilingual(isMultiLingual));
 
 		return Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(typeCode));
 	}
@@ -219,7 +219,7 @@ public class ValueListServices {
 
 		for (MetadataSchemaType type : schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaTypes()) {
 			List<Metadata> metadatas = type.getAllMetadatas().onlyTaxonomyReferences()
-										   .onlyReferencesToType(taxonomy.getSchemaTypes().get(0));
+					.onlyReferencesToType(taxonomy.getSchemaTypes().get(0));
 
 			if (!metadatas.isEmpty()) {
 				classifiedTypes.add(type);
@@ -241,8 +241,8 @@ public class ValueListServices {
 		String localCode = taxonomy.getCode() + "Ref";
 		MetadataSchemaTypeBuilder taxonomyType = types.getSchemaType(taxonomy.getSchemaTypes().get(0));
 		MetadataBuilder metadataBuilder = types.getSchemaType(schemaTypeCode).getDefaultSchema().create(localCode)
-											   .defineTaxonomyRelationshipToType(taxonomyType)
-											   .setMultivalue(true);
+				.defineTaxonomyRelationshipToType(taxonomyType)
+				.setMultivalue(true);
 
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
 			if (taxonomy.getTitle(language) == null) {

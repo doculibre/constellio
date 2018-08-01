@@ -157,7 +157,7 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(zeCollectionRecord.getCode()).isEqualTo(zeCollectionVO.getCode());
 		assertThat(zeCollectionRecord.getName()).isEqualTo("newName");
 		assertThat(modulesManager.getEnabledModules(zeCollectionVO.getCode())).extracting("id")
-																			  .containsOnly(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
+				.containsOnly(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
 		//language is not modified
 		assertThat(zeCollectionRecord.getLanguages()).containsOnly(Language.French.getCode(), Language.English.getCode());
 	}

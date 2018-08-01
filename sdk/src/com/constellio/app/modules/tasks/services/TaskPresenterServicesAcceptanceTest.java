@@ -70,10 +70,10 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 		zeTask = tasksSchemas.newTask();
 		recordServices.add(zeTask.setTitle("zeTitle")
-								 .setTaskFollowers(asList(new TaskFollower().setFollowerId(bobHasReadAccessOnTask.getId())))
-								 .setAssignee(aliceHasWriteAccessOnZeTask.getId()).setAssigner(chuckNorrisHasDeleteAccessOnTask.getId())
-								 .setAssignationDate(LocalDate.now())
-								 .setCreatedBy(chuckNorrisHasDeleteAccessOnTask.getId()));
+				.setTaskFollowers(asList(new TaskFollower().setFollowerId(bobHasReadAccessOnTask.getId())))
+				.setAssignee(aliceHasWriteAccessOnZeTask.getId()).setAssigner(chuckNorrisHasDeleteAccessOnTask.getId())
+				.setAssignationDate(LocalDate.now())
+				.setCreatedBy(chuckNorrisHasDeleteAccessOnTask.getId()));
 
 		//LogicalSearchCondition allTasks = from(tasksSchemas.userTask.schemaType()).returnAll();
 
@@ -176,7 +176,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserWithWriteAccessOnTaskAndIsCreatorWhenTaskIsCompletedButNotAssignedThenCloseTaskButtonIsVisible()
 			throws Exception {
 		recordServices.add(zeTask.setStatus(FIN()).setAssignee(null).setAssignationDate(null)
-								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(chuckNorrisHasDeleteAccessOnTask.hasDeleteAccess().on(zeTask)).isTrue();
 		assertThat(taskPresenterServices.isCloseTaskButtonVisible(zeTask.getWrappedRecord(),
@@ -187,7 +187,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserWithWriteAccessOnTaskWhenTaskIsBeforeCompletedButNotAssignedThenCompleteTaskButtonInvisible()
 			throws Exception {
 		recordServices.add(zeTask.setAssignee(null).setAssignationDate(null)
-								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(chuckNorrisHasDeleteAccessOnTask.hasDeleteAccess().on(zeTask)).isTrue();
 		assertThat(taskPresenterServices.isCompleteTaskButtonVisible(zeTask.getWrappedRecord(),
@@ -214,7 +214,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserWithWriteAccessOnTaskWhenTaskIsNotAssignedThenAutoAssignTaskButtonVisible()
 			throws Exception {
 		recordServices.add(zeTask.setAssignee(null).setAssignationDate(null)
-								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(chuckNorrisHasDeleteAccessOnTask.hasDeleteAccess().on(zeTask)).isTrue();
 		assertThat(taskPresenterServices.isAutoAssignButtonEnabled(zeTask.getWrappedRecord(),
@@ -225,7 +225,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserWithoutWriteAccessOnTaskWhenTaskIsNotAssignedThenAutoAssignTaskButtonInvisible()
 			throws Exception {
 		recordServices.add(zeTask.setAssignee(null).setAssignationDate(null)
-								 .setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(bobHasReadAccessOnTask.hasWriteAccess().on(zeTask)).isFalse();
 		assertThat(taskPresenterServices.isAutoAssignButtonEnabled(zeTask.getWrappedRecord(),
@@ -332,7 +332,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void givenTaskNotAssignedWhenIsAssignedToUserThenFalse()
 			throws Exception {
 		recordServices.update(zeTask.setAssignee(null).setAssignationDate(null)
-									.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
+				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(taskPresenterServices.isAssignedToUser(zeTask.getWrappedRecord(), aliceHasWriteAccessOnZeTask)).isFalse();
 	}
@@ -351,7 +351,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		recordServices.update(zeTask.setAssigneeUsersCandidates(
 				asList(aliceHasWriteAccessOnZeTask.getId(), bobHasReadAccessOnTask.getId()))
-									.setAssigneeUsersCandidates(null).setAssigneeGroupsCandidates(null));
+				.setAssigneeUsersCandidates(null).setAssigneeGroupsCandidates(null));
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(taskPresenterServices.isAssignedToUser(zeTask.getWrappedRecord(), aliceHasWriteAccessOnZeTask)).isTrue();
 	}
@@ -375,7 +375,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
 
 		recordServices.update(zeTask.setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()))
-									.setAssignee(null).setAssigneeUsersCandidates(null)
+				.setAssignee(null).setAssigneeUsersCandidates(null)
 		);
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(taskPresenterServices.isAssignedToUser(zeTask.getWrappedRecord(), aliceHasWriteAccessOnZeTask)).isTrue();

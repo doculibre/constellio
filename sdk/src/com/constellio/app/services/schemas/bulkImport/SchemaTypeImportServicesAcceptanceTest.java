@@ -312,7 +312,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 		}
 		assertThat(taxoDomaineHierarchiqueTypeLocalCodes).containsAll(Arrays.asList(new String[]{"USRmd1Taxo", "USRmd2Taxo"}));
 		Taxonomy taxonomy = getModelLayerFactory().getTaxonomiesManager()
-												  .getTaxonomyFor(zeCollection, "taxoDomaineHierarchiqueType");
+				.getTaxonomyFor(zeCollection, "taxoDomaineHierarchiqueType");
 		assertThat(taxonomy).isNotNull();
 		assertThat(taxonomy.getSchemaTypes()).containsOnly(schemaType.getCode());
 	}

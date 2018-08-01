@@ -74,6 +74,6 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 
 	private boolean isMetadataSequential(String metadataCode) {
 		return DataEntryType.SEQUENCE.equals(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-															  .getMetadata(metadataCode).getDataEntry().getType());
+				.getMetadata(metadataCode).getDataEntry().getType());
 	}
 }

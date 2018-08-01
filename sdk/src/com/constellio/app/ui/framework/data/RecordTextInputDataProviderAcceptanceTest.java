@@ -29,7 +29,7 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 
 	}
 

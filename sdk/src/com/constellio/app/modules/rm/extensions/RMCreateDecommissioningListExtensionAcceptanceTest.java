@@ -51,7 +51,7 @@ public class RMCreateDecommissioningListExtensionAcceptanceTest extends Constell
 		givenTimeIs(now);
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		recordServices = getModelLayerFactory().newRecordServices();

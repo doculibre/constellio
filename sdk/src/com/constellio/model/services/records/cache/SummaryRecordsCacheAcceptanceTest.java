@@ -197,18 +197,18 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		Transaction transaction = new Transaction();
 		record3 = (TestRecord) transaction.add(newRecordOf("1", schemaType).withTitle("a")
-																		   .set(schemaType.stringMetadata(), "1")
-																		   .set(schemaType.numberMetadata(), 2.0)
-																		   .set(schemaType.anotherStringMetadata(), "3"));
+				.set(schemaType.stringMetadata(), "1")
+				.set(schemaType.numberMetadata(), 2.0)
+				.set(schemaType.anotherStringMetadata(), "3"));
 
 		transaction.add(newRecordOf("2", schemaType).withTitle("b")
-													.set(schemaType.stringMetadata(), "4")
-													.set(schemaType.anotherStringMetadata(), "5"));
+				.set(schemaType.stringMetadata(), "4")
+				.set(schemaType.anotherStringMetadata(), "5"));
 
 		transaction.add(newRecordOf("3", schemaType).withTitle("c")
-													.set(schemaType.stringMetadata(), "6")
-													.set(schemaType.numberMetadata(), 7.0)
-													.set(schemaType.anotherStringMetadata(), "8"));
+				.set(schemaType.stringMetadata(), "6")
+				.set(schemaType.numberMetadata(), 7.0)
+				.set(schemaType.anotherStringMetadata(), "8"));
 
 		recordServices.execute(transaction);
 

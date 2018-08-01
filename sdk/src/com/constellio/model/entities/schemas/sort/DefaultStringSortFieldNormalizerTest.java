@@ -37,7 +37,7 @@ public class DefaultStringSortFieldNormalizerTest extends ConstellioTest {
 			assertThat(normalizedStringBefore.compareTo(normalizedStringAfter)).describedAs(
 					"Element at position " + i + " with normalized text '" + normalizedStringBefore + "' is expected to be " +
 					"before element at position " + (i + 1) + " with normalized text '" + normalizedStringAfter + "'")
-																			   .isLessThan(0);
+					.isLessThan(0);
 		}
 
 	}

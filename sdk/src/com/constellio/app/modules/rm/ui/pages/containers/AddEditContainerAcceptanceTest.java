@@ -58,7 +58,7 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		getDataLayerFactory().getDataLayerLogger().monitor("idx_rfc_00000000001");
 
@@ -117,8 +117,8 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
 		} finally {
 			long numberOfContainerCreated = getModelLayerFactory().newSearchServices()
-																  .getResultsCount(from(rm.containerRecord.schemaType())
-																		  .where(rm.containerRecord.storageSpace()).isEqualTo("storageTest"));
+					.getResultsCount(from(rm.containerRecord.schemaType())
+							.where(rm.containerRecord.storageSpace()).isEqualTo("storageTest"));
 
 			assertThat(numberOfContainerCreated).isEqualTo(0);
 		}
@@ -132,8 +132,8 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 		presenter.createMultipleContainer(
 				buildDefaultContainer().setStorageSpace("storageTest").setCapacity(10).getWrappedRecord(), 10);
 		long numberOfContainerCreated = getModelLayerFactory().newSearchServices()
-															  .getResultsCount(from(rm.containerRecord.schemaType())
-																	  .where(rm.containerRecord.storageSpace()).isEqualTo("storageTest"));
+				.getResultsCount(from(rm.containerRecord.schemaType())
+						.where(rm.containerRecord.storageSpace()).isEqualTo("storageTest"));
 
 		assertThat(numberOfContainerCreated).isEqualTo(10);
 	}
@@ -174,7 +174,7 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(0, 100, StatusFilter.ACTIVES)
 				.setFastContinueInfos(null)
 				.setReturnedMetadatasFilter(idVersionSchemaTitlePath().withIncludedMetadata(Schemas.CODE)
-																	  .withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
+						.withIncludedMetadata(Schemas.DESCRIPTION_TEXT).withIncludedMetadata(Schemas.DESCRIPTION_STRING));
 		options.setHasChildrenFlagCalculated(TaxonomiesSearchOptions.HasChildrenFlagCalculated.ALWAYS);
 		options.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(false);
 		options.setFilter(filter);
@@ -183,9 +183,9 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
 	public ContainerRecord buildDefaultContainer() {
 		return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22)
-				 .setTemporaryIdentifier("containerTestTemporary").setCapacity(100)
-				 .setAdministrativeUnits(asList(records.unitId_10))
-				 .setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setTemporaryIdentifier("containerTestTemporary").setCapacity(100)
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT);
 	}
 
 	public StorageSpace buildDefaultStorageSpace() {
@@ -194,7 +194,7 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 
 	public StorageSpace buildDefaultChildStorageSpace() {
 		return rm.newStorageSpaceWithId("storageTestChild").setCode("storageTestChild").setParentStorageSpace("storageTest")
-				 .setTitle("storageTestChild").setCapacity(150);
+				.setTitle("storageTestChild").setCapacity(150);
 	}
 
 	private void setAllStorageSpaceWithNoCapacity() {

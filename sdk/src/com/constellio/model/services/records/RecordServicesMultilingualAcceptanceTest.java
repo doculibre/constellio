@@ -531,21 +531,21 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		query.setLanguage(Locale.FRENCH);
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadata("stringMetadata")
-													   .isEqualTo(asList("Fraise", "peanut", "Pêche", "perdrix", "Poire", "pomme"));
+				.isEqualTo(asList("Fraise", "peanut", "Pêche", "perdrix", "Poire", "pomme"));
 
 		query.setLanguage(Locale.ENGLISH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadata("stringMetadata")
-													   .isEqualTo(asList("Apple", "Partridge", "Peach", "peanut", "pear", "Strawberry"));
+				.isEqualTo(asList("Apple", "Partridge", "Peach", "peanut", "pear", "Strawberry"));
 
 		query = new LogicalSearchQuery(from(multilingualSchema.type()).returnAll());
 		query.sortAsc(multilingualSchema.anotherStringMetadata()).sortAsc(multilingualSchema.stringMetadata());
 		query.setLanguage(Locale.FRENCH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadata("stringMetadata")
-													   .isEqualTo(asList("peanut", "Fraise", "Pêche", "Poire", "pomme", "perdrix"));
+				.isEqualTo(asList("peanut", "Fraise", "Pêche", "Poire", "pomme", "perdrix"));
 
 		query.setLanguage(Locale.ENGLISH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadata("stringMetadata")
-													   .isEqualTo(asList("peanut", "Apple", "Peach", "pear", "Strawberry", "Partridge"));
+				.isEqualTo(asList("peanut", "Apple", "Peach", "pear", "Strawberry", "Partridge"));
 
 		/*****
 		 * Validating multilingual reference sort
@@ -556,13 +556,13 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		query.setLanguage(Locale.FRENCH);
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH)
-													   .extractingMetadata("referenceFromAnotherSchemaToZeSchema.stringMetadata")
-													   .isEqualTo(asList("Fraise", "peanut", "Pêche", "perdrix", "Poire", "pomme"));
+				.extractingMetadata("referenceFromAnotherSchemaToZeSchema.stringMetadata")
+				.isEqualTo(asList("Fraise", "peanut", "Pêche", "perdrix", "Poire", "pomme"));
 
 		query.setLanguage(Locale.ENGLISH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH)
-													   .extractingMetadata("referenceFromAnotherSchemaToZeSchema.stringMetadata")
-													   .isEqualTo(asList("Apple", "Partridge", "Peach", "peanut", "pear", "Strawberry"));
+				.extractingMetadata("referenceFromAnotherSchemaToZeSchema.stringMetadata")
+				.isEqualTo(asList("Apple", "Partridge", "Peach", "peanut", "pear", "Strawberry"));
 
 	}
 
@@ -616,22 +616,22 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		query.setLanguage(Locale.FRENCH);
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadatas("id", "autocomplete")
-													   .containsOnly(
-															   tuple("r1", asList("fruit", "pomme")),
-															   tuple("r2", asList("fruit", "molle", "peche")),
-															   tuple("r3", asList("fruit", "poire")),
-															   tuple("r4", asList("aux", "fraises", "fruit", "quick")),
-															   tuple("r5", asList("oiseau", "perdrix")),
-															   tuple("r6", asList("arachide", "autre")));
+				.containsOnly(
+						tuple("r1", asList("fruit", "pomme")),
+						tuple("r2", asList("fruit", "molle", "peche")),
+						tuple("r3", asList("fruit", "poire")),
+						tuple("r4", asList("aux", "fraises", "fruit", "quick")),
+						tuple("r5", asList("oiseau", "perdrix")),
+						tuple("r6", asList("arachide", "autre")));
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadatas("id", "autocomplete")
-													   .containsOnly(
-															   tuple("r1", asList("apple", "fruit")),
-															   tuple("r2", asList("fruit", "peach")),
-															   tuple("r3", asList("fruit", "pear")),
-															   tuple("r4", asList("fruit", "quick", "strawberry")),
-															   tuple("r5", asList("oiseau", "partridge")),
-															   tuple("r6", asList("autre", "peanut")));
+				.containsOnly(
+						tuple("r1", asList("apple", "fruit")),
+						tuple("r2", asList("fruit", "peach")),
+						tuple("r3", asList("fruit", "pear")),
+						tuple("r4", asList("fruit", "quick", "strawberry")),
+						tuple("r5", asList("oiseau", "partridge")),
+						tuple("r6", asList("autre", "peanut")));
 
 		assertThatAutoCompleteSearch(Locale.FRENCH, "fr").containsOnly("r1", "r2", "r3", "r4");
 		assertThatAutoCompleteSearch(Locale.ENGLISH, "fr").containsOnly("r1", "r2", "r3", "r4");
@@ -709,41 +709,41 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(multilingualSchema.stringMetadata()));
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadatas("id", "stringMetadata")
-													   .containsOnly(
-															   tuple("r1", "pomme"),
-															   tuple("r2", "Pêche molle"),
-															   tuple("r3", "Poire"),
-															   tuple("r4", "Quick aux fraises"),
-															   tuple("r5", "perdrix"),
-															   tuple("r6", "Arachide"));
+				.containsOnly(
+						tuple("r1", "pomme"),
+						tuple("r2", "Pêche molle"),
+						tuple("r3", "Poire"),
+						tuple("r4", "Quick aux fraises"),
+						tuple("r5", "perdrix"),
+						tuple("r6", "Arachide"));
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadatas("id", "stringMetadata")
-													   .containsOnly(
-															   tuple("r1", "Apple"),
-															   tuple("r2", "Peach"),
-															   tuple("r3", "pear"),
-															   tuple("r4", "Strawberry quick"),
-															   tuple("r5", "Partridge"),
-															   tuple("r6", "peanut"));
+				.containsOnly(
+						tuple("r1", "Apple"),
+						tuple("r2", "Peach"),
+						tuple("r3", "pear"),
+						tuple("r4", "Strawberry quick"),
+						tuple("r5", "Partridge"),
+						tuple("r6", "peanut"));
 
 		query.setLanguage(Locale.ENGLISH);
 		assertThatRecords(searchServices.search(query)).preferring(Locale.FRENCH).extractingMetadatas("id", "stringMetadata")
-													   .containsOnly(
-															   tuple("r1", "pomme"),
-															   tuple("r2", "Pêche molle"),
-															   tuple("r3", "Poire"),
-															   tuple("r4", "Quick aux fraises"),
-															   tuple("r5", "perdrix"),
-															   tuple("r6", "Arachide"));
+				.containsOnly(
+						tuple("r1", "pomme"),
+						tuple("r2", "Pêche molle"),
+						tuple("r3", "Poire"),
+						tuple("r4", "Quick aux fraises"),
+						tuple("r5", "perdrix"),
+						tuple("r6", "Arachide"));
 
 		assertThatRecords(searchServices.search(query)).preferring(Locale.ENGLISH).extractingMetadatas("id", "stringMetadata")
-													   .containsOnly(
-															   tuple("r1", "Apple"),
-															   tuple("r2", "Peach"),
-															   tuple("r3", "pear"),
-															   tuple("r4", "Strawberry quick"),
-															   tuple("r5", "Partridge"),
-															   tuple("r6", "peanut"));
+				.containsOnly(
+						tuple("r1", "Apple"),
+						tuple("r2", "Peach"),
+						tuple("r3", "pear"),
+						tuple("r4", "Strawberry quick"),
+						tuple("r5", "Partridge"),
+						tuple("r6", "peanut"));
 	}
 
 	@Test
@@ -1000,7 +1000,7 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(Locale locale, String text) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-														.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
+				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).where(autocompleteFieldMatching(text)));
 		query.setLanguage(locale);
 		return assertThat(searchServices.searchRecordIds(query));
@@ -1008,7 +1008,7 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 	private org.assertj.core.api.ListAssert<String> assertThatSearch(Locale locale, String text) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-														.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
+				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).returnAll());
 		query.setFreeTextQuery(text);
 		query.setLanguage(locale);
@@ -1032,9 +1032,9 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteFruitSearch(Locale locale, String text) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-														.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
+				.getSchemaTypes("multilingual").getSchemaType(multilingualSchema.type().getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).where(autocompleteFieldMatching(text))
-																				   .andWhere(multilingualSchema.anotherStringMetadata()).isEqualTo("Fruit"));
+				.andWhere(multilingualSchema.anotherStringMetadata()).isEqualTo("Fruit"));
 		query.setLanguage(locale);
 		return assertThat(searchServices.searchRecordIds(query));
 	}
@@ -1079,13 +1079,13 @@ public class RecordServicesMultilingualAcceptanceTest extends ConstellioTest {
 		@Override
 		public void setupMonolingualCollection(MetadataSchemaTypesBuilder schemaTypes) {
 			schemaTypes.getSchema("zeSchemaType_default").create("stringMetadata").setType(STRING)
-					   .setMultiLingual(true).setMultivalue(true);
+					.setMultiLingual(true).setMultivalue(true);
 		}
 
 		@Override
 		public void setupMultilingualCollection(MetadataSchemaTypesBuilder schemaTypes) {
 			schemaTypes.getSchema("zeSchemaType_default").create("stringMetadata").setType(STRING)
-					   .setMultiLingual(true).setMultivalue(true);
+					.setMultiLingual(true).setMultivalue(true);
 		}
 
 		@Override

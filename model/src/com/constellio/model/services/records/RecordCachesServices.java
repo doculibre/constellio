@@ -25,7 +25,7 @@ public class RecordCachesServices {
 		for (CacheConfig config : recordsCache.getConfiguredCaches()) {
 			if (config.isPermanent()) {
 				MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-														   .getSchemaType(config.getSchemaType());
+						.getSchemaType(config.getSchemaType());
 				LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).returnAll());
 				Iterator<Record> recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 5000);
 

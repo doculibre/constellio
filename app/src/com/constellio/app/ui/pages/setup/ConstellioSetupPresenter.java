@@ -222,7 +222,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			try {
 				ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 				DataLayerConfiguration dataLayerConfiguration = modelLayerFactory.getDataLayerFactory()
-																				 .getDataLayerConfiguration();
+						.getDataLayerConfiguration();
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
 				File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();

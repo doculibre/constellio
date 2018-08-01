@@ -45,7 +45,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		hashingService = getModelLayerFactory().getDataLayerFactory()
-											   .getIOServicesFactory().newHashingService(getModelLayerFactory()
+				.getIOServicesFactory().newHashingService(getModelLayerFactory()
 						.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
 
 		getDataLayerFactory().getDataLayerConfiguration().setContentDaoReplicatedVaultMountPoint(newTempFolder().getAbsolutePath());
@@ -97,9 +97,9 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		FileUtils.copyFile(getTestResourceFile("3.docx"), tempFile3 = ioServices.newTemporaryFile(FILE_NAME_3));
 
 		Mockito.doReturn(false).doCallRealMethod().when(fileSystemContentDao)
-			   .moveFile((File) Mockito.any(), (File) Mockito.any());
+				.moveFile((File) Mockito.any(), (File) Mockito.any());
 		Mockito.doCallRealMethod().doReturn(false).doReturn(false).doCallRealMethod()
-			   .when(fileSystemContentDao).fileCopy((File) Mockito.any(), Mockito.anyString());
+				.when(fileSystemContentDao).fileCopy((File) Mockito.any(), Mockito.anyString());
 
 		fileSystemContentDao.moveFileToVault(tempFile1, fileHash1);
 		fileSystemContentDao.moveFileToVault(tempFile2, fileHash2);
@@ -119,7 +119,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		assertThat(fileOf3Replicate.exists()).isFalse();
 
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
-																	 .getAbsolutePath(), fileHash1);
+				.getAbsolutePath(), fileHash1);
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
 				.getVaultRootRecoveryFolder().getAbsolutePath(), fileHash2, fileHash3);
 
@@ -164,9 +164,9 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 	public void givenAddFileToVaultWithErrorsAddedToRecoveryFilesWhenReadLogAndRepairThenAllFileArePresent()
 			throws Exception {
 		Mockito.doReturn(false).doCallRealMethod()
-			   .doCallRealMethod().doReturn(false)
-			   .doCallRealMethod().doReturn(false)
-			   .when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
+				.doCallRealMethod().doReturn(false)
+				.doCallRealMethod().doReturn(false)
+				.when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
 
 		fileSystemContentDao.add(fileHash1, getTestResourceInputStream("1.docx"));
 		fileSystemContentDao.add(fileHash2, getTestResourceInputStream("2.docx"));
@@ -183,7 +183,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		assertThat(fileOf3Replicate.exists()).isFalse();
 
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
-																	 .getAbsolutePath(), fileHash1);
+				.getAbsolutePath(), fileHash1);
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
 				.getVaultRootRecoveryFolder().getAbsolutePath(), fileHash2, fileHash3);
 
@@ -206,9 +206,9 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Mockito.doReturn(false).doCallRealMethod()
-			   .doCallRealMethod().doReturn(false)
-			   .doCallRealMethod().doReturn(false)
-			   .when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
+				.doCallRealMethod().doReturn(false)
+				.doCallRealMethod().doReturn(false)
+				.when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
 
 		fileSystemContentDao.add(fileHash1, getTestResourceInputStream("1.docx"));
 		fileSystemContentDao.add(fileHash2, getTestResourceInputStream("2.docx"));
@@ -227,7 +227,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		assertThat(fileOf2Vault.delete()).isTrue();
 
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
-																	 .getAbsolutePath(), fileHash1);
+				.getAbsolutePath(), fileHash1);
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
 				.getVaultRootRecoveryFolder().getAbsolutePath(), fileHash2, fileHash3);
 
@@ -249,9 +249,9 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 	public void givenAddFileToVaultWithErrorsAndDeleteOneVaultFileWhenReadLogAndRepairThenNoExceptionAndFileIsEmpty()
 			throws Exception {
 		Mockito.doReturn(false).doCallRealMethod()
-			   .doReturn(false).doCallRealMethod()
-			   .doCallRealMethod().doReturn(false)
-			   .when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
+				.doReturn(false).doCallRealMethod()
+				.doCallRealMethod().doReturn(false)
+				.when(fileSystemContentDao).copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
 
 		fileSystemContentDao.add(fileHash1, getTestResourceInputStream("1.docx"));
 		fileSystemContentDao.add(fileHash2, getTestResourceInputStream("2.docx"));
@@ -267,7 +267,7 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		assertThat(fileOf3Replicate.exists()).isFalse();
 
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao.getReplicationRootRecoveryFolder()
-																	 .getAbsolutePath(), fileHash1, fileHash2);
+				.getAbsolutePath(), fileHash1, fileHash2);
 		assertThatRecoveryFilesHaveCertainValues(fileSystemContentDao
 				.getVaultRootRecoveryFolder().getAbsolutePath(), fileHash3);
 
@@ -295,8 +295,8 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 		FileUtils.copyToFile(getTestResourceInputStream("1.docx"), tempFile1);
 
 		Mockito.doReturn(false)
-			   .when(fileSystemContentDao)
-			   .copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
+				.when(fileSystemContentDao)
+				.copy((CopyInputStreamFactory) Mockito.any(), (File) Mockito.any());
 
 		String fileHash1 = hashingService.getHashFromFile(tempFile1);
 		InputStream tempFileInputStream = new FileInputStream(tempFile1);
@@ -319,10 +319,10 @@ public class FileSystemContentDaoAcceptanceTest extends ConstellioTest {
 
 	private void assertThatRecoveryFileAreEmpty() throws IOException {
 		assertThat(getNumberOfNonEmptyLines(fileSystemContentDao.getReplicationRootRecoveryFolder()
-																.getAbsolutePath())).isEqualTo(0);
+				.getAbsolutePath())).isEqualTo(0);
 
 		assertThat(getNumberOfNonEmptyLines(fileSystemContentDao.getVaultRootRecoveryFolder()
-																.getAbsolutePath())).isEqualTo(0);
+				.getAbsolutePath())).isEqualTo(0);
 	}
 
 	private void assertThatRecoveryFilesHaveCertainValues(String filePath, String... hashList) throws IOException {

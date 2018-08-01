@@ -96,9 +96,9 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	@Test
 	public void givenRoleAddedThenDisplayAddedRole() {
 		page.openCreateRoleForm()
-			.setValue(CreateRoleButton.ROLE_CODE, "N")
-			.setValue(CreateRoleButton.ROLE_TITLE, "New")
-			.clickSaveButtonAndWaitForPageReload();
+				.setValue(CreateRoleButton.ROLE_CODE, "N")
+				.setValue(CreateRoleButton.ROLE_TITLE, "New")
+				.clickSaveButtonAndWaitForPageReload();
 		verifyCleanPermissionState();
 		for (String permission : permissions) {
 			assertThat(page.getPermission("N", permission).isChecked()).isFalse();

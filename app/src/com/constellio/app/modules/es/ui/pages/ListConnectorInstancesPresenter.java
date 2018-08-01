@@ -46,7 +46,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	public List<Metadata> columnToRemove() {
 		List<Metadata> toRemove = new ArrayList<>();
 		MetadataSchema connectorInstanceDefaultSchema = metadataSchemasManager.getSchemaTypes(collection)
-																			  .getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
+				.getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
 		toRemove.add(connectorInstanceDefaultSchema.get(ConnectorInstance.TRAVERSAL_CODE));
 		return toRemove;
 	}
@@ -59,7 +59,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	public RecordVODataProvider getDataProvider() {
 
 		MetadataSchema connectorInstanceDefaultSchema = metadataSchemasManager.getSchemaTypes(collection)
-																			  .getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
+				.getDefaultSchema(ConnectorInstance.SCHEMA_TYPE);
 
 		List<String> metadataCodes = Arrays
 				.asList(ConnectorInstance.TITLE, ConnectorInstance.CODE, ConnectorInstance.CONNECTOR_TYPE,
@@ -72,8 +72,8 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchemaType connectorInstanceSchemaType = modelLayerFactory.getMetadataSchemasManager()
-																				  .getSchemaTypes(collection)
-																				  .getSchemaType(ConnectorInstance.SCHEMA_TYPE);
+						.getSchemaTypes(collection)
+						.getSchemaType(ConnectorInstance.SCHEMA_TYPE);
 				LogicalSearchQuery query = new LogicalSearchQuery(
 						from(connectorInstanceSchemaType).returnAll())
 						.sortAsc(Schemas.TITLE)

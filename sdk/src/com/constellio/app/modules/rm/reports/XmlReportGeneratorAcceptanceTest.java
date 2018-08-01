@@ -49,7 +49,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		saxBuilder = new SAXBuilder();
@@ -119,7 +119,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 			}
 			List<Tuple> listOfMetadataInFolder = new ArrayList<>();
 			for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getFolder_A11().getWrappedRecord())
-														   .getMetadatas()) {
+					.getMetadatas()) {
 				List<Element> elementOfMetadata = printableReportXmlGenerator
 						.createMetadataTagsFromMetadata(metadata, records.getFolder_A11().getWrappedRecord());
 				for (Element element : elementOfMetadata) {
@@ -165,7 +165,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 			}
 			List<Tuple> listOfMetadataInFolder = new ArrayList<>();
 			for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getDocumentWithContent_A19().getWrappedRecord())
-														   .getMetadatas()) {
+					.getMetadatas()) {
 				List<Element> elementOfMetadata = printableReportXmlGenerator
 						.createMetadataTagsFromMetadata(metadata, records.getDocumentWithContent_A19().getWrappedRecord());
 				for (Element element : elementOfMetadata) {
@@ -262,7 +262,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 			Document xmlDocument = saxBuilder.build(inputStream);
 
 			Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS)
-												  .getChild("metadatas");
+					.getChild("metadatas");
 			assertThat(xmlRecordElement.getChild("ref_folder_mediumTypes_code").getText()).contains(",");
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -26,7 +26,7 @@ public class IsNewerThanCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean isValidFor(DataStoreField dataStoreField) {
 		return dataStoreField.getType().equals(MetadataValueType.DATE) || dataStoreField.getType()
-																						.equals(MetadataValueType.DATE_TIME);
+				.equals(MetadataValueType.DATE_TIME);
 	}
 
 	@Override

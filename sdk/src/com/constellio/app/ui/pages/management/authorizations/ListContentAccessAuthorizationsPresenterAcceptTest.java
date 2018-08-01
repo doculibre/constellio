@@ -101,7 +101,7 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 		when(accessView.getSessionContext()).thenReturn(sessionContext);
 		when(roleView.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
@@ -121,8 +121,8 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 		transaction
 				.add(rm.newAdministrativeUnitWithId(zeConcept).setCode("Ze unit").setTitle("Ze unit!").setParent(zeRootConcept));
 		transaction.add(rm.newFolderWithId(zeFolder).setTitle("Ze folder!").setAdministrativeUnitEntered(zeConcept)
-						  .setCategoryEntered(records.categoryId_ZE42).setRetentionRuleEntered(records.ruleId_1)
-						  .setOpenDate(new LocalDate()));
+				.setCategoryEntered(records.categoryId_ZE42).setRetentionRuleEntered(records.ruleId_1)
+				.setOpenDate(new LocalDate()));
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
 		waitForBatchProcess();

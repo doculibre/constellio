@@ -176,7 +176,7 @@ public class RecordAutomaticMetadataServices {
 
 		CopiedDataEntry copiedDataEntry = (CopiedDataEntry) metadataWithCopyDataEntry.getDataEntry();
 		Metadata referenceMetadata = schemasManager.getSchemaTypes(record.getCollection())
-												   .getMetadata(copiedDataEntry.getReferenceMetadata());
+				.getMetadata(copiedDataEntry.getReferenceMetadata());
 		Object referenceValue = record.get(referenceMetadata);
 		Map<String, Object> modifiedValues = record.getModifiedValues();
 		boolean isReferenceModified = modifiedValues.containsKey(referenceMetadata.getDataStoreCode());
@@ -184,7 +184,7 @@ public class RecordAutomaticMetadataServices {
 		boolean inTransaction = recordProvider.hasRecordInMemoryList(referenceValue);
 		if (isReferenceModified || forcedReindexation || inTransaction) {
 			Metadata copiedMetadata = schemasManager.getSchemaTypes(record.getCollection())
-													.getMetadata(copiedDataEntry.getCopiedMetadata());
+					.getMetadata(copiedDataEntry.getCopiedMetadata());
 
 			copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata, options);
 		}
@@ -456,7 +456,7 @@ public class RecordAutomaticMetadataServices {
 				if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
 					for (Record record : searchServices
 							.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
-																								   .getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+									.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
 						GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
 						if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
 							disabledGroups.add(globalGroup.getCode());
@@ -490,7 +490,7 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchema schema = type.getSchema(calculatedRecord.getSchemaCode());
 
 		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
-												   .isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
 			List<SolrAuthorizationDetails> authorizationDetails = context.getAllAuthorizationDetails();
 			if (authorizationDetails == null) {
@@ -698,7 +698,7 @@ public class RecordAutomaticMetadataServices {
 
 	Metadata getDependentMetadataFromDependency(ReferenceDependency<?> referenceDependency, Record referencedRecord) {
 		MetadataSchema schema = schemasManager.getSchemaTypes(referencedRecord.getCollection())
-											  .getSchema(referencedRecord.getSchemaCode());
+				.getSchema(referencedRecord.getSchemaCode());
 		return schema.get(referenceDependency.getDependentMetadataCode());
 	}
 

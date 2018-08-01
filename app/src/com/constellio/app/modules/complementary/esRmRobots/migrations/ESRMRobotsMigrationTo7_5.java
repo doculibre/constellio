@@ -45,27 +45,27 @@ public class ESRMRobotsMigrationTo7_5 implements MigrationScript {
 
 		String parametersSchema = ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA;
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema)
-											 .withNewFormAndDisplayMetadatas(parametersSchema + "_" + FOLDER_TYPE, parametersSchema + "_" + DOCUMENT_TYPE));
+				.withNewFormAndDisplayMetadatas(parametersSchema + "_" + FOLDER_TYPE, parametersSchema + "_" + DOCUMENT_TYPE));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		parametersSchema = ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA;
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema)
-											 .withNewFormAndDisplayMetadatas(parametersSchema + "_" + FOLDER_TYPE, parametersSchema + "_" + DOCUMENT_TYPE));
+				.withNewFormAndDisplayMetadatas(parametersSchema + "_" + FOLDER_TYPE, parametersSchema + "_" + DOCUMENT_TYPE));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		parametersSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema)
-											 .withNewFormAndDisplayMetadatas(parametersSchema + "_" + FOLDER_TYPE, parametersSchema + "_" + DOCUMENT_TYPE));
+				.withNewFormAndDisplayMetadatas(parametersSchema + "_" + FOLDER_TYPE, parametersSchema + "_" + DOCUMENT_TYPE));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_TYPE)
-											 .withMetadataGroup(defaultValuesTab));
+				.withMetadataGroup(defaultValuesTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}
@@ -86,25 +86,25 @@ public class ESRMRobotsMigrationTo7_5 implements MigrationScript {
 			MetadataSchemaTypeBuilder actionParameters = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE);
 
 			actionParameters.getSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE)
-							.createUndeletable(ClassifyConnectorFolderDirectlyInThePlanActionParameters.FOLDER_TYPE).setType(MetadataValueType.REFERENCE)
-							.defineReferencesTo(typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE));
+					.createUndeletable(ClassifyConnectorFolderDirectlyInThePlanActionParameters.FOLDER_TYPE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE));
 			actionParameters.getSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE)
-							.createUndeletable(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DOCUMENT_TYPE).setType(MetadataValueType.REFERENCE)
-							.defineReferencesTo(typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE));
+					.createUndeletable(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DOCUMENT_TYPE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE));
 
 			actionParameters.getSchema(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE)
-							.createUndeletable(ClassifyConnectorFolderInParentFolderActionParameters.FOLDER_TYPE).setType(MetadataValueType.REFERENCE)
-							.defineReferencesTo(typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE));
+					.createUndeletable(ClassifyConnectorFolderInParentFolderActionParameters.FOLDER_TYPE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE));
 			actionParameters.getSchema(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE)
-							.createUndeletable(ClassifyConnectorFolderInParentFolderActionParameters.DOCUMENT_TYPE).setType(MetadataValueType.REFERENCE)
-							.defineReferencesTo(typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE));
+					.createUndeletable(ClassifyConnectorFolderInParentFolderActionParameters.DOCUMENT_TYPE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE));
 
 			actionParameters.getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE)
-							.createUndeletable(ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_TYPE).setType(MetadataValueType.REFERENCE)
-							.defineReferencesTo(typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE));
+					.createUndeletable(ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_TYPE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(FolderType.SCHEMA_TYPE));
 			actionParameters.getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE)
-							.createUndeletable(ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_TYPE).setType(MetadataValueType.REFERENCE)
-							.defineReferencesTo(typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE));
+					.createUndeletable(ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_TYPE).setType(MetadataValueType.REFERENCE)
+					.defineReferencesTo(typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE));
 
 		}
 

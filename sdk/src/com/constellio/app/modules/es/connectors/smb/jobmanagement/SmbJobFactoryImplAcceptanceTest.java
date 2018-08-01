@@ -49,24 +49,24 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 		prepareSystem(withZeCollection().withConstellioESModule()
-										.withAllTestUsers());
+				.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		smbUtils = new ConnectorSmbUtils();
 
 		connectorInstance = es.newConnectorSmbInstance()
-							  .setDomain(SmbTestParams.DOMAIN)
-							  .setUsername(SmbTestParams.USERNAME)
-							  .setPassword(SmbTestParams.PASSWORD)
-							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-							  .setCode(SmbTestParams.INSTANCE_CODE)
-							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-							  .setExclusions(asList(""))
-							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
+				.setDomain(SmbTestParams.DOMAIN)
+				.setUsername(SmbTestParams.USERNAME)
+				.setPassword(SmbTestParams.PASSWORD)
+				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+				.setCode(SmbTestParams.INSTANCE_CODE)
+				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+				.setExclusions(asList(""))
+				.setTitle(SmbTestParams.CONNECTOR_TITLE);
 
 		es.getConnectorManager()
-		  .createConnector(connectorInstance);
+				.createConnector(connectorInstance);
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
@@ -110,9 +110,9 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 		when(smbService.getModificationIndicator(anyString())).thenReturn(modInfo);
 
 		es.getRecordServices()
-		  .update(document.getWrappedRecord());
+				.update(document.getWrappedRecord());
 		es.getRecordServices()
-		  .flush();
+				.flush();
 
 		ConnectorJob job = jobFactory.get(SmbJobCategory.RETRIEVAL, url, "");
 

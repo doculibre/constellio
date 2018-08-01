@@ -35,7 +35,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 		this.searchServices = getModelLayerFactory().newSearchServices();
 		this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -90,7 +90,7 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		MetadataSchema sipArchiveSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-																.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
+				.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
 		LogicalSearchCondition allCondition = LogicalSearchQueryOperators.from(sipArchiveSchema).where(ALL);
 		List<TemporaryRecord> records = rm.wrapTemporaryRecords(searchServices.search(new LogicalSearchQuery(allCondition)));
 		assertThat(records).hasSize(1);

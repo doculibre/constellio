@@ -19,7 +19,7 @@ public class ListGlobalGroupPage extends PageHelper {
 
 	public void navigateToListGlobalGroupsPage() {
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.GROUP_LIST);
+				.url(NavigatorConfigurationService.GROUP_LIST);
 	}
 
 	public TextFieldWebElement getSearchInput() {

@@ -14,7 +14,7 @@ import java.util.List;
 
 public class PendingValidationCalculator implements MetadataValueCalculator<List<String>> {
 	LocalDependency<List<DecomListValidation>> validations = LocalDependency.toAStructure(DecommissioningList.VALIDATIONS)
-																			.whichIsMultivalue();
+			.whichIsMultivalue();
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {

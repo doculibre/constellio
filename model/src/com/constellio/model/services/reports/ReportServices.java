@@ -82,7 +82,7 @@ public class ReportServices {
 		}
 		query.setCondition(
 				from(reportSchema).where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
-								  .andWhere(userMetaData).isEqualTo(username));
+						.andWhere(userMetaData).isEqualTo(username));
 		List<Record> results = searchServices.search(query);
 		return wrapReports(results);
 	}

@@ -39,22 +39,22 @@ public class FacetAcceptanceTest extends ConstellioTest {
 		queryValues.put("zeLabel1", "zeUltimateSolrQuery1");
 
 		Facet facetField = recordsServices.newFacetField("zeFacet")
-										  .setTitle("My document")
-										  .setElementPerPage(2)
-										  .setPages(5)
-										  .setFieldDataStoreCode("aField")
-										  .setOrder(1)
-										  .setOrderResult(FacetOrderType.ALPHABETICAL)
-										  .setFieldValuesLabel(fieldValuesLabel);
+				.setTitle("My document")
+				.setElementPerPage(2)
+				.setPages(5)
+				.setFieldDataStoreCode("aField")
+				.setOrder(1)
+				.setOrderResult(FacetOrderType.ALPHABETICAL)
+				.setFieldValuesLabel(fieldValuesLabel);
 
 		Facet facetQuery = recordsServices.newFacetQuery("zeFacetQuery")
-										  .setTitle("My document")
-										  .setElementPerPage(5)
-										  .setPages(10)
-										  .setFieldDataStoreCode("aFieldCode")
-										  .setOrder(2)
-										  .setOrderResult(FacetOrderType.RELEVANCE)
-										  .setListQueries(queryValues);
+				.setTitle("My document")
+				.setElementPerPage(5)
+				.setPages(10)
+				.setFieldDataStoreCode("aFieldCode")
+				.setOrder(2)
+				.setOrderResult(FacetOrderType.RELEVANCE)
+				.setListQueries(queryValues);
 
 		recordServices.add(facetField);
 		recordServices.add(facetQuery);

@@ -64,7 +64,7 @@ public class ConstellioMenuPresenter implements Serializable {
 			return getLocale(systemLanguage);
 		} else {
 			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager()
-																.getCollectionLanguages(userInLastCollection.getCollection());
+					.getCollectionLanguages(userInLastCollection.getCollection());
 			if (collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages
 					.contains(userPreferredLanguage)) {
 				return getLocale(systemLanguage);

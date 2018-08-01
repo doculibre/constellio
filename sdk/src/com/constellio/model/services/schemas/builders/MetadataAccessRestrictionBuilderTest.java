@@ -126,7 +126,7 @@ public class MetadataAccessRestrictionBuilderTest extends ConstellioTest {
 			throws Exception {
 
 		builder.withRequiredReadRole("read").withRequiredWriteRole("write").withRequiredModificationRole("modifyTo")
-			   .withRequiredDeleteRole("delete").withRequiredWriteAndDeleteRole("write_and_delete").withRequiredRole("chuck");
+				.withRequiredDeleteRole("delete").withRequiredWriteAndDeleteRole("write_and_delete").withRequiredRole("chuck");
 
 		build();
 

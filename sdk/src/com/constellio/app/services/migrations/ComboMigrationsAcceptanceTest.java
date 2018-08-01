@@ -83,12 +83,12 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withConstellioRMModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetSchema(zeCollection, SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						.resetSchema(zeCollection, SolrAuthorizationDetails.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 			}
 		});
 
@@ -149,7 +149,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 			}
 		});
 
@@ -175,14 +175,14 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "printable_report");
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_reactivationRequest");
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_returnRequest");
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_borrowRequest");
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetSchema(zeCollection, "userTask_borrowExtensionRequest");
+						.resetSchema(zeCollection, "userTask_borrowExtensionRequest");
 
 			}
 		});
@@ -197,22 +197,22 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void setupCollection() {
 				givenCollection(zeCollection).withMockedAvailableModules(false).withConstellioRMModule().withConstellioESModule()
-											 .withRobotsModule();
+						.withRobotsModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
 						SolrAuthorizationDetails.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
+						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
 
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetSchema(zeCollection, "printable_report");
+						.resetSchema(zeCollection, "printable_report");
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_reactivationRequest");
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_returnRequest");
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, "userTask_borrowRequest");
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-									.resetSchema(zeCollection, "userTask_borrowExtensionRequest");
+						.resetSchema(zeCollection, "userTask_borrowExtensionRequest");
 			}
 		});
 
@@ -384,7 +384,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				Collections.sort(linesOfMigrationFile);
 
 				assertThat(linesOfComboMigrationFile).describedAs("Content of file '" + fileAbsolutePath + "")
-													 .isEqualTo(linesOfMigrationFile);
+						.isEqualTo(linesOfMigrationFile);
 
 			} else {
 
@@ -392,8 +392,8 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 					assertThat("FICHIER GÉNÉRÉ AVEC LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
 							   + contentOfFileMigratedUsingComboScript).describedAs("Actual content of file '" + fileAbsolutePath
 																					+ "' generated using combo script is not equal to the content generated using atomic scripts")
-																	   .isEqualTo("FICHIER GÉNÉRÉ SANS LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
-																				  + contentOfFileMigratedUsingAtomicScripts);
+							.isEqualTo("FICHIER GÉNÉRÉ SANS LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
+									   + contentOfFileMigratedUsingAtomicScripts);
 				}
 			}
 			System.out.println(file1.getName() + " is OK");
@@ -403,7 +403,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 		List<String> foldersInFolder1 = getFoldersInFolder(folderOfSettings1);
 		List<String> foldersInFolder2 = getFoldersInFolder(folderOfSettings2);
 		assertThat(foldersInFolder1).describedAs("Folder '" + folderAbsolutePath + "'")
-									.isEqualTo(foldersInFolder2);
+				.isEqualTo(foldersInFolder2);
 
 		for (String file : foldersInFolder1) {
 			File folder1 = new File(folderOfSettings1, file);

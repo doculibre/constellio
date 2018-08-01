@@ -62,9 +62,9 @@ public class TasksMigrationTo7_7 extends MigrationHelper implements MigrationScr
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder task = typesBuilder.getSchemaType(Task.SCHEMA_TYPE)
-													 .getDefaultSchema();
+					.getDefaultSchema();
 			task.createUndeletable(Task.QUESTION).setType(MetadataValueType.STRING)
-				.setEssentialInSummary(true);
+					.setEssentialInSummary(true);
 		}
 	}
 }

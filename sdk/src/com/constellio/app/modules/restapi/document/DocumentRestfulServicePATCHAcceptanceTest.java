@@ -72,7 +72,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 		resetCounters();
 
 		DocumentDto docUpdate = DocumentDto.builder().id(id).title("aNewTitle").folderId(records.folder_A42)
-										   .author("aNewAut").organization("aNewOrg").subject("aNewSub").keywords(asList("z", "x")).build();
+				.author("aNewAut").organization("aNewOrg").subject("aNewSub").keywords(asList("z", "x")).build();
 		Response response = doPatchQuery(docUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
@@ -81,21 +81,21 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc)).extracting("id", "title", "folderId", "author", "keywords", "subject", "organization")
-									  .containsExactly(tuple(docUpdate.getId(), docUpdate.getTitle(), docUpdate.getFolderId(), docUpdate.getAuthor(),
-											  docUpdate.getKeywords(), docUpdate.getSubject(), docUpdate.getOrganization()));
+				.containsExactly(tuple(docUpdate.getId(), docUpdate.getTitle(), docUpdate.getFolderId(), docUpdate.getAuthor(),
+						docUpdate.getKeywords(), docUpdate.getSubject(), docUpdate.getOrganization()));
 		assertThat(singletonList(doc.getType())).extracting("id", "code", "title")
-												.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
+				.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(toPrincipals(authorization1.getPrincipals()), Sets.newHashSet(authorization1.getRoles())),
 				tuple(toPrincipals(authorization2.getPrincipals()), Sets.newHashSet(authorization2.getRoles())));
 		assertThat(doc.getExtendedAttributes()).extracting("key", "values")
-											   .containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
+				.containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
-								.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
+				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(doc.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(doc.getExtendedAttributes().get(1).getValues());
 
@@ -103,8 +103,8 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(),
-																	  doc.getContent().getVersionType() == MAJOR));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(),
+						doc.getContent().getVersionType() == MAJOR));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
 		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
@@ -129,28 +129,28 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc)).extracting("id", "title", "folderId", "author", "keywords", "subject", "organization")
-									  .containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
-											  fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
+				.containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
+						fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
 		assertThat(singletonList(doc.getType())).extracting("id", "code", "title")
-												.containsExactly(tuple(records.documentTypeId_4, documentType.getCode(), documentType.getTitle()));
+				.containsExactly(tuple(records.documentTypeId_4, documentType.getCode(), documentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(toPrincipals(authorization1.getPrincipals()), Sets.newHashSet(authorization1.getRoles())),
 				tuple(toPrincipals(authorization2.getPrincipals()), Sets.newHashSet(authorization2.getRoles())));
 		assertThat(doc.getExtendedAttributes()).extracting("key", "values")
-											   .containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
+				.containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
-								.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
+				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(doc.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(doc.getExtendedAttributes().get(1).getValues());
 
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(),
-																	  doc.getContent().getVersionType() == MAJOR));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(),
+						doc.getContent().getVersionType() == MAJOR));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
 		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
@@ -173,27 +173,27 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc)).extracting("id", "title", "folderId", "author", "keywords", "subject", "organization")
-									  .containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
-											  fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
+				.containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
+						fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
 		assertThat(singletonList(doc.getType())).extracting("id", "code", "title")
-												.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
+				.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV1.getHash(), "3.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV1.getHash(), "3.0"));
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(toPrincipals(authorization1.getPrincipals()), Sets.newHashSet(authorization1.getRoles())),
 				tuple(toPrincipals(authorization2.getPrincipals()), Sets.newHashSet(authorization2.getRoles())));
 		assertThat(doc.getExtendedAttributes()).extracting("key", "values")
-											   .containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
+				.containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
-								.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
+				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(doc.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(doc.getExtendedAttributes().get(1).getValues());
 
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
 		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
@@ -211,8 +211,8 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 		resetCounters();
 
 		DocumentDto docUpdate = DocumentDto.builder().id(id)
-										   .directAces(singletonList(AceDto.builder().principals(singleton(chuckNorris)).permissions(singleton(READ)).build()))
-										   .build();
+				.directAces(singletonList(AceDto.builder().principals(singleton(chuckNorris)).permissions(singleton(READ)).build()))
+				.build();
 		Response response = doPatchQuery(docUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
@@ -221,20 +221,20 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc)).extracting("id", "title", "folderId", "author", "keywords", "subject", "organization")
-									  .containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
-											  fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
+				.containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
+						fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
 		assertThat(singletonList(doc.getType())).extracting("id", "code", "title")
-												.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
+				.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(Sets.newHashSet(docUpdate.getDirectAces().get(0).getPrincipals()), Sets.newHashSet(docUpdate.getDirectAces().get(0).getPermissions())));
 		assertThat(doc.getExtendedAttributes()).extracting("key", "values")
-											   .containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
+				.containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
-								.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
+				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(doc.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(doc.getExtendedAttributes().get(1).getValues());
 
@@ -242,7 +242,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
 		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder).containsOnly(
@@ -267,12 +267,12 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc)).extracting("id", "title", "folderId", "author", "keywords", "subject", "organization")
-									  .containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
-											  fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
+				.containsExactly(tuple(fakeDocument.getId(), fakeDocument.getTitle(), fakeDocument.getFolder(), fakeDocument.getAuthor(),
+						fakeDocument.getKeywords(), fakeDocument.getSubject(), fakeDocument.getCompany()));
 		assertThat(singletonList(doc.getType())).extracting("id", "code", "title")
-												.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
+				.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(toPrincipals(authorization1.getPrincipals()), Sets.newHashSet(authorization1.getRoles())),
 				tuple(toPrincipals(authorization2.getPrincipals()), Sets.newHashSet(authorization2.getRoles())));
@@ -280,14 +280,14 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		assertThatRecord(record).extracting(Document.TITLE, Document.FOLDER, Document.KEYWORDS, Document.AUTHOR, Document.COMPANY, Document.SUBJECT, Document.TYPE)
-								.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
+				.containsExactly(doc.getTitle(), doc.getFolderId(), doc.getKeywords(), doc.getAuthor(), doc.getOrganization(), doc.getSubject(), doc.getType().getId());
 		assertThatRecord(record).extracting(fakeMetadata1).containsNull();
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(newValue);
 
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(),
-																	  doc.getContent().getVersionType() == MAJOR));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(),
+						doc.getContent().getVersionType() == MAJOR));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
 		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
@@ -310,12 +310,12 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		DocumentDto doc = response.readEntity(DocumentDto.class);
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
-												   .containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV1.getHash(), "1.0"));
+				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV1.getHash(), "1.0"));
 
 		Record record = recordServices.getDocumentById(docUpdate.getId());
 		Content content = record.get(rm.document.content());
 		assertThat(singletonList(content.getCurrentVersion())).extracting("version", "filename", "hash", "major")
-															  .containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
+				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
 	}
 
 	@Test
@@ -330,7 +330,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RequiredParameterException("content.filename").getValidationError()));
+				.isEqualTo(i18n.$(new RequiredParameterException("content.filename").getValidationError()));
 	}
 
 	@Test
@@ -348,7 +348,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 		assertThat(documentDto.getId()).isNotNull();
 		assertThat(singletonList(documentDto)).extracting("folderId", "type", "content", "title",
 				"keywords", "author", "subject", "organization", "directAces", "inheritedAces", "extendedAttributes")
-											  .containsOnly(tuple(null, null, null, null, null, null, null, null, null, null, null));
+				.containsOnly(tuple(null, null, null, null, null, null, null, null, null, null, null));
 	}
 
 	@Test
@@ -364,8 +364,8 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 		assertThat(documentDto.getId()).isNotNull();
 		assertThat(singletonList(documentDto)).extracting("folderId", "type", "content", "title",
 				"keywords", "author", "subject", "organization", "directAces", "inheritedAces", "extendedAttributes")
-											  .containsOnly(tuple(fakeDocument.getFolder(), null, null, documentToPartialUpdate.getTitle(), fakeDocument.getKeywords(),
-													  fakeDocument.getAuthor(), fakeDocument.getSubject(), fakeDocument.getCompany(), null, null, null));
+				.containsOnly(tuple(fakeDocument.getFolder(), null, null, documentToPartialUpdate.getTitle(), fakeDocument.getKeywords(),
+						fakeDocument.getAuthor(), fakeDocument.getSubject(), fakeDocument.getCompany(), null, null, null));
 	}
 
 	@Test
@@ -375,7 +375,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("filter", "invalid").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("filter", "invalid").getValidationError()));
 	}
 
 	@Test
@@ -410,7 +410,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateFormat).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateFormat).getValidationError()));
 	}
 
 	@Test
@@ -446,7 +446,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateTimeFormat).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidDateFormatException(value1.get(0), dateTimeFormat).getValidationError()));
 	}
 
 	@Test
@@ -481,7 +481,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.NUMBER.name(), value1.get(0)).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.NUMBER.name(), value1.get(0)).getValidationError()));
 	}
 
 	@Test
@@ -516,7 +516,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.BOOLEAN.name(), value1.get(0)).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidMetadataValueException(MetadataValueType.BOOLEAN.name(), value1.get(0)).getValidationError()));
 	}
 
 	@Test
@@ -571,7 +571,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(value1.get(0)).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(value1.get(0)).getValidationError()));
 	}
 
 	@Test
@@ -585,7 +585,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataReferenceNotAllowedException("folder", fakeMetadata1).getValidationError()));
+				.isEqualTo(i18n.$(new MetadataReferenceNotAllowedException("folder", fakeMetadata1).getValidationError()));
 	}
 
 	@Test
@@ -622,7 +622,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataNotFoundException(fakeMetadata1).getValidationError()));
+				.isEqualTo(i18n.$(new MetadataNotFoundException(fakeMetadata1).getValidationError()));
 	}
 
 	@Test
@@ -643,7 +643,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
 	}
 
 	@Test
@@ -663,7 +663,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
+				.isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
 	}
 
 	@Test
@@ -683,7 +683,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("method", method).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("method", method).getValidationError()));
 	}
 
 	@Test
@@ -703,7 +703,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("date", date).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("date", date).getValidationError()));
 	}
 
 	@Test
@@ -734,7 +734,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
+				.isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
 	}
 
 	@Test
@@ -754,7 +754,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidSignatureException().getValidationError()));
+				.isEqualTo(i18n.$(new InvalidSignatureException().getValidationError()));
 	}
 
 	@Test
@@ -766,7 +766,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+				.isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 
 	@Test
@@ -777,7 +777,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
+				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
 	}
 
 	@Test
@@ -788,7 +788,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
+				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
 	}
 
 	@Test
@@ -799,7 +799,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
 	}
 
 	@Test
@@ -810,7 +810,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
 	}
 
 	@Test
@@ -821,7 +821,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterCombinationException("type.id", "type.code").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterCombinationException("type.id", "type.code").getValidationError()));
 	}
 
 	@Test
@@ -878,19 +878,19 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException("fake").getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException("fake").getValidationError()));
 	}
 
 	@Test
 	public void testPartialUpdateDocumentWithInvalidAcePermissions() throws Exception {
 		documentToPartialUpdate.setDirectAces(singletonList(AceDto.builder()
-																  .principals(singleton(records.getAlice().getId())).permissions(singleton("fake")).build()));
+				.principals(singleton(records.getAlice().getId())).permissions(singleton("fake")).build()));
 		Response response = doPatchQuery(documentToPartialUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("directAces[0].permissions", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("directAces[0].permissions", "fake").getValidationError()));
 	}
 
 	@Test
@@ -898,7 +898,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 		String start = toDateString(new LocalDate().plusDays(365));
 		String end = toDateString(new LocalDate());
 		documentToPartialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
-																  .permissions(singleton(READ)).startDate(start).endDate(end).build()));
+				.permissions(singleton(READ)).startDate(start).endDate(end).build()));
 		Response response = doPatchQuery(documentToPartialUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -909,7 +909,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	@Test
 	public void testPartialUpdateDocumentWithStartDateOnly() throws Exception {
 		documentToPartialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
-																  .permissions(singleton(READ)).startDate(toDateString(new LocalDate())).build()));
+				.permissions(singleton(READ)).startDate(toDateString(new LocalDate())).build()));
 		Response response = doPatchQuery(documentToPartialUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
@@ -926,7 +926,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	@Test
 	public void testPartialUpdateDocumentWithEndDateOnly() throws Exception {
 		documentToPartialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
-																  .permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
+				.permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
 		Response response = doPatchQuery(documentToPartialUpdate, null);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -942,7 +942,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataNotFoundException("fake").getValidationError()));
+				.isEqualTo(i18n.$(new MetadataNotFoundException("fake").getValidationError()));
 	}
 
 	@Test
@@ -955,7 +955,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new MetadataNotMultivalueException(fakeMetadata1).getValidationError()));
+				.isEqualTo(i18n.$(new MetadataNotMultivalueException(fakeMetadata1).getValidationError()));
 	}
 
 	@Test
@@ -967,7 +967,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(NOT_EMPTY_MESSAGE, "extendedAttributes[0].values"));
+				.isEqualTo(i18n.$(NOT_EMPTY_MESSAGE, "extendedAttributes[0].values"));
 	}
 
 	@Test
@@ -1063,7 +1063,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		documentToPartialUpdate.setTitle("aNewTitle");
 		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
-											 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
+				.build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
 		DocumentDto documentDto = response.readEntity(DocumentDto.class);
@@ -1077,29 +1077,29 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		documentToPartialUpdate.setTitle("aNewTitle");
 		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
-											 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
+				.build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		String validEtag = response.getEntityTag().getValue();
 
 		documentToPartialUpdate.setTitle("aNewTitle2");
 		response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
-									.build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
+				.build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new OptimisticLockException(id, eTag, Long.valueOf(validEtag)).getValidationError()));
+				.isEqualTo(i18n.$(new OptimisticLockException(id, eTag, Long.valueOf(validEtag)).getValidationError()));
 	}
 
 	@Test
 	public void testPartialUpdateWithInvalidEtag() throws Exception {
 		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, "invalidEtag")
-											 .build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
+				.build("PATCH", entity(buildMultiPart(documentToPartialUpdate), MULTIPART_FORM_DATA_TYPE)).invoke();
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("ETag", "invalidEtag").getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("ETag", "invalidEtag").getValidationError()));
 	}
 
 	@Test
@@ -1110,7 +1110,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
-									  .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+				.isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
 	}
 
 	@Test

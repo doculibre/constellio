@@ -145,11 +145,11 @@ public class MetadataPopulatedConfigsBuilderTest extends ConstellioTest {
 		assertThat(populateConfigsBuilder.getStyles()).isNotNull().isEmpty();
 		assertThat(populateConfigsBuilder.getProperties()).isNotNull().isEmpty();
 		assertThat(populateConfigsBuilder.getRegexes()).extracting("inputMetadata", "regex.pattern", "value")
-													   .containsOnly(tuple("inputMetadata5", "regex5", "value5"));
+				.containsOnly(tuple("inputMetadata5", "regex5", "value5"));
 		assertThat(populateConfigs.getStyles()).isNotNull().isEmpty();
 		assertThat(populateConfigs.getProperties()).isNotNull().isEmpty();
 		assertThat(populateConfigs.getRegexes()).extracting("inputMetadata", "regex.pattern", "value")
-												.containsOnly(tuple("inputMetadata5", "regex5", "value5"));
+				.containsOnly(tuple("inputMetadata5", "regex5", "value5"));
 	}
 
 	@Test

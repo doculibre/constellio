@@ -102,7 +102,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 	public void addAvailableActions(AvailableActionsParam param) {
 		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		boolean hasAccessToSIP = userServices.getUserInCollection(param.getUser().getUsername(), collection)
-											 .has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
+				.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
 		addMoveButton(param);
 		addDuplicateButton(param);
 		addClassifyButton(param);
@@ -439,7 +439,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 						if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
 							if (isCheckInPossible(param, id)) {
 								RecordVO documentVo = recordToVOBuilder.build(appLayerFactory.getModelLayerFactory().newRecordServices()
-																							 .getDocumentById(id), RecordVO.VIEW_MODE.TABLE, param.getView().getSessionContext());
+										.getDocumentById(id), RecordVO.VIEW_MODE.TABLE, param.getView().getSessionContext());
 								records.put(documentVo, documentVo.getMetadata(Document.CONTENT));
 							}
 						}

@@ -339,7 +339,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		if (retentionRule.getScope() != null && retentionRule.getScope().equals(RetentionRuleScope.DOCUMENTS)) {
 			List<Map<String, String>> docCopyRetentionRules = buildParams.getImportRecord()
-																		 .getList(RetentionRule.DOCUMENT_COPY_RETENTION_RULES);
+					.getList(RetentionRule.DOCUMENT_COPY_RETENTION_RULES);
 			List<CopyRetentionRule> docCopyRetentionRulesBuilt = new ArrayList<>();
 			for (Map<String, String> docCopyRetentionRule : docCopyRetentionRules) {
 				docCopyRetentionRulesBuilt
@@ -348,12 +348,12 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			retentionRule.setDocumentCopyRetentionRules(docCopyRetentionRulesBuilt);
 
 			Map<String, String> principalDefaultDocumentCopyRetentionRule = buildParams.getImportRecord()
-																					   .getMap(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
+					.getMap(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
 			retentionRule.setPrincipalDefaultDocumentCopyRetentionRule(
 					buildCopyRetentionRule(mediumTypeResolver, principalDefaultDocumentCopyRetentionRule, RULES_TYPE_DOCUMENTS));
 
 			Map<String, String> secondaryDefaultDocumentCopyRetentionRule = buildParams.getImportRecord()
-																					   .getMap(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
+					.getMap(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
 			retentionRule.setSecondaryDefaultDocumentCopyRetentionRule(
 					buildCopyRetentionRule(mediumTypeResolver, secondaryDefaultDocumentCopyRetentionRule, RULES_TYPE_DOCUMENTS));
 		}

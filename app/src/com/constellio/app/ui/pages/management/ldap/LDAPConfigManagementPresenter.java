@@ -38,7 +38,7 @@ public class LDAPConfigManagementPresenter extends
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
 		return modelLayerFactory.getLdapConfigurationManager()
-								.getLDAPUserSyncConfiguration(true);
+				.getLDAPUserSyncConfiguration(true);
 	}
 
 	public void backButtonClick() {
@@ -48,7 +48,7 @@ public class LDAPConfigManagementPresenter extends
 	public void saveConfigurations(LDAPServerConfiguration ldapServerConfigurationVO,
 								   LDAPUserSyncConfiguration ldapUserSyncConfigurationVO) {
 		LDAPConfigurationManager ldapConfigManager = view.getConstellioFactories().getModelLayerFactory()
-														 .getLdapConfigurationManager();
+				.getLdapConfigurationManager();
 		try {
 			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
 			view.showMessage($("ldap.config.saved"));

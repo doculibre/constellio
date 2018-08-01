@@ -194,7 +194,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 				.setNumberOfRows(0)
 				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-													 .getFieldFacetValues("schema_s");
+				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
 		if (schema_s != null) {
 			for (FacetValue facetValue : schema_s) {
@@ -408,7 +408,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	protected LogicalSearchQuery getSearchQuery(List<Criterion> searchCriteria) {
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria)).filteredWithUser(getCurrentUser())
-																							 .filteredByStatus(StatusFilter.ACTIVES).setPreferAnalyzedFields(true);
+				.filteredByStatus(StatusFilter.ACTIVES).setPreferAnalyzedFields(true);
 
 		query.setReturnedMetadatas(
 				ReturnedMetadatasFilter.onlyFields(schemasDisplayManager.getReturnedFieldsForSearch(collection)));

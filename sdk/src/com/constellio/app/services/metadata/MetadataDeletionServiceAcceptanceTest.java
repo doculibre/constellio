@@ -77,9 +77,9 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 		MetadataSchemaBuilder customFolderSchema2 = folderSchemaType.createCustomSchema("customFolder2");
 
 		MetadataBuilder mappedMetadataBuilderWithDefaultValue = folderSchema.create("MAPMetadata").setType(STRING)
-																			.setDefaultValue("default");
+				.setDefaultValue("default");
 		MetadataBuilder userEncryptedMetadataBuilderWithDefaultValue = folderSchema.create("USREncryptMetadata").setType(STRING)
-																				   .setDefaultValue("encrypted").setEncrypted(true);
+				.setDefaultValue("encrypted").setEncrypted(true);
 		MetadataBuilder userMetadataBuilder = customFolderSchema.createUndeletable("USRMetadata").setType(BOOLEAN);
 		customFolderSchema2.createUndeletable("USRMetadata").setType(BOOLEAN);
 		MetadataBuilder systemMetadataBuilder = folderSchema.createUndeletable("systemMetadata").setType(STRING);
@@ -88,10 +88,10 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 		MetadataBuilder inheritedMetadataBuilder = folderSchema.createUndeletable("USRInheritedMetadata").setType(DATE);
 		MetadataBuilder copiedMetadataSourceBuilder = folderSchema.createUndeletable("USRCopySourceMetadata").setType(DATE);
 		MetadataBuilder copiedMetadataReferenceBuilder = folderSchema.createUndeletable("USRCopiedReferenceMetadata")
-																	 .defineChildOfRelationshipToType(folderSchemaType);
+				.defineChildOfRelationshipToType(folderSchemaType);
 		MetadataBuilder copiedMetadataDestinationBuilder = folderSchema.createUndeletable("USRCopyDestinationMetadata")
-																	   .setType(DATE)
-																	   .defineDataEntry().asCopied(copiedMetadataReferenceBuilder, copiedMetadataSourceBuilder);
+				.setType(DATE)
+				.defineDataEntry().asCopied(copiedMetadataReferenceBuilder, copiedMetadataSourceBuilder);
 
 		MetadataBuilder localDependencyInCalculatorBuilder = folderSchema
 				.createUndeletable("USRCalculatedLocalDependencyMetadata")
@@ -100,23 +100,23 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 				.createUndeletable("USRCalculatedReferenceDependencyMetadata")
 				.setType(BOOLEAN);
 		MetadataBuilder calculatedMetadataDestinationBuilder = folderSchema.createUndeletable("USRCalculatedDestinationMetadata")
-																		   .setType(BOOLEAN).defineDataEntry().asCalculated(TestCalculator.class);
+				.setType(BOOLEAN).defineDataEntry().asCalculated(TestCalculator.class);
 		MetadataBuilder extractedMetadataSourceBuilder = folderSchema.createUndeletable("USRExtractedSourceMetadata")
-																	 .defineAsEnum(CopyType.class);
+				.defineAsEnum(CopyType.class);
 
 		MetadataPopulateConfigsBuilder metadataPopulateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		metadataPopulateConfigsBuilder.setProperties(asList("USRExtractedSourceMetadata"));
 		MetadataBuilder extractedMetadataDestinationBuilder = folderSchema.createUndeletable("USRExtractedDestinationMetadata")
-																		  .defineAsEnum(CopyType.class);
+				.defineAsEnum(CopyType.class);
 		extractedMetadataDestinationBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
 
 		MetadataBuilder facetMetadataBuilder = folderSchema.createUndeletable("USRFacetMetadata").setType(STRING)
-														   .setDefaultValue("facet default value");
+				.setDefaultValue("facet default value");
 
 		schemaManager.saveUpdateSchemaTypes(schemaTypesBuilder);
 		recordServices.add((RecordWrapper) records.getFolder_A02()
-												  .set(populatedMetadataBuilder.getLocalCode(), "directly populated metadata value")
-												  .set(userEncryptedMetadataBuilderWithDefaultValue.getLocalCode(), "encrypted"));
+				.set(populatedMetadataBuilder.getLocalCode(), "directly populated metadata value")
+				.set(userEncryptedMetadataBuilderWithDefaultValue.getLocalCode(), "encrypted"));
 		recordServices.add(rm.newFacetField().setFieldDataStoreCode(facetMetadataBuilder.getCode()).setTitle("Ze Facet"));
 
 		MetadataSchemaTypes types = schemaManager.getSchemaTypes(zeCollection);
@@ -125,10 +125,10 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 
 		Folder customFolder = new Folder(rm.create(types.getSchema(customFolderSchema.getCode())), types);
 		recordServices.add((RecordWrapper) customFolder.setTitle("customFolder").setOpenDate(TimeProvider.getLocalDate())
-													   .setAdministrativeUnitEntered(records.getUnit10())
-													   .setCategoryEntered(records.getCategory_X()).setRetentionRuleEntered(records.getRule1())
-													   .setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL)
-													   .set("populatedMetadataInInheritance", "populated metadata value"));
+				.setAdministrativeUnitEntered(records.getUnit10())
+				.setCategoryEntered(records.getCategory_X()).setRetentionRuleEntered(records.getRule1())
+				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL)
+				.set("populatedMetadataInInheritance", "populated metadata value"));
 		directlyPopulatedMetadata = types.getMetadata(populatedMetadataBuilder.getCode());
 
 		mappedMetadata = types.getMetadata(mappedMetadataBuilderWithDefaultValue.getCode());
@@ -160,9 +160,9 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 		documentCustomSchema = documetSchemaType.createCustomSchema("customFolder2");
 
 		documentSchema.create("MAPMetadata").setType(STRING)
-					  .setDefaultValue("default");
+				.setDefaultValue("default");
 		documentSchema.create("USREncryptMetadata").setType(STRING)
-					  .setDefaultValue("encrypted").setEncrypted(true);
+				.setDefaultValue("encrypted").setEncrypted(true);
 		documentSchema.createUndeletable("USRMetadata").setType(BOOLEAN);
 		documentSchema.createUndeletable("systemMetadata").setType(STRING);
 		documentSchema.createUndeletable("USRPopulatedMetadata").setType(STRING);

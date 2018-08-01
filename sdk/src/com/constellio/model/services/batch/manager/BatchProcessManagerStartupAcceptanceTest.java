@@ -35,7 +35,7 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		assertThat(searchServices.getResultsCount(fromAllSchemasIn(zeCollection).where(rm.folder.keywords())
-																				.isEqualTo("newKeywords"))).isEqualTo(105);
+				.isEqualTo("newKeywords"))).isEqualTo(105);
 
 	}
 

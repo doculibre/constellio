@@ -33,7 +33,7 @@ public class ESMigrationTo7_6_2 extends MigrationHelper implements MigrationScri
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder documentDefaultSchema = typesBuilder.getSchemaType(ConnectorHttpDocument.SCHEMA_TYPE)
-																	  .getDefaultSchema();
+					.getDefaultSchema();
 			documentDefaultSchema.get(ConnectorHttpDocument.CHARSET).addLabel(Language.French, migrationResourcesProvider
 					.get("init.connectorHttpDocument.default.charset"));
 			documentDefaultSchema.get(ConnectorHttpDocument.DIGEST).addLabel(Language.French, migrationResourcesProvider

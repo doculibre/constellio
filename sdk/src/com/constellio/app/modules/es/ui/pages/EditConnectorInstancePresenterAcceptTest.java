@@ -66,11 +66,11 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	private void configureConnectorsInstances() {
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
-								   .setCode("zeConnector")
-								   .setTitle("Ze Connector")
-								   .setTraversalCode("traversalCode")
-								   .setEnabled(true)
-								   .setSeeds("http://constellio.com"));
+						.setCode("zeConnector")
+						.setTitle("Ze Connector")
+						.setTraversalCode("traversalCode")
+						.setEnabled(true)
+						.setSeeds("http://constellio.com"));
 
 	}
 

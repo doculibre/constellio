@@ -325,7 +325,7 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 		//This class was created to respond to this extreme usecase
 		queriesListener.clear();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE)
-																		 .setHighlighting(true).setFreeTextQuery("banane");
+				.setHighlighting(true).setFreeTextQuery("banane");
 		SPEQueryResponse response = searchServices.query(query, 12);
 		assertThat(response.getRecords()).hasSize(12);
 
@@ -343,7 +343,7 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 		//This class was created to respond to this extreme usecase
 		queriesListener.clear();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE)
-																		 .setHighlighting(true).setFreeTextQuery("banane");
+				.setHighlighting(true).setFreeTextQuery("banane");
 		SPEQueryResponse response = searchServices.query(query, 4);
 		assertThat(response.getRecords()).hasSize(12);
 
@@ -374,7 +374,7 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 		//This class was created to respond to this extreme usecase
 		queriesListener.clear();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE)
-																		 .setHighlighting(true).setFreeTextQuery("banane");
+				.setHighlighting(true).setFreeTextQuery("banane");
 		SPEQueryResponse response = searchServices.query(query, 4);
 		assertThat(response.getRecords()).hasSize(12);
 
@@ -611,19 +611,19 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		//By asc_title=4
 		transaction.add(new TestRecord(zeSchema, "zeSchema_1").set(Schemas.TITLE, "Canard pomme banane zeSchema_1")
-															  .set(zeSchema.stringMetadata(), "value A").set(zeSchema.numberMetadata(), 1));
+				.set(zeSchema.stringMetadata(), "value A").set(zeSchema.numberMetadata(), 1));
 
 		//By asc_title=3
 		transaction.add(new TestRecord(zeSchema, "zeSchema_2").set(Schemas.TITLE, "Boeuf pomme banane zeSchema_2")
-															  .set(zeSchema.stringMetadata(), "value B").set(zeSchema.numberMetadata(), 1));
+				.set(zeSchema.stringMetadata(), "value B").set(zeSchema.numberMetadata(), 1));
 
 		//By asc_title=11
 		transaction.add(new TestRecord(zeSchema, "zeSchema_3").set(Schemas.TITLE, "Ghibou pomme banane zeSchema_3")
-															  .set(zeSchema.stringMetadata(), "value D").set(zeSchema.numberMetadata(), 42));
+				.set(zeSchema.stringMetadata(), "value D").set(zeSchema.numberMetadata(), 42));
 
 		//By asc_title=2
 		transaction.add(new TestRecord(zeSchema, "zeSchema_4").set(Schemas.TITLE, "Aligator pomme banane zeSchema_4")
-															  .set(zeSchema.stringMetadata(), "value C").set(zeSchema.numberMetadata(), 42));
+				.set(zeSchema.stringMetadata(), "value C").set(zeSchema.numberMetadata(), 42));
 
 		//--
 

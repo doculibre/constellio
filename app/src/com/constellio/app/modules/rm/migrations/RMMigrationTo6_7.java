@@ -73,21 +73,21 @@ public class RMMigrationTo6_7 implements MigrationScript {
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).defineValidators().add(ContainerRecordValidator.class);
 
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.LINEAR_SIZE_ENTERED)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
 
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.LINEAR_SIZE_SUM)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
 					typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
 					typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.LINEAR_SIZE)
 			);
 
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.LINEAR_SIZE)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
-						.defineDataEntry().asCalculated(ContainerRecordLinearSizeCalculator.class);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+					.defineDataEntry().asCalculated(ContainerRecordLinearSizeCalculator.class);
 
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(ContainerRecord.AVAILABLE_SIZE)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
-						.defineDataEntry().asCalculated(ContainerRecordAvailableSizeCalculator.class);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+					.defineDataEntry().asCalculated(ContainerRecordAvailableSizeCalculator.class);
 
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.FILL_RATIO_ENTRED).setEnabled(false);
 		}
@@ -96,36 +96,36 @@ public class RMMigrationTo6_7 implements MigrationScript {
 			typesBuilder.getSchema(StorageSpace.DEFAULT_SCHEMA).defineValidators().add(StorageSpaceValidator.class);
 
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_ENTERED)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true);
 
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE_SUM)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
 					typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.STORAGE_SPACE),
 					typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata(ContainerRecord.CAPACITY)
 			);
 
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.CHILD_LINEAR_SIZE_SUM)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true).defineDataEntry().asSum(
 					typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).getMetadata(StorageSpace.PARENT_STORAGE_SPACE),
 					typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).getMetadata(StorageSpace.CAPACITY)
 			);
 
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.LINEAR_SIZE)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
-						.defineDataEntry().asCalculated(StorageSpaceLinearSizeCalculator.class);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+					.defineDataEntry().asCalculated(StorageSpaceLinearSizeCalculator.class);
 
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.AVAILABLE_SIZE)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
-						.defineDataEntry().asCalculated(StorageSpaceAvailableSizeCalculator.class);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+					.defineDataEntry().asCalculated(StorageSpaceAvailableSizeCalculator.class);
 
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.CONTAINER_TYPE)
-						.setType(MetadataValueType.REFERENCE).setMultivalue(true).setEssential(false).setUndeletable(true)
-						.defineReferencesTo(typesBuilder.getSchemaType(ContainerRecordType.SCHEMA_TYPE));
+					.setType(MetadataValueType.REFERENCE).setMultivalue(true).setEssential(false).setUndeletable(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(ContainerRecordType.SCHEMA_TYPE));
 
 			MetadataBuilder parentStorage = typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get(StorageSpace.PARENT_STORAGE_SPACE);
 			typesBuilder.getDefaultSchema(StorageSpace.SCHEMA_TYPE).create(StorageSpace.NUMBER_OF_CHILD)
-						.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
-						.defineDataEntry().asReferenceCount(parentStorage);
+					.setType(MetadataValueType.NUMBER).setEssential(false).setUndeletable(true)
+					.defineDataEntry().asReferenceCount(parentStorage);
 		}
 	}
 
@@ -134,7 +134,7 @@ public class RMMigrationTo6_7 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CONTAINER_TYPE)
-									  .withInputType(MetadataInputType.LOOKUP));
+				.withInputType(MetadataInputType.LOOKUP));
 		transactionBuilder.add(manager.getMetadata(collection, StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));
 		transactionBuilder.add(manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(StorageSpace.DEFAULT_SCHEMA + "_" + StorageSpace.CONTAINER_TYPE));
 		transactionBuilder.add(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.AVAILABLE_SIZE).withVisibleInAdvancedSearchStatus(true));

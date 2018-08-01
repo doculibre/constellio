@@ -77,16 +77,16 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		smbConnectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-																  .setCode("smb").setTitle("Smb connector").setEnabled(false)
-																  .setDomain("domain").setSeeds(asList("seeds")).setUsername("username").setPassword("password"));
+				.setCode("smb").setTitle("Smb connector").setEnabled(false)
+				.setDomain("domain").setSeeds(asList("seeds")).setUsername("username").setPassword("password"));
 
 		httpConnectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance()
-																   .setCode("http").setTitle("Http connector").setEnabled(false)
-																   .setSeeds("seeds").setIncludePatterns("username"));
+				.setCode("http").setTitle("Http connector").setEnabled(false)
+				.setSeeds("seeds").setIncludePatterns("username"));
 
 		anotherHttpConnectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance()
-																		  .setCode("http2").setTitle("Http connector").setEnabled(false)
-																		  .setSeeds("seeds").setIncludePatterns("username"));
+				.setCode("http2").setTitle("Http connector").setEnabled(false)
+				.setSeeds("seeds").setIncludePatterns("username"));
 
 		httpConnectorDocumentSchema = ConnectorHttpDocument.SCHEMA_TYPE + "_" + httpConnectorInstance.getId();
 		smbConnectorDocumentSchema = ConnectorSmbDocument.SCHEMA_TYPE + "_" + smbConnectorInstance.getId();
@@ -211,7 +211,7 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		assertThat(manager.getAdvancedSearchMetadatas(zeCollection, ConnectorHttpDocument.SCHEMA_TYPE)).extracting("metadataCode")
-																									   .contains(httpConnectorDocumentSchema + "_MAPmeta1").doesNotContain(httpConnectorDocumentSchema + "_MAPmeta2");
+				.contains(httpConnectorDocumentSchema + "_MAPmeta1").doesNotContain(httpConnectorDocumentSchema + "_MAPmeta2");
 		assertThat(manager.getSchema(zeCollection, smbConnectorDocumentSchema).getSearchResultsMetadataCodes())
 				.contains(smbConnectorDocumentSchema + "_MAPmeta3").doesNotContain(smbConnectorDocumentSchema + "_MAPmeta4");
 	}
@@ -461,21 +461,21 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 
 	private ConnectorSmbFolder newValidSmbFolder() {
 		return es.newConnectorSmbFolder(smbConnectorInstance)
-				 .setUrl("/" + UUIDV1Generator.newRandomId())
-				 .setTraversalCode(UUIDV1Generator.newRandomId());
+				.setUrl("/" + UUIDV1Generator.newRandomId())
+				.setTraversalCode(UUIDV1Generator.newRandomId());
 	}
 
 	private ConnectorSmbDocument newValidSmbDocumentInFolder(ConnectorSmbFolder folder) {
 		return es.newConnectorSmbDocument(smbConnectorInstance)
-				 .setParentUrl(folder.getUrl())
-				 .setUrl("/" + UUIDV1Generator.newRandomId())
-				 .setTraversalCode(UUIDV1Generator.newRandomId());
+				.setParentUrl(folder.getUrl())
+				.setUrl("/" + UUIDV1Generator.newRandomId())
+				.setTraversalCode(UUIDV1Generator.newRandomId());
 	}
 
 	private ConnectorHttpDocument newValidHttpDocument() {
 		return es.newConnectorHttpDocument(httpConnectorInstance)
-				 .setUrl("/" + UUIDV1Generator.newRandomId())
-				 .setTraversalCode(UUIDV1Generator.newRandomId());
+				.setUrl("/" + UUIDV1Generator.newRandomId())
+				.setTraversalCode(UUIDV1Generator.newRandomId());
 	}
 
 	private ListAssert<ConnectorField> assertThatConnectorFields(ConnectorInstance<?> connectorInstance,

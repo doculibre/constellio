@@ -51,7 +51,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -74,11 +74,11 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE)
-					 .addLabel(Language.French, "Date metadata 1");
+						.addLabel(Language.French, "Date metadata 1");
 				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE)
-					 .addLabel(Language.French, "Date metadata 2");
+						.addLabel(Language.French, "Date metadata 2");
 				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME)
-					 .addLabel(Language.French, "Datetime metadata");
+						.addLabel(Language.French, "Datetime metadata");
 			}
 		});
 
@@ -95,7 +95,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		setup();
 
 		MetadataNetwork network = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-														.getMetadataNetwork();
+				.getMetadataNetwork();
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -138,12 +138,12 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "folder_test2").withNewFormMetadata("toto"));
 
 		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "document_test").withNewFormMetadata("toto")
-															.withNewFormMetadata("metadataOnlyInTest"));
+				.withNewFormMetadata("metadataOnlyInTest"));
 		schemaDisplayManager
 				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "document_test2").withNewFormMetadata("toto"));
 
 		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test").withNewFormMetadata("toto")
-															.withNewFormMetadata("metadataOnlyInTest"));
+				.withNewFormMetadata("metadataOnlyInTest"));
 		schemaDisplayManager
 				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test2").withNewFormMetadata("toto"));
 

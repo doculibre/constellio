@@ -106,20 +106,20 @@ public class RMMigrationTo6_2 implements MigrationScript {
 			schema.get(RetentionRule.DESCRIPTION).setSchemaAutocomplete(true);
 			schema.get(RetentionRule.DOCUMENT_TYPES).defineDataEntry().asCalculated(RuleDocumentTypesCalculator2.class);
 			schema.create(RetentionRule.FOLDER_TYPES).setMultivalue(true)
-				  .defineReferencesTo(folderTypeSchemaType)
-				  .defineDataEntry().asCalculated(RuleFolderTypesCalculator.class);
+					.defineReferencesTo(folderTypeSchemaType)
+					.defineDataEntry().asCalculated(RuleFolderTypesCalculator.class);
 		}
 
 		private void updateDocumentSchema(MetadataSchemaBuilder documentSchemaType) {
 			documentSchemaType.createUndeletable(Document.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 
 			documentSchemaType.get(Document.MAIN_COPY_RULE).defineDataEntry().asCalculated(DocumentMainCopyRuleCalculator2.class)
-							  .setDefaultRequirement(true);
+					.setDefaultRequirement(true);
 			//TODO remove in new script
 			documentSchemaType.createUndeletable("calendarYearEntered").setType(MetadataValueType.STRING);
 
 			documentSchemaType.createUndeletable("calendarYear").setType(MetadataValueType.DATE).defineDataEntry()
-							  .asCalculated(DocumentCalendarYearCalculator.class);
+					.asCalculated(DocumentCalendarYearCalculator.class);
 		}
 
 		private void updateFolderSchema(MetadataSchemaBuilder folderSchemaType) {
@@ -130,7 +130,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 			folderSchemaType.createUndeletable("calendarYearEntered").setType(MetadataValueType.STRING);
 
 			folderSchemaType.createUndeletable("calendarYear").setType(MetadataValueType.DATE).defineDataEntry()
-							.asCalculated(FolderCalendarYearCalculator.class);
+					.asCalculated(FolderCalendarYearCalculator.class);
 		}
 	}
 }

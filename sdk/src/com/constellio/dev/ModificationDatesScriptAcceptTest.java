@@ -192,8 +192,8 @@ public class ModificationDatesScriptAcceptTest extends ConstellioTest {
 
 	public Folder buildDefaultFolder() {
 		return rm.newFolderWithId(FOLDER_ID).setTitle(FOLDER_TITLE).setAdministrativeUnitEntered(records.getUnit10())
-				 .setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
-				 .setCategoryEntered(records.categoryId_X);
+				.setRetentionRuleEntered(records.getRule1()).setOpenDate(DEFAULT_OPENING_DATE)
+				.setCategoryEntered(records.categoryId_X);
 	}
 
 	@Test
@@ -201,9 +201,9 @@ public class ModificationDatesScriptAcceptTest extends ConstellioTest {
 			throws Exception {
 		createDocuments();
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
-																		.getSchemaTypes("zeCollection");
+				.getSchemaTypes("zeCollection");
 		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-															.getSchemaTypes("zeCollection").getSchemaType("document");
+				.getSchemaTypes("zeCollection").getSchemaType("document");
 		ResetRMModificationDatesFromEventsScript.execute(getAppLayerFactory());
 
 		//		List<Record> newRecords = searchServices.search(new LogicalSearchQuery(from(schemaType).returnAll()));

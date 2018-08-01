@@ -86,7 +86,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(CalculatorDependentOfSomeMetadatas.class);
+						.defineDataEntry().asCalculated(CalculatorDependentOfSomeMetadatas.class);
 			}
 		});
 
@@ -130,7 +130,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(BadCalculator.class);
+						.defineDataEntry().asCalculated(BadCalculator.class);
 			}
 		});
 
@@ -154,7 +154,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
+						.defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
 			}
 		});
 
@@ -200,7 +200,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataLocalCodes.class);
+						.defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataLocalCodes.class);
 			}
 		});
 
@@ -222,7 +222,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataWithValueLocalCodes.class);
+						.defineDataEntry().asCalculated(CalculatorWhichReturnListOfAllAvailableMetadataWithValueLocalCodes.class);
 			}
 		});
 
@@ -249,9 +249,9 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create(calculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
+						.defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
 				types.getSchema(zeSchema.code()).create(anotherCalculatedMetadata).setType(STRING)
-					 .defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
+						.defineDataEntry().asCalculated(CalculatorDependentOfEveryMetadatas.class);
 			}
 		});
 
@@ -265,19 +265,19 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
-					 .defineDataEntry().asCalculated(Metadata1CalculatorDependingOn2_3_4.class);
+						.defineDataEntry().asCalculated(Metadata1CalculatorDependingOn2_3_4.class);
 
 				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
-					 .defineDataEntry().asCalculated(Metadata2CalculatorDependingOnD_5.class);
+						.defineDataEntry().asCalculated(Metadata2CalculatorDependingOnD_5.class);
 
 				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
-					 .defineDataEntry().asCalculated(Metadata3CalculatorDependingOn2_4.class);
+						.defineDataEntry().asCalculated(Metadata3CalculatorDependingOn2_4.class);
 
 				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
-					 .defineDataEntry().asCalculated(Metadata4CalculatorDependingOnA_5.class);
+						.defineDataEntry().asCalculated(Metadata4CalculatorDependingOnA_5.class);
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
-					 .defineDataEntry().asCalculated(Metadata5CalculatorDependingOnB_C.class);
+						.defineDataEntry().asCalculated(Metadata5CalculatorDependingOnB_C.class);
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);
@@ -310,19 +310,19 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
+						.defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("metadataD+calculated5");
+						.defineDataEntry().asJexlScript("metadataD+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("calculated2+calculated4");
+						.defineDataEntry().asJexlScript("calculated2+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("metadataA+calculated5");
+						.defineDataEntry().asJexlScript("metadataA+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("metadataB+metadataC+calculated1");
+						.defineDataEntry().asJexlScript("metadataB+metadataC+calculated1");
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 
@@ -342,19 +342,19 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
+						.defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("metadataD+calculated5");
+						.defineDataEntry().asJexlScript("metadataD+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("calculated2+calculated4");
+						.defineDataEntry().asJexlScript("calculated2+calculated4");
 
 				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("metadataA+calculated5");
+						.defineDataEntry().asJexlScript("metadataA+calculated5");
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
-					 .defineDataEntry().asJexlScript("metadataB+metadataC");
+						.defineDataEntry().asJexlScript("metadataB+metadataC");
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);

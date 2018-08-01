@@ -80,7 +80,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
 			outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
 			outFile = new File(outFolder, this.sipFileName);
 			SIPFilter filter = new SIPFilter(collection, appLayerFactory).withIncludeDocumentIds(this.includeDocumentIds)
-																		 .withIncludeFolderIds(this.includeFolderIds);
+					.withIncludeFolderIds(this.includeFolderIds);
 			ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory,
 					filter, progressInfo);
 

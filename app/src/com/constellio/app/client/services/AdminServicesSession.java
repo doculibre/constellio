@@ -35,8 +35,8 @@ public class AdminServicesSession {
 		form.param("password", password);
 
 		String token = target.path("session").path("getToken").request(MediaType.TEXT_PLAIN)
-							 .header(AdminServicesConstants.SERVICE_KEY, serviceKey)
-							 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE), String.class);
+				.header(AdminServicesConstants.SERVICE_KEY, serviceKey)
+				.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE), String.class);
 
 		return new AdminServicesSession(target, token, serviceKey);
 	}
@@ -83,11 +83,11 @@ public class AdminServicesSession {
 
 	private Builder requestJson(String service) {
 		return target.path("session").path(service).request(MediaType.APPLICATION_JSON_TYPE)
-					 .header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+				.header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 
 	private Builder requestString(String service) {
 		return target.path("session").path(service).request(MediaType.TEXT_PLAIN)
-					 .header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
+				.header(AdminServicesConstants.AUTH_TOKEN, token).header(AdminServicesConstants.SERVICE_KEY, serviceKey);
 	}
 }

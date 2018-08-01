@@ -43,38 +43,38 @@ public class SmbDocumentOrFolderUpdater {
 
 		// Utility
 		smbDocument.setConnector(connectorInstance)
-				   .setConnectorType(connectorInstance.getConnectorType())
-				   .setTraversalCode(connectorInstance.getTraversalCode())
-				   .setFetched(true)
-				   .setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
-				   .setFetchedDateTime(TimeProvider.getLocalDateTime())
-				   .setParentUrl(parentUrl);
+				.setConnectorType(connectorInstance.getConnectorType())
+				.setTraversalCode(connectorInstance.getTraversalCode())
+				.setFetched(true)
+				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
+				.setFetchedDateTime(TimeProvider.getLocalDateTime())
+				.setParentUrl(parentUrl);
 
 		// Mandatory
 		smbDocument.setUrl(smbFileDTO.getUrl())
-				   .setPermissionsHash(smbFileDTO.getPermissionsHash())
-				   .setManualTokens(smbFileDTO.getAllowTokens())
-				   .set(Schemas.DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyTokens())
-				   .set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
-				   .set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
+				.setPermissionsHash(smbFileDTO.getPermissionsHash())
+				.setManualTokens(smbFileDTO.getAllowTokens())
+				.set(Schemas.DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyTokens())
+				.set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
+				.set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
 
 
 		String mimeType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(smbFileDTO.getUrl());
 
 		// Optional
 		smbDocument.setParsedContent(smbFileDTO.getParsedContent())
-				   .setSize(smbFileDTO.getLength())
-				   .setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
-				   .setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
-				   .setPermissionsHash(smbFileDTO.getPermissionsHash())
-				   .setLanguage(smbFileDTO.getLanguage())
-				   .setExtension(smbFileDTO.getExtension())
-				   .setMimetype(mimeType)
-				   .setTitle(smbFileDTO.getName());
+				.setSize(smbFileDTO.getLength())
+				.setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
+				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
+				.setPermissionsHash(smbFileDTO.getPermissionsHash())
+				.setLanguage(smbFileDTO.getLanguage())
+				.setExtension(smbFileDTO.getExtension())
+				.setMimetype(mimeType)
+				.setTitle(smbFileDTO.getName());
 
 		// Errors
 		smbDocument.setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
-				   .setLastFetchAttemptStatus(LastFetchedStatus.OK);
+				.setLastFetchAttemptStatus(LastFetchedStatus.OK);
 
 		smbDocument.setErrorCode(null);
 		smbDocument.setErrorMessage(null);
@@ -82,37 +82,37 @@ public class SmbDocumentOrFolderUpdater {
 		smbDocument.resetErrorsCount();
 
 		smbDocument.addDateTimeProperty("dateCreated", new LocalDateTime(smbFileDTO.getCreateTime()))
-				   .withPropertyLabel("dateCreated", $("SmbDocumentOrFolderUpdater.dateCreated"));
+				.withPropertyLabel("dateCreated", $("SmbDocumentOrFolderUpdater.dateCreated"));
 		smbDocument.addDateTimeProperty("dateModified", new LocalDateTime(smbFileDTO.getLastModified()))
-				   .withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
+				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
 	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl,
 									 boolean seed) {
 		smbFolder.setTitle(smbFileDTO.getName())
-				 .setUrl(smbFileDTO.getUrl())
-				 .setTraversalCode(connectorInstance.getTraversalCode())
-				 .setConnector(connectorInstance)
-				 .setFetched(true)
-				 .setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
-				 .setLastFetchedStatus(LastFetchedStatus.OK)
-				 .setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
-				 .setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
-				 .setParentUrl(parentUrl);
+				.setUrl(smbFileDTO.getUrl())
+				.setTraversalCode(connectorInstance.getTraversalCode())
+				.setConnector(connectorInstance)
+				.setFetched(true)
+				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
+				.setLastFetchedStatus(LastFetchedStatus.OK)
+				.setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
+				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
+				.setParentUrl(parentUrl);
 
 		// Utility
 		smbFolder.setTraversalCode(connectorInstance.getTraversalCode())
-				 .setConnector(connectorInstance)
-				 .setFetched(true)
-				 .setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()));
+				.setConnector(connectorInstance)
+				.setFetched(true)
+				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()));
 
 		// Mandatory
 		smbFolder.setUrl(smbFileDTO.getUrl())
-				 .setPermissionsHash(smbFileDTO.getPermissionsHash())
-				 .setManualTokens(smbFileDTO.getAllowTokens())
-				 .set(Schemas.DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyTokens())
-				 .set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
-				 .set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
+				.setPermissionsHash(smbFileDTO.getPermissionsHash())
+				.setManualTokens(smbFileDTO.getAllowTokens())
+				.set(Schemas.DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyTokens())
+				.set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
+				.set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
 
 		// Optional
 
@@ -129,9 +129,9 @@ public class SmbDocumentOrFolderUpdater {
 		smbFolder.resetErrorsCount();
 
 		smbFolder.addDateTimeProperty("dateCreated", new LocalDateTime(smbFileDTO.getCreateTime()))
-				 .withPropertyLabel("dateCreated", $("SmbDocumentOrFolderUpdater.dateCreated"));
+				.withPropertyLabel("dateCreated", $("SmbDocumentOrFolderUpdater.dateCreated"));
 		smbFolder.addDateTimeProperty("dateModified", new LocalDateTime(smbFileDTO.getLastModified()))
-				 .withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
+				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
 	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder,
@@ -151,34 +151,34 @@ public class SmbDocumentOrFolderUpdater {
 	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
 
 		smbDocument.setConnector(connectorInstance)
-				   .setTraversalCode(connectorInstance.getTraversalCode())
-				   .setFetched(true)
-				   .setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
-				   .setFetchedDateTime(TimeProvider.getLocalDateTime())
-				   .setUrl(smbFileDTO.getUrl())
-				   .setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
-				   .setLastFetchAttemptStatus(LastFetchedStatus.FAILED)
-				   .setParentUrl(parentUrl);
+				.setTraversalCode(connectorInstance.getTraversalCode())
+				.setFetched(true)
+				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
+				.setFetchedDateTime(TimeProvider.getLocalDateTime())
+				.setUrl(smbFileDTO.getUrl())
+				.setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
+				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED)
+				.setParentUrl(parentUrl);
 
 		smbDocument.setErrorCode("ErrorCode")
-				   .setErrorMessage(smbFileDTO.getErrorMessage())
-				   .setErrorStackTrace(smbFileDTO.getErrorMessage())
-				   .incrementErrorsCount();
+				.setErrorMessage(smbFileDTO.getErrorMessage())
+				.setErrorStackTrace(smbFileDTO.getErrorMessage())
+				.incrementErrorsCount();
 	}
 
 	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl) {
 
 		smbFolder.setConnector(connectorInstance)
-				 .setTraversalCode(connectorInstance.getTraversalCode())
-				 .setFetched(true)
-				 .setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
-				 .setFetchedDateTime(TimeProvider.getLocalDateTime())
-				 .setUrl(smbFileDTO.getUrl())
-				 .setLastFetchedStatus(LastFetchedStatus.FAILED)
-				 .setErrorCode("ErrorCode")
-				 .setErrorMessage(smbFileDTO.getErrorMessage())
-				 .setErrorStackTrace(smbFileDTO.getErrorMessage())
-				 .incrementErrorsCount()
-				 .setParentUrl(parentUrl);
+				.setTraversalCode(connectorInstance.getTraversalCode())
+				.setFetched(true)
+				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
+				.setFetchedDateTime(TimeProvider.getLocalDateTime())
+				.setUrl(smbFileDTO.getUrl())
+				.setLastFetchedStatus(LastFetchedStatus.FAILED)
+				.setErrorCode("ErrorCode")
+				.setErrorMessage(smbFileDTO.getErrorMessage())
+				.setErrorStackTrace(smbFileDTO.getErrorMessage())
+				.incrementErrorsCount()
+				.setParentUrl(parentUrl);
 	}
 }

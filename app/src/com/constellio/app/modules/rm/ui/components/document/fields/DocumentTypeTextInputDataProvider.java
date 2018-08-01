@@ -54,7 +54,7 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 	@Override
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-														.getSchemaTypes(getCurrentCollection()).getSchemaType(DocumentType.SCHEMA_TYPE);
+				.getSchemaTypes(getCurrentCollection()).getSchemaType(DocumentType.SCHEMA_TYPE);
 
 		LogicalSearchCondition condition;
 		if (StringUtils.isNotBlank(text)) {

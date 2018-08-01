@@ -109,7 +109,7 @@ public class SmbFileDTOSimpleBuilder {
 			smbFileDTO.setErrorMessage(t.getMessage());
 		} finally {
 			es.getIOServices()
-			  .closeQuietly(inputStream);
+					.closeQuietly(inputStream);
 		}
 
 		return smbFileDTO;
@@ -145,7 +145,7 @@ public class SmbFileDTOSimpleBuilder {
 	private ParsedContent updateParsedContent(SmbFileDTO smbFileDTO, InputStream inputStream)
 			throws FileParserException {
 		FileParser fileParser = es.getModelLayerFactory()
-								  .newFileParser();
+				.newFileParser();
 		ParsedContent parsedContent = fileParser.parse(inputStream, true);
 
 		smbFileDTO.setParsedContent(parsedContent.getParsedContent());

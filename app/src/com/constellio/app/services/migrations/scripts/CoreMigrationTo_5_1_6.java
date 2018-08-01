@@ -69,25 +69,25 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 				.withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.TITLE)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.FIELD_DATA_STORE_CODE)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.ORDER_RESULT)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.FACET_TYPE)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.ELEMENT_PER_PAGE)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.ACTIVE)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.OPEN_BY_DEFAULT)
-							   .withMetadataGroup(configurationTab));
+				.withMetadataGroup(configurationTab));
 
 		transaction.add(manager.getMetadata(collection, Facet.FIELD_SCHEMA, Facet.FIELD_VALUES_LABEL)
-							   .withMetadataGroup(valeursTab));
+				.withMetadataGroup(valeursTab));
 
 		transaction.add(manager.getMetadata(collection, Facet.QUERY_SCHEMA, Facet.LIST_QUERIES)
-							   .withMetadataGroup(queryTab));
+				.withMetadataGroup(queryTab));
 
 		manager.execute(transaction);
 	}

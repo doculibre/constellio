@@ -50,7 +50,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.OWNER))
-																   .isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
@@ -60,7 +60,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.SHARED_WITH_USERS))
-																   .isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+						.isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}

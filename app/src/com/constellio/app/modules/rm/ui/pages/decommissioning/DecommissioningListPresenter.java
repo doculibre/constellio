@@ -105,8 +105,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
 
 		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
-																														   .getUsersWithPermissionOnRecord(
-																																   RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
+				.getUsersWithPermissionOnRecord(
+						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
 		List<User> managerEmailForAdministrativeUnitWithoutGlobalPermission = new ArrayList<>();
 		for (User user : managerEmailForAdministrativeUnit) {
 			if (!user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
@@ -273,7 +273,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public boolean isListReadyToBeProcessed() {
 		return !(searchServices().getResultsCount(
 				from(rmRecordsServices().folder.schemaType()).where(rmRecordsServices().folder.borrowed()).isTrue()
-															 .andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
+						.andWhere(Schemas.IDENTIFIER).isIn(decommissioningList().getFolders())) > 0);
 	}
 
 	public void validateButtonClicked() {
@@ -352,7 +352,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			newContainerDetail.setAvailableSize(containerAvailableSize);
 		}
 		decommissioningList.getFolderDetail(folder.getFolderId()).setFolderLinearSize(folderLinearSize)
-						   .setContainerRecordId(container.getId()).setIsPlacedInContainer(true);
+				.setContainerRecordId(container.getId()).setIsPlacedInContainer(true);
 		addOrUpdate(decommissioningList.getWrappedRecord());
 		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize),
 				newContainerDetail);

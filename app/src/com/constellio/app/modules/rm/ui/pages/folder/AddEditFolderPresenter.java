@@ -625,7 +625,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustStatusCopyEnteredField(boolean firstDraw) {
 		FolderCopyStatusEnteredField copyStatusEnteredField = (FolderCopyStatusEnteredField) view.getForm()
-																								 .getCustomField(Folder.COPY_STATUS_ENTERED);
+				.getCustomField(Folder.COPY_STATUS_ENTERED);
 		if (copyStatusEnteredField != null) {
 			CopyType currentValue = copyStatusEnteredField.getFieldValue();
 			if (isCopyStatusInputPossible(firstDraw)) {
@@ -761,7 +761,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustActualDestructionDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualDestructionDateField actualDestructionDateField = (FolderActualDestructionDateField) view.getForm()
-																											 .getCustomField(Folder.ACTUAL_DESTRUCTION_DATE);
+				.getCustomField(Folder.ACTUAL_DESTRUCTION_DATE);
 		customContainerDependencyFields.put(actualDestructionDateField, actualDestructionDateField.getFieldValue());
 		if (actualDestructionDateField != null) {
 			if (isDestructionDateInputPossibleForUser()) {
@@ -797,7 +797,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustPreviewReturnDateField() {
 		FolderPreviewReturnDateField previewReturnDateField = (FolderPreviewReturnDateField) view.getForm()
-																								 .getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);
+				.getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);
 		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
 		if (previewReturnDateField != null) {
 			if (folder.hasAnalogicalMedium() && folder.getBorrowed() != null && folder.getBorrowed() != false) {
@@ -815,7 +815,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		boolean hasPermission = userPermissionsChecker.on(folderRecord);
 		if (!addView && !hasPermission) {
 			FolderOpeningDateField openingDateField = (FolderOpeningDateField) view.getForm()
-																				   .getCustomField(Folder.OPENING_DATE);
+					.getCustomField(Folder.OPENING_DATE);
 			if (openingDateField != null) {
 				setFieldReadonly(openingDateField, true);
 			}
@@ -824,7 +824,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustDisposalTypeField() {
 		FolderDisposalTypeField disposalTypeField = (FolderDisposalTypeField) view.getForm()
-																				  .getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
+				.getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
 		if (disposalTypeField != null) {
 			boolean visible;
 			Record folerRecord = toRecord(folderVO);

@@ -66,7 +66,7 @@ public abstract class AbstractXmlGenerator {
 	public static final String XML_METADATA_SINGLE_TAGS = "metadata";
 
 	public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "")
-																				 .replacingRegex("[&$%]", "");
+			.replacingRegex("[&$%]", "");
 	public static LangUtils.StringReplacer replaceBracketsInValueToString = LangUtils.replacingRegex("[\\[\\]]", "");
 
 	/**
@@ -127,10 +127,10 @@ public abstract class AbstractXmlGenerator {
 	 */
 	protected List<Element> getAdditionalInformations(Record recordElement) {
 		MetadataSchemaType metadataSchemaType = getFactory().getModelLayerFactory().getMetadataSchemasManager()
-															.getSchemaTypeOf(recordElement);
+				.getSchemaTypeOf(recordElement);
 		List<Element> elementsToAdd = new ArrayList<>(asList(
 				new Element("collection_code").setText(getCollection()).setAttribute("label", "Code de collection")
-											  .setAttribute("code", "collection_code"),
+						.setAttribute("code", "collection_code"),
 				new Element("collection_title")
 						.setText(getFactory().getCollectionsManager().getCollection(getCollection()).getName())
 						.setAttribute("label", "Titre de collection").setAttribute("code", "collection_title")
@@ -143,11 +143,11 @@ public abstract class AbstractXmlGenerator {
 						.getFolderType(metadataTypeId);
 				elementsToAdd.addAll(asList(
 						new Element("ref_folder_type_title").setText(currentFolderType.getTitle())
-															.setAttribute("label", metadataSchemaType.getFrenchLabel())
-															.setAttribute("code", typeMetadata.getCode()),
+								.setAttribute("label", metadataSchemaType.getFrenchLabel())
+								.setAttribute("code", typeMetadata.getCode()),
 						new Element("ref_folder_type_code").setText(currentFolderType.getCode())
-														   .setAttribute("label", metadataSchemaType.getFrenchLabel())
-														   .setAttribute("code", typeMetadata.getCode())
+								.setAttribute("label", metadataSchemaType.getFrenchLabel())
+								.setAttribute("code", typeMetadata.getCode())
 				));
 			}
 		}
@@ -273,11 +273,11 @@ public abstract class AbstractXmlGenerator {
 		}
 		listOfMetadataTags.addAll(asList(
 				new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace).setText(code)
-																							   .setAttribute("label", metadata.getFrenchLabel())
-																							   .setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
+						.setAttribute("label", metadata.getFrenchLabel())
+						.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_code", namespace),
 				new Element(escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace).setText(title)
-																								.setAttribute("label", metadata.getFrenchLabel())
-																								.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
+						.setAttribute("label", metadata.getFrenchLabel())
+						.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)) + "_title", namespace)
 				)
 		);
 		return listOfMetadataTags;
@@ -323,9 +323,9 @@ public abstract class AbstractXmlGenerator {
 			String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
 			listOfMetadataTags = asList(
 					new Element(elementNamePrefix + "_code", namespace).setText(null)
-																	   .setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
+							.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
 					new Element(elementNamePrefix + "_title", namespace).setText(null)
-																		.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
+							.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
 
 		} else {
 			StringBuilder titleBuilder = new StringBuilder();
@@ -347,7 +347,7 @@ public abstract class AbstractXmlGenerator {
 						.equals(recordReferenced.getTypeCode())) {
 					Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ?
 											  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
-																	.get(AdministrativeUnit.PARENT) :
+													  .get(AdministrativeUnit.PARENT) :
 											  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
 					String parentMetadataId = recordReferenced.get(parentMetadata);
 					if (parentMetadataId != null) {
@@ -369,9 +369,9 @@ public abstract class AbstractXmlGenerator {
 			String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
 			listOfMetadataTags.addAll(asList(
 					new Element(elementNamePrefix + "_code", namespace).setText(codeBuilder.toString())
-																	   .setAttribute("label", elementNamePrefix + "_code"),
+							.setAttribute("label", elementNamePrefix + "_code"),
 					new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString())
-																		.setAttribute("label", elementNamePrefix + "_title")
+							.setAttribute("label", elementNamePrefix + "_title")
 			));
 			if (codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
 				listOfMetadataTags.addAll(asList(

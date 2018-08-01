@@ -106,7 +106,7 @@ public class AuthorizationImportServices {
 
 				try {
 					modelLayerFactory.newRecordServices()
-									 .update(schemas.getSolrAuthorizationDetails(authId).setLegacyId(importedAuthorization.getId()));
+							.update(schemas.getSolrAuthorizationDetails(authId).setLegacyId(importedAuthorization.getId()));
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}

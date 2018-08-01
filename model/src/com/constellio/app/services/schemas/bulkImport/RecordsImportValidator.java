@@ -276,7 +276,7 @@ public class RecordsImportValidator {
 	private void validateMetadatasRequirement(ImportData importData, MetadataSchema metadataSchema,
 											  ValidationErrors errors) {
 		for (Metadata requiredMetadata : metadataSchema.getMetadatas().onlyAlwaysRequired().onlyNonSystemReserved()
-													   .onlyManuals()) {
+				.onlyManuals()) {
 
 			Object fieldValue = importData.getFields().get(requiredMetadata.getLocalCode());
 

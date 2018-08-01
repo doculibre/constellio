@@ -353,7 +353,7 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 		for (String usernameWithServiceKey : usersWithServiceKey) {
 			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
 			if (userCredential.getAccessTokens().containsKey(token) && !userCredential.getAccessTokens().get(token)
-																					  .isBefore(new LocalDateTime())) {
+					.isBefore(new LocalDateTime())) {
 				return userCredential.getServiceKey();
 			}
 		}

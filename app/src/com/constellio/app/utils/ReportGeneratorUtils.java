@@ -70,7 +70,7 @@ public class ReportGeneratorUtils {
 			e.printStackTrace();
 		} finally {
 			factory.getModelLayerFactory().getIOServicesFactory().newIOServices()
-				   .closeQuietly(selectedJasperFileContentInputStream);
+					.closeQuietly(selectedJasperFileContentInputStream);
 			factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
 			factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
 		}
@@ -83,7 +83,7 @@ public class ReportGeneratorUtils {
 		List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
 		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaType printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection)
-																			 .getSchemaType(Printable.SCHEMA_TYPE);
+				.getSchemaType(Printable.SCHEMA_TYPE);
 		LogicalSearchCondition conditionCustomSchema = from(printableReportSchemaType)
 				.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_SCHEMA))
 				.isEqualTo(recordSchema);
@@ -91,13 +91,13 @@ public class ReportGeneratorUtils {
 				.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE))
 				.isEqualTo(currentSchema.getSchemaType());
 		LogicalSearchCondition schemaCondition = from(printableReportSchemaType).where(Schemas.SCHEMA)
-																				.isEqualTo(PrintableReport.SCHEMA_NAME);
+				.isEqualTo(PrintableReport.SCHEMA_NAME);
 		List<Record> records = factory.getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
 				from(printableReportSchemaType).whereAllConditions(schemaCondition, conditionCustomSchema, conditionSchemaType)));
 		for (Record record : records) {
 			printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(),
 					record.<Content>get(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE)
-																 .get(PrintableReport.JASPERFILE))));
+							.get(PrintableReport.JASPERFILE))));
 		}
 		return printableReportTemplateList;
 	}

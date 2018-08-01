@@ -42,8 +42,8 @@ public class ConnectorLDAPUserDocumentFactory {
 			enabled = false;
 		}
 		return document.setEnabled(enabled).setUsername(username).setFirstName(firstName).setLastName(lastName).setEmail(email)
-					   .setDistinguishedName(distinguishedName).setAddress(address).setWorkTitle(workTitle).setTelephone(telephones)
-					   .setDisplayName(displayName).setCompany(company).setManager(manager).setDepartment(department);
+				.setDistinguishedName(distinguishedName).setAddress(address).setWorkTitle(workTitle).setTelephone(telephones)
+				.setDisplayName(displayName).setCompany(company).setManager(manager).setDepartment(department);
 
 	}
 

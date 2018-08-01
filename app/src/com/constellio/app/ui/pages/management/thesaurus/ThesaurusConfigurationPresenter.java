@@ -110,7 +110,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 			}
 
 			modelLayerFactory.getContentManager().getContentDao()
-							 .moveFileToVault(tempFileUpload.getTempFile(), contentVersionDataSummary.getHash());
+					.moveFileToVault(tempFileUpload.getTempFile(), contentVersionDataSummary.getHash());
 			view.setSKOSSaveButtonEnabled(false);
 		} catch (IOException e) {
 			e.printStackTrace();

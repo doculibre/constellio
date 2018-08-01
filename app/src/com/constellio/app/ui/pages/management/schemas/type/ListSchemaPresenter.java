@@ -144,7 +144,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 
 	public List<ListSchemaExtraCommandReturnParams> getExtensionMenuBar(MetadataSchemaVO metadataSchemaVO) {
 		return appLayerFactory.getExtensions().forCollection(collection)
-							  .getListSchemaExtraCommandExtensions(new ListSchemaExtraCommandParams(metadataSchemaVO, (BaseViewImpl) view));
+				.getListSchemaExtraCommandExtensions(new ListSchemaExtraCommandParams(metadataSchemaVO, (BaseViewImpl) view));
 	}
 
 	public boolean isDeleteButtonVisible(String schemaCode) {

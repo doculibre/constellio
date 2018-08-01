@@ -359,7 +359,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
 		ConnectorType type = es.newConnectorTypeWithId(testConnectorTypeId).setCode("test").setTitle("test")
-							   .setConnectorClassName(ConnectorTest.class.getName()).setLinkedSchema(ConnectorInstance.SCHEMA_TYPE + "_test");
+				.setConnectorClassName(ConnectorTest.class.getName()).setLinkedSchema(ConnectorInstance.SCHEMA_TYPE + "_test");
 		recordServices.add(type);
 	}
 

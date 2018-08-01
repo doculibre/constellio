@@ -101,12 +101,12 @@ public class DecommissioningService {
 
 	public DecommissioningList createDecommissioningList(DecommissioningListParams params, User user) {
 		DecommissioningList decommissioningList = rm.newDecommissioningList()
-													.setTitle(params.getTitle())
-													.setDescription(params.getDescription())
-													.setAdministrativeUnit(params.getAdministrativeUnit())
-													.setDecommissioningListType(params.getSearchType().toDecomListType())
-													.setOriginArchivisticStatus(
-															params.getSearchType().isFromSemiActive() ? OriginStatus.SEMI_ACTIVE : OriginStatus.ACTIVE);
+				.setTitle(params.getTitle())
+				.setDescription(params.getDescription())
+				.setAdministrativeUnit(params.getAdministrativeUnit())
+				.setDecommissioningListType(params.getSearchType().toDecomListType())
+				.setOriginArchivisticStatus(
+						params.getSearchType().isFromSemiActive() ? OriginStatus.SEMI_ACTIVE : OriginStatus.ACTIVE);
 
 		List<String> recordIds = params.getSelectedRecordIds();
 		if (decommissioningList.getDecommissioningListType().isDocumentList()) {
@@ -295,11 +295,11 @@ public class DecommissioningService {
 			}
 
 			emailToSend.setSubject(subject)
-					   .setSendOn(TimeProvider.getLocalDateTime())
-					   .setParameters(parameters)
-					   .setTemplate(templateID)
-					   .setTo(toAddresses)
-					   .setTryingCount(0d);
+					.setSendOn(TimeProvider.getLocalDateTime())
+					.setParameters(parameters)
+					.setTemplate(templateID)
+					.setTo(toAddresses)
+					.setTryingCount(0d);
 
 			Transaction transaction = new Transaction().setUser(user);
 			transaction.add(emailToSend);
@@ -328,11 +328,11 @@ public class DecommissioningService {
 			}
 
 			emailToSend.setSubject(subject)
-					   .setSendOn(TimeProvider.getLocalDateTime())
-					   .setParameters(parameters)
-					   .setTemplate(templateID)
-					   .setTo(toAddresses)
-					   .setTryingCount(0d);
+					.setSendOn(TimeProvider.getLocalDateTime())
+					.setParameters(parameters)
+					.setTemplate(templateID)
+					.setTo(toAddresses)
+					.setTryingCount(0d);
 
 			Transaction transaction = new Transaction().setUser(user);
 			transaction.add(emailToSend);
@@ -535,7 +535,7 @@ public class DecommissioningService {
 
 	public List<String> getAdministrativeUnitsForUser(User user) {
 		return modelLayerFactory.newAuthorizationsServices()
-								.getConceptsForWhichUserHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, user);
+				.getConceptsForWhichUserHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, user);
 	}
 
 	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId) {
@@ -633,7 +633,7 @@ public class DecommissioningService {
 		List<String> returnList = new ArrayList<>();
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rm.administrativeUnit.schema()).returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
-																						   .setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {
 			returnList.add(record.getId());
 		}
@@ -838,7 +838,7 @@ public class DecommissioningService {
 
 		List<Document> childrenDocuments = rm.wrapDocuments(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).isEqualTo(folder)
-															.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())));
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())));
 		for (Document child : childrenDocuments) {
 			Document newDocument = createDuplicateOfDocument(child, currentUser);
 			newDocument.setFolder(duplicatedFolder);
@@ -851,7 +851,7 @@ public class DecommissioningService {
 		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
 
 		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
-												   .onlyDuplicable()) {
+				.onlyDuplicable()) {
 			newDocument.set(metadata, duplicatedDocument.get(metadata));
 		}
 		LocalDateTime now = LocalDateTime.now();
@@ -891,7 +891,7 @@ public class DecommissioningService {
 
 		LogicalSearchQuery subFoldersQuery = new LogicalSearchQuery();
 		subFoldersQuery.setCondition(LogicalSearchQueryOperators.from(userFolderSchema).where(parentUserFolderMetadata)
-																.isEqualTo(userFolder.getWrappedRecord()));
+				.isEqualTo(userFolder.getWrappedRecord()));
 		for (Record subFolderRecord : searchServices.search(subFoldersQuery)) {
 			RMUserFolder subUserFolder = rm.wrapUserFolder(subFolderRecord);
 			subUserFolders.add(subUserFolder);
@@ -907,7 +907,7 @@ public class DecommissioningService {
 
 		LogicalSearchQuery userDocumentsQuery = new LogicalSearchQuery();
 		userDocumentsQuery.setCondition(LogicalSearchQueryOperators.from(userDocumentSchema).where(userFolderMetadata)
-																   .isEqualTo(userFolder.getWrappedRecord()));
+				.isEqualTo(userFolder.getWrappedRecord()));
 		for (Record userDocumentRecord : searchServices.search(userDocumentsQuery)) {
 			UserDocument userDocument = rm.wrapUserDocument(userDocumentRecord);
 			userDocuments.add(userDocument);
@@ -1179,9 +1179,9 @@ public class DecommissioningService {
 				Folder folder = rm.getFolder(folderId);
 				if (isAccepted) {
 					t.add(folder.addReactivation(applicant, LocalDate.now()).setReactivationDecommissioningDate(reactivationDate)
-								.addPreviousDepositDate(folder.getActualDepositDate())
-								.addPreviousTransferDate(folder.getActualTransferDate())
-								.setActualDepositDate(null).setActualTransferDate(null));
+							.addPreviousDepositDate(folder.getActualDepositDate())
+							.addPreviousTransferDate(folder.getActualTransferDate())
+							.setActualDepositDate(null).setActualTransferDate(null));
 				}
 				loggingServices
 						.completeReactivationRequestTask(recordServices.getDocumentById(folder.getId()), task.getId(), isAccepted,
@@ -1199,15 +1199,15 @@ public class DecommissioningService {
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
 				List<Folder> folders = rm.searchFolders(
 						LogicalSearchQueryOperators.from(rm.folder.schemaType()).where(rm.folder.container())
-												   .isEqualTo(containerRecord.getId()));
+								.isEqualTo(containerRecord.getId()));
 				if (folders != null) {
 					for (Folder folder : folders) {
 						if (isAccepted && isFolderReactivable(folder, applicant)) {
 							t.add(folder.addReactivation(applicant, LocalDate.now())
-										.setReactivationDecommissioningDate(reactivationDate)
-										.addPreviousDepositDate(folder.getActualDepositDate())
-										.addPreviousTransferDate(folder.getActualTransferDate())
-										.setActualDepositDate(null).setActualTransferDate(null));
+									.setReactivationDecommissioningDate(reactivationDate)
+									.addPreviousDepositDate(folder.getActualDepositDate())
+									.addPreviousTransferDate(folder.getActualTransferDate())
+									.setActualDepositDate(null).setActualTransferDate(null));
 						}
 					}
 				}

@@ -168,11 +168,11 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 				eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-									   .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
+				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
 
 		// Verify solar state.
 		assertThat(searchServices.search(eventService.getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery())
-								 .size()).isEqualTo(0);
+				.size()).isEqualTo(0);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(
 				fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA).isStartingWithText("event_"));
 		// Check for remaning event in solr
@@ -180,7 +180,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 		//DELETE HAS BEEN DISABLED FOR THE MOMENT assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(3);
 
 		eventService.getLastDayTimeArchived().toString(EventService.DATE_TIME_FORMAT)
-					.equals(eventService.getDeletetionDateCutOff().toString(EventService.DATE_TIME_FORMAT));
+				.equals(eventService.getDeletetionDateCutOff().toString(EventService.DATE_TIME_FORMAT));
 
 		givenTimeIs(LocalDateTime.now().plusDays(2));
 		eventService.backupAndRemove();
@@ -190,7 +190,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 				eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-									   .getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
+				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
 
 		// Event 7 is not deleted
 		//DELETE HAS BEEN DISABLED FOR THE MOMENT assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(2);
@@ -200,7 +200,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 	private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected)
 			throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
 		InputStream zipInputStream = getAppLayerFactory().getModelLayerFactory().getContentManager()
-														 .getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
+				.getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
 
 		File zipTEmpFile1 = ioServices.newTemporaryFile(ZIP_TEMP_FILE_1);
 

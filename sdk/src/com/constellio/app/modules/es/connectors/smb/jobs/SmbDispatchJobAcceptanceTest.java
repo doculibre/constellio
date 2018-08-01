@@ -56,21 +56,21 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 		prepareSystem(withZeCollection().withConstellioESModule()
-										.withAllTestUsers());
+				.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorInstance = es.newConnectorSmbInstance()
-							  .setDomain(SmbTestParams.DOMAIN)
-							  .setUsername(SmbTestParams.USERNAME)
-							  .setPassword(SmbTestParams.PASSWORD)
-							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-							  .setCode(SmbTestParams.INSTANCE_CODE)
-							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-							  .setExclusions(asList(""))
-							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
+				.setDomain(SmbTestParams.DOMAIN)
+				.setUsername(SmbTestParams.USERNAME)
+				.setPassword(SmbTestParams.PASSWORD)
+				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+				.setCode(SmbTestParams.INSTANCE_CODE)
+				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+				.setExclusions(asList(""))
+				.setTitle(SmbTestParams.CONNECTOR_TITLE);
 		es.getConnectorManager()
-		  .createConnector(connectorInstance);
+				.createConnector(connectorInstance);
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
@@ -95,7 +95,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 		assertThat(argumentCaptor.getAllValues()).containsOnly(deleteJob);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-												 .isEmpty();
+				.isEmpty();
 	}
 
 	@Test
@@ -113,7 +113,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 		assertThat(argumentCaptor.getAllValues()).containsOnly(retrievalJob);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-												 .isEmpty();
+				.isEmpty();
 	}
 
 	@Test
@@ -138,10 +138,10 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 		assertThat(jobs).containsOnly(shareRetrievalJob, fileRetrievalJob, folderRetrievalJob);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-												 .isEmpty();
+				.isEmpty();
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-												 .isEmpty();
+				.isEmpty();
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 		assertThat(argumentCaptor.getAllValues()).containsOnly(shareRetrievalJob);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-												 .isEmpty();
+				.isEmpty();
 	}
 
 	@Test
@@ -187,10 +187,10 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 		assertThat(jobs).contains(shareRetrievalJob, fileRetrievalJob, folderRetrievalJob);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-												 .isEmpty();
+				.isEmpty();
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-												 .isEmpty();
+				.isEmpty();
 	}
 
 	@Test
@@ -209,7 +209,7 @@ public class SmbDispatchJobAcceptanceTest extends ConstellioTest {
 		assertThat(argumentCaptor.getAllValues()).containsOnly(retrievalJob);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-												 .isEmpty();
+				.isEmpty();
 	}
 
 	@After

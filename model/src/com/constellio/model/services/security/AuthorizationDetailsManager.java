@@ -115,7 +115,7 @@ public class AuthorizationDetailsManager
 		List<String> finishedAuthorizations = new ArrayList<>();
 		for (AuthorizationDetails xmlAuthorizationDetails : getAuthorizationsDetails(collection).values()) {
 			if (xmlAuthorizationDetails.getEndDate() != null && xmlAuthorizationDetails.getEndDate()
-																					   .isBefore(TimeProvider.getLocalDate())) {
+					.isBefore(TimeProvider.getLocalDate())) {
 				finishedAuthorizations.add(xmlAuthorizationDetails.getId());
 			}
 		}

@@ -26,8 +26,8 @@ public class RolesManagerWriterTest extends ConstellioTest {
 		validRole = new Role(zeCollection, "uniqueCode", "zeValidRole", asList("operation1", "operation2"));
 
 		Element validNewXml = new Element("roles").addContent(new Element("role").setAttribute("code", "uniqueCode")
-																				 .setAttribute("title", "zeValidRole").setAttribute("collection", zeCollection)
-																				 .addContent(new Element("permission").setText("read")).addContent(new Element("permission").setText("write")));
+				.setAttribute("title", "zeValidRole").setAttribute("collection", zeCollection)
+				.addContent(new Element("permission").setText("read")).addContent(new Element("permission").setText("write")));
 		validNewDocument = new Document(validNewXml);
 
 		document = new Document();

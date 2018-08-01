@@ -41,7 +41,7 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
-															  .where(Schemas.MARKED_FOR_REINDEXING).isTrue());
+						.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
 				query.setNumberOfRows(1000);
 				query.setName("BackgroundThread:RecordsReindexingBackgroundAction:getMarkedForReindexing()");
 				List<Record> records = searchServices.search(query);
@@ -49,8 +49,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				if (!records.isEmpty()) {
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
-																		   .setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true)
-																		   .setOverwriteModificationDateAndUser(false));
+							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true)
+							.setOverwriteModificationDateAndUser(false));
 
 					executeTransaction(transaction);
 

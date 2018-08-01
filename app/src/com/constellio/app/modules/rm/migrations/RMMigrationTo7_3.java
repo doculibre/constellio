@@ -35,18 +35,18 @@ public class RMMigrationTo7_3 implements MigrationScript {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		manager.saveSchema(manager.getSchema(collection, Category.DEFAULT_SCHEMA)
-								  .withNewFormAndDisplayMetadatas(Category.DEFAULT_SCHEMA + "_" + Category.DEACTIVATE));
+				.withNewFormAndDisplayMetadatas(Category.DEFAULT_SCHEMA + "_" + Category.DEACTIVATE));
 
 		manager.saveSchema(manager.getSchema(collection, RMTask.DEFAULT_SCHEMA)
-								  .withNewDisplayMetadataBefore(RMTask.DEFAULT_SCHEMA + "_" + RMTask.LINKED_CONTAINERS,
-										  RMTask.DEFAULT_SCHEMA + "_" + RMTask.LINKED_DOCUMENTS));
+				.withNewDisplayMetadataBefore(RMTask.DEFAULT_SCHEMA + "_" + RMTask.LINKED_CONTAINERS,
+						RMTask.DEFAULT_SCHEMA + "_" + RMTask.LINKED_DOCUMENTS));
 
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToForm(ContainerRecord.ADMINISTRATIVE_UNITS)
-				   .beforeMetadata(ADMINISTRATIVE_UNIT);
+				.beforeMetadata(ADMINISTRATIVE_UNIT);
 		transaction.in(ContainerRecord.SCHEMA_TYPE).addToDisplay(ContainerRecord.ADMINISTRATIVE_UNITS)
-				   .beforeMetadata(ADMINISTRATIVE_UNIT);
+				.beforeMetadata(ADMINISTRATIVE_UNIT);
 
 		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromForm(ADMINISTRATIVE_UNIT);
 		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromDisplay(ADMINISTRATIVE_UNIT);
@@ -72,15 +72,15 @@ public class RMMigrationTo7_3 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			//typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.COPY_STATUS_ENTERED).setDefaultValue(CopyType.PRINCIPAL);
 			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DEACTIVATE).setType(MetadataValueType.BOOLEAN)
-						.setDefaultValue(null);
+					.setDefaultValue(null);
 
 			MetadataSchemaBuilder schemaBuilder = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE);
 			boolean required = Boolean.TRUE == schemaBuilder.get(ADMINISTRATIVE_UNIT).getDefaultRequirement();
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ADMINISTRATIVE_UNIT)
-						.setTaxonomyRelationship(false).setDefaultRequirement(false).setEssentialInSummary(false)
-						.setEssential(false).setEnabled(false);
+					.setTaxonomyRelationship(false).setDefaultRequirement(false).setEssentialInSummary(false)
+					.setEssential(false).setEnabled(false);
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.ADMINISTRATIVE_UNITS)
-						.setTaxonomyRelationship(true).setDefaultRequirement(required).setEnabled(true).setEssential(true);
+					.setTaxonomyRelationship(true).setDefaultRequirement(required).setEnabled(true).setEssential(true);
 
 			//			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
 			//					.getMetadata(Folder.BORROW_USER);

@@ -39,7 +39,7 @@ public class RMMigrationTo7_0_5 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).create(Document.MIME_TYPE).setType(MetadataValueType.STRING)
-						.defineDataEntry().asCalculated(DocumentMimeTypeCalculator.class);
+					.defineDataEntry().asCalculated(DocumentMimeTypeCalculator.class);
 		}
 	}
 }

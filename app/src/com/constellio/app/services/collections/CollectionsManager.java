@@ -85,7 +85,7 @@ public class CollectionsManager implements StatefulService {
 
 		}
 		if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-							  .hasType(SolrUserCredential.SCHEMA_TYPE)) {
+				.hasType(SolrUserCredential.SCHEMA_TYPE)) {
 			initializeSystemCollection();
 		}
 

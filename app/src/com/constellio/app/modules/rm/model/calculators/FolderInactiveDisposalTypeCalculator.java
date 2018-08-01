@@ -15,7 +15,7 @@ import java.util.List;
 public class FolderInactiveDisposalTypeCalculator implements MetadataValueCalculator<DisposalType> {
 
 	LocalDependency<CopyRetentionRule> mainCopyRuleParam = LocalDependency.toAStructure(Folder.MAIN_COPY_RULE)
-																		  .whichIsRequired();
+			.whichIsRequired();
 
 	@Override
 	public DisposalType calculate(CalculatorParameters parameters) {

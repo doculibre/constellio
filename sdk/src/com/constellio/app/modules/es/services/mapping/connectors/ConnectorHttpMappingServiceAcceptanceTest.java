@@ -37,8 +37,8 @@ public class ConnectorHttpMappingServiceAcceptanceTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		httpConnectorInstance = connectorManager.createConnector(es.newConnectorHttpInstance()
-																   .setCode("http").setTitle("Http connector").setEnabled(false)
-																   .setSeeds("seeds").setIncludePatterns("username"));
+				.setCode("http").setTitle("Http connector").setEnabled(false)
+				.setSeeds("seeds").setIncludePatterns("username"));
 		httpConnectorInstance = es.wrapConnectorInstance(httpConnectorInstance.getWrappedRecord());
 	}
 

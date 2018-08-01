@@ -35,7 +35,7 @@ public class TaskValidator implements RecordValidator {
 			BetaWorkflowTask betaWorkflowTask = new BetaWorkflowTask(task);
 			if (betaWorkflowTask.getWorkflowInstance() != null && task.getStatusType().isFinishedOrClosed()) {
 				if (betaWorkflowTask.hasDecisions() && !betaWorkflowTask.getNextTasksDecisionsCodes()
-																		.contains(task.getDecision())) {
+						.contains(task.getDecision())) {
 					validationErrors.add(getClass(), TASK_DECISION_IS_REQUIRED);
 				}
 			}
@@ -44,7 +44,7 @@ public class TaskValidator implements RecordValidator {
 
 	static private boolean taskAssignationIsNull(Task task) {
 		return task.getAssignee() == null && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates()
-																								.isEmpty())
+				.isEmpty())
 			   && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates().isEmpty());
 	}
 

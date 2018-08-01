@@ -104,7 +104,7 @@ public class LDAPUserSyncManager implements StatefulService {
 								@Override
 								public Object transform(Object input) {
 									return DateTimeFormat.forPattern(LDAPUserSyncConfiguration.TIME_PATTERN)
-														 .parseLocalTime((String) input);
+											.parseLocalTime((String) input);
 								}
 							}
 					)

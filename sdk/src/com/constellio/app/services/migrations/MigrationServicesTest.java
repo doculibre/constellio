@@ -94,11 +94,11 @@ public class MigrationServicesTest extends ConstellioTest {
 
 		InOrder inOrder = Mockito.inOrder(migrationTo100, aModuleMigrationTo100, aModuleMigration101To102);
 		inOrder.verify(migrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigration101To102)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 	}
 
 	//@Test
@@ -113,17 +113,17 @@ public class MigrationServicesTest extends ConstellioTest {
 		InOrder inOrder = Mockito.inOrder(migrationTo100, aModuleMigrationTo100, aModuleMigration101To102,
 				migration102To103, migration103To110, aModuleMigration103To110);
 		inOrder.verify(migrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigration101To102)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(migration102To103)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(migration103To110)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigration103To110)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 	}
 
 	//@Test
@@ -138,13 +138,13 @@ public class MigrationServicesTest extends ConstellioTest {
 		InOrder inOrder = Mockito.inOrder(
 				migrationTo100, aModuleMigrationTo100, aModuleMigration101To102, migration102To103);
 		inOrder.verify(migrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigration101To102)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(migration102To103)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 	}
 
 	//@Test
@@ -158,11 +158,11 @@ public class MigrationServicesTest extends ConstellioTest {
 
 		InOrder inOrder = Mockito.inOrder(migrationTo100, aModuleMigrationTo100, aModuleMigration101To102);
 		inOrder.verify(migrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigration101To102)
-			   .migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 	}
 
 	@SuppressWarnings("unchecked")

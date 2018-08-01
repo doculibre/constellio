@@ -84,13 +84,13 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.searchEvent.schemaType()).returnAll());
 		if (startDate != null && endDate != null) {
 			query.setCondition(query.getCondition().andWhere(CREATED_ON)
-									.isValueInRange(startDate, endDate));
+					.isValueInRange(startDate, endDate));
 		} else if (startDate != null) {
 			query.setCondition(query.getCondition().andWhere(CREATED_ON)
-									.isGreaterOrEqualThan(startDate));
+					.isGreaterOrEqualThan(startDate));
 		} else if (endDate != null) {
 			query.setCondition(query.getCondition().andWhere(CREATED_ON)
-									.isLessOrEqualThan(endDate));
+					.isLessOrEqualThan(endDate));
 		}
 
 		if (StringUtils.isNotBlank(excludedRequest)) {

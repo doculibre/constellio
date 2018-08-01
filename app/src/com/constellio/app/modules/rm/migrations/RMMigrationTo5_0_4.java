@@ -97,7 +97,7 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 
 		if (schemas.getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE) == null) {
 			transaction.add(schemas.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-								   .setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
+					.setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
 		}
 
 		try {
@@ -190,15 +190,15 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 		private void activateVisibilityCalculator(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 			MetadataBuilder folderVisibility = schema.getMetadata(CommonMetadataBuilder.VISIBLE_IN_TREES)
-													 .defineDataEntry().asCalculated(FolderTreeVisibilityCalculator.class);
+					.defineDataEntry().asCalculated(FolderTreeVisibilityCalculator.class);
 
 			schema = typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema();
 			schema.getMetadata(CommonMetadataBuilder.VISIBLE_IN_TREES)
-				  .defineDataEntry().asCopied(schema.getMetadata(Document.FOLDER), folderVisibility);
+					.defineDataEntry().asCopied(schema.getMetadata(Document.FOLDER), folderVisibility);
 
 			schema = typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).getDefaultSchema();
 			schema.getMetadata(CommonMetadataBuilder.VISIBLE_IN_TREES)
-				  .defineDataEntry().asCalculated(ContainerRecordTreeVisibilityCalculator.class);
+					.defineDataEntry().asCalculated(ContainerRecordTreeVisibilityCalculator.class);
 		}
 	}
 }

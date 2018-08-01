@@ -97,7 +97,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		StringBuilder result = new StringBuilder();
 		List<String> urls = new ArrayList<>();
 		List<ConnectorDocument<?>> documents = esSchemasRecordsServices.getConnectorManager()
-																	   .getLastFetchedDocuments(connectorInstance.getId(), NUMBER_OF_DOCS);
+				.getLastFetchedDocuments(connectorInstance.getId(), NUMBER_OF_DOCS);
 		for (ConnectorDocument<?> document : documents) {
 			urls.add(document.getURL());
 		}
@@ -176,8 +176,8 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	public void deleteDocumentsButtonClicked() {
 		try {
 			esSchemasRecordsServices.getConnectorManager()
-									.totallyDeleteConnectorRecordsSkippingValidation(modelLayerFactory.getDataLayerFactory().newRecordDao(),
-											connectorInstance);
+					.totallyDeleteConnectorRecordsSkippingValidation(modelLayerFactory.getDataLayerFactory().newRecordDao(),
+							connectorInstance);
 		} catch (Throwable t) {
 			LOGGER.warn("Error while deleting connector records", t);
 		}

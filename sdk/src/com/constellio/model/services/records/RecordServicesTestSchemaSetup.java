@@ -17,16 +17,16 @@ public class RecordServicesTestSchemaSetup extends TestsSchemasSetup {
 	public RecordServicesTestSchemaSetup withAMetadataCopiedInAnotherSchema() {
 		MetadataBuilder copiedMeta = zeDefaultSchemaBuilder.create("copiedMeta").setType(MetadataValueType.STRING);
 		MetadataBuilder referenceToZeSchema = anOtherDefaultSchemaBuilder.create("referenceToZeSchema")
-																		 .defineReferencesTo(zeSchemaTypeBuilder);
+				.defineReferencesTo(zeSchemaTypeBuilder);
 		MetadataBuilder copiedDataInAnotherSchema = anOtherDefaultSchemaBuilder.create("metadataWithCopiedEntry")
-																			   .setType(MetadataValueType.STRING)
-																			   .defineDataEntry().asCopied(referenceToZeSchema, copiedMeta);
+				.setType(MetadataValueType.STRING)
+				.defineDataEntry().asCopied(referenceToZeSchema, copiedMeta);
 		anOtherDefaultSchemaBuilder.create("manualMeta").setType(MetadataValueType.STRING);
 		MetadataBuilder referenceToAnotherSchema = aThirdSchemaTypeBuilder.getDefaultSchema()
-																		  .create("referenceToAnotherSchema")
-																		  .defineReferencesTo(anOtherSchemaTypeBuilder);
+				.create("referenceToAnotherSchema")
+				.defineReferencesTo(anOtherSchemaTypeBuilder);
 		athirdDefaultSchemaBuilder.create("metadataWithCopiedEntry").setType(MetadataValueType.STRING)
-								  .defineDataEntry().asCopied(referenceToAnotherSchema, copiedDataInAnotherSchema);
+				.defineDataEntry().asCopied(referenceToAnotherSchema, copiedDataInAnotherSchema);
 		athirdDefaultSchemaBuilder.create("manualMeta").setType(MetadataValueType.STRING);
 		return this;
 	}

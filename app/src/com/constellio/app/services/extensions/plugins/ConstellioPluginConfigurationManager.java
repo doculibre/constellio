@@ -218,8 +218,8 @@ public class ConstellioPluginConfigurationManager {
 		}
 
 		return new ConstellioPluginInfo().setCode(code).setTitle(title).setPluginStatus(pluginStatus).setVersion(version)
-										 .setRequiredConstellioVersion(constellioVersion).setLastInstallDate(lastInstallDate)
-										 .setPluginActivationFailureCause(cause).setStackTrace(stackTrace);
+				.setRequiredConstellioVersion(constellioVersion).setLastInstallDate(lastInstallDate)
+				.setPluginActivationFailureCause(cause).setStackTrace(stackTrace);
 	}
 
 	private Element setAttributeValue(Element element, String attributeName, Object value) {

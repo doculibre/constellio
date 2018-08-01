@@ -355,7 +355,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
-																								.getCustomField(Task.PROGRESS_PERCENTAGE);
+				.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
 	}
 
@@ -613,7 +613,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
-																								.getCustomField(Task.PROGRESS_PERCENTAGE);
+				.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
 		return tasksSchemas.getBetaWorkflowTask(taskVO.getId());
 	}
@@ -633,6 +633,6 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public List<String> getUnavailableTaskTypes() {
 		return !tasksSchemas.isRequestTask(getTask()) ? searchServices().searchRecordIds(
 				LogicalSearchQueryOperators.from(tasksSchemas.taskTypeSchemaType()).where(Schemas.CODE)
-										   .isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
+						.isIn(asList(BorrowRequest.SCHEMA_NAME, ReturnRequest.SCHEMA_NAME, ExtensionRequest.SCHEMA_NAME, ReactivationRequest.SCHEMA_NAME))) : null;
 	}
 }

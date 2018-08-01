@@ -44,7 +44,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRobotsModule()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 	}
 
@@ -52,15 +52,15 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 	public void givenADependencyForAggregatedCalculatorIsModifiedThenRecordMarkedForReindexing()
 			throws Exception {
 		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-							.modify(zeCollection, new MetadataSchemaTypesAlteration() {
-								@Override
-								public void alter(MetadataSchemaTypesBuilder types) {
-									types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(AGGREGATED_METADATA)
-										 .setType(MetadataValueType.STRING).defineDataEntry()
-										 .asCalculatedAggregation(types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
-												 TestCalculatorThatConcatenatesTitles.class);
-								}
-							});
+				.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(AGGREGATED_METADATA)
+								.setType(MetadataValueType.STRING).defineDataEntry()
+								.asCalculatedAggregation(types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
+										TestCalculatorThatConcatenatesTitles.class);
+					}
+				});
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		ContainerRecord containerBac13 = records.getContainerBac13();
@@ -68,18 +68,18 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA)
-													 .isEqualTo(asList("Abeille - Crocodile - Dauphin - Dindon"));
+				.isEqualTo(asList("Abeille - Crocodile - Dauphin - Dindon"));
 
 		recordServices.update(records.getFolder_A42().setTitle("new Title"));
 		assertThat(fetchBac13FromSolr().get(Schemas.MARKED_FOR_REINDEXING)).isEqualTo(Boolean.TRUE);
 		waitForBatchProcess();
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA)
-													 .isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
+				.isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(Folder.SCHEMA_TYPE);
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA)
-													 .isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
+				.isEqualTo(asList("Abeille - Dauphin - Dindon - new Title"));
 		assertThat(nbQueries).isEqualTo(4);
 	}
 
@@ -87,15 +87,15 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 	public void givenAggregatedMinimumMetadataThenReturnsMinimum()
 			throws Exception {
 		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-							.modify(zeCollection, new MetadataSchemaTypesAlteration() {
-								@Override
-								public void alter(MetadataSchemaTypesBuilder types) {
-									types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(AGGREGATED_METADATA)
-										 .setType(MetadataValueType.NUMBER).defineDataEntry()
-										 .asMin(types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
-												 types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.LINEAR_SIZE));
-								}
-							});
+				.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(AGGREGATED_METADATA)
+								.setType(MetadataValueType.NUMBER).defineDataEntry()
+								.asMin(types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
+										types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.LINEAR_SIZE));
+					}
+				});
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		tx = new Transaction();
@@ -124,15 +124,15 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 	public void givenAggregatedMaximumMetadataThenReturnsMaximum()
 			throws Exception {
 		getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-							.modify(zeCollection, new MetadataSchemaTypesAlteration() {
-								@Override
-								public void alter(MetadataSchemaTypesBuilder types) {
-									types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(AGGREGATED_METADATA)
-										 .setType(MetadataValueType.NUMBER).defineDataEntry()
-										 .asMax(types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
-												 types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.LINEAR_SIZE));
-								}
-							});
+				.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).create(AGGREGATED_METADATA)
+								.setType(MetadataValueType.NUMBER).defineDataEntry()
+								.asMax(types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.CONTAINER),
+										types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.LINEAR_SIZE));
+					}
+				});
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		Transaction tx = new Transaction();
@@ -160,7 +160,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 	public Record fetchBac13FromSolr() {
 		return getModelLayerFactory().newSearchServices().search(
 				new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators.fromAllSchemasIn("zeCollection")
-																				 .where(Schemas.IDENTIFIER).isEqualTo("bac13"))).get(0);
+						.where(Schemas.IDENTIFIER).isEqualTo("bac13"))).get(0);
 	}
 
 	static public class TestCalculatorThatConcatenatesTitles implements AggregatedCalculator<String> {

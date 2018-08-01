@@ -24,7 +24,7 @@ public class DecommissioningBuilderViewAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));
@@ -130,8 +130,8 @@ public class DecommissioningBuilderViewAcceptTest extends ConstellioTest {
 		assertThat(create.isEnabled()).isTrue();
 
 		page.openCreateForm()
-			.setValue(DecommissioningButton.TITLE, "New list")
-			.setValue(DecommissioningButton.DESCRIPTION, "A description")
-			.clickSaveButtonAndWaitForPageReload();
+				.setValue(DecommissioningButton.TITLE, "New list")
+				.setValue(DecommissioningButton.DESCRIPTION, "A description")
+				.clickSaveButtonAndWaitForPageReload();
 	}
 }

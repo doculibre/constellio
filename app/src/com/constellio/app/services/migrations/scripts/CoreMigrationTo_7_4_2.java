@@ -36,7 +36,7 @@ public class CoreMigrationTo_7_4_2 implements MigrationScript {
 
 		private void migrateTemporaryRecord(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DEFAULT_PAGE_LENGTH).setType(MetadataValueType.ENUM)
-						.defineAsEnum(SearchPageLength.class).setDefaultValue(SearchPageLength.TEN);
+					.defineAsEnum(SearchPageLength.class).setDefaultValue(SearchPageLength.TEN);
 		}
 	}
 }

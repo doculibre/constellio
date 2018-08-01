@@ -42,7 +42,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
 						records).withFoldersAndContainersOfEveryStatus()
-								  .withEvents()
+						.withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -90,7 +90,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 				if (foldersWithReadAccess.contains(folderId)) {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
 														   + " should be able to view folder '" + folderId + "'")
-											  .isFalse();
+							.isFalse();
 
 					for (String folderButton : folderButtons) {
 						ButtonWebElement button = getButtonIfEnabled(folderButton);
@@ -105,7 +105,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 				} else {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
 														   + " should not be able to view folder '" + folderId + "'")
-											  .isTrue();
+							.isTrue();
 				}
 			}
 		}
@@ -143,7 +143,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 				if (documentsWithReadAccess.contains(documentId)) {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
 														   + " should be able to view document '" + documentId + "'")
-											  .isFalse();
+							.isFalse();
 
 					for (String folderButton : documentButtons) {
 						ButtonWebElement button = getButtonIfEnabled(folderButton);
@@ -159,7 +159,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 				} else {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
 														   + " should not be able to view document '" + documentId + "'")
-											  .isTrue();
+							.isTrue();
 				}
 			}
 		}

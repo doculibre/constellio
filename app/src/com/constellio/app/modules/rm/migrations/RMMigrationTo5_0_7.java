@@ -75,7 +75,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			throws Exception {
 
 		MetadataSchema taskSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-												   .getSchemaType(Task.SCHEMA_TYPE).getDefaultSchema();
+				.getSchemaType(Task.SCHEMA_TYPE).getDefaultSchema();
 
 		if (!taskSchema.hasMetadataWithCode(RMTask.LINKED_DOCUMENTS)) {
 			new SchemaAlterationFor5_0_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -107,13 +107,13 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.administrativeUnit")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.category")));
 		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.archivisticStatus")));
 		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
-						  .setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.copyStatus")));
 		recordServices.execute(transaction);
 	}
 
@@ -149,7 +149,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
-						   .addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
+					.addCollectionTemplateIfInexistent(templateId, collection, remindReturnBorrowedFolderTemplate);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} catch (ConfigManagerException.OptimisticLockingConfiguration optimisticLockingConfiguration) {
@@ -166,8 +166,8 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
 		transactionBuilder.in(Folder.SCHEMA_TYPE)
-						  .addToDisplay(Folder.BORROWING_TYPE)
-						  .beforeMetadata(Folder.LINEAR_SIZE);
+				.addToDisplay(Folder.BORROWING_TYPE)
+				.beforeMetadata(Folder.LINEAR_SIZE);
 
 		transactionBuilder
 				.in(Task.SCHEMA_TYPE)
@@ -180,17 +180,17 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 				.beforeTheHugeCommentMetadata();
 
 		manager.saveMetadata(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.STORAGE_SPACE)
-									.withInputType(MetadataInputType.LOOKUP));
+				.withInputType(MetadataInputType.LOOKUP));
 
 		//String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		manager.saveMetadata(manager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_FOLDERS)
-									.withMetadataGroup("init.userTask.details"));
+				.withMetadataGroup("init.userTask.details"));
 		manager.saveMetadata(manager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_DOCUMENTS)
-									.withMetadataGroup("init.userTask.details"));
+				.withMetadataGroup("init.userTask.details"));
 
 		transactionBuilder.in(RetentionRule.SCHEMA_TYPE)
-						  .addToSearchResult(RetentionRule.CODE)
-						  .beforeMetadata(RetentionRule.TITLE);
+				.addToSearchResult(RetentionRule.CODE)
+				.beforeMetadata(RetentionRule.TITLE);
 
 		manager.execute(transactionBuilder.build());
 	}
@@ -276,20 +276,20 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			}
 
 			MetadataBuilder administrativeUnitAncestors = adminUnitSchema.createUndeletable(AdministrativeUnit.ANCESTORS)
-																		 .setType(MetadataValueType.REFERENCE).setMultivalue(true)
-																		 .defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE))
-																		 .defineDataEntry().asCalculated(AdministrativeUnitAncestorsCalculator.class);
+					.setType(MetadataValueType.REFERENCE).setMultivalue(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE))
+					.defineDataEntry().asCalculated(AdministrativeUnitAncestorsCalculator.class);
 
 			folderSchema.createUndeletable(Folder.ADMINISTRATIVE_UNIT_ANCESTORS)
-						.setType(MetadataValueType.REFERENCE).setMultivalue(true).setEssential(true)
-						.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE))
-						.defineDataEntry().asCopied(folderAdministrativeUnit, administrativeUnitAncestors);
+					.setType(MetadataValueType.REFERENCE).setMultivalue(true).setEssential(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE))
+					.defineDataEntry().asCopied(folderAdministrativeUnit, administrativeUnitAncestors);
 			folderSchema.get(Folder.COPY_STATUS).defineDataEntry().asCalculated(FolderCopyStatusCalculator2.class);
 
 			folderSchema.createUndeletable(Folder.ALERT_USERS_WHEN_AVAILABLE)
-						.setType(MetadataValueType.REFERENCE)
-						.setMultivalue(true)
-						.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+					.setType(MetadataValueType.REFERENCE)
+					.setMultivalue(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 
 			folderSchema.get(Folder.BORROW_USER_ENTERED).setSystemReserved(true);
 
@@ -299,21 +299,21 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			MetadataSchemaBuilder decommissioningSchema = typesBuilder.getSchema(DecommissioningList.DEFAULT_SCHEMA);
 
 			decommissioningSchema.createUndeletable(DecommissioningList.VALIDATIONS).setType(MetadataValueType.STRUCTURE)
-								 .defineStructureFactory(DecomListValidationFactory.class).setMultivalue(true);
+					.defineStructureFactory(DecomListValidationFactory.class).setMultivalue(true);
 			decommissioningSchema.createUndeletable(DecommissioningList.PENDING_VALIDATIONS)
-								 .defineReferencesTo(userSchema).setMultivalue(true)
-								 .defineDataEntry().asCalculated(PendingValidationCalculator.class);
+					.defineReferencesTo(userSchema).setMultivalue(true)
+					.defineDataEntry().asCalculated(PendingValidationCalculator.class);
 			decommissioningSchema.get(DecommissioningList.STATUS)
-								 .defineDataEntry().asCalculated(DecomListStatusCalculator2.class);
+					.defineDataEntry().asCalculated(DecomListStatusCalculator2.class);
 			decommissioningSchema.get(DecommissioningList.VALIDATION_DATE).setEssential(false).setEnabled(false);
 			decommissioningSchema.get(DecommissioningList.VALIDATION_USER).setEssential(false).setEnabled(false);
 
 			//Document
 			MetadataSchemaBuilder documentSchema = typesBuilder.getSchema(Document.DEFAULT_SCHEMA);
 			documentSchema.createUndeletable(Document.ALERT_USERS_WHEN_AVAILABLE)
-						  .setType(MetadataValueType.REFERENCE)
-						  .setMultivalue(true)
-						  .defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+					.setType(MetadataValueType.REFERENCE)
+					.setMultivalue(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 
 			//Task
 			MetadataSchemaBuilder taskSchema = typesBuilder.getSchema(Task.DEFAULT_SCHEMA);
@@ -423,7 +423,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 				managersInFilingSpace.removeAll(managersAndRGDs);
 
 				UniqueIdGenerator uniqueIdGenerator = rm.getModelLayerFactory().getDataLayerFactory()
-														.getSecondaryUniqueIdGenerator();
+						.getSecondaryUniqueIdGenerator();
 				List<AdministrativeUnit> newUnits = rm.getAdministrativeUnits(getNewUnits(filingSpace.getId()));
 				for (AdministrativeUnit newUnit : newUnits) {
 					addAuthorizationOn(newUnit, usersWithReadWrite, asList(Role.READ, Role.WRITE), uniqueIdGenerator);

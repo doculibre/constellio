@@ -41,9 +41,9 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(setup.andCustomSchema()
-							.withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
-							.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
-							.withADateMetadata(whichIsEnabled));
+						.withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
+						.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
+						.withADateMetadata(whichIsEnabled));
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());

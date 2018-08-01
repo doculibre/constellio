@@ -120,8 +120,8 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 			throws Exception {
 		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject(zeCollectionRecords.folder2_2.getId());
 		validateThat(obtainedChildren).hasChildrenIds("folder2_2_doc1", "folder2_2_doc2")
-									  .withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc2",
-											  "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc1");
+				.withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc2",
+						"/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder2/folder2_2/folder2_2_doc1");
 	}
 
 	@Test
@@ -132,12 +132,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo1_fond1.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo1_fond1_1", "zetaxo1_category2")
-									  .withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2");
+				.withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2");
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo1_category2.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo1_category2_1", "folder4")
-									  .withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4",
-											  "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1");
+				.withPaths("/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4",
+						"/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1");
 
 	}
 
@@ -149,12 +149,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo2_unit1.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo2_unit1_1", "zetaxo2_station2")
-									  .withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_unit1_1", "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2");
+				.withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_unit1_1", "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2");
 
 		obtainedChildren = getChildrenOfObject(zeCollectionRecords.taxo2_station2.getId());
 		validateThat(obtainedChildren).hasChildrenIds("zetaxo2_station2_1", "folder1")
-									  .withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1",
-											  "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
+				.withPaths("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1",
+						"/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 			throws Exception {
 		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject("@root@");
 		validateThat(obtainedChildren).hasChildrenIds("taxo_taxo1", "taxo_taxo2")
-									  .withPaths("/taxo_taxo1", "/taxo_taxo2");
+				.withPaths("/taxo_taxo1", "/taxo_taxo2");
 	}
 
 	@Test
@@ -231,13 +231,13 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
-									  .build();
+				.build();
 	}
 
 	private Session givenBobSessionOnZeCollection()
 			throws RecordServicesException {
 		return newCmisSessionBuilder().authenticatedBy(bobKey, bobToken).onCollection(zeCollection)
-									  .build();
+				.build();
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,

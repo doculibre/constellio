@@ -146,7 +146,7 @@ public class BatchProcessListWriter {
 	private Element getBatchProcessElementWithId(String id) {
 		Filter<Element> filters = Filters.element(BATCH_PROCESS);
 		IteratorIterable<Element> batchProcesses = document.getRootElement().getChild(CURRENT_BATCH_PROCESS)
-														   .getDescendants(filters);
+				.getDescendants(filters);
 		List<Element> copyBatchProcesses = IteratorUtils.toList(batchProcesses);
 		for (Element nextBatchProcess : copyBatchProcesses) {
 			if (nextBatchProcess.getAttributeValue(ID).equals(id)) {
@@ -240,7 +240,7 @@ public class BatchProcessListWriter {
 
 	public void markBatchProcessAsPending(String batchProcessId) {
 		List<Element> standbyBatchProcesses = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES)
-													  .getChildren(BATCH_PROCESS);
+				.getChildren(BATCH_PROCESS);
 		for (Element standbyBatchProcess : standbyBatchProcesses) {
 			if (standbyBatchProcess.getAttributeValue(ID).equals(batchProcessId)) {
 				standbyBatchProcess.detach();
@@ -252,7 +252,7 @@ public class BatchProcessListWriter {
 
 	public void cancelStandByBatchProcess(String batchProcessId) {
 		List<Element> standbyBatchProcesses = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES)
-													  .getChildren(BATCH_PROCESS);
+				.getChildren(BATCH_PROCESS);
 		for (Element standbyBatchProcess : standbyBatchProcesses) {
 			if (standbyBatchProcess.getAttributeValue(ID).equals(batchProcessId)) {
 				standbyBatchProcess.detach();
@@ -263,7 +263,7 @@ public class BatchProcessListWriter {
 
 	public void cancelPendingBatchProcess(String batchProcessId) {
 		List<Element> standbyBatchProcesses = document.getRootElement().getChild(PENDING_BATCH_PROCESSES)
-													  .getChildren(BATCH_PROCESS);
+				.getChildren(BATCH_PROCESS);
 		for (Element standbyBatchProcess : standbyBatchProcesses) {
 			if (standbyBatchProcess.getAttributeValue(ID).equals(batchProcessId)) {
 				standbyBatchProcess.detach();

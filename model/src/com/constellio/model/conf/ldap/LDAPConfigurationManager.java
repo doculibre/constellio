@@ -158,7 +158,7 @@ public class LDAPConfigurationManager implements StatefulService {
 				}
 
 				if (ldapUserSyncConfiguration.getScheduleTime() == null || ldapUserSyncConfiguration.getScheduleTime()
-																									.isEmpty()) {
+						.isEmpty()) {
 					properties.remove("ldap.syncConfiguration.schedule.time.sharpSV");
 				} else {
 					properties.put("ldap.syncConfiguration.schedule.time.sharpSV",
@@ -281,7 +281,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
 			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
 			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId)
-																	  .setClientId(clientId);
+					.setClientId(clientId);
 			return new LDAPServerConfiguration(serverConf, active);
 		} else {
 			List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV",

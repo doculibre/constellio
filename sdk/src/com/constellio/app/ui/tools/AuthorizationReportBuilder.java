@@ -29,7 +29,7 @@ public class AuthorizationReportBuilder {
 
 		StringBuilder stringBuilder = new StringBuilder();
 		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
-												.getCollectionsExcludingSystem()) {
+				.getCollectionsExcludingSystem()) {
 
 			String report = build(collection, appLayerFactory);
 

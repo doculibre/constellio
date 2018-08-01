@@ -98,10 +98,10 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 		assertThat(document.getRootElement().getChildren().get(0).getChild(DOMAIN).getText()).isEqualTo(
 				chuckUserCredential.getDomain());
 		assertThat(document.getRootElement().getChildren().get(0).getChild(TOKENS).getChildren().get(0).getChildren().get(0)
-						   .getText()).isEqualTo(
+				.getText()).isEqualTo(
 				"$token1");
 		assertThat(document.getRootElement().getChildren().get(0).getChild(TOKENS).getChildren().get(0).getChildren().get(1)
-						   .getText()).isEqualTo(
+				.getText()).isEqualTo(
 				endDate.toString());
 		assertThat(
 				document.getRootElement().getChildren().get(0).getChild(MS_EXCH_DELEGATE_LIST_BL).getChildren().get(0).getText())

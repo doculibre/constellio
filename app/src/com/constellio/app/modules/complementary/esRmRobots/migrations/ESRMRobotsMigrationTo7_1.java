@@ -51,17 +51,17 @@ public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
 
 		private void modifyClassifyConnectorFolderInTaxonomyActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+					.getSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER).setDefaultRequirement(false);
 		}
 
 		private void modifyClassifyConnectorFolderDirectlyInThePlanActionParametersSchema() {
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-													   .getSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
+					.getSchema(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE);
 
 			schema.get(ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_OPEN_DATE)
-				  .setDefaultRequirement(false);
+					.setDefaultRequirement(false);
 		}
 	}
 
@@ -76,25 +76,25 @@ public class ESRMRobotsMigrationTo7_1 implements MigrationScript {
 
 		String parametersSchema = ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA;
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_MAPPING)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_MAPPING)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 
 		parametersSchema = ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA;
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_MAPPING)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_MAPPING)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 
 		parametersSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DOCUMENT_MAPPING)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, FOLDER_MAPPING)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 
 		//Also hide this option
 		transaction.add(schemasDisplayManager.getMetadata(collection, parametersSchema, DEFAULT_PARENT_FOLDER)
-											 .withMetadataGroup(mappingsTab));
+				.withMetadataGroup(mappingsTab));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

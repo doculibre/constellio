@@ -41,10 +41,10 @@ public class FoldersLocator {
 
 			if (classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getName().equals("bin")) {
 				finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-									   .getParentFile().getAbsoluteFile();
+						.getParentFile().getAbsoluteFile();
 			} else {
 				finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-									   .getParentFile().getParentFile().getParentFile().getAbsoluteFile();
+						.getParentFile().getParentFile().getParentFile().getAbsoluteFile();
 			}
 
 		}

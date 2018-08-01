@@ -44,7 +44,7 @@ public class SearchResultTableComponent extends CustomComponent {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				if (presenter.getSchemaFilter() != null && component.getSearchCriteria() != null && !component.getSearchCriteria()
-																											  .isEmpty()) {
+						.isEmpty()) {
 					buildResultTable();
 				}
 			}

@@ -45,9 +45,9 @@ public class ConnectorHttpContextAcceptTest extends ConstellioTest {
 				"http://site1.com/c"
 		);
 		assertThat(context2.documentUrlsClassifiedByDigests).hasSize(3)
-															.containsEntry("digest1", "id1")
-															.containsEntry("digest3", "id3")
-															.containsEntry("digest2", "id2");
+				.containsEntry("digest1", "id1")
+				.containsEntry("digest3", "id3")
+				.containsEntry("digest2", "id2");
 
 		context.markAsNoMoreFetched("http://site1.com/b");
 		context.markAsFetched("http://site1.com/d");
@@ -64,8 +64,8 @@ public class ConnectorHttpContextAcceptTest extends ConstellioTest {
 				"http://site1.com/c"
 		);
 		assertThat(context3.documentUrlsClassifiedByDigests).hasSize(3)
-															.containsEntry("digest1", "id1")
-															.containsEntry("digest3", "id3")
-															.containsEntry("digest4", "id4");
+				.containsEntry("digest1", "id1")
+				.containsEntry("digest3", "id3")
+				.containsEntry("digest4", "id4");
 	}
 }

@@ -525,7 +525,7 @@ public class ConstellioSIP {
 			errors.add(IOException.class, e.getMessage());
 		} finally {
 			IOServices ioServices = sipObjectsProvider.getAppLayerCollection().getModelLayerFactory().getIOServicesFactory()
-													  .newIOServices();
+					.newIOServices();
 			ioServices.deleteQuietly(file);
 		}
 

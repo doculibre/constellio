@@ -146,7 +146,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	private boolean isContainerReactivable(ContainerRecord containerRecord, User currentUser) {
 		List<Folder> folders = rmSchemas.searchFolders(
 				LogicalSearchQueryOperators.from(rmSchemas.folder.schemaType()).where(rmSchemas.folder.container())
-										   .isEqualTo(containerRecord.getId()));
+						.isEqualTo(containerRecord.getId()));
 		if (folders != null) {
 			for (Folder folder : folders) {
 				if (isFolderReactivable(folder, currentUser)) {
@@ -167,7 +167,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		}
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
-											.on(folder)
+				.on(folder)
 			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && !extensions.isModifyBlocked(folder.getWrappedRecord(), currentUser);
 	}
 
@@ -195,10 +195,10 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	private boolean isPrincipalRecordReturnable(Folder folder, ContainerRecord container, User currentUser) {
 		if (folder != null) {
 			return folder != null && Boolean.TRUE.equals(folder.getBorrowed()) && currentUser.getId()
-																							 .equals(folder.getBorrowUserEntered());
+					.equals(folder.getBorrowUserEntered());
 		} else {
 			return container != null && Boolean.TRUE.equals(container.getBorrowed()) && currentUser.getId()
-																								   .equals(container.getBorrower());
+					.equals(container.getBorrower());
 		}
 	}
 
@@ -588,14 +588,14 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 	private List<String> getAssigneesForFolder(String recordId) {
 		return modelLayerFactory.newAuthorizationsServices()
-								.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
-										modelLayerFactory.newRecordServices().getDocumentById(recordId));
+				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_FOLDER,
+						modelLayerFactory.newRecordServices().getDocumentById(recordId));
 	}
 
 	private List<String> getAssigneesForContainer(String recordId) {
 		return modelLayerFactory.newAuthorizationsServices()
-								.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
-										modelLayerFactory.newRecordServices().getDocumentById(recordId));
+				.getUserIdsWithPermissionOnRecord(RMPermissionsTo.MANAGE_REQUEST_ON_CONTAINER,
+						modelLayerFactory.newRecordServices().getDocumentById(recordId));
 	}
 
 	static public class Request {
@@ -648,10 +648,10 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 		if (folder != null) {
 			logicalSearchCondition = from(taskSchemaType).where(Schemas.SCHEMA).isEqualTo(fullSchemaName)
-														 .andWhere(metadataLinkedFolder).isEqualTo(folder).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY).andWhere(metadataApplicant).isEqualTo(currentUser.getId());
+					.andWhere(metadataLinkedFolder).isEqualTo(folder).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY).andWhere(metadataApplicant).isEqualTo(currentUser.getId());
 		} else {
 			logicalSearchCondition = from(taskSchemaType).where(Schemas.SCHEMA).isEqualTo(fullSchemaName)
-														 .andWhere(metadataLinkedContainer).isEqualTo(containerRecord).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY).andWhere(metadataApplicant).isEqualTo(currentUser.getId());
+					.andWhere(metadataLinkedContainer).isEqualTo(containerRecord).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY).andWhere(metadataApplicant).isEqualTo(currentUser.getId());
 		}
 
 		return searchServices.getResultsCount(logicalSearchCondition);

@@ -38,7 +38,7 @@ public final class ContentPermissions {
 		String wantedPermissionCode = wantedContentPermission.getCode();
 		for (ContentPermission contentPermission : contentPermissions) {
 			if (contentPermission.getCode().equals(wantedPermissionCode) || contentPermission.getDependencies()
-																							 .contains(wantedPermissionCode)) {
+					.contains(wantedPermissionCode)) {
 				return true;
 			}
 		}

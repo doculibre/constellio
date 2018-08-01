@@ -26,7 +26,7 @@ public class RobotsTxtFactory {
 			try {
 				RobotsTxt robotsTxt = this.robotsTxt.get(baseUrl);
 				if (robotsTxt == null || (robotsTxt.getFetchTime() != null && robotsTxt.getFetchTime().plusHours(HOURS)
-																					   .isBeforeNow())) {
+						.isBeforeNow())) {
 					URL base = new URL(baseUrl);
 
 					try (InputStream robotsTxtStream = new URL(base, ROBOT_TXT_FILE).openStream()) {

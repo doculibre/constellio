@@ -437,50 +437,50 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected StreamFactory<InputStream> getTestResourceInputStreamFactory(final String partialName) {
 		return getCurrentTestSession().getStreamsTestFeatures()
-									  .ensureAllCreatedCloseableAreClosed(new StreamFactory<InputStream>() {
+				.ensureAllCreatedCloseableAreClosed(new StreamFactory<InputStream>() {
 
-										  @Override
-										  public InputStream create(String name)
-												  throws IOException {
-											  return newFileInputStream(getTestResourceFile(partialName));
-										  }
-									  });
+					@Override
+					public InputStream create(String name)
+							throws IOException {
+						return newFileInputStream(getTestResourceFile(partialName));
+					}
+				});
 	}
 
 	protected StreamFactory<InputStream> getTestResourceInputStreamFactory(final File file) {
 		return getCurrentTestSession().getStreamsTestFeatures()
-									  .ensureAllCreatedCloseableAreClosed(new StreamFactory<InputStream>() {
+				.ensureAllCreatedCloseableAreClosed(new StreamFactory<InputStream>() {
 
-										  @Override
-										  public InputStream create(String name)
-												  throws IOException {
-											  return newFileInputStream(file);
-										  }
-									  });
+					@Override
+					public InputStream create(String name)
+							throws IOException {
+						return newFileInputStream(file);
+					}
+				});
 	}
 
 	protected StreamFactory<OutputStream> getTestResourceOutputStreamFactory(final File file) {
 		return getCurrentTestSession().getStreamsTestFeatures()
-									  .ensureAllCreatedCloseableAreClosed(new StreamFactory<OutputStream>() {
+				.ensureAllCreatedCloseableAreClosed(new StreamFactory<OutputStream>() {
 
-										  @Override
-										  public OutputStream create(String name)
-												  throws IOException {
-											  return new FileOutputStream(file);
-										  }
-									  });
+					@Override
+					public OutputStream create(String name)
+							throws IOException {
+						return new FileOutputStream(file);
+					}
+				});
 	}
 
 	protected StreamFactory<InputStream> getTestResourceInputStreamFactory(final byte[] bytes) {
 		return getCurrentTestSession().getStreamsTestFeatures()
-									  .ensureAllCreatedCloseableAreClosed(new StreamFactory<InputStream>() {
+				.ensureAllCreatedCloseableAreClosed(new StreamFactory<InputStream>() {
 
-										  @Override
-										  public InputStream create(String name)
-												  throws IOException {
-											  return new ByteArrayInputStream(bytes);
-										  }
-									  });
+					@Override
+					public InputStream create(String name)
+							throws IOException {
+						return new ByteArrayInputStream(bytes);
+					}
+				});
 	}
 
 	protected File getUnzippedResourceFile(Class clazz, String partialName) {
@@ -695,7 +695,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ServerThrowableContext.LAST_THROWABLE.set(null);
 
 		return getCurrentTestSession().getSeleniumTestFeatures()
-									  .newWebDriver(skipTestRule.isInDevelopmentTest() || skipTestRule.isMainTest(), useSSL);
+				.newWebDriver(skipTestRule.isInDevelopmentTest() || skipTestRule.isMainTest(), useSSL);
 	}
 
 	private void ensureUITest() {
@@ -740,7 +740,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected File createRandomTextFilesInTempFolder(int numberOfFiles, int charactersPerFile) {
 		return getCurrentTestSession().getFileSystemTestFeatures()
-									  .createRandomTextFilesInTempFolder(numberOfFiles, charactersPerFile);
+				.createRandomTextFilesInTempFolder(numberOfFiles, charactersPerFile);
 	}
 
 	protected void assertInputStreamEquals(InputStream i1, InputStream i2) {
@@ -938,7 +938,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Reader getTestResourceReader(String resourceName)
 			throws FileNotFoundException {
 		return getModelLayerFactory().getIOServicesFactory().newIOServices()
-									 .newFileReader(getTestResourceFile(resourceName), SDK_STREAM);
+				.newFileReader(getTestResourceFile(resourceName), SDK_STREAM);
 	}
 
 	protected Reader getTestResourceReader(File file)

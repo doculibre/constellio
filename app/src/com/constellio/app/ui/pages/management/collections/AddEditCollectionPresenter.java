@@ -208,7 +208,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		String organizationNumber = isRMCollection ? entity.getOrganizationNumber() : null;
 		try {
 			recordServices().update(coreSchemas(collectionRecord.getCollection()).wrapCollection(collectionRecord)
-																				 .setConservationCalendarNumber(conservationCalendarNumber).setOrganizationNumber(organizationNumber));
+					.setConservationCalendarNumber(conservationCalendarNumber).setOrganizationNumber(organizationNumber));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}

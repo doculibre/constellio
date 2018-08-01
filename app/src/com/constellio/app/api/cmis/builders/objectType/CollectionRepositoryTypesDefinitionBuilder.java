@@ -80,7 +80,7 @@ public class CollectionRepositoryTypesDefinitionBuilder {
 
 			boolean supported = schemaType.getCode().equals(Collection.SCHEMA_TYPE)
 								|| appLayerFactory.getExtensions().forCollection(schemaType.getCollection())
-												  .isSchemaTypeSupported(new IsSchemaTypeSupportedParams(schemaType), taxonomy != null);
+										.isSchemaTypeSupported(new IsSchemaTypeSupportedParams(schemaType), taxonomy != null);
 			if (supported) {
 				for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
 

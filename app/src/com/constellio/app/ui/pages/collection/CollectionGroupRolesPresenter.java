@@ -115,8 +115,8 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 		} else {
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 			AuthorizationAddRequest authorization = authorizationInCollection(collection).forUsers(recordId)
-																						 .on(roleAuthVO.getTarget())
-																						 .giving(roleAuthVO.getRoles().toArray(new String[roleAuthVO.getRoles().size()]));
+					.on(roleAuthVO.getTarget())
+					.giving(roleAuthVO.getRoles().toArray(new String[roleAuthVO.getRoles().size()]));
 			authorizationsServices.add(authorization, getCurrentUser());
 		}
 		view.refreshTable();
@@ -130,7 +130,7 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 		} else {
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 			AuthorizationDetails authorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId())
-																			  .getDetail();
+					.getDetail();
 			authorizationsServices.execute(authorizationDeleteRequest(authorizationDetails).setExecutedBy(getCurrentUser()));
 		}
 		view.refreshTable();

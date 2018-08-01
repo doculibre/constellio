@@ -64,7 +64,7 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		userServices
 				.addUpdateUserCredential(users.chuckNorris().withServiceKey(chuckNorrisServiceKey).withSystemAdminPermission()
-											  .withCollections(asList(zeCollection)));
+						.withCollections(asList(zeCollection)));
 		chuckNorrisToken = userServices.generateToken(users.chuckNorris().getUsername());
 
 		userServices.addUserToCollection(users.admin(), zeCollection);

@@ -336,7 +336,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
 		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
-												  .containsOnly(tuple(false, RW, "edouard"));
+				.containsOnly(tuple(false, RW, "edouard"));
 
 		//Add two ACE
 
@@ -372,7 +372,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
-												  .containsOnly(tuple(false, RW, "edouard"));
+				.containsOnly(tuple(false, RW, "edouard"));
 	}
 
 	@Test
@@ -413,7 +413,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
 		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
-												  .containsOnly(tuple(false, RW, "edouard"));
+				.containsOnly(tuple(false, RW, "edouard"));
 
 		//Add two ACE
 		cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RWD)), REPOSITORYDETERMINED);
@@ -531,7 +531,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 	private void givenFolderInheritingTaxonomyAuthorizations() {
 		AuthorizationAddRequest authorization = authorizationInCollection(zeCollection).forUsers(users.edouardIn(zeCollection))
-																					   .on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
+				.on(zeCollectionRecords.taxo2_station2_1).givingReadWriteAccess();
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, users.adminIn(zeCollection));
 		try {
 			waitForBatchProcess();

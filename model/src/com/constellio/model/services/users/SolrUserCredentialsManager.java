@@ -152,7 +152,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	@Override
 	public UserCredential getUserCredential(String username) {
 		Record record = modelLayerFactory.newRecordServices()
-										 .getRecordByMetadata(schemas.credentialUsername(), cleanUsername(username));
+				.getRecordByMetadata(schemas.credentialUsername(), cleanUsername(username));
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 

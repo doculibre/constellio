@@ -148,14 +148,14 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666");
 
 		CopyRetentionRule principal = copyBuilder.newPrincipal(asList("PA"))
-												 .setActiveRetentionPeriod(RetentionPeriod.variable(period42))
-												 .setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
-												 .setInactiveDisposalType(DisposalType.DEPOSIT);
+				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
+				.setInactiveDisposalType(DisposalType.DEPOSIT);
 
 		CopyRetentionRule secondary = copyBuilder.newSecondary(asList("PA"))
-												 .setActiveRetentionPeriod(RetentionPeriod.fixed(42))
-												 .setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
-												 .setInactiveDisposalType(DisposalType.DEPOSIT);
+				.setActiveRetentionPeriod(RetentionPeriod.fixed(42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
+				.setInactiveDisposalType(DisposalType.DEPOSIT);
 
 		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
 		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
@@ -494,7 +494,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		Transaction tx = new Transaction();
 
 		final RetentionRule retentionRule = tx.add(rm.newRetentionRule().setApproved(true)
-													 .setResponsibleAdministrativeUnits(true).setCode("ze rule").setTitle("Ze rule"));
+				.setResponsibleAdministrativeUnits(true).setCode("ze rule").setTitle("Ze rule"));
 		CopyRetentionRule principal1 = copyBuilder.newPrincipal(asList(rm.PA()), "1-1-C");
 		CopyRetentionRule principal2 = copyBuilder.newPrincipal(asList(rm.PA()), "1-2-D");
 		CopyRetentionRule principal3 = copyBuilder.newPrincipal(asList(rm.PA()), "1-2-D");
@@ -502,13 +502,13 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		retentionRule.setCopyRetentionRules(principal1, principal2, principal3, secondary);
 
 		final Category category = tx.add(rm.newCategory().setCode("zeCategory").setTitle("Ze category")
-										   .setRetentionRules(asList(retentionRule)));
+				.setRetentionRules(asList(retentionRule)));
 
 		Factory<Folder> folderFactory = new Factory<Folder>() {
 			@Override
 			public Folder get() {
 				return rm.newFolder().setTitle("Folder 1").setCategoryEntered(category).setRetentionRuleEntered(retentionRule)
-						 .setAdministrativeUnitEntered(anAdministrativeUnitId).setOpenDate(now());
+						.setAdministrativeUnitEntered(anAdministrativeUnitId).setOpenDate(now());
 			}
 		};
 		recordServices.execute(tx);
@@ -569,7 +569,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		String type3 = tx.add(rm.newDocumentType().setCode("code3").setTitle("title3")).getId();
 
 		final RetentionRule retentionRule = tx.add(rm.newRetentionRule().setApproved(true).setScope(DOCUMENTS)
-													 .setResponsibleAdministrativeUnits(true).setCode("ze rule").setTitle("Ze rule"));
+				.setResponsibleAdministrativeUnits(true).setCode("ze rule").setTitle("Ze rule"));
 		CopyRetentionRule principal1 = copyBuilder.newPrincipal(asList(rm.PA()), "1-1-D").setTypeId(type1);
 		CopyRetentionRule principal2 = copyBuilder.newPrincipal(asList(rm.PA()), "1-2-D").setTypeId(type2);
 		CopyRetentionRule principal3 = copyBuilder.newPrincipal(asList(rm.PA()), "1-3-D").setTypeId(type3);
@@ -580,18 +580,18 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		retentionRule.setSecondaryDefaultDocumentCopyRetentionRule(defaultSecondary);
 
 		final Category category = tx.add(rm.newCategory().setCode("zeCategory").setTitle("Ze category")
-										   .setRetentionRules(asList(retentionRule)));
+				.setRetentionRules(asList(retentionRule)));
 
 		recordServices.execute(tx);
 
 		tx = new Transaction();
 		Folder principalFolder = tx.add(rm.newFolder().setTitle("Folder 1").setCategoryEntered(category)
-										  .setRetentionRuleEntered(retentionRule)
-										  .setAdministrativeUnitEntered(anAdministrativeUnitId).setOpenDate(now()).setCopyStatusEntered(PRINCIPAL));
+				.setRetentionRuleEntered(retentionRule)
+				.setAdministrativeUnitEntered(anAdministrativeUnitId).setOpenDate(now()).setCopyStatusEntered(PRINCIPAL));
 
 		Folder secondaryFolder = tx.add(rm.newFolder().setTitle("Folder 1").setCategoryEntered(category)
-										  .setRetentionRuleEntered(retentionRule)
-										  .setAdministrativeUnitEntered(anAdministrativeUnitId).setOpenDate(now()).setCopyStatusEntered(SECONDARY));
+				.setRetentionRuleEntered(retentionRule)
+				.setAdministrativeUnitEntered(anAdministrativeUnitId).setOpenDate(now()).setCopyStatusEntered(SECONDARY));
 
 		tx.add(rm.newDocument().setFolder(principalFolder).setTitle("document 1").setType(type1));
 		tx.add(rm.newDocument().setFolder(principalFolder).setTitle("document 2").setType(type2));
@@ -607,8 +607,8 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 					copyBuilder.newPrincipal(asList(rm.PA()), "1-1-D").setTypeId(type1),
 					copyBuilder.newPrincipal(asList(rm.PA()), "1-2-D").setTypeId(type2),
 					copyBuilder.newPrincipal(asList(rm.PA()), "1-3-D").setTypeId(type3))
-								.setPrincipalDefaultDocumentCopyRetentionRule(copyBuilder.newPrincipal(asList(rm.PA()), "1-1-C"))
-								.setPrincipalDefaultDocumentCopyRetentionRule(copyBuilder.newSecondary(asList(rm.PA()), "1-1-C"))
+					.setPrincipalDefaultDocumentCopyRetentionRule(copyBuilder.newPrincipal(asList(rm.PA()), "1-1-C"))
+					.setPrincipalDefaultDocumentCopyRetentionRule(copyBuilder.newSecondary(asList(rm.PA()), "1-1-C"))
 
 			);
 			recordServices.executeWithoutImpactHandling(tx);

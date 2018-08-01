@@ -131,9 +131,9 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 		//assertThatSimpleSearch("Shish").containsOnly(record1);
 
 		recordServices.update(record(record1).set(zeSchemaStringMetadata(), asList("Shish", "inter"))
-											 .set(zeSchemaNumberMetadata(), asList(123.4, 42.0)));
+				.set(zeSchemaNumberMetadata(), asList(123.4, 42.0)));
 		recordServices.update(record(record2).set(zeSchemaStringMetadata(), asList("Banane", "Shish"))
-											 .set(zeSchemaNumberMetadata(), new ArrayList<>()));
+				.set(zeSchemaNumberMetadata(), new ArrayList<>()));
 
 		assertThat(record(record1).get(zeSchemaStringMetadata())).isEqualTo(asList("Shish", "inter"));
 		assertThat(record(record1).get(zeSchemaNumberMetadata())).isEqualTo(asList(123.4, 42.0));
@@ -156,12 +156,12 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 
 	private Metadata zeSchemaStringMetadata() {
 		return schemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code())
-							 .getMetadata(zeSchema.stringMetadata().getLocalCode());
+				.getMetadata(zeSchema.stringMetadata().getLocalCode());
 	}
 
 	private Metadata zeSchemaNumberMetadata() {
 		return schemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code())
-							 .getMetadata(zeSchema.numberMetadata().getLocalCode());
+				.getMetadata(zeSchema.numberMetadata().getLocalCode());
 	}
 
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(String text) {
@@ -175,7 +175,7 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).getMetadata(zeSchema.largeTextMetadata().getLocalCode())
-					 .setSchemaAutocomplete(status);
+						.setSchemaAutocomplete(status);
 			}
 		};
 	}
@@ -185,7 +185,7 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).getMetadata(zeSchema.largeTextMetadata().getLocalCode())
-					 .setSearchable(status);
+						.setSearchable(status);
 			}
 		};
 	}
@@ -195,10 +195,10 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).getMetadata(zeSchema.stringMetadata().getLocalCode())
-					 .setMultivalue(status);
+						.setMultivalue(status);
 
 				types.getSchema(zeSchema.code()).getMetadata(zeSchema.numberMetadata().getLocalCode())
-					 .setMultivalue(status);
+						.setMultivalue(status);
 			}
 		};
 	}

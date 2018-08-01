@@ -188,7 +188,7 @@ public class ListPrincipalAccessAuthorizationsPresenterAcceptTest extends Conste
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 		when(accessView.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);

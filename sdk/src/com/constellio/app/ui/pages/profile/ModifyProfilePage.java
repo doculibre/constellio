@@ -26,8 +26,8 @@ public class ModifyProfilePage extends PageHelper {
 		paramMap.put("globalGroupCode", "heroes");
 		String params = ParamUtils.addParams("", paramMap);
 		driver.navigateTo()
-			  .url(NavigatorConfigurationService.MODIFY_PROFILE + "/" + NavigatorConfigurationService.GROUP_ADD_EDIT + "/"
-				   + params);
+				.url(NavigatorConfigurationService.MODIFY_PROFILE + "/" + NavigatorConfigurationService.GROUP_ADD_EDIT + "/"
+					 + params);
 	}
 
 	public void navigateToEditHeroesGroupPage() {

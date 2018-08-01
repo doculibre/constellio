@@ -30,7 +30,7 @@ public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus()
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -93,7 +93,7 @@ public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
 				.deleteIfPossibleOrDisableMetadata(metadtaLocalCode, Folder.SCHEMA_TYPE, zeCollection, getAppLayerFactory());
 		try {
 			getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getDefaultSchema(Folder.SCHEMA_TYPE)
-								  .getMetadata(metadtaLocalCode);
+					.getMetadata(metadtaLocalCode);
 			fail("Metadata should be deleted!");
 		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 			//OK
@@ -107,8 +107,8 @@ public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
 		Migration6_5_1_Helper
 				.deleteIfPossibleOrDisableMetadata(metadtaLocalCode, Folder.SCHEMA_TYPE, zeCollection, getAppLayerFactory());
 		Metadata metadata = getModelLayerFactory().getMetadataSchemasManager()
-												  .getSchemaTypes(zeCollection).getDefaultSchema(Folder.SCHEMA_TYPE)
-												  .getMetadata(metadtaLocalCode);
+				.getSchemaTypes(zeCollection).getDefaultSchema(Folder.SCHEMA_TYPE)
+				.getMetadata(metadtaLocalCode);
 		assertThat(metadata.isEnabled()).isFalse();
 	}
 
@@ -135,7 +135,7 @@ public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(newMetadataLocalCode)
-					 .setType(MetadataValueType.STRING);
+						.setType(MetadataValueType.STRING);
 			}
 		});
 

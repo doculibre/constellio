@@ -58,9 +58,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(FOLDER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(FOLDER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-																   .contains(
-																		   Tuple.tuple(Folder.SCHEMA_TYPE + "_custom1", Folder.SCHEMA_TYPE + " custom 1"),
-																		   Tuple.tuple(Folder.SCHEMA_TYPE + "_custom2", Folder.SCHEMA_TYPE + " custom 2"));
+				.contains(
+						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom1", Folder.SCHEMA_TYPE + " custom 1"),
+						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom2", Folder.SCHEMA_TYPE + " custom 2"));
 	}
 
 	@Test
@@ -70,9 +70,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(DOCUMENT_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(DOCUMENT_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-																	 .contains(
-																			 Tuple.tuple(Document.SCHEMA_TYPE + "_custom1", Document.SCHEMA_TYPE + " custom 1"),
-																			 Tuple.tuple(Document.SCHEMA_TYPE + "_custom2", Document.SCHEMA_TYPE + " custom 2"));
+				.contains(
+						Tuple.tuple(Document.SCHEMA_TYPE + "_custom1", Document.SCHEMA_TYPE + " custom 1"),
+						Tuple.tuple(Document.SCHEMA_TYPE + "_custom2", Document.SCHEMA_TYPE + " custom 2"));
 	}
 
 	@Test
@@ -82,9 +82,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(CONTAINER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(CONTAINER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-																	  .contains(
-																			  Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom1", ContainerRecord.SCHEMA_TYPE + " custom 1"),
-																			  Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom2", ContainerRecord.SCHEMA_TYPE + " custom 2"));
+				.contains(
+						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom1", ContainerRecord.SCHEMA_TYPE + " custom 1"),
+						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom2", ContainerRecord.SCHEMA_TYPE + " custom 2"));
 	}
 
 	@Test
@@ -94,9 +94,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(STORAGE_SPACE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(STORAGE_SPACE_LINKED_SCHEMA)).extracting("value", "caption")
-																	 .contains(
-																			 Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom1", StorageSpace.SCHEMA_TYPE + " custom 1"),
-																			 Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom2", StorageSpace.SCHEMA_TYPE + " custom 2"));
+				.contains(
+						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom1", StorageSpace.SCHEMA_TYPE + " custom 1"),
+						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom2", StorageSpace.SCHEMA_TYPE + " custom 2"));
 	}
 
 	private void givenCustomSchemasFor(String schemaType)

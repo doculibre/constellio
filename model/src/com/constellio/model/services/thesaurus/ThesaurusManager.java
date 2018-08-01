@@ -47,7 +47,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 		this.modelLayerFactory = modelLayerFactory;
 
 		this.eventBus = modelLayerFactory.getDataLayerFactory().getEventBusManager()
-										 .createEventBus("thesaurusManager", EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+				.createEventBus("thesaurusManager", EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 
 		this.eventBus.register(this);
 
@@ -134,7 +134,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 		try {
 			thesaurusFile = modelLayerFactory.getContentManager().getContentDao()
-											 .getContentInputStream(thesaurusConfig.getContent().getCurrentVersion().getHash(), FILE_INPUT_STREAM_NAME);
+					.getContentInputStream(thesaurusConfig.getContent().getCurrentVersion().getHash(), FILE_INPUT_STREAM_NAME);
 		} catch (NullPointerException | ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
 			// La voute ne contient pas le fichier.
 			thesaurusFile = IOUtils.toInputStream("");

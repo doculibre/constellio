@@ -33,8 +33,8 @@ public class RestApiLoggingFilter implements ContainerRequestFilter, ContainerRe
 
 		log.info("HTTP response: "
 				.concat(String.valueOf(responseContext.getStatus()).concat(" ")
-							  .concat(requestContext.getMethod().concat(" "))
-							  .concat(getQuery(requestContext))).concat(" ")
+						.concat(requestContext.getMethod().concat(" "))
+						.concat(getQuery(requestContext))).concat(" ")
 				.concat(ms + "ms"));
 	}
 

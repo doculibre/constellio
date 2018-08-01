@@ -185,7 +185,7 @@ public class ContentImplTest extends ConstellioTest {
 
 		givenTimeIs(meetingOClock);
 		content.renameCurrentVersion("zeNew:Name.pdf")
-			   .updateCheckedOutContent(new ContentVersionDataSummary("zeVeryNewHash", "zeVeryNewMime", zeVeryNewLength));
+				.updateCheckedOutContent(new ContentVersionDataSummary("zeVeryNewHash", "zeVeryNewMime", zeVeryNewLength));
 
 		assertThat(content.getCurrentVersion()).isEqualTo(currentVersion);
 		assertThat(content.getCurrentCheckedOutVersion().getLastModificationDateTime()).isEqualTo(meetingOClock);

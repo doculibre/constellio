@@ -63,9 +63,9 @@ public class TaskFollowerFactory implements StructureFactory {
 		Boolean taskCompleted = taskFollower.getFollowTaskCompleted();
 		Boolean taskDeleted = taskFollower.getFollowTaskDeleted();
 		return new TaskFollower().setFollowerId(followerID).setFollowTaskAssigneeModified(assigneeModified)
-								 .setFollowSubTasksModified(subTasksModified).setFollowTaskStatusModified(statusModified)
-								 .setFollowTaskDeleted(taskDeleted).setFollowTaskCompleted(taskCompleted)
-								 .setDirty(false);
+				.setFollowSubTasksModified(subTasksModified).setFollowTaskStatusModified(statusModified)
+				.setFollowTaskDeleted(taskDeleted).setFollowTaskCompleted(taskCompleted)
+				.setDirty(false);
 	}
 
 	@Override

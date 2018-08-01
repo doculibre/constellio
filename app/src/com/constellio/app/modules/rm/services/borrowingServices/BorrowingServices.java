@@ -85,16 +85,16 @@ public class BorrowingServices {
 								respondant, task.getReason(), returnDate.toString());
 				Folder folder = rm.getFolder(folderId);
 				Record event = rm.newEvent()
-								 .setUsername(applicant.getUsername())
-								 .setRecordId(folderId)
-								 .setTitle(folder.getTitle())
-								 .setReceiver(respondant)
-								 .setReason(task.getReason())
-								 .setTask(taskId)
-								 .setType(EventType.BORROW_FOLDER)
-								 .setIp(applicant.getLastIPAddress())
-								 .setCreatedOn(TimeProvider.getLocalDateTime())
-								 .getWrappedRecord();
+						.setUsername(applicant.getUsername())
+						.setRecordId(folderId)
+						.setTitle(folder.getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
+						.setTask(taskId)
+						.setType(EventType.BORROW_FOLDER)
+						.setIp(applicant.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
 				t.add(event);
 				alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, folder.getWrappedRecord(),
 						borrowingDate, returnDate, null, respondant, applicant, borrowingType, isAccepted);
@@ -113,16 +113,16 @@ public class BorrowingServices {
 						applicant, respondant, task.getReason(), returnDate.toString());
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
 				Record event = rm.newEvent()
-								 .setUsername(applicant.getUsername())
-								 .setRecordId(containerId)
-								 .setTitle(containerRecord.getTitle())
-								 .setReceiver(respondant)
-								 .setReason(task.getReason())
-								 .setTask(taskId)
-								 .setType(EventType.BORROW_CONTAINER)
-								 .setIp(applicant.getLastIPAddress())
-								 .setCreatedOn(TimeProvider.getLocalDateTime())
-								 .getWrappedRecord();
+						.setUsername(applicant.getUsername())
+						.setRecordId(containerId)
+						.setTitle(containerRecord.getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
+						.setTask(taskId)
+						.setType(EventType.BORROW_CONTAINER)
+						.setIp(applicant.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
 				t.add(event);
 				alertUsers(RMEmailTemplateConstants.ALERT_BORROWED, schemaType, taskRecord, containerRecord.getWrappedRecord(),
 						borrowingDate, returnDate, null, respondant, applicant, borrowingType, isAccepted);
@@ -151,16 +151,16 @@ public class BorrowingServices {
 								respondant, task.getReason());
 				Folder folder = rm.getFolder(folderId);
 				Record event = rm.newEvent()
-								 .setUsername(applicant.getUsername())
-								 .setRecordId(folderId)
-								 .setTitle(folder.getTitle())
-								 .setReceiver(respondant)
-								 .setReason(task.getReason())
-								 .setTask(taskId)
-								 .setType(EventType.RETURN_FOLDER)
-								 .setIp(applicant.getLastIPAddress())
-								 .setCreatedOn(TimeProvider.getLocalDateTime())
-								 .getWrappedRecord();
+						.setUsername(applicant.getUsername())
+						.setRecordId(folderId)
+						.setTitle(folder.getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
+						.setTask(taskId)
+						.setType(EventType.RETURN_FOLDER)
+						.setIp(applicant.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
 				t.add(event);
 				alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, folder.getWrappedRecord(), null,
 						returnDate, null, respondant, applicant, null, isAccepted);
@@ -179,16 +179,16 @@ public class BorrowingServices {
 						applicant, respondant, task.getReason());
 				ContainerRecord containerRecord = rm.getContainerRecord(containerId);
 				Record event = rm.newEvent()
-								 .setUsername(applicant.getUsername())
-								 .setRecordId(containerId)
-								 .setTitle(containerRecord.getTitle())
-								 .setReceiver(respondant)
-								 .setReason(task.getReason())
-								 .setTask(taskId)
-								 .setType(EventType.RETURN_CONTAINER)
-								 .setIp(applicant.getLastIPAddress())
-								 .setCreatedOn(TimeProvider.getLocalDateTime())
-								 .getWrappedRecord();
+						.setUsername(applicant.getUsername())
+						.setRecordId(containerId)
+						.setTitle(containerRecord.getTitle())
+						.setReceiver(respondant)
+						.setReason(task.getReason())
+						.setTask(taskId)
+						.setType(EventType.RETURN_CONTAINER)
+						.setIp(applicant.getLastIPAddress())
+						.setCreatedOn(TimeProvider.getLocalDateTime())
+						.getWrappedRecord();
 				t.add(event);
 				alertUsers(RMEmailTemplateConstants.ALERT_RETURNED, schemaType, taskRecord, containerRecord.getWrappedRecord(),
 						null, returnDate, null, respondant, applicant, null, isAccepted);
@@ -346,7 +346,7 @@ public class BorrowingServices {
 			if (folder.getBorrowed() == null || !folder.getBorrowed()) {
 				throw new BorrowingServicesRunTimeException_FolderIsNotBorrowed(folder.getId());
 			} else if (!currentUser.getUserRoles().contains(RGD) && !currentUser.getId()
-																				.equals(folder.getBorrowUserEntered())) {
+					.equals(folder.getBorrowUserEntered())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(currentUser.getUsername());
 			}
 		} else {
@@ -359,7 +359,7 @@ public class BorrowingServices {
 			if (containerRecord.getBorrowed() == null || !containerRecord.getBorrowed()) {
 				throw new BorrowingServicesRunTimeException_ContainerIsNotBorrowed(containerRecord.getId());
 			} else if (!currentUser.getUserRoles().contains(RGD) && !currentUser.getId()
-																				.equals(containerRecord.getBorrower())) {
+					.equals(containerRecord.getBorrower())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnContainer(currentUser.getUsername());
 			}
 		} else {
@@ -562,7 +562,7 @@ public class BorrowingServices {
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
 					.getId());
 			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)
-																 .getLabels();
+					.getLabels();
 			for (Map.Entry<Language, String> label : labels.entrySet()) {
 				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(label.getValue().toLowerCase()));
 			}

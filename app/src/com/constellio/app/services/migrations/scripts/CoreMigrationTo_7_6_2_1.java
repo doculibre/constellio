@@ -51,11 +51,11 @@ public class CoreMigrationTo_7_6_2_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder importAuditSchema = typesBuilder.getSchema(ImportAudit.FULL_SCHEMA)
-																  .addLabel(Language.French, "Audits d'importation");
+					.addLabel(Language.French, "Audits d'importation");
 			importAuditSchema.createUndeletable(ImportAudit.ERRORS).setType(MetadataValueType.TEXT).setSystemReserved(true);
 
 			MetadataSchemaBuilder exportAuditSchema = typesBuilder.getSchema(ExportAudit.FULL_SCHEMA)
-																  .addLabel(Language.French, "Audits d'exportation");
+					.addLabel(Language.French, "Audits d'exportation");
 
 		}
 	}

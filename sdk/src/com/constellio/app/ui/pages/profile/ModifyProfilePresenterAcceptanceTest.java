@@ -58,7 +58,7 @@ public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-								  .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 		//inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		userServices = getModelLayerFactory().newUserServices();

@@ -49,7 +49,7 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
 
 		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique)
-							.setDefaultRequirement(true).setMultiLingual(options.isMultilingual());
+				.setDefaultRequirement(true).setMultiLingual(options.isMultilingual());
 
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
@@ -68,16 +68,16 @@ public class ValueListItemSchemaTypeBuilder {
 		}
 
 		MetadataBuilder descriptionMetadata = defaultSchemaBuilder.create(ValueListItem.DESCRIPTION)
-																  .setType(MetadataValueType.TEXT).setSearchable(true)
-																  .setUndeletable(true)
-																  .setMultiLingual(options.isMultilingual());
+				.setType(MetadataValueType.TEXT).setSearchable(true)
+				.setUndeletable(true)
+				.setMultiLingual(options.isMultilingual());
 
 		for (Language language : languages) {
 			descriptionMetadata.addLabel(language, $("init.valuelist.default.description"));
 		}
 
 		defaultSchemaBuilder.create(ValueListItem.COMMENTS).setMultivalue(true)
-							.setType(MetadataValueType.ENUM).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.ENUM).defineStructureFactory(CommentFactory.class);
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {
@@ -94,8 +94,8 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 		MetadataBuilder parentMetadata = defaultSchemaBuilder.create(HierarchicalValueListItem.PARENT)
-															 .defineChildOfRelationshipToType(typeBuilder)
-															 .setUndeletable(true);
+				.defineChildOfRelationshipToType(typeBuilder)
+				.setUndeletable(true);
 
 		for (Language language : languages) {
 			parentMetadata.addLabel(language, $("init.valuelist.default.parent"));

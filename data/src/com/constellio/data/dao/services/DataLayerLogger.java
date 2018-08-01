@@ -57,7 +57,7 @@ public class DataLayerLogger {
 	public void logQueryResponse(String queryName, SolrParams params, QueryResponse response) {
 
 		if (queryDebuggingMode && (backgroundThreadQueryDebuggingMode || queryName == null || !queryName.toLowerCase()
-																										.contains("background"))) {
+				.contains("background"))) {
 
 			StringBuilder queryReport = new StringBuilder();
 

@@ -351,7 +351,7 @@ public class UserServices {
 		LogicalSearchCondition condition;
 		for (String collection : collections) {
 			condition = fromUsersIn(collection).where(usernameMetadata(collection))
-											   .isEqualTo(username).andWhere(LOGICALLY_DELETED_STATUS).isTrue();
+					.isEqualTo(username).andWhere(LOGICALLY_DELETED_STATUS).isTrue();
 			query.setCondition(condition);
 			Record recordGroup = searchServices.searchSingleResult(condition);
 			if (recordGroup != null) {
@@ -965,7 +965,7 @@ public class UserServices {
 			if (user != null) {
 				if (searchServices.hasResults(
 						fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES)
-													.isEqualTo(user.getId()))) {
+								.isEqualTo(user.getId()))) {
 					LOGGER.warn("Exception on safePhysicalDeleteUser : " + username);
 					throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(username);
 				}

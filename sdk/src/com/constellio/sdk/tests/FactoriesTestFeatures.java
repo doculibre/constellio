@@ -165,7 +165,7 @@ public class FactoriesTestFeatures {
 	private void deleteFromCaches() {
 		try {
 			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory()
-																				  .getSettingsCacheManager();
+					.getSettingsCacheManager();
 			if (settingsCacheManager != null) {
 				for (String cacheName : settingsCacheManager.getCacheNames()) {
 					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
@@ -283,14 +283,14 @@ public class FactoriesTestFeatures {
 					}
 
 					dataLayerFactory.getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
-									.add(new TransactionLogExtension() {
-										@Override
-										public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(
-												String field, String schema,
-												String collection) {
-											return ExtensionBooleanResult.FORCE_TRUE;
-										}
-									});
+							.add(new TransactionLogExtension() {
+								@Override
+								public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(
+										String field, String schema,
+										String collection) {
+									return ExtensionBooleanResult.FORCE_TRUE;
+								}
+							});
 
 					if (spiedClasses.isEmpty()) {
 						return dataLayerFactory;
@@ -324,7 +324,7 @@ public class FactoriesTestFeatures {
 										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
 									}
 									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-																		   .getSettingsFileSystemBaseFolder();
+											.getSettingsFileSystemBaseFolder();
 									File authenticationFile = new File(settingsFolder, "authentification.properties");
 									try {
 										FileUtils.write(authenticationFile, passwordFileContent.toString());
@@ -415,7 +415,7 @@ public class FactoriesTestFeatures {
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
 			decorator.setPluginsFolder(pluginsFolder)
-					 .setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
+					.setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
 			decorator.setTransactionLogWorkFolder(tlogWorkFolder);
 			decorator.setSystemLanguage(systemLanguage);
 

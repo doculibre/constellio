@@ -86,7 +86,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		doReturn(new AddToBatchProcessImpactHandler(batchProcessManager, searchServices)).when(recordServices)
-																						 .addToBatchProcessModificationImpactHandler();
+				.addToBatchProcessModificationImpactHandler();
 
 		givenWaitForBatchProcessAfterTestIsDisabled();
 	}
@@ -125,7 +125,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		batchProcessManager = spy(batchProcessManager);
 		doThrow(Error.class).when(batchProcessManager)
-							.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class), anyString());
+				.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class), anyString());
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessManager);
 		recordServices = new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory,
 				getDataLayerFactory().newTypesFactory(), getDataLayerFactory().getUniqueIdGenerator(), recordsCaches);
@@ -175,7 +175,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		givenWaitForBatchProcessAfterTestIsDisabled();
 		// A really bad day...
 		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
-														   .doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
+				.doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
 
 		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
 		try {
@@ -201,7 +201,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		// A bad day...
 		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
-														   .doCallRealMethod().when(recordDao).execute(any(TransactionDTO.class));
+				.doCallRealMethod().when(recordDao).execute(any(TransactionDTO.class));
 
 		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
 		List<BatchProcess> batchProcesses = recordServices.updateAsync(zeSchemaRecord);

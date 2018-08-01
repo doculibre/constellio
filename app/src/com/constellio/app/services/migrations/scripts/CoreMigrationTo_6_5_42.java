@@ -24,7 +24,7 @@ public class CoreMigrationTo_6_5_42 implements MigrationScript {
 
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 			MetadataSchema userCredentialSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-																 .getSchemaTypes(collection).getSchema(SolrUserCredential.DEFAULT_SCHEMA);
+					.getSchemaTypes(collection).getSchema(SolrUserCredential.DEFAULT_SCHEMA);
 
 			new CoreSchemaAlterationFor6_5_42(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		}
@@ -42,7 +42,7 @@ public class CoreMigrationTo_6_5_42 implements MigrationScript {
 			MetadataSchemaBuilder credentialsSchemaBuilder = builder.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
 			if (!credentialsSchemaBuilder.hasMetadata(SolrUserCredential.PERSONAL_EMAILS)) {
 				credentialsSchemaBuilder.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
-										.setMultivalue(true);
+						.setMultivalue(true);
 			}
 		}
 

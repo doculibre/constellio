@@ -19,7 +19,7 @@ class RestApiOpenApiResource extends OpenApiResource {
 		OpenAPI openAPI = new OpenAPI().info(info).servers(Collections.singletonList(server));
 
 		SwaggerConfiguration oasConfig = new SwaggerConfiguration().openAPI(openAPI).prettyPrint(true)
-																   .resourcePackages(Collections.singleton("com.constellio.app.modules.restapi"));
+				.resourcePackages(Collections.singleton("com.constellio.app.modules.restapi"));
 
 		setOpenApiConfiguration(oasConfig);
 

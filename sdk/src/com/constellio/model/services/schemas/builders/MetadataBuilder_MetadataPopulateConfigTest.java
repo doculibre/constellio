@@ -84,7 +84,7 @@ public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderT
 
 		inheritedMetadataBuilder.setType(STRING).definePopulateConfigsBuilder(metadataPopulateConfigsBuilder1);
 		metadataWithInheritanceBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder2).addProperty("property3")
-									  .addStyle("style3").addRegex(createRegexConfig(3));
+				.addStyle("style3").addRegex(createRegexConfig(3));
 
 		buildAndModify();
 
@@ -112,7 +112,7 @@ public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderT
 
 		inheritedMetadataBuilder.setType(STRING).definePopulateConfigsBuilder(metadataPopulateConfigsBuilder1);
 		metadataWithInheritanceBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder2).addProperty("property1")
-									  .addStyle("style1");
+				.addStyle("style1");
 
 		build();
 
@@ -139,7 +139,7 @@ public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderT
 
 		inheritedMetadataBuilder.setType(STRING).definePopulateConfigsBuilder(metadataPopulateConfigsBuilder1);
 		metadataWithInheritanceBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder2).addProperty("property1")
-									  .addStyle("style1");
+				.addStyle("style1");
 
 		buildAndModify();
 

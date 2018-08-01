@@ -237,8 +237,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private LogicalSearchQuery getFoldersQuery() {
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
-																	  .where(rmRecordServices().folder.container()).isEqualTo(containerId)
-																	  .andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+				.where(rmRecordServices().folder.container()).isEqualTo(containerId)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES);
 	}
 

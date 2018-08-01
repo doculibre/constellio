@@ -132,7 +132,7 @@ public class OfficeDocumentsServices {
 			throws IOException, PropertyDoesntExist, NotCompatibleExtension, CannotReadDocumentsProperties {
 		POIXMLDocument doc = parseDocument(ext, inputStreamFactory, propertyName);
 		org.openxmlformats.schemas.officeDocument.x2006.customProperties.CTProperties props = doc.getProperties()
-																								 .getCustomProperties().getUnderlyingProperties();
+				.getCustomProperties().getUnderlyingProperties();
 
 		List<CTProperty> properties = props.getPropertyList();
 

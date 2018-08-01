@@ -41,7 +41,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
 	}
 
 	@Test
@@ -55,7 +55,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
 	}
 
 	@Test
@@ -128,7 +128,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
 	}
 
 	@Test
@@ -142,7 +142,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordLogicallyDeletedException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordLogicallyDeletedException(id).getValidationError()));
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
+				.isEqualTo(i18n.$(new RecordNotFoundException(id).getValidationError()));
 	}
 
 	@Test
@@ -182,7 +182,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
+				.isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError()));
 	}
 
 	@Test
@@ -202,7 +202,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("method", method).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("method", method).getValidationError()));
 	}
 
 	@Test
@@ -222,7 +222,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("date", date).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("date", date).getValidationError()));
 	}
 
 	@Test
@@ -253,7 +253,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
+				.isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
 	}
 
 	@Test
@@ -273,7 +273,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidSignatureException().getValidationError()));
+				.isEqualTo(i18n.$(new InvalidSignatureException().getValidationError()));
 	}
 
 	@Test
@@ -285,7 +285,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+				.isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
 	}
 
 	@Test
@@ -296,7 +296,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-									  .isEqualTo(i18n.$(new InvalidParameterException("physical", physical).getValidationError()));
+				.isEqualTo(i18n.$(new InvalidParameterException("physical", physical).getValidationError()));
 	}
 
 	@Test
@@ -307,7 +307,7 @@ public class DocumentRestfulServiceDELETEAcceptanceTest extends BaseDocumentRest
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain("{").doesNotContain("}")
-									  .isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
+				.isEqualTo(i18n.$(new UnallowedHostException(host).getValidationError()));
 	}
 
 	@Test

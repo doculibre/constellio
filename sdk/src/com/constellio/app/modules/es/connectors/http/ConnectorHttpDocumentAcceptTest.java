@@ -44,8 +44,8 @@ public class ConnectorHttpDocumentAcceptTest extends ConstellioTest {
 
 		connectorInstance = connectorManager
 				.createConnector(es.newConnectorHttpInstance().setCode("zeConnector").setEnabled(false)
-								   .setTitle("ze connector").setSeeds("http://perdu.com")
-								   .setDaysBeforeRefetching(42));
+						.setTitle("ze connector").setSeeds("http://perdu.com")
+						.setDaysBeforeRefetching(42));
 
 		ConnectorHttpDocument refDocument = es.newConnectorHttpDocument(connectorInstance);
 		refDocument.setTitle("ref title");

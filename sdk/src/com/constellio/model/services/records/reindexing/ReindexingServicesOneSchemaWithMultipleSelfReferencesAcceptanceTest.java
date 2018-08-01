@@ -186,7 +186,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 		transaction.add(new TestRecord(zeSchema, "000042"))
-				   .set(zeSchema.metadata(childOfReference), "000666");
+				.set(zeSchema.metadata(childOfReference), "000666");
 
 		transaction.add(new TestRecord(zeSchema, "000666"));
 

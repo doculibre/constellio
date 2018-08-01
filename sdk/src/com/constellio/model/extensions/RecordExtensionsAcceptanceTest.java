@@ -66,9 +66,9 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 		existingAnotherSchemaRecord = new TestRecord(anotherSchema, "existingAnotherSchemaRecord").set(TITLE, "My second record");
 		existingZeSchemaRecord = new TestRecord(zeSchema, "existingZeSchemaRecord").set(TITLE, "My first record")
-																				   .set(zeSchema.firstReferenceToAnotherSchema(), existingAnotherSchemaRecord);
+				.set(zeSchema.firstReferenceToAnotherSchema(), existingAnotherSchemaRecord);
 		existingZeSchemaChildRecord = new TestRecord(zeSchema, "existingZeSchemaChildRecord").set(TITLE, "Child record")
-																							 .set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), existingZeSchemaRecord);
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), existingZeSchemaRecord);
 
 		logicallyDeletedZeSchemaRecord = new TestRecord(zeSchema, "logicallyDeletedZeSchemaRecord")
 				.set(TITLE, "Parent record");

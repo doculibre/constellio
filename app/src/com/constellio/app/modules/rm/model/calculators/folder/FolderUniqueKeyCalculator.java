@@ -147,7 +147,7 @@ public class FolderUniqueKeyCalculator implements MetadataValueCalculator<String
 					}
 
 					if (metadata == null && metadata.getLocalCode()
-													.equals(Schemas.TITLE.getLocalCode())) {
+							.equals(Schemas.TITLE.getLocalCode())) {
 						metadataDependedOn = metadata;
 					}
 

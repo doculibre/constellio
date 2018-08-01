@@ -49,7 +49,7 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 				}
 			}
 			modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
-							 .batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, user));
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, user));
 		}
 		transaction.addUpdate(batch);
 		return transaction;

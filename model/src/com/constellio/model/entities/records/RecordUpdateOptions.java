@@ -227,9 +227,9 @@ public class RecordUpdateOptions {
 
 	public static RecordUpdateOptions validationExceptionSafeOptions() {
 		return new RecordUpdateOptions().setSkipReferenceValidation(true).setValidationsEnabled(false)
-										.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
-										.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
-										.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
+				.setSkipMaskedMetadataValidations(true).setUnicityValidationsEnabled(false)
+				.setSkippingReferenceToLogicallyDeletedValidation(true).setSkippingRequiredValuesValidation(true)
+				.setCatchExtensionsExceptions(true).setCatchExtensionsValidationsErrors(true).setCatchBrokenReferenceErrors(true);
 	}
 
 	public static RecordUpdateOptions userModificationsSafeOptions() {

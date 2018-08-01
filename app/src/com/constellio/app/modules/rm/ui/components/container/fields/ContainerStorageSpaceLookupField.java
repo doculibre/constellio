@@ -93,7 +93,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 
 	public void suggestedButtonClicked() {
 		List<Record> recordList = presenter.getModelLayerFactory().newSearchServices()
-										   .search(buildQuery(presenter.getModelLayerFactory(), presenter.getSessionContext()));
+				.search(buildQuery(presenter.getModelLayerFactory(), presenter.getSessionContext()));
 		if (recordList != null && !recordList.isEmpty()) {
 			ContainerStorageSpaceLookupField.this.setFieldValue(recordList.get(0).getId());
 			presenter.setStorageSpaceTo(recordList.get(0).getId());
@@ -166,7 +166,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 
 	private LogicalSearchQuery buildQuery(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
 		MetadataSchemaType storageSpaceSchemaType = modelLayerFactory.getMetadataSchemasManager()
-																	 .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
+				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
 		MetadataSchema storageSpaceSchema = storageSpaceSchemaType.getDefaultSchema();
 		Double containerCapacity = this.containerCapacity == null ? 0.0 : this.containerCapacity;
 		return new LogicalSearchQuery().setCondition(from(storageSpaceSchemaType).whereAllConditions(

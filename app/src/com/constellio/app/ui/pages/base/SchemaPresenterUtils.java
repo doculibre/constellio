@@ -356,7 +356,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
 				contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
 				contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate())
-								.setDuplicatedHash(contentVersionDataSummary.getHash());
+						.setDuplicatedHash(contentVersionDataSummary.getHash());
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);

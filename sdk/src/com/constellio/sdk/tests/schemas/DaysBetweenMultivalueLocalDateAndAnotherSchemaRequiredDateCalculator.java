@@ -20,7 +20,7 @@ public class DaysBetweenMultivalueLocalDateAndAnotherSchemaRequiredDateCalculato
 	ReferenceDependency<List<LocalDateTime>> anotherSchemaDateParam = ReferenceDependency
 			.toADateTime("dateRef", "dateMeta").whichIsMultivalue().whichIsRequired();
 	LocalDependency<List<LocalDateTime>> dateParam = LocalDependency.toADateTime("dateTimeMetadata").whichIsMultivalue()
-																	.whichIsRequired();
+			.whichIsRequired();
 
 	@Override
 	public Double calculate(CalculatorParameters values) {

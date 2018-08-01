@@ -271,7 +271,7 @@ public class AzureAdClient {
 				} else {
 					throw new AzureAdClientException(
 							new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message")
-														.optString("value"));
+									.optString("value"));
 				}
 			} while (skipToken != null);
 

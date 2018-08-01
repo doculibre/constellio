@@ -64,7 +64,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		sessionContext.setCurrentCollection(zeCollection);
 		recordServices.add(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).setCollectionReadAccess(true)
-								.setCollectionDeleteAccess(true));
+				.setCollectionDeleteAccess(true));
 
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
@@ -102,7 +102,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withCollection("collectionTest").withConstellioRMModule().withTasksModule().withAllTest(users)
-												.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
 
 		sessionContext = FakeSessionContext.adminInCollection("collectionTest");
@@ -127,13 +127,13 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), "collectionTest");
 		Transaction transaction = new Transaction();
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(zeTask.getId())
-												.setTitle(zeTask.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
-												.setType(EventType.MODIFY_TASK)
-												.setCreatedOn(LocalDateTime.now()));
+				.setTitle(zeTask.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
+				.setType(EventType.MODIFY_TASK)
+				.setCreatedOn(LocalDateTime.now()));
 		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(zeTask2.getId())
-												.setTitle(zeTask2.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
-												.setType(EventType.MODIFY_TASK)
-												.setCreatedOn(LocalDateTime.now()));
+				.setTitle(zeTask2.getTitle()).setUsername(users.adminIn("collectionTest").getUsername())
+				.setType(EventType.MODIFY_TASK)
+				.setCreatedOn(LocalDateTime.now()));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newEventsDao().flush();

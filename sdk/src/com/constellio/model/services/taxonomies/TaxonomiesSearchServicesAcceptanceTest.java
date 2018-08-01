@@ -540,7 +540,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
 														   List<String> grantedOnRecords) {
 		String id = authorizationsServices.add(authorizationInCollection(zeCollection).giving(roles)
-																					  .forPrincipalsIds(grantedToPrincipals).on(grantedOnRecords.get(0)));
+				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecords.get(0)));
 		return authorizationsServices.getAuthorization(zeCollection, id);
 	}
 

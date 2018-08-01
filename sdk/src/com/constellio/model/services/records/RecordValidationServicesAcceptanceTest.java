@@ -103,8 +103,8 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(Maximum50CharsRecordMetadataValidator.class, VALUE_LENGTH_TOO_LONG));
 		assertThat(errors.get(0).getParameters()).containsEntry(MAX_SIZE, "50").containsEntry(WAS_SIZE, "51")
-												 .containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
-												 .containsEntry(RecordMetadataValidator.METADATA_VALUE, titleTooLong);
+				.containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
+				.containsEntry(RecordMetadataValidator.METADATA_VALUE, titleTooLong);
 
 	}
 
@@ -133,8 +133,8 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(Maximum50CharsRecordMultivalueMetadataValidator.class, VALUE_LENGTH_TOO_LONG));
 		assertThat(errors.get(0).getParameters()).containsEntry(MAX_SIZE, "50").containsEntry(WAS_SIZE, "51")
-												 .containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
-												 .containsEntry(RecordMetadataValidator.METADATA_VALUE, expectedConcatenatedStringValues);
+				.containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
+				.containsEntry(RecordMetadataValidator.METADATA_VALUE, expectedConcatenatedStringValues);
 
 	}
 
@@ -169,8 +169,8 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 						CreationDateIsBeforeOrEqualToLastModificationDateValidator.CREATION_DATE_IS_AFTER_MODIFICATION_DATE));
 		assertThat(errors.get(0).getParameters()).containsEntry(
 				CreationDateIsBeforeOrEqualToLastModificationDateValidator.CREATION_DATE_MESSAGE_PARAM, january1_2011.toString())
-												 .containsEntry(CreationDateIsBeforeOrEqualToLastModificationDateValidator.MODIFICATION_DATE_MESSAGE_PARAM,
-														 january1_2010.toString());
+				.containsEntry(CreationDateIsBeforeOrEqualToLastModificationDateValidator.MODIFICATION_DATE_MESSAGE_PARAM,
+						january1_2010.toString());
 	}
 
 	@Test
@@ -181,7 +181,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.stringMetadata(), "aValidStringValue");
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -194,7 +194,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.stringMetadata(), Arrays.asList("aValidStringValue"));
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -207,13 +207,13 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.stringMetadata(), 1);
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "STRING")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Double");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Double");
 
 	}
 
@@ -225,13 +225,13 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.stringMetadata(), Arrays.asList("aStringValue", 1));
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "STRING")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Integer");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Integer");
 
 	}
 
@@ -243,17 +243,17 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.stringMetadata(), Arrays.asList("aStringValue", 1, true));
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(2);
 		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "STRING")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Integer");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Integer");
 		assertThat(errors.get(1)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(1).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "STRING")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Boolean");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Boolean");
 
 	}
 
@@ -265,7 +265,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.dateTimeMetadata(), new LocalDateTime());
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -278,13 +278,13 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.dateTimeMetadata(), true);
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "DATE_TIME")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.dateTimeMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Boolean");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.dateTimeMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Boolean");
 
 	}
 
@@ -296,7 +296,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.numberMetadata(), 1.4f);
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -309,13 +309,13 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.numberMetadata(), "not a number");
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "NUMBER")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.numberMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.String");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.numberMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.String");
 
 	}
 
@@ -327,7 +327,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.booleanMetadata(), true);
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -340,13 +340,13 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.booleanMetadata(), "1.4");
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "BOOLEAN")
-												 .containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.booleanMetadata().getCode())
-												 .containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.String");
+				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.booleanMetadata().getCode())
+				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.String");
 
 	}
 
@@ -358,7 +358,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.booleanMetadata(), "invalid").set(zeSchema.dateTimeMetadata(), "alsoInvalid");
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(2);
 	}
@@ -371,7 +371,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.booleanMetadata(), true);
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -384,7 +384,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.booleanMetadata(), Arrays.asList(true));
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -396,7 +396,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(
@@ -413,7 +413,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -425,7 +425,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(
@@ -442,7 +442,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.booleanMetadata(), Collections.emptyList());
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(
@@ -459,7 +459,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(2);
 	}
@@ -473,7 +473,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.referenceMetadata(), thirdSchemaRecord.getId());
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(
@@ -492,7 +492,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.referenceMetadata(), Arrays.asList(anotherSchemaRecord.getId(), thirdSchemaRecord.getId()));
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(
@@ -510,7 +510,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.referenceMetadata(), anotherSchemaRecord.getId());
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -525,7 +525,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.referenceMetadata(), Arrays.asList(anotherSchemaRecord1.getId(), anotherSchemaRecord2.getId()));
 		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-											   .getValidationErrors();
+				.getValidationErrors();
 
 		assertThat(errors).isEmpty();
 	}
@@ -618,9 +618,9 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 				.using(schemas.withAParentReferenceFromZeSchemaToZeSchema().withAReferenceMetadataToZeSchema());
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle, zeCollection, Arrays.asList("zeSchemaType"));
 		getModelLayerFactory().getTaxonomiesManager()
-							  .addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
+				.addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 		getModelLayerFactory().getTaxonomiesManager()
-							  .setPrincipalTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
+				.setPrincipalTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 
 		Record grandParent = new TestRecord(zeSchema, "grandParent");
 		Record parent = new TestRecord(zeSchema, "parent");

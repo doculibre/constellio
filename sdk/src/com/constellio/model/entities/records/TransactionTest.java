@@ -96,7 +96,7 @@ public class TransactionTest extends ConstellioTest {
 
 		assertThat(transaction.getRecords()).containsOnly(record1, record2, record3);
 		assertThat(transaction.updatedRecordsMap).containsEntry("id1", record1).containsEntry("id2", record2)
-												 .containsEntry("id3", record3);
+				.containsEntry("id3", record3);
 	}
 
 	@Test
@@ -110,7 +110,7 @@ public class TransactionTest extends ConstellioTest {
 
 		assertThat(transaction.getRecords()).containsOnly(record1, record2, record3);
 		assertThat(transaction.updatedRecordsMap).containsEntry("id1", record1).containsEntry("id2", record2)
-												 .containsEntry("id3", record3);
+				.containsEntry("id3", record3);
 	}
 
 	// ---------

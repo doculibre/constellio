@@ -34,7 +34,7 @@ public class CoreMigrationTo_7_7_1_6 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).addLabel(Language.French, "Configuration du thesaurus")
-																.addLabel(Language.English, "Thesaurus configuration").getDefaultSchema();
+					.addLabel(Language.English, "Thesaurus configuration").getDefaultSchema();
 			thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true).setType(MetadataValueType.CONTENT);
 			thesaurusConfig.createUndeletable(ThesaurusConfig.DENINED_WORDS).setSystemReserved(true).setMultivalue(true).setType(MetadataValueType.STRING);
 		}

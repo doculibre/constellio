@@ -55,21 +55,21 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
 		prepareSystem(withZeCollection().withConstellioESModule()
-										.withAllTestUsers());
+				.withAllTestUsers());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		connectorInstance = es.newConnectorSmbInstance()
-							  .setDomain(SmbTestParams.DOMAIN)
-							  .setUsername(SmbTestParams.USERNAME)
-							  .setPassword(SmbTestParams.PASSWORD)
-							  .setSeeds(asList(SmbTestParams.EXISTING_SHARE))
-							  .setCode(SmbTestParams.INSTANCE_CODE)
-							  .setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
-							  .setInclusions(asList(SmbTestParams.EXISTING_SHARE))
-							  .setExclusions(asList(""))
-							  .setTitle(SmbTestParams.CONNECTOR_TITLE);
+				.setDomain(SmbTestParams.DOMAIN)
+				.setUsername(SmbTestParams.USERNAME)
+				.setPassword(SmbTestParams.PASSWORD)
+				.setSeeds(asList(SmbTestParams.EXISTING_SHARE))
+				.setCode(SmbTestParams.INSTANCE_CODE)
+				.setTraversalCode(SmbTestParams.TRAVERSAL_CODE)
+				.setInclusions(asList(SmbTestParams.EXISTING_SHARE))
+				.setExclusions(asList(""))
+				.setTitle(SmbTestParams.CONNECTOR_TITLE);
 		es.getConnectorManager()
-		  .createConnector(connectorInstance);
+				.createConnector(connectorInstance);
 
 		logger = new ConsoleConnectorLogger();
 		when(connector.getLogger()).thenReturn(logger);
@@ -96,8 +96,8 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-												 .containsOnly(addEvent(es.newConnectorSmbDocument(connectorInstance)
-																		  .setUrl(FILE_URL)));
+				.containsOnly(addEvent(es.newConnectorSmbDocument(connectorInstance)
+						.setUrl(FILE_URL)));
 
 		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString(), anyBoolean());
 	}
@@ -115,8 +115,8 @@ public class SmbNewDocumentRetrievalJobAcceptanceTest extends ConstellioTest {
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-												 .containsOnly(addEvent(es.newConnectorSmbDocument(connectorInstance)
-																		  .setUrl(FILE_URL)));
+				.containsOnly(addEvent(es.newConnectorSmbDocument(connectorInstance)
+						.setUrl(FILE_URL)));
 
 		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
 	}

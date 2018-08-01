@@ -575,11 +575,11 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 										   String recordTitle) {
 		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
 		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle))
-				   .setAssigneeUsersCandidates(assignees)
-				   .setAssigner(assignerId)
-				   .setAssignationDate(LocalDate.now())
-				   .setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays)
-				   .set(RequestTask.APPLICANT, assignerId);
+				.setAssigneeUsersCandidates(assignees)
+				.setAssigner(assignerId)
+				.setAssignationDate(LocalDate.now())
+				.setLinkedFolders(asList(folderId)).set(BorrowRequest.BORROW_DURATION, numberOfDays)
+				.set(RequestTask.APPLICANT, assignerId);
 	}
 
 	//KEEP

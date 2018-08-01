@@ -99,7 +99,7 @@ public class VaultMigrationScript {
 		//      Longueur du parsedHash : 36
 		Set<String> listOfHashCodes = improveHashCodes(appLayerFactory);
 		DataLayerConfiguration dataLayerConfiguration = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
-																	   .getDataLayerConfiguration();
+				.getDataLayerConfiguration();
 		File parentFile = dataLayerConfiguration.getContentDaoFileSystemFolder();
 
 		java.util.Collection<File> leafFiles = FileUtils.listFiles(parentFile, null, true);

@@ -131,7 +131,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		addEmailToSend(0, now.minusDays(1), SDKPasswords.testPOP3Username());
 		doThrow(new EmailTempException(new Exception())).when(emailServices)
-														.sendEmail(any(MimeMessage.class));
+				.sendEmail(any(MimeMessage.class));
 		emailQueueManager.sendEmails();
 		assertOneEmailToSendWithDateAndWithNumberOfTry(now.plusDays(1), 1);
 	}
@@ -141,7 +141,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		addEmailToSend(0, now.minusDays(1));
 		doThrow(new EmailPermanentException(new Exception())).when(emailServices)
-															 .sendEmail(any(MimeMessage.class));
+				.sendEmail(any(MimeMessage.class));
 		emailQueueManager.sendEmails();
 		assertNoEmailToSend();
 	}
@@ -237,7 +237,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 
 	private EmailToSend addEmailToSend(double numberOfTry, LocalDateTime sendDate, String fromEmail) {
 		EmailToSend email = schemas.newEmailToSend().setTryingCount(numberOfTry).setSendOn(sendDate)
-								   .setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+				.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		if (StringUtils.isNotBlank(fromEmail)) {
 			EmailAddress from = new EmailAddress(fromEmail, fromEmail);
 			email = email.setFrom(from);
@@ -257,7 +257,7 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 
 	private EmailToSend addEmailToSendInBusinessCollection(double numberOfTry, LocalDateTime sendDate) {
 		EmailToSend email = businessSchemas.newEmailToSend().setTryingCount(numberOfTry).setSendOn(sendDate)
-										   .setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+				.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		try {
 			recordServices.add(email);
 		} catch (RecordServicesException e) {

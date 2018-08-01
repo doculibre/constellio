@@ -35,7 +35,7 @@ public class RecordDisplayFactory implements Serializable {
 		GetCustomResultDisplayParam param = new GetCustomResultDisplayParam(searchResultVO, componentFactory, query);
 
 		SearchResultDisplay searchResultDisplay = appLayerFactory.getExtensions()
-																 .forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
+				.forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
 
 		if (searchResultDisplay == null) {
 			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query);

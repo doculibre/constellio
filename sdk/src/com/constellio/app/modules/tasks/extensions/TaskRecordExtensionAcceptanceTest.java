@@ -84,15 +84,15 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	private void initTasks()
 			throws RecordServicesException {
 		zeTaskDeletionFollower = new TaskFollower().setFollowerId(users.aliceIn(zeCollection).getId())
-												   .setFollowTaskDeleted(true);
+				.setFollowTaskDeleted(true);
 		zeTaskFinishedEventFollower = new TaskFollower().setFollowerId(users.charlesIn(zeCollection).getId())
-														.setFollowTaskCompleted(true);
+				.setFollowTaskCompleted(true);
 		zeTaskStatusModificationFollower = new TaskFollower().setFollowerId(users.chuckNorrisIn(zeCollection).getId())
-															 .setFollowTaskStatusModified(true);
+				.setFollowTaskStatusModified(true);
 		zeTaskAssigneeModificationFollower = new TaskFollower().setFollowerId(users.bobIn(zeCollection).getId())
-															   .setFollowTaskAssigneeModified(true);
+				.setFollowTaskAssigneeModified(true);
 		zeTaskSubTasksModificationFollower = new TaskFollower().setFollowerId(users.adminIn(zeCollection).getId())
-															   .setFollowSubTasksModified(true);
+				.setFollowSubTasksModified(true);
 		zeFollowers = new ArrayList<>(asList(zeTaskDeletionFollower, zeTaskFinishedEventFollower,
 				zeTaskStatusModificationFollower, zeTaskAssigneeModificationFollower, zeTaskSubTasksModificationFollower));
 
@@ -102,11 +102,11 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 
 		zeTask = tasksSchemas.newTask();
 		recordServices.add(zeTask.setTitle("taskTitle")
-								 .setTaskFollowers(zeFollowers)
-								 .setAssignee(users.chuckNorrisIn(zeCollection).getId())
-								 .setAssigner(users.aliceIn(zeCollection).getId())
-								 .setAssignationDate(now.toLocalDate())
-								 .setParentTask(validParentTaskFollowingSubTasks.getId())
+				.setTaskFollowers(zeFollowers)
+				.setAssignee(users.chuckNorrisIn(zeCollection).getId())
+				.setAssigner(users.aliceIn(zeCollection).getId())
+				.setAssignationDate(now.toLocalDate())
+				.setParentTask(validParentTaskFollowingSubTasks.getId())
 		);
 		recordServices.flush();
 
@@ -276,11 +276,11 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		Task newTask = tasksSchemas.newTask();
 		recordServices.add(newTask.setTitle("new task")
-								  .setParentTask(validParentTaskFollowingSubTasks.getId())
-								  .setTaskFollowers(zeFollowers)
-								  .setAssigner(users.adminIn(zeCollection).getId())
-								  .setAssignee(users.adminIn(zeCollection).getId())
-								  .setAssignationDate(now.plusDays(1).toLocalDate())
+				.setParentTask(validParentTaskFollowingSubTasks.getId())
+				.setTaskFollowers(zeFollowers)
+				.setAssigner(users.adminIn(zeCollection).getId())
+				.setAssignee(users.adminIn(zeCollection).getId())
+				.setAssignationDate(now.plusDays(1).toLocalDate())
 		);
 
 		recordServices.add(newTask.setParentTask((String) null));
@@ -489,23 +489,23 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	private List<TaskReminder> initReminders() {
 		List<TaskReminder> reminders = new ArrayList<>();
 		processedReminderWithRelativeDateBeforeStartDate_0 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
-																			   .setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1).setProcessed(true);
+				.setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateBeforeStartDate_0);
 
 		processedReminderWithRelativeDateAfterStartDate_1 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
-																			  .setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(3).setProcessed(true);
+				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(3).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateAfterStartDate_1);
 
 		processedReminderWithRelativeDateEqualsStartDate_2 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
-																			   .setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0).setProcessed(true);
+				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateEqualsStartDate_2);
 
 		processedReminderWithFixedDateAfterNewStartDate_3 = new TaskReminder().setFixedDate(newStartDate.plusDays(3))
-																			  .setProcessed(true);
+				.setProcessed(true);
 		reminders.add(processedReminderWithFixedDateAfterNewStartDate_3);
 
 		processedReminderWithRelativeDateAfterEndDate_4 = new TaskReminder().setRelativeDateMetadataCode(Task.DUE_DATE)
-																			.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
+				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateAfterEndDate_4);
 
 		return reminders;
@@ -611,10 +611,10 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 
 		final Task someTask = tasksSchemas.newTask().
 				setTitle("title").
-												  setAssigner(someAssigner.getId()).
-												  setAssignee(someAssignee.getId()).
-												  setAssignationDate(now.toLocalDate()).
-												  setAssignedOn(now.toLocalDate());
+				setAssigner(someAssigner.getId()).
+				setAssignee(someAssignee.getId()).
+				setAssignationDate(now.toLocalDate()).
+				setAssignedOn(now.toLocalDate());
 
 		// When
 		recordServices.add(someTask);

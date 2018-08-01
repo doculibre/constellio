@@ -59,7 +59,7 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-								  .withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -89,7 +89,7 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 		doReturn(null).when(view).getContainer(any(ContainerRecord.class));
 		doReturn(null).when(view).getPackageableFolder(any(String.class));
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.ACTIVE)
-						   .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER);
+				.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER);
 		assertThat(presenter.calculateSearchType()).isEqualTo(SearchType.transfer);
 
 		decommissioningList.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_DEPOSIT);
@@ -99,7 +99,7 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(presenter.calculateSearchType()).isEqualTo(SearchType.activeToDestroy);
 
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
-						   .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_DEPOSIT);
+				.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_DEPOSIT);
 		assertThat(presenter.calculateSearchType()).isEqualTo(SearchType.semiActiveToDeposit);
 
 		decommissioningList.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_DESTROY);
@@ -219,16 +219,16 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 
 	private DecommissioningList buildDefaultDecommissioningList() {
 		return rm.newDecommissioningListWithId("decomTest").setAdministrativeUnit(records.unitId_10).setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				 .setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER)
-				 .addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
+				.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER)
+				.addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
 	}
 
 	private void buildAutoFillContainers() throws RecordServicesException {
 		recordServices.add(rm.newContainerRecordWithId("container100").setType(records.containerTypeId_boite22x22)
-							 .setTemporaryIdentifier("container100").setAdministrativeUnit(records.getUnit10()).setCapacity(100).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
+				.setTemporaryIdentifier("container100").setAdministrativeUnit(records.getUnit10()).setCapacity(100).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
 		recordServices.add(rm.newContainerRecordWithId("container150").setType(records.containerTypeId_boite22x22)
-							 .setTemporaryIdentifier("container150").setAdministrativeUnit(records.getUnit10()).setCapacity(150).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
+				.setTemporaryIdentifier("container150").setAdministrativeUnit(records.getUnit10()).setCapacity(150).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
 		recordServices.add(rm.newContainerRecordWithId("container25").setType(records.containerTypeId_boite22x22)
-							 .setTemporaryIdentifier("container25").setAdministrativeUnit(records.getUnit10()).setCapacity(25).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
+				.setTemporaryIdentifier("container25").setAdministrativeUnit(records.getUnit10()).setCapacity(25).setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE));
 	}
 }

@@ -141,15 +141,15 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 
 	private ConnectorSmbInstance createConnector(String... seeds) {
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode("zeConnectorCode")
-															   .setEnabled(true)
-															   .setSeeds(asList(seeds))
-															   .setUsername(username)
-															   .setPassword(password)
-															   .setDomain(domain)
-															   .setInclusions(Arrays.asList(share))
-															   .setExclusions(new ArrayList<String>())
-															   .setTitle("zeConnectorTitle"));
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(asList(seeds))
+				.setUsername(username)
+				.setPassword(password)
+				.setDomain(domain)
+				.setInclusions(Arrays.asList(share))
+				.setExclusions(new ArrayList<String>())
+				.setTitle("zeConnectorTitle"));
 
 		flushRecord(connectorInstance.getWrappedRecord());
 
@@ -162,7 +162,7 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 		while (!ok) {
 
 			Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-													  .getMetadata(ConnectorSmbFolder.SCHEMA_TYPE + "_" + connectorInstance.getId() + "_" + ConnectorSmbFolder.URL);
+					.getMetadata(ConnectorSmbFolder.SCHEMA_TYPE + "_" + connectorInstance.getId() + "_" + ConnectorSmbFolder.URL);
 			LogicalSearchCondition condition = from(es.schemaType(ConnectorSmbFolder.SCHEMA_TYPE))
 					.where(metadata).is(share + "test/");
 
@@ -210,7 +210,7 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 	private void flushRecord(Record record) {
 		try {
 			es.getRecordServices()
-			  .update(record);
+					.update(record);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

@@ -56,7 +56,7 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 		inCollection(zeCollection).giveReadAccessTo(gandalf);
 
 		Users users = new Users().setUp(getModelLayerFactory().newUserServices())
-								 .withPasswords(getModelLayerFactory().getPasswordFileAuthenticationService());
+				.withPasswords(getModelLayerFactory().getPasswordFileAuthenticationService());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -68,9 +68,9 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 		password = SDKPasswords.testSmbPassword();
 
 		recordServices.update(users.bobIn(zeCollection)
-								   .setManualTokens("rtoken1"));
+				.setManualTokens("rtoken1"));
 		recordServices.update(users.chuckNorrisIn(zeCollection)
-								   .setManualTokens("rtoken1", "rtoken2"));
+				.setManualTokens("rtoken1", "rtoken2"));
 
 		userWithoutTokens = users.sasquatchIn(zeCollection);
 		userWithCollectionReadAccess = users.gandalfIn(zeCollection);
@@ -110,15 +110,15 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 
 	private void createConnector(String connectorCode) {
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
-															   .setCode(connectorCode)
-															   .setEnabled(false)
-															   .setSeeds(asList(share))
-															   .setUsername(username)
-															   .setPassword(password)
-															   .setDomain(domain)
-															   .setTraversalCode("")
-															   .setInclusions(asList(share))
-															   .setTitle("New Smb Connector"));
+				.setCode(connectorCode)
+				.setEnabled(false)
+				.setSeeds(asList(share))
+				.setUsername(username)
+				.setPassword(password)
+				.setDomain(domain)
+				.setTraversalCode("")
+				.setInclusions(asList(share))
+				.setTitle("New Smb Connector"));
 	}
 
 	//	@Test
@@ -183,7 +183,7 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 
 		private ListAssert<Object> in(String recordId) {
 			Record record = getModelLayerFactory().newRecordServices()
-												  .getDocumentById(recordId);
+					.getDocumentById(recordId);
 			TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 			return assertThat(taxonomiesSearchServices.getVisibleChildConcept(user, SMB_FOLDERS, record, defaultOptions))
 					.extracting("id");

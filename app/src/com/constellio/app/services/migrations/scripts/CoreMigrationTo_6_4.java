@@ -40,7 +40,7 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(SavedSearch.SCHEMA_TYPE).createUndeletable(SavedSearch.RESULTS_VIEW_MODE)
-						.setType(MetadataValueType.STRING).setDefaultValue(SearchResultsViewMode.DETAILED);
+					.setType(MetadataValueType.STRING).setDefaultValue(SearchResultsViewMode.DETAILED);
 
 			MetadataSchemaBuilder defaultSchema = typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE).getDefaultSchema();
 			defaultSchema.createUndeletable(SavedSearch.PAGE_LENGTH).setType(NUMBER);

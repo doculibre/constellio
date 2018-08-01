@@ -47,7 +47,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withTasksModule().withAllTest(users).withConstellioRMModule().withRMTest(records)
-										.withFoldersAndContainersOfEveryStatus());
+				.withFoldersAndContainersOfEveryStatus());
 		services = new BetaWorkflowServices(zeCollection, getAppLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();
 		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -365,7 +365,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(currentTask.setStatus(closedStatus).setDecision("true"));
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance)
-									  .setStatus(closedStatus));
+				.setStatus(closedStatus));
 
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Demande d'approbation", closedStatus),
@@ -376,7 +376,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 				.hasMetadata(tasks.betaWorkflowInstance.status(), WorkflowInstanceStatus.IN_PROGRESS);
 
 		recordServices.update(services.getCurrentWorkflowInstanceTask(approvalWorkflowInstance)
-									  .setStatus(closedStatus));
+				.setStatus(closedStatus));
 
 		assertThat(services.getWorkflowInstanceTasks(approvalWorkflowInstance)).extracting("title", "status").containsOnly(
 				tuple("Demande d'approbation", closedStatus),
@@ -650,7 +650,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		assertThat(services.getChildModelTasks(simpleWorkflowRoots.get(2), sessionContext)).isEmpty();
 
 		assertThat(services.getChildModelTasks(simpleWorkflowRoots.get(6), sessionContext)).extracting("title")
-																						   .containsOnly("New decision task - decision1", "New decision task - decision2");
+				.containsOnly("New decision task - decision1", "New decision task - decision2");
 	}
 
 	@Test
@@ -755,7 +755,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
 		recordServices.update(approval.addNextTaskDecision("true", approvedFirstTask.getId())
-									  .addNextTaskDecision("false", refusalFirstTask.getId()));
+				.addNextTaskDecision("false", refusalFirstTask.getId()));
 		recordServices.update(approvedFirstTask.setNextTask(approvedSecondTask.getId()));
 		//recordServices.update(refusalFirstTask.setNextTask(approval.getId()));
 		recordServices.update(details.setNextTask(approval.getId()));
@@ -790,7 +790,7 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		task2.setTitle("Task 2").setAssigneeUsersCandidates(asList(dakota, gandalf));
 		task3.setTitle("Task 3").setAssigneeUsersCandidates(asList(dakota, edouard));
 		task4.setTitle("Task 4").setAssignee(chuckNorris).setAssignationDate(new LocalDate()).setAssignedOn(new LocalDate())
-			 .setAssigner(chuckNorris);
+				.setAssigner(chuckNorris);
 		taskZ.setTitle("Task Z").setAssigneeGroupsCandidates(asList(heroes));
 		recordServices.execute(transaction);
 

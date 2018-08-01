@@ -17,9 +17,9 @@ public class RestApiValidationExceptionMapper extends BaseRestApiExceptionMapper
 	@Override
 	public Response toResponse(ConstraintViolationException e) {
 		RestApiErrorResponse errorResponse = RestApiErrorResponse.builder()
-																 .code(ValidationHelper.getResponseStatus(e).getStatusCode())
-																 .description(ValidationHelper.getResponseStatus(e).getReasonPhrase())
-																 .build();
+				.code(ValidationHelper.getResponseStatus(e).getStatusCode())
+				.description(ValidationHelper.getResponseStatus(e).getReasonPhrase())
+				.build();
 
 		ValidationError validationError = toValidationError(e);
 		errorResponse.setMessage(i18n.$(validationError.getMessageTemplate(), getLocale(), validationError.getPath()));
@@ -37,8 +37,8 @@ public class RestApiValidationExceptionMapper extends BaseRestApiExceptionMapper
 		error.setPath(idx != -1 ? path.substring(idx + 1, path.length()) : path);
 
 		error.setMessageTemplate(constraintViolation.getMessageTemplate()
-													.replace("{", "")
-													.replace("}", ""));
+				.replace("{", "")
+				.replace("}", ""));
 
 		return error;
 	}

@@ -131,7 +131,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 		if (operation.equals(EDIT) &&
 			(record.isModified(Schemas.PATH) || record.isModified(Schemas.CODE) || record.isModified(Schemas.TITLE))) {
 			Long numberOfRecordsToChange = searchServices().getResultsCount(fromAllSchemasIn(collection).where(Schemas.PATH)
-																										.isStartingWithText(((List<String>) originalRecord.get(Schemas.PATH)).get(0)));
+					.isStartingWithText(((List<String>) originalRecord.get(Schemas.PATH)).get(0)));
 			String confirmationMessage;
 
 			if (numberOfRecordsToChange < 10000) {

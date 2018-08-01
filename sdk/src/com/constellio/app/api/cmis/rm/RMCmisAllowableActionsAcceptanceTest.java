@@ -55,7 +55,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
-										.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
 		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
 		rolesManager.addRole(new Role(zeCollection, "r1", asList(MANAGE_SECURITY)));

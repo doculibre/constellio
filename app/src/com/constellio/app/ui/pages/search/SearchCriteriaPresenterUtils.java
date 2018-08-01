@@ -20,8 +20,8 @@ public class SearchCriteriaPresenterUtils extends BasePresenterUtils {
 		String collection = sessionContext.getCurrentCollection();
 		String language = sessionContext.getCurrentLocale().getLanguage();
 		List<MetadataSchema> metadataSchemas = getConstellioFactories().getModelLayerFactory().getMetadataSchemasManager()
-																	   .getSchemaTypes(collection)
-																	   .getSchemaType(schemaTypeCode).getAllSchemas();
+				.getSchemaTypes(collection)
+				.getSchemaType(schemaTypeCode).getAllSchemas();
 		for (MetadataSchema metadataSchema : metadataSchemas) {
 			metadataSchemasMap.put(metadataSchema.getCode(), metadataSchema.getLabel(Language.withCode(language)));
 		}

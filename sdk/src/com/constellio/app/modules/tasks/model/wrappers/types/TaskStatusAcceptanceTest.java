@@ -113,7 +113,7 @@ public class TaskStatusAcceptanceTest extends ConstellioTest {
 
 	private List<TaskStatus> getAllStatusWithType(TaskStatusType type) {
 		LogicalSearchQuery query = new LogicalSearchQuery(LogicalSearchQueryOperators.from(tasksSchemas.ddvTaskStatus.schema())
-																					 .where(tasksSchemas.ddvTaskStatus.statusType()).isEqualTo(type));
+				.where(tasksSchemas.ddvTaskStatus.statusType()).isEqualTo(type));
 		return tasksSchemas.wrapTaskStatuss(searchServices.search(query));
 	}
 }

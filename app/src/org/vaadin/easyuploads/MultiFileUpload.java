@@ -99,7 +99,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 			public OutputStream getOutputStream() {
 				FileDetail next = upload.getPendingFileNames().iterator()
-										.next();
+						.next();
 				return receiver.receiveUpload(next.getFileName(),
 						next.getMimeType());
 			}

@@ -385,7 +385,7 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(deltaDTO.getId()).isEqualTo(record.getId());
 		assertThat(deltaDTO.getFromVersion()).isEqualTo(1L);
 		assertThat(deltaDTO.getModifiedFields()).hasSize(2).containsEntry(dateMetadataCodeAndType, "secondValue")
-												.containsEntry(multipleBooleanMetadataCodeAndType, null);
+				.containsEntry(multipleBooleanMetadataCodeAndType, null);
 		assertThat(deltaDTO.getCopyfields()).hasSize(3).containsEntry("copiedField1",
 				"copiedValue1").containsEntry("copiedField2", "copiedValue2").containsEntry("copiedField3", "copiedValue3");
 
@@ -893,7 +893,7 @@ public class RecordImplTest extends ConstellioTest {
 		verify(stringStructureFactory, never()).build(zeStructureInitialValue);
 		verify(stringStructureFactory, never()).build(anotherStructureInitialValue);
 		assertThat(record.get(factoredMetadata)).isSameAs(record.get(factoredMetadata))
-												.isEqualTo(asList(zeStructure, anotherStructure));
+				.isEqualTo(asList(zeStructure, anotherStructure));
 		verify(stringStructureFactory, times(1)).build(zeStructureInitialValue);
 		verify(stringStructureFactory, times(1)).build(anotherStructureInitialValue);
 	}
@@ -965,7 +965,7 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.getModifiedValues()).containsEntry(factoredMetadataCodeAndType, anotherStructure).hasSize(1);
 
 		assertThat(record.toNewDocumentDTO(zeSchema, asList(copyfieldsPopulator))
-						 .getFields()).containsEntry(factoredMetadataCodeAndType, anotherStructureInitialValue);
+				.getFields()).containsEntry(factoredMetadataCodeAndType, anotherStructureInitialValue);
 
 		verify(copyfieldsPopulator).populateCopyfields(zeSchema, record);
 	}
@@ -1015,7 +1015,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(zeStructure.isDirty()).thenReturn(true);
 
 		assertThat(record.toNewDocumentDTO(zeSchema, asList(copyfieldsPopulator))
-						 .getFields())
+				.getFields())
 				.containsEntry(factoredListMetadataCodeAndType,
 						asList(zeStructureInitialValue, anotherStructureInitialValue));
 

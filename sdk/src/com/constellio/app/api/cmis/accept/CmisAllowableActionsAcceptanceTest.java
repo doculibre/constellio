@@ -95,10 +95,10 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true)
-								   .setCollectionDeleteAccess(true));
+				.setCollectionDeleteAccess(true));
 		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true)
-								   .setCollectionDeleteAccess(true));
+				.setCollectionDeleteAccess(true));
 		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
 
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -423,7 +423,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo2_unit1)
-																.givingReadWriteAccess().setExecutedBy(admin));
+				.givingReadWriteAccess().setExecutedBy(admin));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {

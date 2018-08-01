@@ -49,9 +49,9 @@ public class ESMigrationTo6_1 extends MigrationHelper implements MigrationScript
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 		transaction.add(manager.getType(collection, ConnectorInstance.SCHEMA_TYPE).withNewMetadataGroup(groups));
 		transaction.add(manager.getSchema(collection, ConnectorSmbInstance.SCHEMA_CODE)
-							   .withNewFormMetadata(ConnectorSmbInstance.SCHEMA_CODE + "_" + SKIP_SHARE_ACCESS_CONTROL));
+				.withNewFormMetadata(ConnectorSmbInstance.SCHEMA_CODE + "_" + SKIP_SHARE_ACCESS_CONTROL));
 		transaction.add(manager.getMetadata(collection, ConnectorSmbInstance.SCHEMA_CODE, SKIP_SHARE_ACCESS_CONTROL)
-							   .withMetadataGroup(advancedTab));
+				.withMetadataGroup(advancedTab));
 
 		manager.execute(transaction.build());
 	}
@@ -75,7 +75,7 @@ public class ESMigrationTo6_1 extends MigrationHelper implements MigrationScript
 			smbConnectorSchemaType.get(ConnectorSmbInstance.DOMAIN).setDefaultRequirement(false);
 			smbConnectorSchemaType.get(ConnectorSmbInstance.PASSWORD).setDefaultRequirement(false);
 			smbConnectorSchemaType.create(SKIP_SHARE_ACCESS_CONTROL)
-								  .setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+					.setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
 		}
 	}
 }

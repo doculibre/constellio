@@ -347,13 +347,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		assertThatRecord(record1).extracting(zeSchema.stringMetadata(), zeSchema.anotherStringMetadata())
-								 .isEqualTo(asList("value2", "mouahahaha"));
+				.isEqualTo(asList("value2", "mouahahaha"));
 
 		assertThatRecord(record2).extracting(zeSchema.stringMetadata())
-								 .isEqualTo(asList("value2"));
+				.isEqualTo(asList("value2"));
 
 		assertThatRecord(record("record3")).extracting(zeSchema.stringMetadata(), Schemas.MARKED_FOR_REINDEXING)
-										   .isEqualTo(asList("value1", true));
+				.isEqualTo(asList("value1", true));
 
 	}
 
@@ -379,13 +379,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		assertThatRecord(record1).extracting(zeSchema.stringMetadata(), zeSchema.anotherStringMetadata())
-								 .isEqualTo(asList("value2", "mouahahaha"));
+				.isEqualTo(asList("value2", "mouahahaha"));
 
 		assertThatRecord(record2).extracting(zeSchema.stringMetadata())
-								 .isEqualTo(asList("value2"));
+				.isEqualTo(asList("value2"));
 
 		assertThatRecord(record("record3")).extracting(zeSchema.stringMetadata(), Schemas.MARKED_FOR_REINDEXING)
-										   .isEqualTo(asList("value1", true));
+				.isEqualTo(asList("value1", true));
 
 	}
 
@@ -401,7 +401,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
 				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
-					 .defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
 		});
@@ -565,7 +565,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
 				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
-					 .defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
 		});
@@ -786,7 +786,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeSchema, "zeUltimateRecord");
 		recordServices.add(record.set(zeSchema.title(), "title")
-								 .set(zeSchema.largeTextMetadata(), asList("firstValue", "secondValue")));
+				.set(zeSchema.largeTextMetadata(), asList("firstValue", "secondValue")));
 		assertThat(reloadRecord(record.getId()).get(zeSchema.largeTextMetadata())).isEqualTo(asList("firstValue", "secondValue"));
 
 		recordServices.update(reloadRecord(record.getId()).set(zeSchema.largeTextMetadata(), asList("secondValue", "thirdValue")));
@@ -879,7 +879,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(schemas.withATitle().withAStringMetadata(whichIsEncrypted)
-							  .withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
+						.withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
 
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotNull();
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotInstanceOf(FakeEncryptionServices.class);
@@ -906,7 +906,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo(asList("2xz/K3dNfajma8DJQVMBnQ==", "0d6Amw6w/rOUYwTrjNK4LQ=="));
 
 		record.set(zeSchema.stringMetadata(), "decryptedValue2")
-			  .set(zeSchema.anotherStringMetadata(), asList("decryptedValue3", "decryptedValue4"));
+				.set(zeSchema.anotherStringMetadata(), asList("decryptedValue3", "decryptedValue4"));
 		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
 		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue2");
 		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue3", "decryptedValue4"));
@@ -1175,7 +1175,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
-				   .saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
+				.saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
 
 		recordServices.execute(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE));
@@ -1222,7 +1222,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
-				   .executeWithImpactHandler(any(Transaction.class), any(RecordModificationImpactHandler.class));
+				.executeWithImpactHandler(any(Transaction.class), any(RecordModificationImpactHandler.class));
 
 		recordServices.executeHandlingImpactsAsync(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(
@@ -1300,7 +1300,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 				MetadataSchemaTypeBuilder zeSchemaTypeBuilder = schemaTypes.getSchemaType(zeSchema.typeCode());
 				schemaTypes.getSchema(anotherSchema.code()).create("referenceFromAnotherSchemaToZeSchema")
-						   .defineReferencesTo(zeSchemaTypeBuilder).setMultivalue(true);
+						.defineReferencesTo(zeSchemaTypeBuilder).setMultivalue(true);
 			}
 		};
 	}
@@ -1976,12 +1976,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
-											.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
+				.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
-																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
 		recordServices.execute(transaction);
 
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
@@ -2013,20 +2013,20 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
-											.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
 						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
 						anotherSchemaType.getMetadata("stringMetadata").defineDataEntry()
-										 .asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
 					}
 				}));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
-																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "ours"));
 		recordServices.execute(transaction);
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
 				"Pointeur d'", "L'ours"));
@@ -2058,20 +2058,20 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-											.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder anotherSchemaType = schemaTypes.getSchema("anotherSchemaType_default");
 						MetadataBuilder zeSchemaTypeTitle = schemaTypes.getMetadata("zeSchemaType_default_title");
 						anotherSchemaType.getMetadata("stringMetadata").setMultivalue(true).defineDataEntry()
-										 .asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
+								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
 					}
 				}));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur d'")
-																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
 		recordServices.execute(transaction);
 
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
@@ -2104,12 +2104,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-											.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "d'ours"));
 		Record pointeur = transaction.add(new TestRecord(anotherSchema, "pointeur").set(TITLE, "Pointeur ")
-																				   .set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("ours")));
 		recordServices.execute(transaction);
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
 				"Pointeur ", "Pointeur [d'ours]"));
@@ -2216,9 +2216,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 				anotherSchemaBuilder.create("aStringMetadata").setType(MetadataValueType.STRING);
 				anotherSchemaBuilder.create("aCalculatedMetadataToAReference").setType(MetadataValueType.REFERENCE)
-									.setMultivalue(true)
-									.defineReferencesTo(zeSchemaTypeBuilder)
-									.defineDataEntry().asCalculated(RecordServicesAcceptanceTestCalculator.class);
+						.setMultivalue(true)
+						.defineReferencesTo(zeSchemaTypeBuilder)
+						.defineDataEntry().asCalculated(RecordServicesAcceptanceTestCalculator.class);
 			}
 		};
 	}

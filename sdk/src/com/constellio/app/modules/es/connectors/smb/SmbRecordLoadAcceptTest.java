@@ -42,7 +42,7 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
-										.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
+				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -50,9 +50,9 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		connectorManager = es.getConnectorManager();
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
-															   .setTitle("ze connector").setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain(
+				.setTitle("ze connector").setSeeds(asList("share")).setUsername("username").setPassword("password").setDomain(
 						"domain")
-															   .setTraversalCode("zeTraversal"));
+				.setTraversalCode("zeTraversal"));
 	}
 
 	@Test
@@ -132,8 +132,8 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 		System.out.println(folderUrl);
 		ConnectorSmbFolder newConnectorSmbFolder = es.newConnectorSmbFolderWithId(folderId, connectorInstance);
 		newConnectorSmbFolder.setTitle(folderName).setUrl(folderUrl).setParentUrl(parentFolder.getUrl())
-							 .setManualTokens(
-									 PUBLIC_TOKEN);
+				.setManualTokens(
+						PUBLIC_TOKEN);
 		return newConnectorSmbFolder;
 	}
 
@@ -145,8 +145,8 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 
 		ConnectorSmbDocument connectorSmbDocument = es.newConnectorSmbDocumentWithId(documentId, connectorInstance);
 		connectorSmbDocument.setTitle(documentName).setUrl(documentUrl).setParentUrl(connectorSmbFolder.getUrl())
-							.setManualTokens(
-									PUBLIC_TOKEN);
+				.setManualTokens(
+						PUBLIC_TOKEN);
 		smbRecords.add(connectorSmbDocument.getWrappedRecord());
 		if (!referenceRecords.contains(connectorSmbFolder.getWrappedRecord())) {
 			referenceRecords.add(connectorSmbFolder.getWrappedRecord());

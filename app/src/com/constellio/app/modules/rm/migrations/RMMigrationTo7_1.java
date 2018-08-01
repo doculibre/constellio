@@ -62,9 +62,9 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
 
 		transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
-									  .withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
-									  .withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-									  .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+				.withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
+				.withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+				.withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
 		);
 		displayManager.execute(transaction.build());
 		createDefaultLabel(collection, factory, provider);
@@ -88,7 +88,7 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		RecordServices rs = model.newRecordServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, factory);
 		MetadataSchemaType metaBuilder = factory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-												.getSchemaType(Printable.SCHEMA_TYPE);
+				.getSchemaType(Printable.SCHEMA_TYPE);
 		MetadataSchema typeBuilder = metaBuilder.getSchema(PrintableLabel.SCHEMA_LABEL);
 		ContentManager contentManager = model.getContentManager();
 		UserServices userServices = model.newUserServices();
@@ -157,13 +157,13 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder builder = typesBuilder.getSchemaType(Printable.SCHEMA_TYPE)
-														.createCustomSchema(PrintableLabel.SCHEMA_LABEL);
+					.createCustomSchema(PrintableLabel.SCHEMA_LABEL);
 			builder.create(PrintableLabel.TYPE_LABEL).setType(STRING).defineDataEntry()
-				   .asManual();
+					.asManual();
 			builder.create(PrintableLabel.LIGNE).setType(MetadataValueType.NUMBER).setUndeletable(true).setEssential(true)
-				   .defineDataEntry().asManual();
+					.defineDataEntry().asManual();
 			builder.create(PrintableLabel.COLONNE).setType(MetadataValueType.NUMBER).setUndeletable(true).setEssential(true)
-				   .defineDataEntry().asManual();
+					.defineDataEntry().asManual();
 
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
 
@@ -191,9 +191,9 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 		private void migrateContainerRecord(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).create(ContainerRecord.LOCALIZATION).setType(STRING)
-						.defineDataEntry().asCalculated(ContainerRecordLocalizationCalculator.class);
+					.defineDataEntry().asCalculated(ContainerRecordLocalizationCalculator.class);
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.TEMPORARY_IDENTIFIER)
-						.setDefaultRequirement(false);
+					.setDefaultRequirement(false);
 			typesBuilder.getSchema(ContainerRecord.DEFAULT_SCHEMA).get(ContainerRecord.IDENTIFIER).setDefaultRequirement(false);
 		}
 

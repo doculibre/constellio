@@ -42,10 +42,10 @@ public class RecordServicesAgregatedRefCountMetadatasAcceptTest extends Constell
 				MetadataBuilder zeSchema_zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchema_refCount = anotherType.getDefaultSchema().create("refCount")
-																	.setType(NUMBER).defineDataEntry().asReferenceCount(zeSchema_zeRef);
+						.setType(NUMBER).defineDataEntry().asReferenceCount(zeSchema_zeRef);
 				MetadataBuilder anotherSchema_zeRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder thirdSchema_refCount = thirdType.getDefaultSchema().create("refCount")
-																.setType(NUMBER).defineDataEntry().asReferenceCount(anotherSchema_zeRef);
+						.setType(NUMBER).defineDataEntry().asReferenceCount(anotherSchema_zeRef);
 
 			}
 		}));

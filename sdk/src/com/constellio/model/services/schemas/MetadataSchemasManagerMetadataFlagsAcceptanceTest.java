@@ -107,10 +107,10 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
-					 .setTransiency(TRANSIENT_EAGER);
+						.setTransiency(TRANSIENT_EAGER);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setTransiency(null);
 				types.getSchema(zeSchema.code()).get(zeSchema.numberMetadata().getLocalCode())
-					 .setTransiency(MetadataTransiency.PERSISTED);
+						.setTransiency(MetadataTransiency.PERSISTED);
 			}
 		});
 
@@ -148,7 +148,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
-						 .setTransiency(TRANSIENT_EAGER);
+							.setTransiency(TRANSIENT_EAGER);
 				}
 			});
 			fail("Exception expected");
@@ -161,7 +161,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 				@Override
 				public void alter(MetadataSchemaTypesBuilder types) {
 					types.getSchemaType(zeSchema.typeCode()).getDefaultSchema().get("stringMetadata")
-						 .setTransiency(TRANSIENT_LAZY);
+							.setTransiency(TRANSIENT_LAZY);
 				}
 			});
 			fail("Exception expected");
@@ -183,7 +183,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setEssentialInSummary(true);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode())
-					 .setEssentialInSummary(false);
+						.setEssentialInSummary(false);
 			}
 		});
 
@@ -204,7 +204,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setIncreasedDependencyLevel(true);
 				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode())
-					 .setIncreasedDependencyLevel(false);
+						.setIncreasedDependencyLevel(false);
 			}
 		});
 

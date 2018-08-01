@@ -33,7 +33,7 @@ public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements Meta
 
 			for (CopyRetentionRule copy : copies) {
 				if (copy != null && copy.getCopyType() == CopyType.PRINCIPAL && copy.getId() != null && copy.getId()
-																											.equals(input.copyRuleId)) {
+						.equals(input.copyRuleId)) {
 					//Level is not important, sice the returned object is not persisted, but only used by
 					// other calculators which are not using the level attribute
 					return new CopyRetentionRuleInRule(ruleId, parameters.getId(), 0, copy);

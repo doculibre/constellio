@@ -159,7 +159,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		if (useSecondaryLanguageField) {
 			if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
 				return dataStoreField.getAnalyzedField(params.getLanguageCode())
-									 .getSecondaryLanguageField(params.getLanguageCode());
+						.getSecondaryLanguageField(params.getLanguageCode());
 			} else {
 				return dataStoreField.getSecondaryLanguageField(params.getLanguageCode());
 			}

@@ -142,13 +142,13 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		when(schemaTypes.getSchemaTypes())
 				.thenReturn(asList(firstTypeWithImpact, secondTypeWithImpact, thirdTypeWithoutImpact));
 		doReturn(Arrays.asList(firstTypeImpact)).when(impactCalculator)
-												.findImpactsOfARecordsModificationInSchemaType(firstTypeWithImpact, recordsModification,
-														transactionRecordsList, "zeTitle");
+				.findImpactsOfARecordsModificationInSchemaType(firstTypeWithImpact, recordsModification,
+						transactionRecordsList, "zeTitle");
 		doReturn(Arrays.asList(secondTypeImpact)).when(impactCalculator).findImpactsOfARecordsModificationInSchemaType(
 				secondTypeWithImpact, recordsModification, transactionRecordsList, "zeTitle");
 		doReturn(new ArrayList<>()).when(impactCalculator)
-								   .findImpactsOfARecordsModificationInSchemaType(thirdTypeWithoutImpact, recordsModification,
-										   transactionRecordsList, "zeTitle");
+				.findImpactsOfARecordsModificationInSchemaType(thirdTypeWithoutImpact, recordsModification,
+						transactionRecordsList, "zeTitle");
 
 		List<ModificationImpact> impacts = impactCalculator.findImpactOfARecordsModification(
 				recordsModification, transactionRecordsList, "zeTitle");
@@ -282,9 +282,9 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 		Metadata automaticMetadata = mockMetadata("zetype_default_automaticMetadata");
 		doReturn(asList(reference1)).when(impactCalculator)
-									.getReferencesToMetadata(automaticMetadata, modifiedMetadata1);
+				.getReferencesToMetadata(automaticMetadata, modifiedMetadata1);
 		doReturn(asList(reference1, reference2)).when(impactCalculator)
-												.getReferencesToMetadata(automaticMetadata, modifiedMetadata2);
+				.getReferencesToMetadata(automaticMetadata, modifiedMetadata2);
 
 		List<Metadata> modifiedMetadatas = asList(modifiedMetadata1, modifiedMetadata2);
 		List<Metadata> references = impactCalculator.getReferenceMetadatasLinkingToModifiedMetadatas(

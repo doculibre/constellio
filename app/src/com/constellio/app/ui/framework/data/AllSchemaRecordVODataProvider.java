@@ -25,7 +25,7 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 
 	public AllSchemaRecordVODataProvider(String schemaCode, String collection) {
 		this(getSchemaVO(schemaCode, collection), new RecordToVOBuilder(), ConstellioFactories.getInstance()
-																							  .getModelLayerFactory());
+				.getModelLayerFactory());
 	}
 
 	private static MetadataSchema getSchema(String schemaCode, String collection, ModelLayerFactory modelLayerFactory) {

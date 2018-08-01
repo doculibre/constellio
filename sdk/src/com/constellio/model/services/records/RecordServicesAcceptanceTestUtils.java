@@ -60,7 +60,7 @@ public class RecordServicesAcceptanceTestUtils {
 				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType("aThirdSchemaType");
 
 				schemaTypes.getSchema("zeSchemaType_default").create("other").setType(REFERENCE)
-						   .defineReferences().set(anotherType);
+						.defineReferences().set(anotherType);
 				builder.defineDataEntry().asCalculated(DummyCalculatorReturningReference.class.getName());
 			}
 		};
