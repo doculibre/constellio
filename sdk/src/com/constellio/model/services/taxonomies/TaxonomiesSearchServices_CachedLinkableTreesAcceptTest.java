@@ -817,7 +817,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
-		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat(subFolder2.<Boolean>get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(subFolder1.getId(), subFolder2.getId(), records.folder_C01);
 
@@ -896,7 +896,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.setActualTransferDate(LocalDate.now());
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
 
-		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat(subFolder2.<Boolean>get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 
@@ -976,7 +976,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
 				.setActualTransferDate(LocalDate.now())));
 
-		assertThat(records.getFolder_A20().get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+		assertThat(records.getFolder_A20().<Boolean>get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 

@@ -720,8 +720,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		tx.add(rm.newDocumentWithId("documentInA53").setTitle("Document in folder A53").setFolder(rmRecords.folder_A53));
 		tx.add(rm.newDocumentWithId("documentInA54").setTitle("Document in folder A54").setFolder(rmRecords.folder_A54));
 		tx.add(rm.newDocumentWithId("documentInA55").setTitle("Document in folder A55").setFolder(rmRecords.folder_A55));
-		tx.add(rmRecords.getFolder_A49().set("refToDocument", "documentInA51")
-				.set("refToDocuments", asList("documentInA53", "documentInA54")));
+		Folder folder = rmRecords.getFolder_A49().set("refToDocument", "documentInA51")
+				.set("refToDocuments", asList("documentInA53", "documentInA54"));
+		tx.add(folder);
 		recordServices.execute(tx);
 
 		presenter.forParams(rmRecords.folder_A49);

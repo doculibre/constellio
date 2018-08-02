@@ -52,7 +52,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -89,6 +88,7 @@ import static com.constellio.sdk.tests.TestUtils.*;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
 import static java.io.File.separator;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
@@ -291,24 +291,24 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.enumMetadata().getLocalCode(), "F"));
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("new title 2");
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("new title 2");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(7.77);
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(record.<LocalDate>get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
+		assertThat(record.<LocalDateTime>get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
+		assertThat(record.<Double>get(zeSchema.numberMetadata())).isEqualTo(7.77);
+		assertThat(record.<Enum>get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "new title 3"));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("new title 3");
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("new title 3");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(7.77);
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(record.<LocalDate>get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
+		assertThat(record.<LocalDateTime>get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
+		assertThat(record.<Double>get(zeSchema.numberMetadata())).isEqualTo(7.77);
+		assertThat(record.<Enum>get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
 				.addField(zeSchema.booleanMetadata().getLocalCode(), null)
@@ -318,14 +318,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.enumMetadata().getLocalCode(), null));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("new title 3");
-		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
-		assertThat(record.get(zeSchema.dateMetadata())).isNull();
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isNull();
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("new title 3");
+		assertThat(record.<Boolean>get(zeSchema.booleanMetadata())).isNull();
+		assertThat(record.<LocalDate>get(zeSchema.dateMetadata())).isNull();
+		assertThat(record.<LocalDateTime>get(zeSchema.dateTimeMetadata())).isNull();
 
 		//assertThat(record.get(zeSchema.numberMetadata())).isNull();
-		assertThat(record.get(zeSchema.enumMetadata())).isNull();
+		assertThat(record.<Enum>get(zeSchema.enumMetadata())).isNull();
 
 	}
 
@@ -353,13 +353,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("Record 1");
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("Record 1");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isTrue();
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(aDate);
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(aDateTime);
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(6.66);
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.SECOND_VALUE);
+		assertThat(record.<LocalDate>get(zeSchema.dateMetadata())).isEqualTo(aDate);
+		assertThat(record.<LocalDateTime>get(zeSchema.dateTimeMetadata())).isEqualTo(aDateTime);
+		assertThat(record.<Double>get(zeSchema.numberMetadata())).isEqualTo(6.66);
+		assertThat(record.<Enum>get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.SECOND_VALUE);
 
 	}
 
@@ -389,13 +389,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("Record 1");
-		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("Record 1");
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.<List<LocalDate>>get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.<List<Double>>get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.<List<Enum>>get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
 
 	}
 
@@ -425,14 +425,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("Record 1");
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
-		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.<List<LocalDate>>get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.<List<Double>>get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.<List<Enum>>get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
 
 		zeSchemaTypeRecords.clear();
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("custom").addField("title", "Record 1")
@@ -444,15 +444,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("Record 1");
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_custom");
-		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
-		assertThat(record.get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customMetadataValue");
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.<List<LocalDate>>get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.<List<Double>>get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.<String>get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customMetadataValue");
+		assertThat(record.<List<Enum>>get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
 
 		zeSchemaTypeRecords.clear();
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("default").addField("title", "Record 1")
@@ -463,15 +463,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
-		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(TITLE)).isEqualTo("Record 1");
+		assertThat(record.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.<String>get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
-		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
-		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
-		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
-		assertThat(record.get(zeCustomSchemaMetadatas.customStringMetadata())).isNull();
-		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.<List<LocalDate>>get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.<List<Double>>get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.<String>get(zeCustomSchemaMetadatas.customStringMetadata())).isNull();
+		assertThat(record.<List<Enum>>get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
 	}
 
 	@Test
@@ -527,8 +527,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		for (int i = 3; i <= 13; i++) {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
-			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
-			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
+			assertThat(record.<String>get(LEGACY_ID)).isEqualTo("" + i);
+			assertThat(record.<String>get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be true")
 					.isTrue();
 		}
@@ -536,8 +536,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		for (int i = 14; i <= 19; i++) {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
-			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
-			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
+			assertThat(record.<String>get(LEGACY_ID)).isEqualTo("" + i);
+			assertThat(record.<String>get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be false")
 					.isFalse();
 		}
@@ -1906,7 +1906,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		assertThat(record1).isNull();
 
-		assertThat(record2.get(zeSchema.contentMetadata())).isNull();
+		assertThat(record2.<Content>get(zeSchema.contentMetadata())).isNull();
 		List<Content> record2ContentList = record2.get(zeSchema.contentListMetadata());
 		assertThat(record2ContentList.get(0).getCurrentVersion()).has(hashFilenameVersion(file2Hash, "File 2a.pdf", "1.0"));
 		assertThat(record2ContentList.get(1).getCurrentVersion()).has(hashFilenameVersion(file5Hash, "File 2b.pdf", "1.0"));
@@ -2019,7 +2019,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.has(hashFilenameVersion(summary1.getHash(), "File1a.pdf", "1.1"));
 		assertThat(record1Content.getCheckoutUserId()).isEqualTo(users.sasquatchIn(zeCollection).getId());
 
-		assertThat(record2.get(zeSchema.contentMetadata())).isNull();
+		assertThat(record2.<Content>get(zeSchema.contentMetadata())).isNull();
 		List<Content> record2ContentList = record2.get(zeSchema.contentListMetadata());
 		assertThat(record2ContentList.get(0).getCurrentVersion())
 				.has(hashFilenameVersion("inexistentHash2", "File1b.pdf", "1.1"));
@@ -2036,8 +2036,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 	private void deletingContentWithFilename(String hash) {
 
-		getDataLayerFactory().getContentsDao().delete(TestUtils.asList(hash));
-		getDataLayerFactory().getContentsDao().delete(TestUtils.asList(hash + "__parsed"));
+		getDataLayerFactory().getContentsDao().delete(singletonList(hash));
+		getDataLayerFactory().getContentsDao().delete(singletonList(hash + "__parsed"));
 
 	}
 
@@ -2591,13 +2591,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("11");
-		assertThat(record1.get(TITLE)).isEqualTo("pouet");
+		assertThat(record1.<String>get(TITLE)).isEqualTo("pouet");
 
 		Record record2 = recordWithLegacyId("12");
-		assertThat(record2.get(TITLE)).isEqualTo("Record 2");
+		assertThat(record2.<String>get(TITLE)).isEqualTo("Record 2");
 
 		Record record3 = recordWithLegacyId("13");
-		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
+		assertThat(record3.<String>get(TITLE)).isEqualTo("Record 3");
 	}
 
 	@Test
@@ -2621,16 +2621,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("11");
-		assertThat(record1.get(zeSchema.stringMetadata())).isEqualTo("3");
-		assertThat(record1.get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
+		assertThat(record1.<String>get(zeSchema.stringMetadata())).isEqualTo("3");
+		assertThat(record1.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
 
 		Record record2 = recordWithLegacyId("12");
-		assertThat(record2.get(zeSchema.stringMetadata())).isEqualTo("4");
-		assertThat(record2.get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
+		assertThat(record2.<String>get(zeSchema.stringMetadata())).isEqualTo("4");
+		assertThat(record2.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
 
 		Record record3 = recordWithLegacyId("13");
-		assertThat(record3.get(zeSchema.stringMetadata())).isEqualTo("1");
-		assertThat(record3.get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
+		assertThat(record3.<String>get(zeSchema.stringMetadata())).isEqualTo("1");
+		assertThat(record3.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
 
 		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
 		assertThat(sequencesManager.getLastSequenceValue("sequence1")).isEqualTo(4);
@@ -2663,16 +2663,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("11");
-		assertThat(record1.get(zeSchema.stringMetadata())).isEqualTo("3");
-		assertThat(record1.get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
+		assertThat(record1.<String>get(zeSchema.stringMetadata())).isEqualTo("3");
+		assertThat(record1.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
 
 		Record record2 = recordWithLegacyId("12");
-		assertThat(record2.get(zeSchema.stringMetadata())).isEqualTo("4");
-		assertThat(record2.get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
+		assertThat(record2.<String>get(zeSchema.stringMetadata())).isEqualTo("4");
+		assertThat(record2.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
 
 		Record record3 = recordWithLegacyId("13");
-		assertThat(record3.get(zeSchema.stringMetadata())).isEqualTo("1");
-		assertThat(record3.get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
+		assertThat(record3.<String>get(zeSchema.stringMetadata())).isEqualTo("1");
+		assertThat(record3.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
 
 		assertThat(sequencesManager.getLastSequenceValue("sequence1")).isEqualTo(10000);
 		assertThat(sequencesManager.getLastSequenceValue("sequence2")).isEqualTo(20000);
@@ -2709,13 +2709,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("11");
-		assertThat(record1.get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
+		assertThat(record1.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
 
 		Record record2 = recordWithLegacyId("12");
-		assertThat(record2.get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
+		assertThat(record2.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
 
 		Record record3 = recordWithLegacyId("13");
-		assertThat(record3.get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
+		assertThat(record3.<String>get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
 
 		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
 		assertThat(sequencesManager.getLastSequenceValue("sequence1")).isEqualTo(42);
@@ -3384,36 +3384,36 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		Record record666 = recordWithLegacyId("666");
 
 		assertThat(record1.getId()).isNotEqualTo("1");
-		assertThat(record1.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record1.get(TITLE)).isEqualTo("Record 1");
-		assertThat(record1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record2.getId());
+		assertThat(record1.<String>get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record1.<String>get(TITLE)).isEqualTo("Record 1");
+		assertThat(record1.<String>get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record2.getId());
 
 		assertThat(record2.getId()).isNotEqualTo("2");
-		assertThat(record2.get(LEGACY_ID)).isEqualTo("2");
-		assertThat(record2.get(TITLE)).isEqualTo("Record 2");
-		assertThat(record2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record3.getId());
+		assertThat(record2.<String>get(LEGACY_ID)).isEqualTo("2");
+		assertThat(record2.<String>get(TITLE)).isEqualTo("Record 2");
+		assertThat(record2.<String>get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record3.getId());
 
 		assertThat(record3.getId()).isNotEqualTo("3");
-		assertThat(record3.get(LEGACY_ID)).isEqualTo("3");
-		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
-		assertThat(record3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record42.getId());
+		assertThat(record3.<String>get(LEGACY_ID)).isEqualTo("3");
+		assertThat(record3.<String>get(TITLE)).isEqualTo("Record 3");
+		assertThat(record3.<String>get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record42.getId());
 
 		assertThat(record42.getId()).isNotEqualTo("42");
-		assertThat(record42.get(LEGACY_ID)).isEqualTo("42");
-		assertThat(record42.get(TITLE)).isEqualTo("Record 42");
-		assertThat(record42.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo("previouslySavedRecordId");
+		assertThat(record42.<String>get(LEGACY_ID)).isEqualTo("42");
+		assertThat(record42.<String>get(TITLE)).isEqualTo("Record 42");
+		assertThat(record42.<String>get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo("previouslySavedRecordId");
 
 		assertThat(record43.getId()).isNotEqualTo("43");
-		assertThat(record43.get(LEGACY_ID)).isEqualTo("43");
-		assertThat(record43.get(TITLE)).isEqualTo("Record 43");
-		assertThat(record43.get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customFieldValue");
-		assertThat(record43.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isNull();
-		assertThat(record43.getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(record43.<String>get(LEGACY_ID)).isEqualTo("43");
+		assertThat(record43.<String>get(TITLE)).isEqualTo("Record 43");
+		assertThat(record43.<String>get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customFieldValue");
+		assertThat(record43.<String>get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isNull();
+		assertThat(record43.<String>getSchemaCode()).isEqualTo("zeSchemaType_custom");
 
 		assertThat(record666.getId()).isNotEqualTo("666");
-		assertThat(record666.get(LEGACY_ID)).isEqualTo("666");
-		assertThat(record666.get(TITLE)).isEqualTo("Ze record");
-		assertThat(record666.get(anotherSchema.referenceFromAnotherSchemaToZeSchema())).isEqualTo(record1.getId());
+		assertThat(record666.<String>get(LEGACY_ID)).isEqualTo("666");
+		assertThat(record666.<String>get(TITLE)).isEqualTo("Ze record");
+		assertThat(record666.<String>get(anotherSchema.referenceFromAnotherSchemaToZeSchema())).isEqualTo(record1.getId());
 	}
 
 	private ImportDataBuilder defaultSchemaData() {

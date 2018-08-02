@@ -188,7 +188,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 	private void thenChuckCanConnectInAnotherCollection() {
 		cmisSessionChuck = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(anotherCollection)
 				.build();
-		assertThat(cmisSessionChuck.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
+		assertThat(cmisSessionChuck.getRootFolder().getProperty("cmis:path").<String>getValue()).isEqualTo("/");
 	}
 
 	private void thenBobCannotConnectInAnotherCollection() {
@@ -221,7 +221,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		Session cmisSessionChuckThirdCollection = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx")
 				.onCollection(thirdCollection).build();
-		assertThat(cmisSessionChuckThirdCollection.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
+		assertThat(cmisSessionChuckThirdCollection.getRootFolder().getProperty("cmis:path").<String>getValue()).isEqualTo("/");
 	}
 
 	// --- ---
@@ -237,10 +237,10 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		public void run() {
 			cmisSessionChuck = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection)
 					.build();
-			assertThat(cmisSessionChuck.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
+			assertThat(cmisSessionChuck.getRootFolder().getProperty("cmis:path").<String>getValue()).isEqualTo("/");
 			cmisSessionBob = newCmisSessionBuilder().authenticatedBy(bobGratton, "xsw21qaz").onCollection(zeCollection)
 					.build();
-			assertThat(cmisSessionBob.getRootFolder().getProperty("cmis:path").getValue()).isEqualTo("/");
+			assertThat(cmisSessionBob.getRootFolder().getProperty("cmis:path").<String>getValue()).isEqualTo("/");
 		}
 	}
 

@@ -245,14 +245,16 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 			}
 		});
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "yyyy-MM-dd");
-		recordServices.update(records.getFolder_A01().set("test", asList(new LocalDate("2018-02-11"))));
+		Folder folder1 = records.getFolder_A01().set("test", asList(new LocalDate("2018-02-11")));
+		recordServices.update(folder1);
 		reindex();
 		waitForBatchProcess();
 
 		List<String> queriesWithResults = getQueriesWithResults(asList("2018-02-11", "11-02-2018", "2018-02", "2018-11", "2018", "02", "11", "2", "1", "asdf"));
 		assertThat(queriesWithResults).containsOnly("2018-02-11", "2018");
 
-		recordServices.update(records.getFolder_A01().set("test", asList(new LocalDate("2019-03-12"), new LocalDate("2020-04-13"))));
+		Folder folder2 = records.getFolder_A01().set("test", asList(new LocalDate("2019-03-12"), new LocalDate("2020-04-13")));
+		recordServices.update(folder2);
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.DATE_FORMAT, "dd-MM-yyyy");
 		reindex();
 		waitForBatchProcess();

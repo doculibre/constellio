@@ -73,9 +73,9 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		RecordVO adminUnit = presenter.getAdministrativeUnit();
 
 		assertThat(adminUnit.getId()).isEqualTo(records.unitId_10);
-		assertThat(adminUnit.get(AdministrativeUnit.CODE)).isEqualTo(records.getUnit10().getCode());
-		assertThat(adminUnit.get(Schemas.TITLE.getLocalCode())).isEqualTo(records.getUnit10().getTitle());
-		assertThat(adminUnit.get(Schemas.CREATED_ON.getLocalCode())).isEqualTo(records.getUnit10().getCreatedOn());
+		assertThat(adminUnit.<String>get(AdministrativeUnit.CODE)).isEqualTo(records.getUnit10().getCode());
+		assertThat(adminUnit.<String>get(Schemas.TITLE.getLocalCode())).isEqualTo(records.getUnit10().getTitle());
+		assertThat(adminUnit.<String>get(Schemas.CREATED_ON.getLocalCode())).isEqualTo(records.getUnit10().getCreatedOn());
 	}
 
 	@Test

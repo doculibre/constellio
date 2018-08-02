@@ -121,42 +121,42 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 				getDataLayerFactory().getSettingsCacheManager());
 		otherManager.initialize();
 
-		assertThat(otherManager.getValue(text)).isEqualTo("dakota");
-		assertThat(otherManager.getValue(textWithDefaultValue)).isEqualTo("bob");
+		assertThat(otherManager.<String>getValue(text)).isEqualTo("dakota");
+		assertThat(otherManager.<String>getValue(textWithDefaultValue)).isEqualTo("bob");
 	}
 
 	@Test
 	public void givenTextMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
-		assertThat(manager.getValue(text)).isNull();
-		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("bob");
-		assertThat(managerOfOtherInstance.getValue(text)).isNull();
-		assertThat(managerOfOtherInstance.getValue(textWithDefaultValue)).isEqualTo("bob");
+		assertThat(manager.<String>getValue(text)).isNull();
+		assertThat(manager.<String>getValue(textWithDefaultValue)).isEqualTo("bob");
+		assertThat(managerOfOtherInstance.<String>getValue(text)).isNull();
+		assertThat(managerOfOtherInstance.<String>getValue(textWithDefaultValue)).isEqualTo("bob");
 
 		manager.setValue(text, "dakota");
 
-		assertThat(manager.getValue(text)).isEqualTo("dakota");
-		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("dakota");
+		assertThat(manager.<String>getValue(text)).isEqualTo("dakota");
+		assertThat(managerOfOtherInstance.<String>getValue(text)).isEqualTo("dakota");
 
 		manager.setValue(textWithDefaultValue, "lindien");
 
-		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("dakota");
-		assertThat(managerOfOtherInstance.getValue(textWithDefaultValue)).isEqualTo("lindien");
-		assertThat(manager.getValue(text)).isEqualTo("dakota");
-		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("lindien");
+		assertThat(managerOfOtherInstance.<String>getValue(text)).isEqualTo("dakota");
+		assertThat(managerOfOtherInstance.<String>getValue(textWithDefaultValue)).isEqualTo("lindien");
+		assertThat(manager.<String>getValue(text)).isEqualTo("dakota");
+		assertThat(manager.<String>getValue(textWithDefaultValue)).isEqualTo("lindien");
 
 		manager.setValue(text, "alice");
 		managerOfOtherInstance.setValue(textWithDefaultValue, "wonderland");
 
-		assertThat(managerOfOtherInstance.getValue(text)).isEqualTo("alice");
-		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("wonderland");
+		assertThat(managerOfOtherInstance.<String>getValue(text)).isEqualTo("alice");
+		assertThat(manager.<String>getValue(textWithDefaultValue)).isEqualTo("wonderland");
 
 		manager.reset(text);
 		managerOfOtherInstance.reset(textWithDefaultValue);
 
-		assertThat(managerOfOtherInstance.getValue(text)).isNull();
-		assertThat(manager.getValue(textWithDefaultValue)).isEqualTo("bob");
+		assertThat(managerOfOtherInstance.<String>getValue(text)).isNull();
+		assertThat(manager.<String>getValue(textWithDefaultValue)).isEqualTo("bob");
 
 	}
 
@@ -164,26 +164,26 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenNumberMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
-		assertThat(manager.getValue(number)).isNull();
-		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(42);
+		assertThat(manager.<Integer>getValue(number)).isNull();
+		assertThat(managerOfOtherInstance.<Integer>getValue(numberWithDefaultValue)).isEqualTo(42);
 
 		managerOfOtherInstance.setValue(number, 12);
 		manager.setValue(numberWithDefaultValue, 34);
 
-		assertThat(manager.getValue(number)).isEqualTo(12);
-		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(34);
+		assertThat(manager.<Integer>getValue(number)).isEqualTo(12);
+		assertThat(managerOfOtherInstance.<Integer>getValue(numberWithDefaultValue)).isEqualTo(34);
 
 		managerOfOtherInstance.setValue(number, 56);
 		manager.setValue(numberWithDefaultValue, 78);
 
-		assertThat(manager.getValue(number)).isEqualTo(56);
-		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(78);
+		assertThat(manager.<Integer>getValue(number)).isEqualTo(56);
+		assertThat(managerOfOtherInstance.<Integer>getValue(numberWithDefaultValue)).isEqualTo(78);
 
 		managerOfOtherInstance.reset(number);
 		manager.reset(numberWithDefaultValue);
 
-		assertThat(manager.getValue(number)).isNull();
-		assertThat(managerOfOtherInstance.getValue(numberWithDefaultValue)).isEqualTo(42);
+		assertThat(manager.<Integer>getValue(number)).isNull();
+		assertThat(managerOfOtherInstance.<Integer>getValue(numberWithDefaultValue)).isEqualTo(42);
 
 	}
 
@@ -191,7 +191,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenBinaryMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
-		assertThat(manager.getValue(binary)).isNull();
+		assertThat(manager.<Object>getValue(binary)).isNull();
 
 		managerOfOtherInstance.setValue(binary, getTestResourceInputStreamFactory("binary1.png"));
 		StreamFactory<InputStream> value = manager.getValue(binary);
@@ -202,10 +202,10 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(value.create(SDK_STREAM)).hasContentEqualTo(getTestResourceInputStream("binary2.png"));
 
 		managerOfOtherInstance.reset(binary);
-		assertThat(manager.getValue(binary)).isNull();
+		assertThat(manager.<Object>getValue(binary)).isNull();
 
 		manager.reset(binary);
-		assertThat(manager.getValue(binary)).isNull();
+		assertThat(manager.<Object>getValue(binary)).isNull();
 
 	}
 
@@ -213,20 +213,20 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenBooleanMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
-		assertThat(managerOfOtherInstance.getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
-		assertThat(manager.getValue(booleanWithTrueByDefault)).isEqualTo(Boolean.TRUE);
+		assertThat(managerOfOtherInstance.<Boolean>getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
+		assertThat(manager.<Boolean>getValue(booleanWithTrueByDefault)).isEqualTo(Boolean.TRUE);
 
 		manager.setValue(booleanWithFalseByDefault, true);
 		managerOfOtherInstance.setValue(booleanWithTrueByDefault, false);
 
-		assertThat(managerOfOtherInstance.getValue(booleanWithFalseByDefault)).isEqualTo(true);
-		assertThat(manager.getValue(booleanWithTrueByDefault)).isEqualTo(false);
+		assertThat(managerOfOtherInstance.<Boolean>getValue(booleanWithFalseByDefault)).isEqualTo(true);
+		assertThat(manager.<Boolean>getValue(booleanWithTrueByDefault)).isEqualTo(false);
 
 		manager.reset(booleanWithFalseByDefault);
 		managerOfOtherInstance.reset(booleanWithTrueByDefault);
 
-		assertThat(managerOfOtherInstance.getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
-		assertThat(manager.getValue(booleanWithTrueByDefault)).isEqualTo(Boolean.TRUE);
+		assertThat(managerOfOtherInstance.<Boolean>getValue(booleanWithFalseByDefault)).isEqualTo(Boolean.FALSE);
+		assertThat(manager.<Boolean>getValue(booleanWithTrueByDefault)).isEqualTo(Boolean.TRUE);
 
 	}
 
@@ -234,26 +234,26 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	public void givenEnumMetadataThenCanRetrieveAndAlterValue()
 			throws Exception {
 
-		assertThat(managerOfOtherInstance.getValue(enumValue)).isNull();
-		assertThat(manager.getValue(enumValue)).isNull();
-		assertThat(managerOfOtherInstance.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
-		assertThat(manager.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(managerOfOtherInstance.<Object>getValue(enumValue)).isNull();
+		assertThat(manager.<Object>getValue(enumValue)).isNull();
+		assertThat(managerOfOtherInstance.<Object>getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(manager.<Object>getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		manager.setValue(enumValue, AValidEnum.SECOND_VALUE);
 		manager.setValue(enumWithDefaultValue, AValidEnum.FIRST_VALUE);
 
-		assertThat(managerOfOtherInstance.getValue(enumValue)).isEqualTo(AValidEnum.SECOND_VALUE);
-		assertThat(manager.getValue(enumValue)).isEqualTo(AValidEnum.SECOND_VALUE);
-		assertThat(managerOfOtherInstance.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
-		assertThat(manager.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(managerOfOtherInstance.<Object>getValue(enumValue)).isEqualTo(AValidEnum.SECOND_VALUE);
+		assertThat(manager.<Object>getValue(enumValue)).isEqualTo(AValidEnum.SECOND_VALUE);
+		assertThat(managerOfOtherInstance.<Object>getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(manager.<Object>getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 
 		manager.reset(enumValue);
 		manager.reset(enumWithDefaultValue);
 
-		assertThat(managerOfOtherInstance.getValue(enumValue)).isNull();
-		assertThat(manager.getValue(enumValue)).isNull();
-		assertThat(managerOfOtherInstance.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
-		assertThat(manager.getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(managerOfOtherInstance.<Object>getValue(enumValue)).isNull();
+		assertThat(manager.<Object>getValue(enumValue)).isNull();
+		assertThat(managerOfOtherInstance.<Object>getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
+		assertThat(manager.<Object>getValue(enumWithDefaultValue)).isEqualTo(AValidEnum.FIRST_VALUE);
 
 	}
 

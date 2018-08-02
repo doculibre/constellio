@@ -146,7 +146,7 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 		String id = es.getConnectorHttpInstanceWithCode("newCode").getId();
 
-		assertThat(recordServices.getDocumentById(id).get(Schemas.TITLE)).isEqualTo("new Title");
+		assertThat(recordServices.getDocumentById(id).<String>get(Schemas.TITLE)).isEqualTo("new Title");
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(ConnectorHttpDocument.SCHEMA_TYPE + "_" + id))
 				.isNotNull();
 	}

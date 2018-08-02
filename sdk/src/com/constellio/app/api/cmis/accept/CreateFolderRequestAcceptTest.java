@@ -88,12 +88,12 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 		Record createdRecord = recordServices.getDocumentById(id);
 		assertThat(createdRecord).isNotNull();
-		assertThat(createdRecord.get(Schemas.TITLE)).isEqualTo("testFolder");
+		assertThat(createdRecord.<String>get(Schemas.TITLE)).isEqualTo("testFolder");
 		assertThat(((LocalDateTime) createdRecord.get(Schemas.CREATED_ON)).toDate()).isEqualTo(
 				new LocalDate(2014, 11, 04).toDate());
-		assertThat(createdRecord.get(Schemas.CREATED_BY)).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
-		assertThat(createdRecord.get(zeCollectionSchemas.folderSchema.taxonomy1())).isEqualTo("zetaxo1_category1");
-		assertThat(createdRecord.get(zeCollectionSchemas.folderSchema.numberMeta())).isEqualTo(42.666);
+		assertThat(createdRecord.<String>get(Schemas.CREATED_BY)).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(createdRecord.<String>get(zeCollectionSchemas.folderSchema.taxonomy1())).isEqualTo("zetaxo1_category1");
+		assertThat(createdRecord.<Double>get(zeCollectionSchemas.folderSchema.numberMeta())).isEqualTo(42.666);
 	}
 
 	@Test
@@ -104,11 +104,11 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 		Record createdRecord = recordServices.getDocumentById(id);
 		assertThat(createdRecord).isNotNull();
-		assertThat(createdRecord.get(Schemas.TITLE)).isEqualTo("testCategory");
+		assertThat(createdRecord.<String>get(Schemas.TITLE)).isEqualTo("testCategory");
 		assertThat(((LocalDateTime) createdRecord.get(Schemas.CREATED_ON)).toDate()).isEqualTo(
 				new LocalDate(2014, 11, 04).toDate());
-		assertThat(createdRecord.get(Schemas.CREATED_BY)).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
-		assertThat(createdRecord.get(zeCollectionSchemas.category.parentOfDocumentFond())).isEqualTo("zetaxo1_fond1");
+		assertThat(createdRecord.<String>get(Schemas.CREATED_BY)).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(createdRecord.<String>get(zeCollectionSchemas.category.parentOfDocumentFond())).isEqualTo("zetaxo1_fond1");
 	}
 
 	@Test
