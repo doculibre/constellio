@@ -1,24 +1,12 @@
 package com.constellio.app.modules.es.services.crawler;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.modules.es.ESConfigs;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ConnectorsUtils;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
@@ -27,8 +15,19 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.*;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
@@ -48,13 +47,15 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
 	Map<String, Map<String, ConnectorField>> fieldsDeclarationPerConnectorId = new HashMap<>();
 
-	public DefaultConnectorEventObserver(ESSchemasRecordsServices es, ConnectorLogger connectorLogger, String resourceName) {
+	public DefaultConnectorEventObserver(ESSchemasRecordsServices es, ConnectorLogger connectorLogger,
+										 String resourceName) {
 		this.es = es;
 		this.connectorLogger = connectorLogger;
 		this.resourceName = resourceName;
 		this.userServices = es.getModelLayerFactory().newUserServices();
 		ESConfigs esConfigs = new ESConfigs(es.getModelLayerFactory());
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+				.showProgressionInConsole(false)
 				.withRecordsPerBatch(esConfigs.getConnectorNumberOfRecordsPerBatch()).withNumberOfThreads(esConfigs.getConnectorNumberOfThreads());
 		options.getTransactionOptions().setUnicityValidationsEnabled(false);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
@@ -84,8 +85,9 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		boolean flushNow = false;
 		for (Record record : documentRecords) {
 			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
-					.getCacheConfigOf(record.getSchemaCode()) != null)
+									.getCacheConfigOf(record.getSchemaCode()) != null) {
 				flushNow = true;
+			}
 		}
 		transaction.setRecordFlushing(flushNow ? RecordsFlushing.NOW : RecordsFlushing.LATER());
 
@@ -97,7 +99,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	}
 
 	private synchronized void addFieldDeclarations(String connectorId,
-			Map<String, ConnectorField> fieldDeclarations) {
+												   Map<String, ConnectorField> fieldDeclarations) {
 
 		Map<String, ConnectorField> connectorFields = fieldsDeclarationPerConnectorId.get(connectorId);
 		if (connectorFields == null) {
@@ -125,8 +127,9 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		boolean flushNow = false;
 		for (Record record : documentRecords) {
 			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
-					.getCacheConfigOf(record.getSchemaCode()) != null)
+									.getCacheConfigOf(record.getSchemaCode()) != null) {
 				flushNow = true;
+			}
 		}
 		List<Record> records = new RecordUtils().unwrap(documents);
 
@@ -215,11 +218,11 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	public void deleteEvents(DeleteEventOptions options, List<ConnectorDocument> documents) {
 		for (ConnectorDocument document : documents) {
 			try {
-				if(document.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE)
-						|| document.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE)) {
-//					RecordDeleteServices recordDeleteServices = new RecordDeleteServices(es.getModelLayerFactory().getDataLayerFactory().newRecordDao(), es.getModelLayerFactory());
-//					recordDeleteServices.logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
-//					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+				if (document.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE)
+					|| document.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE)) {
+					//					RecordDeleteServices recordDeleteServices = new RecordDeleteServices(es.getModelLayerFactory().getDataLayerFactory().newRecordDao(), es.getModelLayerFactory());
+					//					recordDeleteServices.logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
+					//					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
 				} else {
 					es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
 					es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
