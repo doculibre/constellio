@@ -1,23 +1,80 @@
 package com.constellio.model.utils;
 
+import org.junit.Test;
+
+import java.util.*;
+
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.junit.Test;
-
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class DependencyUtilsTest {
 
 	DependencyUtils utils = new DependencyUtils();
+
+
+	//	@Test
+	//	public void whenSortingByDependencyUsingMultipleLevelsThenUseNextLevelsToHandleEqualitiesInFirstLevels()
+	//			throws Exception {
+	//
+	//		Map<String, Set<String>> firstLevelMap = new HashMap<>();
+	//		firstLevelMap.put("a", asSet("b", "c"));
+	//		firstLevelMap.put("b", asSet("c"));
+	//		firstLevelMap.put("c", new HashSet<String>());
+	//		firstLevelMap.put("d", new HashSet<String>());
+	//		firstLevelMap.put("e", new HashSet<String>());
+	//
+	//		Map<String, Set<String>> secondLevelMap = new HashMap<>();
+	//		firstLevelMap.put("c", asSet("d", "e"));
+	//		firstLevelMap.put("e", asSet("b"));
+	//
+	//		Map<String, Set<String>> thirdLevelMap = new HashMap<>();
+	//		firstLevelMap.put("a", asSet("b", "c"));
+	//		firstLevelMap.put("b", asSet("c"));
+	//
+	//		List<String> dependencies = utils.sortByDependency(asMap(firstLevelMap));
+	//
+	//		assertThat(dependencies).containsExactly("b", "a");
+	//
+	//	}
+
+	@Test
+	public void testfrancis()
+			throws Exception {
+
+		Map<String, Set<String>> dependenciesMap = new HashMap<>();
+		dependenciesMap.put("a", asSet("a@2"));
+		dependenciesMap.put("b", asSet("b@2", "a"));
+		dependenciesMap.put("c", asSet("c@2", "d"));
+		dependenciesMap.put("d", asSet("d@2"));
+		dependenciesMap.put("e", asSet("e@2"));
+		dependenciesMap.put("f", asSet("f@2"));
+
+		dependenciesMap.put("a@2", asSet("a@3"));
+		dependenciesMap.put("b@2", asSet("b@3"));
+		dependenciesMap.put("c@2", asSet("c@3", "e@2"));
+		dependenciesMap.put("d@2", asSet("d@3"));
+		dependenciesMap.put("e@2", asSet("e@3"));
+		dependenciesMap.put("f@2", asSet("f@3", "b@2"));
+
+
+		dependenciesMap.put("a@3", asSet("e@3"));
+		dependenciesMap.put("b@3", new HashSet<String>());
+		dependenciesMap.put("c@3", asSet("f@3", "d@3"));
+		dependenciesMap.put("d@3", asSet("e@3", "c@3"));
+		dependenciesMap.put("e@3", new HashSet<String>());
+		dependenciesMap.put("f@3", new HashSet<String>());
+
+
+		//utils.validateNoCyclicDependencies(dependenciesMap);
+
+		List<String> dependencies = utils.sortByDependency(dependenciesMap);
+
+		System.out.println(dependencies);
+
+	}
 
 	@Test
 	public void givenMapWithoutCyclicDependenciesWhenSortingByDependencyThenCorrectOrder()

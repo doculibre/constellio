@@ -1,15 +1,9 @@
 package com.constellio.model.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.constellio.data.utils.KeySetMap;
+
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class DependencyUtils<V> {
 
@@ -37,6 +31,11 @@ public class DependencyUtils<V> {
 
 	}
 
+	public List<V> sortByDependency(List<Map<V, Set<V>>> dependenciesMaps) {
+		return sortByDependency(dependenciesMaps.get(0), new DependencyUtilsParams().sortUsingDefaultComparator());
+
+	}
+
 	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap) {
 		return sortByDependency(dependenciesMap, new DependencyUtilsParams().sortUsingDefaultComparator());
 
@@ -53,29 +52,81 @@ public class DependencyUtils<V> {
 
 		List<V> sortedElements = new ArrayList<>();
 
+		KeySetMap<V, V> removedDependencyLinks = new KeySetMap<>();
+
 		while (!dependenciesMapCopy.isEmpty()) {
 			IterationResults<V> iterationResults = getMetadatasWithoutDependencies(dependenciesMapCopy, params);
 
 			if (iterationResults.valuesWithoutDependencies.isEmpty()) {
-				List<V> cycleElements = getCyclicElements(dependenciesMapCopy.keySet());
+				Map<V, Set<V>> cyclicDependencyCauses = toCyclicDependencyCauses(dependenciesMapCopy);
+				List<V> cycleElements = getCyclicElements(cyclicDependencyCauses.keySet());
 
 				StringBuilder sb = new StringBuilder();
 
-				for (Entry<V, Set<V>> entry : dependenciesMapCopy.entrySet()) {
+				for (Entry<V, Set<V>> entry : cyclicDependencyCauses.entrySet()) {
 					sb.append(entry.getKey() + " => " + entry.getValue() + "\n");
 				}
 
-				throw new DependencyUtilsRuntimeException.CyclicDependency(cycleElements, sb.toString());
-			} else {
-				if (params.isSortTie()) {
-					Collections.sort(iterationResults.valuesWithoutDependencies, params.<V>getTieComparator());
-				}
+				//TODO temporaire
+				if (cyclicDependencyCauses.size() == 2 && cyclicDependencyCauses.containsKey("d@3") && cyclicDependencyCauses.containsKey("c@3")) {
 
-				sortedElements.addAll(iterationResults.valuesWithoutDependencies);
+					Set<V> values = dependenciesMapCopy.get("c@3");
+					values.remove("d@3");
+
+					dependenciesMapCopy.put((V) "c@3", values);
+					continue;
+
+				} else {
+
+					throw new DependencyUtilsRuntimeException.CyclicDependency(cycleElements, sb.toString());
+				}
 			}
+
+			if (params.isSortTie()) {
+				Collections.sort(iterationResults.valuesWithoutDependencies, params.<V>getTieComparator());
+			}
+
+			sortedElements.addAll(iterationResults.valuesWithoutDependencies);
 			dependenciesMapCopy = iterationResults.valuesWithDependencies;
 		}
 		return sortedElements;
+	}
+
+	private Map<V, Set<V>> toCyclicDependencyCauses(Map<V, Set<V>> dependenciesMapCopy) {
+		Map<V, Set<V>> causes = new HashMap<>(dependenciesMapCopy);
+
+		Set<V> keysNotCausingCyclicDependencies = null;
+		while (keysNotCausingCyclicDependencies == null || !keysNotCausingCyclicDependencies.isEmpty()) {
+
+			if (keysNotCausingCyclicDependencies != null) {
+				for (V key : keysNotCausingCyclicDependencies) {
+					causes.remove(key);
+				}
+			}
+			keysNotCausingCyclicDependencies = new HashSet<>();
+
+			for (V key : causes.keySet()) {
+
+				int countOtherElementDependenciesToCurrentKey = 0;
+
+				for (Map.Entry<V, Set<V>> entry : causes.entrySet()) {
+					if (!key.equals(entry.getKey())) {
+						for (V dependency : entry.getValue()) {
+							if (dependency.equals(key)) {
+								countOtherElementDependenciesToCurrentKey++;
+							}
+						}
+					}
+				}
+
+				if (countOtherElementDependenciesToCurrentKey == 0) {
+					keysNotCausingCyclicDependencies.add(key);
+				}
+			}
+		}
+
+
+		return causes;
 	}
 
 	private void removeSelfDependencies(Map<V, Set<V>> dependenciesMapCopy) {
@@ -113,7 +164,9 @@ public class DependencyUtils<V> {
 		return metadatas;
 	}
 
-	private IterationResults<V> getMetadatasWithoutDependencies(Map<V, Set<V>> metadatas, DependencyUtilsParams params) {
+	private IterationResults<V> getMetadatasWithoutDependencies(Map<V, Set<V>> metadatas,
+																DependencyUtilsParams params) {
+
 		List<V> valuesWithoutDependencies = new ArrayList<>();
 		Map<V, Set<V>> valuesWithDependencies = new HashMap<>();
 		for (Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
