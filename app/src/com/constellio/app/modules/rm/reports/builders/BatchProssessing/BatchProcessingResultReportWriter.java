@@ -24,6 +24,8 @@ import static java.util.Arrays.asList;
 public class BatchProcessingResultReportWriter implements ReportWriter {
     private static final WritableFont.FontName FONT = WritableFont.TIMES;
     private static final int FONT_SIZE = 10;
+    private static final int MAX_NUMBER_OF_RECORDS_PER_SHEET = 10;
+    private static final int MAX_NUMBER_OF_SHEETS = 100;
     BatchProcessingResultModel model;
     Locale locale;
 
@@ -44,13 +46,9 @@ public class BatchProcessingResultReportWriter implements ReportWriter {
         wbSettings.setLocale(locale);
 
         WritableWorkbook workbook = Workbook.createWorkbook(output, wbSettings);
-        workbook.createSheet(i18n.$("Report.sheetName"), 0);
-        WritableSheet excelSheet = workbook.getSheet(0);
-        excelSheet.setColumnView(0, 30);
-        excelSheet.setColumnView(1, 30);
-        excelSheet.setColumnView(2, 30);
+        WritableSheet excelSheet = createNewSheet(workbook, model.resultsCount());
         try {
-            createContent(excelSheet, model);
+            createContent(workbook, excelSheet, model);
         } catch (WriteException e) {
             throw new RuntimeException(e);
         }
@@ -61,6 +59,18 @@ public class BatchProcessingResultReportWriter implements ReportWriter {
         } catch (WriteException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private WritableSheet createNewSheet(WritableWorkbook workbook, int totalNumberOfRecords) {
+        int currentNumnerOfSheet = workbook.getNumberOfSheets();
+        String sheetName = i18n.$("Report.sheetName") + " " + ((currentNumnerOfSheet) * MAX_NUMBER_OF_RECORDS_PER_SHEET + 1)
+                + " - " + Math.min(((currentNumnerOfSheet + 1) * MAX_NUMBER_OF_RECORDS_PER_SHEET), totalNumberOfRecords);
+        workbook.createSheet(sheetName, currentNumnerOfSheet);
+        WritableSheet excelSheet = workbook.getSheet(currentNumnerOfSheet);
+        excelSheet.setColumnView(0, 30);
+        excelSheet.setColumnView(1, 30);
+        excelSheet.setColumnView(2, 30);
+        return excelSheet;
     }
 
     private void addHeader(WritableSheet sheet, List<String> columnsTitles)
@@ -76,29 +86,41 @@ public class BatchProcessingResultReportWriter implements ReportWriter {
         }
     }
 
-    private void createContent(WritableSheet sheet, BatchProcessingResultModel model) throws WriteException{
+    private void createContent(WritableWorkbook workbook, WritableSheet sheet, BatchProcessingResultModel model) throws WriteException{
         WritableCellFormat  font = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE));
         WritableCellFormat boldFont = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
         WritableCellFormat redFont = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.RED));
 
+        WritableSheet currentSheet = sheet;
         int currentExcelLine = 0;
+        int currentNumberOfRecord = 0;
         List<Object> resultHeaderLine = getColumnsTitles();
 
         for(int lineNumber =0; lineNumber < model.resultsCount(); lineNumber++) {
+            if(currentNumberOfRecord >= MAX_NUMBER_OF_RECORDS_PER_SHEET) {
+                if(workbook.getNumberOfSheets() < MAX_NUMBER_OF_SHEETS) {
+                    currentSheet = createNewSheet(workbook, model.resultsCount());
+                    currentExcelLine = 0;
+                    currentNumberOfRecord = 0;
+                } else {
+                    break;
+                }
+            }
             BatchProcessRecordModifications currentResult = model.getResult(lineNumber);
-            writeLine(sheet, asList(model.getResultTitle(currentResult)), currentExcelLine, boldFont);
+            writeLine(currentSheet, asList(model.getResultTitle(currentResult)), currentExcelLine, boldFont);
             currentExcelLine++;
-            writeLine(sheet, resultHeaderLine, currentExcelLine, boldFont);
+            writeLine(currentSheet, resultHeaderLine, currentExcelLine, boldFont);
             currentExcelLine++;
             for(List<Object> currentLine : model.getResultLines(currentResult)) {
-                writeLine(sheet, currentLine, currentExcelLine, font);
+                writeLine(currentSheet, currentLine, currentExcelLine, font);
                 currentExcelLine++;
             }
             for(List<Object> currentImpact : model.getImpacts(currentResult)) {
-                writeLine(sheet, currentImpact, currentExcelLine, redFont);
+                writeLine(currentSheet, currentImpact, currentExcelLine, redFont);
                 currentExcelLine++;
             }
             currentExcelLine ++;
+            currentNumberOfRecord ++;
         }
     }
 
