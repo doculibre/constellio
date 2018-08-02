@@ -9,6 +9,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.Iterator;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.metadata.AppSchemasServices;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -148,7 +150,6 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		if (hasOtherActiveRecordWithSameCode(record)) {
 			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordHasSameCode"));
 		} else {
-
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 			try {
@@ -157,6 +158,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
 			}
 
+			enableLinkedSchema(record);
 			view.refreshTables();
 		}
 
@@ -191,5 +193,15 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		}
 
 		view.refreshTables();
+	}
+
+	private RMSchemasRecordsServices rmSchemas() {
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	private void enableLinkedSchema(Record record) {
+		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		appSchemasServices.enableSchema(collection,linkedSchema);
 	}
 }

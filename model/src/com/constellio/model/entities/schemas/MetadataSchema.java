@@ -44,6 +44,8 @@ public class MetadataSchema implements Serializable {
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
+	private boolean active;
+
 	private final String dataStore;
 
 	private final CollectionInfo collectionInfo;
@@ -64,6 +66,7 @@ public class MetadataSchema implements Serializable {
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 		this.dataStore = dataStore;
+		this.active = true;
 		this.collectionInfo = collectionInfo;
 
 	}
@@ -240,5 +243,13 @@ public class MetadataSchema implements Serializable {
 			multilingualMetadatas |= metadata.isMultiLingual();
 		}
 		return multilingualMetadatas;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }

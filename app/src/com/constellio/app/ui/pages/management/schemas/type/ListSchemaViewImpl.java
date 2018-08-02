@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
+import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -73,14 +74,39 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		viewLayout.addComponents(addButton, buildTables());
+		viewLayout.addComponents(addButton, buildSchemasTables());
 		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return viewLayout;
 	}
 
-	public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, Container indexedContainer) {
-		MenuBar menuBar = new BaseMenuBar();
-		MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+	private TabSheet buildSchemasTables() {
+		TabSheet tabSheet = new TabSheet();
+		Table activeRecordsTable = buildTables(true);
+		Table inactiveRecordsTable = buildTables(false);
+
+		VerticalLayout activeLayout = new VerticalLayout();
+		Button addButton = new AddButton() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+		};
+		activeLayout.addComponent(addButton);
+		activeLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		activeLayout.addComponent(activeRecordsTable);
+
+		VerticalLayout inactiveLayout = new VerticalLayout();
+		inactiveLayout.addComponent(inactiveRecordsTable);
+
+		tabSheet.addTab(activeLayout, $("ListValueDomainRecordsViewImpl.actives", activeRecordsTable.size()));
+		tabSheet.addTab(inactiveLayout, $("ListValueDomainRecordsViewImpl.inactives", inactiveRecordsTable.size()));
+
+		return tabSheet;
+	}
+
+    public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, Container indexedContainer) {
+        MenuBar menuBar = new BaseMenuBar();
+        MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
 
 		final MenuBar.Command editListener = new MenuBar.Command() {
 			@Override

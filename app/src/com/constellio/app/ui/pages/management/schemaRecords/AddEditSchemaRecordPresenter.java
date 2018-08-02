@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +46,9 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditSchemaRecordPresenter.class);
 
 	private static final String CANNOT_CHANGE_LINKED_SCHEMA_WHEN_REFERENCED = "cannotChangeLinkedSchemaWhenReferenced";
-	
+
 	private String schemaCode;
-	
+
 	private RecordVO recordVO;
 
 	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view) {
@@ -54,7 +59,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		computeParams(params);
 		view.setRecordVO(recordVO);
 	}
-	
+
 	private void computeParams(String params) {
 		if (schemaCode == null) {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
@@ -78,7 +83,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 				MetadataSchema schema = schema(schemaCode);
 				record = recordServices.newRecordWithSchema(schema);
 			}
-			
+
 			setSchemaCode(schemaCode);
 			recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.FORM, view.getSessionContext());
 		}
@@ -137,8 +142,10 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		MetadataSchemaType type = types().getSchemaType(schemaTypeCode);
 		List<Choice> result = new ArrayList<>();
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
-			result.add(new Choice(schema.getCode(), schema.getLabel(language)));
+			if(schema.isActive()){
+				Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+				result.add(new Choice(schema.getCode(), schema.getLabel(language)));
+			}
 		}
 		return result;
 	}

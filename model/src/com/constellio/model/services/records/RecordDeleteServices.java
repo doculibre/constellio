@@ -776,4 +776,7 @@ public class RecordDeleteServices {
 
 	}
 
+	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user, RecordLogicalDeleteOptions options) {
+		return !options.isSkipValidations() && !isLogicallyDeletable(record, user);
+	}
 }
