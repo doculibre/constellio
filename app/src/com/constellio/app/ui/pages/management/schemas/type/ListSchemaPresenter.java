@@ -29,6 +29,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
