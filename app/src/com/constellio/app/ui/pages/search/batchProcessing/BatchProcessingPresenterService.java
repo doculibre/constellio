@@ -19,8 +19,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.ui.framework.buttons.SIPButton.ChangeValueOfMetadataBatchAsyncTask;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
+import com.constellio.model.frameworks.validation.ValidationException;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -258,8 +265,12 @@ public class BatchProcessingPresenterService {
 		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), null, records);
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
+		asyncTaskRequest.setUsername(username);
+
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addPendingBatchProcess(records, action, username, title, collection);
+		batchProcessesManager.addAsyncTask(asyncTaskRequest);
 
 		return null;
 	}
@@ -377,10 +388,21 @@ public class BatchProcessingPresenterService {
 			recordServices.validateTransaction(transaction);
 		}
 
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null);
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
+		asyncTaskRequest.setUsername(username);
+
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addPendingBatchProcess(query, action, username, title);
+		batchProcessesManager.addAsyncTask(asyncTaskRequest);
 
 		return null;
+	}
+
+	private String toQueryString(LogicalSearchQuery query) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
+		String solrQuery = SolrUtils.toSingleQueryString(params);
+		return solrQuery;
 	}
 
 	public BatchProcessResults simulate(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)

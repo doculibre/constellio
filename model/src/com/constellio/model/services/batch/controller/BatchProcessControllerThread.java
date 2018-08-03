@@ -135,6 +135,11 @@ public class BatchProcessControllerThread extends ConstellioThread {
 								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
 							}
 
+							@Override
+							public AsyncTaskBatchProcess getBatchProcess() {
+								return process;
+							}
+
 						};
 						task.execute(params);
 						batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);

@@ -10,4 +10,6 @@ public interface AsyncTaskExecutionParams {
 
 	void logError(String code, Map<String, Object> parameters);
 
+	AsyncTaskBatchProcess getBatchProcess();
+
 }
