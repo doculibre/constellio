@@ -1,14 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.junit.Before;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.utils.hashing.HashingService;
@@ -22,6 +13,14 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.junit.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @DriverTest
 public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {

@@ -21,39 +21,39 @@ public enum MetadataValueType {
 		String caption = "";
 
 		switch (type) {
-		case DATE:
-			caption = "MetadataValueType.date";
-			break;
-		case DATE_TIME:
-			caption = "MetadataValueType.datetime";
-			break;
-		case STRING:
-			caption = "MetadataValueType.string";
-			break;
-		case TEXT:
-			caption = "MetadataValueType.text";
-			break;
-		case INTEGER:
-			caption = "MetadataValueType.integer";
-			break;
-		case NUMBER:
-			caption = "MetadataValueType.number";
-			break;
-		case BOOLEAN:
-			caption = "MetadataValueType.boolean";
-			break;
-		case REFERENCE:
-			caption = "MetadataValueType.reference";
-			break;
-		case CONTENT:
-			caption = "MetadataValueType.content";
-			break;
-		case STRUCTURE:
-			caption = "MetadataValueType.structure";
-			break;
-		case ENUM:
-			caption = "MetadataValueType.enum";
-			break;
+			case DATE:
+				caption = "MetadataValueType.date";
+				break;
+			case DATE_TIME:
+				caption = "MetadataValueType.datetime";
+				break;
+			case STRING:
+				caption = "MetadataValueType.string";
+				break;
+			case TEXT:
+				caption = "MetadataValueType.text";
+				break;
+			case INTEGER:
+				caption = "MetadataValueType.integer";
+				break;
+			case NUMBER:
+				caption = "MetadataValueType.number";
+				break;
+			case BOOLEAN:
+				caption = "MetadataValueType.boolean";
+				break;
+			case REFERENCE:
+				caption = "MetadataValueType.reference";
+				break;
+			case CONTENT:
+				caption = "MetadataValueType.content";
+				break;
+			case STRUCTURE:
+				caption = "MetadataValueType.structure";
+				break;
+			case ENUM:
+				caption = "MetadataValueType.enum";
+				break;
 		}
 
 		return caption;

@@ -1,10 +1,9 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
-import java.io.Serializable;
-
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import org.joda.time.LocalDate;
 
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import java.io.Serializable;
 
 public class BetaWorkflowTaskProgressionVO implements Serializable {
 

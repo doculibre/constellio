@@ -1,10 +1,9 @@
 package com.constellio.app.modules.es.connectors.smb.queue;
 
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
+
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 
 public class SmbJobQueueSimpleImpl implements SmbJobQueue {
 	private Queue<SmbConnectorJob> jobsQueue;

@@ -1,12 +1,11 @@
 package com.constellio.model.conf.ldap.user;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 abstract public class CommonUserBuilder implements LDAPUserBuilder {
 

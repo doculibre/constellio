@@ -1,9 +1,9 @@
 package com.constellio.model.services.appManagement;
 
+import com.constellio.data.io.services.facades.FileService;
+
 import java.io.File;
 import java.io.IOException;
-
-import com.constellio.data.io.services.facades.FileService;
 
 public class WrapperConfigurationService {
 
@@ -74,7 +74,7 @@ public class WrapperConfigurationService {
 		configFileContentBuffer.append(CONDITION_SCRIPT_ARGS + ASSIGNING_VALUE + CONDITION_SCRIPT_ARGS_VALUE + CARRIAGE_RETURN);
 		configFileContentBuffer.append(CONDITION_SCRIPT_CYCLE + ASSIGNING_VALUE + CONDITION_SCRIPT_CYCLE_VALUE + CARRIAGE_RETURN);
 		configFileContentBuffer.append(RESTART_RELOAD_CONFIGURATION + ASSIGNING_VALUE + RESTART_RELOAD_CONFIGURATION_VALUE
-				+ CARRIAGE_RETURN);
+									   + CARRIAGE_RETURN);
 		configFileContentBuffer.append(RESTART_RELOAD_CACHE + ASSIGNING_VALUE + RESTART_RELOAD_CACHE_VALUE + CARRIAGE_RETURN);
 		configFileContentBuffer.append(CONTROL + ASSIGNING_VALUE + CONTROL_VALUE + CARRIAGE_RETURN);
 	}

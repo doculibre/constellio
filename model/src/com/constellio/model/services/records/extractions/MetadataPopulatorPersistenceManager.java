@@ -7,6 +7,7 @@ import org.jdom2.Element;
  */
 public interface MetadataPopulatorPersistenceManager {
 
-    Element toXml(MetadataPopulator metadataPopulator) throws Exception;
-    MetadataPopulator fromXML(Element xmlElement) throws Exception;
+	Element toXml(MetadataPopulator metadataPopulator) throws Exception;
+
+	MetadataPopulator fromXML(Element xmlElement) throws Exception;
 }

@@ -8,13 +8,13 @@ import java.io.Serializable;
 
 public interface PrintableReportFrom extends Serializable {
 
-    void reload();
+	void reload();
 
-    void commit();
+	void commit();
 
-    ConstellioFactories getConstellioFactories();
+	ConstellioFactories getConstellioFactories();
 
-    SessionContext getSessionContext();
+	SessionContext getSessionContext();
 
-    CustomLabelField<?> getCustomField(String metadataCode);
+	CustomLabelField<?> getCustomField(String metadataCode);
 }

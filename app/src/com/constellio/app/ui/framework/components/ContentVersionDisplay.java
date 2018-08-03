@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import java.util.List;
-
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -13,6 +11,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+
+import java.util.List;
 
 public class ContentVersionDisplay extends CustomComponent {
 

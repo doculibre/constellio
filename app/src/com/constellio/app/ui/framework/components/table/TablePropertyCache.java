@@ -1,15 +1,15 @@
 package com.constellio.app.ui.framework.components.table;
 
+import com.vaadin.data.Property;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.vaadin.data.Property;
-
 public class TablePropertyCache implements Serializable {
-	
+
 	private Map<CellKey, Property<?>> cellProperties = new HashMap<>();
-	
+
 	public void clear() {
 		cellProperties.clear();
 	}
@@ -17,17 +17,17 @@ public class TablePropertyCache implements Serializable {
 	public Property<?> get(CellKey cellKey) {
 		return cellKey != null ? cellProperties.get(cellKey) : null;
 	}
-	
+
 	public void put(CellKey cellKey, Property<?> property) {
 		cellProperties.put(cellKey, property);
 	}
-	
+
 	public static class CellKey implements Serializable {
-		
+
 		private Object objectId;
-		
+
 		private Object propertyId;
-		
+
 		public CellKey(Object objectId, Object propertyId) {
 			this.objectId = objectId;
 			this.propertyId = propertyId;
@@ -44,26 +44,33 @@ public class TablePropertyCache implements Serializable {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
+			if (this == obj) {
 				return true;
-			if (obj == null)
+			}
+			if (obj == null) {
 				return false;
-			if (getClass() != obj.getClass())
+			}
+			if (getClass() != obj.getClass()) {
 				return false;
+			}
 			CellKey other = (CellKey) obj;
 			if (propertyId == null) {
-				if (other.propertyId != null)
+				if (other.propertyId != null) {
 					return false;
-			} else if (!propertyId.equals(other.propertyId))
+				}
+			} else if (!propertyId.equals(other.propertyId)) {
 				return false;
+			}
 			if (objectId == null) {
-				if (other.objectId != null)
+				if (other.objectId != null) {
 					return false;
-			} else if (!objectId.equals(other.objectId))
+				}
+			} else if (!objectId.equals(other.objectId)) {
 				return false;
+			}
 			return true;
 		}
-		
+
 	}
 
 }

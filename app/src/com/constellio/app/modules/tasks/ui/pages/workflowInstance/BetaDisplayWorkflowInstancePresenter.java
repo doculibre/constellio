@@ -1,26 +1,25 @@
 package com.constellio.app.modules.tasks.ui.pages.workflowInstance;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.builders.BetaWorkflowInstanceToVoBuilder;
-import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowInstanceVO;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import org.joda.time.LocalDate;
+
+import java.io.IOException;
+import java.util.List;
 
 public class BetaDisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<BetaDisplayWorkflowInstanceView> {
 	private BetaWorkflowInstanceVO workflowInstanceVO;

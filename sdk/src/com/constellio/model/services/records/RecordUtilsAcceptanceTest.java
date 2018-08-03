@@ -1,19 +1,18 @@
 package com.constellio.model.services.records;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordUtilsAcceptanceTestSchemasSetup.DocumentSchema;
 import com.constellio.model.services.records.RecordUtilsAcceptanceTestSchemasSetup.FolderSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordUtilsAcceptanceTest extends ConstellioTest {
 

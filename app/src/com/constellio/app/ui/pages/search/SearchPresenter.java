@@ -145,44 +145,44 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	private void initSortParameters() {
 		SearchSortType searchSortType = modelLayerFactory.getSystemConfigs().getSearchSortType();
 		switch (searchSortType) {
-		case RELEVENCE:
-			sortOrder = SortOrder.DESCENDING;
-			this.sortCriterion = null;
-			break;
-		case PATH_ASC:
-			this.sortCriterion = Schemas.PATH.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case PATH_DES:
-			this.sortCriterion = Schemas.PATH.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		case ID_ASC:
-			this.sortCriterion = Schemas.IDENTIFIER.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case ID_DES:
-			this.sortCriterion = Schemas.IDENTIFIER.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		case CREATION_DATE_ASC:
-			this.sortCriterion = Schemas.CREATED_ON.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case CREATION_DATE_DES:
-			this.sortCriterion = Schemas.CREATED_ON.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		case MODIFICATION_DATE_ASC:
-			this.sortCriterion = Schemas.MODIFIED_ON.getCode();
-			this.sortOrder = SortOrder.ASCENDING;
-			break;
-		case MODIFICATION_DATE_DES:
-			this.sortCriterion = Schemas.MODIFIED_ON.getCode();
-			this.sortOrder = SortOrder.DESCENDING;
-			break;
-		default:
-			throw new RuntimeException("Unsupported type " + searchSortType);
+			case RELEVENCE:
+				sortOrder = SortOrder.DESCENDING;
+				this.sortCriterion = null;
+				break;
+			case PATH_ASC:
+				this.sortCriterion = Schemas.PATH.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case PATH_DES:
+				this.sortCriterion = Schemas.PATH.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			case ID_ASC:
+				this.sortCriterion = Schemas.IDENTIFIER.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case ID_DES:
+				this.sortCriterion = Schemas.IDENTIFIER.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			case CREATION_DATE_ASC:
+				this.sortCriterion = Schemas.CREATED_ON.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case CREATION_DATE_DES:
+				this.sortCriterion = Schemas.CREATED_ON.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			case MODIFICATION_DATE_ASC:
+				this.sortCriterion = Schemas.MODIFIED_ON.getCode();
+				this.sortOrder = SortOrder.ASCENDING;
+				break;
+			case MODIFICATION_DATE_DES:
+				this.sortCriterion = Schemas.MODIFIED_ON.getCode();
+				this.sortOrder = SortOrder.DESCENDING;
+				break;
+			default:
+				throw new RuntimeException("Unsupported type " + searchSortType);
 		}
 	}
 
@@ -197,7 +197,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					language);
 
 			if (responseSkosConcept.getSuggestions() != null
-					&& responseSkosConcept.getSuggestions().size() > 0) {
+				&& responseSkosConcept.getSuggestions().size() > 0) {
 
 				result = responseSkosConcept.getSuggestions().get(language.getLocale());
 			}
@@ -220,7 +220,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			ResponseSkosConcept responseSkosConcept = thesaurusService.getSkosConcepts(getSearchQuery().getFreeTextQuery(),
 					language);
 			if (responseSkosConcept.getDisambiguations() != null
-					&& responseSkosConcept.getDisambiguations().size() > 0) {
+				&& responseSkosConcept.getDisambiguations().size() > 0) {
 				result = responseSkosConcept.getDisambiguations().get(language.getLocale());
 				if (result.size() > 10) {
 					result = result.subList(0, 10);
@@ -326,7 +326,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean mustDisplaySpellCheckerSuggestions(SearchResultVODataProvider dataProvider,
-			List<String> disambiguationSuggestions) {
+													  List<String> disambiguationSuggestions) {
 		if (dataProvider.size() != 0 || !disambiguationSuggestions.isEmpty()) {
 			return false;
 		}
@@ -580,10 +580,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	@Override
 	public NewReportWriterFactory getReport(String report) {
 		switch (report) {
-		case "Reports.fakeReport":
-			return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
-		case "Reports.FolderLinearMeasureStats":
-			return getRmReportBuilderFactories().statsBuilderFactory.getValue();
+			case "Reports.fakeReport":
+				return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
+			case "Reports.FolderLinearMeasureStats":
+				return getRmReportBuilderFactories().statsBuilderFactory.getValue();
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -736,11 +736,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() &&
-						isMetadataVisibleForUser(metadata, getCurrentUser()) &&
-						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
-								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
+					isMetadataVisibleForUser(metadata, getCurrentUser()) &&
+					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+					 ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+					 ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
@@ -840,10 +840,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	@Override
 	public Object getReportParameters(String report) {
 		switch (report) {
-		case "Reports.fakeReport":
-			return new ExampleReportParameters(view.getSelectedRecordIds());
-		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+			case "Reports.fakeReport":
+				return new ExampleReportParameters(view.getSelectedRecordIds());
+			case "Reports.FolderLinearMeasureStats":
+				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -885,7 +885,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			boolean found = false;
 			for (CorrectorExclusion correctorExclusion : allExclusion) {
 				if (correctorExclusion.getCollection().equals(collection) &&
-						corrected.equals(correctorExclusion.getExclusion())) {
+					corrected.equals(correctorExclusion.getExclusion())) {
 					found = true;
 					break;
 				}

@@ -1,80 +1,5 @@
 package com.constellio.app.ui.pages.security;
 
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.ADD_RETENTION_RULE;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.ARCHIVES_MANAGEMENT;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_EDIT;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_CONTAINER;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_DOCUMENT;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_FOLDER;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_RETENTION_RULE;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.EDIT_DOCUMENT;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.EDIT_FOLDER;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.EDIT_RETENTION_RULE;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.LIST_RETENTION_RULES;
-import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.REPORTS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_METADATA;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_SCHEMA;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ADMIN_MODULE;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_ADD_EDIT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_GROUP;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_GROUP_ROLES;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_USER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_USER_LIST;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_USER_ROLES;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.CONFIG_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_SCHEMA_RECORD;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_SCHEMA_TYPE;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EDIT_DISPLAY_FORM;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENTS_LIST;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENT_CATEGORY;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENT_DISPLAY;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EXPORTER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.FORM_DISPLAY_FORM;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_ADD_EDIT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_DISPLAY;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_LIST;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.IMPORT_FILE;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.IMPORT_SCHEMA_TYPES;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.IMPORT_USERS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_ONGLET;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_SCHEMA_RECORDS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_TAXONOMY;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_VALUE_DOMAINS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.PERMISSION_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.RECORDS_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.SEARCH_DISPLAY_FORM;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.TAXONOMY_ADD_EDIT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.TAXONOMY_CONCEPT_ADD_EDIT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.TAXONOMY_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.UPDATE_MANAGER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.USER_ADD_EDIT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.USER_DISPLAY;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.USER_LIST;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.*;
-
-import com.constellio.model.entities.Language;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -82,15 +7,7 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainPresenter;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -99,15 +16,12 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -118,6 +32,19 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import java.util.*;
+
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.*;
+import static com.constellio.app.ui.application.NavigatorConfigurationService.*;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class UserSecurityAcceptanceTest extends ConstellioTest {
@@ -1252,7 +1179,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/despositNoStorageSpace/" + unitId
-							+ "/" + filingId);
+						 + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1263,7 +1190,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/transferWithStorageSpace/"
-							+ unitId + "/" + filingId);
+						 + unitId + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1274,7 +1201,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/despositWithStorageSpace/"
-							+ unitId + "/" + filingId);
+						 + unitId + "/" + filingId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1374,8 +1301,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToADisplayEventPossible() {
 		try {
 			driver.navigateTo().url(EVENT_DISPLAY
-					+ "/id%253D%253BstartDate%253D2015-04-22T11%253A49%253A19.520%253BendDate%253D2015-04-29T11%253A49%253A19."
-					+ "520%253BeventType%253Dopen_session%253BeventCategory%253DSYSTEM_USAGE");
+									+ "/id%253D%253BstartDate%253D2015-04-22T11%253A49%253A19.520%253BendDate%253D2015-04-29T11%253A49%253A19."
+									+ "520%253BeventType%253Dopen_session%253BeventCategory%253DSYSTEM_USAGE");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1414,18 +1341,19 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253Dplan%253BconceptId%253D"
-							+ categoryId);
+						 + categoryId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
 
-	private boolean navigateToCategoryPlanDisplayWithParentPossible(String categoryId_children, String categoryId_parent) {
+	private boolean navigateToCategoryPlanDisplayWithParentPossible(String categoryId_children,
+																	String categoryId_parent) {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253Dplan%253BconceptId%253D"
-							+ categoryId_children + "%253BparentConceptId%253D" + categoryId_parent);
+						 + categoryId_children + "%253BparentConceptId%253D" + categoryId_parent);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1446,7 +1374,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/plan/category_default/"
-							+ categoryId_parent);
+						 + categoryId_parent);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1485,18 +1413,19 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253DadmUnits%253BconceptId%253D"
-							+ unitId);
+						 + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
 
-	private boolean navigateToCategoryAdministrativeUnitDisplayWithParentPossible(String unitId_children, String unitId_parent) {
+	private boolean navigateToCategoryAdministrativeUnitDisplayWithParentPossible(String unitId_children,
+																				  String unitId_parent) {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_MANAGEMENT + "/taxonomyCode%253DadmUnits%253BconceptId%253D"
-							+ unitId_children + "%253BparentConceptId%253D" + unitId_parent);
+						 + unitId_children + "%253BparentConceptId%253D" + unitId_parent);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1517,7 +1446,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/ADD/admUnits/administrativeUnit_default/"
-							+ unitId);
+						 + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1528,7 +1457,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		try {
 			driver.navigateTo()
 					.url(TAXONOMY_CONCEPT_ADD_EDIT + "/EDIT/admUnits/administrativeUnit_default/"
-							+ unitId);
+						 + unitId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1649,7 +1578,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditContainerTypePossible(String containerTypeId) {
 		try {
 			driver.navigateTo().url(ADD_EDIT_SCHEMA_RECORD + "/ddvContainerRecordType_default/"
-					+ containerTypeId);
+									+ containerTypeId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1882,7 +1811,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToListMetadatasPossible() {
 		try {
 			driver.navigateTo().url(ADD_EDIT_SCHEMA_METADATA + "/" + ADD_EDIT_SCHEMA_METADATA
-					+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253DcontainerRecord_default");
+									+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1892,7 +1821,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditSchemaTypePossible() {
 		try {
 			driver.navigateTo().url(ADD_EDIT_SCHEMA + "/" + ADD_EDIT_SCHEMA
-					+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253DcontainerRecord_default");
+									+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1902,7 +1831,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAddSchemaTypePossible() {
 		try {
 			driver.navigateTo().url(ADD_EDIT_SCHEMA + "/" + ADD_EDIT_SCHEMA
-					+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253D");
+									+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253D");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1912,7 +1841,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToEditMetadataPossible() {
 		try {
 			driver.navigateTo().url(ADD_EDIT_METADATA + "/" + ADD_EDIT_METADATA
-					+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
+									+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1922,7 +1851,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDisplayFormMetadatasPossible() {
 		try {
 			driver.navigateTo().url(FORM_DISPLAY_FORM + "/" + FORM_DISPLAY_FORM
-					+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
+									+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1932,7 +1861,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToDisplayDetailsMetadatasPossible() {
 		try {
 			driver.navigateTo().url(EDIT_DISPLAY_FORM + "/" + EDIT_DISPLAY_FORM
-					+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
+									+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1942,7 +1871,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToSearchDisplayFormMetadatasPossible() {
 		try {
 			driver.navigateTo().url(SEARCH_DISPLAY_FORM + "/" + SEARCH_DISPLAY_FORM
-					+ "/searchDisplayForm/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
+									+ "/searchDisplayForm/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1952,7 +1881,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToListOngletMetadatasPossible() {
 		try {
 			driver.navigateTo().url(LIST_ONGLET + "/" + LIST_ONGLET
-					+ "/schemaTypeCode%253Dcategory");
+									+ "/schemaTypeCode%253Dcategory");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1980,8 +1909,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToGroupDisplayPossible(String group) {
 		try {
 			driver.navigateTo().url(GROUP_DISPLAY + "/"
-					+ GROUP_LIST
-					+ "/globalGroupCode%253D" + group);
+									+ GROUP_LIST
+									+ "/globalGroupCode%253D" + group);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1991,8 +1920,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToAddSubGroupPossible(String parentGroupId) {
 		try {
 			driver.navigateTo().url(GROUP_ADD_EDIT + "/"
-					+ GROUP_LIST + "/"
-					+ GROUP_DISPLAY + "/parentGlobalGroupCode%253D" + parentGroupId);
+									+ GROUP_LIST + "/"
+									+ GROUP_DISPLAY + "/parentGlobalGroupCode%253D" + parentGroupId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -2021,7 +1950,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToGroupEditPossible(String group) {
 		try {
 			driver.navigateTo().url(GROUP_ADD_EDIT + "/" + GROUP_LIST
-					+ "/globalGroupCode%253D" + group);
+									+ "/globalGroupCode%253D" + group);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -2049,7 +1978,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToUserDisplayPossible(String user) {
 		try {
 			driver.navigateTo().url(USER_DISPLAY + "/" + USER_LIST
-					+ "/username%253D" + user);
+									+ "/username%253D" + user);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -2068,7 +1997,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToUserEditPossible(String user) {
 		try {
 			driver.navigateTo().url(USER_ADD_EDIT + "/" + USER_LIST
-					+ "/username%253D" + user);
+									+ "/username%253D" + user);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -2096,7 +2025,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToCollectionEditPossible(String collection) {
 		try {
 			driver.navigateTo().url(COLLECTION_ADD_EDIT + "/"
-					+ COLLECTION_MANAGEMENT + "/collectionCode253D" + collection);
+									+ COLLECTION_MANAGEMENT + "/collectionCode253D" + collection);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -2106,7 +2035,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean navigateToCollectionAddPossible() {
 		try {
 			driver.navigateTo().url(COLLECTION_ADD_EDIT + "/"
-					+ COLLECTION_MANAGEMENT);
+									+ COLLECTION_MANAGEMENT);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;

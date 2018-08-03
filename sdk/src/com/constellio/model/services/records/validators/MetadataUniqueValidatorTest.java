@@ -1,32 +1,25 @@
 package com.constellio.model.services.records.validators;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.validators.MetadataUniqueValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class MetadataUniqueValidatorTest extends ConstellioTest {
 	public static final String NON_UNIQUE_METADATA = MetadataUniqueValidator.class.getName() + "_nonUniqueMetadata";
@@ -118,6 +111,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(searchServices.hasResults(query.capture())).thenReturn(true);
 		when(record.isModified(metadata)).thenReturn(true);
 		when(record.get(metadata)).thenReturn(zeValue);
+		when(metadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		validator.validate(record, validationErrors);
 

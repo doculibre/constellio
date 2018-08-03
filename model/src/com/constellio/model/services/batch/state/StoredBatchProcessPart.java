@@ -15,7 +15,7 @@ public class StoredBatchProcessPart {
 	private boolean started;
 
 	public StoredBatchProcessPart(String batchProcessId, int index, String firstId, String lastId, boolean finished,
-			boolean started) {
+								  boolean started) {
 		this.batchProcessId = batchProcessId;
 		this.index = index;
 		this.firstId = firstId;

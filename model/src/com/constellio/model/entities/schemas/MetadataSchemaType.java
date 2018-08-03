@@ -1,16 +1,5 @@
 package com.constellio.model.entities.schemas;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -20,6 +9,11 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class MetadataSchemaType implements Serializable {
 
@@ -51,10 +45,12 @@ public class MetadataSchemaType implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
-	public MetadataSchemaType(String code, String smallCode, CollectionInfo collectionInfo, Map<Language, String> labels,
-			List<MetadataSchema> customSchemas,
-			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog,
-			boolean readOnlyLocked, String dataStore) {
+	public MetadataSchemaType(String code, String smallCode, CollectionInfo collectionInfo,
+							  Map<Language, String> labels,
+							  List<MetadataSchema> customSchemas,
+							  MetadataSchema defaultSchema, Boolean undeletable, boolean security,
+							  boolean inTransactionLog,
+							  boolean readOnlyLocked, String dataStore) {
 		super();
 		this.code = code;
 		this.smallCode = smallCode;
@@ -341,7 +337,7 @@ public class MetadataSchemaType implements Serializable {
 	@Override
 	public String toString() {
 		return "MetadataSchemaType [code=" + code + ", label=" + labels + ", defaultSchema=" + defaultSchema
-				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
+			   + ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
 	}
 
 	public List<MetadataSchema> getCustomSchemas() {

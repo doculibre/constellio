@@ -11,7 +11,8 @@ public class AllSchemaRecordVOContainer extends RecordVOLazyContainer {
 		super(new AllSchemaRecordVODataProvider(schemaCode, collection));
 	}
 
-	public AllSchemaRecordVOContainer(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
+	public AllSchemaRecordVOContainer(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
+									  ModelLayerFactory modelLayerFactory) {
 		super(new AllSchemaRecordVODataProvider(schema, voBuilder, modelLayerFactory));
 	}
 

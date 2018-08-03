@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.management.schemas;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
@@ -69,5 +68,5 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 		}
 		return false;
 	}
-	
+
 }

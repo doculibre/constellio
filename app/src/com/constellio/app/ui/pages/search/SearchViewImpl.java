@@ -52,7 +52,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
-	
+
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
 	public static final String SORT_BOX_STYLE = "sort-box";
@@ -116,7 +116,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
 		if (disambiguationSuggestions != null && disambiguationSuggestions.size() > 0) {
 			thesaurusDisambiguation.setVisible(true);
-			
+
 			VerticalLayout suggestionsLayout = new VerticalLayout();
 			suggestionsLayout.addStyleName("disambiguation-suggestions");
 
@@ -146,20 +146,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	public Component buildThesaurusSemanticNetwork() {
 		List<String> semanticNetworkSuggestions = presenter.getThesaurusSemanticNetworkSuggestions();
-		
+
 		VerticalLayout semanticNetworkLayout = new VerticalLayout();
 		semanticNetworkLayout.addStyleName("thesaurus-semantic-network");
-		
+
 		if (semanticNetworkSuggestions != null && semanticNetworkSuggestions.size() > 0) {
 			Label title = new Label($("SearchView.suggestion.title", presenter.getUserSearchExpression()));
 			title.setStyleName("thesaurus-semantic-network-title");
 			semanticNetworkLayout.addComponent(title);
-			
+
 			int columnCount = 3;
 			int columnIndex = 0;
 			int suggestionIndex = 0;
-			
-			double suggestionsPerColumnDouble = (double) semanticNetworkSuggestions.size() / columnCount; 
+
+			double suggestionsPerColumnDouble = (double) semanticNetworkSuggestions.size() / columnCount;
 			int suggestionsPerColumnInt = (int) suggestionsPerColumnDouble;
 			double suggestionsPerColumnDecimal = suggestionsPerColumnDouble - suggestionsPerColumnInt;
 			if (suggestionsPerColumnDecimal > 0) {
@@ -169,7 +169,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			CssLayout cssLayout = new CssLayout();
 			cssLayout.addStyleName("thesaurus-semantic-network-columns");
 			semanticNetworkLayout.addComponent(cssLayout);
-			
+
 			VerticalLayout currentColumnLayout = null;
 			for (final String semanticNetworkSuggestion : semanticNetworkSuggestions) {
 				if (currentColumnLayout == null || suggestionIndex % suggestionsPerColumnInt == 0) {
@@ -231,7 +231,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		spellCheckerSuggestions.removeAllComponents();
 		results = buildResultTable(dataProvider);
-		
+
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
@@ -292,7 +292,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		spellCheckerSuggestions.addStyleName("spell-checker");
 		spellCheckerSuggestions.setWidth("100%");
 		spellCheckerSuggestions.setVisible(false);
-		
+
 		thesaurusDisambiguation = new VerticalLayout();
 		thesaurusDisambiguation.setWidth("100%");
 		thesaurusDisambiguation.addStyleName("thesaurus-disambiguation");
@@ -331,7 +331,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Nullable
 	private void refreshCapsule() {
-		if(capsuleArea == null) {
+		if (capsuleArea == null) {
 			capsuleArea = new VerticalLayout();
 		} else {
 			capsuleArea.removeAllComponents();
@@ -472,7 +472,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return container;
 	}
 
-	private void buildSpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {
+	private void buildSpellCheckerSuggestions(SearchResultVODataProvider dataProvider,
+											  List<String> disambiguationSuggestions) {
 		if (!presenter.mustDisplaySpellCheckerSuggestions(dataProvider, disambiguationSuggestions)) {
 			spellCheckerSuggestions.setVisible(false);
 			return;
@@ -486,14 +487,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		suggestionsLayout.setWidth("100%");
 		suggestionsLayout.addStyleName("spell-checker-suggestions");
 		spellCheckerSuggestions.addComponent(suggestionsLayout);
-		
+
 		suggestionsLayout.addComponent(spellCheckerMessage);
-		
+
 		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
 			HorizontalLayout suggestionLayout = new HorizontalLayout();
 			suggestionLayout.addStyleName("spell-checker-suggestion-and-exclude");
-			
+
 			Button suggestionLink = new Button(suggestion);
 			suggestionLink.addStyleName(ValoTheme.BUTTON_LINK);
 			suggestionLink.addStyleName("spell-checker-suggestion");

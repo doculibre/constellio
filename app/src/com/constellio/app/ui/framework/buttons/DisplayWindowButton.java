@@ -6,11 +6,11 @@ import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class DisplayWindowButton extends WindowButton{
+public class DisplayWindowButton extends WindowButton {
 	String text;
 
 	public DisplayWindowButton(String windowCaption,
-			String textToDisplay) {
+							   String textToDisplay) {
 		super("", windowCaption);
 		setIcon(DisplayButton.ICON_RESOURCE);
 		addStyleName(ValoTheme.BUTTON_ICON_ONLY);

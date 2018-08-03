@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.components.fields.date;
 
-import java.util.Date;
-
 import com.constellio.app.ui.framework.components.converters.JodaDateToUtilConverter;
 import com.vaadin.data.Property;
+
+import java.util.Date;
 
 public class JodaDateField extends BaseDateField {
 

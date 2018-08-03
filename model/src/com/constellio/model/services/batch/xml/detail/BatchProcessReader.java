@@ -1,10 +1,10 @@
 package com.constellio.model.services.batch.xml.detail;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BatchProcessReader {
 

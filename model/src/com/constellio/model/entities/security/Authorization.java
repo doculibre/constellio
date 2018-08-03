@@ -1,12 +1,11 @@
 package com.constellio.model.entities.security;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.security.global.AuthorizationDetails;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Authorization {
 

@@ -1,28 +1,23 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.util.Set;
-
-import com.constellio.model.entities.Language;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidArgumentObjectNotSetted;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.CmisUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordServices;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 
@@ -34,9 +29,11 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 	private final Boolean includeAcl;
 	private final ObjectInfoHandler objectInfos;
 
-	public GetObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
-			String objectId, String versionRequestsId, String filter, Boolean includeAllowableActions, Boolean includeAcl,
-			ObjectInfoHandler objectInfos) {
+	public GetObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
+							CallContext context,
+							String objectId, String versionRequestsId, String filter, Boolean includeAllowableActions,
+							Boolean includeAcl,
+							ObjectInfoHandler objectInfos) {
 		super(context, repository, appLayerFactory);
 		if (objectId == null) {
 			// this works only because there are no versions in a file system
@@ -108,6 +105,6 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 	@Override
 	public String toString() {
 		return "getObject(objectId=" + objectId + ", versionRequestsId=" + versionRequestsId + ", filter=" + filter
-				+ ", includeAllowableActions=" + includeAllowableActions + ", includeAcl=" + includeAcl + ")";
+			   + ", includeAllowableActions=" + includeAllowableActions + ", includeAcl=" + includeAcl + ")";
 	}
 }

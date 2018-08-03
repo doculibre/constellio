@@ -1,10 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components.breadcrumb;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -17,6 +12,11 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskBreadcrumbTrailPresenter implements Serializable {
 	private String recordId;
@@ -40,7 +40,7 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 			Task task = tasksSchemasRecordsServices.getTask(currentRecordId);
 			currentRecordId = task.getParentTask();
 		}
-		
+
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}

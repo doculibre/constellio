@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.lang.reflect.Type;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
@@ -14,13 +7,14 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.lang.reflect.Type;
 
 public class CriterionFactory implements StructureFactory {
 	final String DATE_TIME_ISO_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -75,81 +69,81 @@ public class CriterionFactory implements StructureFactory {
 		}
 
 		switch (metadataValueType) {
-		case DATE:
-		case DATE_TIME:
+			case DATE:
+			case DATE_TIME:
 
-			if (relativeCriteria != null
+				if (relativeCriteria != null
 					&& (relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.PAST
-					|| relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
-				Double newValue = Double.valueOf(value);
-				newCriterion.setValue(newValue);
-			} else if (value != null) {
-				LocalDateTime ldt = new LocalDateTime().parse(value);
-				newCriterion.setValue(ldt);
-			}
-			if (relativeCriteria != null
-					&& (relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.PAST
-					|| relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
-				Double newEndValue = Double.valueOf(endValue);
-				newCriterion.setEndValue(newEndValue);
-			} else if (endValue != null) {
-				LocalDateTime ldt = new LocalDateTime().parse(endValue);
-				newCriterion.setEndValue(ldt);
-			}
-
-			break;
-		case STRING:
-			newCriterion.setValue(value);
-			break;
-		case TEXT:
-			newCriterion.setValue(value);
-			break;
-		case INTEGER:
-			newCriterion.setValue(Integer.valueOf(value));
-			break;
-		case NUMBER:
-			if (value != null) {
-				double doubleValue = Double.parseDouble(value);
-				newCriterion.setValue(doubleValue);
-				if (endValue != null) {
-					double doubleEndValue = Double.parseDouble(endValue);
-					newCriterion.setEndValue(doubleEndValue);
+						|| relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
+					Double newValue = Double.valueOf(value);
+					newCriterion.setValue(newValue);
+				} else if (value != null) {
+					LocalDateTime ldt = new LocalDateTime().parse(value);
+					newCriterion.setValue(ldt);
 				}
-			} else {
-				newCriterion.setValue(null);
-			}
-			break;
-		case BOOLEAN:
-			Boolean booleanValue = null;
-			if (value != null) {
-				booleanValue = Boolean.parseBoolean(value);
-			}
-			newCriterion.setValue(booleanValue);
-			break;
-		case REFERENCE:
-			newCriterion.setValue(value);
-			break;
-		case CONTENT:
-			newCriterion.setValue(value);
-			break;
-		case STRUCTURE:
-			newCriterion.setValue(value);
-			break;
-		case ENUM:
-			Class clazz = null;
-			try {
-				clazz = Class.forName(criterion.getEnumClassName());
-			} catch (ClassNotFoundException e) {
-				newCriterion.setValue(null);
-			}
-			if (value != null) {
-				newCriterion.setValue(Enum.valueOf(clazz, value));
-			} else {
-				newCriterion.setValue(null);
-			}
-			break;
-		default:
-			throw new UnsupportedOperationException("Unknow metadata type");
+				if (relativeCriteria != null
+					&& (relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.PAST
+						|| relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
+					Double newEndValue = Double.valueOf(endValue);
+					newCriterion.setEndValue(newEndValue);
+				} else if (endValue != null) {
+					LocalDateTime ldt = new LocalDateTime().parse(endValue);
+					newCriterion.setEndValue(ldt);
+				}
+
+				break;
+			case STRING:
+				newCriterion.setValue(value);
+				break;
+			case TEXT:
+				newCriterion.setValue(value);
+				break;
+			case INTEGER:
+				newCriterion.setValue(Integer.valueOf(value));
+				break;
+			case NUMBER:
+				if (value != null) {
+					double doubleValue = Double.parseDouble(value);
+					newCriterion.setValue(doubleValue);
+					if (endValue != null) {
+						double doubleEndValue = Double.parseDouble(endValue);
+						newCriterion.setEndValue(doubleEndValue);
+					}
+				} else {
+					newCriterion.setValue(null);
+				}
+				break;
+			case BOOLEAN:
+				Boolean booleanValue = null;
+				if (value != null) {
+					booleanValue = Boolean.parseBoolean(value);
+				}
+				newCriterion.setValue(booleanValue);
+				break;
+			case REFERENCE:
+				newCriterion.setValue(value);
+				break;
+			case CONTENT:
+				newCriterion.setValue(value);
+				break;
+			case STRUCTURE:
+				newCriterion.setValue(value);
+				break;
+			case ENUM:
+				Class clazz = null;
+				try {
+					clazz = Class.forName(criterion.getEnumClassName());
+				} catch (ClassNotFoundException e) {
+					newCriterion.setValue(null);
+				}
+				if (value != null) {
+					newCriterion.setValue(Enum.valueOf(clazz, value));
+				} else {
+					newCriterion.setValue(null);
+				}
+				break;
+			default:
+				throw new UnsupportedOperationException("Unknow metadata type");
 		}
 		return newCriterion;
 	}

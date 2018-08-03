@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.SIP;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -18,6 +15,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BagInfoSIPPresenter extends BasePresenter<BagInfoSIPForm> {
 

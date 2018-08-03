@@ -1,25 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.AUTHORIZATION_PRINCIPALS_MISSING;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.AUTHORIZATION_TARGETS_MISSING;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_ACCESS;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_PRINCIPAL_TYPE;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_ROLE;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_TARGET_TYPE;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.USE_ROLE_OR_ACCESS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -40,6 +20,19 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.*;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);

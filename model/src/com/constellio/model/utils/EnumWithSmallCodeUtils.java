@@ -1,10 +1,10 @@
 package com.constellio.model.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnumWithSmallCodeUtils {
 
@@ -41,11 +41,11 @@ public class EnumWithSmallCodeUtils {
 	}
 
 	public static List<String> toSmallCodeList(List<Enum<?>> enumValues) {
-		if(enumValues == null) {
+		if (enumValues == null) {
 			return null;
 		}
 		List<String> codes = new ArrayList<>();
-		if(enumValues != null) {
+		if (enumValues != null) {
 			for (Enum<?> enumValue : enumValues) {
 				if (enumValue != null) {
 					codes.add(toSmallCode(enumValue));

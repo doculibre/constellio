@@ -1,16 +1,15 @@
 package com.constellio.model.api.impl.schemas.validation.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordValidatorParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implements RecordValidator {
 
@@ -35,7 +34,8 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implemen
 
 	}
 
-	private void validate(LocalDateTime creationDate, LocalDateTime modificationDate, ValidationErrors validationErrors) {
+	private void validate(LocalDateTime creationDate, LocalDateTime modificationDate,
+						  ValidationErrors validationErrors) {
 
 		if (creationDate != null && modificationDate != null && creationDate.isAfter(modificationDate)) {
 

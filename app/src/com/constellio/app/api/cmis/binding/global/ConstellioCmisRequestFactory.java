@@ -1,20 +1,5 @@
 package com.constellio.app.api.cmis.binding.global;
 
-import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
-
-import java.math.BigInteger;
-import java.util.Map;
-
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.server.CmisService;
-import org.apache.chemistry.opencmis.commons.server.MutableCallContext;
-import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
-import org.apache.chemistry.opencmis.server.support.wrapper.CmisServiceWrapperManager;
-import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
-import org.joda.time.Duration;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidLogin;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -27,15 +12,33 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
+import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.server.CmisService;
+import org.apache.chemistry.opencmis.commons.server.MutableCallContext;
+import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
+import org.apache.chemistry.opencmis.server.support.wrapper.CmisServiceWrapperManager;
+import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
+import org.joda.time.Duration;
+
+import java.math.BigInteger;
+import java.util.Map;
+
+import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
 
 public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 
 	static AuthCache authCache = new AuthCache(Duration.standardMinutes(2));
 
-	/** Default maxItems value for getTypeChildren()}. */
+	/**
+	 * Default maxItems value for getTypeChildren()}.
+	 */
 	private static final BigInteger DEFAULT_MAX_ITEMS_TYPES = BigInteger.valueOf(50);
 
-	/** Default depth value for getTypeDescendants(). */
+	/**
+	 * Default depth value for getTypeDescendants().
+	 */
 	private static final BigInteger DEFAULT_DEPTH_TYPES = BigInteger.valueOf(-1);
 
 	/**
@@ -43,7 +46,9 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 	 */
 	private static final BigInteger DEFAULT_MAX_ITEMS_OBJECTS = BigInteger.valueOf(200);
 
-	/** Default depth value for getDescendants(). */
+	/**
+	 * Default depth value for getDescendants().
+	 */
 	private static final BigInteger DEFAULT_DEPTH_OBJECTS = BigInteger.valueOf(10);
 
 	private CmisServiceWrapperManager wrapperManager;

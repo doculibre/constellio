@@ -1,10 +1,10 @@
 package com.constellio.model.entities.schemas.entries;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordImpl;
+
+import java.util.List;
 
 public class TransactionAggregatedValuesParams {
 	RecordImpl record;
@@ -13,7 +13,7 @@ public class TransactionAggregatedValuesParams {
 	MetadataSchemaTypes types;
 
 	public TransactionAggregatedValuesParams(RecordImpl record, Metadata metadata,
-			AggregatedDataEntry aggregatedDataEntry, MetadataSchemaTypes types) {
+											 AggregatedDataEntry aggregatedDataEntry, MetadataSchemaTypes types) {
 		this.record = record;
 		this.metadata = metadata;
 		this.aggregatedDataEntry = aggregatedDataEntry;

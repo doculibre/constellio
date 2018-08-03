@@ -1,11 +1,7 @@
 package com.constellio.app.servlet;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import org.apache.chemistry.opencmis.server.impl.webservices.CallContextHandlerInterceptor;
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 import org.apache.chemistry.opencmis.server.impl.webservices.SoapActionRemoveInterceptor;
@@ -18,11 +14,13 @@ import org.apache.cxf.interceptor.Interceptor;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptor;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Set;
-
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
 
 public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 
@@ -61,7 +59,7 @@ public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 
 	/**
 	 * Adds and configures interceptors for OpenCMIS.
-	 *
+	 * <p>
 	 * Override this method to add more interceptors.
 	 */
 	protected void configureInterceptors(Bus bus) {

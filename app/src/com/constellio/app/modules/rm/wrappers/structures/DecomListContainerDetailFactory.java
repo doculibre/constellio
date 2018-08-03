@@ -31,14 +31,14 @@ public class DecomListContainerDetailFactory implements StructureFactory {
 		DecomListContainerDetail decomListContainerDetail = (DecomListContainerDetail) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, "" + (decomListContainerDetail.getContainerRecordId() == null ?
-				NULL :
-				decomListContainerDetail.getContainerRecordId()));
+										 NULL :
+										 decomListContainerDetail.getContainerRecordId()));
 		writeString(stringBuilder, "" + decomListContainerDetail.isFull() == null ?
-				String.valueOf(false) :
-				String.valueOf(decomListContainerDetail.isFull()));
+								   String.valueOf(false) :
+								   String.valueOf(decomListContainerDetail.isFull()));
 		writeString(stringBuilder, "" + decomListContainerDetail.getAvailableSize() == null ?
-				NULL :
-				String.valueOf(decomListContainerDetail.getAvailableSize()));
+								   NULL :
+								   String.valueOf(decomListContainerDetail.getAvailableSize()));
 		return stringBuilder.toString();
 	}
 

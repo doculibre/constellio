@@ -1,14 +1,13 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import com.constellio.data.utils.ConsoleLogger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.SolrInputDocument;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.SolrInputDocument;
-
-import com.constellio.data.utils.ConsoleLogger;
 
 public class BigVaultLogger {
 

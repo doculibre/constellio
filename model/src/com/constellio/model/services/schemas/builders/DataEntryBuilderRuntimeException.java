@@ -1,8 +1,8 @@
 package com.constellio.model.services.schemas.builders;
 
-import static java.util.Arrays.asList;
-
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import static java.util.Arrays.asList;
 
 public class DataEntryBuilderRuntimeException extends RuntimeException {
 
@@ -13,9 +13,9 @@ public class DataEntryBuilderRuntimeException extends RuntimeException {
 	public static class DataEntryBuilderRuntimeException_InvalidMetadataCode extends DataEntryBuilderRuntimeException {
 
 		public DataEntryBuilderRuntimeException_InvalidMetadataCode(String argument, String metadataCode,
-				MetadataValueType... types) {
+																	MetadataValueType... types) {
 			super("Metadata code '" + metadataCode + "' of argument '" + argument
-					+ "' is invalid. It must be a metadata in a default schema of type(s) : " + asList(types));
+				  + "' is invalid. It must be a metadata in a default schema of type(s) : " + asList(types));
 		}
 	}
 

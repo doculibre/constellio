@@ -1,12 +1,11 @@
 package com.constellio.model.utils;
 
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.model.entities.schemas.Metadata;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.schemas.Metadata;
+import java.util.List;
+import java.util.Map;
 
 public class ParametrizedInstanceUtilsTestResources {
 
@@ -19,7 +18,8 @@ public class ParametrizedInstanceUtilsTestResources {
 		private Double aDouble;
 
 		public CorrectParametrizedClass(List<String> metadatas,
-				Map<String, List<Integer>> values, Boolean aBoolean, LocalDateTime aDateTime, LocalDate aDate, Double aDouble) {
+										Map<String, List<Integer>> values, Boolean aBoolean, LocalDateTime aDateTime,
+										LocalDate aDate, Double aDouble) {
 			this.metadatas = metadatas;
 			this.values = values;
 			this.aBoolean = aBoolean;
@@ -30,7 +30,7 @@ public class ParametrizedInstanceUtilsTestResources {
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { metadatas, values, aBoolean, aDateTime, aDate, aDouble };
+			return new Object[]{metadatas, values, aBoolean, aDateTime, aDate, aDouble};
 		}
 	}
 
@@ -50,7 +50,7 @@ public class ParametrizedInstanceUtilsTestResources {
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { metadata };
+			return new Object[]{metadata};
 		}
 	}
 
@@ -64,7 +64,7 @@ public class ParametrizedInstanceUtilsTestResources {
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { metadatas };
+			return new Object[]{metadatas};
 		}
 	}
 
@@ -75,7 +75,7 @@ public class ParametrizedInstanceUtilsTestResources {
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { };
+			return new Object[]{};
 		}
 	}
 }

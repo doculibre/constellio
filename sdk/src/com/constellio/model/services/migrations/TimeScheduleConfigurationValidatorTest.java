@@ -1,13 +1,12 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isValid;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isValid;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TimeScheduleConfigurationValidatorTest extends ConstellioTest {
 

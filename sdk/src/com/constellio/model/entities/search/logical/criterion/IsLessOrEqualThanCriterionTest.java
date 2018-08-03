@@ -1,19 +1,18 @@
 package com.constellio.model.entities.search.logical.criterion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
+import com.constellio.model.services.search.query.logical.criteria.IsLessOrEqualThanCriterion;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
-import com.constellio.model.services.search.query.logical.criteria.IsLessOrEqualThanCriterion;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class IsLessOrEqualThanCriterionTest extends ConstellioTest {
 

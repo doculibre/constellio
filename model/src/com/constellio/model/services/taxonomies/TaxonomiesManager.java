@@ -1,20 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -27,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -38,14 +22,19 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager.TaxonomiesManagerCache;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyCannotBeDisabled;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.PrincipalTaxonomyIsAlreadyDefined;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomyMustBeAddedBeforeSettingItHasPrincipal;
-import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaTypesHaveRecords;
+import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.*;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<TaxonomiesManagerCache> {
 
@@ -62,8 +51,9 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private ConstellioEIMConfigs eimConfigs;
 
 	public TaxonomiesManager(ConfigManager configManager, SearchServices searchServices,
-			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
-			RecordsCaches recordsCaches, ConstellioCacheManager cacheManager, ConstellioEIMConfigs eimConfigs) {
+							 BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
+							 RecordsCaches recordsCaches, ConstellioCacheManager cacheManager,
+							 ConstellioEIMConfigs eimConfigs) {
 		this.searchServices = searchServices;
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
@@ -390,7 +380,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSchema(String schemaCode, User user,
-			MetadataSchemasManager metadataSchemasManager) {
+														  MetadataSchemasManager metadataSchemasManager) {
 
 		Set<Taxonomy> taxonomies = new HashSet<>();
 
@@ -405,7 +395,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSelectionOfType(String schemaType, User user,
-			MetadataSchemasManager metadataSchemasManager) {
+																   MetadataSchemasManager metadataSchemasManager) {
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(user.getCollection());
 
@@ -477,7 +467,8 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		final List<Taxonomy> enableTaxonomies;
 		final List<Taxonomy> disableTaxonomies;
 
-		TaxonomiesManagerCache(Taxonomy principalTaxonomy, List<Taxonomy> enableTaxonomies, List<Taxonomy> disableTaxonomies) {
+		TaxonomiesManagerCache(Taxonomy principalTaxonomy, List<Taxonomy> enableTaxonomies,
+							   List<Taxonomy> disableTaxonomies) {
 			this.principalTaxonomy = principalTaxonomy;
 			this.enableTaxonomies = enableTaxonomies;
 			this.disableTaxonomies = disableTaxonomies;

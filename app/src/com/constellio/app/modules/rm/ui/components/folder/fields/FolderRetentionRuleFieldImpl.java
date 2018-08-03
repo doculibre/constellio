@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
@@ -29,6 +22,13 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderRetentionRuleFieldImpl extends CustomField<String> implements FolderRetentionRuleField {
 	private final String collection;
@@ -159,14 +159,14 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 			}
 			RetentionRuleVO rule = (RetentionRuleVO) itemId;
 			switch ((String) columnId) {
-			case SELECTOR:
-				return generateSelectorCell(rule);
-			case CODE:
-				return generateCodeCell(rule);
-			case TITLE:
-				return generateTitleCell(rule);
-			case DESCRIPTION:
-				return generateDescriptionCell(rule);
+				case SELECTOR:
+					return generateSelectorCell(rule);
+				case CODE:
+					return generateCodeCell(rule);
+				case TITLE:
+					return generateTitleCell(rule);
+				case DESCRIPTION:
+					return generateDescriptionCell(rule);
 			}
 			return null;
 		}
@@ -197,7 +197,7 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 		}
 
 		private Object generateDescriptionCell(final RetentionRuleVO rule) {
-//			return rule.getDescription();
+			//			return rule.getDescription();
 			final String descriptionCaption = rule.getMetadata(RetentionRule.DESCRIPTION).getLabel(sessionContext().getCurrentLocale());
 			WindowButton descriptionPopUp = new WindowButton(StringUtils.defaultIfBlank(rule.getDescription(), ""), descriptionCaption, WindowButton.WindowConfiguration.modalDialog("50%", "40%")) {
 				@Override

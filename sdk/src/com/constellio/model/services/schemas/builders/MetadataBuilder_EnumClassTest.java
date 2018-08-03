@@ -1,12 +1,11 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_EnumClassTest extends MetadataBuilderTest {
 

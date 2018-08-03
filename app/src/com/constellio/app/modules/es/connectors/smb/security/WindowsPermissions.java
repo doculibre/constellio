@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,12 @@
  * limitations under the License.
  */
 package com.constellio.app.modules.es.connectors.smb.security;
+
+import jcifs.smb.ACE;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -25,19 +31,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import jcifs.smb.ACE;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
-
 /**
  * http://svn.apache.org/repos/asf/manifoldcf/trunk/connectors/jcifs/connector/src/main/java/org/apache/manifoldcf/crawler/
  * connectors/sharedrive/SharedDriveConnector.java
- * 
+ *
  * @author Benoit, Nicolas
- * 
  */
 public class WindowsPermissions {
 
@@ -64,7 +62,7 @@ public class WindowsPermissions {
 
 	public void process() {
 		boolean foundNovellPermissions = processNovellPermissions(file, trusteeManager);
-		if (!foundNovellPermissions){
+		if (!foundNovellPermissions) {
 			processNTFSPermissions(file);
 			if (!skipSharePermissions) {
 				processSharePermissions(file);

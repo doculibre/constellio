@@ -1,38 +1,15 @@
 package com.constellio.app.api.cmis.binding.collection;
 
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_ALL;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.definitions.PermissionDefinition;
-import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityAcl;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityChanges;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityContentStreamUpdates;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityJoin;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityQuery;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityRenditions;
-import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
-import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AclCapabilitiesDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.CreatablePropertyTypesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.NewTypeSettableAttributesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PermissionDefinitionDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PermissionMappingDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryCapabilitiesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryInfoImpl;
+import org.apache.chemistry.opencmis.commons.enums.*;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 
-import com.constellio.app.api.cmis.builders.object.AclBuilder;
+import java.util.*;
+
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.*;
 
 public class ConstellioCollectionRepositoryInfoManager {
 
@@ -159,7 +136,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 	}
 
 	private PermissionDefinition createPermission(String permission,
-			String description) {
+												  String description) {
 		PermissionDefinitionDataImpl pd = new PermissionDefinitionDataImpl();
 		pd.setId(permission);
 		pd.setDescription(description);

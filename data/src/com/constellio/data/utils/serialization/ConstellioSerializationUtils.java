@@ -1,21 +1,20 @@
 package com.constellio.data.utils.serialization;
 
+import com.constellio.data.utils.serialization.SerializableChecker.ConstellioNotSerializableException;
+import org.apache.commons.lang.SerializationException;
+import org.apache.commons.lang.SerializationUtils;
+
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 
-import org.apache.commons.lang.SerializationException;
-import org.apache.commons.lang.SerializationUtils;
-
-import com.constellio.data.utils.serialization.SerializableChecker.ConstellioNotSerializableException;
-
 public class ConstellioSerializationUtils {
-	
+
 	public static void validateSerializable(Serializable serializable) {
 		validateSerializable(serializable, (Class<Object>) null);
 	}
-	
-	public static void validateSerializable(Serializable serializable, Class<?>...ignoredClasses) {
+
+	public static void validateSerializable(Serializable serializable, Class<?>... ignoredClasses) {
 		try {
 			// Test if the view is serializable
 			SerializationUtils.serialize(serializable);

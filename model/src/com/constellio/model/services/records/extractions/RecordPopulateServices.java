@@ -1,26 +1,12 @@
 package com.constellio.model.services.records.extractions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-
-import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -29,6 +15,15 @@ import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
 
 public class RecordPopulateServices {
 
@@ -42,7 +37,8 @@ public class RecordPopulateServices {
 	ConstellioEIMConfigs eimConfigs;
 
 	public RecordPopulateServices(MetadataSchemasManager schemasManager, ContentManager contentManager,
-			SystemConfigurationsManager systemConfigurationsManager, ModelLayerExtensions modelLayerExtensions) {
+								  SystemConfigurationsManager systemConfigurationsManager,
+								  ModelLayerExtensions modelLayerExtensions) {
 		this.schemasManager = schemasManager;
 		this.contentManager = contentManager;
 		this.systemConfigurationsManager = systemConfigurationsManager;
@@ -62,9 +58,9 @@ public class RecordPopulateServices {
 
 			List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
 			//if (!contentMetadatas.isEmpty() || record.getI) {
-				if (!record.isSaved()) {
-					String category = getCategory(parsedContentProvider, contentMetadatas, record);
-					setCategoryToRecord(record, category);
+			if (!record.isSaved()) {
+				String category = getCategory(parsedContentProvider, contentMetadatas, record);
+				setCategoryToRecord(record, category);
 
 			}
 			schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
@@ -80,10 +76,10 @@ public class RecordPopulateServices {
 						Object currentPopulatedValue = populator.populate(record, contentMetadatas);
 
 						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-							if(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && shouldRemoveExtension(originalRecord, metadata, contentMetadatas, populator)) {
-                                record.set(metadata, FilenameUtils.removeExtension((String) currentPopulatedValue));
-							} else if(!(!Schemas.TITLE_CODE.equals(metadata.getLocalCode())
-									&& currentPopulatedValue == null && Objects.equals(record.get(metadata), metadata.getDefaultValue()))){
+							if (Schemas.TITLE_CODE.equals(metadata.getLocalCode()) && shouldRemoveExtension(originalRecord, metadata, contentMetadatas, populator)) {
+								record.set(metadata, FilenameUtils.removeExtension((String) currentPopulatedValue));
+							} else if (!(!Schemas.TITLE_CODE.equals(metadata.getLocalCode())
+										 && currentPopulatedValue == null && Objects.equals(record.get(metadata), metadata.getDefaultValue()))) {
 								record.set(metadata, currentPopulatedValue);
 							}
 						}
@@ -98,17 +94,19 @@ public class RecordPopulateServices {
 		}
 	}
 
-	private boolean shouldRemoveExtension(Record originalRecord, Metadata metadata, List<Metadata> contentMetadatas, RecordMetadataPopulator populator) {
-		if(originalRecord == null) {
+	private boolean shouldRemoveExtension(Record originalRecord, Metadata metadata, List<Metadata> contentMetadatas,
+										  RecordMetadataPopulator populator) {
+		if (originalRecord == null) {
 			return false;
 		}
 		Object previousValue = originalRecord.get(metadata);
 		Object previousPopulatedValue = populator.populate(originalRecord, contentMetadatas);
 		return previousValue != null && !previousValue.equals(previousPopulatedValue) &&
-				previousValue.equals(FilenameUtils.removeExtension((String) previousPopulatedValue));
+			   previousValue.equals(FilenameUtils.removeExtension((String) previousPopulatedValue));
 	}
 
-	private String getCategory(ParsedContentProvider parsedContentProvider, List<Metadata> contentMetadatas, Record record) {
+	private String getCategory(ParsedContentProvider parsedContentProvider, List<Metadata> contentMetadatas,
+							   Record record) {
 		for (Content content : getContents(record, contentMetadatas)) {
 			ParsedContent parsedContent = parsedContentProvider
 					.getParsedContentIfAlreadyParsed(content.getCurrentVersion().getHash());
@@ -125,8 +123,9 @@ public class RecordPopulateServices {
 		modelLayerExtensions.forCollectionOf(record).callSetRecordCategory(event);
 	}
 
-	private boolean isRepopulatable(Record record, Record originalRecord, Metadata metadata, List<Metadata> contentMetadatas,
-			RecordMetadataPopulator recordMetadataPopulator) {
+	private boolean isRepopulatable(Record record, Record originalRecord, Metadata metadata,
+									List<Metadata> contentMetadatas,
+									RecordMetadataPopulator recordMetadataPopulator) {
 
 		if (originalRecord == null) {
 			if (metadata.isMultivalue()) {
@@ -141,7 +140,7 @@ public class RecordPopulateServices {
 			}
 		}
 
-		if(Boolean.TRUE.equals(metadata.getPopulateConfigs().isAddOnly())) {
+		if (Boolean.TRUE.equals(metadata.getPopulateConfigs().isAddOnly())) {
 			return false;
 		}
 
@@ -159,8 +158,8 @@ public class RecordPopulateServices {
 
 		}
 		if (previousValue.equals(previousPopulatedValue) ||
-				(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) &&
-						previousValue.equals(FilenameUtils.removeExtension((String) previousPopulatedValue)))) {
+			(Schemas.TITLE_CODE.equals(metadata.getLocalCode()) &&
+			 previousValue.equals(FilenameUtils.removeExtension((String) previousPopulatedValue)))) {
 			return previousValue.equals(currentValue);
 
 		}
@@ -168,7 +167,8 @@ public class RecordPopulateServices {
 
 	}
 
-	private boolean isValueWritenBySystem(Record record, Metadata metadata, String value, List<Metadata> contentMetadatas) {
+	private boolean isValueWritenBySystem(Record record, Metadata metadata, String value,
+										  List<Metadata> contentMetadatas) {
 		if (metadata.isSameLocalCode(Schemas.TITLE)) {
 			for (Content content : getContents(record, contentMetadatas)) {
 				if (content.getCurrentVersion().getFilename().equals(value)) {
@@ -179,7 +179,8 @@ public class RecordPopulateServices {
 		return value.equals(metadata.getDefaultValue());
 	}
 
-	private boolean isValueWritenBySystem(Record record, Metadata metadata, List<String> value, List<Metadata> contentMetadatas) {
+	private boolean isValueWritenBySystem(Record record, Metadata metadata, List<String> value,
+										  List<Metadata> contentMetadatas) {
 		return value.equals(metadata.getDefaultValue());
 	}
 
@@ -200,7 +201,8 @@ public class RecordPopulateServices {
 		Metadata metadata;
 
 		private RecordMetadataPopulator(ParsedContentProvider parsedContentProvider, Metadata metadata,
-				MetadataPopulatePriority priority, TitleMetadataPopulatePriority titlePriority, MetadataSchema schema) {
+										MetadataPopulatePriority priority, TitleMetadataPopulatePriority titlePriority,
+										MetadataSchema schema) {
 			this.parsedContentProvider = parsedContentProvider;
 			this.metadata = metadata;
 			this.priority = priority;
@@ -218,21 +220,21 @@ public class RecordPopulateServices {
 				for (String source : priority.getPrioritizedSources()) {
 					if (value == null || value.equals(new ArrayList<>())) {
 						switch (source) {
-						case "styles":
-							value = populateUsingStyles(record, contentMetadatas);
-							break;
+							case "styles":
+								value = populateUsingStyles(record, contentMetadatas);
+								break;
 
-						case "properties":
-							value = populateUsingProperties(record, contentMetadatas);
-							break;
+							case "properties":
+								value = populateUsingProperties(record, contentMetadatas);
+								break;
 
-						case "regex":
-							value = populateUsingRegex(record);
-							break;
+							case "regex":
+								value = populateUsingRegex(record);
+								break;
 
-						case "plugin":
-							value = populateUsingMetatdataPopulator(record);
-							break;
+							case "plugin":
+								value = populateUsingMetatdataPopulator(record);
+								break;
 						}
 
 					}
@@ -246,8 +248,9 @@ public class RecordPopulateServices {
 			for (MetadataPopulator metadataPopulator : metadata.getPopulateConfigs().getMetadataPopulators()) {
 				metadataPopulator.init(contentManager, schema, metadata.isMultivalue());
 				Object value = metadataPopulator.getPopulationValue(record);
-				if (value != null)
+				if (value != null) {
 					return value;
+				}
 			}
 			return null;
 		}
@@ -450,8 +453,8 @@ public class RecordPopulateServices {
 			}
 
 			return fileName == null ?
-					new ArrayList<String>() :
-					Collections.singletonList(fileName);
+				   new ArrayList<String>() :
+				   Collections.singletonList(fileName);
 			//                    Collections.singletonList(content.getCurrentVersion().getFilename());
 
 		}

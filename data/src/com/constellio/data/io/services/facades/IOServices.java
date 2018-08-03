@@ -1,24 +1,5 @@
 package com.constellio.data.io.services.facades;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.util.Collection;
-import java.util.List;
-import java.util.Scanner;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
@@ -36,6 +17,14 @@ import com.constellio.data.io.streamFactories.services.two.TwoStreamsOperationTh
 import com.constellio.data.io.streams.factories.StreamsServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.Octets;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+
+import java.io.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Scanner;
 
 public class IOServices {
 
@@ -137,7 +126,8 @@ public class IOServices {
 		return streamsServices.newBufferedFileInputStreamWithFileDeleteOnClose(file, uniqueIdWith(name));
 	}
 
-	public BufferedInputStream newBufferedFileInputStreamWithoutExpectableFileNotFoundException(File file, String name) {
+	public BufferedInputStream newBufferedFileInputStreamWithoutExpectableFileNotFoundException(File file,
+																								String name) {
 		try {
 			return streamsServices.newBufferedFileInputStream(file, uniqueIdWith(name));
 		} catch (FileNotFoundException e) {
@@ -185,31 +175,34 @@ public class IOServices {
 	}
 
 	public <F extends Closeable, R> R execute(StreamOperationReturningValue<F, R> operation,
-			StreamFactory<F> closeableStreamFactory)
+											  StreamFactory<F> closeableStreamFactory)
 			throws IOException {
 		return streamFactoriesServices.execute(operation, closeableStreamFactory);
 	}
 
 	public <F extends Closeable, R, E extends Exception> R execute(
-			StreamOperationReturningValueOrThrowingException<F, R, E> operation, StreamFactory<F> closeableStreamFactory)
+			StreamOperationReturningValueOrThrowingException<F, R, E> operation,
+			StreamFactory<F> closeableStreamFactory)
 			throws E, IOException {
 		return streamFactoriesServices.execute(operation, closeableStreamFactory);
 	}
 
 	public <F extends Closeable, E extends Exception> void execute(StreamOperationThrowingException<F, E> operation,
-			StreamFactory<F> closeableStreamFactory)
+																   StreamFactory<F> closeableStreamFactory)
 			throws E, IOException {
 		streamFactoriesServices.execute(operation, closeableStreamFactory);
 	}
 
 	public <F extends Closeable, S extends Closeable> void execute(TwoStreamsOperation<F, S> operation,
-			StreamFactory<F> firstCloseableStreamFactory, StreamFactory<S> secondCloseableStreamFactory)
+																   StreamFactory<F> firstCloseableStreamFactory,
+																   StreamFactory<S> secondCloseableStreamFactory)
 			throws IOException {
 		streamFactoriesServices.execute(operation, firstCloseableStreamFactory, secondCloseableStreamFactory);
 	}
 
 	public <F extends Closeable, S extends Closeable, R> R execute(TwoStreamsOperationReturningValue<F, S, R> operation,
-			StreamFactory<F> firstCloseableStreamFactory, StreamFactory<S> secondCloseableStreamFactory)
+																   StreamFactory<F> firstCloseableStreamFactory,
+																   StreamFactory<S> secondCloseableStreamFactory)
 			throws IOException {
 		return streamFactoriesServices.execute(operation, firstCloseableStreamFactory, secondCloseableStreamFactory);
 	}

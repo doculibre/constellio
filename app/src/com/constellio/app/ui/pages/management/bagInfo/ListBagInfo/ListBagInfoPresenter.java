@@ -21,50 +21,50 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class ListBagInfoPresenter extends BasePresenter<ListBagInfoView> {
 
-    private RecordVODataProvider dataProvider;
+	private RecordVODataProvider dataProvider;
 
-    public ListBagInfoPresenter(ListBagInfoView view) {
-        super(view);
-    }
+	public ListBagInfoPresenter(ListBagInfoView view) {
+		super(view);
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_BAG_INFO).globally();
+	}
 
-    protected RecordVODataProvider getBagInfoDataProvider() {
-        if(null == dataProvider) {
-            final MetadataSchemaType BagInfoSchemaType = types().getSchemaType(BagInfo.SCHEMA_TYPE);
-            MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(BagInfoSchemaType.getSchema(BagInfo.DEFAULT_SCHEMA),
-                    RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
-            dataProvider =  new RecordVODataProvider(
-                    schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-                @Override
-                protected LogicalSearchQuery getQuery() {
-                    OngoingLogicalSearchCondition FromCondition = from(BagInfoSchemaType.getSchema(BagInfo.DEFAULT_SCHEMA));
-                    LogicalSearchCondition condition = FromCondition.where(returnAll());
-                    return new LogicalSearchQuery().setCondition(condition);
-                }
-            };
-        }
-        return dataProvider;
-    }
+	protected RecordVODataProvider getBagInfoDataProvider() {
+		if (null == dataProvider) {
+			final MetadataSchemaType BagInfoSchemaType = types().getSchemaType(BagInfo.SCHEMA_TYPE);
+			MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(BagInfoSchemaType.getSchema(BagInfo.DEFAULT_SCHEMA),
+					RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+			dataProvider = new RecordVODataProvider(
+					schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					OngoingLogicalSearchCondition FromCondition = from(BagInfoSchemaType.getSchema(BagInfo.DEFAULT_SCHEMA));
+					LogicalSearchCondition condition = FromCondition.where(returnAll());
+					return new LogicalSearchQuery().setCondition(condition);
+				}
+			};
+		}
+		return dataProvider;
+	}
 
-    public RecordVO getRecordsWithIndex(Object itemId){
-        return this.getBagInfoDataProvider().getRecordVO(Integer.parseInt(itemId + ""));
-    }
+	public RecordVO getRecordsWithIndex(Object itemId) {
+		return this.getBagInfoDataProvider().getRecordVO(Integer.parseInt(itemId + ""));
+	}
 
-    public void deleteButtonClicked(RecordVO record){
-        SchemaPresenterUtils utils = new SchemaPresenterUtils(Capsule.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-        utils.delete(utils.toRecord(record), null);
-        view.navigate().to().listBagInfo();
-    }
+	public void deleteButtonClicked(RecordVO record) {
+		SchemaPresenterUtils utils = new SchemaPresenterUtils(Capsule.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+		utils.delete(utils.toRecord(record), null);
+		view.navigate().to().listBagInfo();
+	}
 
-    public void displayButtonClicked(RecordVO record){
-        view.navigate().to().displayBagInfo(record.getId());
-    }
+	public void displayButtonClicked(RecordVO record) {
+		view.navigate().to().displayBagInfo(record.getId());
+	}
 
-    public void editButtonClicked(RecordVO record){
-        view.navigate().to().editBagInfo(record.getId());
-    }
+	public void editButtonClicked(RecordVO record) {
+		view.navigate().to().editBagInfo(record.getId());
+	}
 }

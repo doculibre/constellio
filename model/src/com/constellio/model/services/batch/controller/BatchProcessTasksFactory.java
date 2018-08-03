@@ -1,9 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
@@ -16,6 +12,10 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 public class BatchProcessTasksFactory {
 
 	private final RecordServices recordServices;
@@ -24,7 +24,8 @@ public class BatchProcessTasksFactory {
 	private final TaskList taskList;
 	private final ModelLayerFactory modelLayerFactory;
 
-	public BatchProcessTasksFactory(RecordServices recordServices, SearchServices searchServices, UserServices userServices, TaskList taskList, ModelLayerFactory modelLayerFactory) {
+	public BatchProcessTasksFactory(RecordServices recordServices, SearchServices searchServices,
+									UserServices userServices, TaskList taskList, ModelLayerFactory modelLayerFactory) {
 		this.recordServices = recordServices;
 		this.searchServices = searchServices;
 		this.userServices = userServices;
@@ -32,13 +33,16 @@ public class BatchProcessTasksFactory {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public List<BatchProcessTask> createBatchProcessTasks(RecordBatchProcess batchProcess, List<Record> records, List<String> errorList,
-			int numberOfRecordsPerTask, MetadataSchemasManager schemasManager, BatchProcessReport report) {
+	public List<BatchProcessTask> createBatchProcessTasks(RecordBatchProcess batchProcess, List<Record> records,
+														  List<String> errorList,
+														  int numberOfRecordsPerTask,
+														  MetadataSchemasManager schemasManager,
+														  BatchProcessReport report) {
 		MetadataSchemaTypes metadataSchemaTypes = schemasManager.getSchemaTypes(batchProcess.getCollection());
 		User user = null;
 		try {
 			user = userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection());
-		} catch(UserServicesRuntimeException e) {
+		} catch (UserServicesRuntimeException e) {
 			//OK
 		}
 		List<BatchProcessTask> tasks = new ArrayList<>();
@@ -54,8 +58,8 @@ public class BatchProcessTasksFactory {
 
 	private boolean validateCollection(List<Record> records) {
 		HashSet<String> collection = new HashSet<>();
-		if(records != null) {
-			for(Record record: records) {
+		if (records != null) {
+			for (Record record : records) {
 				collection.add(record.getCollection());
 			}
 		}

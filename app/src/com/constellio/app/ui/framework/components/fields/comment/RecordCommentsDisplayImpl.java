@@ -13,32 +13,32 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RecordCommentsDisplayImpl extends ListAddRemoveCommentField implements RecordCommentsDisplay {
-    private RecordVO recordVO;
+	private RecordVO recordVO;
 
-    private String recordId;
+	private String recordId;
 
-    private String metadataCode;
+	private String metadataCode;
 
-    private RecordCommentsDisplayPresenter presenter;
+	private RecordCommentsDisplayPresenter presenter;
 
-    public RecordCommentsDisplayImpl(RecordVO recordVO, String metadataCode) {
-        this.recordVO = recordVO;
-        this.metadataCode = metadataCode;
-        init();
-    }
+	public RecordCommentsDisplayImpl(RecordVO recordVO, String metadataCode) {
+		this.recordVO = recordVO;
+		this.metadataCode = metadataCode;
+		init();
+	}
 
-    public RecordCommentsDisplayImpl(String recordId, String metadataCode) {
-        this.recordId = recordId;
-        this.metadataCode = metadataCode;
-        init();
-    }
+	public RecordCommentsDisplayImpl(String recordId, String metadataCode) {
+		this.recordId = recordId;
+		this.metadataCode = metadataCode;
+		init();
+	}
 
-    @Override
-    protected boolean isAddEditFieldVisible() {
-        return false;
-    }
+	@Override
+	protected boolean isAddEditFieldVisible() {
+		return false;
+	}
 
-    @Override
+	@Override
 	protected boolean isEditPossible() {
 		return false;
 	}
@@ -54,35 +54,35 @@ public class RecordCommentsDisplayImpl extends ListAddRemoveCommentField impleme
 	}
 
 	private void init() {
-        setCaption($("comments"));
+		setCaption($("comments"));
 
-        addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                List<Comment> comments = (List<Comment>) event.getProperty().getValue();
-                presenter.commentsChanged(comments);
-            }
-        });
-        presenter = new RecordCommentsDisplayPresenter(this);
-        if (recordVO != null) {
-            presenter.forRecordVO(recordVO, metadataCode);
-        } else {
-            presenter.forRecordId(recordId, metadataCode);
-        }
-    }
+		addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				List<Comment> comments = (List<Comment>) event.getProperty().getValue();
+				presenter.commentsChanged(comments);
+			}
+		});
+		presenter = new RecordCommentsDisplayPresenter(this);
+		if (recordVO != null) {
+			presenter.forRecordVO(recordVO, metadataCode);
+		} else {
+			presenter.forRecordId(recordId, metadataCode);
+		}
+	}
 
-    @Override
-    public void setComments(List<Comment> comments) {
-        super.setValue(comments);
-    }
+	@Override
+	public void setComments(List<Comment> comments) {
+		super.setValue(comments);
+	}
 
-    @Override
-    public SessionContext getSessionContext() {
-        return ConstellioUI.getCurrentSessionContext();
-    }
+	@Override
+	public SessionContext getSessionContext() {
+		return ConstellioUI.getCurrentSessionContext();
+	}
 
-    @Override
-    public ConstellioFactories getConstellioFactories() {
-        return ConstellioFactories.getInstance();
-    }
+	@Override
+	public ConstellioFactories getConstellioFactories() {
+		return ConstellioFactories.getInstance();
+	}
 }

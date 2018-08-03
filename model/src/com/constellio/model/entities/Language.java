@@ -1,9 +1,6 @@
 package com.constellio.model.entities;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public enum Language {
 
@@ -90,6 +87,22 @@ public enum Language {
 
 	public static List<Language> getAvailableLanguages() {
 		return Arrays.asList(values());
+	}
+
+	static List<String> availableLanguageCodes;
+
+	static {
+		availableLanguageCodes = new ArrayList<>();
+		for (Language language : values()) {
+			if (language.getLocale() != null) {
+				availableLanguageCodes.add(language.getLocale().getLanguage());
+			}
+		}
+		availableLanguageCodes = Collections.unmodifiableList(availableLanguageCodes);
+	}
+
+	public static List<String> getAvailableLanguageCodes() {
+		return availableLanguageCodes;
 	}
 
 	public static List<Language> withCodes(List<String> codes) {

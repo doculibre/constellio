@@ -1,23 +1,5 @@
 package com.constellio.model.services.logging;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDate;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
@@ -30,6 +12,18 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class SearchEventServices {
 
@@ -179,7 +173,7 @@ public class SearchEventServices {
 	}
 
 	public QueryResponse getFamousRequests(String collection, LocalDate from, LocalDate to, String excludedRequest,
-			Integer offset, Integer limit, String paramsfilter) {
+										   Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
@@ -198,8 +192,9 @@ public class SearchEventServices {
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to, String excludedRequest,
-			Integer offset, Integer limit, String paramsfilter) {
+	public QueryResponse getFamousRequestsWithResults(String collection, LocalDate from, LocalDate to,
+													  String excludedRequest,
+													  Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
@@ -245,8 +240,9 @@ public class SearchEventServices {
 		return queries;
 	}
 
-	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to, String excludedRequest,
-			Integer offset, Integer limit, String paramsfilter) {
+	public QueryResponse getFamousRequestsWithoutResults(String collection, LocalDate from, LocalDate to,
+														 String excludedRequest,
+														 Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
@@ -266,8 +262,9 @@ public class SearchEventServices {
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to, String excludedRequest,
-			Integer offset, Integer limit, String paramsfilter) {
+	public QueryResponse getFamousRequestsWithClicks(String collection, LocalDate from, LocalDate to,
+													 String excludedRequest,
+													 Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
@@ -287,8 +284,9 @@ public class SearchEventServices {
 		return modelLayerFactory.getDataLayerFactory().newEventsDao().nativeQuery(params);
 	}
 
-	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to, String excludedRequest,
-			Integer offset, Integer limit, String paramsfilter) {
+	public QueryResponse getFamousRequestsWithoutClicks(String collection, LocalDate from, LocalDate to,
+														String excludedRequest,
+														Integer offset, Integer limit, String paramsfilter) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 		params.set("rows", "0");
@@ -322,7 +320,7 @@ public class SearchEventServices {
 		String clicks = "'clicks_ss':{'type':'terms', 'field':'clicks_ss', 'limit':10}";
 		String originalQuery = "'originalQuery_s':{'type':'terms', 'field':'originalQuery_s', 'limit':1}";
 		String query = "'query_s':{'type':'terms', 'field':'query_s'" + offsets + limits
-				+ ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)', " + clicks + ", " + originalQuery + "}}";
+					   + ", 'numBuckets':true, 'facet': {'clickCount_d': 'sum(clickCount_d)', " + clicks + ", " + originalQuery + "}}";
 
 		params.add("json.facet", "{" + query + "}");
 	}

@@ -1,14 +1,14 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class SkippedRecordsImport {
 
@@ -23,7 +23,7 @@ public class SkippedRecordsImport {
 
 	public boolean isSkipped(String schemaType, String id) {
 		return (skippedBecauseOfFailure.contains(schemaType) && skippedBecauseOfFailure.get(schemaType).contains(id)) ||
-				(skippedBecauseOfDependency.contains(schemaType) && skippedBecauseOfDependency.get(schemaType).contains(id));
+			   (skippedBecauseOfDependency.contains(schemaType) && skippedBecauseOfDependency.get(schemaType).contains(id));
 	}
 
 	public void markAsSkippedBecauseOfDependencyFailure(String schemaType, String id) {
@@ -31,7 +31,7 @@ public class SkippedRecordsImport {
 	}
 
 	public void addWarningForSkippedRecordsBecauseOfDependencies(Language language, MetadataSchemaTypes types,
-			ValidationErrors errors) {
+																 ValidationErrors errors) {
 
 		for (Map.Entry<String, Set<String>> entry : skippedBecauseOfDependency.getMapEntries()) {
 			MetadataSchemaType type = types.getSchemaType(entry.getKey());

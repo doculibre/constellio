@@ -1,9 +1,9 @@
 package com.constellio.sdk.tests;
 
+import com.constellio.app.ui.pages.base.UIContext;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.app.ui.pages.base.UIContext;
 
 public class FakeUIContext implements UIContext {
 

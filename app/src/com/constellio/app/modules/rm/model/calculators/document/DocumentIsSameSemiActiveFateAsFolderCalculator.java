@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static com.constellio.data.utils.LangUtils.areNullableEqual;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -15,6 +8,12 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.areNullableEqual;
+import static java.util.Arrays.asList;
 
 public class DocumentIsSameSemiActiveFateAsFolderCalculator implements MetadataValueCalculator<Boolean> {
 

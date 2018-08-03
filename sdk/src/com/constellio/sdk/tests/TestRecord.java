@@ -1,11 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Mockito.when;
-
-import java.util.UUID;
-
-import org.mockito.Mockito;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.Metadata;
@@ -13,6 +7,12 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.mockito.Mockito;
+
+import java.util.UUID;
+
+import static java.util.Arrays.asList;
+import static org.mockito.Mockito.when;
 
 public class TestRecord extends RecordImpl {
 
@@ -27,7 +27,7 @@ public class TestRecord extends RecordImpl {
 	}
 
 	public TestRecord(SchemaShortcuts schema) {
- 		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
+		super(schema.instance(), "TestRecord_" + UUID.randomUUID().toString());
 		this.schemaShortcuts = schema;
 	}
 
@@ -50,6 +50,7 @@ public class TestRecord extends RecordImpl {
 		MetadataSchema schema = Mockito.mock(MetadataSchema.class);
 		when(schema.getCode()).thenReturn(schemaCode);
 		when(schema.getCollection()).thenReturn(collection);
+		when(schema.getCollectionInfo()).thenReturn(new CollectionInfo(collection, "fr", asList("fr")));
 		return schema;
 	}
 

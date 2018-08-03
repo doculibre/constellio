@@ -1,7 +1,9 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import java.util.List;
-
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -9,10 +11,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
+import java.util.List;
 
 public class GetFolderParentRequest extends CmisCollectionRequest<ObjectData> {
 
@@ -20,7 +19,7 @@ public class GetFolderParentRequest extends CmisCollectionRequest<ObjectData> {
 	private final GetObjectParentsRequest getObjectParentsRequest;
 
 	public GetFolderParentRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			GetObjectParentsRequest getObjectParentsRequest, CallContext context) {
+								  GetObjectParentsRequest getObjectParentsRequest, CallContext context) {
 		super(context, repository, appLayerFactory);
 		this.getObjectParentsRequest = getObjectParentsRequest;
 	}

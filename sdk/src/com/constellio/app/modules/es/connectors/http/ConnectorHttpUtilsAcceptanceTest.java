@@ -1,11 +1,10 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static com.constellio.app.modules.es.connectors.http.ConnectorHttpUtils.toAbsoluteHRef;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.app.modules.es.connectors.http.ConnectorHttpUtils.toAbsoluteHRef;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorHttpUtilsAcceptanceTest extends ConstellioTest {
 

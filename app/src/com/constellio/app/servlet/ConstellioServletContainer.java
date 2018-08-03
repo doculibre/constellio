@@ -1,9 +1,9 @@
 package com.constellio.app.servlet;
 
-import javax.servlet.ServletException;
-
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.glassfish.jersey.servlet.WebConfig;
+
+import javax.servlet.ServletException;
 
 public class ConstellioServletContainer extends ServletContainer {
 

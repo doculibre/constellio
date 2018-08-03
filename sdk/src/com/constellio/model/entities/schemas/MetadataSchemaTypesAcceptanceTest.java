@@ -1,10 +1,5 @@
 package com.constellio.model.entities.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -14,6 +9,10 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataSchemaTypesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);

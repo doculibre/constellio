@@ -1,13 +1,12 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.solr.common.SolrInputDocument;
 
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BigVaultServerTransaction {
 
@@ -20,8 +19,8 @@ public class BigVaultServerTransaction {
 	private boolean testRollBackMode = false;
 
 	public BigVaultServerTransaction(RecordsFlushing recordsFlushing,
-			List<SolrInputDocument> newDocuments, List<SolrInputDocument> updatedDocuments,
-			List<String> deletedRecords, List<String> deletedQueries) {
+									 List<SolrInputDocument> newDocuments, List<SolrInputDocument> updatedDocuments,
+									 List<String> deletedRecords, List<String> deletedQueries) {
 		this.transactionId = UUIDV1Generator.newRandomId();
 		this.recordsFlushing = recordsFlushing;
 		this.newDocuments = newDocuments;
@@ -31,8 +30,8 @@ public class BigVaultServerTransaction {
 	}
 
 	public BigVaultServerTransaction(String transactionId, RecordsFlushing recordsFlushing,
-			List<SolrInputDocument> newDocuments, List<SolrInputDocument> updatedDocuments,
-			List<String> deletedRecords, List<String> deletedQueries) {
+									 List<SolrInputDocument> newDocuments, List<SolrInputDocument> updatedDocuments,
+									 List<String> deletedRecords, List<String> deletedQueries) {
 		this.transactionId = transactionId;
 		this.recordsFlushing = recordsFlushing;
 		this.newDocuments = newDocuments;
@@ -168,7 +167,7 @@ public class BigVaultServerTransaction {
 		}
 
 		return updatedDocumentsWithOptimisticLocking > 1 || (updatedDocumentsWithOptimisticLocking == 1
-				&& newDocuments.size() > 0);
+															 && newDocuments.size() > 0);
 
 	}
 }

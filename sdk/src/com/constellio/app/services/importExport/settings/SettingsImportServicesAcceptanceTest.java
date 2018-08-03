@@ -1,32 +1,33 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
-import static com.constellio.model.entities.Language.English;
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.SUBSTITUTION;
-import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.TRANSFORMATION;
-import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static java.util.Locale.ENGLISH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
@@ -38,51 +39,24 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.extensions.AppLayerExtensions;
-import com.constellio.app.extensions.AppLayerSystemExtensions;
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
-import com.constellio.app.services.importExport.settings.model.ImportedSequence;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
-import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
-import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import com.constellio.data.dao.services.sequence.SequencesManager;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.setups.Users;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
+import static com.constellio.model.entities.Language.English;
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.SUBSTITUTION;
+import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.TRANSFORMATION;
+import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
@@ -269,8 +243,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.setDefaultSchema(defaultSchema);
 
 		String pattern = "## This is a comment on the first line\n"
-				+ "'Prefixe ' + title+ ' Suffixe'\n"
-				+ "## This is a comment on the last line";
+						 + "'Prefixe ' + title+ ' Suffixe'\n"
+						 + "## This is a comment on the last line";
 		ImportedDataEntry importedDataEntry1 = ImportedDataEntry.asJEXLScript(pattern);
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
 				.setDataEntry(importedDataEntry1);
@@ -625,7 +599,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		Map<Language, String> titleMap = new HashMap<>();
 		titleMap.put(Language.French, TITLE_FR);
-		titleMap.put(Language.English ,TITLE_EN);
+		titleMap.put(Language.English, TITLE_EN);
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
@@ -636,7 +610,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		Map<Language, String> titleMap2 = new HashMap<>();
 		titleMap2.put(Language.French, "Le titre du domaine de valeurs 2");
-		titleMap2.put(Language.English ,"Second value list's updated title");
+		titleMap2.put(Language.English, "Second value list's updated title");
 
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
 				.setTitle(titleMap2)
@@ -646,7 +620,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		Map<Language, String> titleMap3 = new HashMap<>();
 		titleMap3.put(Language.French, "Le titre du domaine de valeurs 3");
-		titleMap3.put(Language.English ,"Third value list's updated title");
+		titleMap3.put(Language.English, "Third value list's updated title");
 
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
 				.setTitle(titleMap3)
@@ -655,7 +629,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		Map<Language, String> titleMap4 = new HashMap<>();
 		titleMap4.put(Language.French, "Le titre du domaine de valeurs 4");
-		titleMap4.put(Language.English , "Forth value list's updated title");
+		titleMap4.put(Language.English, "Forth value list's updated title");
 
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
 				.setTitle(titleMap4)
@@ -723,7 +697,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingMultiligualMetadatasThenSet() throws ValidationException {
 		Map<Language, String> labelMap = new HashMap<>();
 		labelMap.put(Language.French, LABEL_FR);
-		labelMap.put(Language.English,LABEL_EN);
+		labelMap.put(Language.English, LABEL_EN);
 		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
 
 		importMetadata(metadata);
@@ -739,7 +713,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenModifiyingValueOfLablesMetadatasThenValueIsUpdated() throws ValidationException {
 		Map<Language, String> labelMap = new HashMap<>();
 		labelMap.put(Language.French, LABEL_FR);
-		labelMap.put(Language.English,LABEL_EN);
+		labelMap.put(Language.English, LABEL_EN);
 		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
 
 		importMetadata(metadata);
@@ -752,7 +726,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		labelMap = new HashMap<>();
 		labelMap.put(Language.French, "Label modifié fr");
-		labelMap.put(Language.English,"Label modifié en");
+		labelMap.put(Language.English, "Label modifié en");
 		metadata.setCode("USRm").setType(STRING).setLabels(labelMap);
 
 		importMetadata(metadata);
@@ -760,8 +734,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
 
 		assertThat(metadataSchemaType).isNotNull();
-		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo( "Label modifié fr");
-		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo( "Label modifié en");
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo("Label modifié fr");
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo("Label modifié en");
 
 	}
 
@@ -821,7 +795,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		labelMap.put(Language.French, LABEL_FR);
-		labelMap.put(Language.English,LABEL_EN);
+		labelMap.put(Language.English, LABEL_EN);
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
 		ImportedMetadataSchema importedMetadataSchema = folderType.newSchema("custom").setLabels(labelMap);
 		collectionSettings.addType(folderType);
@@ -841,7 +815,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		labelMap.put(Language.French, LABEL_FR);
-		labelMap.put(Language.English,LABEL_EN);
+		labelMap.put(Language.English, LABEL_EN);
 		ImportedType folderType = new ImportedType().setCode("folder").setLabels(labelMap);
 		ImportedMetadataSchema importedMetadataSchema = folderType.newSchema("custom");
 		collectionSettings.addType(folderType);
@@ -861,7 +835,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		labelMap.put(Language.French, LABEL_FR);
-		labelMap.put(Language.English,LABEL_EN);
+		labelMap.put(Language.English, LABEL_EN);
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
 		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabels(labelMap);
 		collectionSettings.addType(folderType);
@@ -880,7 +854,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Map<Language, String> labelMap = new HashMap<>();
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		labelMap.put(Language.English,LABEL_EN);
+		labelMap.put(Language.English, LABEL_EN);
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
 		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabels(labelMap);
 		collectionSettings.addType(folderType);
@@ -3651,7 +3625,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users), withCollection("anotherCollection"));
-//		givenCollection("anotherCollection");
+		//		givenCollection("anotherCollection");
 		services = new SettingsImportServices(getAppLayerFactory());
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();

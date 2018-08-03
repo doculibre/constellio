@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.TemporaryRecord;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -25,6 +18,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
+import static java.util.Arrays.asList;
 
 public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRecordView> {
 
@@ -55,7 +55,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 	}
 
 	private boolean canDeleteArchive(RecordVO recordVO, User user) {
-		if(recordVO == null) {
+		if (recordVO == null) {
 			return false;
 		}
 		Record record = recordVO.getRecord();
@@ -89,8 +89,8 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 										view.getCollection());
 						OngoingLogicalSearchCondition FromCondition = from(temporaryRecordSchemaType.getSchema(schema));
 						LogicalSearchCondition condition = user.has(CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally() ?
-								FromCondition.where(returnAll()) :
-								FromCondition.where(Schemas.CREATED_BY).isEqualTo(user);
+														   FromCondition.where(returnAll()) :
+														   FromCondition.where(Schemas.CREATED_BY).isEqualTo(user);
 						return new LogicalSearchQuery().setCondition(condition).sortDesc(Schemas.CREATED_ON);
 					}
 				}

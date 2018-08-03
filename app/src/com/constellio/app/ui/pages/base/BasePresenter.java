@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Observable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -45,6 +34,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Observable;
 
 @SuppressWarnings("serial")
 public abstract class BasePresenter<T extends BaseView> extends Observable implements Serializable {
@@ -86,13 +85,13 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 			public boolean exception(Exception e) {
 				boolean exceptionHandled;
 				if (e instanceof RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) {
-					RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame wrongCollectionException = 
+					RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame wrongCollectionException =
 							(RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame) e;
 					String recordCollection = wrongCollectionException.getRecordCollection();
 					String sessionContextCollection = view.getSessionContext().getCurrentCollection();
 
 					if (sessionContextCollection.equals(recordCollection) ||
-							viewEnteredParams != null && isViewVisibleToCurrentUser(viewEnteredParams)) {
+						viewEnteredParams != null && isViewVisibleToCurrentUser(viewEnteredParams)) {
 						exceptionHandled = true;
 						view.navigate().to().currentView();
 					} else {
@@ -121,11 +120,11 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
 		appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 	}
-	
+
 	protected void clearRequestCache() {
 		ConstellioFactories constellioFactories = presenterUtils.getConstellioFactories();
 		constellioFactories.onRequestEnded();
-		constellioFactories.onRequestStarted();	
+		constellioFactories.onRequestStarted();
 	}
 
 	private boolean isViewVisibleToCurrentUser(String params) {
@@ -305,7 +304,8 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		return rmModuleExtensions.getReportBuilderFactories();
 	}
 
-	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
+	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
+																		  UploadOptions options) {
 		return presenterUtils.uploadContent(inputStream, options);
 	}
 

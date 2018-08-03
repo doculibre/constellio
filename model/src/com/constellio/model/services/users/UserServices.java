@@ -1,26 +1,5 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
-import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.joda.time.ReadableDuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
@@ -34,18 +13,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -63,17 +33,23 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidToken;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
+import com.constellio.model.services.users.UserServicesRuntimeException.*;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.ReadableDuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class UserServices {
 
@@ -110,39 +86,46 @@ public class UserServices {
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-			List<String> globalGroups, List<String> collections, UserCredentialStatus status) {
+											   List<String> globalGroups, List<String> collections,
+											   UserCredentialStatus status) {
 		return userCredentialsManager.create(username, firstName, lastName, email, globalGroups, collections, status);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-			List<String> globalGroups, List<String> collections, UserCredentialStatus status, String domain,
-			List<String> msExchDelegateListBL, String dn) {
+											   List<String> globalGroups, List<String> collections,
+											   UserCredentialStatus status, String domain,
+											   List<String> msExchDelegateListBL, String dn) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, globalGroups, collections, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-			String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status) {
+											   String serviceKey,
+											   boolean systemAdmin, List<String> globalGroups, List<String> collections,
+											   Map<String, LocalDateTime> tokens,
+											   UserCredentialStatus status) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
-			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-			String dn) {
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
+											   List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
+											   String domain, List<String> msExchDelegateListBL,
+											   String dn) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
 				msExchDelegateListBL, dn);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-			List<String> personalEmails,
-			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
-			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-			String dn) {
+											   List<String> personalEmails,
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
+											   List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
+											   String domain, List<String> msExchDelegateListBL,
+											   String dn) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
 				status, domain,
@@ -150,10 +133,12 @@ public class UserServices {
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-			List<String> personalEmails,
-			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
-			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-			String dn, String jobTitle, String phone, String fax, String address) {
+											   List<String> personalEmails,
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
+											   List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
+											   String domain, List<String> msExchDelegateListBL,
+											   String dn, String jobTitle, String phone, String fax, String address) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
 				status, domain,
@@ -180,7 +165,8 @@ public class UserServices {
 	}
 
 	public GlobalGroup createGlobalGroup(
-			String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+			String code, String name, List<String> collections, String parent, GlobalGroupStatus status,
+			boolean locallyCreated) {
 		return globalGroupsManager.create(code, name, collections, parent, status, locallyCreated);
 	}
 
@@ -485,7 +471,7 @@ public class UserServices {
 
 	public boolean canModifyPassword(UserCredential userInEdition, UserCredential currentUser) {
 		return (userInEdition.getUsername().equals("admin") && currentUser.getUsername().equals("admin"))
-				|| !ldapConfigurationManager.isLDAPAuthentication();
+			   || !ldapConfigurationManager.isLDAPAuthentication();
 	}
 
 	public boolean isLDAPAuthentication() {
@@ -736,11 +722,11 @@ public class UserServices {
 		}
 	}
 
-//	private void permissionValidateCredentialOnUser(UserCredential userCredential) {
-//		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS_ACTIVATION)) {
-//			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
-//		}
-//	}
+	//	private void permissionValidateCredentialOnUser(UserCredential userCredential) {
+	//		if (!has(userCredential).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS_ACTIVATION)) {
+	//			throw new UserServicesRuntimeException_UserPermissionDeniedToDelete(userCredential.getUsername());
+	//		}
+	//	}
 
 	public void removeUserFromGlobalGroup(String username, String globalGroupCode) {
 		UserCredential user = getUser(username);
@@ -793,8 +779,8 @@ public class UserServices {
 	public String generateToken(String username, String unitTime, int duration) {
 		String token = secondaryUniqueIdGenerator.next();
 		LocalDateTime expiry = unitTime.equals("hours") ?
-				TimeProvider.getLocalDateTime().plusHours(duration) :
-				TimeProvider.getLocalDateTime().plusDays(duration);
+							   TimeProvider.getLocalDateTime().plusHours(duration) :
+							   TimeProvider.getLocalDateTime().plusDays(duration);
 		UserCredential userCredential = getUser(username).withAccessToken(token, expiry);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
@@ -939,7 +925,7 @@ public class UserServices {
 
 		List<Record> userInGroup = authorizationsServices.getUserRecordsInGroup(group.getWrappedRecord());
 		if (userInGroup.size() != 0 ||
-				searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(group.getId()))) {
+			searchServices.hasResults(fromAllSchemasIn(collection).where(Schemas.ALL_REFERENCES).isEqualTo(group.getId()))) {
 			LOGGER.warn("Exception on physicallyRemoveGroup : " + group.getCode());
 			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotSafeDeletePhysically(group.getCode());
 		}
@@ -1048,7 +1034,8 @@ public class UserServices {
 		return has(username).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
-	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
+	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance,
+										 boolean onlyActiveUsersAndGroups) {
 		List<User> userRecords = new ArrayList<>();
 		Set<String> usernames = new HashSet<>();
 
@@ -1057,8 +1044,9 @@ public class UserServices {
 		return userRecords;
 	}
 
-	private void getUsersRecordsInGroup(Group group, List<User> returnedUserRecords, Set<String> usernamesOfReturnedUsers,
-			boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
+	private void getUsersRecordsInGroup(Group group, List<User> returnedUserRecords,
+										Set<String> usernamesOfReturnedUsers,
+										boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 

@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CriteriaBuilder {
 

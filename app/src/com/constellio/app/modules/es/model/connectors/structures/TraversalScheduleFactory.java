@@ -1,9 +1,9 @@
 package com.constellio.app.modules.es.model.connectors.structures;
 
-import java.util.StringTokenizer;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+
+import java.util.StringTokenizer;
 
 public class TraversalScheduleFactory implements StructureFactory {
 	private static final String NULL = "~null~";

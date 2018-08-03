@@ -13,7 +13,7 @@ import java.util.Map;
 public class ImportedTaxonomy {
 
 	private String code;
-	private Map<Language,String> title;
+	private Map<Language, String> title;
 	private List<String> classifiedTypes = new ArrayList<>();
 	private Boolean visibleOnHomePage;
 	private List<String> userIds = new ArrayList<>();

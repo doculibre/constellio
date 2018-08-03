@@ -1,15 +1,14 @@
 package com.constellio.data.test;
 
-import java.io.IOException;
-import java.util.Random;
-
+import com.constellio.data.dao.services.solr.SolrServerFactory;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.util.NamedList;
 
-import com.constellio.data.dao.services.solr.SolrServerFactory;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import java.io.IOException;
+import java.util.Random;
 
 public class FaultInjectorSolrServerFactory implements SolrServerFactory {
 

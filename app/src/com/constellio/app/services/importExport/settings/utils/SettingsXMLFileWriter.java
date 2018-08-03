@@ -134,7 +134,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addImportedType(Element typesElem, ImportedType importedType) {
 		Element typeItem = new Element(TYPE);
 		typeItem.setAttribute(CODE, importedType.getCode());
-		setLabelsAttribute(typeItem,importedType.getLabels());
+		setLabelsAttribute(typeItem, importedType.getLabels());
 		typesElem.addContent(typeItem);
 
 		addTabs(importedType, typeItem);
@@ -162,10 +162,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		writeSchema(customSchema, schemaElement);
 	}
 
-	private void setLabelsAttribute(Element element, Map<Language,String> labels){
+	private void setLabelsAttribute(Element element, Map<Language, String> labels) {
 		if (labels != null && labels.keySet() != null) {
-			for(Language language : labels.keySet()) {
-				if(Strings.isNotBlank(labels.get(language))) {
+			for (Language language : labels.keySet()) {
+				if (Strings.isNotBlank(labels.get(language))) {
 					element.setAttribute(LABEL + language.getCode(), labels.get(language));
 				}
 			}
@@ -221,7 +221,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addMetadatum(Element defaultSchemaElem, ImportedMetadata importedMetadata) {
 		Element metadataElem = new Element(METADATA);
 		metadataElem.setAttribute(CODE, importedMetadata.getCode());
-		setLabelsAttribute(metadataElem, importedMetadata.getLabels() );
+		setLabelsAttribute(metadataElem, importedMetadata.getLabels());
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
 			metadataElem.setAttribute(TITLE, importedMetadata.getLabel());
 		}
@@ -355,38 +355,38 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.addContent(dataEntryElem);
 
 			switch (dataEntry.getType()) {
-			case "calculated":
-				if (StringUtils.isNotBlank(dataEntry.getCalculator())) {
-					dataEntryElem.setAttribute("calculator", dataEntry.getCalculator());
-				}
-				break;
+				case "calculated":
+					if (StringUtils.isNotBlank(dataEntry.getCalculator())) {
+						dataEntryElem.setAttribute("calculator", dataEntry.getCalculator());
+					}
+					break;
 
-			case "copied":
-				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
-					dataEntryElem.setAttribute("referenceMetadata", dataEntry.getReferencedMetadata());
-				}
+				case "copied":
+					if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
+						dataEntryElem.setAttribute("referenceMetadata", dataEntry.getReferencedMetadata());
+					}
 
-				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
-					dataEntryElem.setAttribute("copiedMetadata", dataEntry.getCopiedMetadata());
-				}
-				break;
+					if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
+						dataEntryElem.setAttribute("copiedMetadata", dataEntry.getCopiedMetadata());
+					}
+					break;
 
-			case "jexl":
-				if (StringUtils.isNotBlank(dataEntry.getPattern())) {
-					dataEntryElem.setText(dataEntry.getPattern());
-				}
-				break;
+				case "jexl":
+					if (StringUtils.isNotBlank(dataEntry.getPattern())) {
+						dataEntryElem.setText(dataEntry.getPattern());
+					}
+					break;
 
-			case "sequence":
-				if (StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
-					dataEntryElem.setAttribute("fixedSequenceCode", dataEntry.getFixedSequenceCode());
-				} else {
-					dataEntryElem.setAttribute("metadataProvidingSequenceCode", dataEntry.getMetadataProvidingSequenceCode());
-				}
-				break;
+				case "sequence":
+					if (StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
+						dataEntryElem.setAttribute("fixedSequenceCode", dataEntry.getFixedSequenceCode());
+					} else {
+						dataEntryElem.setAttribute("metadataProvidingSequenceCode", dataEntry.getMetadataProvidingSequenceCode());
+					}
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 
 		}
@@ -422,7 +422,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		Element listElem = new Element(TAXONOMY);
 		listElem.setAttribute(CODE, importedTaxonomy.getCode());
 		if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitleLanguage() != null) {
-			for(Language language : importedTaxonomy.getTitleLanguage()) {
+			for (Language language : importedTaxonomy.getTitleLanguage()) {
 				listElem.setAttribute(TITLE + language.getCode(), importedTaxonomy.getTitle(language));
 			}
 		}
@@ -450,7 +450,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 
 		if (valueList.getTitle() != null && valueList.getTitle().keySet() != null) {
-			for(Language language : valueList.getTitle().keySet()) {
+			for (Language language : valueList.getTitle().keySet()) {
 				listElem.setAttribute(TITLE + language.getCode(), valueList.getTitle().get(language));
 			}
 		}

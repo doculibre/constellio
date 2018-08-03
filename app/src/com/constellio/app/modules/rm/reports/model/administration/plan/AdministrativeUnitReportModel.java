@@ -79,7 +79,8 @@ public class AdministrativeUnitReportModel {
 			return users;
 		}
 
-		public AdministrativeUnitReportModel_AdministrativeUnit setUsers(List<AdministrativeUnitReportModel_User> users) {
+		public AdministrativeUnitReportModel_AdministrativeUnit setUsers(
+				List<AdministrativeUnitReportModel_User> users) {
 			this.users = users;
 			return this;
 		}

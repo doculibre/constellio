@@ -1,53 +1,19 @@
 package com.constellio.model.services.search.query.logical;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
-import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
-import com.constellio.model.services.search.query.logical.condition.EmptyDataStoreFilters;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.NegatedLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
-import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
-import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
-import com.constellio.model.services.search.query.logical.criteria.IsContainingElementsCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsEndingWithTextCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsFalseCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsFalseOrNullCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsGreaterOrEqualThanCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsGreaterThanCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsInCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsLessOrEqualThanCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsLessThanCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsNewerThanCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsNotContainingElementsCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsNotEqualCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsNotInCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsNotNullCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsNullCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsOldLikeCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsOlderThanCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsStartingWithTextCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsTrueCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsTrueOrNullCriterion;
-import com.constellio.model.services.search.query.logical.criteria.IsValueInRangeCriterion;
-import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
-import com.constellio.model.services.search.query.logical.criteria.NotCriterion;
-import com.constellio.model.services.search.query.logical.criteria.QueryCriterion;
+import com.constellio.model.services.search.query.logical.condition.*;
+import com.constellio.model.services.search.query.logical.criteria.*;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class LogicalSearchQueryOperators {
 
@@ -57,7 +23,8 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaFilters(schema));
 	}
 
-	public static OngoingLogicalSearchCondition from(MetadataSchemaType firstSchemaType, MetadataSchemaType... otherSchemaType) {
+	public static OngoingLogicalSearchCondition from(MetadataSchemaType firstSchemaType,
+													 MetadataSchemaType... otherSchemaType) {
 		List<MetadataSchemaType> types = new ArrayList<>();
 		if (otherSchemaType.length == 0) {
 			return new OngoingLogicalSearchCondition(new SchemaFilters(firstSchemaType));
@@ -83,7 +50,8 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes, true));
 	}
 
-	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject, String dataStore) {
+	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject,
+																		String dataStore) {
 		return new OngoingLogicalSearchCondition(
 				new CollectionFilters(collectionObject.getCollection(), dataStore, false));
 	}
@@ -93,7 +61,7 @@ public class LogicalSearchQueryOperators {
 	}
 
 	public static OngoingLogicalSearchCondition fromAllSchemasInCollectionOf(CollectionObject collectionObject,
-			String dataStore) {
+																			 String dataStore) {
 		return new OngoingLogicalSearchCondition(
 				new CollectionFilters(collectionObject.getCollection(), dataStore, false));
 	}
@@ -102,7 +70,8 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, DataStore.RECORDS, true));
 	}
 
-	public static OngoingLogicalSearchCondition fromAllSchemasInCollectioOfDataStore(String collection, String dataStore) {
+	public static OngoingLogicalSearchCondition fromAllSchemasInCollectioOfDataStore(String collection,
+																					 String dataStore) {
 		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, dataStore, true));
 	}
 

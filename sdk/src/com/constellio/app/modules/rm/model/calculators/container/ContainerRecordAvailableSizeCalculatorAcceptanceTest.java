@@ -1,16 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators.container;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -22,8 +13,16 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.Arrays;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Constellio on 2016-12-19.
@@ -129,7 +128,7 @@ public class ContainerRecordAvailableSizeCalculatorAcceptanceTest extends Conste
 		ContainerRecord containerRecord = buildDefaultContainer();
 		containerRecord.setFull(Boolean.TRUE);
 		containerRecord.setCapacity(42)
-			.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
+				.setAdministrativeUnits(Arrays.asList(records.unitId_10a)).setDecommissioningType(DecommissioningType.DEPOSIT);
 		recordServices.add(containerRecord);
 
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();

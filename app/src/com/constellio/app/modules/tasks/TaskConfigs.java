@@ -1,14 +1,10 @@
 package com.constellio.app.modules.tasks;
 
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class TaskConfigs {
 

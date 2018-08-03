@@ -1,10 +1,10 @@
 package com.constellio.model.entities.batchprocess;
 
-import java.util.List;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
+
+import java.util.List;
 
 public class RecordBatchProcess implements BatchProcess {
 
@@ -34,9 +34,11 @@ public class RecordBatchProcess implements BatchProcess {
 
 	private final List<String> records;
 
-	public RecordBatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
-			int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
-			String query, List<String> records, String username, String title) {
+	public RecordBatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime,
+							  LocalDateTime startDateTime,
+							  int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action,
+							  String collection,
+							  String query, List<String> records, String username, String title) {
 		super();
 		this.id = id;
 		this.status = status;

@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider;
@@ -16,6 +11,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionManagementPresenter extends BasePresenter<CollectionManagementView> {
 	protected transient CollectionsManager collectionManager;

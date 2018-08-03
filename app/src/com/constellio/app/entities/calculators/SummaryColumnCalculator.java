@@ -53,7 +53,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				Metadata metadata = values.getAvailableMetadatasWithAValue().getMetadataWithLocalCode(localeCode);
 
 				StringBuilder textForMetadata = new StringBuilder();
-				if(metadata != null) {
+				if (metadata != null) {
 					if (metadata.getType() != MetadataValueType.REFERENCE) {
 						if (metadata.isMultivalue()) {
 							List metadataValue = values.getValue(localeCode);
@@ -88,14 +88,14 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				}
 				String prefixContentToStirng = addPrefixContentToString(textForMetadata.toString(), currentMap);
 
-				if(!Strings.isNullOrEmpty(prefixContentToStirng) && summmaryColumnValue.length() > 0) {
+				if (!Strings.isNullOrEmpty(prefixContentToStirng) && summmaryColumnValue.length() > 0) {
 					prefixContentToStirng = ", " + prefixContentToStirng;
 				}
 
 				summmaryColumnValue.append(prefixContentToStirng);
 			}
 		}
-		if(Strings.isNullOrEmpty(summmaryColumnValue.toString())) {
+		if (Strings.isNullOrEmpty(summmaryColumnValue.toString())) {
 			return null;
 		}
 
@@ -117,7 +117,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	@Override
-	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
+	public synchronized void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
 		dependencies.clear();
 
 		metadataCode = calculatedMetadata.getCode();
@@ -133,9 +133,8 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
 	}
 
-
 	@Override
-	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
+	public synchronized void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
 
 		MetadataList metadataList = schema.getMetadatas();
@@ -147,14 +146,15 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				String metadataCode = (String) currentMap.get(METADATA_CODE);
 				Metadata currentMetadata = schema.getMetadata(metadataCode);
 
-                if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
-                    dependencies.add(toReferenceDependency(types, schema, metadataCode, getReferenceMetadataDisplayStringValue(currentMap)));
-                }
-            }
-        }
+				if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
+					dependencies.add(toReferenceDependency(types, schema, metadataCode,
+							getReferenceMetadataDisplayStringValue(currentMap)));
+				}
+			}
+		}
 
-        dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
-    }
+		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+	}
 
 	public String getReferenceMetadataDisplayStringValue(Map mapWithReferenceMetadataDisplay) {
 		SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay
@@ -169,7 +169,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		if (isAlwaysShow || !Strings.isNullOrEmpty(itemShown)) {
 			String prefix = (String) summarySettings.get(PREFIX);
 
-			if(Strings.isNullOrEmpty(prefix)) {
+			if (Strings.isNullOrEmpty(prefix)) {
 				prefix = "";
 			}
 
@@ -179,12 +179,13 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		return itemShown;
 	}
 
-	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata, Object value) {
+	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata,
+						   Object value) {
 		String returnValue = "";
 		if (value != null) {
 			switch (metadata.getType()) {
 				case DATE:
-					if(value instanceof LocalDate) {
+					if (value instanceof LocalDate) {
 						LocalDate localDateJoda = (LocalDate) value;
 						value = localDateJoda.toDateTimeAtStartOfDay().toDate();
 					}
@@ -194,32 +195,32 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 									(dateformat)).format(value);
 					break;
 				case DATE_TIME:
-					if(value instanceof LocalDateTime) {
+					if (value instanceof LocalDateTime) {
 						LocalDateTime localDateTimeJoda = (LocalDateTime) value;
 						returnValue = DateFormatUtils.format(localDateTimeJoda);
 					}
 					break;
 				case STRING:
-				returnValue = value.toString();
-				break;
-			case TEXT:
-				returnValue = value.toString();
-				break;
-			case INTEGER:
-				returnValue = value + "";
-				break;
-			case NUMBER:
-				returnValue = value + "";
-				break;
-			case BOOLEAN:
-				returnValue = value + "";
-				break;
-			case CONTENT:
-				returnValue = values.getValue(Schemas.TITLE.getLocalCode());
-				break;
-			case ENUM:
-				returnValue = $(value.toString());
-				break;
+					returnValue = value.toString();
+					break;
+				case TEXT:
+					returnValue = value.toString();
+					break;
+				case INTEGER:
+					returnValue = value + "";
+					break;
+				case NUMBER:
+					returnValue = value + "";
+					break;
+				case BOOLEAN:
+					returnValue = value + "";
+					break;
+				case CONTENT:
+					returnValue = values.getValue(Schemas.TITLE.getLocalCode());
+					break;
+				case ENUM:
+					returnValue = $(value.toString());
+					break;
 			}
 		}
 
@@ -242,7 +243,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	@Override
-	public List<? extends Dependency> getDependencies() {
+	public synchronized List<? extends Dependency> getDependencies() {
 		return dependencies;
 	}
 
@@ -256,8 +257,9 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 			if (list != null) {
 				for (Map listItem : (List<Map>) list) {
-					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE)).equals(metadata.getLocalCode()) || metadata.getLocalCode()
-							.equals(Schemas.TITLE.getLocalCode())) {
+					if (TypeConvertionUtil.getMetadataLocalCode((String) listItem.get(METADATA_CODE))
+								.equals(metadata.getLocalCode()) || metadata.getLocalCode()
+								.equals(Schemas.TITLE.getLocalCode())) {
 						return true;
 					}
 				}
@@ -273,8 +275,9 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 	}
 
-	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, String metadataCode,
-			String metadataLocalCode) {
+	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema,
+													  String metadataCode,
+													  String metadataLocalCode) {
 		Metadata referenceMetadata = schema.getMetadata(metadataCode);
 		String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);

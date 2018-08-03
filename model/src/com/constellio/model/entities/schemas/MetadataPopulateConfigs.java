@@ -1,10 +1,10 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.constellio.model.services.records.extractions.MetadataPopulator;
 
 public class MetadataPopulateConfigs implements Serializable {
 	private final List<MetadataPopulator> metadataPopulators = new ArrayList<>();
@@ -19,7 +19,7 @@ public class MetadataPopulateConfigs implements Serializable {
 	}
 
 	public MetadataPopulateConfigs(List<String> styles, List<String> properties, List<RegexConfig> regexes,
-			List<MetadataPopulator> metadataPopulators, Boolean isAddOnly) {
+								   List<MetadataPopulator> metadataPopulators, Boolean isAddOnly) {
 		this.styles.addAll(styles);
 		this.properties.addAll(properties);
 		this.regexes.addAll(regexes);
@@ -53,19 +53,24 @@ public class MetadataPopulateConfigs implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		MetadataPopulateConfigs that = (MetadataPopulateConfigs) o;
 
-		if (styles != null ? !styles.equals(that.styles) : that.styles != null)
+		if (styles != null ? !styles.equals(that.styles) : that.styles != null) {
 			return false;
-		if (properties != null ? !properties.equals(that.properties) : that.properties != null)
+		}
+		if (properties != null ? !properties.equals(that.properties) : that.properties != null) {
 			return false;
-		if (metadataPopulators != null ? !metadataPopulators.equals(this.metadataPopulators) : that.metadataPopulators != null)
+		}
+		if (metadataPopulators != null ? !metadataPopulators.equals(this.metadataPopulators) : that.metadataPopulators != null) {
 			return false;
+		}
 		return !(regexes != null ? !regexes.equals(that.regexes) : that.regexes != null);
 
 	}

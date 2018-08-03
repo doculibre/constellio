@@ -48,17 +48,21 @@ public class ConnectorField implements ModifiableStructure, Comparable<Connector
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		ConnectorField that = (ConnectorField) o;
 
-		if (id != null ? !id.equals(that.id) : that.id != null)
+		if (id != null ? !id.equals(that.id) : that.id != null) {
 			return false;
-		if (label != null ? !label.equals(that.label) : that.label != null)
+		}
+		if (label != null ? !label.equals(that.label) : that.label != null) {
 			return false;
+		}
 		return type == that.type;
 
 	}
@@ -79,10 +83,10 @@ public class ConnectorField implements ModifiableStructure, Comparable<Connector
 	@Override
 	public String toString() {
 		return "ConnectorField{" +
-				", id='" + id + '\'' +
-				", label='" + label + '\'' +
-				", type=" + type +
-				'}';
+			   ", id='" + id + '\'' +
+			   ", label='" + label + '\'' +
+			   ", type=" + type +
+			   '}';
 	}
 
 	@Override

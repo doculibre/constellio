@@ -1,12 +1,11 @@
 package com.constellio.data.dao.services.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.data.dao.services.XMLElementUtils;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Element;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.XMLElementUtils;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class XMLElementUtilsTest extends ConstellioTest {
 

@@ -1,25 +1,15 @@
 package com.constellio.app.api.admin.services;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.client.AdminServicesConstants;
 import com.constellio.app.client.entities.UserResource;
 import com.constellio.model.entities.security.global.UserCredential;
+import org.joda.time.LocalDateTime;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @Path("session")
 public class LoginService {

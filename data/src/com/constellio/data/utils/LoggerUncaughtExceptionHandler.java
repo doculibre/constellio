@@ -1,8 +1,8 @@
 package com.constellio.data.utils;
 
-import java.lang.Thread.UncaughtExceptionHandler;
-
 import org.slf4j.LoggerFactory;
+
+import java.lang.Thread.UncaughtExceptionHandler;
 
 public class LoggerUncaughtExceptionHandler implements UncaughtExceptionHandler {
 

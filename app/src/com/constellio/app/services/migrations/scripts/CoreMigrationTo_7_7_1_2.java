@@ -17,7 +17,8 @@ public class CoreMigrationTo_7_7_1_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_7_7_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -25,8 +26,8 @@ public class CoreMigrationTo_7_7_1_2 implements MigrationScript {
 	class CoreSchemaAlterationFor_7_7_1_2 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_7_7_1_2(String collection,
-				MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+												  MigrationResourcesProvider migrationResourcesProvider,
+												  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

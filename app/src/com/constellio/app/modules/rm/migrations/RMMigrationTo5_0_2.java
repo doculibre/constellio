@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -30,6 +24,12 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+
 public class RMMigrationTo5_0_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -38,7 +38,7 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new SchemaAlterationFor5_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		createMediumTypes(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
 
@@ -51,7 +51,7 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 	}
 
 	private void createMediumTypes(String collection, ModelLayerFactory modelLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+								   MigrationResourcesProvider migrationResourcesProvider) {
 		Transaction transaction = new Transaction();
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -116,7 +116,7 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 	}
 
 	private void setAllMetadatasInDefaultGroup(MetadataSchemaTypes types, SchemasDisplayManager schemasDisplayManager,
-			MigrationResourcesProvider migrationResourcesProvider) {
+											   MigrationResourcesProvider migrationResourcesProvider) {
 
 		String groupLabel = migrationResourcesProvider.getDefaultLanguageString("defaultGroupLabel");
 		String classifiedInLabel = migrationResourcesProvider.getDefaultLanguageString("classifiedInGroupLabel");
@@ -164,7 +164,7 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 	class SchemaAlterationFor5_0_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor5_0_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

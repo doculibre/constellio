@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -17,6 +10,13 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ValueListItemSchemaTypeBuilder {
 
@@ -30,7 +30,7 @@ public class ValueListItemSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, Map<Language, String> labels,
-			ValueListItemSchemaTypeBuilderOptions options) {
+															   ValueListItemSchemaTypeBuilderOptions options) {
 
 		if (labels == null) {
 			labels = new HashMap<>();
@@ -81,14 +81,15 @@ public class ValueListItemSchemaTypeBuilder {
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {
-			if (labels.containsKey(language))
+			if (labels.containsKey(language)) {
 				titleMetadata.addLabel(language, $("init.valuelist.default.title", language.getLocale()));
+			}
 		}
 		return typeBuilder;
 	}
 
 	public MetadataSchemaTypeBuilder createHierarchicalValueListItemSchema(String code, Map<Language, String> label,
-			ValueListItemSchemaTypeBuilderOptions options) {
+																		   ValueListItemSchemaTypeBuilderOptions options) {
 		List<Language> languages = metadataSchemaTypesBuilder.getLanguages();
 		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();

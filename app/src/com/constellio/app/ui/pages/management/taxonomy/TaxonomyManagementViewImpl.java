@@ -3,10 +3,7 @@ package com.constellio.app.ui.pages.management.taxonomy;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
@@ -265,8 +262,8 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
-		Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
-		boolean[] ordering = { true };
+		Object[] properties = {dataProvider.getSchema().getMetadata(localCode)};
+		boolean[] ordering = {true};
 		table.sort(properties, ordering);
 	}
 
@@ -368,6 +365,10 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		return presenter.getCurrentConcept();
 	}
 
+	public TaxonomyVO getTaxonomy() {
+		return presenter.getTaxonomy();
+	}
+
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {
 		private final boolean comments;
 
@@ -378,7 +379,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		@Override
 		public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
 			return comments == isComments(metadataValue.getMetadata()) ?
-					super.build(recordVO, metadataValue) : null;
+				   super.build(recordVO, metadataValue) : null;
 		}
 
 		private boolean isComments(MetadataVO metadata) {

@@ -504,7 +504,8 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 		loggingServices.addUser(userToAdd.getWrappedRecord(), user);
 	}
 
-	private void addAuthorizationForUserToAccessAdministrativeUnit(User userToAdd, AdministrativeUnit administrativeUnit) {
+	private void addAuthorizationForUserToAccessAdministrativeUnit(User userToAdd,
+																   AdministrativeUnit administrativeUnit) {
 		authorizationsServices.canWrite(userToAdd, administrativeUnit.getWrappedRecord());
 	}
 

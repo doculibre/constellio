@@ -1,12 +1,5 @@
 package com.constellio.model.utils;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-
-import java.io.Serializable;
-
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -18,6 +11,12 @@ import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
+import org.jdom2.Document;
+
+import java.io.Serializable;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventListener, CollectionsListManagerListener {
 
@@ -38,8 +37,10 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 	private final DocumentAlteration newDocumentAlteration;
 
 	public OneXMLConfigPerCollectionManager(
-			ConfigManager configManager, CollectionsListManager collectionsListManager, String collectionFolderRelativeConfigPath,
-			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener, ConstellioCache cache) {
+			ConfigManager configManager, CollectionsListManager collectionsListManager,
+			String collectionFolderRelativeConfigPath,
+			XMLConfigReader<T> configReader, OneXMLConfigPerCollectionManagerListener<T> listener,
+			ConstellioCache cache) {
 		this(configManager, collectionsListManager, collectionFolderRelativeConfigPath, configReader, listener, null, cache);
 	}
 

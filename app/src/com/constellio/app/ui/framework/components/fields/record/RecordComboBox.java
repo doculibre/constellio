@@ -1,13 +1,13 @@
 package com.constellio.app.ui.framework.components.fields.record;
 
-import java.util.List;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+
+import java.util.List;
 
 public class RecordComboBox extends BaseComboBox implements RecordOptionField {
 

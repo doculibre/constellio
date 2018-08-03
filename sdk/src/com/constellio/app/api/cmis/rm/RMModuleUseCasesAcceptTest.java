@@ -1,18 +1,11 @@
 package com.constellio.app.api.cmis.rm;
 
-import static java.util.Calendar.MARCH;
-import static java.util.Calendar.NOVEMBER;
-import static org.apache.chemistry.opencmis.commons.enums.VersioningState.MAJOR;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ObjectId;
@@ -26,12 +19,14 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.model.services.security.authentification.AuthenticationService;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
+import java.math.BigInteger;
+import java.util.*;
+
+import static java.util.Calendar.MARCH;
+import static java.util.Calendar.NOVEMBER;
+import static org.apache.chemistry.opencmis.commons.enums.VersioningState.MAJOR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 

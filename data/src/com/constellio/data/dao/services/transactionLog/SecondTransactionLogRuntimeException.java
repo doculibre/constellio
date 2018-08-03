@@ -1,8 +1,8 @@
 package com.constellio.data.dao.services.transactionLog;
 
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 public class SecondTransactionLogRuntimeException extends RuntimeException {
 
@@ -69,7 +69,8 @@ public class SecondTransactionLogRuntimeException extends RuntimeException {
 	public static class SecondTransactionLogRuntimeException_CannotParseLogCommand
 			extends SecondTransactionLogRuntimeException {
 
-		public SecondTransactionLogRuntimeException_CannotParseLogCommand(List<String> lines, String fileName, Throwable t) {
+		public SecondTransactionLogRuntimeException_CannotParseLogCommand(List<String> lines, String fileName,
+																		  Throwable t) {
 			super("Cannot parse log command in file '" + fileName + "' : " + toCommand(lines), t);
 		}
 
@@ -85,7 +86,8 @@ public class SecondTransactionLogRuntimeException extends RuntimeException {
 	public static class SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException extends SecondTransactionLogRuntimeException {
 		final List<String> notDeletedFiles;
 
-		public SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException(List<String> notDeletedFiles) {
+		public SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException(
+				List<String> notDeletedFiles) {
 			super("Not all tLog files were deleted, remaining :" + StringUtils.join(notDeletedFiles, ", "));
 			this.notDeletedFiles = notDeletedFiles;
 		}

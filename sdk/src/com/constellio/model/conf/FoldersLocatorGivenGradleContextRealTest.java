@@ -1,12 +1,6 @@
 package com.constellio.model.conf;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-import java.io.File;
-import java.io.IOException;
-
+import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -14,7 +8,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
+import java.io.File;
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWithGlobalContext {
@@ -92,7 +91,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 		themesConstellioImages.mkdirs();
 
 		classpath = constellio.getAbsolutePath() + "/file:" + constellio.getAbsolutePath()
-				+ "/model/build/libs/core-model-5.0.4.jar!/com/constellio/model/conf";
+					+ "/model/build/libs/core-model-5.0.4.jar!/com/constellio/model/conf";
 	}
 
 	@Before

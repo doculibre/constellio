@@ -1,16 +1,6 @@
 package com.constellio.model.services.taxonomies;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -20,6 +10,15 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaTypesHaveRecords;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 
@@ -76,9 +75,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 
-
 		Taxonomy collection1Taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
-		Taxonomy collection2Taxonomy = Taxonomy.createPublic("2",labelTitle2, "collection2", asList("anotherSchemaType"));
+		Taxonomy collection2Taxonomy = Taxonomy.createPublic("2", labelTitle2, "collection2", asList("anotherSchemaType"));
 
 		taxonomiesManager.addTaxonomy(collection1Taxonomy, schemasManager);
 		taxonomiesManager.addTaxonomy(collection2Taxonomy, schemasManager);

@@ -1,15 +1,14 @@
 package com.constellio.sdk.tests.selenium;
 
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Before;
-import org.openqa.selenium.By;
-
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.openqa.selenium.By;
+
+import static org.junit.Assert.assertTrue;
 
 @UiTest
 public class SeleniumTestFeaturesAcceptanceTest extends ConstellioTest {

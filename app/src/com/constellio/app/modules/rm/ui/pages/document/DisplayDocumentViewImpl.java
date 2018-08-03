@@ -9,7 +9,6 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -67,7 +66,7 @@ import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfigu
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
-	
+
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
@@ -86,18 +85,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private WindowButton signButton;
 	private WindowButton startWorkflowButton;
 	private ConfirmDialogButton deleteSelectedVersions;
-	
+
 	private boolean contentViewerInitiallyVisible;
 	private boolean waitForContentViewerToBecomeVisible;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
 			publicLinkButton, reportGeneratorButton;
-	
+
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
 
 	private DisplayDocumentPresenter presenter;
-	
+
 	private boolean popup;
 
 	public DisplayDocumentViewImpl() {
@@ -138,7 +137,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	protected String getTitle() {
 		return null;
 	}
-	
+
 	private ContentViewer newContentViewer() {
 		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
 		if (popup) {
@@ -205,7 +204,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			@Override
 			protected void selectionUpdated() {
-				if(deleteSelectedVersions != null) {
+				if (deleteSelectedVersions != null) {
 					deleteSelectedVersions.setVisible(deleteSelectedVersions.isVisible());
 					deleteSelectedVersions.setEnabled(deleteSelectedVersions.isEnabled());
 				}
@@ -220,10 +219,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
-		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+		if (presenter.hasCurrentUserPermissionToViewEvents()) {
 			tabSheet.getTab(eventsComponent).setEnabled(true);
-		}
-		else {
+		} else {
 			tabSheet.getTab(eventsComponent).setEnabled(false);
 		}
 
@@ -237,11 +235,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		});
 
 		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
-		
+
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
-		
+
 		return mainLayout;
 	}
 
@@ -251,7 +249,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
-				for(ContentVersionVO contentVersionVO: selectedContentVersions) {
+				for (ContentVersionVO contentVersionVO : selectedContentVersions) {
 					presenter.deleteContentVersionButtonClicked(contentVersionVO);
 				}
 				versionTable.removeAllSelection();
@@ -310,23 +308,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 	}
 
-//	@Override
-//	protected ClickListener getBackButtonClickListener() {
-//		return new ClickListener() {
-//			@Override
-//			public void buttonClick(ClickEvent event) {
-//				presenter.backButtonClicked();
-//			}
-//		};
-//	}
+	//	@Override
+	//	protected ClickListener getBackButtonClickListener() {
+	//		return new ClickListener() {
+	//			@Override
+	//			public void buttonClick(ClickEvent event) {
+	//				presenter.backButtonClicked();
+	//			}
+	//		};
+	//	}
 
 	@Override
 	public void setTasks(final RecordVODataProvider dataProvider) {
 		Table tasksTable = new RecordVOTable(dataProvider) {
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+				if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+					return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
 						@Override
 						public void updateTaskStarred(boolean isStarred, String taskId) {
 							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
@@ -342,8 +340,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				return new RecordVOTableColumnsManager() {
 					@Override
 					protected String toColumnId(Object propertyId) {
-						if(propertyId instanceof MetadataVO) {
-							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+						if (propertyId instanceof MetadataVO) {
+							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
 								setColumnHeader(propertyId, "");
 								setColumnWidth(propertyId, 60);
 							}
@@ -359,7 +357,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
 				while (iterator.hasNext()) {
 					Object property = iterator.next();
-					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+					if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
 						iterator.remove();
 					}
 				}
@@ -429,7 +427,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		createPDFAButton = new ConfirmDialogButton($("DocumentActionsComponent.createPDFA")) {
 			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) { presenter.createPDFAButtonClicked(); }
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.createPDFAButtonClicked();
+			}
 
 			@Override
 			protected String getConfirmDialogMessage() {
@@ -446,7 +446,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 
 		addToCartButton = buildAddToCartButton();
-		
+
 		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
@@ -501,7 +501,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		actionMenuButtons.add(copyContentButton);
 
-		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT,  getDocumentVO());
+		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT, getDocumentVO());
 
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),
@@ -592,7 +592,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.publishButtonClicked();
 				}
 			};
-			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument() && !presenter.isLogicallyDeleted()) {
+			if (presenter.hasCurrentUserPermissionToPublishOnCurrentDocument() && !presenter.isLogicallyDeleted()) {
 				actionMenuButtons.add(publishButton);
 			}
 
@@ -602,7 +602,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.unpublishButtonClicked();
 				}
 			};
-			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument() && !presenter.isLogicallyDeleted()) {
+			if (presenter.hasCurrentUserPermissionToPublishOnCurrentDocument() && !presenter.isLogicallyDeleted()) {
 				actionMenuButtons.add(unpublishButton);
 			}
 
@@ -638,7 +638,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
 
-		if(presenter.hasWritePermission()) {
+		if (presenter.hasWritePermission()) {
 			actionMenuButtons.add(finalizeButton);
 		}
 
@@ -654,7 +654,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	private WindowButton buildAddToCartButton() {
-		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart")) {
+		return new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -673,7 +673,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 						try {
 							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
 							getWindow().close();
-						} catch (Exception e){
+						} catch (Exception e) {
 							showErrorMessage(MessageUtils.toMessage(e));
 						}
 					}
@@ -686,7 +686,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				ownedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
@@ -699,7 +699,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				sharedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
@@ -708,7 +708,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout,tabSheet);
+				layout.addComponents(newCartLayout, tabSheet);
 				layout.setExpandRatio(tabSheet, 1);
 				return layout;
 			}
@@ -735,7 +735,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		if (!uploadButton.isVisible()) return;
+		if (!uploadButton.isVisible()) {
+			return;
+		}
 		openUploadWindow(false);
 		uploadWindow.drop(event);
 	}
@@ -815,7 +817,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setPublishButtonState(ComponentState state) {
-		if(publishButton != null ){
+		if (publishButton != null) {
 			publishButton.setEnabled(state.isEnabled());
 			publishButton.setVisible(state.isVisible());
 		}
@@ -907,15 +909,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void addTabSheetDecorator(TabSheetDecorator decorator) {
 		this.tabSheetDecorators.add(decorator);
 	}
-	
+
 	public List<TabSheetDecorator> getTabSheetDecorators() {
 		return this.tabSheetDecorators;
 	}
-	
+
 	public void removeTabSheetDecorator(TabSheetDecorator decorator) {
 		this.tabSheetDecorators.remove(decorator);
 	}
-	
+
 	@Override
 	public DocumentVO getDocumentVO() {
 		return documentVO;

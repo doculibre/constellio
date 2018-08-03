@@ -10,59 +10,59 @@ import java.util.Collection;
  */
 public class ClickableNotification extends Window {
 
-    public static ClickableNotification show(final UI ui, final String windowCaption, final String message) {
-        final ClickableNotification notification = new ClickableNotification();
-        notification.setCaptionAsHtml(true);
-        notification.setCaption(windowCaption);
-        StringBuilder stringBuilder = new StringBuilder();
-        appendOtherClickableWindows(stringBuilder, ui);
-        stringBuilder.append(message);
-        notification.setContent(buildNotificationContent(stringBuilder.toString()));
-        //TODO ADD LISTENER TO CLOSE WINDOW WHEN CLICK OUTSIDE BUT NOT WHEN CLICK HYPERLINK
-//        notification.addBlurListener(new FieldEvents.BlurListener() {
-//
-//            @Override
-//            public void blur(FieldEvents.BlurEvent event) {
-//                notification.close();
-//
-//            }
-//        });
+	public static ClickableNotification show(final UI ui, final String windowCaption, final String message) {
+		final ClickableNotification notification = new ClickableNotification();
+		notification.setCaptionAsHtml(true);
+		notification.setCaption(windowCaption);
+		StringBuilder stringBuilder = new StringBuilder();
+		appendOtherClickableWindows(stringBuilder, ui);
+		stringBuilder.append(message);
+		notification.setContent(buildNotificationContent(stringBuilder.toString()));
+		//TODO ADD LISTENER TO CLOSE WINDOW WHEN CLICK OUTSIDE BUT NOT WHEN CLICK HYPERLINK
+		//        notification.addBlurListener(new FieldEvents.BlurListener() {
+		//
+		//            @Override
+		//            public void blur(FieldEvents.BlurEvent event) {
+		//                notification.close();
+		//
+		//            }
+		//        });
 
-        notification.show(ui, true);
-        return notification;
-    }
+		notification.show(ui, true);
+		return notification;
+	}
 
-    private static void appendOtherClickableWindows(StringBuilder stringBuilder, UI ui) {
-        Collection<Window> windows = ui.getWindows();
-        for(Window window: windows) {
-            if(window != null && window instanceof ClickableNotification) {
-                try {
-                    ClickableNotification notification = (ClickableNotification) window;
-                    VerticalLayout mainLayout = (VerticalLayout) notification.getContent();
-                    Label label = (Label) mainLayout.getComponent(0);
-                    stringBuilder.append(label.getValue());
-                    stringBuilder.append("<br><br>");
-                    ui.removeWindow(notification);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+	private static void appendOtherClickableWindows(StringBuilder stringBuilder, UI ui) {
+		Collection<Window> windows = ui.getWindows();
+		for (Window window : windows) {
+			if (window != null && window instanceof ClickableNotification) {
+				try {
+					ClickableNotification notification = (ClickableNotification) window;
+					VerticalLayout mainLayout = (VerticalLayout) notification.getContent();
+					Label label = (Label) mainLayout.getComponent(0);
+					stringBuilder.append(label.getValue());
+					stringBuilder.append("<br><br>");
+					ui.removeWindow(notification);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
-    public static Component buildNotificationContent(String message) {
-        VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setMargin(true);
-        mainLayout.setSpacing(true);
-        Label label = new Label(message, ContentMode.HTML);
-        mainLayout.addComponent(label);
-        return mainLayout;
-    }
+	public static Component buildNotificationContent(String message) {
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setMargin(true);
+		mainLayout.setSpacing(true);
+		Label label = new Label(message, ContentMode.HTML);
+		mainLayout.addComponent(label);
+		return mainLayout;
+	}
 
-    public final void show(final UI ui, final boolean modal) {
-        center();
-//        focus();
-        setModal(modal);
-        ui.addWindow(this);
-    }
+	public final void show(final UI ui, final boolean modal) {
+		center();
+		//        focus();
+		setModal(modal);
+		ui.addWindow(this);
+	}
 }

@@ -1,10 +1,5 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.SCHEMA_TYPE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -13,6 +8,9 @@ import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.SCHEMA_TYPE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class TaskStatusSchemasExtension extends RecordExtension {
 	private final TasksSchemasRecordsServices tasksSchema;

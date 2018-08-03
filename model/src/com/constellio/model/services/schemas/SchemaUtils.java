@@ -1,36 +1,24 @@
 package com.constellio.model.services.schemas;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtilsRuntimeException.SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class SchemaUtils {
 
@@ -190,7 +178,7 @@ public class SchemaUtils {
 	}
 
 	public Map<String, Metadata> buildMetadataByLocalCodeIndex(List<MetadataSchema> customSchemas,
-			MetadataSchema defaultSchema) {
+															   MetadataSchema defaultSchema) {
 		//TODO Test that default schema metadata are returned instead of an inheritance in a custom schema
 		Map<String, Metadata> index = new HashMap<>();
 		for (MetadataSchema customSchema : customSchemas) {
@@ -289,10 +277,10 @@ public class SchemaUtils {
 	}
 
 	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
-			DynamicLocalDependency dependency) {
+									   DynamicLocalDependency dependency) {
 		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
-				&& (dependency.isIncludingGlobalMetadatas() || !otherMetadata.isGlobal())
-				&& dependency.isDependentOf(otherMetadata, calculatedMetadata);
+			   && (dependency.isIncludingGlobalMetadatas() || !otherMetadata.isGlobal())
+			   && dependency.isDependentOf(otherMetadata, calculatedMetadata);
 	}
 
 	public static String getMetadataLocalCodeWithoutPrefix(Metadata metadata) {
@@ -358,7 +346,7 @@ public class SchemaUtils {
 	}
 
 	public static Metadata getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(MetadataSchema schema,
-			Metadata metadata) {
+																						Metadata metadata) {
 
 		CalculatedDataEntry calculatedDataEntry = ((CalculatedDataEntry) metadata.getDataEntry());
 		for (Dependency calculatorDependency : calculatedDataEntry.getCalculator().getDependencies()) {
@@ -401,7 +389,7 @@ public class SchemaUtils {
 	}
 
 	private static Set<String> getSchemaTypesInHierarchyOf(String schemaTypeCode, MetadataSchemaTypes allSchemaTypes,
-			Set<String> schemaTypesInHierarchy) {
+														   Set<String> schemaTypesInHierarchy) {
 		MetadataSchemaType schemaType = allSchemaTypes.getSchemaType(schemaTypeCode);
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isChildOfRelationship() || metadata.isTaxonomyRelationship()) {

@@ -20,44 +20,44 @@ import static org.mockito.Mockito.*;
  * Created by Constelio on 2016-10-19.
  */
 public class SelectionPanelExtensionAcceptanceTest extends ConstellioTest {
-    AppLayerFactory appLayerFactory;
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	AppLayerFactory appLayerFactory;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    @Before
-    public void setup() {
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
-        );
-        appLayerFactory = getAppLayerFactory();
-    }
+	@Before
+	public void setup() {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		appLayerFactory = getAppLayerFactory();
+	}
 
-    @Test
-    public void givenSelectionPanelIsBuiltThenExtensionIsCalled() {
-        SelectionPanelExtension selectionPanelExtension = spy(new SelectionPanelExtension());
-        appLayerFactory.getExtensions().forCollection(zeCollection).selectionPanelExtensions.add(selectionPanelExtension);
+	@Test
+	public void givenSelectionPanelIsBuiltThenExtensionIsCalled() {
+		SelectionPanelExtension selectionPanelExtension = spy(new SelectionPanelExtension());
+		appLayerFactory.getExtensions().forCollection(zeCollection).selectionPanelExtensions.add(selectionPanelExtension);
 
-        new ConstellioHeaderImpl() {
-            @Override
-            public SessionContext getSessionContext() {
-                return FakeSessionContext.adminInCollection(zeCollection);
-            }
+		new ConstellioHeaderImpl() {
+			@Override
+			public SessionContext getSessionContext() {
+				return FakeSessionContext.adminInCollection(zeCollection);
+			}
 
-            @Override
-            protected Component buildAdvancedSearchUI() {
-                return new VerticalLayout();
-            }
+			@Override
+			protected Component buildAdvancedSearchUI() {
+				return new VerticalLayout();
+			}
 
-            @Override
-            protected MenuBar buildCollectionMenu() {
-                return new MenuBar();
-            }
+			@Override
+			protected MenuBar buildCollectionMenu() {
+				return new MenuBar();
+			}
 
-            @Override
-            public Navigator getNavigator() {
-                return mock(Navigator.class);
-            }
-        };
-        verify(selectionPanelExtension, times(1)).addAvailableActions(any(AvailableActionsParam.class));
-    }
+			@Override
+			public Navigator getNavigator() {
+				return mock(Navigator.class);
+			}
+		};
+		verify(selectionPanelExtension, times(1)).addAvailableActions(any(AvailableActionsParam.class));
+	}
 }

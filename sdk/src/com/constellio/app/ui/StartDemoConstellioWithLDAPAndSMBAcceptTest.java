@@ -1,11 +1,5 @@
 package com.constellio.app.ui;
 
-import static java.util.Arrays.asList;
-
-import org.joda.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.testutils.LDAPTokenTestConfig;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
@@ -24,6 +18,11 @@ import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.joda.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
+
+import static java.util.Arrays.asList;
 
 @UiTest
 @MainTest

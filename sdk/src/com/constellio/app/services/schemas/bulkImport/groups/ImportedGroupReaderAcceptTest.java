@@ -1,16 +1,15 @@
 package com.constellio.app.services.schemas.bulkImport.groups;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.io.File;
-import java.util.List;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class ImportedGroupReaderAcceptTest extends ConstellioTest {
 	@Test

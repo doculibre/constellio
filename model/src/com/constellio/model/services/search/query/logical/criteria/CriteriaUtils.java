@@ -1,15 +1,14 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.DataStoreField;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
-
-import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.DataStoreField;
 
 public class CriteriaUtils {
 
@@ -78,13 +77,13 @@ public class CriteriaUtils {
 
 	public static String getNullValueForDataStoreField(DataStoreField dataStoreField) {
 		switch (dataStoreField.getType()) {
-		case DATE:
-		case DATE_TIME:
-			return getNullDateValue();
-		case NUMBER:
-			return getNullNumberValue();
-		default:
-			return getNullStringValue();
+			case DATE:
+			case DATE_TIME:
+				return getNullDateValue();
+			case NUMBER:
+				return getNullNumberValue();
+			default:
+				return getNullStringValue();
 		}
 	}
 }

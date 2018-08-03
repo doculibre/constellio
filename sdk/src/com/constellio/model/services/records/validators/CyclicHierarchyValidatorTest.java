@@ -1,27 +1,21 @@
 package com.constellio.model.services.records.validators;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordProvider;
+import com.constellio.model.services.schemas.validators.CyclicHierarchyValidator;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.records.RecordProvider;
-import com.constellio.model.services.schemas.validators.CyclicHierarchyValidator;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
@@ -152,7 +146,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
-	
+
 	@Test
 	public void givenARecordWithIdInSubstringOfPrincipalPathThenNoError() {
 
@@ -164,7 +158,7 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 		validator.validate(record, validationErrors);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
-		
+
 	}
 
 }

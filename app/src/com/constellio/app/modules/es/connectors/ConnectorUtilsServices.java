@@ -1,13 +1,13 @@
 package com.constellio.app.modules.es.connectors;
 
-import java.io.InputStream;
-import java.util.List;
-
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
+
+import java.io.InputStream;
+import java.util.List;
 
 public interface ConnectorUtilsServices<T extends Connector> {
 
@@ -33,7 +33,8 @@ public interface ConnectorUtilsServices<T extends Connector> {
 
 	String getRecordExternalUrl(RecordVO recordVO);
 
-	InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument, String availableVersion);
+	InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
+									  String availableVersion);
 
 	List<String> getAvailableVersions(String connectorID, ConnectorDocument document);
 }

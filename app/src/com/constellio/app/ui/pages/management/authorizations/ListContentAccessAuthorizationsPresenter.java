@@ -64,11 +64,11 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 
 	@Override
 	public boolean isDetacheable() {
-		return 	!AdministrativeUnit.SCHEMA_TYPE.equals(getSchemaType());
+		return !AdministrativeUnit.SCHEMA_TYPE.equals(getSchemaType());
 	}
 
 	public String getSchemaType() {
-		return getRecordVO() == null || getRecordVO().getSchema() == null ? null: getRecordVO().getSchema().getTypeCode();
+		return getRecordVO() == null || getRecordVO().getSchema() == null ? null : getRecordVO().getSchema().getTypeCode();
 	}
 
 	@Override

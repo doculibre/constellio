@@ -55,8 +55,8 @@ public class RecordLogicalDeleteOptions {
 		return this;
 	}
 
-	public RecordLogicalDeleteOptions enableValidatorChecking(){
-		this.checkForValidationError  = true;
+	public RecordLogicalDeleteOptions enableValidatorChecking() {
+		this.checkForValidationError = true;
 		return this;
 	}
 

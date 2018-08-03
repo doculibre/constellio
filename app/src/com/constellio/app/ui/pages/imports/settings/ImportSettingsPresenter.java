@@ -8,7 +8,6 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.imports.ImportFilePresenterInterface;
 import com.constellio.app.ui.pages.imports.ImportFileView;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
@@ -28,9 +27,9 @@ import java.io.StringWriter;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportSettingsPresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface {
-	
-	private static final Logger LOGGER = LogManager.getLogger(ImportSettingsPresenter.class); 
-	
+
+	private static final Logger LOGGER = LogManager.getLogger(ImportSettingsPresenter.class);
+
 	private transient SettingsImportServices settingsImportServices;
 
 	public ImportSettingsPresenter(ImportFileView view) {
@@ -105,5 +104,5 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 			throw new RuntimeException("build Document JDOM2 from file", e);
 		}
 	}
-	
+
 }

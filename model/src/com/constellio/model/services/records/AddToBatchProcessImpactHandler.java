@@ -1,8 +1,5 @@
 package com.constellio.model.services.records;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -11,6 +8,9 @@ import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessA
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddToBatchProcessImpactHandler implements RecordModificationImpactHandler {
 

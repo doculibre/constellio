@@ -1,16 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import com.constellio.model.entities.records.wrappers.*;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -20,23 +9,7 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
-import com.constellio.app.modules.rm.wrappers.PrintableReport;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.SIParchive;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
@@ -50,6 +23,7 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -59,6 +33,15 @@ import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 @MainTest
 public class GenerateHelperClassAcceptTest extends ConstellioTest {
@@ -322,7 +305,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder.append("\n\t}\n");
 	}
 
-	private void appendGetByLegacyIdHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendGetByLegacyIdHelperMethod(MetadataSchema schema, String wrapperName,
+												 StringBuilder stringBuilder) {
 
 		String schemaTypeCall = schemaTypeCallerFor(schema);
 
@@ -346,7 +330,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 	}
 
 	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, boolean withLocale,
-			StringBuilder stringBuilder) {
+											   StringBuilder stringBuilder) {
 
 		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 			stringBuilder.append("\n\tpublic abstract " + wrapperName + " wrap" + wrapperName + "(Record record);");
@@ -362,7 +346,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 	}
 
 	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, boolean withLocale,
-			StringBuilder stringBuilder) {
+												StringBuilder stringBuilder) {
 		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 			stringBuilder.append("\n\tpublic abstract List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records);");
 		} else {
@@ -381,15 +365,16 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		}
 	}
 
-	private void appendSearchByQueryElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendSearchByQueryElementsHelperMethod(MetadataSchema schema, String wrapperName,
+														 StringBuilder stringBuilder) {
 		stringBuilder.append("\n\tpublic List<" + wrapperName + "> search" + wrapperName + "s(LogicalSearchQuery query) {");
 		stringBuilder.append("\n\t\treturn wrap" + wrapperName
-				+ "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
+							 + "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
 		stringBuilder.append("\n\t}\n");
 	}
 
 	private void appendSearchByConditionElementsHelperMethod(MetadataSchema schema, String wrapperName,
-			StringBuilder stringBuilder) {
+															 StringBuilder stringBuilder) {
 		stringBuilder
 				.append("\n\tpublic List<" + wrapperName + "> search" + wrapperName + "s(LogicalSearchCondition condition) {");
 
@@ -397,12 +382,12 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder
 				.append("\n\t\tLogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));");
 		stringBuilder.append("\n\t\treturn wrap" + wrapperName
-				+ "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
+							 + "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
 		stringBuilder.append("\n\t}\n");
 	}
 
 	private String metadatasHelperMethod(MetadataSchemaType type, MetadataSchema schema,
-			Class<? extends RecordWrapper> recordWrapperClass)
+										 Class<? extends RecordWrapper> recordWrapperClass)
 			throws Exception {
 
 		StringBuilder stringBuilder = new StringBuilder();
@@ -423,7 +408,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		}
 
 		stringBuilder.append("\n\tpublic final " + shortcutClass + " " + variableName + "\n\t\t = new " + shortcutClass + "(\""
-				+ schema.getCode() + "\");");
+							 + schema.getCode() + "\");");
 		stringBuilder.append("\n\tpublic class " + shortcutClass + " extends " + shortcutExtendsClass + " {");
 
 		stringBuilder.append("\n\t\tprotected " + shortcutClass + "(String schemaCode) {");
@@ -466,7 +451,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 	protected String header() {
 		String line = "/** " + StringUtils.repeat("** ", 25) + "**/";
 		return line + "\n\t\t// Auto-generated methods by "
-				+ "" + this.getClass().getSimpleName() + " -- start\n" + line + "\n\n";
+			   + "" + this.getClass().getSimpleName() + " -- start\n" + line + "\n\n";
 	}
 
 	protected String footer() {

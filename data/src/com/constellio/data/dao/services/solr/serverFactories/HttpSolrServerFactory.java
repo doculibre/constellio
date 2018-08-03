@@ -1,12 +1,10 @@
 package com.constellio.data.dao.services.solr.serverFactories;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-
+import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
+import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
@@ -22,11 +20,12 @@ import org.apache.solr.common.util.SimpleOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.conf.HashingEncoding;
-import com.constellio.data.io.IOServicesFactory;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
-import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
-import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 
@@ -56,14 +55,16 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	public synchronized void clear() {
-		for (AtomicFileSystem atomicFileSystem : atomicFileSystems)
+		for (AtomicFileSystem atomicFileSystem : atomicFileSystems) {
 			atomicFileSystem.close();
-		for (SolrClient solrClient : solrClients)
+		}
+		for (SolrClient solrClient : solrClients) {
 			try {
 				solrClient.close();
 			} catch (IOException ioe) {
 				LOGGER.error("Error while closing solr client", ioe);
 			}
+		}
 	}
 
 	@Override
@@ -135,10 +136,11 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		for (Entry<String, NamedList<Object>> aCoreStatus : coreStatus) {
 			File coreConfigFld = new File(aCoreStatus.getValue().get("instanceDir").toString());
 			File solrFld = coreConfigFld.getParentFile();
-			if (parent == null)
+			if (parent == null) {
 				parent = solrFld;
-			else if (!parent.equals(solrFld))
+			} else if (!parent.equals(solrFld)) {
 				throw new UnsupportedOperationException("TODO ?!");
+			}
 		}
 		return parent;
 	}

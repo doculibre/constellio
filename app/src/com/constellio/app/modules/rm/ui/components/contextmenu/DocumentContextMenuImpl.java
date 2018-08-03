@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -46,6 +36,14 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
 
@@ -271,7 +269,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			});
 		}
 
-		if(presenter.hasMetadataReport()) {
+		if (presenter.hasMetadataReport()) {
 			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"),
 					FontAwesome.LIST_ALT);
 			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {

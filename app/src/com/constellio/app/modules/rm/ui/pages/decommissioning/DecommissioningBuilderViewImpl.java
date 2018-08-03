@@ -85,7 +85,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				if(presenter.isAddMode()) {
+				if (presenter.isAddMode()) {
 					navigate().to(RMViews.class).decommissioning();
 				} else if (presenter.getDecommissioningList().getDecommissioningListType().isFolderList()) {
 					navigate().to(RMViews.class).displayDecommissioningList(presenter.getDecommissioningList().getId());
@@ -239,7 +239,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		}
 
 		@Override
-		public boolean isVisible(){
+		public boolean isVisible() {
 			return presenter.isAddMode();
 		}
 	}

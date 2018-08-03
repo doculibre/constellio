@@ -1,22 +1,5 @@
 package com.constellio.sdk.tests.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
@@ -34,6 +17,14 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.testimpl.TestStructureFactory1;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 
 public class TestsSchemasSetup extends SchemasSetup {
 
@@ -95,7 +86,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
-	public static MetadataBuilderConfigurator whichIsCalculatedUsing(final Class<? extends MetadataValueCalculator<?>> clazz) {
+	public static MetadataBuilderConfigurator whichIsCalculatedUsing(
+			final Class<? extends MetadataValueCalculator<?>> clazz) {
 		return new MetadataBuilderConfigurator() {
 
 			@Override
@@ -479,7 +471,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(boolean multivalue,
+	public TestsSchemasSetup withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(
+			boolean multivalue,
 			boolean multivalueReferences, boolean required) {
 		MetadataBuilder stringReference = zeDefaultSchemaBuilder.create("stringRef").setType(REFERENCE)
 				.setMultivalue(multivalueReferences);
@@ -737,7 +730,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withAParentReferenceFromZeSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromZeSchemaToZeSchema(
+			MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("parentReferenceFromZeSchemaToZeSchema")
 				.defineChildOfRelationshipToSchemas(Arrays.asList(zeDefaultSchemaBuilder));
@@ -745,7 +739,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(
+			MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
 				.defineChildOfRelationshipToType(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
@@ -753,7 +748,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(
+			MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
 				.defineReferencesTo(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
@@ -881,7 +877,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 	}
 
 	public TestsSchemasSetup withAnEnumMetadata(Class enumClass,
-			MetadataBuilderConfigurator... builderConfigurators) {
+												MetadataBuilderConfigurator... builderConfigurators) {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("withAnEnumMetadata").defineAsEnum(enumClass);
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;

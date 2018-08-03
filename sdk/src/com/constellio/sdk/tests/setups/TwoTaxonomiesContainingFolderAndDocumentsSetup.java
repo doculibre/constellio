@@ -1,9 +1,5 @@
 package com.constellio.sdk.tests.setups;
 
-import static org.mockito.Mockito.when;
-
-import java.util.*;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -19,20 +15,23 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 
+import java.util.*;
+
+import static org.mockito.Mockito.when;
+
 /**
  * This schema setup can be used to test multiple taxonomy behaviors :
- *
+ * <p>
  * Taxonomy 1 :
  * - composed of two types, folders can only be added in the second type,
  * - the second type can be child of the first type or second type, but not both (a validation should be done)
- *
+ * <p>
  * Taxonomy 2 :
  * - composed of one type, but folders can only be added in the custom type
  * - Folders can have multiple values of taxonomy2
- *
+ * <p>
  * Folders :
  * - can contains other folders and documents
- *
  */
 public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup {
 
@@ -95,7 +94,7 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 	}
 
 	private void setupFolderType(MetadataSchemaTypeBuilder folderType, MetadataSchemaTypeBuilder taxo1Type2,
-			MetadataSchemaTypeBuilder taxo2Type) {
+								 MetadataSchemaTypeBuilder taxo2Type) {
 		folderType.getDefaultSchema().create("parent").defineChildOfRelationshipToType(folderType);
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(taxo1Type2);
 		folderType.getDefaultSchema().create("taxonomy2").setMultivalue(true).defineTaxonomyRelationshipToSchemas(
@@ -592,7 +591,7 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 		}
 
 		private TestRecord addTaxo1SecondTypeRecord(Transaction transaction, String id, Record firstTypeParent,
-				TestRecord secondTypeParent) {
+													TestRecord secondTypeParent) {
 			TestRecord record = new TestRecord(taxonomy1SecondSchemaType, collection + "_" + id);
 			record.set(taxonomy1SecondSchemaType.title(), id);
 			record.set(taxonomy1SecondSchemaType.parentOfType1(), firstTypeParent);

@@ -10,7 +10,7 @@ public class OnWriteRecordParams {
 	ModifiableImportRecord modifiableImportRecord;
 
 	public OnWriteRecordParams(Record record,
-			ModifiableImportRecord modifiableImportRecord) {
+							   ModifiableImportRecord modifiableImportRecord) {
 		this.record = record;
 		this.modifiableImportRecord = modifiableImportRecord;
 	}

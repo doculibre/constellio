@@ -4,5 +4,5 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.vaadin.ui.Field;
 
 public interface MetadataFieldExtension {
-    Field<?> getMetadataField(MetadataVO metadataVO);
+	Field<?> getMetadataField(MetadataVO metadataVO);
 }

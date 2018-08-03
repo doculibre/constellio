@@ -8,7 +8,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 public interface AddEditFolderView extends BaseView, RecordsManagementViewGroup {
 
 	void setRecord(RecordVO recordVO);
-	
+
 	FolderForm getForm();
 
 }

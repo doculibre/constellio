@@ -1,14 +1,5 @@
 package com.constellio.app.modules.robots.reports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.RecordMetadataValuePrinter;
@@ -16,13 +7,18 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class DryRunReportPresenter {
 	private final List<DryRunRobotAction> dryRunRobotActions;
 	private RecordMetadataValuePrinter recordMetadataValuePrinter;
 	Language language;
 
 	public DryRunReportPresenter(ModelLayerFactory modelLayerFactory, List<DryRunRobotAction> dryRunRobotActions,
-			SessionContext sessionContext) {
+								 SessionContext sessionContext) {
 		this.dryRunRobotActions = dryRunRobotActions;
 		recordMetadataValuePrinter = new RecordMetadataValuePrinter(modelLayerFactory);
 		language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());

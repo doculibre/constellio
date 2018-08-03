@@ -1,8 +1,8 @@
 package com.constellio.model.services.users;
 
-import java.util.List;
-
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.List;
 
 public class CredentialUserPermissionChecker {
 

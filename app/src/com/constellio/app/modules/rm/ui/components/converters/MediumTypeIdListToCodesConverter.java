@@ -1,18 +1,17 @@
 package com.constellio.app.modules.rm.ui.components.converters;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class MediumTypeIdListToCodesConverter implements Converter<String, List<String>> {
 
@@ -23,6 +22,7 @@ public class MediumTypeIdListToCodesConverter implements Converter<String, List<
 	public MediumTypeIdListToCodesConverter() {
 		this(", ");
 	}
+
 	public MediumTypeIdListToCodesConverter(String separator) {
 		this.separator = separator;
 		initTransientObjects();
@@ -78,7 +78,7 @@ public class MediumTypeIdListToCodesConverter implements Converter<String, List<
 		return presentation;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Class getModelType() {
 		return List.class;

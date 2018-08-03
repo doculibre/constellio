@@ -15,7 +15,8 @@ public class ESMigrationTo8_0_2 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();

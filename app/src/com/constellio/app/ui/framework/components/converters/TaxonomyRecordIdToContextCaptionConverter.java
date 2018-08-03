@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.io.IOException;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
@@ -14,6 +9,10 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.vaadin.server.Resource;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.Locale;
 
 public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaptionConverter {
 

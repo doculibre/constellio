@@ -1,18 +1,5 @@
 package com.constellio.model.entities.records.wrappers;
 
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
@@ -23,6 +10,12 @@ import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.security.roles.Roles;
+import org.joda.time.LocalDateTime;
+
+import java.util.*;
+
+import static com.constellio.model.entities.security.Role.*;
+import static java.util.Arrays.asList;
 
 public class User extends RecordWrapper {
 	public static final User GOD = null;
@@ -450,7 +443,7 @@ public class User extends RecordWrapper {
 
 		} else {
 			RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
-			checker.permissions = new String[] { permission };
+			checker.permissions = new String[]{permission};
 			return checker;
 		}
 	}

@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.search.savedSearch;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -16,8 +14,9 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchView> {
 
@@ -88,12 +87,12 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 
 	public void searchButtonClicked(RecordVO recordVO) {
 		switch (recordVO.<String>get(SavedSearch.SEARCH_TYPE)) {
-		case SimpleSearchView.SEARCH_TYPE:
-			view.navigate().to().simpleSearchReplay(recordVO.getId());
-			break;
-		case AdvancedSearchView.SEARCH_TYPE:
-			view.navigate().to().advancedSearchReplay(recordVO.getId());
-			break;
+			case SimpleSearchView.SEARCH_TYPE:
+				view.navigate().to().simpleSearchReplay(recordVO.getId());
+				break;
+			case AdvancedSearchView.SEARCH_TYPE:
+				view.navigate().to().advancedSearchReplay(recordVO.getId());
+				break;
 		}
 	}
 

@@ -21,32 +21,32 @@ public class TaxonomyCaptionUtils implements Serializable {
 			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 			Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
 			String taxonomyTitle = taxonomy.getTitle(language);
-			
+
 			String captionPrefixKey = "Taxonomy." + taxonomyCode + ".caption";
 			String captionPrefix = $(captionPrefixKey);
 			if (captionPrefixKey.equals(captionPrefix)) {
 				captionPrefixKey = "Taxonomy.default.caption";
 				captionPrefix = $(captionPrefixKey);
 			}
-//			if (isRightToLeft()) {
-//				if (captionPrefixKey.equals(captionPrefix)) {
-//					captionPrefix = "";
-//				} else {
-//					captionPrefix = " " + captionPrefix;
-//				}
-//				caption = taxonomyTitle + captionPrefix;
-//			} else {
-				if (captionPrefixKey.equals(captionPrefix)) {
-					captionPrefix = "";
-				} else {
-					captionPrefix = captionPrefix + " ";
-				}
-				caption = captionPrefix + taxonomyTitle;
-//			}
+			//			if (isRightToLeft()) {
+			//				if (captionPrefixKey.equals(captionPrefix)) {
+			//					captionPrefix = "";
+			//				} else {
+			//					captionPrefix = " " + captionPrefix;
+			//				}
+			//				caption = taxonomyTitle + captionPrefix;
+			//			} else {
+			if (captionPrefixKey.equals(captionPrefix)) {
+				captionPrefix = "";
+			} else {
+				captionPrefix = captionPrefix + " ";
+			}
+			caption = captionPrefix + taxonomyTitle;
+			//			}
 		} else {
 			caption = "";
 		}
 		return caption;
 	}
-	
+
 }

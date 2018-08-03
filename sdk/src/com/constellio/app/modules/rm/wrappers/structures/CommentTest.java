@@ -1,17 +1,16 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class CommentTest extends ConstellioTest {
 

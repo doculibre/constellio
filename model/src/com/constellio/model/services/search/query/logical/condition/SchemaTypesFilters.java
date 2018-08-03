@@ -1,14 +1,13 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import static java.util.Arrays.asList;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException.CannotSearchInMultipleDataStore;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException.CannotSearchInMultipleDataStore;
+import static java.util.Arrays.asList;
 
 public class SchemaTypesFilters implements DataStoreFilters {
 	String collection;

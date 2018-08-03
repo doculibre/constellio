@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -11,14 +7,18 @@ import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeLi
 import com.vaadin.data.Item;
 import com.vaadin.ui.Table;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class RecordVOSelectionTableAdapter extends SelectionTableAdapter implements SelectedRecordIdsChangeListener {
-	
+
 	private Map<String, Object> recordIdsToItemIdsMap = new HashMap<>();
-	
+
 	public RecordVOSelectionTableAdapter() {
 		this(null);
 	}
-	
+
 	public RecordVOSelectionTableAdapter(Table table) {
 		super(table);
 	}
@@ -44,7 +44,7 @@ public abstract class RecordVOSelectionTableAdapter extends SelectionTableAdapte
 		sessionContext.removeSelectedRecordIdsChangeListener(this);
 		super.detach();
 	}
-	
+
 	private Object getItemId(String recordId) {
 		Object itemId = recordIdsToItemIdsMap.get(recordId);
 		if (itemId == null) {
@@ -63,7 +63,7 @@ public abstract class RecordVOSelectionTableAdapter extends SelectionTableAdapte
 		}
 		return itemId;
 	}
-	
+
 	private Collection<?> getLoadedItemIds() {
 		return table.getVisibleItemIds();
 	}

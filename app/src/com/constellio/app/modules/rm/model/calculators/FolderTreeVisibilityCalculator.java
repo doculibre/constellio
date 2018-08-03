@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -13,6 +10,9 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class FolderTreeVisibilityCalculator implements MetadataValueCalculator<Boolean> {
 	LocalDependency<FolderStatus> folderStatus = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);
 	ConfigDependency<Boolean> displaySemiActive = RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES.dependency();
@@ -22,12 +22,12 @@ public class FolderTreeVisibilityCalculator implements MetadataValueCalculator<B
 	@Override
 	public Boolean calculate(CalculatorParameters parameters) {
 		switch (parameters.get(folderStatus)) {
-		case SEMI_ACTIVE:
-			return parameters.get(displaySemiActive);
-		case INACTIVE_DEPOSITED:
-			return parameters.get(displayDeposited);
-		case INACTIVE_DESTROYED:
-			return parameters.get(displayDestroyed);
+			case SEMI_ACTIVE:
+				return parameters.get(displaySemiActive);
+			case INACTIVE_DEPOSITED:
+				return parameters.get(displayDeposited);
+			case INACTIVE_DESTROYED:
+				return parameters.get(displayDestroyed);
 		}
 		return true;
 	}

@@ -1,19 +1,5 @@
 package com.constellio.app.api.search;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.util.NamedList;
-
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -22,6 +8,18 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.util.NamedList;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class SearchWebService extends AbstractSearchServlet {
 	@Override
@@ -71,7 +69,7 @@ public class SearchWebService extends AbstractSearchServlet {
 
 				for (String paramName : solrParams.getParameterNames()) {
 					if (!paramName.equals("qf") && !paramName.equals("pf")
-							&& !paramName.equals("fl")) {
+						&& !paramName.equals("fl")) {
 						if (paramName.equals("q")) {
 							String query = StringUtils.stripAccents(solrParams.get(paramName).toLowerCase());
 

@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.*;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
@@ -12,6 +9,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+
+import java.io.IOException;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class TaxonomyVODataProvider extends AbstractDataProvider {
@@ -24,7 +24,7 @@ public class TaxonomyVODataProvider extends AbstractDataProvider {
 	private String username;
 
 	public TaxonomyVODataProvider(TaxonomyToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
-			String username) {
+								  String username) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		this.username = username;

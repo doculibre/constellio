@@ -10,28 +10,28 @@ import org.junit.Test;
 
 public class SIPArchivesGenerationAcceptanceTest extends ConstellioTest {
 
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
-    RecordServices recordServices;
+	RecordServices recordServices;
 
-    SearchServices searchServices;
+	SearchServices searchServices;
 
-    @Before
-    public void setup() {
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withAllTestUsers()
-                        .withRMTest(records).withFoldersAndContainersOfEveryStatus()
-        );
+	@Before
+	public void setup() {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+		);
 
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        recordServices = getModelLayerFactory().newRecordServices();
-        searchServices = getModelLayerFactory().newSearchServices();
-    }
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+	}
 
-    @Test
-    public void testZipContainCorrectFiles(){
+	@Test
+	public void testZipContainCorrectFiles() {
 
-    }
+	}
 }

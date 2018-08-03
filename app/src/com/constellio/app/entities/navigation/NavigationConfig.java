@@ -1,15 +1,15 @@
 package com.constellio.app.entities.navigation;
 
+import com.constellio.data.utils.KeyListMap;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.data.utils.KeyListMap;
-
 public class NavigationConfig implements Serializable {
-	
+
 	private final KeyListMap<String, NavigationItem> navigation;
 	private final KeyListMap<String, PageItem> fragments;
 	private final Set<String> codes;

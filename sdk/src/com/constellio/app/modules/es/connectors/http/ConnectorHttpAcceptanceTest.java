@@ -1,28 +1,5 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.eclipse.jetty.server.Server;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.http.utils.NtlmAuthenticationFilter;
 import com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
@@ -44,6 +21,28 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.eclipse.jetty.server.Server;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	Server server;
@@ -342,7 +341,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		givenDataSet1Connector();
 		recordServices.update(connectorInstance.setOnDemands(
 				WEBSITE + "singes/gorille.html\n" +
-						WEBSITE + "girafe.html"));
+				WEBSITE + "girafe.html"));
 		// *
 		// * ----------------- Fetch phase 1 with two on demand url--------------
 		// *
@@ -374,7 +373,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		// *
 		recordServices.update(connectorInstance.setOnDemands(
 				WEBSITE + "singes/gorille.html\n" +
-						WEBSITE + "yeti.html"));
+				WEBSITE + "yeti.html"));
 		givenTimeIs(ONE_MINUTE_AFTER_TIME1);
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(connectorDocuments).extracting("URL", "fetched", "fetchedDateTime").containsOnly(

@@ -1,11 +1,6 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -14,9 +9,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.Locale;
 
 public class CommentToStringConverter implements Converter<String, Comment> {
-	
+
 	@Override
 	public Comment convertToModel(String value, Class<? extends Comment> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
@@ -29,7 +28,7 @@ public class CommentToStringConverter implements Converter<String, Comment> {
 			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 			UserServices userServices = modelLayerFactory.newUserServices();
 			User user = userServices.getUserInCollection(userVO.getUsername(), collection);
-			
+
 			comment = new Comment();
 			comment.setMessage(value);
 			comment.setDateTime(new LocalDateTime());

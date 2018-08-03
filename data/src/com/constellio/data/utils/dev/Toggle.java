@@ -1,12 +1,12 @@
 package com.constellio.data.utils.dev;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class Toggle {
 
@@ -51,9 +51,9 @@ public class Toggle {
 
 	public static AvailableToggle EVENT_BUS_RECORDS_CACHE = newToggle(true);
 
-	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
-
 	public static AvailableToggle MULTI_LINGUAL = newToggle(true);
+
+	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
 
 
 	// ------------------------------------------------

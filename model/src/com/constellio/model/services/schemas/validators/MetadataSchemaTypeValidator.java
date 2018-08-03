@@ -1,14 +1,14 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType> {
 
@@ -59,7 +59,7 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 	Map<String, Object> createMapWithCode(Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("localCode", metadata.getLocalCode());
-		parameters.put("label",metadata.getLabelsByLanguageCodes());
+		parameters.put("label", metadata.getLabelsByLanguageCodes());
 		return parameters;
 	}
 

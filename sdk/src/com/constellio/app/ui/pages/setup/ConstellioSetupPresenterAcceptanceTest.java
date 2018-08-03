@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.setup;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -16,6 +8,13 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @UiTest
 @InDevelopmentTest

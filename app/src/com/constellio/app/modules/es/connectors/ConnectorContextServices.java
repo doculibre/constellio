@@ -1,19 +1,13 @@
 package com.constellio.app.modules.es.connectors;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+
+import java.io.*;
 
 public class ConnectorContextServices {
 	private static final String CONTEXT_TEMP_FILE_WRITING_RESOURCE = "ConnectorContextServices-ContextTempFileWriting";
@@ -88,7 +82,6 @@ public class ConnectorContextServices {
 			return createContext(connectorId, context);
 		}
 	}
-
 
 
 	public Object loadContext(String connectorId) {

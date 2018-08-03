@@ -1,10 +1,10 @@
 package com.constellio.model.conf.ldap.config;
 
+import com.constellio.model.conf.ldap.LDAPDirectoryType;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.model.conf.ldap.LDAPDirectoryType;
 
 public class LDAPServerConfiguration implements Serializable {
 	private Boolean ldapAuthenticationActive;
@@ -15,7 +15,7 @@ public class LDAPServerConfiguration implements Serializable {
 	AzureADServerConfig azurServerConfig = new AzureADServerConfig();
 
 	public LDAPServerConfiguration(List<String> urls, List<String> domains, LDAPDirectoryType directoryType,
-			Boolean ldapAuthenticationActive, Boolean followReferences) {
+								   Boolean ldapAuthenticationActive, Boolean followReferences) {
 		this.nonAzureAdServerConfig.urls = Collections.unmodifiableList(urls);
 		this.nonAzureAdServerConfig.domains = Collections.unmodifiableList(domains);
 		this.directoryType = directoryType;

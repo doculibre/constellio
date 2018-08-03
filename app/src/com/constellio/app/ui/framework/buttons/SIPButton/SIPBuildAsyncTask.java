@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
-import java.io.File;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import org.apache.commons.collections.ListUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
@@ -30,6 +22,13 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import org.apache.commons.collections.ListUtils;
+import org.joda.time.LocalDateTime;
+
+import java.io.File;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 public class SIPBuildAsyncTask implements AsyncTask {
 
@@ -46,8 +45,9 @@ public class SIPBuildAsyncTask implements AsyncTask {
 	private Locale locale;
 
 	public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds,
-			List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles, String currentVersion,
-			String localeLanguage) {
+							 List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles,
+							 String currentVersion,
+							 String localeLanguage) {
 		this.bagInfoLines = bagInfoLines;
 		this.includeDocumentIds = includeDocumentIds;
 		this.includeFolderIds = includeFolderIds;
@@ -134,8 +134,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { sipFileName, bagInfoLines, includeDocumentIds, includeFolderIds, limitSize, username, deleteFiles,
-				currentVersion, locale.getLanguage() };
+		return new Object[]{sipFileName, bagInfoLines, includeDocumentIds, includeFolderIds, limitSize, username, deleteFiles,
+							currentVersion, locale.getLanguage()};
 	}
 
 	public ProgressInfo getProgressInfo() {

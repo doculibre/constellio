@@ -1,16 +1,5 @@
 package com.constellio.app.modules.es.connectors.http.fetcher;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.james.mime4j.io.LimitedInputStream;
-
 import com.constellio.app.modules.es.connectors.http.fetcher.config.FetcherConfig;
 import com.constellio.app.modules.es.connectors.http.utils.DigestUtil;
 import com.constellio.app.modules.es.connectors.http.utils.HtmlAnchorUtils;
@@ -18,6 +7,16 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.james.mime4j.io.LimitedInputStream;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 
 public class FetchedHttpDoc implements FetchedDoc {
 

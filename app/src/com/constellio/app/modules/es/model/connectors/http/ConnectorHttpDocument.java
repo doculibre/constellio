@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.model.connectors.http;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocument> {
 

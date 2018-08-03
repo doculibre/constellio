@@ -1,13 +1,13 @@
 package com.constellio.model.entities.schemas.entries;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-
-import java.util.List;
-
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType;
+
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class AggregatedDataEntry implements DataEntry {
 
@@ -20,7 +20,7 @@ public class AggregatedDataEntry implements DataEntry {
 	private Class<? extends AggregatedCalculator<?>> aggregatedCalculator;
 
 	public AggregatedDataEntry(List<String> inputMetadatas, String referenceMetadata, AggregationType agregationType,
-			Class<? extends AggregatedCalculator<?>> aggregatedCalculator) {
+							   Class<? extends AggregatedCalculator<?>> aggregatedCalculator) {
 		this.inputMetadatas = inputMetadatas;
 		this.referenceMetadata = referenceMetadata;
 		this.agregationType = agregationType;

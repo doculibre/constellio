@@ -1,7 +1,5 @@
 package com.constellio.app.services.importExport.records;
 
-import com.constellio.model.extensions.behaviors.RecordExtension;
-
 import java.util.ArrayList;
 import java.util.List;
 

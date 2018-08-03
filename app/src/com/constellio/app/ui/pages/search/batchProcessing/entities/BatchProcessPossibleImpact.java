@@ -24,8 +24,8 @@ public class BatchProcessPossibleImpact {
 	@Override
 	public String toString() {
 		return "BatchProcessPossibleImpact{" +
-				"schemaType=" + schemaType.getCode() +
-				", count=" + count +
-				'}';
+			   "schemaType=" + schemaType.getCode() +
+			   ", count=" + count +
+			   '}';
 	}
 }

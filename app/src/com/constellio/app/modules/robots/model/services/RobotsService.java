@@ -1,12 +1,5 @@
 package com.constellio.app.modules.robots.model.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
@@ -17,10 +10,14 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RobotsService {
 	private final RecordServices recordServices;
@@ -97,7 +94,7 @@ public class RobotsService {
 
 	private void deleteRobotsActionParameters(Robot robot) {
 		String actionParamId = robot.getActionParameters();
-		if(actionParamId != null) {
+		if (actionParamId != null) {
 			ActionParameters actionParameters = robots.getActionParameters(actionParamId);
 
 			recordServices.logicallyDelete(actionParameters.getWrappedRecord(), User.GOD);

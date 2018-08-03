@@ -1,10 +1,9 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.junit.Test;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_MetadataAccessRestrictionTest extends MetadataBuilderTest {
 

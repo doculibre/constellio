@@ -1,16 +1,15 @@
 package com.constellio.app.ui.framework.components.viewers.video;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Video;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 //import com.kbdunn.vaadin.addons.mediaelement.MediaElementPlayer;
 //import com.kbdunn.vaadin.addons.mediaelement.MediaElementPlayerOptions;
@@ -20,7 +19,7 @@ public class VideoViewer extends CustomComponent {
 
 	private static Map<String, File> cache = new HashMap<>();
 
-	public static final String[] SUPPORTED_EXTENSIONS = { /*"mp4"*/ };
+	public static final String[] SUPPORTED_EXTENSIONS = { /*"mp4"*/};
 
 	public VideoViewer(ContentVersionVO contentVersionVO) {
 		try {

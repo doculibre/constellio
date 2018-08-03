@@ -1,12 +1,11 @@
 package com.constellio.model.services.security;
 
-import java.util.List;
-
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.global.AuthorizationDetails;
+import java.util.List;
 
 public class AuthorizationDetailsWriter {
 

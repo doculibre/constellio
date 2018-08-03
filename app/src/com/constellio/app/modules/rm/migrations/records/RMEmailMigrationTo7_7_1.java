@@ -1,25 +1,19 @@
 package com.constellio.app.modules.rm.migrations.records;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.contents.ContentDao;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.apache.commons.io.FilenameUtils;
 
-import java.io.*;
-
-import static com.constellio.data.io.ConversionManager.isSupportedExtension;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 public class RMEmailMigrationTo7_7_1 extends RecordMigrationScript {
 
@@ -46,10 +40,10 @@ public class RMEmailMigrationTo7_7_1 extends RecordMigrationScript {
 		InputStream stream = null;
 
 		try {
-			if(record.getSchemaCode().equals(Email.SCHEMA)) {
+			if (record.getSchemaCode().equals(Email.SCHEMA)) {
 				Email email = rm.wrapEmail(record);
 				String emailContent = email.getEmailContent();
-				if(emailContent != null) {
+				if (emailContent != null) {
 					stream = new ByteArrayInputStream(emailContent.getBytes());
 					contentDao.add(EMAIL_CONTENT_FOLDER + "/" + record.getId(), stream);
 				}
@@ -59,7 +53,7 @@ public class RMEmailMigrationTo7_7_1 extends RecordMigrationScript {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if(stream != null) {
+			if (stream != null) {
 				try {
 					stream.close();
 				} catch (Exception e) {

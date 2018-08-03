@@ -1,11 +1,10 @@
 package com.constellio.data.dao.services.solr;
 
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static java.util.Arrays.asList;
-
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.junit.Test;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static java.util.Arrays.asList;
 
 public class ConstellioSolrInputDocumentTest {
 

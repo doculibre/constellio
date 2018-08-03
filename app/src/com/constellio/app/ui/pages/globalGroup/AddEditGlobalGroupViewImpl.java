@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -15,6 +11,10 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditGlobalGroupView {
 
@@ -130,7 +130,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 			protected void cancelButtonClick(GlobalGroupVO globalGroupVO) {
 				presenter.cancelButtonClicked();
 			}
-        };
+		};
 	}
 
 }

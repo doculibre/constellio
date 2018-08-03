@@ -1,30 +1,17 @@
 package com.constellio.data.threads;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.DateTime;
+import org.quartz.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.DateTime;
-import org.quartz.CronExpression;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.dao.services.factories.DataLayerFactory;
 
 /**
  *

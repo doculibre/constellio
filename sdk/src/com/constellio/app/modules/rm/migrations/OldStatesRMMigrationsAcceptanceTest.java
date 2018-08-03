@@ -1,14 +1,13 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import com.constellio.sdk.tests.annotations.SlowTest;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @SlowTest
 @RunWith(value = Parameterized.class)
@@ -29,11 +28,11 @@ public class OldStatesRMMigrationsAcceptanceTest extends RMMigrationsAcceptanceT
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
 		List<Object[]> states = new ArrayList<>();
-		states.add(new Object[] { "givenNewInstallation" });
+		states.add(new Object[]{"givenNewInstallation"});
 
 		for (String state : getStatesFolder(true).list()) {
 			if (state.endsWith(".zip") && (state.contains("_rm_") || state.contains(",rm_"))) {
-				states.add(new Object[] { state.replace(".zip", "") });
+				states.add(new Object[]{state.replace(".zip", "")});
 			}
 		}
 

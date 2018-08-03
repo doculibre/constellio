@@ -1,13 +1,12 @@
 package com.constellio.model.entities.structures;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MapStringListStringStructureFactoryTest extends ConstellioTest {
 

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.robots.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.model.entities.records.Record;
@@ -14,6 +7,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DryRunRobotAction {
 
@@ -123,7 +122,7 @@ public class DryRunRobotAction {
 	}
 
 	public static DryRunRobotAction dryRunRobotAction(Record record, Robot robot,
-			RobotSchemaRecordServices robotSchemaRecordServices) {
+													  RobotSchemaRecordServices robotSchemaRecordServices) {
 
 		MetadataSchemaTypes types = robotSchemaRecordServices.getTypes();
 

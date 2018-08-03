@@ -1,11 +1,11 @@
 package com.constellio.model.services.security.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.SchemasRecordsServices;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Roles {
 

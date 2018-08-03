@@ -1,12 +1,8 @@
 package com.constellio.data.threads;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
@@ -14,9 +10,10 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);

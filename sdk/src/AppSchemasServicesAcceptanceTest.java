@@ -1,3 +1,31 @@
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.services.metadata.AppSchemasServices;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeFromOrToDefault;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeToOtherSchemaType;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LINKED_SCHEMA;
@@ -8,35 +36,6 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifi
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.users.UserServices;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.services.metadata.AppSchemasServices;
-import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeFromOrToDefault;
-import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeToOtherSchemaType;
-import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
@@ -60,7 +59,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-		userServices=getModelLayerFactory().newUserServices();
+		userServices = getModelLayerFactory().newUserServices();
 
 		schemasDisplayManager.saveSchema(schemasDisplayManager.getSchema(zeCollection, "zeSchemaType_custom")
 				.withDisplayMetadataCodes(asList("zeSchemaType_custom_title")));
@@ -378,7 +377,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.getVisibleRecords(zeCollection,"zeSchemaType_custom",admin,1)).hasSize(1);
+		assertThat(appSchemasServices.getVisibleRecords(zeCollection, "zeSchemaType_custom", admin, 1)).hasSize(1);
 	}
 
 	@Test
@@ -390,7 +389,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.getVisibleRecords(zeCollection,"zeSchemaType_custom",admin,3)).hasSize(2);
+		assertThat(appSchemasServices.getVisibleRecords(zeCollection, "zeSchemaType_custom", admin, 3)).hasSize(2);
 	}
 
 	@Test
@@ -401,7 +400,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		User admin = userServices.getUserInCollection("admin", zeCollection);
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection,"zeSchemaType_custom",admin)).isFalse();
+		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection, "zeSchemaType_custom", admin)).isFalse();
 	}
 
 	@Test
@@ -413,7 +412,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(admin).on("r1").givingReadWriteAccess(), admin);
 		authServices.add(authorizationForUsers(admin).on("r2").givingReadWriteAccess(), admin);
 
-		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection,"zeSchemaType_custom",admin)).isTrue();
+		assertThat(appSchemasServices.areAllRecordsVisible(zeCollection, "zeSchemaType_custom", admin)).isTrue();
 	}
 
 	long countRecordsInSchema(String schemaCode) {

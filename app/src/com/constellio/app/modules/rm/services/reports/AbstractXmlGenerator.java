@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.services.reports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jdom2.Verifier;
-import org.jsoup.Jsoup;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -29,17 +15,24 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.Verifier;
+import org.jsoup.Jsoup;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public abstract class AbstractXmlGenerator {
 	/**
@@ -128,6 +121,7 @@ public abstract class AbstractXmlGenerator {
 	/**
 	 * Add additionnal needed information like collection code and title
 	 * there should be an extension here to add information from plugins.
+	 *
 	 * @param recordElement record
 	 * @return list of elements
 	 */
@@ -166,6 +160,7 @@ public abstract class AbstractXmlGenerator {
 
 	/**
 	 * Return the elements created from the value of metadata of type structure.
+	 *
 	 * @param metadata
 	 * @param recordElement
 	 * @param collection
@@ -173,7 +168,8 @@ public abstract class AbstractXmlGenerator {
 	 * @return
 	 */
 	public static List<Element> createMetadataTagFromMetadataOfTypeStructure(Metadata metadata, Record recordElement,
-			String collection, AppLayerFactory factory) {
+																			 String collection,
+																			 AppLayerFactory factory) {
 		if (!hasMetadata(recordElement, metadata)) {
 			return Collections.emptyList();
 		}
@@ -188,8 +184,8 @@ public abstract class AbstractXmlGenerator {
 
 			for (ModifiableStructure value : metadataValue) {
 				CopyRetentionRule retentionRule = value instanceof CopyRetentionRuleInRule ?
-						((CopyRetentionRuleInRule) value).getCopyRetentionRule() :
-						(CopyRetentionRule) value;
+												  ((CopyRetentionRuleInRule) value).getCopyRetentionRule() :
+												  (CopyRetentionRule) value;
 				listOfMetadataTags.addAll(asList(
 						new Element(escapeForXmlTag(getLabelOfMetadata(metadata))).setText(retentionRule.toString()),
 						new Element(REFERENCE_PREFIX + metadata.getLocalCode() + "_active_period")
@@ -225,20 +221,22 @@ public abstract class AbstractXmlGenerator {
 		this.locale = locale;
 	}
 
-	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement, Locale locale) {
+	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement,
+																		Locale locale) {
 		return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, null, locale);
 	}
 
 	/**
 	 * Method that returns the value of metadata enum,
 	 * use the i18n to get correct label for current user language.
+	 *
 	 * @param metadata
 	 * @param recordElement
 	 * @param namespace
 	 * @return
 	 */
 	public static List<Element> createMetadataTagFromMetadataOfTypeEnum(Metadata metadata, Record recordElement,
-			Namespace namespace, Locale locale) {
+																		Namespace namespace, Locale locale) {
 		if (!hasMetadata(recordElement, metadata)) {
 			return Collections.emptyList();
 		}
@@ -286,22 +284,25 @@ public abstract class AbstractXmlGenerator {
 	}
 
 	public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement,
-			String collection, AppLayerFactory factory) {
+																			 String collection,
+																			 AppLayerFactory factory) {
 		return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, collection, factory, null);
 	}
 
 	/**
 	 * Method that will return the code and title of the referenced record element,
 	 * If referenced record has parent, will return the code and title of the parent.
-	 * @param metadata metadata
+	 *
+	 * @param metadata      metadata
 	 * @param recordElement record
-	 * @param collection collection
-	 * @param factory factory
-	 * @param namespace use if need to add a namespace.
+	 * @param collection    collection
+	 * @param factory       factory
+	 * @param namespace     use if need to add a namespace.
 	 * @return list of element to add
 	 */
 	public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement,
-			String collection, AppLayerFactory factory, Namespace namespace) {
+																			 String collection, AppLayerFactory factory,
+																			 Namespace namespace) {
 		if (!hasMetadata(recordElement, metadata)) {
 			return Collections.emptyList();
 		}
@@ -309,8 +310,8 @@ public abstract class AbstractXmlGenerator {
 		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchema recordSchema = metadataSchemasManager.getSchemaOf(recordElement);
 		List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ?
-				recordElement.<String>getList(metadata) :
-				Collections.singletonList(recordElement.<String>get(metadata));
+													 recordElement.<String>getList(metadata) :
+													 Collections.singletonList(recordElement.<String>get(metadata));
 		List<Record> listOfRecordReferencedByMetadata = recordServices.getRecordsById(collection, listOfIdsReferencedByMetadata);
 		List<Element> listOfMetadataTags = new ArrayList<>();
 		Metadata metadataInSchema = recordSchema.getMetadata(metadata.getLocalCode());
@@ -345,9 +346,9 @@ public abstract class AbstractXmlGenerator {
 				if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE
 						.equals(recordReferenced.getTypeCode())) {
 					Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ?
-							metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
-									.get(AdministrativeUnit.PARENT) :
-							metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+											  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
+													  .get(AdministrativeUnit.PARENT) :
+											  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
 					String parentMetadataId = recordReferenced.get(parentMetadata);
 					if (parentMetadataId != null) {
 						Record parentRecord = recordServices.getDocumentById(parentMetadataId);
@@ -398,8 +399,9 @@ public abstract class AbstractXmlGenerator {
 	/**
 	 * Format data to make sure it's conform.
 	 * ex: Will format date for the defined pattern in constellio config.
-	 *     Will also returns correct i18n value for boolean.
-	 *     And will remove html tags from text.
+	 * Will also returns correct i18n value for boolean.
+	 * And will remove html tags from text.
+	 *
 	 * @param data
 	 * @param metadata
 	 * @param factory
@@ -418,8 +420,8 @@ public abstract class AbstractXmlGenerator {
 			try {
 				boolean isDateTime = metadata.getType().equals(MetadataValueType.DATE_TIME);
 				DateFormat df = isDateTime ?
-						new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") :
-						new SimpleDateFormat("yyyy-MM-dd");
+								new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") :
+								new SimpleDateFormat("yyyy-MM-dd");
 				Date date = df.parse(data);
 				finalData = SimpleDateFormatSingleton
 						.getSimpleDateFormat(isDateTime ? configs.getDateTimeFormat() : configs.getDateFormat()).format(date);
@@ -447,6 +449,7 @@ public abstract class AbstractXmlGenerator {
 	/**
 	 * Method that returns a XML String.
 	 * Should be override by children.
+	 *
 	 * @return
 	 */
 	public abstract String generateXML();
@@ -454,6 +457,7 @@ public abstract class AbstractXmlGenerator {
 	/**
 	 * Method that returns a list of element to add from the record.
 	 * Usually used for data that isn't from a metadata.
+	 *
 	 * @param recordElement record
 	 * @return list of element to add.
 	 */
@@ -484,6 +488,7 @@ public abstract class AbstractXmlGenerator {
 	/**
 	 * Method that format a path to make it better
 	 * ex:  folder1 > folder2 > folder3 > document
+	 *
 	 * @param recordElement
 	 * @return
 	 */
@@ -527,13 +532,15 @@ public abstract class AbstractXmlGenerator {
 
 	/**
 	 * Method that returns the xml generator parameters
+	 *
 	 * @return AbstractXmlGeneratorParameters parameters
 	 */
 	public abstract AbstractXmlGeneratorParameters getXmlGeneratorParameters();
 
 	/**
 	 * Method that returns whether or not a record has a particular metadata
-	 * @param record record
+	 *
+	 * @param record   record
 	 * @param metadata metadata
 	 * @return boolean
 	 */

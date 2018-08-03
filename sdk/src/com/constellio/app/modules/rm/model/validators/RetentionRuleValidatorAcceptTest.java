@@ -1,31 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG;
-import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.NO_ADMINISTRATIVE_UNITS_OR_RESPONSIBLES_FLAG;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.*;
-import static com.constellio.model.entities.schemas.validation.RecordMetadataValidator.METADATA_CODE;
-import static com.constellio.sdk.tests.TestUtils.englishMessage;
-import static com.constellio.sdk.tests.TestUtils.englishMessages;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCode;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessage;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -39,18 +13,29 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.assertj.core.api.Condition;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG;
+import static com.constellio.app.modules.rm.model.validators.RetentionRuleValidator.NO_ADMINISTRATIVE_UNITS_OR_RESPONSIBLES_FLAG;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.model.entities.schemas.validation.RecordMetadataValidator.METADATA_CODE;
+import static com.constellio.sdk.tests.TestUtils.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
@@ -681,7 +666,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
-				RetentionRuleValidator.MISSING_DOCUMENT_TYPE_DISPOSAL);
+															  RetentionRuleValidator.MISSING_DOCUMENT_TYPE_DISPOSAL);
 		assertThat(frenchMessages(errors)).containsOnly("Le mode de disposition n'a pas été configuré pour un type de document.");
 	}
 
@@ -711,7 +696,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
-				RetentionRuleValidator.SECONDARY_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);
+															  RetentionRuleValidator.SECONDARY_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);
 		assertThat(frenchMessages(errors)).containsOnly("Un exemplaire secondaire est requis");
 	}
 
@@ -725,7 +710,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
-				RetentionRuleValidator.PRINCIPAL_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);
+															  RetentionRuleValidator.PRINCIPAL_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);
 		assertThat(frenchMessages(errors)).containsOnly("Un exemplaire principal est requis");
 	}
 
@@ -793,7 +778,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
-				RetentionRuleValidator.MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_DOCUMENT_COPY_RETENTON_RULE);
+															  RetentionRuleValidator.MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_DOCUMENT_COPY_RETENTON_RULE);
 		assertThat(frenchMessages(errors)).containsOnly("Au moins un exemplaire principal de documents est requis");
 	}
 
@@ -806,7 +791,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
-				RetentionRuleValidator.MUST_NOT_SPECIFY_SECONDARY_DOCUMENT_COPY_RETENTON_RULE);
+															  RetentionRuleValidator.MUST_NOT_SPECIFY_SECONDARY_DOCUMENT_COPY_RETENTON_RULE);
 		assertThat(frenchMessages(errors))
 				.containsOnly("La liste d'exemplaires principaux de la règle de documents contient un exemplaire secondaire");
 	}
@@ -821,7 +806,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 		validator.validate(retentionRule, schema, configProvider, errors, searchServices, types);
 
 		assertThat(extractingSimpleCode(errors)).containsOnly("RetentionRuleValidator_" +
-				RetentionRuleValidator.DOCUMENT_RULE_MUST_HAVE_ONLY_DOCUMENT_COPY_RULES);
+															  RetentionRuleValidator.DOCUMENT_RULE_MUST_HAVE_ONLY_DOCUMENT_COPY_RULES);
 		assertThat(frenchMessages(errors))
 				.containsOnly("Une règle de conservation avec portée sur documents ne peut pas avoir d'exemplaires de dossiers");
 	}

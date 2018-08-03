@@ -1,15 +1,10 @@
 package com.constellio.model.entities.calculators;
 
-import java.util.Map;
-
-import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.calculators.dependencies.*;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+
+import java.util.Map;
 
 public class CalculatorParameters {
 
@@ -21,8 +16,9 @@ public class CalculatorParameters {
 	final boolean principalTaxonomyConcept;
 	final Metadata metadata;
 
-	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, MetadataSchemaType schemaType,
-			String collection, boolean principalTaxonomyConcept, Metadata metadata) {
+	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId,
+								MetadataSchemaType schemaType,
+								String collection, boolean principalTaxonomyConcept, Metadata metadata) {
 		super();
 		this.values = values;
 		this.id = id;

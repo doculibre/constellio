@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -16,6 +11,10 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEditUserCredentialView {
 
@@ -170,6 +169,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		personalEmailsField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 		personalEmailsField.addValidator(new Validator() {
 			private Validator emailValidator = new EmailValidator($("ModifyProfileView.invalidEmail"));
+
 			@Override
 			public void validate(Object value) throws InvalidValueException {
 				if (value != null) {
@@ -244,7 +244,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 
 		// Allow to modify user collection and nothing else when ldapsynch.
 		boolean isEnabled = presenter.userNotLDAPSynced(userCredentialVO.getUsername());
-		if(!isEnabled) {
+		if (!isEnabled) {
 			usernameField.setRequired(false);
 			firstNameField.setRequired(false);
 			lastNameField.setRequired(false);

@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -12,6 +7,10 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class UserCredentialPageAcceptTest extends ConstellioTest {
@@ -222,7 +221,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 		displayUserCredentialPage.getEditGlobalGroupButtonMenuAction().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.USER_ADD_EDIT + "/" + NavigatorConfigurationService.USER_LIST
-						+ "/" + NavigatorConfigurationService.USER_DISPLAY + "/username%253Dadmin");
+						   + "/" + NavigatorConfigurationService.USER_DISPLAY + "/username%253Dadmin");
 	}
 
 	private void givenDisplayPageWhenClickInEditGroupThenNavigateToAddEditGlobalGroup() {
@@ -232,8 +231,8 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 		displayUserCredentialPage.getEditGlobalGroupButtonOnIndex(0).clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.GROUP_ADD_EDIT
-						+ "/" + NavigatorConfigurationService.USER_LIST + "/" + NavigatorConfigurationService.USER_DISPLAY
-						+ "/globalGroupCode%253Dheroes%253Busername%253Dadmin");
+						   + "/" + NavigatorConfigurationService.USER_LIST + "/" + NavigatorConfigurationService.USER_DISPLAY
+						   + "/globalGroupCode%253Dheroes%253Busername%253Dadmin");
 	}
 
 	private void givenDisplayPageWhenClickInRemoveGroupFromUserThenCanSearchItInGroupsTable()

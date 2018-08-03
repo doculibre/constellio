@@ -1,10 +1,11 @@
 package com.constellio.model.entities.search.logical.criterion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.search.query.logical.criteria.IsContainingElementsCriterion;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -13,12 +14,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.criteria.IsContainingElementsCriterion;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestRecord;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class IsContainingElementsCriterionTest extends ConstellioTest {
 
@@ -119,7 +118,7 @@ public class IsContainingElementsCriterionTest extends ConstellioTest {
 
 		assertThat(criterion.getSolrQuery(dateTimeMetadata)).isEqualTo(
 				"dateTimeMetadata:\"" + dateTime + "Z\" AND dateTimeMetadata:\"" + dateTime2
-						+ "Z\"");
+				+ "Z\"");
 	}
 
 	@Test

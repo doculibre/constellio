@@ -14,39 +14,39 @@ import static java.util.Arrays.asList;
 
 public class StorageSpaceTitleCalculator implements MetadataValueCalculator<String> {
 
-    ReferenceDependency<String> parentStorageParam = ReferenceDependency.toAString(StorageSpace.PARENT_STORAGE_SPACE, StorageSpace.TITLE);
+	ReferenceDependency<String> parentStorageParam = ReferenceDependency.toAString(StorageSpace.PARENT_STORAGE_SPACE, StorageSpace.TITLE);
 
-    LocalDependency<String> codeParam = LocalDependency.toAString(StorageSpace.CODE);
+	LocalDependency<String> codeParam = LocalDependency.toAString(StorageSpace.CODE);
 
-    @Override
-    public String calculate(CalculatorParameters parameters) {
-        String parentTitle = parameters.get(this.parentStorageParam);
-        String code = parameters.get(this.codeParam);
-        String totalTitle = "";
+	@Override
+	public String calculate(CalculatorParameters parameters) {
+		String parentTitle = parameters.get(this.parentStorageParam);
+		String code = parameters.get(this.codeParam);
+		String totalTitle = "";
 
-        if(parentTitle != null) {
-            totalTitle = parentTitle + "-";
-        }
-        return totalTitle + code;
-    }
+		if (parentTitle != null) {
+			totalTitle = parentTitle + "-";
+		}
+		return totalTitle + code;
+	}
 
-    @Override
-    public String getDefaultValue() {
-        return "";
-    }
+	@Override
+	public String getDefaultValue() {
+		return "";
+	}
 
-    @Override
-    public MetadataValueType getReturnType() {
-        return MetadataValueType.STRING;
-    }
+	@Override
+	public MetadataValueType getReturnType() {
+		return MetadataValueType.STRING;
+	}
 
-    @Override
-    public boolean isMultiValue() {
-        return false;
-    }
+	@Override
+	public boolean isMultiValue() {
+		return false;
+	}
 
-    @Override
-    public List<? extends Dependency> getDependencies() {
-        return asList(parentStorageParam, codeParam);
-    }
+	@Override
+	public List<? extends Dependency> getDependencies() {
+		return asList(parentStorageParam, codeParam);
+	}
 }

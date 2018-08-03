@@ -1,7 +1,5 @@
 package com.constellio.app.modules.es.extensions;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.collections.CollectionsManager;
@@ -14,6 +12,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
 public class ESRecordExtension extends RecordExtension {
 

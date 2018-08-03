@@ -33,7 +33,8 @@ public class MetadataUniqueValidator implements Validator<Record> {
 	private final SearchServices searchServices;
 	private final MetadataSchemaTypes schemaTypes;
 
-	public MetadataUniqueValidator(List<Metadata> metadatas, MetadataSchemaTypes schemaTypes, SearchServices searchServices) {
+	public MetadataUniqueValidator(List<Metadata> metadatas, MetadataSchemaTypes schemaTypes,
+								   SearchServices searchServices) {
 		this.metadatas = metadatas;
 		this.searchServices = searchServices;
 		this.schemaTypes = schemaTypes;
@@ -54,17 +55,17 @@ public class MetadataUniqueValidator implements Validator<Record> {
 							.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
 
 					if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
-						if(metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 							CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();
 							List<? extends Dependency> dependencyList = calculatedDataEntry.getCalculator().getDependencies();
 
 							Map<String, String> dependencyLanguageMap = new HashMap<>();
 
-							for(Dependency dependency : dependencyList) {
+							for (Dependency dependency : dependencyList) {
 								Metadata metadataDependedOn = schemaTypes.getSchema(record.getSchemaCode()).get(dependency.getLocalMetadataCode());
-								for(Language language : metadataDependedOn.getLabels().keySet()) {
+								for (Language language : metadataDependedOn.getLabels().keySet()) {
 									String currentValue = dependencyLanguageMap.get(language.getCode());
-									if(currentValue == null) {
+									if (currentValue == null) {
 										currentValue = "";
 									} else {
 										currentValue += ", ";
@@ -83,17 +84,20 @@ public class MetadataUniqueValidator implements Validator<Record> {
 		}
 	}
 
-	private void addValidationErrors(ValidationErrors validationErrors, Map<String,String> metadatadependedOnMapByLanguage, String errorCode, String value) {
+	private void addValidationErrors(ValidationErrors validationErrors,
+									 Map<String, String> metadatadependedOnMapByLanguage, String errorCode,
+									 String value) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_DEPENDENCY_LIST, metadatadependedOnMapByLanguage);
 		parameters.put(VALUE, value);
-		validationErrors.add(getClass(), errorCode,parameters);
+		validationErrors.add(getClass(), errorCode, parameters);
 	}
 
-	private void addValidationErrors(ValidationErrors validationErrors, String value, String errorCode, Metadata metadata) {
+	private void addValidationErrors(ValidationErrors validationErrors, String value, String errorCode,
+									 Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
+		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
 		parameters.put(VALUE, value);
 		validationErrors.add(getClass(), errorCode, parameters);
 	}

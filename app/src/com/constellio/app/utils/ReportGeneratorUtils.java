@@ -1,20 +1,5 @@
 package com.constellio.app.utils;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import net.sf.jasperreports.engine.JRException;
-
-import org.apache.commons.io.FileUtils;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.ISODateTimeFormat;
-
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
@@ -35,11 +20,25 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+import net.sf.jasperreports.engine.JRException;
+import org.apache.commons.io.FileUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.ISODateTimeFormat;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
-			PrintableReportTemplate selectedTemplate, int numberOfCopies, List<String> ids, LogicalSearchQuery query,
-			Locale locale) {
+											PrintableReportTemplate selectedTemplate, int numberOfCopies,
+											List<String> ids, LogicalSearchQuery query,
+											Locale locale) {
 		InputStream selectedJasperFileContentInputStream = null;
 		File temporaryJasperFile = null;
 		try {
@@ -59,7 +58,7 @@ public class ReportGeneratorUtils {
 			FileUtils.copyInputStreamToFile(selectedJasperFileContentInputStream, temporaryJasperFile);
 			String title =
 					selectedTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime())
-							+ ".pdf";
+					+ ".pdf";
 			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile);
 			VerticalLayout newLayout = new VerticalLayout();
 			newLayout.addComponents(new LabelViewer(generatedJasperFile, title,
@@ -79,7 +78,8 @@ public class ReportGeneratorUtils {
 	}
 
 	public static List<PrintableReportTemplate> getPrintableReportTemplate(AppLayerFactory factory, String collection,
-			String recordSchema, PrintableReportListPossibleType currentSchema) {
+																		   String recordSchema,
+																		   PrintableReportListPossibleType currentSchema) {
 		List<PrintableReportTemplate> printableReportTemplateList = new ArrayList<>();
 		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaType printableReportSchemaType = metadataSchemasManager.getSchemaTypes(collection)

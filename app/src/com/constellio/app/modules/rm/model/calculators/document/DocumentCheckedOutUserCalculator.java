@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -10,6 +7,9 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class DocumentCheckedOutUserCalculator implements MetadataValueCalculator<String> {
 	LocalDependency<Content> content = LocalDependency.toAContent(Document.CONTENT);

@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
@@ -15,8 +11,11 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.server.Resource;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StringLookupField extends LookupField<String> {
-	
+
 	public StringLookupField(List<String> options) {
 		this(options, null);
 	}
@@ -31,18 +30,18 @@ public class StringLookupField extends LookupField<String> {
 	public Class<? extends String> getType() {
 		return String.class;
 	}
-	
+
 	private static class StringTextInputDataProvider extends TextInputDataProvider<String> {
-		
+
 		private List<String> options;
-		
+
 		private Converter<String, String> itemConverter;
-		
+
 		private StringTextInputDataProvider(List<String> options, Converter<String, String> itemConverter) {
 			this.options = options;
 			this.itemConverter = itemConverter;
 		}
-		
+
 		private List<String> filter(String text) {
 			List<String> results = new ArrayList<>();
 			if (text != null) {
@@ -67,7 +66,7 @@ public class StringLookupField extends LookupField<String> {
 
 		@Override
 		public List<String> getData(String text, int startIndex, int count) {
-			List<String> results = filter(text); 
+			List<String> results = filter(text);
 			int end = Math.min(startIndex + count, results.size());
 			return results.subList(startIndex, end);
 		}
@@ -97,13 +96,13 @@ public class StringLookupField extends LookupField<String> {
 			// Ignore
 		}
 	}
-	
+
 	private static class StringLookupTreeDataProvider implements LookupTreeDataProvider<String> {
-		
+
 		private Converter<String, String> itemConverter;
-		
+
 		private StringTextInputDataProvider textInputDataProvider;
-		
+
 		private StringLookupTreeDataProvider(List<String> options, Converter<String, String> itemConverter) {
 			this.itemConverter = itemConverter;
 			this.textInputDataProvider = new StringTextInputDataProvider(options, itemConverter);

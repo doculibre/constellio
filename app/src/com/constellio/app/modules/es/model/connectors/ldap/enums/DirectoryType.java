@@ -12,7 +12,7 @@ public enum DirectoryType implements EnumWithSmallCode {
 		this.code = code;
 	}
 
-	public String getCode(){
+	public String getCode() {
 		return code;
 	}
 }

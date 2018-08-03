@@ -1,19 +1,20 @@
 package com.constellio.data.dao.managers.config;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigEventListener;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.managers.config.values.TextConfiguration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.events.Event;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusListener;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.KeyListMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,21 +35,8 @@ import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
-import com.constellio.data.dao.managers.config.events.ConfigEventListener;
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
-import com.constellio.data.dao.managers.config.values.TextConfiguration;
-import com.constellio.data.dao.managers.config.values.XMLConfiguration;
-import com.constellio.data.events.Event;
-import com.constellio.data.events.EventBus;
-import com.constellio.data.events.EventBusListener;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.KeyListMap;
+import java.io.*;
+import java.util.*;
 
 public class ZooKeeperConfigManager implements StatefulService, ConfigManager, EventBusListener {
 
@@ -572,15 +560,15 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, E
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
-		case CONFIG_UPDATED_EVENT_TYPE:
-			String path = event.getData();
-			for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
-				listener.onConfigUpdated(path);
-			}
-			break;
+			case CONFIG_UPDATED_EVENT_TYPE:
+				String path = event.getData();
+				for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+					listener.onConfigUpdated(path);
+				}
+				break;
 
-		default:
-			throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
+			default:
+				throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
 		}
 	}
 

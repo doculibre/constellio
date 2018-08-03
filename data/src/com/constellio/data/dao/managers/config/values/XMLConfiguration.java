@@ -1,10 +1,6 @@
 package com.constellio.data.dao.managers.config.values;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringReader;
-
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -13,7 +9,10 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
 
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Serializable;
+import java.io.StringReader;
 
 public class XMLConfiguration implements Serializable {
 

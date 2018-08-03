@@ -68,7 +68,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 		try {
 			DecommissioningList decommissioningList = rmSchemasRecordsServices.wrapDecommissioningList(record);
 			String displayURL = "";
-			if(decommissioningList.getDecommissioningListType() != null) {
+			if (decommissioningList.getDecommissioningListType() != null) {
 				switch (decommissioningList.getDecommissioningListType()) {
 					case FOLDERS_TO_TRANSFER:
 					case FOLDERS_TO_DESTROY:
@@ -89,7 +89,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			List<EmailAddress> emailAddresses = new ArrayList<>();
 
 			for (User user : userList) {
-				if(user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
+				if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
 					emailAddresses.add(new EmailAddress(user.getTitle(), user.getEmail()));
 				}
 			}
@@ -118,7 +118,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 	}
 
 	private String formatDateToParameter(LocalDateTime datetime) {
-		if(datetime == null) {
+		if (datetime == null) {
 			return "";
 		}
 		return datetime.toString("yyyy-MM-dd  HH:mm:ss");

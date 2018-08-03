@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.search.savedSearch;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -22,12 +18,10 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView {
 	private final SavedSearchPresenter presenter;
@@ -112,7 +106,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 		final RecordVODataProvider dataProvider = presenter.getPublicSearchesDataProvider();
 		ButtonsContainer container = buildButtonsContainer(dataProvider);
 
-		if(presenter.hasUserAcessToDeletePublicSearches()) {
+		if (presenter.hasUserAcessToDeletePublicSearches()) {
 			container.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {

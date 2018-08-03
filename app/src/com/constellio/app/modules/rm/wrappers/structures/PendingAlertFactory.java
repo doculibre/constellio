@@ -1,14 +1,13 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnumWithSmallCode;
-
-import java.util.StringTokenizer;
-
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
+import java.util.StringTokenizer;
+
+import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnumWithSmallCode;
 
 public class PendingAlertFactory implements StructureFactory {
 
@@ -38,11 +37,11 @@ public class PendingAlertFactory implements StructureFactory {
 			writeString(stringBuilder, NULL);
 		}
 		writeString(stringBuilder, pendingAlert.getAlertCode() == null ?
-				NULL :
-				pendingAlert.getAlertCode().getCode());
+								   NULL :
+								   pendingAlert.getAlertCode().getCode());
 		writeString(stringBuilder, pendingAlert.getReminderCount() == null ?
-				NULL :
-				pendingAlert.getReminderCount().toString());
+								   NULL :
+								   pendingAlert.getReminderCount().toString());
 
 		return stringBuilder.toString();
 	}

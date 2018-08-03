@@ -1,18 +1,9 @@
 package com.constellio.app.modules.es.navigation;
 
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.modules.es.ui.pages.ConnectorReportViewImpl;
-import com.constellio.app.modules.es.ui.pages.DisplayConnectorInstanceViewImpl;
-import com.constellio.app.modules.es.ui.pages.EditConnectorInstanceViewImpl;
-import com.constellio.app.modules.es.ui.pages.ListConnectorInstancesViewImpl;
-import com.constellio.app.modules.es.ui.pages.WizardConnectorInstanceViewImpl;
+import com.constellio.app.modules.es.ui.pages.*;
 import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,6 +19,11 @@ import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.io.Serializable;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class ESNavigationConfiguration implements Serializable {
 	public static final String CONNECTORS = "connectors";
@@ -80,12 +76,12 @@ public class ESNavigationConfiguration implements Serializable {
 			config.add(HomeView.TABS, new RecordTree(CoreNavigationConfiguration.TAXONOMIES) {
 				@Override
 				public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-						SessionContext sessionContext) {
+																		 SessionContext sessionContext) {
 					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 					if (getDefaultDataProvider() == -1) {
 						int defaultTab = tabSheet.getDefaultTab();
 						setDefaultDataProvider(defaultTab);
-					}	
+					}
 					return tabSheet.getDataProviders();
 				}
 

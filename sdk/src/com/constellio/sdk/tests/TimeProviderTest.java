@@ -1,7 +1,6 @@
 package com.constellio.sdk.tests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.data.utils.TimeProvider;
 import org.joda.time.DateMidnight;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -12,7 +11,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.constellio.data.utils.TimeProvider;
+import static org.assertj.core.api.Assertions.assertThat;
 
 //Order is important to test this test mecanism
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

@@ -1,15 +1,7 @@
 package com.constellio.model.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class DependencyUtils<V> {
 
@@ -113,7 +105,8 @@ public class DependencyUtils<V> {
 		return metadatas;
 	}
 
-	private IterationResults<V> getMetadatasWithoutDependencies(Map<V, Set<V>> metadatas, DependencyUtilsParams params) {
+	private IterationResults<V> getMetadatasWithoutDependencies(Map<V, Set<V>> metadatas,
+																DependencyUtilsParams params) {
 		List<V> valuesWithoutDependencies = new ArrayList<>();
 		Map<V, Set<V>> valuesWithDependencies = new HashMap<>();
 		for (Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {

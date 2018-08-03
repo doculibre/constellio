@@ -1,15 +1,14 @@
 package com.constellio.app.ui.tools.vaadin;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TableWebElement{
+public class TableWebElement {
 
 	private static final String CONTENT_TABLE_XPATH = "//table[@class='v-table-table']";
 	protected ConstellioWebDriver driver;
@@ -26,7 +25,7 @@ public class TableWebElement{
 		ConstellioWebElement tableParentElement = driver.find(tableStyleCode);
 		ConstellioWebElement tableElement = tableParentElement.findElement(By.xpath(CONTENT_TABLE_XPATH));
 		List<WebElement> trElements = tableElement.findElements(By.tagName("tr"));
-		if(trElements.isEmpty()){
+		if (trElements.isEmpty()) {
 			return;
 		}
 		for (int i = 0; i < trElements.size(); i++) {

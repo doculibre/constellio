@@ -1,6 +1,10 @@
 package com.constellio.data.dao.services.records;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -8,18 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectionTest {
 
 	private CloudSolrClient server, otherServer;
 
 	/**
-	 *  -- NOT RUN BY INTEGRATION SERVER --
+	 * -- NOT RUN BY INTEGRATION SERVER --
 	 * This test is for troubleshooting purposes only
 	 */
 	public void test()

@@ -1,14 +1,13 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import com.constellio.model.entities.Language;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.model.entities.Language;
 
 public class SchemaTypeDisplayConfig implements Serializable {
 
@@ -27,7 +26,7 @@ public class SchemaTypeDisplayConfig implements Serializable {
 	private final Map<String, Map<Language, String>> metadataGroup;
 
 	public SchemaTypeDisplayConfig(String collection, String schemaType, boolean manageable, boolean advancedSearch,
-			boolean simpleSearch, Map<String, Map<Language, String>> metadataGroup) {
+								   boolean simpleSearch, Map<String, Map<Language, String>> metadataGroup) {
 		this.collection = collection;
 		this.schemaType = schemaType;
 		this.manageable = manageable;
@@ -36,7 +35,8 @@ public class SchemaTypeDisplayConfig implements Serializable {
 		this.metadataGroup = Collections.unmodifiableMap(metadataGroup);
 	}
 
-	public SchemaTypeDisplayConfig(String collection, String schemaType, Map<String, Map<Language, String>> metadataGroup) {
+	public SchemaTypeDisplayConfig(String collection, String schemaType,
+								   Map<String, Map<Language, String>> metadataGroup) {
 		this.collection = collection;
 		this.schemaType = schemaType;
 		this.manageable = false;

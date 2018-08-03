@@ -51,10 +51,10 @@ public class RecordServicesRuntimeException extends RuntimeException {
 	public static class BrokenReference extends RecordServicesRuntimeException {
 
 		public BrokenReference(String recordIdWithReference, String referencedId, Metadata metadata,
-				Exception e) {
+							   Exception e) {
 			super("Record '" + recordIdWithReference + "' is referencing an inexistent record '" + referencedId
-					+ "' of schema type '" + metadata.getReferencedSchemaType() + "' in metadata '" + metadata.getLocalCode()
-					+ "'", e);
+				  + "' of schema type '" + metadata.getReferencedSchemaType() + "' in metadata '" + metadata.getLocalCode()
+				  + "'", e);
 		}
 	}
 
@@ -90,7 +90,7 @@ public class RecordServicesRuntimeException extends RuntimeException {
 
 		public UnresolvableOptimsiticLockingCausingInfiniteLoops(TransactionDTO transaction, OptimisticLocking e) {
 			super("Transaction is causing unresolvable optimistic locking (causing an infinite loop) : " +
-					LoggerUtils.toString(transaction), e);
+				  LoggerUtils.toString(transaction), e);
 		}
 	}
 

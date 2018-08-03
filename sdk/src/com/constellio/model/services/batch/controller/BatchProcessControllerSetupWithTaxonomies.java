@@ -1,9 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -14,10 +10,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class BatchProcessControllerSetupWithTaxonomies {
 
-	public int add10_10_10_X_HierarchyOfFoldersWith(final RecordServices recordServices, final TaxonomyRecords taxonomyRecords,
-			final FolderSchema folderSchema, final int nbOfFoldersPerLevel2Node)
+	public int add10_10_10_X_HierarchyOfFoldersWith(final RecordServices recordServices,
+													final TaxonomyRecords taxonomyRecords,
+													final FolderSchema folderSchema, final int nbOfFoldersPerLevel2Node)
 			throws RecordServicesException, InterruptedException {
 
 		final AtomicInteger nbFolders = new AtomicInteger();

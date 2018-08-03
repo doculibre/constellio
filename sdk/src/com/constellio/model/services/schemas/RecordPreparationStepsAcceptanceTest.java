@@ -1,21 +1,6 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-
-import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModificationUsersAndDateRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
-import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.*;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;
@@ -23,6 +8,14 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 

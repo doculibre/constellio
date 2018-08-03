@@ -1,14 +1,14 @@
 package com.constellio.sdk.load.script.preparators;
 
-import static com.constellio.model.entities.schemas.Schemas.CODE;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.sdk.load.script.TaxonomyPreparator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.sdk.load.script.TaxonomyPreparator;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
 
 public abstract class BaseTaxonomyPreparator implements TaxonomyPreparator {
 
@@ -41,10 +41,12 @@ public abstract class BaseTaxonomyPreparator implements TaxonomyPreparator {
 		return concepts;
 	}
 
-	protected abstract RecordWrapper newConceptWithCodeAndParent(RMSchemasRecordsServices rm, String code, RecordWrapper parent);
+	protected abstract RecordWrapper newConceptWithCodeAndParent(RMSchemasRecordsServices rm, String code,
+																 RecordWrapper parent);
 
 	@Override
-	public List<RecordWrapper> createChildConcepts(RMSchemasRecordsServices rm, RecordWrapper parent, Stack<Integer> positions) {
+	public List<RecordWrapper> createChildConcepts(RMSchemasRecordsServices rm, RecordWrapper parent,
+												   Stack<Integer> positions) {
 
 		List<RecordWrapper> concepts = new ArrayList<>();
 		int levels = positions.size();

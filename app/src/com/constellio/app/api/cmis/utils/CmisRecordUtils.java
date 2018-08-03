@@ -1,22 +1,21 @@
 package com.constellio.app.api.cmis.utils;
 
-import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
-import static com.constellio.model.services.schemas.SchemaUtils.*;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
+import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
+import static java.util.Arrays.asList;
 
 public class CmisRecordUtils {
 

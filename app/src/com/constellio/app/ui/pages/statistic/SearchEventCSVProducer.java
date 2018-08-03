@@ -15,39 +15,39 @@ import java.util.List;
 import java.util.Map;
 
 public class SearchEventCSVProducer extends AbstractCSVProducer {
-    private final SearchEventVODataProvider dataProvider;
-    private final Map<String, MetadataVO> definedMetadatas;
+	private final SearchEventVODataProvider dataProvider;
+	private final Map<String, MetadataVO> definedMetadatas;
 
-    public SearchEventCSVProducer(Table table, Long maxRow, SearchEventVODataProvider dataProvider) {
-        super(table, maxRow);
+	public SearchEventCSVProducer(Table table, Long maxRow, SearchEventVODataProvider dataProvider) {
+		super(table, maxRow);
 
-        this.dataProvider = dataProvider;
-        this.definedMetadatas = new HashMap<>();
+		this.dataProvider = dataProvider;
+		this.definedMetadatas = new HashMap<>();
 
-        initDefinedMetadatas();
-    }
+		initDefinedMetadatas();
+	}
 
-    private void initDefinedMetadatas() {
-        MetadataSchemaVO schema = dataProvider.getSchema();
-        List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
-        for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
-            definedMetadatas.put(metadataVO.getCode(), metadataVO);
-        }
-    }
+	private void initDefinedMetadatas() {
+		MetadataSchemaVO schema = dataProvider.getSchema();
+		List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
+		for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
+			definedMetadatas.put(metadataVO.getCode(), metadataVO);
+		}
+	}
 
-    @Override
-    protected long getRowCount() {
-        return dataProvider.size();
-    }
+	@Override
+	protected long getRowCount() {
+		return dataProvider.size();
+	}
 
-    @Override
-    protected List<Item> loadItems(int startIndex, int numberOfItems) {
-        List<Item> items = new ArrayList<>();
-        List<RecordVO> recordVOsFromFirstDataProvider = dataProvider.listRecordVOs(startIndex, numberOfItems);
-        for (RecordVO recordVO : recordVOsFromFirstDataProvider) {
-            Item item = new SearchEventVOItem(recordVO, definedMetadatas);
-            items.add(item);
-        }
-        return items;
-    }
+	@Override
+	protected List<Item> loadItems(int startIndex, int numberOfItems) {
+		List<Item> items = new ArrayList<>();
+		List<RecordVO> recordVOsFromFirstDataProvider = dataProvider.listRecordVOs(startIndex, numberOfItems);
+		for (RecordVO recordVO : recordVOsFromFirstDataProvider) {
+			Item item = new SearchEventVOItem(recordVO, definedMetadatas);
+			items.add(item);
+		}
+		return items;
+	}
 }

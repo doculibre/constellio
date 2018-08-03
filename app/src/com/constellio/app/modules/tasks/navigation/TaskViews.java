@@ -1,12 +1,12 @@
 package com.constellio.app.modules.tasks.navigation;
 
-import static com.constellio.app.ui.params.ParamUtils.addParams;
+import com.constellio.app.ui.application.CoreViews;
+import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.vaadin.navigator.Navigator;
+import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class TaskViews extends CoreViews {
 	public TaskViews(Navigator navigator) {
@@ -51,9 +51,9 @@ public class TaskViews extends CoreViews {
 		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
 
-    public void listTasksLogs() {
-        navigator.navigateTo(TasksNavigationConfiguration.LIST_TASKS_LOGS);
-    }
+	public void listTasksLogs() {
+		navigator.navigateTo(TasksNavigationConfiguration.LIST_TASKS_LOGS);
+	}
 
 	// WORKFLOWS
 
@@ -65,11 +65,11 @@ public class TaskViews extends CoreViews {
 		navigator.navigateTo(TasksNavigationConfiguration.DISPLAY_WORKFLOW + "/" + id);
 	}
 
-    public void displayWorkflowInstance(String id) {
-        navigator.navigateTo(TasksNavigationConfiguration.DISPLAY_WORKFLOW_INSTANCE + "/" + id);
-    }
+	public void displayWorkflowInstance(String id) {
+		navigator.navigateTo(TasksNavigationConfiguration.DISPLAY_WORKFLOW_INSTANCE + "/" + id);
+	}
 
-    public void addWorkflow() {
+	public void addWorkflow() {
 		navigator.navigateTo(TasksNavigationConfiguration.ADD_WORKFLOW);
 	}
 

@@ -1,26 +1,5 @@
 package com.constellio.sdk.load.script;
 
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.records.wrappers.EventType.VIEW;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import demo.DemoInitScript;
-
-import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMRoles;
@@ -57,6 +36,21 @@ import com.constellio.model.services.security.authentification.PasswordFileAuthe
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.load.script.utils.LinkableIdsList;
 import com.constellio.sdk.load.script.utils.LinkableRecordsList;
+import demo.DemoInitScript;
+import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.records.wrappers.EventType.VIEW;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
@@ -249,7 +243,8 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		createDocuments(rm, folderIds, users);
 	}
 
-	private void createDocuments(RMSchemasRecordsServices rm, LinkableIdsList folderIds, LinkableRecordsList<User> users) {
+	private void createDocuments(RMSchemasRecordsServices rm, LinkableIdsList folderIds,
+								 LinkableRecordsList<User> users) {
 
 		EventFactory eventFactory = new EventFactory(rm.getModelLayerFactory());
 		User admin = rm.getModelLayerFactory().newUserServices().getUserInCollection("admin", rm.getCollection());
@@ -295,9 +290,11 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		private EventFactory eventFactory;
 		private User admin;
 
-		public DocumentSavehread(AtomicInteger addedCount, int requiredCount, BigFileFolderIterator bigFileFolderIterator,
-				RMSchemasRecordsServices rm, LinkableIdsList folderIds, LinkableRecordsList<User> users,
-				BulkRecordTransactionHandler transactionHandler) {
+		public DocumentSavehread(AtomicInteger addedCount, int requiredCount,
+								 BigFileFolderIterator bigFileFolderIterator,
+								 RMSchemasRecordsServices rm, LinkableIdsList folderIds,
+								 LinkableRecordsList<User> users,
+								 BulkRecordTransactionHandler transactionHandler) {
 			this.addedCount = addedCount;
 			this.requiredCount = requiredCount;
 			this.bigFileFolderIterator = bigFileFolderIterator;
@@ -361,7 +358,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 	}
 
 	private LinkableIdsList createFolders(RMSchemasRecordsServices rm, String ruleId, LinkableIdsList categoriesIds,
-			LinkableIdsList administrativeUnitsIds, LinkableRecordsList<User> users) {
+										  LinkableIdsList administrativeUnitsIds, LinkableRecordsList<User> users) {
 
 		Map<String, User> userCache = new HashMap<>();
 
@@ -422,7 +419,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 	}
 
 	private List<RecordWrapper> prepareTaxonomy(RMSchemasRecordsServices rm, Transaction transaction,
-			TaxonomyPreparator taxonomy) {
+												TaxonomyPreparator taxonomy) {
 		List<RecordWrapper> recordWrappers = new ArrayList<>();
 
 		taxonomy.init(rm, transaction);
@@ -441,7 +438,8 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 	}
 
 	private void prepareTaxonomy(RMSchemasRecordsServices rm, Transaction transaction, RecordWrapper record,
-			TaxonomyPreparator taxonomy, Stack<Integer> stack, List<RecordWrapper> recordWrappers) {
+								 TaxonomyPreparator taxonomy, Stack<Integer> stack,
+								 List<RecordWrapper> recordWrappers) {
 
 		List<RecordWrapper> childConcepts = taxonomy.createChildConcepts(rm, record, stack);
 		recordWrappers.addAll(childConcepts);

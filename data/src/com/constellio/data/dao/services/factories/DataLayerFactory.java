@@ -1,28 +1,6 @@
 package com.constellio.data.dao.services.factories;
 
-import static com.constellio.data.conf.ElectionServiceType.IGNITE;
-import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.ignite.Ignite;
-import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-
-import com.constellio.data.conf.CacheType;
-import com.constellio.data.conf.ConfigManagerType;
-import com.constellio.data.conf.ContentDaoType;
-import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.conf.EventBusSendingServiceType;
-import com.constellio.data.conf.IdGeneratorType;
-import com.constellio.data.conf.SolrServerType;
+import com.constellio.data.conf.*;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -66,19 +44,26 @@ import com.constellio.data.dao.services.solr.serverFactories.HttpSolrServerFacto
 import com.constellio.data.dao.services.transactionLog.KafkaTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogManager;
-import com.constellio.data.events.EventBus;
-import com.constellio.data.events.EventBusManager;
-import com.constellio.data.events.EventBusSendingService;
-import com.constellio.data.events.SolrEventBusSendingService;
-import com.constellio.data.events.StandaloneEventBusSendingService;
+import com.constellio.data.events.*;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
 import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.ignite.Ignite;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.util.*;
+
+import static com.constellio.data.conf.ElectionServiceType.IGNITE;
+import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 
 public class DataLayerFactory extends LayerFactoryImpl {
 
@@ -118,7 +103,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
+							StatefullServiceDecorator statefullServiceDecorator, String instanceName,
+							String warVersion) {
 
 		super(statefullServiceDecorator, instanceName);
 

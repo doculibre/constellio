@@ -1,16 +1,15 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import org.joda.time.LocalDateTime;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class BetaWorkflowInstance extends RecordWrapper {
 
@@ -24,7 +23,7 @@ public class BetaWorkflowInstance extends RecordWrapper {
 	public static final String EXTRA_FIELDS = "extraFields";
 
 	public BetaWorkflowInstance(Record record,
-			MetadataSchemaTypes types) {
+								MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

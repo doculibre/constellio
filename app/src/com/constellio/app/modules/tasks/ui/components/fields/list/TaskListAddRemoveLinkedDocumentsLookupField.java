@@ -8,15 +8,15 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField
  * Created by Constellio on 2017-03-29.
  */
 public class TaskListAddRemoveLinkedDocumentsLookupField extends ListAddRemoveField<String, TaskLinkedDocumentsFieldImpl> {
-    private DocumentIdToContextCaptionConverter converter = new DocumentIdToContextCaptionConverter();
+	private DocumentIdToContextCaptionConverter converter = new DocumentIdToContextCaptionConverter();
 
-    @Override
-    protected TaskLinkedDocumentsFieldImpl newAddEditField() {
-        return new TaskLinkedDocumentsFieldImpl();
-    }
+	@Override
+	protected TaskLinkedDocumentsFieldImpl newAddEditField() {
+		return new TaskLinkedDocumentsFieldImpl();
+	}
 
-    @Override
-    protected String getItemCaption(Object itemId) {
-        return converter.convertToPresentation((String) itemId, String.class, getLocale());
-    }
+	@Override
+	protected String getItemCaption(Object itemId) {
+		return converter.convertToPresentation((String) itemId, String.class, getLocale());
+	}
 }

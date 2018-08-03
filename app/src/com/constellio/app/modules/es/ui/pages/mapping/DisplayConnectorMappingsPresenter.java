@@ -1,10 +1,5 @@
 package com.constellio.app.modules.es.ui.pages.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.MappingParams;
@@ -13,6 +8,11 @@ import com.constellio.app.modules.es.ui.entities.MappingVO;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.Language;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class DisplayConnectorMappingsPresenter extends MappingsPresenter<DisplayConnectorMappingsView> {
 

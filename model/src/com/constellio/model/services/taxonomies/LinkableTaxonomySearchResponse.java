@@ -1,10 +1,10 @@
 package com.constellio.model.services.taxonomies;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.SPEQueryResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LinkableTaxonomySearchResponse {
 
@@ -17,14 +17,14 @@ public class LinkableTaxonomySearchResponse {
 	private final FastContinueInfos fastContinueInfos;
 
 	public LinkableTaxonomySearchResponse(long numFound,
-			List<TaxonomySearchRecord> records) {
+										  List<TaxonomySearchRecord> records) {
 		this.numFound = numFound;
 		this.fastContinueInfos = null;
 		this.records = records;
 	}
 
 	public LinkableTaxonomySearchResponse(long numFound, FastContinueInfos fastContinueInfos,
-			List<TaxonomySearchRecord> records) {
+										  List<TaxonomySearchRecord> records) {
 		this.numFound = numFound;
 		this.fastContinueInfos = fastContinueInfos;
 		this.records = records;

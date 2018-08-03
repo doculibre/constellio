@@ -1,19 +1,14 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.ui.framework.data.CollectionVODataProvider;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
+import org.vaadin.addons.lazyquerycontainer.*;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CollectionVOLazyContainer extends LazyQueryContainer {
 	public static final String CODE = "code";

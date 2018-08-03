@@ -1,12 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static org.apache.commons.lang.StringUtils.join;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -14,6 +7,13 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.commons.lang.StringUtils.join;
 
 public class HasChildrenQueryHandler {
 
@@ -35,7 +35,8 @@ public class HasChildrenQueryHandler {
 	SPEQueryResponse response;
 
 	public HasChildrenQueryHandler(String username, String cacheMode,
-			TaxonomiesSearchServices services, SearchServices searchServices, LogicalSearchQuery facetQuery) {
+								   TaxonomiesSearchServices services, SearchServices searchServices,
+								   LogicalSearchQuery facetQuery) {
 		this.username = username;
 		this.cacheMode = cacheMode;
 
@@ -93,14 +94,15 @@ public class HasChildrenQueryHandler {
 		return stringBuilder.toString();
 	}
 
-	public static String getCacheMode(MetadataSchemaType selectedSchemaType, String requiredAccess, boolean showInvisible,
-			boolean showAllConcepts) {
+	public static String getCacheMode(MetadataSchemaType selectedSchemaType, String requiredAccess,
+									  boolean showInvisible,
+									  boolean showAllConcepts) {
 		return getCacheMode(selectedSchemaType == null ? null : selectedSchemaType.getCode(), requiredAccess, showInvisible,
 				showAllConcepts);
 	}
 
 	public static String getCacheMode(String selectedSchemaType, String requiredAccess, boolean showInvisible,
-			boolean showAllConcepts) {
+									  boolean showAllConcepts) {
 		String cacheMode;
 		if (selectedSchemaType == null) {
 			cacheMode = "visible";

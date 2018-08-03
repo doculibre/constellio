@@ -10,10 +10,10 @@ public class CapsuleComponent extends VerticalLayout {
 		addStyleName("information-capsule");
 		Label titleLabel = new Label(title);
 		titleLabel.addStyleName("information-capsule-title");
-		
+
 		Label contentLabel = new Label(htmlContent, ContentMode.HTML);
 		contentLabel.addStyleName("information-capsule-content");
-		
+
 		addComponents(titleLabel, contentLabel);
 	}
 

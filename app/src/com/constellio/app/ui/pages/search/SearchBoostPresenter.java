@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -9,6 +7,8 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.entities.SearchBoost;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SearchBoostPresenter extends BasePresenter<SearchBoostView> {
 

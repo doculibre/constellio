@@ -1,23 +1,5 @@
 package com.constellio.model.services.thesaurus;
 
-import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Transaction;
@@ -27,6 +9,18 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.*;
+
+import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for searching in Thesaurus. Search should be permissive at all time (ignore case, accents and trim spaces).
@@ -43,7 +37,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		String skosDestination = foldersLocator.getPluginsSDKProject()
-				.getAbsoluteFile() + File.separator + "sdk-resources" + File.separator + "SKOS destination.xml";
+										 .getAbsoluteFile() + File.separator + "sdk-resources" + File.separator + "SKOS destination.xml";
 		File file = new File(skosDestination);
 		Assume.assumeTrue(file.exists());
 
@@ -80,15 +74,15 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			thesaurusService.findDomainOfSkosConcept(mapStringSkos.getValue(), ThesaurusService.DOMAINE_LABEL, domainFound);
 		}
 
-		String[] domainsAsArray = { "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6817",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11380",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11130",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=12589",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4682",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=7506",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4627",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6155",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11950" };
+		String[] domainsAsArray = {"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6817",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11380",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11130",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=12589",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4682",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=7506",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4627",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6155",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11950"};
 
 		for (int i = 0; i < domainsAsArray.length; i++) {
 			boolean isFound = false;
@@ -299,6 +293,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			for (int i = 0; i < searchOccurence; i++) {
 				SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
 				searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+				searchEvent.setOriginalQuery(StringUtils.stripAccents(searchValue.toLowerCase()));
 				transaction.add(searchEvent);
 			}
 		}
@@ -311,21 +306,21 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		for (String searchValue : searchValues) {
 			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE, 3, 5);
 			assertThat(suggestions)
-					.containsExactly("searchtermnotinthesaurusautocomplete1", "searchtermnotinthesaurusautocomplete2",
-							"searchtermnotinthesaurusautocomplete3", "searchtermnotinthesaurusautocomplete4",
-							"searchtermnotinthesaurusautocomplete6");
+					.containsExactly("Searchtermnotinthesaurusautocomplete1", "Searchtermnotinthesaurusautocomplete2",
+							"Searchtermnotinthesaurusautocomplete3", "Searchtermnotinthesaurusautocomplete4",
+							"Searchtermnotinthesaurusautocomplete6");
 		}
 	}
 
 	@Test
 	public void givenSkosConceptMatchThesaurusLabel() {
 		List<String> matchedThesaurusLabelId = thesaurusService.matchThesaurusLabels("lalal " +
-				"\n " +
-				"\n ASSURANCE-EMPloi gouvernement " +
-				"\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
-				"\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
-				"\ngouvernement gouvernement " +
-				"\n  RESTAURATEUR", new Locale("fr"));
+																					 "\n " +
+																					 "\n ASSURANCE-EMPloi gouvernement " +
+																					 "\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
+																					 "\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
+																					 "\ngouvernement gouvernement " +
+																					 "\n  RESTAURATEUR", new Locale("fr"));
 		assertThat(matchedThesaurusLabelId)
 				.containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117", "6156", "6156", "6156");
 	}
@@ -335,12 +330,12 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		thesaurusService.setDeniedTerms(asList("gouvernement"));
 
 		List<String> matchedThesaurusLabelId = thesaurusService.matchThesaurusLabels("lalal " +
-				"\n " +
-				"\n ASSURANCE-EMPloi gouvernement " +
-				"\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
-				"\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
-				"\ngouvernement gouvernement " +
-				"\n  RESTAURATEUR", new Locale("fr"));
+																					 "\n " +
+																					 "\n ASSURANCE-EMPloi gouvernement " +
+																					 "\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
+																					 "\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
+																					 "\ngouvernement gouvernement " +
+																					 "\n  RESTAURATEUR", new Locale("fr"));
 		assertThat(matchedThesaurusLabelId).containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117");
 	}
 }

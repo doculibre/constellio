@@ -25,7 +25,8 @@ public class SystemConfigurationsManagerRuntimeException extends RuntimeExceptio
 	public static class SystemConfigurationsManagerRuntimeException_UpdateScriptFailed
 			extends SystemConfigurationsManagerRuntimeException {
 
-		public SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(String config, Object value, Exception e) {
+		public SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(String config, Object value,
+																			  Exception e) {
 			super("Update script failed when changing value '" + value + "' for config '" + config, e);
 		}
 	}

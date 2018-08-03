@@ -1,108 +1,28 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRuleFactory;
-import com.constellio.app.modules.rm.model.calculators.AdministrativeUnitAncestorsCalculator;
-import com.constellio.app.modules.rm.model.calculators.CategoryIsLinkableCalculator;
-import com.constellio.app.modules.rm.model.calculators.ContainerRecordTreeVisibilityCalculator;
-import com.constellio.app.modules.rm.model.calculators.ContainerTitleCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderActiveRetentionTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderApplicableCopyRuleCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderArchivisticStatusCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator3;
-import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
+import com.constellio.app.modules.rm.model.calculators.*;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryCopyRetentionRulesOnDocumentTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryLevelCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLinearSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListContainersCalculator;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListFoldersCalculator;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListHasAnalogicalMediumTypesCalculator;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListHasElectronicMediumTypesCalculator;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListIsUniform;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListStatusCalculator2;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCategoryCalculator2;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCopyRuleCalculator2;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformCopyTypeCalculator2;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListUniformRuleCalculator2;
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.PendingValidationCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentActualDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentActualDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentActualTransferDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentApplicableCopyRulesCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentArchivisticStatusCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentAutocompleteFieldCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentCaptionCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentCheckedOutUserCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentConfidentialCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentEssentialCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedTransferDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentIsSameInactiveFateAsFolderCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentIsSameSemiActiveFateAsFolderCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentMainCopyRuleCalculator2;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentMimeTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentRetentionRuleCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentVersionCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderApplicableCategoryCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedAdministrativeUnitCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedFilingSpaceCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedRetentionRuleCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderAppliedUniformSubdivisionCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderAutocompleteFieldCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderCaptionCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderConfidentialCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderEssentialCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCodeCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderMediaTypesCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderRetentionPeriodCodeCalculator;
+import com.constellio.app.modules.rm.model.calculators.decommissioningList.*;
+import com.constellio.app.modules.rm.model.calculators.document.*;
+import com.constellio.app.modules.rm.model.calculators.folder.*;
 import com.constellio.app.modules.rm.model.calculators.rule.RuleDocumentTypesCalculator2;
 import com.constellio.app.modules.rm.model.calculators.rule.RuleFolderTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.rule.RuleYearTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceAvailableSizeCalculator;
 import com.constellio.app.modules.rm.model.calculators.storageSpace.StorageSpaceLinearSizeCalculator;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DecomListStatus;
-import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningMonth;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.enums.OriginStatus;
-import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-import com.constellio.app.modules.rm.model.enums.RetentionType;
-import com.constellio.app.modules.rm.model.validators.ContainerRecordValidator;
-import com.constellio.app.modules.rm.model.validators.FolderValidator;
-import com.constellio.app.modules.rm.model.validators.MediumTypeValidator;
-import com.constellio.app.modules.rm.model.validators.RetentionRuleValidator;
-import com.constellio.app.modules.rm.model.validators.StorageSpaceValidator;
+import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.validators.*;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetailFactory;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetailFactory;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListValidationFactory;
-import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTypeFactory;
+import com.constellio.app.modules.rm.wrappers.structures.*;
 import com.constellio.app.modules.tasks.model.validators.TaskValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -114,20 +34,14 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
-import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
-import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
-import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
-import com.constellio.model.services.schemas.calculators.PathCalculator;
-import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
-import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
+import com.constellio.model.services.schemas.calculators.*;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+
+import static java.util.Arrays.asList;
 
 public final class GeneratedRMMigrationCombo {
 	String collection;
@@ -136,7 +50,8 @@ public final class GeneratedRMMigrationCombo {
 
 	MigrationResourcesProvider resourcesProvider;
 
-	GeneratedRMMigrationCombo(String collection, AppLayerFactory appLayerFactory, MigrationResourcesProvider resourcesProvider) {
+	GeneratedRMMigrationCombo(String collection, AppLayerFactory appLayerFactory,
+							  MigrationResourcesProvider resourcesProvider) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.resourcesProvider = resourcesProvider;
@@ -4683,8 +4598,8 @@ public final class GeneratedRMMigrationCombo {
 		userTask_linkedFolders.setMultivalue(true);
 		userTask_linkedFolders.defineReferencesTo(folderSchemaType);
 		MetadataBuilder userTask_reason = userTaskSchema.hasMetadata("reason") ?
-				userTaskSchema.get("reason") :
-				userTaskSchema.create("reason").setType(MetadataValueType.TEXT);
+										  userTaskSchema.get("reason") :
+										  userTaskSchema.create("reason").setType(MetadataValueType.TEXT);
 		userTask_reason.setUndeletable(true);
 		MetadataBuilder document_email_actualDepositDate = document_emailSchema.get("actualDepositDate");
 		MetadataBuilder document_email_actualDepositDateEntered = document_emailSchema.get("actualDepositDateEntered");

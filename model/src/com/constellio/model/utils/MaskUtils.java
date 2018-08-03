@@ -1,5 +1,9 @@
 package com.constellio.model.utils;
 
+import com.constellio.model.utils.MaskUtilsException.MaskUtilsException_InvalidValue;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.text.MaskFormatter;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,14 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import javax.swing.text.MaskFormatter;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.model.utils.MaskUtilsException.MaskUtilsException_InvalidValue;
-
 public class MaskUtils {
-	
+
 	public static final String MM_DD = "^((0[1-9]|1[0-2])\\/([01][1-9]|10|2[0-8]))|((0[13-9]|1[0-2])\\/(29|30))|((0[13578]|1[0-2])\\/31)|02\\/29$";
 
 	//	public static String format(String mask, String rawValue)
@@ -44,8 +42,8 @@ public class MaskUtils {
 
 	public static final String REGEX_STRICT_MASK_ITEMS = "[^A9]";
 
-    private static Pattern REGEX_STRICT_MASK_PATTERN;
-    private static Map<String, Pattern> maskRegexPatterns = new HashMap<>();
+	private static Pattern REGEX_STRICT_MASK_PATTERN;
+	private static Map<String, Pattern> maskRegexPatterns = new HashMap<>();
 	private static Map<String, Pattern> maskStrictRegexPatterns = new HashMap<>();
 
 	public static boolean isValid(String mask, String value) {
@@ -57,12 +55,12 @@ public class MaskUtils {
 		}
 	}
 
-	private static Pattern buildStrictMaskItemsRegex(){
-	    if (REGEX_STRICT_MASK_PATTERN == null){
-            REGEX_STRICT_MASK_PATTERN = Pattern.compile(REGEX_STRICT_MASK_ITEMS);
-        }
-        return REGEX_STRICT_MASK_PATTERN;
-    }
+	private static Pattern buildStrictMaskItemsRegex() {
+		if (REGEX_STRICT_MASK_PATTERN == null) {
+			REGEX_STRICT_MASK_PATTERN = Pattern.compile(REGEX_STRICT_MASK_ITEMS);
+		}
+		return REGEX_STRICT_MASK_PATTERN;
+	}
 
 	private static Pattern buildRegex(String mask) {
 		Pattern maskRegexPattern = maskRegexPatterns.get(mask);
@@ -162,7 +160,7 @@ public class MaskUtils {
 	}
 
 	public static boolean strictValidate(String inputMask, String rawValue) {
-        Pattern strictMaskItemsPattern = buildStrictMaskItemsRegex();
+		Pattern strictMaskItemsPattern = buildStrictMaskItemsRegex();
 		Pattern pattern = strictBuildRegex(strictMaskItemsPattern.matcher(inputMask).replaceAll(""));
 		Matcher matcher = pattern.matcher(rawValue);
 
@@ -181,28 +179,28 @@ public class MaskUtils {
 		return formattedString;
 	}
 
-    public static String strictFormatWithMissingValues(String inputMask, String rawValues) throws MaskUtilsException {
-        String adjustedRawValue = adjustRawValue(inputMask, rawValues);
-	    return strictFormat(inputMask,adjustedRawValue);
-    }
+	public static String strictFormatWithMissingValues(String inputMask, String rawValues) throws MaskUtilsException {
+		String adjustedRawValue = adjustRawValue(inputMask, rawValues);
+		return strictFormat(inputMask, adjustedRawValue);
+	}
 
-    private static String adjustRawValue (String inputMask, String rawValue){
-	    Pattern pattern = buildStrictMaskItemsRegex();
-        String inputMaskWithoutStrictMaskItems = pattern.matcher(inputMask).replaceAll("");
+	private static String adjustRawValue(String inputMask, String rawValue) {
+		Pattern pattern = buildStrictMaskItemsRegex();
+		String inputMaskWithoutStrictMaskItems = pattern.matcher(inputMask).replaceAll("");
 
-        char[] maskAsChar = inputMaskWithoutStrictMaskItems.toCharArray();
-        StringBuilder finalAdjustedItem = new StringBuilder(rawValue);
-        int offSetInFinalAdjusted = finalAdjustedItem.length();
-        while (finalAdjustedItem.length() < maskAsChar.length){
-            String adjustementCharacter = maskAsChar[offSetInFinalAdjusted] == '9' ? "0":"Z";
-            finalAdjustedItem.append(adjustementCharacter);
-            offSetInFinalAdjusted++;
-        }
+		char[] maskAsChar = inputMaskWithoutStrictMaskItems.toCharArray();
+		StringBuilder finalAdjustedItem = new StringBuilder(rawValue);
+		int offSetInFinalAdjusted = finalAdjustedItem.length();
+		while (finalAdjustedItem.length() < maskAsChar.length) {
+			String adjustementCharacter = maskAsChar[offSetInFinalAdjusted] == '9' ? "0" : "Z";
+			finalAdjustedItem.append(adjustementCharacter);
+			offSetInFinalAdjusted++;
+		}
 
-        return finalAdjustedItem.toString();
-    }
+		return finalAdjustedItem.toString();
+	}
 
-    private static String formatValueWithMask(String inputMask, String rawValue) {
+	private static String formatValueWithMask(String inputMask, String rawValue) {
 		int offSetInFinalFormated = 0;
 		StringBuilder finalFormattedItem = new StringBuilder(rawValue);
 		char[] maskAsChar = inputMask.toCharArray();
@@ -210,8 +208,7 @@ public class MaskUtils {
 		for (char maskItem : maskAsChar) {
 			maskItemAsString = String.valueOf(maskItem);
 
-			if((maskItemAsString).matches(REGEX_STRICT_MASK_ITEMS))
-			{
+			if ((maskItemAsString).matches(REGEX_STRICT_MASK_ITEMS)) {
 				finalFormattedItem.insert(offSetInFinalFormated, maskItemAsString);
 			}
 

@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -10,6 +8,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EditDecommissioningListViewImpl extends BaseViewImpl implements EditDecommissioningListView {
 	private final EditDecommissioningListPresenter presenter;

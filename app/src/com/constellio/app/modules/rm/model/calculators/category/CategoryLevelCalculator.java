@@ -1,15 +1,15 @@
 package com.constellio.app.modules.rm.model.calculators.category;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class CategoryLevelCalculator implements MetadataValueCalculator<Double> {
 

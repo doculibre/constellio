@@ -1,9 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
-import java.io.IOException;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -13,6 +9,9 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
 
 public class BetaAddEditWorkflowPresenter extends SingleSchemaBasePresenter<BetaAddEditWorkflowView> {
 	private boolean addView;

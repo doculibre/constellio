@@ -1,23 +1,14 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.data.utils.LangUtils.compareStrings;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.data.utils.LangUtils.compareStrings;
 
 public class MetadataList implements List<Metadata>, Serializable {
 
@@ -107,7 +98,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		ensureNotReadOnly();
 		boolean added = false;
 		for (Metadata metadata : c) {
-			if (!localCodeIndex.containsKey(metadata.getLocalCode())) {
+			if (!codeIndex.containsKey(metadata.getCode())) {
 				addToIndex(metadata);
 				added = nestedList.add(metadata);
 			}
@@ -120,7 +111,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		ensureNotReadOnly();
 		boolean added = false;
 		for (Metadata metadata : c) {
-			if (!localCodeIndex.containsKey(metadata.getLocalCode())) {
+			if (!codeIndex.containsKey(metadata.getCode())) {
 				addToIndex(metadata);
 				nestedList.add(index, metadata);
 				added = true;
@@ -320,7 +311,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isChildOfRelationship()
-					&& metadata.getAllowedReferences().getTypeWithAllowedSchemas().equals(typeCode)) {
+				&& metadata.getAllowedReferences().getTypeWithAllowedSchemas().equals(typeCode)) {
 				filteredMetadatasList.add(metadata);
 			}
 		}

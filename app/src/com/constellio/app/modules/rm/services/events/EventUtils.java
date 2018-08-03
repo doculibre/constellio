@@ -1,14 +1,9 @@
 package com.constellio.app.modules.rm.services.events;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.model.entities.records.wrappers.Event;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.records.wrappers.Event;
+import java.util.*;
 
 /**
  * Created by Nouha on 2015-01-28.
@@ -17,15 +12,15 @@ public class EventUtils {
 
 	public static List<Event> keepOnlyMostRecentEventPerUser(List<Event> eventList) {
 		Map map = new HashMap<String, Event>();
-		for (Event event : eventList){
+		for (Event event : eventList) {
 			String currentUserName = event.getUsername();
-			Event userAssociatedEvent = (Event)map.get(currentUserName);
-			if (userAssociatedEvent == null){
+			Event userAssociatedEvent = (Event) map.get(currentUserName);
+			if (userAssociatedEvent == null) {
 				map.put(currentUserName, event);
-			}else{
+			} else {
 				LocalDateTime currentEventDate = event.getCreatedOn();
 				LocalDateTime savedEventDate = userAssociatedEvent.getCreatedOn();
-				if (savedEventDate.compareTo(currentEventDate) < 0 ){
+				if (savedEventDate.compareTo(currentEventDate) < 0) {
 					map.put(currentUserName, event);
 				}
 			}

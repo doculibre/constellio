@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.model.connectors.ldap;
 
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class ConnectorLDAPInstance extends ConnectorInstance<ConnectorLDAPInstance> {
 	public static final String SCHEMA_LOCAL_CODE = "ldap";
@@ -41,7 +41,7 @@ public class ConnectorLDAPInstance extends ConnectorInstance<ConnectorLDAPInstan
 	public static String MANAGER_ATTRIBUTE_NAME = "manager";
 
 	public ConnectorLDAPInstance(Record record,
-			MetadataSchemaTypes types) {
+								 MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_CODE);
 	}
 

@@ -1,14 +1,13 @@
 package com.constellio.app.modules.es.ui.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MappingVO implements Serializable {
 	public static final String METADATA_LABEL = "metadataLabel";

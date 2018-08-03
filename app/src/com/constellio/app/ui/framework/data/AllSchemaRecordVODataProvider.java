@@ -19,7 +19,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 
 	public AllSchemaRecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
-			ModelLayerFactory modelLayerFactory) {
+										 ModelLayerFactory modelLayerFactory) {
 		super(schema, voBuilder, modelLayerFactory);
 	}
 
@@ -34,7 +34,8 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 		return schemaTypes.getSchema(schemaCode);
 	}
 
-	private static MetadataSchemaType getSchemaType(String schemaTypeCode, String collection, ModelLayerFactory modelLayerFactory) {
+	private static MetadataSchemaType getSchemaType(String schemaTypeCode, String collection,
+													ModelLayerFactory modelLayerFactory) {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 		return schemaTypes.getSchemaType(schemaTypeCode);
@@ -56,10 +57,10 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 		if (schemaCode.endsWith("_default")) {
 			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 			MetadataSchemaType schemaType = getSchemaType(schemaTypeCode, collection, modelLayerFactory);
-			query.setCondition(LogicalSearchQueryOperators.from(schemaType).returnAll());		
+			query.setCondition(LogicalSearchQueryOperators.from(schemaType).returnAll());
 		} else {
 			MetadataSchema schema = getSchema(schemaCode, collection, modelLayerFactory);
-			query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll());		
+			query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll());
 		}
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);

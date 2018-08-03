@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -14,6 +9,11 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaxonomyTabSheet implements Serializable {
 	private transient ModelLayerFactory modelLayerFactory;
@@ -27,13 +27,13 @@ public class TaxonomyTabSheet implements Serializable {
 		this.sessionContext = sessionContext;
 	}
 
-    public List<RecordLazyTreeDataProvider> getDataProviders() {
-        List<RecordLazyTreeDataProvider> providers = new ArrayList<>();
-        for (String taxonomy : getTaxonomyCodes()) {
-            providers.add(new RecordLazyTreeDataProvider(taxonomy,sessionContext.getCurrentCollection()));
-        }
-        return providers;
-    }
+	public List<RecordLazyTreeDataProvider> getDataProviders() {
+		List<RecordLazyTreeDataProvider> providers = new ArrayList<>();
+		for (String taxonomy : getTaxonomyCodes()) {
+			providers.add(new RecordLazyTreeDataProvider(taxonomy, sessionContext.getCurrentCollection()));
+		}
+		return providers;
+	}
 
 	public int getDefaultTab() {
 		return defaultTab;

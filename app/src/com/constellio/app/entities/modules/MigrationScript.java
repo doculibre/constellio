@@ -7,6 +7,6 @@ public interface MigrationScript {
 	public String getVersion();
 
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception;
 }

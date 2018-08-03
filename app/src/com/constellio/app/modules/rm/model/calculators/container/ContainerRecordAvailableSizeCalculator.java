@@ -13,45 +13,45 @@ import static java.util.Arrays.asList;
 
 public class ContainerRecordAvailableSizeCalculator implements MetadataValueCalculator<Double> {
 
-    LocalDependency<Double> linearSizeParam = LocalDependency.toANumber(ContainerRecord.LINEAR_SIZE);
+	LocalDependency<Double> linearSizeParam = LocalDependency.toANumber(ContainerRecord.LINEAR_SIZE);
 
-    LocalDependency<Double> capacityParam = LocalDependency.toANumber(ContainerRecord.CAPACITY);
+	LocalDependency<Double> capacityParam = LocalDependency.toANumber(ContainerRecord.CAPACITY);
 
-    @Override
-    public Double calculate(CalculatorParameters parameters) {
-        Double linearSizeParam = parameters.get(this.linearSizeParam);
-        Double capacityParam = parameters.get(this.capacityParam);
+	@Override
+	public Double calculate(CalculatorParameters parameters) {
+		Double linearSizeParam = parameters.get(this.linearSizeParam);
+		Double capacityParam = parameters.get(this.capacityParam);
 
-        if(capacityParam == null) {
-            return null;
-        } else if(linearSizeParam == null) {
-            return capacityParam;
-        }
+		if (capacityParam == null) {
+			return null;
+		} else if (linearSizeParam == null) {
+			return capacityParam;
+		}
 
-        if (Math.abs(linearSizeParam - capacityParam) < 0.001) {
-            return 0d;
-        }
+		if (Math.abs(linearSizeParam - capacityParam) < 0.001) {
+			return 0d;
+		}
 
-        return capacityParam - linearSizeParam;
-    }
+		return capacityParam - linearSizeParam;
+	}
 
-    @Override
-    public Double getDefaultValue() {
-        return null;
-    }
+	@Override
+	public Double getDefaultValue() {
+		return null;
+	}
 
-    @Override
-    public MetadataValueType getReturnType() {
-        return MetadataValueType.NUMBER;
-    }
+	@Override
+	public MetadataValueType getReturnType() {
+		return MetadataValueType.NUMBER;
+	}
 
-    @Override
-    public boolean isMultiValue() {
-        return false;
-    }
+	@Override
+	public boolean isMultiValue() {
+		return false;
+	}
 
-    @Override
-    public List<? extends Dependency> getDependencies() {
-        return asList(linearSizeParam, capacityParam);
-    }
+	@Override
+	public List<? extends Dependency> getDependencies() {
+		return asList(linearSizeParam, capacityParam);
+	}
 }

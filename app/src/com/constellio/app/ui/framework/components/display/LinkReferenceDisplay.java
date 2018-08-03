@@ -8,40 +8,40 @@ import java.net.URI;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class LinkReferenceDisplay extends ReferenceDisplay {
-    private String path;
+	private String path;
 
-    public LinkReferenceDisplay(String path, String recordId) {
-        super(recordId);
+	public LinkReferenceDisplay(String path, String recordId) {
+		super(recordId);
 
-        this.path = path;
+		this.path = path;
 
-        addContextMenu();
-    }
+		addContextMenu();
+	}
 
-    @Override
-    protected void addContextMenu() {
-        ContextMenu contextMenu = new ContextMenu();
+	@Override
+	protected void addContextMenu() {
+		ContextMenu contextMenu = new ContextMenu();
 
-        ContextMenu.ContextMenuItem openDocumentItem = contextMenu.addItem($("LinkReferenceDisplay.menu.openLinkBlank"));
-        openDocumentItem.addItemClickListener(new ContextMenu.ContextMenuItemClickListener() {
-            @Override
-            public void contextMenuItemClicked(ContextMenu.ContextMenuItemClickEvent contextMenuItemClickEvent) {
-                URI location = getUI().getPage().getLocation();
+		ContextMenu.ContextMenuItem openDocumentItem = contextMenu.addItem($("LinkReferenceDisplay.menu.openLinkBlank"));
+		openDocumentItem.addItemClickListener(new ContextMenu.ContextMenuItemClickListener() {
+			@Override
+			public void contextMenuItemClicked(ContextMenu.ContextMenuItemClickEvent contextMenuItemClickEvent) {
+				URI location = getUI().getPage().getLocation();
 
-                StringBuilder url = new StringBuilder();
-                url.append(location.getScheme());
-                url.append(":");
-                url.append(location.getSchemeSpecificPart());
-                url.append("#!"+ StringUtils.trimToEmpty(getPath())+"/" + getRecordId());
+				StringBuilder url = new StringBuilder();
+				url.append(location.getScheme());
+				url.append(":");
+				url.append(location.getSchemeSpecificPart());
+				url.append("#!" + StringUtils.trimToEmpty(getPath()) + "/" + getRecordId());
 
-                getUI().getPage().open(url.toString(), "_blank");
-            }
-        });
+				getUI().getPage().open(url.toString(), "_blank");
+			}
+		});
 
-        contextMenu.setAsContextMenuOf(this);
-    }
+		contextMenu.setAsContextMenuOf(this);
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 }

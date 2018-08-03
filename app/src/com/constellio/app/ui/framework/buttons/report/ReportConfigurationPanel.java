@@ -1,19 +1,14 @@
 package com.constellio.app.ui.framework.buttons.report;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.FormMetadataVO;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.tepi.listbuilder.ListBuilder;
 
 import java.util.List;
 
-import org.vaadin.tepi.listbuilder.ListBuilder;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.FormMetadataVO;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportConfigurationPanel extends Panel {
 	protected ReportConfigurationPanelPresenter presenter;

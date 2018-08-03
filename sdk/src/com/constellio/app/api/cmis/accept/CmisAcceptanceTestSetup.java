@@ -1,17 +1,11 @@
 package com.constellio.app.api.cmis.accept;
 
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import com.constellio.model.entities.Language;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -31,18 +25,21 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
-import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 /**
  * This schema setup can be used to test multiple taxonomy behaviors :
- *
+ * <p>
  * Taxonomy 1 : - composed of two types, folders can only be added in the second type, - the second type can be child of the first
  * type or second type, but not both (a validation should be done)
- *
+ * <p>
  * Taxonomy 2 : - composed of one type, but folders can only be added in the custom type
- *
+ * <p>
  * Folders : - can contains other folders and documents
- *
  */
 public class CmisAcceptanceTestSetup extends SchemasSetup {
 
@@ -102,7 +99,7 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 	}
 
 	private void setupFolderType(MetadataSchemaTypeBuilder folderType, MetadataSchemaTypeBuilder category,
-			MetadataSchemaTypeBuilder administrativeUnit) {
+								 MetadataSchemaTypeBuilder administrativeUnit) {
 		folderType.getDefaultSchema().create("parent").defineChildOfRelationshipToType(folderType);
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(category);
 		folderType.getDefaultSchema().create("taxonomy2")
@@ -627,7 +624,8 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 			return record;
 		}
 
-		private Record addCategoryRecord(Transaction transaction, String id, Record documentFondParent, Record categoryParent) {
+		private Record addCategoryRecord(Transaction transaction, String id, Record documentFondParent,
+										 Record categoryParent) {
 			Record record = new TestRecord(category, id);
 			record.set(category.title(), id);
 			record.set(category.parentOfDocumentFond(), documentFondParent);
@@ -655,7 +653,8 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 			return record;
 		}
 
-		private Record addFolderRecord(Transaction transaction, String id, Record parent, Record category, Record station) {
+		private Record addFolderRecord(Transaction transaction, String id, Record parent, Record category,
+									   Record station) {
 			Record record = new TestRecord(folderSchema, id);
 			record.set(folderSchema.title(), id);
 			record.set(folderSchema.parent(), parent);

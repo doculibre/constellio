@@ -1,22 +1,21 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.users.UserUtils.cleanUsername;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
 public class UserCredentialsReader {
 

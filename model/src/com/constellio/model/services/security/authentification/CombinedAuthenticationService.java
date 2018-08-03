@@ -11,8 +11,9 @@ public class CombinedAuthenticationService implements AuthenticationService {
 	private ModelLayerSystemExtensions modelLayerSystemExtensions;
 
 	public CombinedAuthenticationService(LDAPConfigurationManager ldapConfigurationManager,
-			LDAPAuthenticationService ldapAuthenticationService,
-			PasswordFileAuthenticationService passwordFileAuthenticationService, ModelLayerExtensions modelLayerExtensions) {
+										 LDAPAuthenticationService ldapAuthenticationService,
+										 PasswordFileAuthenticationService passwordFileAuthenticationService,
+										 ModelLayerExtensions modelLayerExtensions) {
 		this.ldapConfigurationManager = ldapConfigurationManager;
 		this.ldapAuthenticationService = ldapAuthenticationService;
 		this.passwordFileAuthenticationService = passwordFileAuthenticationService;
@@ -26,7 +27,7 @@ public class CombinedAuthenticationService implements AuthenticationService {
 			authenticated = ldapAuthenticationService.authenticate(username, password);
 		}
 		if (!authenticated && (!ldapConfigurationManager.isLDAPAuthentication()
-				|| modelLayerSystemExtensions.canAuthenticateUsingPasswordFileIfLDAPFailed(username))) {
+							   || modelLayerSystemExtensions.canAuthenticateUsingPasswordFileIfLDAPFailed(username))) {
 			authenticated = passwordFileAuthenticationService.authenticate(username, password);
 		}
 		return authenticated;

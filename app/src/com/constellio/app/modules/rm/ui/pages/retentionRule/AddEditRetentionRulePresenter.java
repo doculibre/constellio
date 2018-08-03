@@ -309,7 +309,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 		for (Metadata metadata : folder.getAllMetadatas()) {
 			if (FolderDecomDatesDynamicLocalDependency.isMetadataUsableByCopyRetentionRules(metadata)
-					&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+				&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
 				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
 				dateMetadataVOs.add(metadataVO);
 			}

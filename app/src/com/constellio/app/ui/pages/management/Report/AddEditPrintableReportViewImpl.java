@@ -21,8 +21,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.labels.CustomLabelField;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered;
@@ -42,213 +40,214 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddEditPrintableReportView {
-    private AddEditPrintableReportPresenter presenter = new AddEditPrintableReportPresenter(this);
-    private RecordVO recordVO;
-    private PrintableReportFormImpl recordForm;
-    private boolean isEdit;
+	private AddEditPrintableReportPresenter presenter = new AddEditPrintableReportPresenter(this);
+	private RecordVO recordVO;
+	private PrintableReportFormImpl recordForm;
+	private boolean isEdit;
 
-    @Override
-    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-        return new TitleBreadcrumbTrail(this, getTitle()) {
-            @Override
-            public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-                return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
-                    @Override
-                    public boolean isEnabled() {
-                        return true;
-                    }
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				return Collections.singletonList(new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
 
-                    @Override
-                    public String getTitle() {
-                        return $("ViewGroup.PrintableViewGroup");
-                    }
+					@Override
+					public String getTitle() {
+						return $("ViewGroup.PrintableViewGroup");
+					}
 
-                    @Override
-                    public void activate(Navigation navigate) {
-                        navigate.to().viewReport();
-                    }
-                });
-            }
-        };
-    }
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to().viewReport();
+					}
+				});
+			}
+		};
+	}
 
-    @Override
-    protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-        if (StringUtils.isNotEmpty(event.getParameters())) {
-            Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
-            recordVO = presenter.getRecordVO(paramsMap.get("id"));
-            isEdit = true;
-        } else {
-            recordVO = new RecordToVOBuilder().build(presenter.newRecord(), RecordVO.VIEW_MODE.FORM, getSessionContext());
-            isEdit = false;
-        }
-    }
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
+		if (StringUtils.isNotEmpty(event.getParameters())) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
+			recordVO = presenter.getRecordVO(paramsMap.get("id"));
+			isEdit = true;
+		} else {
+			recordVO = new RecordToVOBuilder().build(presenter.newRecord(), RecordVO.VIEW_MODE.FORM, getSessionContext());
+			isEdit = false;
+		}
+	}
 
-    public void setRecord(RecordVO recordVO) {
-        this.recordVO = recordVO;
-    }
+	public void setRecord(RecordVO recordVO) {
+		this.recordVO = recordVO;
+	}
 
 
+	@Override
+	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		return newForm();
+	}
 
-    @Override
-    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        return newForm();
-    }
+	@Override
+	protected String getTitle() {
+		return $(isEdit ? "PrintableReport.add.title" : "PrintableReport.edit.title");
+	}
 
-    @Override
-    protected String getTitle() {
-        return $( isEdit ? "PrintableReport.add.title" : "PrintableReport.edit.title");
-    }
+	private PrintableReportFormImpl newForm() {
+		return recordForm = new PrintableReportFormImpl(recordVO, new PrintableReportRecordFieldFactory());
+	}
 
-    private PrintableReportFormImpl newForm() {
-        return recordForm = new PrintableReportFormImpl(recordVO, new PrintableReportRecordFieldFactory());
-    }
+	private class PrintableReportFormImpl extends RecordForm implements PrintableReportFrom {
+		public PrintableReportFormImpl(RecordVO recordVO) {
+			super(recordVO);
+		}
 
-    private class PrintableReportFormImpl  extends RecordForm implements PrintableReportFrom {
-        public PrintableReportFormImpl(RecordVO recordVO) {
-            super(recordVO);
-        }
+		public PrintableReportFormImpl(RecordVO recordVO, RecordFieldFactory recordFieldFactory) {
+			super(recordVO, recordFieldFactory);
+		}
 
-        public PrintableReportFormImpl(RecordVO recordVO, RecordFieldFactory recordFieldFactory) {
-            super(recordVO, recordFieldFactory);
-        }
+		@Override
+		public void reload() {
+			recordForm = newForm();
+			replaceComponent(this, recordForm);
+		}
 
-        @Override
-        public void reload() {
-            recordForm = newForm();
-            replaceComponent(this, recordForm);
-        }
-        @Override
-        public void commit(){
-            for (Field<?> field : fieldGroup.getFields()) {
-                try {
-                    field.commit();
-                } catch (Buffered.SourceException | Validator.InvalidValueException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+		@Override
+		public void commit() {
+			for (Field<?> field : fieldGroup.getFields()) {
+				try {
+					field.commit();
+				} catch (Buffered.SourceException | Validator.InvalidValueException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 
-        @Override
-        public ConstellioFactories getConstellioFactories() {
-            return ConstellioFactories.getInstance();
-        }
+		@Override
+		public ConstellioFactories getConstellioFactories() {
+			return ConstellioFactories.getInstance();
+		}
 
-        @Override
-        public SessionContext getSessionContext() {
-            return ConstellioUI.getCurrentSessionContext();
-        }
+		@Override
+		public SessionContext getSessionContext() {
+			return ConstellioUI.getCurrentSessionContext();
+		}
 
-        @Override
-        public CustomLabelField<?> getCustomField(String metadataCode) {
-            return (CustomLabelField<?>)getField(metadataCode);
-        }
+		@Override
+		public CustomLabelField<?> getCustomField(String metadataCode) {
+			return (CustomLabelField<?>) getField(metadataCode);
+		}
 
-        @Override
-        protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
-            try{
-                presenter.saveButtonClicked(recordVO);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+		@Override
+		protected void saveButtonClick(RecordVO viewObject) throws ValidationException {
+			try {
+				presenter.saveButtonClicked(recordVO);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-        @Override
-        protected void cancelButtonClick(RecordVO viewObject) {
-            presenter.cancelButtonClicked();
-        }
-    }
+		@Override
+		protected void cancelButtonClick(RecordVO viewObject) {
+			presenter.cancelButtonClicked();
+		}
+	}
 
-    private class PrintableReportRecordFieldFactory extends RecordFieldFactory {
-        private ComboBox typeCombobox, schemaCombobox;
-        @Override
-        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
-            Field<?> field;
-            switch (metadataVO.getCode()) {
-                case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE:
-                    field = createComboBox(metadataVO);
-                    break;
-                case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA:
-                    field = createComboBoxForSchemaType(metadataVO);
-                    break;
-                default:
-                    field = new MetadataFieldFactory().build(metadataVO, locale);
-                    if(metadataVO.codeMatches(Printable.JASPERFILE)) {
-                        field.addValidator(new Validator() {
-                            @Override
-                            public void validate(Object value) throws InvalidValueException {
-                                ContentVersionVO contentValue = (ContentVersionVO) value;
-                                if(contentValue != null && !contentValue.getFileName().endsWith(".jasper")) {
-                                    throw new InvalidValueException($("PrintableReport.invalidFileType"));
-                                }
-                            }
-                        });
-                    }
-                    break;
-            }
-            return field;
-        }
+	private class PrintableReportRecordFieldFactory extends RecordFieldFactory {
+		private ComboBox typeCombobox, schemaCombobox;
 
-        public ComboBox createComboBox(MetadataVO metadataVO) {
-            typeCombobox = new BaseComboBox();
-            String folderValue = PrintableReportListPossibleType.FOLDER.getSchemaType();
-            String documentValue = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
-            String taskValue = PrintableReportListPossibleType.TASK.getSchemaType();
-            typeCombobox.addItems(folderValue, documentValue, taskValue);
-            typeCombobox.setItemCaption(folderValue, presenter.getLabelForSchemaType(folderValue));
-            typeCombobox.setItemCaption(documentValue, presenter.getLabelForSchemaType(documentValue));
-            typeCombobox.setItemCaption(taskValue, presenter.getLabelForSchemaType(taskValue));
-            typeCombobox.setTextInputAllowed(false);
-            typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
-//            typeCombobox.setConverter(new PrintableReportListToStringConverter());
-            typeCombobox.setNullSelectionAllowed(false);
-            typeCombobox.addValidator(new Validator() {
-                @Override
-                public void validate(Object value) throws InvalidValueException {
-                    if(value == null) {
-                        throw new InvalidValueException($("PrintableReport.addEdit.emptyType"));
-                    }
-                }
-            });
-            typeCombobox.addValueChangeListener(new Property.ValueChangeListener() {
-                @Override
-                public void valueChange(Property.ValueChangeEvent event) {
-                    presenter.setCurrentType((String) event.getProperty().getValue());
-                    schemaCombobox = fillComboBox(schemaCombobox);
-                }
-            });
-            return typeCombobox;
-        }
+		@Override
+		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
+			Field<?> field;
+			switch (metadataVO.getCode()) {
+				case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE:
+					field = createComboBox(metadataVO);
+					break;
+				case PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_SCHEMA:
+					field = createComboBoxForSchemaType(metadataVO);
+					break;
+				default:
+					field = new MetadataFieldFactory().build(metadataVO, locale);
+					if (metadataVO.codeMatches(Printable.JASPERFILE)) {
+						field.addValidator(new Validator() {
+							@Override
+							public void validate(Object value) throws InvalidValueException {
+								ContentVersionVO contentValue = (ContentVersionVO) value;
+								if (contentValue != null && !contentValue.getFileName().endsWith(".jasper")) {
+									throw new InvalidValueException($("PrintableReport.invalidFileType"));
+								}
+							}
+						});
+					}
+					break;
+			}
+			return field;
+		}
 
-        private ComboBox createComboBoxForSchemaType(MetadataVO metadataVO) {
-            schemaCombobox = new BaseComboBox();
-            schemaCombobox = fillComboBox(schemaCombobox);
-            schemaCombobox.setTextInputAllowed(false);
-            schemaCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
-            schemaCombobox.setNullSelectionAllowed(false);
-            //schemaCombobox.setConverter(new CustomSchemaToStringConverter(getCollection(), getConstellioFactories().getAppLayerFactory()));
-            schemaCombobox.addValidator(new Validator() {
-                @Override
-                public void validate(Object value) throws InvalidValueException {
-                    if(value == null) {
-                        throw new InvalidValueException($("PrintableReport.addEdit.emptySchema"));
-                    }
-                }
-            });
-            return schemaCombobox;
-        }
+		public ComboBox createComboBox(MetadataVO metadataVO) {
+			typeCombobox = new BaseComboBox();
+			String folderValue = PrintableReportListPossibleType.FOLDER.getSchemaType();
+			String documentValue = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
+			String taskValue = PrintableReportListPossibleType.TASK.getSchemaType();
+			typeCombobox.addItems(folderValue, documentValue, taskValue);
+			typeCombobox.setItemCaption(folderValue, presenter.getLabelForSchemaType(folderValue));
+			typeCombobox.setItemCaption(documentValue, presenter.getLabelForSchemaType(documentValue));
+			typeCombobox.setItemCaption(taskValue, presenter.getLabelForSchemaType(taskValue));
+			typeCombobox.setTextInputAllowed(false);
+			typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+			//            typeCombobox.setConverter(new PrintableReportListToStringConverter());
+			typeCombobox.setNullSelectionAllowed(false);
+			typeCombobox.addValidator(new Validator() {
+				@Override
+				public void validate(Object value) throws InvalidValueException {
+					if (value == null) {
+						throw new InvalidValueException($("PrintableReport.addEdit.emptyType"));
+					}
+				}
+			});
+			typeCombobox.addValueChangeListener(new Property.ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					presenter.setCurrentType((String) event.getProperty().getValue());
+					schemaCombobox = fillComboBox(schemaCombobox);
+				}
+			});
+			return typeCombobox;
+		}
 
-        private ComboBox fillComboBox(ComboBox comboBox) {
-            comboBox.removeAllItems();
-            for(MetadataSchema metadataSchema : presenter.getSchemasForCurrentType()) {
-                comboBox.addItem(metadataSchema.getCode());
-                comboBox.setItemCaption(metadataSchema.getCode(), metadataSchema.getFrenchLabel());
-                if(comboBox.getItemIds().size() == 1) {
-                    comboBox.setValue(metadataSchema.getCode());
-                }
+		private ComboBox createComboBoxForSchemaType(MetadataVO metadataVO) {
+			schemaCombobox = new BaseComboBox();
+			schemaCombobox = fillComboBox(schemaCombobox);
+			schemaCombobox.setTextInputAllowed(false);
+			schemaCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
+			schemaCombobox.setNullSelectionAllowed(false);
+			//schemaCombobox.setConverter(new CustomSchemaToStringConverter(getCollection(), getConstellioFactories().getAppLayerFactory()));
+			schemaCombobox.addValidator(new Validator() {
+				@Override
+				public void validate(Object value) throws InvalidValueException {
+					if (value == null) {
+						throw new InvalidValueException($("PrintableReport.addEdit.emptySchema"));
+					}
+				}
+			});
+			return schemaCombobox;
+		}
 
-            }
-            return comboBox;
-        }
-    }
+		private ComboBox fillComboBox(ComboBox comboBox) {
+			comboBox.removeAllItems();
+			for (MetadataSchema metadataSchema : presenter.getSchemasForCurrentType()) {
+				comboBox.addItem(metadataSchema.getCode());
+				comboBox.setItemCaption(metadataSchema.getCode(), metadataSchema.getFrenchLabel());
+				if (comboBox.getItemIds().size() == 1) {
+					comboBox.setValue(metadataSchema.getCode());
+				}
+
+			}
+			return comboBox;
+		}
+	}
 }

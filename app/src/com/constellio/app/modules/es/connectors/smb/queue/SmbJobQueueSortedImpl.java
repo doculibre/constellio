@@ -1,11 +1,10 @@
 package com.constellio.app.modules.es.connectors.smb.queue;
 
-import java.util.Comparator;
-import java.util.concurrent.PriorityBlockingQueue;
-
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+
+import java.util.Comparator;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class SmbJobQueueSortedImpl implements SmbJobQueue {
 	private int INITIAL_QUEUE_CAPACITY = 10_000;

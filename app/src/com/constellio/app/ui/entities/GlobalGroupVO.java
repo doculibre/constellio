@@ -1,9 +1,9 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+
 import java.io.Serializable;
 import java.util.Set;
-
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
 
 @SuppressWarnings("serial")
 public class GlobalGroupVO implements Serializable {
@@ -29,13 +29,14 @@ public class GlobalGroupVO implements Serializable {
 		this.status = GlobalGroupStatus.ACTIVE;
 	}
 
-	public GlobalGroupVO(String code, String name, Set<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+	public GlobalGroupVO(String code, String name, Set<String> collections, String parent, GlobalGroupStatus status,
+						 boolean locallyCreated) {
 		this.code = code;
 		this.name = name;
 		this.collections = collections;
 		this.parent = parent;
 		this.status = status;
-        this.locallyCreated = locallyCreated;
+		this.locallyCreated = locallyCreated;
 	}
 
 	public String getCode() {
@@ -78,13 +79,13 @@ public class GlobalGroupVO implements Serializable {
 		this.status = status;
 	}
 
-    public boolean isLocallyCreated() {
-        return locallyCreated;
-    }
+	public boolean isLocallyCreated() {
+		return locallyCreated;
+	}
 
-    public void setLocallyCreated(boolean locallyCreated) {
-        this.locallyCreated = locallyCreated;
-    }
+	public void setLocallyCreated(boolean locallyCreated) {
+		this.locallyCreated = locallyCreated;
+	}
 }
 
 

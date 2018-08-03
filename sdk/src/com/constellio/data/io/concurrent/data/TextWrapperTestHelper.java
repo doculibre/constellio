@@ -2,14 +2,14 @@ package com.constellio.data.io.concurrent.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TextWrapperTestHelper implements WrapperTestHelper<String>{
+public class TextWrapperTestHelper implements WrapperTestHelper<String> {
 
 	@Override
 	public byte[] getAValue() {
 		String text = "it is a test";
 		return text.getBytes();
 	}
-	
+
 	@Override
 	public TextView createEmptyData() {
 		return new TextView();
@@ -25,5 +25,5 @@ public class TextWrapperTestHelper implements WrapperTestHelper<String>{
 		String str = (String) data;
 		str = str.substring(str.length());
 	}
-	
+
 }

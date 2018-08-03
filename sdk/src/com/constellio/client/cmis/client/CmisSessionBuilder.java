@@ -1,21 +1,20 @@
 package com.constellio.client.cmis.client;
 
-import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import org.apache.chemistry.opencmis.client.api.Repository;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CmisSessionBuilder {
 
@@ -41,19 +40,19 @@ public class CmisSessionBuilder {
 	}
 
 	private static void acceptSelfSignedCertificates() {
-		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+		TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
 			public X509Certificate[] getAcceptedIssuers() {
 				return null;
 			}
 
 			public void checkClientTrusted(X509Certificate[] certs,
-					String authType) {
+										   String authType) {
 			}
 
 			public void checkServerTrusted(X509Certificate[] certs,
-					String authType) {
+										   String authType) {
 			}
-		} };
+		}};
 
 		try {
 			SSLContext sc = SSLContext.getInstance("SSL");

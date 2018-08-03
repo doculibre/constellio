@@ -24,88 +24,88 @@ import static org.mockito.Mockito.when;
 
 public class SummaryColumnPresenterAcceptanceTest extends ConstellioTest {
 
-    @Mock
-    SummaryColumnView view;
-    MockedNavigation navigator;
-    @Mock
-    SessionContext sessionContext;
+	@Mock
+	SummaryColumnView view;
+	MockedNavigation navigator;
+	@Mock
+	SessionContext sessionContext;
 
-    SummaryColumnPresenter summaryColumnPresenter;
-    Users users;
-    RMTestRecords records = new RMTestRecords(zeCollection);
-    RMSchemasRecordsServices rmSchemasRecordsServices;
+	SummaryColumnPresenter summaryColumnPresenter;
+	Users users;
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rmSchemasRecordsServices;
 
-    @Before
-    public void setUp() {
-        users = new Users();
-        prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users));
+	@Before
+	public void setUp() {
+		users = new Users();
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users));
 
-        navigator = new MockedNavigation();
+		navigator = new MockedNavigation();
 
-        when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-        when(view.getCollection()).thenReturn(zeCollection);
-        when(view.getSessionContext()).thenReturn(sessionContext);
-        when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
-        when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
+		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(view.getCollection()).thenReturn(zeCollection);
+		when(view.getSessionContext()).thenReturn(sessionContext);
+		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
-        summaryColumnPresenter = new SummaryColumnPresenter(view, Folder.DEFAULT_SCHEMA);
+		summaryColumnPresenter = new SummaryColumnPresenter(view, Folder.DEFAULT_SCHEMA);
 
-        rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-    }
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	}
 
-    @Test
-    public void givenOneMetatSummaryThenMetadataHaveMetadataSummy() {
+	@Test
+	public void givenOneMetatSummaryThenMetadataHaveMetadataSummy() {
 
-        MetadataToVOBuilder builder = new MetadataToVOBuilder();
-        summaryColumnPresenter.getMetadatas();
-        SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
-        summaryColumnParams.setPrefix("a");
-        summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-        summaryColumnParams.setMetadataVO(builder.build(Schemas.TITLE, FakeSessionContext.adminInCollection(zeCollection)));
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+		summaryColumnPresenter.getMetadatas();
+		SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
+		summaryColumnParams.setPrefix("a");
+		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+		summaryColumnParams.setMetadataVO(builder.build(Schemas.TITLE, FakeSessionContext.adminInCollection(zeCollection)));
 
-        summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
+		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
 
-        Metadata metadata = summaryColumnPresenter.getSummaryMetadata();
+		Metadata metadata = summaryColumnPresenter.getSummaryMetadata();
 
-        List summaryComlomnList = (List) metadata.getCustomParameter().get(SummaryColumnPresenter.SUMMARY_COLOMN);
+		List summaryComlomnList = (List) metadata.getCustomParameter().get(SummaryColumnPresenter.SUMMARY_COLOMN);
 
-        assertThat(summaryComlomnList).isNotNull();
-        assertThat(summaryComlomnList.size()).isEqualTo(1);
-        assertThat(summaryColumnParams.getMetadataVO().getCode()).isEqualTo(Schemas.TITLE.getCode());
-        assertThat(summaryColumnParams.getPrefix()).isEqualTo("a");
-        assertThat(summaryColumnParams.getDisplayCondition()).isEqualTo(SummaryColumnParams.DisplayCondition.ALWAYS);
-    }
+		assertThat(summaryComlomnList).isNotNull();
+		assertThat(summaryComlomnList.size()).isEqualTo(1);
+		assertThat(summaryColumnParams.getMetadataVO().getCode()).isEqualTo(Schemas.TITLE.getCode());
+		assertThat(summaryColumnParams.getPrefix()).isEqualTo("a");
+		assertThat(summaryColumnParams.getDisplayCondition()).isEqualTo(SummaryColumnParams.DisplayCondition.ALWAYS);
+	}
 
-    @Test
-    public void givenOneMetatSummaryInFolderEmployeThenMetadataHaveMetadataSummy() {
-        SummaryColumnPresenter summaryColumnPresenterFolderEmploye = new SummaryColumnPresenter(view, "folder_employe");
+	@Test
+	public void givenOneMetatSummaryInFolderEmployeThenMetadataHaveMetadataSummy() {
+		SummaryColumnPresenter summaryColumnPresenterFolderEmploye = new SummaryColumnPresenter(view, "folder_employe");
 
-        MetadataToVOBuilder builder = new MetadataToVOBuilder();
-        SummaryColumnParams summaryColumnParams1 = new SummaryColumnParams();
-        summaryColumnParams1.setPrefix("a");
-        summaryColumnParams1.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-        summaryColumnParams1.setMetadataVO(builder.build(rmSchemasRecordsServices.folder.description(), FakeSessionContext.adminInCollection(zeCollection)));
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+		SummaryColumnParams summaryColumnParams1 = new SummaryColumnParams();
+		summaryColumnParams1.setPrefix("a");
+		summaryColumnParams1.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+		summaryColumnParams1.setMetadataVO(builder.build(rmSchemasRecordsServices.folder.description(), FakeSessionContext.adminInCollection(zeCollection)));
 
-        summaryColumnPresenter.addMetadaForSummary(summaryColumnParams1);
+		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams1);
 
-        summaryColumnPresenterFolderEmploye.getMetadatas();
-        SummaryColumnParams summaryColumnParams2 = new SummaryColumnParams();
-        summaryColumnParams2.setPrefix("b");
-        summaryColumnParams2.setDisplayCondition(SummaryColumnParams.DisplayCondition.COMPLETED);
-        summaryColumnParams2.setMetadataVO(builder.build(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"), FakeSessionContext.adminInCollection(zeCollection)));
+		summaryColumnPresenterFolderEmploye.getMetadatas();
+		SummaryColumnParams summaryColumnParams2 = new SummaryColumnParams();
+		summaryColumnParams2.setPrefix("b");
+		summaryColumnParams2.setDisplayCondition(SummaryColumnParams.DisplayCondition.COMPLETED);
+		summaryColumnParams2.setMetadataVO(builder.build(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title"), FakeSessionContext.adminInCollection(zeCollection)));
 
-        summaryColumnPresenterFolderEmploye.addMetadaForSummary(summaryColumnParams2);
+		summaryColumnPresenterFolderEmploye.addMetadaForSummary(summaryColumnParams2);
 
-        Metadata metadata = summaryColumnPresenterFolderEmploye.getSummaryMetadata();
+		Metadata metadata = summaryColumnPresenterFolderEmploye.getSummaryMetadata();
 
-        List summaryColomnList = (List) metadata.getCustomParameter().get(SummaryColumnPresenter.SUMMARY_COLOMN);
+		List summaryColomnList = (List) metadata.getCustomParameter().get(SummaryColumnPresenter.SUMMARY_COLOMN);
 
-        Map<String,Object> summarymap = (Map<String, Object>) summaryColomnList.get(0);
+		Map<String, Object> summarymap = (Map<String, Object>) summaryColomnList.get(0);
 
-        assertThat(summaryColomnList).isNotNull();
-        assertThat(summaryColomnList.size()).isEqualTo(1);
-        assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title").getCode());
-        assertThat(summarymap.get(SummaryColumnPresenter.PREFIX)).isEqualTo("b");
-        assertThat(summarymap.get(SummaryColumnPresenter.IS_ALWAYS_SHOWN)).isEqualTo(false);
-    }
+		assertThat(summaryColomnList).isNotNull();
+		assertThat(summaryColomnList.size()).isEqualTo(1);
+		assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title").getCode());
+		assertThat(summarymap.get(SummaryColumnPresenter.PREFIX)).isEqualTo("b");
+		assertThat(summarymap.get(SummaryColumnPresenter.IS_ALWAYS_SHOWN)).isEqualTo(false);
+	}
 }

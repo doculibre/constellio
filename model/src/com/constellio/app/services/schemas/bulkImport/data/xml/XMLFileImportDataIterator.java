@@ -1,21 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport.data.xml;
 
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
@@ -27,6 +11,20 @@ import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.SimpleImportContent;
 import com.constellio.model.services.records.StructureImportContent;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class XMLFileImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
 
@@ -115,61 +113,61 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 				String localName = xmlReader.getLocalName();
 
 				switch (localName) {
-				case RECORDS_TAG:
-					patterns = new HashMap<>();
-					patterns.put(DATETIME_PATTERN, xmlReader.getAttributeValue("", DATETIME_PATTERN));
-					patterns.put(DATE_PATTERN, xmlReader.getAttributeValue("", DATE_PATTERN));
-
-					options.setImportAsLegacyId(!"false".equals(xmlReader.getAttributeValue("", IMPORT_AS_LEGACY_ID)));
-					options.setMergeExistingRecordWithSameUniqueMetadata(
-							"true".equals(xmlReader.getAttributeValue("", MERGE_EXISTING_RECORD_WITH_SAME_UNIQUE_METADATA)));
-
-					break;
-				case RECORD_TAG:
-					schema = xmlReader.getAttributeValue("", SCHEMA_ATTR);
-					if (schema == null) {
-						schema = "default";
-					}
-					previousSystemId = xmlReader.getAttributeValue("", ID_ATTR);
-					if (previousSystemId == null) {
-						return null;
-					}
-					fields = new HashMap<>();
-					break;
-
-				case CONTENT_VALUE:
-					fields.put("content", parseContent());
-					break;
-
-				case STRUCTURE_CONTENT_VALUE:
-					String structureValue = xmlReader.getAttributeValue("", STRUCTURE_VALUE);
-					fields.put(xmlReader.getAttributeValue("", "key"), new StructureImportContent(structureValue));
-					break;
-
-				default:
-					if (localName.equals(elementTag())) {
-						fields = new HashMap<>();
-						previousSystemId = getElementId(xmlReader);
-						if (StringUtils.isBlank(previousSystemId)) {
-							throw new InvalidIdRuntimeException(previousSystemId);
-						}
-						initElementFields(previousSystemId, fields);
-					} else if (localName.equals(mainElementTag())) {
+					case RECORDS_TAG:
 						patterns = new HashMap<>();
-						initPatterns(xmlReader, patterns);
-					} else {
-						type = getType();
-						value = isMultivalue() ? parseMultivalue(xmlReader.getLocalName(), type) : parseScalar(type);
+						patterns.put(DATETIME_PATTERN, xmlReader.getAttributeValue("", DATETIME_PATTERN));
+						patterns.put(DATE_PATTERN, xmlReader.getAttributeValue("", DATE_PATTERN));
 
-						if (value != "" && !value.equals("null")) {
-							fields.put(xmlReader.getLocalName(), value);
+						options.setImportAsLegacyId(!"false".equals(xmlReader.getAttributeValue("", IMPORT_AS_LEGACY_ID)));
+						options.setMergeExistingRecordWithSameUniqueMetadata(
+								"true".equals(xmlReader.getAttributeValue("", MERGE_EXISTING_RECORD_WITH_SAME_UNIQUE_METADATA)));
+
+						break;
+					case RECORD_TAG:
+						schema = xmlReader.getAttributeValue("", SCHEMA_ATTR);
+						if (schema == null) {
+							schema = "default";
 						}
-					}
+						previousSystemId = xmlReader.getAttributeValue("", ID_ATTR);
+						if (previousSystemId == null) {
+							return null;
+						}
+						fields = new HashMap<>();
+						break;
 
-					break;
+					case CONTENT_VALUE:
+						fields.put("content", parseContent());
+						break;
+
+					case STRUCTURE_CONTENT_VALUE:
+						String structureValue = xmlReader.getAttributeValue("", STRUCTURE_VALUE);
+						fields.put(xmlReader.getAttributeValue("", "key"), new StructureImportContent(structureValue));
+						break;
+
+					default:
+						if (localName.equals(elementTag())) {
+							fields = new HashMap<>();
+							previousSystemId = getElementId(xmlReader);
+							if (StringUtils.isBlank(previousSystemId)) {
+								throw new InvalidIdRuntimeException(previousSystemId);
+							}
+							initElementFields(previousSystemId, fields);
+						} else if (localName.equals(mainElementTag())) {
+							patterns = new HashMap<>();
+							initPatterns(xmlReader, patterns);
+						} else {
+							type = getType();
+							value = isMultivalue() ? parseMultivalue(xmlReader.getLocalName(), type) : parseScalar(type);
+
+							if (value != "" && !value.equals("null")) {
+								fields.put(xmlReader.getLocalName(), value);
+							}
+						}
+
+						break;
 				}
 			} else if (event == XMLStreamConstants.END_ELEMENT && (xmlReader.getLocalName().equals(RECORD_TAG)
-					|| xmlReader.getLocalName().equals(elementTag()))) {
+																   || xmlReader.getLocalName().equals(elementTag()))) {
 				++index;
 				return new ImportData(index, schema, previousSystemId, fields);
 			}
@@ -386,36 +384,36 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		}
 
 		switch (type) {
-		case DATE_VALUE:
-			DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
-			try {
-				return datePattern.parseLocalDate(content);
-			} catch (IllegalArgumentException exception) {
-				throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(
-						patterns.get(DATE_PATTERN), content);
-			}
+			case DATE_VALUE:
+				DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
+				try {
+					return datePattern.parseLocalDate(content);
+				} catch (IllegalArgumentException exception) {
+					throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(
+							patterns.get(DATE_PATTERN), content);
+				}
 
-		case DATETIME_VALUE:
-			DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
-			try {
-				return datetimePattern.parseLocalDateTime(content);
-			} catch (IllegalArgumentException exception) {
-				throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(
-						patterns.get(DATETIME_PATTERN), content);
-			}
+			case DATETIME_VALUE:
+				DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
+				try {
+					return datetimePattern.parseLocalDateTime(content);
+				} catch (IllegalArgumentException exception) {
+					throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(
+							patterns.get(DATETIME_PATTERN), content);
+				}
 
-		case STRUCTURE_VALUE:
-			Map<String, String> structure = new HashMap<>();
-			for (int i = 0; i < xmlReader.getAttributeCount(); i++) {
-				structure.put(xmlReader.getAttributeLocalName(i), xmlReader.getAttributeValue(i));
-			}
-			return structure;
+			case STRUCTURE_VALUE:
+				Map<String, String> structure = new HashMap<>();
+				for (int i = 0; i < xmlReader.getAttributeCount(); i++) {
+					structure.put(xmlReader.getAttributeLocalName(i), xmlReader.getAttributeValue(i));
+				}
+				return structure;
 
-		default:
-			if (content.isEmpty()) {
-				return "";
-			}
-			return content;
+			default:
+				if (content.isEmpty()) {
+					return "";
+				}
+				return content;
 		}
 	}
 

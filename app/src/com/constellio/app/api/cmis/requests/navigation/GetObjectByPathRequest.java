@@ -31,8 +31,9 @@ public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 	private final ObjectInfoHandler objectInfos;
 
 	public GetObjectByPathRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String folderPath, String filter, boolean includeAllowableActions, boolean includeACL,
-			ObjectInfoHandler objectInfo) {
+								  CallContext context, String folderPath, String filter,
+								  boolean includeAllowableActions, boolean includeACL,
+								  ObjectInfoHandler objectInfo) {
 		super(context, repository, appLayerFactory);
 		this.folderPath = folderPath;
 		if (filter != null) {

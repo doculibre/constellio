@@ -19,14 +19,15 @@ public class ESMigrationTo6_5_58 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor6_5_58(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	private class SchemaAlterationFor6_5_58 extends MetadataSchemasAlterationHelper {
 		public SchemaAlterationFor6_5_58(String collection, MigrationResourcesProvider migrationResourcesProvider,
-											AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

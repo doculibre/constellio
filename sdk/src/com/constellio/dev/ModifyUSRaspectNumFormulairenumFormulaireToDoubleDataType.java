@@ -26,113 +26,113 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class ModifyUSRaspectNumFormulairenumFormulaireToDoubleDataType {
 
-    private static Logger LOG = Logger.getLogger(ModifyUSRaspectNumFormulairenumFormulaireToDoubleDataType.class);
-    static int BATCH_SIZE = 5000;
+	private static Logger LOG = Logger.getLogger(ModifyUSRaspectNumFormulairenumFormulaireToDoubleDataType.class);
+	static int BATCH_SIZE = 5000;
 
-    static String currentCollection;
-    static AppLayerFactory appLayerFactory;
-    static ModelLayerFactory modelLayerFactory;
-    static SearchServices searchServices;
-    static RecordServices recordServices;
-    static RMSchemasRecordsServices rm;
+	static String currentCollection;
+	static AppLayerFactory appLayerFactory;
+	static ModelLayerFactory modelLayerFactory;
+	static SearchServices searchServices;
+	static RecordServices recordServices;
+	static RMSchemasRecordsServices rm;
 
-    private static void startBackend() {
-        //TODO
+	private static void startBackend() {
+		//TODO
 
-        //Only enable this line to run in production
-        //appLayerFactory = startLayerFactoriesWithoutBackgroundThreads();
+		//Only enable this line to run in production
+		//appLayerFactory = startLayerFactoriesWithoutBackgroundThreads();
 
-        //Only enable this line to run on developer workstation
-        appLayerFactory = SDKScriptUtils.startApplicationWithoutBackgroundProcessesAndAuthentication();
+		//Only enable this line to run on developer workstation
+		appLayerFactory = SDKScriptUtils.startApplicationWithoutBackgroundProcessesAndAuthentication();
 
-    }
+	}
 
-    private static LogicalSearchQuery getQuery(MetadataSchema folderSchema) {
-        //TODO Build a query to find records to modify or to return all records
-        //return new LogicalSearchQuery(from(rm.folderSchemaType())
-        //        .where(rm.containerAdministrativeUnit()).isEqualTo("42"));
+	private static LogicalSearchQuery getQuery(MetadataSchema folderSchema) {
+		//TODO Build a query to find records to modify or to return all records
+		//return new LogicalSearchQuery(from(rm.folderSchemaType())
+		//        .where(rm.containerAdministrativeUnit()).isEqualTo("42"));
 
-        final Metadata aspectNumFormulairenumFormulaire = folderSchema.getMetadata("USRaspectNumFormulairenumFormulaire");
+		final Metadata aspectNumFormulairenumFormulaire = folderSchema.getMetadata("USRaspectNumFormulairenumFormulaire");
 
-        LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema).whereAllConditions(
-                LogicalSearchQueryOperators.where(aspectNumFormulairenumFormulaire).isNotNull(),
-                LogicalSearchQueryOperators.where(aspectNumFormulairenumFormulaire).isNotEqual("__NULL__"));
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema).whereAllConditions(
+				LogicalSearchQueryOperators.where(aspectNumFormulairenumFormulaire).isNotNull(),
+				LogicalSearchQueryOperators.where(aspectNumFormulairenumFormulaire).isNotEqual("__NULL__"));
 
-        return new LogicalSearchQuery(from(rm.documentSchemaType()).where(condition));
+		return new LogicalSearchQuery(from(rm.documentSchemaType()).where(condition));
 
-    }
+	}
 
-    private static void runScriptForCurrentCollection() throws Exception {
+	private static void runScriptForCurrentCollection() throws Exception {
 
-        int counter = 0;
-        for (MetadataSchema folderSchema : rm.documentSchemaType().getAllSchemas()) {
-            if(folderSchema.hasMetadataWithCode("USRaspectNumFormulairenumFormulaire") &&
-                    folderSchema.getMetadata("USRaspectNumFormulairenumFormulaire").isEnabled()) {
-                System.out.println(counter + ": " + folderSchema.getCode());
+		int counter = 0;
+		for (MetadataSchema folderSchema : rm.documentSchemaType().getAllSchemas()) {
+			if (folderSchema.hasMetadataWithCode("USRaspectNumFormulairenumFormulaire") &&
+				folderSchema.getMetadata("USRaspectNumFormulairenumFormulaire").isEnabled()) {
+				System.out.println(counter + ": " + folderSchema.getCode());
 
-                new ActionExecutorInBatch(searchServices, "The name of the task", BATCH_SIZE) {
+				new ActionExecutorInBatch(searchServices, "The name of the task", BATCH_SIZE) {
 
-                    @Override
-                    public void doActionOnBatch(List<Record> records) {
+					@Override
+					public void doActionOnBatch(List<Record> records) {
 
-                        //TODO Wrap the records
-                        List<Document> documents = rm.wrapDocuments(records);
+						//TODO Wrap the records
+						List<Document> documents = rm.wrapDocuments(records);
 
-                        Transaction transaction = new Transaction();
-                        transaction.setSkippingRequiredValuesValidation(true);
-                        transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+						Transaction transaction = new Transaction();
+						transaction.setSkippingRequiredValuesValidation(true);
+						transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
-                        for (Document document : documents) {
+						for (Document document : documents) {
 
-                            System.out.println(document.getId() + ":" + document.getTitle());
+							System.out.println(document.getId() + ":" + document.getTitle());
 
-                            //TODO Do the modification on a record
-                            Boolean isBorrowed = document.getBorrowed();
-                            //document.setBorrowed(false);
+							//TODO Do the modification on a record
+							Boolean isBorrowed = document.getBorrowed();
+							//document.setBorrowed(false);
 
-                            String metadataStringValue = document.get("USRaspectNumFormulairenumFormulaire");
-                            try {
-                                System.out.println("value: " + metadataStringValue);
-                                double doubleValue = Double.valueOf(metadataStringValue);
-                                document.set("USRaspectNumFormulairenumFormulaireCopie", doubleValue);
-                            } catch (Exception e) {
-                                LOG.error("Identififiant document: " + document.getId() + "; valeur: " +
-                                        metadataStringValue, e);
-                                e.printStackTrace();
-                            }
+							String metadataStringValue = document.get("USRaspectNumFormulairenumFormulaire");
+							try {
+								System.out.println("value: " + metadataStringValue);
+								double doubleValue = Double.valueOf(metadataStringValue);
+								document.set("USRaspectNumFormulairenumFormulaireCopie", doubleValue);
+							} catch (Exception e) {
+								LOG.error("Identififiant document: " + document.getId() + "; valeur: " +
+										  metadataStringValue, e);
+								e.printStackTrace();
+							}
 
-                            transaction.add(document);
-                        }
+							transaction.add(document);
+						}
 
-                        try {
-                            recordServices.execute(transaction);
-                        } catch (RecordServicesException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+						try {
+							recordServices.execute(transaction);
+						} catch (RecordServicesException e) {
+							throw new RuntimeException(e);
+						}
+					}
 
-                }.execute(getQuery(folderSchema));
+				}.execute(getQuery(folderSchema));
 
-                counter++;
-            }
-        }
-    }
+				counter++;
+			}
+		}
+	}
 
-    public static void main(String argv[]) throws Exception {
+	public static void main(String argv[]) throws Exception {
 
-        RecordPopulateServices.LOG_CONTENT_MISSING = false;
+		RecordPopulateServices.LOG_CONTENT_MISSING = false;
 
-        startBackend();
+		startBackend();
 
-        modelLayerFactory = appLayerFactory.getModelLayerFactory();
-        searchServices = modelLayerFactory.newSearchServices();
-        recordServices = modelLayerFactory.newRecordServices();
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		searchServices = modelLayerFactory.newSearchServices();
+		recordServices = modelLayerFactory.newRecordServices();
 
-        for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-            currentCollection = collection;
-            rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            runScriptForCurrentCollection();
-        }
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+			currentCollection = collection;
+			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			runScriptForCurrentCollection();
+		}
 
-    }
+	}
 }

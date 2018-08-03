@@ -1,10 +1,10 @@
 package com.constellio.model.entities.schemas.validation;
 
-import java.io.Serializable;
-
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+
+import java.io.Serializable;
 
 public interface RecordMetadataValidator<T> extends Serializable {
 

@@ -1,18 +1,17 @@
 package com.constellio.data.dao.services.bigVault;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.LazyIterator;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class LazyResultsKeepingOrderIterator<T> extends LazyIterator<T> implements SearchResponseIterator<T> {
 
@@ -36,7 +35,8 @@ public abstract class LazyResultsKeepingOrderIterator<T> extends LazyIterator<T>
 		this.intervalsLength = intervalsLength;
 	}
 
-	public LazyResultsKeepingOrderIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength, int currentStart) {
+	public LazyResultsKeepingOrderIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength,
+										   int currentStart) {
 		this.recordDao = recordDao;
 		this.solrParams = new ModifiableSolrParams(solrParams);
 		this.solrParams.set("rows", intervalsLength);

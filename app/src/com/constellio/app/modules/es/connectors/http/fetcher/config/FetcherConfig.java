@@ -1,22 +1,25 @@
 /**
  * Copyright © 2010 DocuLibre inc.
- *
+ * <p>
  * This file is part of Constellio.
- *
+ * <p>
  * Constellio is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * Constellio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with Constellio.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.constellio.app.modules.es.connectors.http.fetcher.config;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -25,14 +28,10 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-
 /**
  * Fetcher configuration.
  *
  * @author Nicolas Bélisle (nicolas.belisle@doculibre.com)
- *
  */
 public class FetcherConfig {
 
@@ -59,8 +58,8 @@ public class FetcherConfig {
 	private final String robotsUserAgent;
 
 	FetcherConfig(String[] includePatterns, String[] excludePatterns, UrlNormalizer[] normalizers, int pauseTime,
-			int requestTimeout, int depth, double delay, int threads, String[] startUrls, String[] onDemandUrls,
-			String robotsUserAgent) {
+				  int requestTimeout, int depth, double delay, int threads, String[] startUrls, String[] onDemandUrls,
+				  String robotsUserAgent) {
 		this.includePatterns = includePatterns;
 		for (String includePattern : includePatterns) {
 			Pattern.compile(includePattern);

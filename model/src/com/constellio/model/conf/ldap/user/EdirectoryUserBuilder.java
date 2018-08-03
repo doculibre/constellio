@@ -1,16 +1,15 @@
 package com.constellio.model.conf.ldap.user;
 
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import org.apache.commons.lang.StringUtils;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttributes;
-
-import org.apache.commons.lang.StringUtils;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 public class EdirectoryUserBuilder extends CommonUserBuilder implements LDAPUserBuilder {
 

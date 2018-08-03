@@ -1,17 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.services.metadata.AppSchemasServices;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
@@ -25,20 +16,28 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSchemaView> {
 
 	private Map<String, String> parameters;
-	
+
 	private String initialSchemaCode;
-	
+
 	private FormMetadataSchemaVO schemaVO;
-	
+
 	private boolean editMode;
 
 	private String schemaTypeCode;
@@ -72,14 +71,14 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		if (editMode) {
 			schema = types.getSchema(schemaCode);
 			code = SchemaUtils.underscoreSplitWithCache(schema.getCode())[1];
-			if(codeParam != null) {
+			if (codeParam != null) {
 				code = codeParam;
 			}
 		} else {
 			schema = types.getSchema(schemaTypeCode + "_default");
 			code = "USR";
 
-			if(codeParam != null) {
+			if (codeParam != null) {
 				code = codeParam;
 			}
 		}
@@ -90,7 +89,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypeDisplayConfig schemaTypeDisplayConfig = metadataSchemasDisplayManager.getType(collection, schemaTypeCode);
 
-		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema,code, sessionContext, schemaTypeDisplayConfig, editMode);
+		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, code, sessionContext, schemaTypeDisplayConfig, editMode);
 		setSchemaVO(schemaVO);
 		initialIsCodeEditable = isCodeEditable();
 	}
@@ -109,9 +108,9 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		String schemaTypeCode = parameters.get("schemaTypeCode");
 
 		ValidationErrors validationErrors = new ValidationErrors();
-		if(initialIsCodeEditable) {
+		if (initialIsCodeEditable) {
 			if (!schemaTypeCode.toLowerCase().equals("document")
-					&& !schemaTypeCode.toLowerCase().equals("folder") || initialCode.startsWith("USR") || !editMode) {
+				&& !schemaTypeCode.toLowerCase().equals("folder") || initialCode.startsWith("USR") || !editMode) {
 				if (!schemaVO.getLocalCode().startsWith("USR")) {
 					validationErrors.add(AddEditSchemaPresenter.class, "startWithUSR");
 				}
@@ -131,11 +130,11 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		String code;
 		if (isCodeEditable()) {
 			String localCode = schemaVO.getLocalCode();
-			if (StringUtils.startsWithAny(localCode.replace("USR",""),new String[]{"0","1","2","3","4","5","6","7","8","9"})) {
+			if (StringUtils.startsWithAny(localCode.replace("USR", ""), new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"})) {
 				code = null;
 				modifyExistingSchemaCode = false;
 				view.showErrorMessage($("AddEditSchemaView.schemaCodeStartsWithNumber"));
-			} else if(StringUtils.contains(localCode," ")) {
+			} else if (StringUtils.contains(localCode, " ")) {
 				code = null;
 				modifyExistingSchemaCode = false;
 				view.showErrorMessage($("AddEditSchemaView.schemaCodeContainsSpace"));
@@ -155,7 +154,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		}
 
 		if (code != null) {
-			if (editMode){
+			if (editMode) {
 				MetadataSchemaBuilder builder = types.getSchema(initialSchemaCode);
 				Map<Language, String> newLabels = MetadataSchemaTypeBuilder.configureLabels(schemaVO.getLabels());
 				builder.setLabels(newLabels);
@@ -165,14 +164,14 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 			} catch (OptimisticLocking optimistickLocking) {
 				throw new RuntimeException(optimistickLocking);
 			}
-			
+
 			if (modifyExistingSchemaCode) {
 				AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-				if(appSchemasServices.modifySchemaCode(collection, initialSchemaCode, code)) {
+				if (appSchemasServices.modifySchemaCode(collection, initialSchemaCode, code)) {
 					view.showMessage($("AddEditSchemaView.codechangeRequireRecordModification"));
 				}
 			}
-			
+
 			String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
 			view.navigate().to().listSchema(params);
 		}
@@ -203,8 +202,8 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 
 	public boolean isCodeEditable() {
 		return schemaVO.getLocalCode().startsWith("USR")
-				|| schemaTypeCode.toLowerCase().equals("document") && !initialSchemaCode.endsWith("default")
-				|| schemaTypeCode.toLowerCase().equals("folder")  && !initialSchemaCode.endsWith("default");
+			   || schemaTypeCode.toLowerCase().equals("document") && !initialSchemaCode.endsWith("default")
+			   || schemaTypeCode.toLowerCase().equals("folder") && !initialSchemaCode.endsWith("default");
 	}
 
 	// Test methods	
@@ -212,5 +211,5 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		this.schemaVO = schemaVO;
 		view.setSchemaVO(schemaVO);
 	}
-	
+
 }

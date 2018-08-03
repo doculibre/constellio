@@ -1,24 +1,18 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.*;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDateTime;
 
 import java.util.Date;
 
-import org.joda.time.LocalDateTime;
+import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.themes.ValoTheme;
-
-public abstract class DateRangePanel extends Panel{
+public abstract class DateRangePanel extends Panel {
 	public static final String OK_BUTTON = "seleniumOkButton";
 	private DateField startDateField;
 	private DateField endDateField;
@@ -28,9 +22,9 @@ public abstract class DateRangePanel extends Panel{
 		hLayout.setSizeFull();
 		String startDateCaption = $("from_du");
 		Date startDateValue;
-		if (startDate != null){
+		if (startDate != null) {
 			startDateValue = startDate;
-		}else{
+		} else {
 			startDateValue = new LocalDateTime().minusWeeks(1).toDate();
 		}
 		startDateField = new BaseDateField(startDateCaption, startDateValue);
@@ -39,9 +33,9 @@ public abstract class DateRangePanel extends Panel{
 		hLayout.addComponent(separator1);
 
 		Date endDateValue;
-		if (endDate != null){
+		if (endDate != null) {
 			endDateValue = endDate;
-		}else{
+		} else {
 			endDateValue = new LocalDateTime().toDate();
 		}
 

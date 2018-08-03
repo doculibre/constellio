@@ -1,13 +1,5 @@
 package com.constellio.app.ui.acceptation.components;
 
-import static org.mockito.Mockito.when;
-
-import java.io.Serializable;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -25,6 +17,13 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.Serializable;
+
+import static org.mockito.Mockito.when;
 
 @UiTest
 @InDevelopmentTest

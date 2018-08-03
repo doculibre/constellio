@@ -1,7 +1,5 @@
 package com.constellio.app.modules.es.extensions;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
@@ -13,9 +11,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ESRecordAppExtension extends RecordAppExtension {
-	
+
 	private static final String IMAGES_DIR = "images";
 
 	private final String collection;

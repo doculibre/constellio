@@ -29,8 +29,9 @@ public class TaxonomyVO implements Serializable {
 	public TaxonomyVO() {
 	}
 
-	public TaxonomyVO(String code, java.util.Map<Language, String> title, List<String> schemaTypes, String collection, List<String> userIds,
-			List<String> groupIds, boolean visibleInHomePage) {
+	public TaxonomyVO(String code, java.util.Map<Language, String> title, List<String> schemaTypes, String collection,
+					  List<String> userIds,
+					  List<String> groupIds, boolean visibleInHomePage) {
 		this.code = code;
 		this.title = title;
 		this.schemaTypes = schemaTypes;
@@ -59,7 +60,7 @@ public class TaxonomyVO implements Serializable {
 
 
 	public String getTitle() {
-		if(title == null) {
+		if (title == null) {
 			return null;
 		}
 		return title.get(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));

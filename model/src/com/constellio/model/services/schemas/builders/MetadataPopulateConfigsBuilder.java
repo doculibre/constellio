@@ -1,11 +1,11 @@
 package com.constellio.model.services.schemas.builders;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.services.records.extractions.MetadataPopulator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MetadataPopulateConfigsBuilder {
 
@@ -133,7 +133,7 @@ public class MetadataPopulateConfigsBuilder {
 	@Override
 	public String toString() {
 		return "MetadataPopulateConfigsBuilder [styles=" + styles + ", properties=" + properties
-				+ ", regexes=" + regexes + "metadata_populator=" + metadataPopulators +  "]";
+			   + ", regexes=" + regexes + "metadata_populator=" + metadataPopulators + "]";
 	}
 
 }

@@ -1,7 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -17,6 +15,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+
 /**
  * Created by Nicolas D'Amours on 2017-
  */
@@ -27,7 +27,8 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreAlternationFor7_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -35,7 +36,7 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 	class CoreAlternationFor7_0_1 extends MetadataSchemasAlterationHelper {
 
 		public CoreAlternationFor7_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+									   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

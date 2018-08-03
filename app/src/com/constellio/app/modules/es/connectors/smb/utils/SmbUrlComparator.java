@@ -1,8 +1,8 @@
 package com.constellio.app.modules.es.connectors.smb.utils;
 
-import java.util.Comparator;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Comparator;
 
 public class SmbUrlComparator implements Comparator<String> {
 	// That there is a systematic order is more important than the actual order.

@@ -1,8 +1,8 @@
 package com.constellio.model.entities.batchprocess;
 
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
+
+import java.util.List;
 
 public class BatchProcessPart {
 

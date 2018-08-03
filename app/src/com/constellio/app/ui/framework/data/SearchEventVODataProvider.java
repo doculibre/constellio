@@ -15,43 +15,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchEventVODataProvider extends AbstractDataProvider {
-    private SessionContext sessionContext;
-    private ModelLayerFactory modelLayerFactory;
-    private RecordToVOBuilder voBuilder;
-    private MetadataSchemaVO schemaVO;
-    private LogicalSearchQuery query;
+	private SessionContext sessionContext;
+	private ModelLayerFactory modelLayerFactory;
+	private RecordToVOBuilder voBuilder;
+	private MetadataSchemaVO schemaVO;
+	private LogicalSearchQuery query;
 
-    public SearchEventVODataProvider(MetadataSchemaVO schemaVO, LogicalSearchQuery query) {
-        this.schemaVO = schemaVO;
-        this.sessionContext = ConstellioUI.getCurrent().getSessionContext();
-        this.modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-        this.voBuilder = new RecordToVOBuilder();
-        this.query = query;
-    }
+	public SearchEventVODataProvider(MetadataSchemaVO schemaVO, LogicalSearchQuery query) {
+		this.schemaVO = schemaVO;
+		this.sessionContext = ConstellioUI.getCurrent().getSessionContext();
+		this.modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		this.voBuilder = new RecordToVOBuilder();
+		this.query = query;
+	}
 
-    private SPEQueryResponse prepareQuery(int startRow, int numberOfRows) {
-        query.setStartRow(startRow).setNumberOfRows(numberOfRows);
-        return modelLayerFactory.newSearchServices().query(query);
-    }
+	private SPEQueryResponse prepareQuery(int startRow, int numberOfRows) {
+		query.setStartRow(startRow).setNumberOfRows(numberOfRows);
+		return modelLayerFactory.newSearchServices().query(query);
+	}
 
-    public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
-        List<RecordVO> recordVOs = new ArrayList<>();
-        List<Record> recordList = prepareQuery(startIndex, numberOfItems).getRecords();
-        for (int i = 0; i < recordList.size(); i++) {
-            recordVOs.add(voBuilder.build(recordList.get(i), RecordVO.VIEW_MODE.TABLE, sessionContext));
-        }
-        return recordVOs;
-    }
+	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
+		List<RecordVO> recordVOs = new ArrayList<>();
+		List<Record> recordList = prepareQuery(startIndex, numberOfItems).getRecords();
+		for (int i = 0; i < recordList.size(); i++) {
+			recordVOs.add(voBuilder.build(recordList.get(i), RecordVO.VIEW_MODE.TABLE, sessionContext));
+		}
+		return recordVOs;
+	}
 
-    public long size() {
-        return prepareQuery(0, 1).getNumFound();
-    }
+	public long size() {
+		return prepareQuery(0, 1).getNumFound();
+	}
 
-    public MetadataSchemaVO getSchema() {
-        return schemaVO;
-    }
+	public MetadataSchemaVO getSchema() {
+		return schemaVO;
+	}
 
-    public LogicalSearchQuery getQuery() {
-        return query;
-    }
+	public LogicalSearchQuery getQuery() {
+		return query;
+	}
 }

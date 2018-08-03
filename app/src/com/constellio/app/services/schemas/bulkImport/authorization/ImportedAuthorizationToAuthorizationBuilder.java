@@ -1,14 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
@@ -30,6 +21,14 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 
 public class ImportedAuthorizationToAuthorizationBuilder {
 	private static final Logger LOGGER = LogManager.getLogger(ImportedAuthorizationToAuthorizationBuilder.class);
@@ -44,7 +43,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 	final MetadataSchemaTypes types;
 
 	public ImportedAuthorizationToAuthorizationBuilder(String collection,
-			ModelLayerFactory modelLayerFactory) {
+													   ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		this.searchServices = modelLayerFactory.newSearchServices();

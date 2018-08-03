@@ -5,7 +5,6 @@ import com.constellio.app.ui.framework.data.event.category.EventsListDataProvide
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.vaadin.server.Page;
 import org.joda.time.LocalDateTime;
 
 import java.util.HashMap;
@@ -28,10 +27,10 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 			eventParameters.put(EventViewParameters.BY_ID_EVENT_PARAMETER, view.getEventId());
 		}
 		if (view.getEventStartDate() != null) {
-			eventParameters.put(EventViewParameters.EVENT_START_DATE, LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0,0,0,0));
+			eventParameters.put(EventViewParameters.EVENT_START_DATE, LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0, 0, 0, 0));
 		}
 		if (view.getEventEndDate() != null) {
-			eventParameters.put(EventViewParameters.EVENT_END_DATE, LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23,59,59,999));
+			eventParameters.put(EventViewParameters.EVENT_END_DATE, LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23, 59, 59, 999));
 		}
 		/*switch (eventCategory){
 		case CURRENTLY_BORROWED_FOLDERS:
@@ -50,9 +49,9 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		User currentUser = getCurrentUser();
 		String username = currentUser.getUsername();
 		LocalDateTime startDate = (view.getEventStartDate() == null) ?
-				null :
-				LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0,0,0,0);
-		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23,59,59,59);
+								  null :
+								  LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0, 0, 0, 0);
+		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23, 59, 59, 59);
 		return EventsListDataProviderFactory
 				.getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, username,
 						startDate, endDate, view.getEventId());
@@ -77,24 +76,24 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 
 	public boolean isByRangeDate(EventCategory eventCategory) {
 		switch (eventCategory) {
-		case CURRENTLY_BORROWED_FOLDERS:
-		case CURRENTLY_BORROWED_DOCUMENTS:
-		case CONNECTED_USERS_EVENT:
-			return false;
-		default:
-			return true;
+			case CURRENTLY_BORROWED_FOLDERS:
+			case CURRENTLY_BORROWED_DOCUMENTS:
+			case CONNECTED_USERS_EVENT:
+				return false;
+			default:
+				return true;
 		}
 	}
 
 	public boolean hasFetchById(EventCategory eventCategory) {
 		switch (eventCategory) {
-		case EVENTS_BY_ADMINISTRATIVE_UNIT:
-		case EVENTS_BY_FOLDER:
-		case EVENTS_BY_USER:
-		case EVENTS_BY_CONTAINER:
-			return true;
-		default:
-			return false;
+			case EVENTS_BY_ADMINISTRATIVE_UNIT:
+			case EVENTS_BY_FOLDER:
+			case EVENTS_BY_USER:
+			case EVENTS_BY_CONTAINER:
+				return true;
+			default:
+				return false;
 		}
 	}
 

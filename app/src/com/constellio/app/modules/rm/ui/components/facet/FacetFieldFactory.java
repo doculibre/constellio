@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.facet;
 
-import java.util.Locale;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationPresenter;
@@ -11,6 +9,8 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 
+import java.util.Locale;
+
 public class FacetFieldFactory extends MetadataFieldFactory {
 
 	private ComboBox dataStoreCode;
@@ -18,7 +18,8 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 	private boolean dataStoreCodeSupportingLabelValues;
 	private AddEditFacetConfigurationPresenter presenter;
 
-	public FacetFieldFactory(ComboBox dataStoreCode, OptionGroup facetType, AddEditFacetConfigurationPresenter presenter) {
+	public FacetFieldFactory(ComboBox dataStoreCode, OptionGroup facetType,
+							 AddEditFacetConfigurationPresenter presenter) {
 		this.dataStoreCode = dataStoreCode;
 		this.facetType = facetType;
 		this.dataStoreCodeSupportingLabelValues = presenter.isDataStoreCodeSupportingLabelValues(presenter.getDataFieldCode());

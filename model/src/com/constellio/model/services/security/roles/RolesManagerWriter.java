@@ -1,12 +1,11 @@
 package com.constellio.model.services.security.roles;
 
-import java.util.Iterator;
-
+import com.constellio.model.entities.security.Role;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.model.entities.security.Role;
+import java.util.Iterator;
 
 public class RolesManagerWriter {
 
@@ -55,7 +54,7 @@ public class RolesManagerWriter {
 		while (iterator.hasNext()) {
 			Element child = iterator.next();
 			if (child.getAttribute(CODE).getValue().equals(role.getCode())
-					&& child.getAttribute(COLLECTION).getValue().equals(role.getCollection())) {
+				&& child.getAttribute(COLLECTION).getValue().equals(role.getCollection())) {
 				iterator.remove();
 				break;
 			}

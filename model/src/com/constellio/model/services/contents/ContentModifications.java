@@ -9,7 +9,7 @@ public class ContentModifications {
 	private List<String> newHashes;
 
 	public ContentModifications(List<String> deletedHashes,
-			List<String> newHashes) {
+								List<String> newHashes) {
 		this.deletedHashes = deletedHashes;
 		this.newHashes = newHashes;
 	}

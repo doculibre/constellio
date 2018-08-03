@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
@@ -12,6 +8,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
 
 public class MetadataCodeToStringConverter implements Converter<String, String> {
 

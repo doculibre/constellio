@@ -1,33 +1,12 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.*;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.users.UserServices;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -37,15 +16,23 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -53,9 +40,19 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	private final static Logger LOGGER = LoggerFactory.getLogger(Decommissioner.class);
@@ -76,24 +73,25 @@ public abstract class Decommissioner {
 	private LocalDate processingDate;
 	private User user;
 
-	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService,
-			AppLayerFactory appLayerFactory) {
+	public static Decommissioner forList(DecommissioningList decommissioningList,
+										 DecommissioningService decommissioningService,
+										 AppLayerFactory appLayerFactory) {
 		switch (decommissioningList.getDecommissioningListType()) {
-		case FOLDERS_TO_CLOSE:
-			return new ClosingDecommissioner(decommissioningService, appLayerFactory);
-		case FOLDERS_TO_TRANSFER:
-		case DOCUMENTS_TO_TRANSFER:
-			return new TransferringDecommissioner(decommissioningService, appLayerFactory);
-		case FOLDERS_TO_DEPOSIT:
-		case DOCUMENTS_TO_DEPOSIT:
-			return decommissioningService.isSortable(decommissioningList) ?
-					new SortingDecommissioner(decommissioningService, true, appLayerFactory) :
-					new DepositingDecommissioner(decommissioningService, appLayerFactory);
-		case FOLDERS_TO_DESTROY:
-		case DOCUMENTS_TO_DESTROY:
-			return decommissioningService.isSortable(decommissioningList) ?
-					new SortingDecommissioner(decommissioningService, false, appLayerFactory) :
-					new DestroyingDecommissioner(decommissioningService, appLayerFactory);
+			case FOLDERS_TO_CLOSE:
+				return new ClosingDecommissioner(decommissioningService, appLayerFactory);
+			case FOLDERS_TO_TRANSFER:
+			case DOCUMENTS_TO_TRANSFER:
+				return new TransferringDecommissioner(decommissioningService, appLayerFactory);
+			case FOLDERS_TO_DEPOSIT:
+			case DOCUMENTS_TO_DEPOSIT:
+				return decommissioningService.isSortable(decommissioningList) ?
+					   new SortingDecommissioner(decommissioningService, true, appLayerFactory) :
+					   new DepositingDecommissioner(decommissioningService, appLayerFactory);
+			case FOLDERS_TO_DESTROY:
+			case DOCUMENTS_TO_DESTROY:
+				return decommissioningService.isSortable(decommissioningList) ?
+					   new SortingDecommissioner(decommissioningService, false, appLayerFactory) :
+					   new DestroyingDecommissioner(decommissioningService, appLayerFactory);
 		}
 		throw new ImpossibleRuntimeException("Unknown decommissioning type: " + decommissioningList.getDecommissioningListType());
 	}
@@ -141,10 +139,11 @@ public abstract class Decommissioner {
 		alertDenyApproval(decommissioningList, approvalRequester, denier, comment);
 	}
 
-	private void alertDenyApproval(DecommissioningList decommissioningList, String approvalRequester, User denier, String comment) {
+	private void alertDenyApproval(DecommissioningList decommissioningList, String approvalRequester, User denier,
+								   String comment) {
 		try {
 			String displayURL = "";
-			if(decommissioningList.getDecommissioningListType() != null) {
+			if (decommissioningList.getDecommissioningListType() != null) {
 				switch (decommissioningList.getDecommissioningListType()) {
 					case FOLDERS_TO_TRANSFER:
 					case FOLDERS_TO_DESTROY:
@@ -174,7 +173,7 @@ public abstract class Decommissioner {
 			List<String> parameters = new ArrayList<>();
 			parameters.add("denyDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			parameters.add("denier" + EmailToSend.PARAMETER_SEPARATOR + denier.getFirstName() + " " + denier.getLastName() +
-					" (" + denier.getUsername() + ")");
+						   " (" + denier.getUsername() + ")");
 			parameters.add("comment" + EmailToSend.PARAMETER_SEPARATOR + StringUtils.defaultIfBlank(comment, ""));
 			String rmObjectTitle = decommissioningList.getTitle();
 			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
@@ -191,7 +190,7 @@ public abstract class Decommissioner {
 	}
 
 	private String formatDateToParameter(LocalDateTime datetime) {
-		if(datetime == null) {
+		if (datetime == null) {
 			return "";
 		}
 		return datetime.toString("yyyy-MM-dd  HH:mm:ss");
@@ -294,7 +293,7 @@ public abstract class Decommissioner {
 	protected abstract void processDocuments();
 
 	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail,
-			DecommissioningListType decommissioningListType) {
+									DecommissioningListType decommissioningListType) {
 		if (folder.getCloseDateEntered() == null && DecommissioningListType.FOLDERS_TO_CLOSE.equals(decommissioningListType)) {
 			folder.setCloseDateEntered(processingDate);
 		}
@@ -471,7 +470,7 @@ public abstract class Decommissioner {
 
 		for (DecomListContainerDetail detail : containerDetails) {
 			String containerRecordId = detail.getContainerRecordId();
-			if(containerRecordId != null) {
+			if (containerRecordId != null) {
 				if (containerIdUsed.contains(containerRecordId)) {
 					if (detailsToProcess.get(containerRecordId) == detail) {
 						processContainer(rm.getContainerRecord(containerRecordId), detail);
@@ -610,7 +609,8 @@ class ClosingDecommissioner extends Decommissioner {
 
 class TransferringDecommissioner extends Decommissioner {
 
-	protected TransferringDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+	protected TransferringDecommissioner(DecommissioningService decommissioningService,
+										 AppLayerFactory appLayerFactory) {
 		super(decommissioningService, appLayerFactory);
 	}
 
@@ -651,7 +651,8 @@ class TransferringDecommissioner extends Decommissioner {
 abstract class DeactivatingDecommissioner extends Decommissioner {
 	protected List<String> destroyedFolders;
 
-	protected DeactivatingDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+	protected DeactivatingDecommissioner(DecommissioningService decommissioningService,
+										 AppLayerFactory appLayerFactory) {
 		super(decommissioningService, appLayerFactory);
 		destroyedFolders = new ArrayList<>();
 	}
@@ -783,7 +784,7 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 	private final boolean depositByDefault;
 
 	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault,
-			AppLayerFactory appLayerFactory) {
+									AppLayerFactory appLayerFactory) {
 		super(decommissioningService, appLayerFactory);
 		this.depositByDefault = depositByDefault;
 	}

@@ -1,13 +1,12 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.util.List;
-
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.List;
 
 public class LocalDependency<T> implements Dependency {
 
@@ -19,7 +18,7 @@ public class LocalDependency<T> implements Dependency {
 	final boolean metadataCreatedLater;
 
 	public LocalDependency(String metadataCode, boolean required, boolean multivalue, MetadataValueType returnType,
-			boolean metadataCreatedLater) {
+						   boolean metadataCreatedLater) {
 		super();
 		this.metadataCode = metadataCode;
 		this.required = required;
@@ -129,8 +128,8 @@ public class LocalDependency<T> implements Dependency {
 	@Override
 	public String toString() {
 		return "LocalDependency{" +
-				"metadataCode='" + metadataCode + '\'' +
-				'}';
+			   "metadataCode='" + metadataCode + '\'' +
+			   '}';
 	}
 
 }

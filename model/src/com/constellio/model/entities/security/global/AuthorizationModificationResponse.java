@@ -11,7 +11,7 @@ public class AuthorizationModificationResponse {
 	private Map<String, String> idOfAuthorizationCopies;
 
 	public AuthorizationModificationResponse(boolean authorizationDeleted, String idOfAuthorizationCopy,
-			Map<String, String> idOfAuthorizationCopies) {
+											 Map<String, String> idOfAuthorizationCopies) {
 		this.authorizationDeleted = authorizationDeleted;
 		this.idOfAuthorizationCopy = idOfAuthorizationCopy;
 		this.idOfAuthorizationCopies = idOfAuthorizationCopies;
@@ -25,11 +25,11 @@ public class AuthorizationModificationResponse {
 		return idOfAuthorizationCopy;
 	}
 
-//	public Map<String, String> getIdOfAuthorizationCopies() {
+	//	public Map<String, String> getIdOfAuthorizationCopies() {
 	//		return idOfAuthorizationCopies;
 	//	}
 	//
 	//	public String getIdOfAuthorizationCopy(String originalId) {
-//		return idOfAuthorizationCopies.get(originalId);
-//	}
+	//		return idOfAuthorizationCopies.get(originalId);
+	//	}
 }

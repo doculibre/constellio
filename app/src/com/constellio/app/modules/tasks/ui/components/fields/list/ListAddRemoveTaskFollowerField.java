@@ -8,10 +8,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 @SuppressWarnings("unchecked")
@@ -59,7 +56,7 @@ public class ListAddRemoveTaskFollowerField extends ListAddRemoveField<TaskFollo
 	}
 
 	private TaskFollowerVO convertObjectAsTaskFollowerVO(Object itemId) {
-		if(itemId instanceof TaskFollower) {
+		if (itemId instanceof TaskFollower) {
 			return toTaskFollowerVO((TaskFollower) itemId);
 		} else {
 			return (TaskFollowerVO) itemId;

@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -28,7 +27,6 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -270,17 +268,18 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		}
 	}
 
-	private void addContainerToComponent(DecomListContainerDetail newContainerDetail, BaseTable table, Component component) {
+	private void addContainerToComponent(DecomListContainerDetail newContainerDetail, BaseTable table,
+										 Component component) {
 		boolean wasFound = false;
-		for(Object object: table.getItemIds()) {
+		for (Object object : table.getItemIds()) {
 			DecomListContainerDetail detail = (DecomListContainerDetail) object;
-			if(detail.getContainerRecordId().equals(newContainerDetail.getContainerRecordId())) {
+			if (detail.getContainerRecordId().equals(newContainerDetail.getContainerRecordId())) {
 				detail.setAvailableSize(newContainerDetail.getAvailableSize());
 				wasFound = true;
 				break;
 			}
 		}
-		if(!wasFound) {
+		if (!wasFound) {
 			table.addItem(newContainerDetail);
 			table.setCaption($("DecommissioningListView.containerDetails", table.size()));
 			table.setPageLength(table.size());
@@ -607,7 +606,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				Map<String, Double> linearSizes = new HashMap<>();
 				for (Object itemId : packageableFolders.getItemIds()) {
 					FolderDetailVO currentFolder = (FolderDetailVO) itemId;
-					if(currentFolder.getLinearSize() == null) {
+					if (currentFolder.getLinearSize() == null) {
 						showErrorMessage($("DecommissioningListView.allFoldersMustHaveLinearSize"));
 						return;
 					}
@@ -645,7 +644,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return layout;
 	}
 
-	private Button buildCreateSIPARchivesButton(){
+	private Button buildCreateSIPARchivesButton() {
 		final SIPButtonImpl button = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), presenter.isProcessed()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -660,8 +659,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private Component buildProcessableFolderComponent(List<FolderDetailVO> folders) {
 		Label header = new Label(presenter.isProcessed() ?
-				$("DecommissioningListView.processedFolders") :
-				$("DecommissioningListView.processableFolders"));
+								 $("DecommissioningListView.processedFolders") :
+								 $("DecommissioningListView.processableFolders"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
@@ -681,7 +680,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				for (FolderDetailVO folder : selected) {
 					try {
 						presenter.removeFromContainer(folder);
-						if(folder.isPackageable()) {
+						if (folder.isPackageable()) {
 							setPackageable(folder);
 						} else {
 							areAllSelectedPackageable = false;
@@ -689,7 +688,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					} catch (Exception e) {
 					}
 				}
-				if(!areAllSelectedPackageable) {
+				if (!areAllSelectedPackageable) {
 					showErrorMessage($("DecommissioningListView.someFoldersAreNotPackageable"));
 				}
 			}
@@ -699,7 +698,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		VerticalLayout layout = new VerticalLayout(header);
 
-		if(!presenter.isInValidation() && !presenter.isInApprobation()) {
+		if (!presenter.isInValidation() && !presenter.isInApprobation()) {
 			layout.addComponent(removeFromTheBox);
 		}
 
@@ -745,7 +744,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private DefaultItemSorter buildItemSorter() {
 		if (presenter.getFolderDetailTableExtension() != null) {
-			return 	new DefaultItemSorter() {
+			return new DefaultItemSorter() {
 				@Override
 				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
 					// Get the properties to compare
@@ -757,9 +756,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					final Object value1 = (property1 == null) ? null : property1.getValue();
 					final Object value2 = (property2 == null) ? null : property2.getValue();
 
-					if(FolderDetailTableGenerator.FOLDER_ID.equals(propertyId) && StringUtils.isNumeric((String) value1) && StringUtils.isNumeric((String) value2)) {
+					if (FolderDetailTableGenerator.FOLDER_ID.equals(propertyId) && StringUtils.isNumeric((String) value1) && StringUtils.isNumeric((String) value2)) {
 						try {
-							if(sortDirection) {
+							if (sortDirection) {
 								return Integer.compare(Integer.parseInt((String) value1), Integer.parseInt((String) value2));
 							} else {
 								return Integer.compare(Integer.parseInt((String) value2), Integer.parseInt((String) value1));
@@ -785,7 +784,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				}
 			};
 		} else {
-			return 	new DefaultItemSorter() {
+			return new DefaultItemSorter() {
 				@Override
 				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
 					// Get the properties to compare
@@ -812,7 +811,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		}
 	}
 
-	private Component  buildContainerComponent(List<DecomListContainerDetail> containerDetails) {
+	private Component buildContainerComponent(List<DecomListContainerDetail> containerDetails) {
 		Label header = new Label($("DecommissioningListView.containers"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
@@ -851,8 +850,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				try {
 					inFilterMode = true;
 					return super.getOptionsWithFilter(needNullSelectOption);
-				}
-				finally {
+				} finally {
 					inFilterMode = false;
 				}
 			}
@@ -867,7 +865,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		FolderDetailVO folder = null;
 		for (Object itemId : packageableFolders.getItemIds()) {
 			FolderDetailVO currentFolder = (FolderDetailVO) itemId;
-			if(folderId.equals((currentFolder.getFolderId()))) {
+			if (folderId.equals((currentFolder.getFolderId()))) {
 				folder = currentFolder;
 				break;
 			}
@@ -879,12 +877,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		ContainerVO containerVO = null;
 		for (Object itemId : containerVOs.getItemIds()) {
 			ContainerVO currentContainer = (ContainerVO) itemId;
-			if(containerRecord.getId().equals((currentContainer.getId()))) {
+			if (containerRecord.getId().equals((currentContainer.getId()))) {
 				containerVO = currentContainer;
 				break;
 			}
 		}
-		if(containerVO == null) {
+		if (containerVO == null) {
 			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getTitle(), containerRecord.getAvailableSize());
 		}
 		return containerVO;
@@ -894,12 +892,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		ContainerVO containerVO = null;
 		for (Object itemId : containerVOs.getItemIds()) {
 			ContainerVO currentContainer = (ContainerVO) itemId;
-			if(containerRecord.getId().equals((currentContainer.getId()))) {
+			if (containerRecord.getId().equals((currentContainer.getId()))) {
 				containerVO = currentContainer;
 				break;
 			}
 		}
-		if(containerVO == null) {
+		if (containerVO == null) {
 			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getCaption(), containerRecord.getAvailableSize());
 		}
 		return containerVO;
@@ -907,11 +905,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	public void addUpdateContainer(ContainerVO containerVO, DecomListContainerDetail newContainerDetail) {
 		boolean wasFound = false;
-		if(containerVO != null) {
-			for(int i = 0; i < containerVOs.getItemIds().size(); i++) {
-				if(containerVOs.getIdByIndex(i).getId().equals(containerVO.getId())) {
+		if (containerVO != null) {
+			for (int i = 0; i < containerVOs.getItemIds().size(); i++) {
+				if (containerVOs.getIdByIndex(i).getId().equals(containerVO.getId())) {
 					containerVOs.addBean(containerVO);
-					if(containerComboBox != null && containerComboBox.getValue().equals(containerVOs.getIdByIndex(i))) {
+					if (containerComboBox != null && containerComboBox.getValue().equals(containerVOs.getIdByIndex(i))) {
 						containerComboBox.setValue(containerVO);
 					}
 					containerVOs.removeItem(containerVOs.getIdByIndex(i));
@@ -920,7 +918,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				}
 			}
 
-			if(!wasFound) {
+			if (!wasFound) {
 				containerVOs.addItem(containerVO);
 				presenter.addContainerToDecommissioningList(containerVO);
 				newContainerDetail = presenter.getContainerDetail(containerVO.getId());

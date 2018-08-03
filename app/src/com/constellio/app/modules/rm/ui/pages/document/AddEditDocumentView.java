@@ -8,9 +8,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 public interface AddEditDocumentView extends BaseView, RecordsManagementViewGroup {
 
 	void setRecord(RecordVO recordVO);
-	
+
 	DocumentForm getForm();
-	
-	void openAgentURL(String agentURL); 
-	
+
+	void openAgentURL(String agentURL);
+
 }

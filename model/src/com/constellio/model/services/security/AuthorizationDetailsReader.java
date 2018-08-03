@@ -1,16 +1,15 @@
 package com.constellio.model.services.security;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AuthorizationDetailsReader {
 

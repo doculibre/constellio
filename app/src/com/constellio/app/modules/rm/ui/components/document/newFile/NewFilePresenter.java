@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.components.document.newFile;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.util.NewFileUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Content;
@@ -54,7 +53,7 @@ public class NewFilePresenter implements Serializable {
 		ModelLayerFactory modelLayerFactory = window.getConstellioFactories().getModelLayerFactory();
 		contentManager = modelLayerFactory.getContentManager();
 		userServices = modelLayerFactory.newUserServices();
-        rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	public void newFileNameSubmitted() {
@@ -84,12 +83,12 @@ public class NewFilePresenter implements Serializable {
 					ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
 					fileContent = contentManager.createMinor(user, filename, dataSummary);
 				} catch (final IcapException e) {
-                    final String message;
-                    if (e instanceof IcapException.ThreatFoundException) {
-                        message = $(e.getMessage(), e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName());
-                    } else {
-                        message = $(e.getMessage(), e.getFileName());
-                    }
+					final String message;
+					if (e instanceof IcapException.ThreatFoundException) {
+						message = $(e.getMessage(), e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName());
+					} else {
+						message = $(e.getMessage(), e.getFileName());
+					}
 
 					window.showErrorMessage(message);
 				} finally {
@@ -100,8 +99,8 @@ public class NewFilePresenter implements Serializable {
 			}
 			window.notifyNewFileCreated(fileContent, documentTypeId);
 		} else {
-			if(StringUtils.isNotBlank(extension)) {
-				if(filename == null || filename.equals("")) {
+			if (StringUtils.isNotBlank(extension)) {
+				if (filename == null || filename.equals("")) {
 					window.showErrorMessage("NewFileWindow.blankFileName");
 				} else {
 					window.showErrorMessage("NewFileWindow.invalidFileName", filename);
@@ -129,9 +128,9 @@ public class NewFilePresenter implements Serializable {
 		try {
 			ContentManager.ContentVersionDataSummaryResponse uploadResponse = contentManager.upload(newFileInput, fileName);
 			ContentVersionDataSummary dataSummary = uploadResponse.getContentVersionDataSummary();
-			if (rmConfigs.isMajorVersionForNewFile()){
-                return contentManager.createMajor(user,filename,dataSummary);
-            }
+			if (rmConfigs.isMajorVersionForNewFile()) {
+				return contentManager.createMajor(user, filename, dataSummary);
+			}
 			return contentManager.createMinor(user, fileName, dataSummary);
 		} finally {
 			IOUtils.closeQuietly(newFileInput);
@@ -143,13 +142,13 @@ public class NewFilePresenter implements Serializable {
 		window.setTemplateOptions(getTemplateOptions());
 		window.setTemplateFieldValue(null);
 	}
-	
+
 	void extensionSet(String value) {
 		if (value != null) {
 			window.setTemplateFieldValue(null);
 		}
 	}
-	
+
 	void templateSet(Content value) {
 		if (value != null) {
 			window.setExtensionFieldValue(null);

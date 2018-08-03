@@ -1,19 +1,5 @@
 package com.constellio.data.dao.services.transactionLog;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -25,13 +11,15 @@ import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
-import com.constellio.data.dao.services.transactionLog.kafka.BlockingDeliveryStrategy;
-import com.constellio.data.dao.services.transactionLog.kafka.ConsumerRecordPoller;
-import com.constellio.data.dao.services.transactionLog.kafka.DeliveryStrategy;
-import com.constellio.data.dao.services.transactionLog.kafka.FailedDeliveryCallback;
-import com.constellio.data.dao.services.transactionLog.kafka.Transaction;
-import com.constellio.data.dao.services.transactionLog.kafka.TransactionReplayer;
+import com.constellio.data.dao.services.transactionLog.kafka.*;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.util.*;
 
 public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 
@@ -50,7 +38,7 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 	private boolean automaticRegroupAndMoveInVaultEnabled;
 
 	public KafkaTransactionLogManager(DataLayerConfiguration configuration, DataLayerSystemExtensions extensions,
-			RecordDao recordDao, DataLayerLogger dataLayerLogger) {
+									  RecordDao recordDao, DataLayerLogger dataLayerLogger) {
 		transactions = Collections.<String, String>synchronizedMap(new HashMap<String, String>());
 
 		this.configuration = configuration;
@@ -211,7 +199,8 @@ public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 		}
 	}
 
-	protected ConsumerRecordPoller<String, Transaction> getConsumerRecordPoller(KafkaConsumer<String, Transaction> consumer) {
+	protected ConsumerRecordPoller<String, Transaction> getConsumerRecordPoller(
+			KafkaConsumer<String, Transaction> consumer) {
 		return new ConsumerRecordPoller<String, Transaction>(consumer);
 	}
 

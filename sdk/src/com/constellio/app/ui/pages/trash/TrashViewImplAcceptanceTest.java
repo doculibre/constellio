@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.trash;
 
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -21,6 +17,9 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 @UiTest
 @InDevelopmentTest
@@ -48,7 +47,6 @@ public class TrashViewImplAcceptanceTest extends ConstellioTest {
 		users.setUp(getModelLayerFactory().newUserServices());
 
 
-
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
@@ -56,7 +54,7 @@ public class TrashViewImplAcceptanceTest extends ConstellioTest {
 		String serviceKey = userServices.getUser("admin").getServiceKey();
 		System.out.println("Admin token : \"" + token + "\", Admin service key \"" + serviceKey + "\"");
 		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
-				+ "&fq=-type_s:index" + "&q=*:*");
+						   + "&fq=-type_s:index" + "&q=*:*");
 
 		//givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 

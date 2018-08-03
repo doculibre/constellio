@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+
+import java.util.List;
 
 public interface AddExistingContainerView extends SearchView, ArchivesManagementViewGroup {
 	String SEARCH_TYPE = "addExistingContainerView";

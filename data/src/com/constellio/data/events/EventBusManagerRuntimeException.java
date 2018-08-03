@@ -28,12 +28,12 @@ public class EventBusManagerRuntimeException extends RuntimeException {
 
 		public EventBusManagerRuntimeException_DataIsNotSerializable(Class<?> classData) {
 			super("Data of class '" + classData + "' cannot be used in a event, "
-					+ "since it is not serializable and no EventDataSerializer have been configured supporting this class");
+				  + "since it is not serializable and no EventDataSerializer have been configured supporting this class");
 		}
 
 		public EventBusManagerRuntimeException_DataIsNotSerializable(Event event, Throwable t) {
 			super("Event '" + event.busName + ":" + event.type + "' with data '" + event.getData()
-					+ "' cannot be used in a event,  since it is not serializable", t);
+				  + "' cannot be used in a event,  since it is not serializable", t);
 		}
 	}
 }

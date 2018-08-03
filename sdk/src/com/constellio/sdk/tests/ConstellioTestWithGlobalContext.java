@@ -1,21 +1,17 @@
 package com.constellio.sdk.tests;
 
-import java.lang.reflect.Method;
-
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 import org.junit.runners.MethodSorters;
 import org.mockito.MockitoAnnotations;
 
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
+import java.lang.reflect.Method;
 
 public class ConstellioTestWithGlobalContext extends AbstractConstellioTest {
 
 	private static ConstellioTestSession testSession;
-//	@Rule
+	//	@Rule
 	//	public TestRule benchmarkRun = new BenchmarkRule();
 
 	@Before

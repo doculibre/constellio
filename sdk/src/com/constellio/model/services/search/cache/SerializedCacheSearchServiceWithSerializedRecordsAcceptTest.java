@@ -1,16 +1,5 @@
 package com.constellio.model.services.search.cache;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -26,6 +15,13 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends ConstellioTest {
 
@@ -55,11 +51,11 @@ public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends
 
 		givenTestRecords();
 
-		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default")
+		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default").andWhere(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default")
 				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet"));
-		fromAllSchemasWhereNumberIs42 = fromAllSchemasIn(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default")
+		fromAllSchemasWhereNumberIs42 = fromAllSchemasIn(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default").andWhere(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default")
 				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet")).andWhere(zeSchema.numberMetadata()).isEqualTo(42);
-		fromZeSchema = from(zeSchema.instance()).returnAll();
+		fromZeSchema = from(zeSchema.instance()).where(Schemas.SCHEMA).isNotEqual("ddvCapsuleLanguage_default");
 
 		thirdSchema_3 = record("thirdSchema_3");
 		zeSchema_4 = record("zeSchema_4");

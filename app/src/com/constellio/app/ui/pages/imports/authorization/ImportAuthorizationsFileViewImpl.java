@@ -1,16 +1,14 @@
 package com.constellio.app.ui.pages.imports.authorization;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
 import com.constellio.app.ui.pages.imports.ImportFileView;
 import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportAuthorizationsFileViewImpl extends ImportFileViewImpl implements ImportFileView {
 

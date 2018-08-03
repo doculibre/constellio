@@ -5,24 +5,24 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public abstract class DecommissioningListPresenterExtension {
 
-    public abstract void validateProcessable(ValidateDecommissioningListProcessableParams params);
+	public abstract void validateProcessable(ValidateDecommissioningListProcessableParams params);
 
-    public static class ValidateDecommissioningListProcessableParams {
+	public static class ValidateDecommissioningListProcessableParams {
 
-        private DecommissioningList decommissioningList;
-        private ValidationErrors validationErrors = new ValidationErrors();
+		private DecommissioningList decommissioningList;
+		private ValidationErrors validationErrors = new ValidationErrors();
 
-        public ValidateDecommissioningListProcessableParams(DecommissioningList decommissioningList) {
-            this.decommissioningList = decommissioningList;
-        }
+		public ValidateDecommissioningListProcessableParams(DecommissioningList decommissioningList) {
+			this.decommissioningList = decommissioningList;
+		}
 
-        public DecommissioningList getDecommissioningList() {
-            return decommissioningList;
-        }
+		public DecommissioningList getDecommissioningList() {
+			return decommissioningList;
+		}
 
-        public ValidationErrors getValidationErrors() {
-            return validationErrors;
-        }
+		public ValidationErrors getValidationErrors() {
+			return validationErrors;
+		}
 
-    }
+	}
 }

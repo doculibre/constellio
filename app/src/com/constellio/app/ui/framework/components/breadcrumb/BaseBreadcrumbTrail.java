@@ -1,12 +1,9 @@
 package com.constellio.app.ui.framework.components.breadcrumb;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.lexaden.breadcrumb.Breadcrumb;
 import com.vaadin.ui.Button;
@@ -14,14 +11,17 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CustomComponent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class BaseBreadcrumbTrail extends CustomComponent implements BreadcrumbTrail {
-	
+
 	public static final String TAXONOMY_CODE = "taxonomyCode";
-	
+
 	public static final String SEARCH_ID = "searchId";
-	
+
 	public static final String ADVANCED_SEARCH = "advancedSearch";
-	
+
 	private Breadcrumb breadcrumb;
 	private List<BreadcrumbItem> items = new ArrayList<>();
 

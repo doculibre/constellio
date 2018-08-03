@@ -1,15 +1,14 @@
 package com.constellio.model.entities.security.global;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class AuthorizationModificationRequest {
 
@@ -47,9 +46,12 @@ public class AuthorizationModificationRequest {
 		this.newOverridingInheritedAuths = null;
 	}
 
-	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId, LocalDate newStartDate,
-			LocalDate newEndDate, List<String> newPrincipalIds, List<String> newAccessAndRoles,
-			boolean removedOnRecord, User executedBy, Boolean newOverridingInheritedAuths) {
+	public AuthorizationModificationRequest(String authorizationId, String collection, String recordId,
+											LocalDate newStartDate,
+											LocalDate newEndDate, List<String> newPrincipalIds,
+											List<String> newAccessAndRoles,
+											boolean removedOnRecord, User executedBy,
+											Boolean newOverridingInheritedAuths) {
 		this.authorizationId = authorizationId;
 		this.collection = collection;
 		this.recordId = recordId;
@@ -116,7 +118,8 @@ public class AuthorizationModificationRequest {
 				authorization.getGrantedOnRecord());
 	}
 
-	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(Authorization authorization, Record record) {
+	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(Authorization authorization,
+																			   Record record) {
 		if (authorization == null) {
 			throw new IllegalArgumentException("Authorization required");
 		}
@@ -126,7 +129,8 @@ public class AuthorizationModificationRequest {
 		return new AuthorizationModificationRequest(authorization.getDetail().getId(), record.getCollection(), record.getId());
 	}
 
-	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(Authorization authorization, String record) {
+	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(Authorization authorization,
+																			   String record) {
 		if (authorization == null) {
 			throw new IllegalArgumentException("Authorization required");
 		}
@@ -138,7 +142,7 @@ public class AuthorizationModificationRequest {
 	}
 
 	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId,
-			RecordWrapper recordWrapper) {
+																			   RecordWrapper recordWrapper) {
 		if (authorizationId == null) {
 			throw new IllegalArgumentException("Authorization id required");
 		}
@@ -158,8 +162,9 @@ public class AuthorizationModificationRequest {
 		return new AuthorizationModificationRequest(authorizationId, record.getCollection(), record.getId());
 	}
 
-	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId, String collection,
-			String recordId) {
+	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(String authorizationId,
+																			   String collection,
+																			   String recordId) {
 		if (authorizationId == null) {
 			throw new IllegalArgumentException("Authorization id required");
 		}

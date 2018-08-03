@@ -1,17 +1,16 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public abstract class DynamicLocalDependency implements Dependency {
 
@@ -84,7 +83,8 @@ public abstract class DynamicLocalDependency implements Dependency {
 		}
 	}*/
 
-	public LocalDate getDate(String metadata, DynamicDependencyValues values, String yearEnd, boolean takeFirstPartOfRange) {
+	public LocalDate getDate(String metadata, DynamicDependencyValues values, String yearEnd,
+							 boolean takeFirstPartOfRange) {
 		if (metadata == null || values == null) {
 			return null;
 		} else {
@@ -127,7 +127,8 @@ public abstract class DynamicLocalDependency implements Dependency {
 		}
 	}
 
-	private LocalDate dateFromString(String metadata, String dateAsString, String yearEnd, boolean takeFirstPartOfRange) {
+	private LocalDate dateFromString(String metadata, String dateAsString, String yearEnd,
+									 boolean takeFirstPartOfRange) {
 
 		if (dateAsString.length() != 9) {
 			throw new RuntimeException("Invalid range date format " + dateAsString + " for metadata " + metadata);
@@ -143,7 +144,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 		} catch (NumberFormatException e) {
 			throw new RuntimeException(
 					"Invalid range date format " + dateAsString + " should follow pattern 9999-9999" + " for metadata "
-							+ metadata);
+					+ metadata);
 		}
 	}
 

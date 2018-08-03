@@ -12,7 +12,7 @@ public class RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent 
 	ValidationErrors validationErrors;
 
 	public RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(Record record, User transactionUser,
-			ValidationErrors validationErrors) {
+																			  ValidationErrors validationErrors) {
 		this.record = record;
 		this.transactionUser = transactionUser;
 		this.validationErrors = validationErrors;

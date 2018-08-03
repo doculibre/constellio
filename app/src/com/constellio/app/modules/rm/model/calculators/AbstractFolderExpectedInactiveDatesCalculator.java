@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedInactiveDate;
-import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
@@ -21,6 +12,14 @@ import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedInactiveDate;
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
 
 public abstract class AbstractFolderExpectedInactiveDatesCalculator extends AbstractFolderCopyRulesExpectedDatesCalculator {
 

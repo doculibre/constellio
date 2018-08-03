@@ -1,20 +1,19 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServiceAcceptanceTestSchemas;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReindexingSchemaTypeRecordsProviderAcceptanceTest extends ConstellioTest {
 
@@ -68,7 +67,7 @@ public class ReindexingSchemaTypeRecordsProviderAcceptanceTest extends Constelli
 		assertThat(typeProvider.isRequiringAnotherIteration()).isFalse();
 		assertThat(typeProvider.getSkippedRecordsCount()).isEqualTo(0);
 	}
-//
+	//
 	//	@Test
 	//	public void whenIteratingMultipleTimeAndOnMultipleLevelsThenAlwaysBasedOnReverseOfPreviousOrderIfSameRecordsAreSkipped()
 	//			throws Exception {
@@ -252,7 +251,8 @@ public class ReindexingSchemaTypeRecordsProviderAcceptanceTest extends Constelli
 		return ids;
 	}
 
-	private List<String> iterateOverSkipping(ReindexingSchemaTypeRecordsProvider typeProvider, SkippingInstruction... skipped) {
+	private List<String> iterateOverSkipping(ReindexingSchemaTypeRecordsProvider typeProvider,
+											 SkippingInstruction... skipped) {
 		Iterator<Record> recordIterator = typeProvider.startNewSchemaTypeIteration();
 
 		List<String> ids = new ArrayList<>();

@@ -1,10 +1,10 @@
 package com.constellio.model.services.extensions;
 
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.collections.CollectionsListManager;
+
+import java.util.List;
+import java.util.Set;
 
 public interface ConstellioModulesManager {
 	Module getInstalledModule(String module);

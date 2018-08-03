@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
@@ -15,6 +10,10 @@ import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractFolderExpectedDateCalculator implements MetadataValueCalculator<LocalDate> {
 
@@ -32,7 +31,7 @@ public abstract class AbstractFolderExpectedDateCalculator implements MetadataVa
 		AllowModificationOfArchivisticStatusAndExpectedDatesChoice manualMetadataChoice = parameters
 				.get(manualMetadataChoiceConfigDependency);
 		if (manualMetadataChoice == null
-				|| manualMetadataChoice == AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED) {
+			|| manualMetadataChoice == AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED) {
 			return calculateWithoutConsideringManualMetadata(parameters);
 		} else {
 			LocalDate manualMetadata = parameters.get(getManualDateDependency());

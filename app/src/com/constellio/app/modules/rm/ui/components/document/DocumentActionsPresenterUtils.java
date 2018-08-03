@@ -1,23 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
-import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.io.FilenameUtils;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -74,6 +56,23 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
+import org.apache.commons.io.FilenameUtils;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
+import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -147,7 +146,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return ComponentState.INVISIBLE;
 		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
-				&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
+										&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
 	}
 
 	public void editDocumentButtonClicked() {
@@ -220,7 +219,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
+									   && getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
@@ -230,7 +229,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+									   && getCurrentUser().has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(currentDocument()));
@@ -307,7 +306,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isCreatePDFAPossible() {
 		if (!isCheckOutPossible() || !getAuthorizationServices().canWrite(getCurrentUser(), currentDocument()) ||
-				getContent() == null) {
+			getContent() == null) {
 			return false;
 		}
 
@@ -327,20 +326,22 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	protected boolean isShareDocumentPossible() {
 		FolderStatus archivisticStatus = rmSchemasRecordsServices.wrapDocument(currentDocument()).getArchivisticStatus();
 
-		if (!getCurrentUser().has(RMPermissionsTo.SHARE_DOCUMENT).on(currentDocument()))
+		if (!getCurrentUser().has(RMPermissionsTo.SHARE_DOCUMENT).on(currentDocument())) {
 			return false;
-		if (archivisticStatus == null)
+		}
+		if (archivisticStatus == null) {
 			return false;
+		}
 		if (archivisticStatus.isInactive() &&
-				!getCurrentUser().has(RMPermissionsTo.SHARE_A_INACTIVE_DOCUMENT).on(currentDocument())) {
+			!getCurrentUser().has(RMPermissionsTo.SHARE_A_INACTIVE_DOCUMENT).on(currentDocument())) {
 			return false;
 		}
 		if (archivisticStatus.isSemiActive() &&
-				!getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument())) {
+			!getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument())) {
 			return false;
 		}
 		if (isNotBlank((String) currentDocument().get(LEGACY_ID)) &&
-				!getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument())) {
+			!getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument())) {
 			return false;
 		}
 
@@ -437,8 +438,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public synchronized void createPDFA() {
-		if (!isCreatePDFAPossible())
+		if (!isCreatePDFAPossible()) {
 			return;
+		}
 
 		if (!documentVO.getExtension().toUpperCase().equals("PDF") && !documentVO.getExtension().toUpperCase().equals("PDFA")) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
@@ -585,14 +587,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 		FolderStatus archivisticStatus = documentVO.get(Document.FOLDER_ARCHIVISTIC_STATUS);
 		if (archivisticStatus != null && isUploadPossible() && getCurrentUser().hasWriteAccess().on(currentDocument())
-				&& extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())
-				&& !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
+			&& extensions.isRecordModifiableBy(currentDocument(), getCurrentUser())
+			&& !extensions.isModifyBlocked(currentDocument(), getCurrentUser())) {
 			if (archivisticStatus.isInactive()) {
 				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(currentDocument()));
+									   && getCurrentUser().has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(currentDocument()));
 				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(currentDocument()));
@@ -602,7 +604,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
 							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+									   && getCurrentUser().has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(currentDocument()));
@@ -812,8 +814,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public Document publishButtonClicked() {
-		if (!isPublishPossible())
+		if (!isPublishPossible()) {
 			return null;
+		}
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		return new Document(record, presenterUtils.types()).setPublished(true);
 	}
@@ -947,7 +950,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-//	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
+	//	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
 	//
 	//		final String collection = presenterUtils.getCollection();
 	//		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();

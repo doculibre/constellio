@@ -1,21 +1,10 @@
 package com.constellio.model.services.logging;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.*;
-
-import com.constellio.model.entities.Language;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -38,6 +27,16 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LoggingServicesAcceptTest extends ConstellioTest {
 
@@ -364,12 +363,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		List<String> grantedOnRecords = new ArrayList<>();
 		/*AdministrativeUnit administrativeUnit = records.getUnit10();
 		Folder folder = createFolder(administrativeUnit);*/
-		grantedOnRecords.addAll(Arrays.asList(new String[] { records.getFolder_A01().getId() }));
+		grantedOnRecords.addAll(Arrays.asList(new String[]{records.getFolder_A01().getId()}));
 		Authorization authorization = new Authorization(detail, grantedToPrincipals);
 
 		List<String> grantedOnRecordsBefore = new ArrayList<>();
 		grantedOnRecordsBefore.addAll(
-				Arrays.asList(new String[] { records.getFolder_A01().getId(), records.getFolder_A02().getId() }));
+				Arrays.asList(new String[]{records.getFolder_A01().getId(), records.getFolder_A02().getId()}));
 		XMLAuthorizationDetails detailBefore = new XMLAuthorizationDetails(zeCollection, "43", roles, startDate,
 				endDate.minusDays(1),
 				false);
@@ -463,8 +462,8 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(event.getType()).isEqualTo(EventType.MODIFY_FOLDER);
 		assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
 		String expectedDelta = "[ folder_default_title :\n" +
-				"\tAvant : titre1\n" +
-				"\tAprès : titre2]\n";
+							   "\tAvant : titre1\n" +
+							   "\tAprès : titre2]\n";
 		assertThat(event.getDelta()).isEqualTo(expectedDelta);
 	}
 

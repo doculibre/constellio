@@ -20,7 +20,7 @@ public class RMMigrationTo5_1_3 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		setupDisplayConfig(collection, appLayerFactory);
 	}

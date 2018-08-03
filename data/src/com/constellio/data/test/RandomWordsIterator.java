@@ -1,16 +1,11 @@
 package com.constellio.data.test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-
+import com.constellio.data.utils.Octets;
 import org.apache.commons.io.FileUtils;
 
-import com.constellio.data.utils.Octets;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class RandomWordsIterator implements Iterator<String> {
 

@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.navigation;
 
-import java.io.IOException;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -10,6 +8,8 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.navigation.AbstractRecordNavigationHandler;
+
+import java.io.IOException;
 
 public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 
@@ -36,8 +36,9 @@ public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 			viewForSchemaTypeCode = true;
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
-		} else
+		} else {
 			viewForSchemaTypeCode = RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode);
+		}
 		return viewForSchemaTypeCode;
 	}
 

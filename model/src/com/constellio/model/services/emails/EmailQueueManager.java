@@ -1,22 +1,5 @@
 package com.constellio.model.services.emails;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
@@ -40,6 +23,20 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class EmailQueueManager implements StatefulService {
 
@@ -102,8 +99,8 @@ public class EmailQueueManager implements StatefulService {
 			//LOGGER.info("Remaining " + searchConditions.size() + " collections");
 			for (Iterator<LogicalSearchQuery> iterator = searchConditions.iterator(); iterator.hasNext(); ) {
 				LogicalSearchQuery query = iterator.next();
-			//	LOGGER.info("Remaining " + searchServices.getResultsCount(query) + " emails in collection " + query.getCondition()
-			//			.getCollection());
+				//	LOGGER.info("Remaining " + searchServices.getResultsCount(query) + " emails in collection " + query.getCondition()
+				//			.getCollection());
 				query.setNumberOfRows(SEND_EMAIL_BATCH);
 				List<Record> records = searchServices.search(query);
 				if (records.isEmpty()) {
@@ -186,7 +183,8 @@ public class EmailQueueManager implements StatefulService {
 
 	}
 
-	private MimeMessage buildEmail(Session session, EmailBuilder emailBuilder, EmailToSend emailToSend, String defaultEmail)
+	private MimeMessage buildEmail(Session session, EmailBuilder emailBuilder, EmailToSend emailToSend,
+								   String defaultEmail)
 			throws Exception {
 		try {
 			return emailBuilder.build(emailToSend, session, defaultEmail);
@@ -253,8 +251,9 @@ public class EmailQueueManager implements StatefulService {
 		} while (true);
 	}
 
-	private Record postponeEmailToDateTime(Record record, LocalDateTime dateTime, String error, Metadata numberOfTryMetadata,
-			Metadata errorMetadata, Metadata sendDateMetadata) {
+	private Record postponeEmailToDateTime(Record record, LocalDateTime dateTime, String error,
+										   Metadata numberOfTryMetadata,
+										   Metadata errorMetadata, Metadata sendDateMetadata) {
 		if (record == null) {
 			LOGGER.error("Cannot postposne null record!!");
 			return null;

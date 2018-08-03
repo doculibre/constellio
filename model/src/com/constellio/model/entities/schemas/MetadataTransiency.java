@@ -19,7 +19,6 @@ public enum MetadataTransiency implements EnumWithSmallCode {
 	/**
 	 * The metadata is not persisted, and will be loaded when the record is retrieved from the datastore.
 	 * For sake of uniformity, the metadata is kept in caches.
-	 *
 	 */
 	TRANSIENT_EAGER("E");
 

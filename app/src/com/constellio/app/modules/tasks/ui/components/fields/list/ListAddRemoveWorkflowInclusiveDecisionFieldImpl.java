@@ -10,20 +10,20 @@ import static com.constellio.app.ui.i18n.i18n.$;
  */
 public class ListAddRemoveWorkflowInclusiveDecisionFieldImpl extends ListAddRemoveField<String, TaskWorkflowInclusiveDecisionFieldImpl> implements ListAddRemoveWorkflowInclusiveDecisionField {
 
-    TaskWorkflowInclusiveDecisionFieldImpl taskWorkflowInclusiveDecisionField;
-    
-    public ListAddRemoveWorkflowInclusiveDecisionFieldImpl() {
-        taskWorkflowInclusiveDecisionField = new TaskWorkflowInclusiveDecisionFieldImpl();
-        setCaption($("ListAddRemoveWorkflowInclusiveDecisionFieldImpl.inclusiveDecision"));
-    }
-    
-    @Override
-    protected TaskWorkflowInclusiveDecisionFieldImpl newAddEditField() {
-        return taskWorkflowInclusiveDecisionField;
-    }
+	TaskWorkflowInclusiveDecisionFieldImpl taskWorkflowInclusiveDecisionField;
 
-    public void addItem(String item){
-        taskWorkflowInclusiveDecisionField.addItem(item);
-    }
+	public ListAddRemoveWorkflowInclusiveDecisionFieldImpl() {
+		taskWorkflowInclusiveDecisionField = new TaskWorkflowInclusiveDecisionFieldImpl();
+		setCaption($("ListAddRemoveWorkflowInclusiveDecisionFieldImpl.inclusiveDecision"));
+	}
+
+	@Override
+	protected TaskWorkflowInclusiveDecisionFieldImpl newAddEditField() {
+		return taskWorkflowInclusiveDecisionField;
+	}
+
+	public void addItem(String item) {
+		taskWorkflowInclusiveDecisionField.addItem(item);
+	}
 
 }

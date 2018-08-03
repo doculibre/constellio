@@ -20,7 +20,7 @@ public class InstallationService {
 	}
 
 	public InstallationService(File constellioInstallationDir, PlatformService plateformService,
-			WrapperConfigurationService wrapperConfigurationService) {
+							   WrapperConfigurationService wrapperConfigurationService) {
 		this.plateformService = plateformService;
 		this.wrapperConfigurationService = wrapperConfigurationService;
 		this.constellioInstallationDir = constellioInstallationDir;

@@ -14,7 +14,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 
-import static com.constellio.app.services.migrations.CoreRoles.ADMINISTRATOR;
 import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
 import static java.util.Arrays.asList;
 
@@ -47,7 +46,8 @@ public class RMMigrationTo6_5_33 implements MigrationScript {
 
 	public static class SchemaAlterationsFor6_5_33 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_5_33(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_5_33(String collection, MigrationResourcesProvider provider,
+											 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

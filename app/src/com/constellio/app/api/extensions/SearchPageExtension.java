@@ -16,13 +16,13 @@ public class SearchPageExtension {
 
 	public void notifyNewUserSearch(UserSearchEvent event) {
 	}
-	
+
 	public Component getSimpleTableWindowComponent(GetSearchResultSimpleTableWindowComponentParam param) {
 		return null;
 	}
-	
+
 	public Capsule filter(FilterCapsuleParam param) {
 		return param.getCapsule();
 	}
-	
+
 }

@@ -1,21 +1,16 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class CriteriaUtilsTest extends ConstellioTest {
 
 	@Mock Metadata metadata;

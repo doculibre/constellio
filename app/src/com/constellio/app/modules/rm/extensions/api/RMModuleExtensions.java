@@ -1,12 +1,12 @@
 package com.constellio.app.modules.rm.extensions.api;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.services.factories.AppLayerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RMModuleExtensions implements ModuleExtensions {
 

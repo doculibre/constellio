@@ -16,13 +16,15 @@ public class RMMigrationTo6_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationsFor6_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	public static class SchemaAlterationsFor6_1 extends MetadataSchemasAlterationHelper {
-		protected SchemaAlterationsFor6_1(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_1(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

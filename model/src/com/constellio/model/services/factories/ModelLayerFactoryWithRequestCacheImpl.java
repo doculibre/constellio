@@ -1,8 +1,5 @@
 package com.constellio.model.services.factories;
 
-import java.security.Key;
-import java.util.List;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
@@ -47,12 +44,11 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
-import com.constellio.model.services.users.UserPhotosServices;
-import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.*;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
+
+import java.security.Key;
+import java.util.List;
 
 public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory {
 

@@ -4,12 +4,7 @@ import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.NativeSelect;
-import com.vaadin.ui.Panel;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class EventReportGenerationPanel extends Panel {

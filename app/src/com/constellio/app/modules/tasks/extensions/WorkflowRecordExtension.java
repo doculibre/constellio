@@ -1,16 +1,11 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -18,6 +13,10 @@ import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class WorkflowRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WorkflowRecordExtension.class);
@@ -37,8 +36,8 @@ public class WorkflowRecordExtension extends RecordExtension {
 		if (event.isSchemaType(Task.SCHEMA_TYPE)) {
 			BetaWorkflowTask task = tasks.wrapBetaWorkflowTask(event.getRecord());
 			if (event.hasModifiedMetadata(tasks.userTask.status().getLocalCode())
-					&& advanceWorkflow(task)
-					&& task.getWorkflowInstance() != null) {
+				&& advanceWorkflow(task)
+				&& task.getWorkflowInstance() != null) {
 				LOGGER.info("Moving workflow to next step");
 				try {
 					taskStatusModified(task);

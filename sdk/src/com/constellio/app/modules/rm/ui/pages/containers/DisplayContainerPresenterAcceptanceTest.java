@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Locale;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -28,6 +16,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 	@Mock DisplayContainerView view;
@@ -63,8 +62,8 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 		container = records.getContainerBac01();
 		List<Record> folders = getRecordsInContainer(container.getId());
 		assertThat(folders.size()).isEqualTo(2);
-		assertThat(folders.get(0).getId()).isIn(new String[] { records.folder_C50, records.folder_C55 });
-		assertThat(folders.get(1).getId()).isIn(new String[] { records.folder_C50, records.folder_C55 });
+		assertThat(folders.get(0).getId()).isIn(new String[]{records.folder_C50, records.folder_C55});
+		assertThat(folders.get(1).getId()).isIn(new String[]{records.folder_C50, records.folder_C55});
 		recordVO = new RecordToVOBuilder().build(container.getWrappedRecord(), RecordVO.VIEW_MODE.FORM, sessionContext);
 	}
 

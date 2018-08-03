@@ -1,8 +1,8 @@
 package com.constellio.app.entities.modules.locators;
 
-import java.io.File;
-
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+
+import java.io.File;
 
 public interface ModuleResourcesLocator {
 

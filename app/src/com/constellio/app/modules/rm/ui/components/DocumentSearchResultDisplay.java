@@ -18,11 +18,10 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.MenuBar;
 
-import java.util.Locale;
-
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
-	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
+	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+									   AppLayerFactory appLayerFactory, String query) {
 		super(searchResultVO, componentFactory, appLayerFactory, query);
 	}
 
@@ -31,7 +30,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		RecordVO recordVO = searchResultVO.getRecordVO();
 
 		Component titleComponent = super.newTitleComponent(searchResultVO);
-		
+
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		MenuBar menuBar = new RMRecordMenuBarHandler(constellioFactories).get(recordVO);
 

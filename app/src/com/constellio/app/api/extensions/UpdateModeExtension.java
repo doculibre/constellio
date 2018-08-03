@@ -1,9 +1,9 @@
 package com.constellio.app.api.extensions;
 
-import java.io.Serializable;
-
 import com.constellio.app.ui.pages.management.updates.UpdateManagerView;
 import com.vaadin.ui.Component;
+
+import java.io.Serializable;
 
 public class UpdateModeExtension {
 	public boolean isActive() {

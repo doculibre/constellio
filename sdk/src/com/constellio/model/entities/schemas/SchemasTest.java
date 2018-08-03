@@ -1,9 +1,9 @@
 package com.constellio.model.entities.schemas;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.assertj.core.api.Condition;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SchemasTest {
 

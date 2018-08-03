@@ -1,22 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
-import static org.apache.chemistry.opencmis.commons.enums.Action.*;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashSet;
-
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.assertj.core.api.IterableAssert;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -29,15 +12,26 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import com.constellio.model.services.taxonomies.*;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.assertj.core.api.IterableAssert;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static org.apache.chemistry.opencmis.commons.enums.Action.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest
 public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
@@ -161,21 +155,21 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	public void whenGetAllowableActionsOfTaxonomyConceptThenOK()
 			throws Exception {
 		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
-		Action[] secondaryTaxoExpectedActionsOfUserOrAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_CREATE_FOLDER, CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] secondaryTaxoExpectedActionsOfUserOrAdmin = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																		  CAN_CREATE_FOLDER, CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
-		Action[] principalTaxoExpectedActionsOfAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_ACL, CAN_APPLY_ACL, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] principalTaxoExpectedActionsOfAdmin = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																	CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_ACL, CAN_APPLY_ACL, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
-		Action[] principalTaxoExpectedActionsOfUserWithWriteAccess = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] principalTaxoExpectedActionsOfUserWithWriteAccess = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																				  CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
-		Action[] principalTaxoExpectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] principalTaxoExpectedActionsOfUserWithReadAccess = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																				 CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
 		//These actions are required to allow the user to navigate to its folders
-		Action[] principalTaxoExpectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_FOLDER_PARENT, CAN_GET_CHILDREN,
-				CAN_GET_FOLDER_TREE };
+		Action[] principalTaxoExpectedActionsOfUserWithNoAccess = new Action[]{CAN_GET_FOLDER_PARENT, CAN_GET_CHILDREN,
+																			   CAN_GET_FOLDER_TREE};
 
 		session = newCMISSessionAsUserInZeCollection(admin);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
@@ -212,21 +206,21 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	public void givenTaxo1IsPrincipalWhenGetAllowableActionsOfTaxonomyConceptThenOK()
 			throws Exception {
 		givenTaxonomy1IsPrincipalWithAuthOnAConcept();
-		Action[] secondaryTaxoExpectedActionsOfUserOrAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_CREATE_FOLDER, CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] secondaryTaxoExpectedActionsOfUserOrAdmin = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																		  CAN_CREATE_FOLDER, CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
-		Action[] principalTaxoExpectedActionsOfAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_ACL, CAN_APPLY_ACL, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] principalTaxoExpectedActionsOfAdmin = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																	CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_ACL, CAN_APPLY_ACL, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
-		Action[] principalTaxoExpectedActionsOfUserWithWriteAccess = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] principalTaxoExpectedActionsOfUserWithWriteAccess = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																				  CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
-		Action[] principalTaxoExpectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-				CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+		Action[] principalTaxoExpectedActionsOfUserWithReadAccess = new Action[]{CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+																				 CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS};
 
 		//These actions are required to allow the user to navigate to its folders
-		Action[] principalTaxoExpectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_FOLDER_PARENT, CAN_GET_CHILDREN,
-				CAN_GET_FOLDER_TREE };
+		Action[] principalTaxoExpectedActionsOfUserWithNoAccess = new Action[]{CAN_GET_FOLDER_PARENT, CAN_GET_CHILDREN,
+																			   CAN_GET_FOLDER_TREE};
 
 		session = newCMISSessionAsUserInZeCollection(admin);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(principalTaxoExpectedActionsOfAdmin);
@@ -242,24 +236,24 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	public void whenGetActionsOfSecurizedRecordWithoutContentThenOK()
 			throws Exception {
 		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
-		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES };
+		Action[] expectedActionsOfUserWithReadAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																	CAN_GET_FOLDER_TREE,
+																	CAN_GET_PROPERTIES};
 
-		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_CREATE_FOLDER };
+		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																		 CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_CREATE_FOLDER};
 
-		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT,
-				CAN_DELETE_TREE, CAN_CREATE_FOLDER };
+		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																			   CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT,
+																			   CAN_DELETE_TREE, CAN_CREATE_FOLDER};
 
-		Action[] expectedActionsOfAdmin = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL,
-				CAN_CREATE_FOLDER, CAN_DELETE_TREE };
+		Action[] expectedActionsOfAdmin = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
+													   CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL,
+													   CAN_CREATE_FOLDER, CAN_DELETE_TREE};
 
 		//These actions are required to allow the user to navigate to its folders
-		Action[] expectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE };
+		Action[] expectedActionsOfUserWithNoAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																  CAN_GET_FOLDER_TREE};
 
 		String folder1UrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1";
 		String folder1UrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1";
@@ -296,27 +290,27 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	public void whenGetActionsOfSecurizedRecordWithContentThenOK()
 			throws Exception {
 		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
-		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS };
+		Action[] expectedActionsOfUserWithReadAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																	CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS};
 
-		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_GET_CONTENT_STREAM,
-				CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM, CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN,
-				CAN_CHECK_OUT, CAN_CREATE_FOLDER };
+		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																		 CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_GET_CONTENT_STREAM,
+																		 CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM, CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN,
+																		 CAN_CHECK_OUT, CAN_CREATE_FOLDER};
 
-		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT,
-				CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
-				CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT, CAN_DELETE_TREE, CAN_CREATE_FOLDER };
+		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																			   CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT,
+																			   CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
+																			   CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT, CAN_DELETE_TREE, CAN_CREATE_FOLDER};
 
-		Action[] expectedActionsOfAdmin = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL,
-				CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
-				CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT, CAN_CREATE_FOLDER, CAN_DELETE_TREE };
+		Action[] expectedActionsOfAdmin = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
+													   CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL,
+													   CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
+													   CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT, CAN_CREATE_FOLDER, CAN_DELETE_TREE};
 
 		//These actions are required to allow the user to navigate to its folders
-		Action[] expectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE };
+		Action[] expectedActionsOfUserWithNoAccess = new Action[]{CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+																  CAN_GET_FOLDER_TREE};
 
 		String folder1DocUrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1/folder1_doc1";
 		String folder1DocUrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1";

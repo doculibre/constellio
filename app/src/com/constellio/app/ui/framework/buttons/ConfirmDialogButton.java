@@ -1,22 +1,18 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.dialogs.ConfirmDialog.ContentMode;
-import org.vaadin.dialogs.DefaultConfirmDialogFactory;
-
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.UI;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class ConfirmDialogButton extends IconButton {
-	
+
 	public static enum DialogMode {
 		TEXT, INFO, WARNING, ERROR, STOP
 	}
-	
+
 	private DialogMode dialogMode = DialogMode.TEXT;
 
 	public ConfirmDialogButton(String caption) {
@@ -41,7 +37,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 
 	@Override
 	protected final void buttonClick(ClickEvent event) {
-		showDialog(dialogMode, 
+		showDialog(dialogMode,
 				getConfirmDialogTitle(),
 				getConfirmDialogMessage(),
 				getConfirmDialogOKCaption(),
@@ -57,28 +53,30 @@ public abstract class ConfirmDialogButton extends IconButton {
 					}
 				});
 	}
-	
-	public static void showDialog(DialogMode dialogMode, String title, String message, String okCaption, String notOkCaption,
+
+	public static void showDialog(DialogMode dialogMode, String title, String message, String okCaption,
+								  String notOkCaption,
 								  String cancelCaption, ConfirmDialog.Listener closeListener) {
 		String iconName;
 		switch (dialogMode) {
-		case INFO:
-			iconName = "info";
-			break;
-		case  WARNING:
-			iconName = "warn";
-			break;
-		case  ERROR:
-			iconName = "error";
-			break;
-		case  STOP:
-			iconName = "stop";
-			break;
-		case TEXT:
-		default:	
-			iconName = null;
-			break;
-		};
+			case INFO:
+				iconName = "info";
+				break;
+			case WARNING:
+				iconName = "warn";
+				break;
+			case ERROR:
+				iconName = "error";
+				break;
+			case STOP:
+				iconName = "stop";
+				break;
+			case TEXT:
+			default:
+				iconName = null;
+				break;
+		}
+		;
 		if (iconName != null) {
 			StringBuilder html = new StringBuilder();
 			html.append("<span style=\"height: 60px;\" class=\"confirm-dialog-" + iconName + "\">");
@@ -89,7 +87,7 @@ public abstract class ConfirmDialogButton extends IconButton {
 			message = html.toString();
 		}
 
-		if(notOkCaption != null) {
+		if (notOkCaption != null) {
 			ConfirmDialog.show(
 					UI.getCurrent(),
 					title,

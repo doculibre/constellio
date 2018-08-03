@@ -1,19 +1,11 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static org.mockito.Mockito.*;
-
-import com.constellio.app.services.metadata.MetadataDeletionException;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.services.metadata.MetadataDeletionException;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
@@ -25,6 +17,7 @@ import org.mockito.Mock;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static org.mockito.Mockito.*;
 
 public class ListTaxonomyPresenterTest extends ConstellioTest {
@@ -83,7 +76,8 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenDeleteButtonClickedAndTaxonomyHasConceptsThenCannotDeleteTaxonomy() throws MetadataDeletionException {
+	public void whenDeleteButtonClickedAndTaxonomyHasConceptsThenCannotDeleteTaxonomy()
+			throws MetadataDeletionException {
 		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
 		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
 		doReturn(true).when(presenter).hasConcepts(taxonomy1);
@@ -94,7 +88,8 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenDeleteButtonClickedAndTaxonomyDoesntHaveConceptsThenDeleteTaxonomyAndReferencedMetadatas() throws MetadataDeletionException {
+	public void whenDeleteButtonClickedAndTaxonomyDoesntHaveConceptsThenDeleteTaxonomyAndReferencedMetadatas()
+			throws MetadataDeletionException {
 		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
 		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
 		doReturn(false).when(presenter).hasConcepts(taxonomy1);

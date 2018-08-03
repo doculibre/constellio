@@ -1,20 +1,18 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.when;
-
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.sdk.tests.ConstellioTest;
-
 import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Patrick on 2015-11-25.

@@ -1,16 +1,15 @@
 package com.constellio.model.services.records.validators;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MetadataUnmodifiableValidatorTest extends ConstellioTest {
 

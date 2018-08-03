@@ -1,7 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.ArrayList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -15,6 +13,8 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.ArrayList;
+
 public class CoreMigrationTo_7_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -23,14 +23,14 @@ public class CoreMigrationTo_7_2 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new CoreSchemaAlterationFor7_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		configureTableMetadatas(collection, appLayerFactory);
 	}
 
 	private class CoreSchemaAlterationFor7_2 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

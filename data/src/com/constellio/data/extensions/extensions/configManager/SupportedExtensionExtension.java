@@ -5,9 +5,11 @@ import java.util.List;
 
 public class SupportedExtensionExtension {
 
-    public List<String> getAdditionalSupportedExtension() {
-        return Collections.emptyList();
-    }
+	public List<String> getAdditionalSupportedExtension() {
+		return Collections.emptyList();
+	}
 
-    public ExtensionConverter getConverter() { return null; }
+	public ExtensionConverter getConverter() {
+		return null;
+	}
 }

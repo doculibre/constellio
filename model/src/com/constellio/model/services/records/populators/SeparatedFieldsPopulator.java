@@ -1,18 +1,18 @@
 package com.constellio.model.services.records.populators;
 
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.FieldsPopulator;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 
 public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -54,7 +54,8 @@ public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 		return metadata.isMultiLingual();
 	}
 
-	private void populateCopyFields(Map<String, Object> fields, Metadata modifiedMetadata, Object value, Locale locale) {
+	private void populateCopyFields(Map<String, Object> fields, Metadata modifiedMetadata, Object value,
+									Locale locale) {
 		Map<String, Object> values = populateCopyfields(modifiedMetadata, value, locale);
 		for (Map.Entry<String, Object> entry : values.entrySet()) {
 			if (entry.getValue() != null) {

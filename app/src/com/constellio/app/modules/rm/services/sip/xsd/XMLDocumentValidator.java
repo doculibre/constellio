@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class XMLDocumentValidator {
-	
+
 	private LSResourceResolver xsdResourceResolver = new XSDResourceResolver();
 
-	public void validate(Document jdomDoc, String...schemaFilenames) {
+	public void validate(Document jdomDoc, String... schemaFilenames) {
 		try {
 			SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
 			schemaFactory.setResourceResolver(xsdResourceResolver);
@@ -38,14 +38,14 @@ public class XMLDocumentValidator {
 			validator.validate(new JDOMSource(jdomDoc));
 		} catch (SAXException e) {
 			XMLOutputter xml = new XMLOutputter();
-            // we want to format the xml. This is used only for demonstration.
-            // pretty formatting adds extra spaces and is generally not required.
-            xml.setFormat(Format.getPrettyFormat());
-//            try {
-//				xml.output(jdomDoc, System.out);
-//			} catch (IOException e1) {
-//				e1.printStackTrace();
-//			}
+			// we want to format the xml. This is used only for demonstration.
+			// pretty formatting adds extra spaces and is generally not required.
+			xml.setFormat(Format.getPrettyFormat());
+			//            try {
+			//				xml.output(jdomDoc, System.out);
+			//			} catch (IOException e1) {
+			//				e1.printStackTrace();
+			//			}
 			//throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);

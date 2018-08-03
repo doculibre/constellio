@@ -1,9 +1,9 @@
 package com.constellio.sdk.tests;
 
-import static org.junit.Assert.fail;
-
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+
+import static org.junit.Assert.fail;
 
 public class FailureDetectionTestWatcher extends TestWatcher {
 

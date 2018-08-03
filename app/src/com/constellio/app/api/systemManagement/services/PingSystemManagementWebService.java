@@ -1,17 +1,16 @@
 package com.constellio.app.api.systemManagement.services;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class PingSystemManagementWebService extends HttpServlet {
 

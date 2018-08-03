@@ -20,34 +20,34 @@ import static org.junit.Assert.fail;
  */
 public class MediumTypeValidatorAcceptanceTest extends ConstellioTest {
 
-    RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
-    RecordServices recordServices;
+	RecordServices recordServices;
 
-    @Before
-    public void setUp() {
-        givenBackgroundThreadsEnabled();
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withAllTestUsers()
-        );
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        recordServices = getModelLayerFactory().newRecordServices();
-    }
+	@Before
+	public void setUp() {
+		givenBackgroundThreadsEnabled();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+	}
 
-    @Test
-    public void givenMediumTypeCodeIsDMIsModified() throws Exception {
-        try {
-            MediumType mediumType = rm.getMediumTypeByCode("DM");
-            mediumType.setCode("test");
-            recordServices.add(mediumType);
-            fail("No exception was thrown");
-        } catch (RecordServicesException.ValidationException e) {
-            assertThat(e.getErrors().getValidationErrors()).hasSize(1);
-            Map<String, Object> params = e.getErrors().getValidationErrors().get(0).getParameters();
-            assertThat(params).containsOnly(
-                    entry("code", "test"),
-                    entry("schemaCode", "ddvMediumType_default"));
-            assertThat(TestUtils.frenchMessages(e.getErrors()).get(0)).isEqualTo("Le code \"DM\" ne peut pas être modifié");
-        }
-    }
+	@Test
+	public void givenMediumTypeCodeIsDMIsModified() throws Exception {
+		try {
+			MediumType mediumType = rm.getMediumTypeByCode("DM");
+			mediumType.setCode("test");
+			recordServices.add(mediumType);
+			fail("No exception was thrown");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+			Map<String, Object> params = e.getErrors().getValidationErrors().get(0).getParameters();
+			assertThat(params).containsOnly(
+					entry("code", "test"),
+					entry("schemaCode", "ddvMediumType_default"));
+			assertThat(TestUtils.frenchMessages(e.getErrors()).get(0)).isEqualTo("Le code \"DM\" ne peut pas être modifié");
+		}
+	}
 }

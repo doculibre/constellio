@@ -1,31 +1,5 @@
 package com.constellio.data.dao.managers.config;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.commons.io.FileUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
@@ -49,6 +23,21 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
+import org.apache.commons.io.FileUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
 
 public class FileSystemConfigManager implements StatefulService, EventBusListener, ConfigManager {
 
@@ -79,8 +68,9 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 	private final KeyListMap<String, ConfigUpdatedEventListener> updatedConfigEventListeners = new KeyListMap<>();
 	private final KeyListMap<String, ConfigDeletedEventListener> deletedConfigEventListeners = new KeyListMap<>();
 
-	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService, ConstellioCache cache,
-			DataLayerExtensions extensions, EventBus eventBus) {
+	public FileSystemConfigManager(File configFolder, IOServices ioServices, HashingService hashService,
+								   ConstellioCache cache,
+								   DataLayerExtensions extensions, EventBus eventBus) {
 		super();
 		this.configFolder = configFolder;
 		this.ioServices = ioServices;
@@ -701,15 +691,15 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
-		case CONFIG_UPDATED_EVENT_TYPE:
-			String path = event.getData();
-			for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
-				listener.onConfigUpdated(path);
-			}
-			break;
+			case CONFIG_UPDATED_EVENT_TYPE:
+				String path = event.getData();
+				for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
+					listener.onConfigUpdated(path);
+				}
+				break;
 
-		default:
-			throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
+			default:
+				throw new ImpossibleRuntimeException("Unsupported event " + event.getType());
 		}
 	}
 

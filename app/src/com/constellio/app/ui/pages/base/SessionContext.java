@@ -1,18 +1,17 @@
 package com.constellio.app.ui.pages.base;
 
+import com.constellio.app.ui.entities.UserVO;
+
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.ui.entities.UserVO;
-import com.constellio.model.entities.records.Record;
-
 public interface SessionContext extends Serializable {
-	
+
 	<T extends Object> T getAttribute(String key);
-	
+
 	void setAttribute(String key, Object value);
 
 	UserVO getCurrentUser();
@@ -28,36 +27,36 @@ public interface SessionContext extends Serializable {
 	void setCurrentLocale(Locale locale);
 
 	String getCurrentUserIPAddress();
-	
+
 	boolean isForcedSignOut();
-	
+
 	void setForcedSignOut(boolean forcedSignOut);
-	
+
 	Principal getUserPrincipal();
-	
+
 	List<String> getSelectedRecordIds();
 
 	public Map<String, Long> getSelectedRecordSchemaTypeCodes();
-	
+
 	void addSelectedRecordId(String recordId, String schemaTypeCode);
-	
+
 	void removeSelectedRecordId(String recordId, String schemaTypeCode);
-	
+
 	void clearSelectedRecordIds();
-	
+
 	public interface SelectedRecordIdsChangeListener extends Serializable {
-		
+
 		void recordIdAdded(String recordId);
-		
+
 		void recordIdRemoved(String recordId);
-		
+
 		void selectionCleared();
-		
+
 	}
-	
+
 	List<SelectedRecordIdsChangeListener> getSelectedRecordIdsChangeListeners();
-	
+
 	void addSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
-	
+
 	void removeSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
 }

@@ -1,23 +1,22 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.model.extensions.events.recordsImport.ValidationParams;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FolderRuleImportExtension extends RecordImportExtension {
 
@@ -61,15 +60,15 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		ensureStatus(event);
 	}
 
-	private void ensureStatus(ValidationParams event){
+	private void ensureStatus(ValidationParams event) {
 		ValidationErrors errors = event.getErrors();
 		Map<String, Object> fields = event.getImportRecord().getFields();
 		String folderId = event.getImportRecord().getLegacyId();
 		Object transfertDate = fields.get(Folder.ACTUAL_TRANSFER_DATE);
 		Object destructionDate = fields.get(Folder.ACTUAL_DESTRUCTION_DATE);
-		Object depositDate =  fields.get(Folder.ACTUAL_DEPOSIT_DATE);
+		Object depositDate = fields.get(Folder.ACTUAL_DEPOSIT_DATE);
 		String ensureStatus = event.getImportRecord().getOption("ensureStatus");
-		if(ensureStatus != null){
+		if (ensureStatus != null) {
 			switch (ensureStatus) {
 				case "a":
 					if (transfertDate != null) {
@@ -153,16 +152,16 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		}
 
 		if (manualExpectedDeposit != null && manualExpectedTransfer != null
-				&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
+			&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
 			folder.setManualExpectedDepositDate(null);
 		}
 		if (manualExpectedDestruction != null && actualTransfer != null
-				&& manualExpectedDestruction.isBefore(actualTransfer)) {
+			&& manualExpectedDestruction.isBefore(actualTransfer)) {
 			folder.setManualExpectedDestructionDate(null);
 		}
 
 		if (manualExpectedDestruction != null && manualExpectedTransfer != null
-				&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
+			&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
 			folder.setManualExpectedDestructionDate(null);
 		}
 

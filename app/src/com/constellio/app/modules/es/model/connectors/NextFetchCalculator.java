@@ -1,17 +1,16 @@
 package com.constellio.app.modules.es.model.connectors;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class NextFetchCalculator implements MetadataValueCalculator<LocalDateTime> {
 

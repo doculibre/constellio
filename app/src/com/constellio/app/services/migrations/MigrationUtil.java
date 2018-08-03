@@ -10,15 +10,17 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MigrationUtil {
-    public static Map<Language, String> getLabelsByLanguage(String collection, ModelLayerFactory modelLayerFactory, MigrationResourcesProvider migrationResourcesProvider, String labelKey) {
-        List<String> languageList = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
+	public static Map<Language, String> getLabelsByLanguage(String collection, ModelLayerFactory modelLayerFactory,
+															MigrationResourcesProvider migrationResourcesProvider,
+															String labelKey) {
+		List<String> languageList = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 
-        Map<Language,String> mapLangageTitre = new HashMap<>();
+		Map<Language, String> mapLangageTitre = new HashMap<>();
 
-        for(String language : languageList) {
-            Locale locale = new Locale(language);
-            mapLangageTitre.put(Language.withLocale(locale), migrationResourcesProvider.getString(labelKey, locale));
-        }
-        return mapLangageTitre;
-    }
+		for (String language : languageList) {
+			Locale locale = new Locale(language);
+			mapLangageTitre.put(Language.withLocale(locale), migrationResourcesProvider.getString(labelKey, locale));
+		}
+		return mapLangageTitre;
+	}
 }

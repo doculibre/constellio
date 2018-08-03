@@ -1,9 +1,9 @@
 package com.constellio.sdk.tests;
 
+import org.openqa.selenium.firefox.FirefoxProfile;
+
 import java.io.File;
 import java.io.Reader;
-
-import org.openqa.selenium.firefox.FirefoxProfile;
 
 public class ZeUltimateFirefoxProfile extends FirefoxProfile {
 

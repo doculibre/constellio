@@ -1,22 +1,21 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException.ImportDataProviderRuntimeException_InvalidDate;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException.ImportDataProviderRuntimeException_InvalidDate;
 
 public class Excel2007ImportDataProvider implements ImportDataProvider {
 
@@ -74,8 +73,9 @@ public class Excel2007ImportDataProvider implements ImportDataProvider {
 
 	@Override
 	public ImportDataIterator newDataIterator(String schemaType) {
-		if (getAvailableSchemaTypes().contains(schemaType))
+		if (getAvailableSchemaTypes().contains(schemaType)) {
 			return new ExcelImportDataIterator(getExcelSheet(schemaType));
+		}
 		throw new RuntimeException("There are no sheet with this schema type");
 	}
 

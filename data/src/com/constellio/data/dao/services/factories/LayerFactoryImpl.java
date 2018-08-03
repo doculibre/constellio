@@ -1,11 +1,11 @@
 package com.constellio.data.dao.services.factories;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LayerFactoryImpl implements LayerFactory {
 
@@ -27,7 +27,7 @@ public class LayerFactoryImpl implements LayerFactory {
 	}
 
 	public LayerFactoryImpl(LayerFactory bottomLayerFactory, StatefullServiceDecorator statefullServiceDecorator,
-			String instanceName) {
+							String instanceName) {
 		this.bottomLayerFactory = bottomLayerFactory;
 		this.statefullServiceDecorator = statefullServiceDecorator;
 		this.instanceName = instanceName;
@@ -70,9 +70,9 @@ public class LayerFactoryImpl implements LayerFactory {
 
 	public void close(boolean closeBottomLayers) {
 		for (int i = statefulServices.size() - 1; i >= 0; i--) {
-			try  {
+			try {
 				statefulServices.get(i).close();
-			} catch(Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

@@ -35,7 +35,7 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 
 	public static boolean isMetadataUsableByCopyRetentionRules(Metadata metadata) {
 		if (metadata.getType() == DATE || metadata.getType() == DATE_TIME || metadata.getType() == NUMBER
-				|| isTimeRangeMetadata(metadata)) {
+			|| isTimeRangeMetadata(metadata)) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
 
 		} else {

@@ -1,15 +1,13 @@
 package com.constellio.app.modules.es;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ESConfigs {
 
@@ -50,7 +48,7 @@ public class ESConfigs {
 
 	public int getConnectorNumberOfThreads() {
 		int configValue = manager.getValue(CONNECTOR_NUMBER_OF_THREADS);
-		return configValue != -1 ? configValue: Runtime.getRuntime().availableProcessors();
+		return configValue != -1 ? configValue : Runtime.getRuntime().availableProcessors();
 	}
 
 }

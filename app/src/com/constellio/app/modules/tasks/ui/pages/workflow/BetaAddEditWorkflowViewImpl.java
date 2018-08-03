@@ -1,7 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -10,12 +8,14 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class BetaAddEditWorkflowViewImpl extends BaseViewImpl implements BetaAddEditWorkflowView {
-	
+
 	private boolean addView;
-	
+
 	private BetaWorkflowVO workflowVO;
-	
+
 	private BetaAddEditWorkflowPresenter presenter;
 
 	public BetaAddEditWorkflowViewImpl() {
@@ -45,7 +45,7 @@ public class BetaAddEditWorkflowViewImpl extends BaseViewImpl implements BetaAdd
 					throws ValidationException {
 				presenter.saveButtonClicked();
 			}
-			
+
 			@Override
 			protected void cancelButtonClick(RecordVO viewObject) {
 				presenter.cancelButtonClicked();

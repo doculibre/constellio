@@ -20,9 +20,9 @@ public class RecordValidatorParams {
 	final SearchServices searchServices;
 
 	public RecordValidatorParams(Record record, MetadataSchemaTypes types,
-			MetadataSchema schema, RecordValidator validator,
-			ValidationErrors validationErrors, ConfigProvider configProvider,
-			RecordProvider recordProvider, SearchServices searchServices) {
+								 MetadataSchema schema, RecordValidator validator,
+								 ValidationErrors validationErrors, ConfigProvider configProvider,
+								 RecordProvider recordProvider, SearchServices searchServices) {
 		this.record = record;
 		this.types = types;
 		this.schema = schema;
@@ -72,5 +72,5 @@ public class RecordValidatorParams {
 	public SearchServices getSearchServices() {
 		return searchServices;
 	}
-	
+
 }

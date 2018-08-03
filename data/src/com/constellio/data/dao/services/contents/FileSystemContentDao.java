@@ -1,20 +1,5 @@
 package com.constellio.data.dao.services.contents;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import org.apache.commons.io.FileExistsException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.dao.managers.StatefulService;
@@ -24,7 +9,21 @@ import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.Cont
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_NoSuchFolder;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileSystemContentDao implements StatefulService, ContentDao {
 
@@ -33,13 +32,13 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	IOServices ioServices;
 
-    @VisibleForTesting
+	@VisibleForTesting
 	File rootFolder;
 
-    File vaultRecoveryFolder;
+	File vaultRecoveryFolder;
 
-    @VisibleForTesting
-    File replicatedRootFolder;
+	@VisibleForTesting
+	File replicatedRootFolder;
 
 	File replicatedRootRecoveryFolder = null;
 
@@ -57,8 +56,8 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		createVaultRecoveryDirectory();
 
 		String replicatedVaultMountPoint = configuration.getContentDaoReplicatedVaultMountPoint();
-        if (StringUtils.isNotBlank(replicatedVaultMountPoint)) {
-            replicatedRootFolder = new File(replicatedVaultMountPoint);
+		if (StringUtils.isNotBlank(replicatedVaultMountPoint)) {
+			replicatedRootFolder = new File(replicatedVaultMountPoint);
 			replicatedRootRecoveryFolder = new File(replicatedRootFolder, RECOVERY_FOLDER);
 			createRootRecoveryDirectory();
 		}
@@ -74,12 +73,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	boolean fileCopy(File fileToCopy, String filePath) {
 		boolean isFileToCoped;
-		if(fileToCopy == null || Strings.isNullOrEmpty(filePath)) {
+		if (fileToCopy == null || Strings.isNullOrEmpty(filePath)) {
 			return false;
 		}
 
 		try {
-			if(!new File(filePath).exists()) {
+			if (!new File(filePath).exists()) {
 				FileUtils.copyFile(fileToCopy, new File(filePath));
 			}
 			isFileToCoped = true;
@@ -94,7 +93,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	boolean moveFile(File fileToBeMoved, File target) {
 		boolean isFileMoved;
 
-		if(fileToBeMoved == null || target == null) {
+		if (fileToBeMoved == null || target == null) {
 			return false;
 		}
 
@@ -116,7 +115,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		OutputStream outputStream = null;
 		InputStream inputStream = null;
 
-		if(inputStreamFactory == null && target == null) {
+		if (inputStreamFactory == null && target == null) {
 			return false;
 		}
 
@@ -147,45 +146,45 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public void moveFileToVault(File file, String newContentId) {
-        File target = getFileOf(newContentId);
+		File target = getFileOf(newContentId);
 		boolean isFileMovedInTheVault;
 		boolean isFileReplicated = false;
 
 		boolean isExecutedReplication = false;
 
-        if (!target.exists()) {
+		if (!target.exists()) {
 			isFileMovedInTheVault = moveFile(file, target);
 
-            if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
+			if (!(replicatedRootFolder == null || target.equals(getReplicatedVaultFile(target)))) {
 				isExecutedReplication = true;
-            	if (!getReplicatedVaultFile(target).exists()) {
-            		if(isFileMovedInTheVault) {
+				if (!getReplicatedVaultFile(target).exists()) {
+					if (isFileMovedInTheVault) {
 						isFileReplicated = fileCopy(target, getReplicatedVaultFile(target).getAbsolutePath());
 					} else {
-            			isFileReplicated = fileCopy(file, getReplicatedVaultFile(target).getAbsolutePath());
+						isFileReplicated = fileCopy(file, getReplicatedVaultFile(target).getAbsolutePath());
 					}
-                } else {
-            		isFileReplicated = true;
+				} else {
+					isFileReplicated = true;
 				}
-            }
+			}
 
-            if(!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
-            	throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
-			} else if(!isFileMovedInTheVault && !isExecutedReplication) {
+			if (!isFileMovedInTheVault && !isFileReplicated && isExecutedReplication) {
+				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(file);
+			} else if (!isFileMovedInTheVault && !isExecutedReplication) {
 				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(file);
-			} else if(!isFileMovedInTheVault) {
+			} else if (!isFileMovedInTheVault) {
 				addFileNotMovedInTheVault(newContentId);
-			} else if(!isFileReplicated && isExecutedReplication) {
+			} else if (!isFileReplicated && isExecutedReplication) {
 				addFileNotReplicated(newContentId);
 			}
-        }
+		}
 	}
 
 	public void addFileNotMovedInTheVault(String id) {
 		createRootRecoveryDirectory();
 
 		try {
-			Path path =Paths.get(replicatedRootRecoveryFolder.getPath() + File.separator + id);
+			Path path = Paths.get(replicatedRootRecoveryFolder.getPath() + File.separator + id);
 			Files.createFile(path);
 		} catch (IOException e) {
 			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile(id);
@@ -193,8 +192,8 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	private void createRootRecoveryDirectory() {
-		if(!replicatedRootRecoveryFolder.exists()) {
-			if(!replicatedRootRecoveryFolder.mkdir()) {
+		if (!replicatedRootRecoveryFolder.exists()) {
+			if (!replicatedRootRecoveryFolder.mkdir()) {
 				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateReplicationRecoveryFile(replicatedRootRecoveryFolder);
 			}
 		}
@@ -204,7 +203,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 		createVaultRecoveryDirectory();
 		try {
-			Path path =Paths.get(vaultRecoveryFolder.getPath() + File.separator + id);
+			Path path = Paths.get(vaultRecoveryFolder.getPath() + File.separator + id);
 			Files.createFile(path);
 		} catch (IOException e) {
 			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToSaveInformationInVaultRecoveryFile(id);
@@ -212,20 +211,20 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	private void createVaultRecoveryDirectory() {
-		if(!vaultRecoveryFolder.exists()) {
-			if(!vaultRecoveryFolder.mkdirs()) {
+		if (!vaultRecoveryFolder.exists()) {
+			if (!vaultRecoveryFolder.mkdirs()) {
 				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToCreateVaultRecoveryFile(vaultRecoveryFolder);
 			}
 		}
 	}
 
-	public void readLogsAndRepairs(){
+	public void readLogsAndRepairs() {
 		repairVaultFiles();
 		repairReplicationFiles();
 	}
 
 	private void repairVaultFiles() {
-		if(replicatedRootRecoveryFolder == null || !replicatedRootRecoveryFolder.exists()){
+		if (replicatedRootRecoveryFolder == null || !replicatedRootRecoveryFolder.exists()) {
 			return;
 		}
 
@@ -233,12 +232,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 		boolean didCopySucced;
 
-		for(int i = 0; i < fileList.length; i++) {
+		for (int i = 0; i < fileList.length; i++) {
 			File recoveryFile = fileList[i];
 			File currentFile = getFileOf(recoveryFile.getName());
 
 			File replicatedVaultFile = getReplicatedVaultFile(currentFile);
-			if(!replicatedVaultFile.exists()) {
+			if (!replicatedVaultFile.exists()) {
 				deleteReplicationRecoveryFile(recoveryFile);
 				// file got deleted.
 				continue;
@@ -246,7 +245,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 			didCopySucced = fileCopy(replicatedVaultFile, currentFile.getAbsolutePath());
 
-			if(!didCopySucced) {
+			if (!didCopySucced) {
 				throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheVault(replicatedVaultFile);
 			} else {
 				deleteReplicationRecoveryFile(recoveryFile);
@@ -255,24 +254,24 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	private void deleteReplicationRecoveryFile(File recoveryFile) {
-		if(!recoveryFile.delete()) {
-            throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile();
-        }
+		if (!recoveryFile.delete()) {
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingReplicationRecoveryFile();
+		}
 	}
 
 	private void repairReplicationFiles() {
-		if(vaultRecoveryFolder == null || !vaultRecoveryFolder.exists()){
+		if (vaultRecoveryFolder == null || !vaultRecoveryFolder.exists()) {
 			return;
 		}
 
 		File[] fileList = vaultRecoveryFolder.listFiles();
 		boolean didCopySucced;
 
-		for(int i = 0; i < fileList.length; i++) {
+		for (int i = 0; i < fileList.length; i++) {
 			File recoveryFile = fileList[i];
 			File file = getFileOf(recoveryFile.getName());
 
-			if(!file.exists()) {
+			if (!file.exists()) {
 				// file got deleted.
 				vaultRecoveryFileDelete(recoveryFile);
 				continue;
@@ -280,23 +279,22 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 			didCopySucced = fileCopy(file, getReplicatedVaultFile(file).getAbsolutePath());
 
-			if(!didCopySucced) {
+			if (!didCopySucced) {
 				throw new FileSystemContentDaoRuntimeException
 						.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(file.getAbsoluteFile());
-			}
-			else {
+			} else {
 				vaultRecoveryFileDelete(recoveryFile);
 			}
 		}
 	}
 
 	private void vaultRecoveryFileDelete(File recoveryFile) {
-		if(!recoveryFile.delete()) {
-            throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile();
-        }
+		if (!recoveryFile.delete()) {
+			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile();
+		}
 	}
 
-    public File getReplicatedVaultFile(File file) {
+	public File getReplicatedVaultFile(File file) {
 		String filePath = file.getAbsolutePath();
 		if (rootFolder.getAbsolutePath().length() >= replicatedRootFolder.getAbsolutePath().length()) {
 			if (filePath.startsWith(rootFolder.getAbsolutePath())) {
@@ -312,10 +310,10 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 				return new File(replicatedPath);
 			}
 		}
-    }
+	}
 
 	@Override
-    public void add(String newContentId, InputStream newInputStream) {
+	public void add(String newContentId, InputStream newInputStream) {
 		File target = getFileOf(newContentId);
 
 		boolean vaultCopySucessful;
@@ -334,21 +332,20 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 				replicaCopySucessfull = copy(inputStreamFactory, replicatedTargetFile);
 			}
-		}
-		finally {
+		} finally {
 			ioServices.closeQuietly(inputStreamFactory);
 		}
 
-		if(!vaultCopySucessful && !replicaCopySucessfull && isReplicationExecuted) {
+		if (!vaultCopySucessful && !replicaCopySucessfull && isReplicationExecuted) {
 			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVaultAndReplication(newContentId);
-		} else if(!vaultCopySucessful && !isReplicationExecuted) {
+		} else if (!vaultCopySucessful && !isReplicationExecuted) {
 			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_FailedToWriteVault(newContentId);
-		} else if(!vaultCopySucessful) {
+		} else if (!vaultCopySucessful) {
 			addFileNotMovedInTheVault(newContentId);
-		} else if(!replicaCopySucessfull && isReplicationExecuted) {
+		} else if (!replicaCopySucessfull && isReplicationExecuted) {
 			addFileNotReplicated(newContentId);
 		}
-    }
+	}
 
 
 	@Override
@@ -357,9 +354,9 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			File file = getFileOf(contentId);
 			file.delete();
 
-            if (replicatedRootFolder != null) {
-                getReplicatedVaultFile(file).delete();
-            }
+			if (replicatedRootFolder != null) {
+				getReplicatedVaultFile(file).delete();
+			}
 		}
 	}
 
@@ -401,47 +398,47 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 		File file = getFileOf(id);
 
-        try {
-            return getContentInputStreamFactory(id, file);
-        } catch (ContentDaoException_NoSuchContent e) {
-            if (replicatedRootFolder != null) {
-                return getContentInputStreamFactory(id, getReplicatedVaultFile(file));
-            }
+		try {
+			return getContentInputStreamFactory(id, file);
+		} catch (ContentDaoException_NoSuchContent e) {
+			if (replicatedRootFolder != null) {
+				return getContentInputStreamFactory(id, getReplicatedVaultFile(file));
+			}
 
-            throw e;
-        }
+			throw e;
+		}
 	}
 
-    public CloseableStreamFactory<InputStream> getContentInputStreamFactory(final String id, final File file)
-            throws ContentDaoException_NoSuchContent {
+	public CloseableStreamFactory<InputStream> getContentInputStreamFactory(final String id, final File file)
+			throws ContentDaoException_NoSuchContent {
 
-        if (!file.exists()) {
-            throw new ContentDaoException_NoSuchContent(id);
-        }
+		if (!file.exists()) {
+			throw new ContentDaoException_NoSuchContent(id);
+		}
 
-        return new CloseableStreamFactory<InputStream>() {
-            @Override
-            public void close()
-                    throws IOException {
+		return new CloseableStreamFactory<InputStream>() {
+			@Override
+			public void close()
+					throws IOException {
 
-            }
+			}
 
-            @Override
-            public long length() {
-                return file.length();
-            }
+			@Override
+			public long length() {
+				return file.length();
+			}
 
-            @Override
-            public InputStream create(String name)
-                    throws IOException {
-                try {
-                    return new BufferedInputStream(ioServices.newFileInputStream(file, name));
-                } catch (FileNotFoundException e) {
-                    throw new ImpossibleRuntimeException(e);
-                }
-            }
-        };
-    }
+			@Override
+			public InputStream create(String name)
+					throws IOException {
+				try {
+					return new BufferedInputStream(ioServices.newFileInputStream(file, name));
+				} catch (FileNotFoundException e) {
+					throw new ImpossibleRuntimeException(e);
+				}
+			}
+		};
+	}
 
 	@Override
 	public boolean isFolderExisting(String folderId) {
@@ -451,15 +448,15 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public boolean isDocumentExisting(String documentId) {
-        File file = getFileOf(documentId);
+		File file = getFileOf(documentId);
 
 		boolean exists = file.exists();
 
-        if (!(replicatedRootFolder == null || exists)) {
-            exists = getReplicatedVaultFile(file).exists();
-        }
+		if (!(replicatedRootFolder == null || exists)) {
+			exists = getReplicatedVaultFile(file).exists();
+		}
 
-        return exists;
+		return exists;
 	}
 
 	@Override
@@ -477,7 +474,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		return files;
 	}
 
-    @Override
+	@Override
 	public long getContentLength(String vaultContentId) {
 		File file = getFileOf(vaultContentId);
 

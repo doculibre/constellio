@@ -25,7 +25,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 
 	private List<ContentUploadedListener> contentUploadedListeners = new ArrayList<>();
 
-	public DocumentContentFieldImpl(){
+	public DocumentContentFieldImpl() {
 		this(false);
 	}
 
@@ -42,7 +42,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 			}
 		});
 
-        newFileButton = new Button($("DocumentContentField.newFile"));
+		newFileButton = new Button($("DocumentContentField.newFile"));
 		newFileButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -87,7 +87,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 
 	@Override
 	public void addNewFileClickListenerIfEmpty(NewFileClickListener listener) {
-		if(newFileClickListeners.isEmpty()) {
+		if (newFileClickListeners.isEmpty()) {
 			newFileClickListeners.add(listener);
 		}
 	}

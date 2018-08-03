@@ -1,12 +1,12 @@
 package com.constellio.app.modules.tasks.model.wrappers.types;
 
-import java.util.Map;
-
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Map;
 
 public class TaskStatus extends ValueListItem {
 	public static final String SCHEMA_TYPE = "ddvTaskStatus";
@@ -19,7 +19,7 @@ public class TaskStatus extends ValueListItem {
 	public static final String STANDBY_CODE = "O";
 
 	public TaskStatus(Record record,
-			MetadataSchemaTypes types) {
+					  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

@@ -1,12 +1,12 @@
 package com.constellio.data.io;
 
-import java.io.File;
-
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.hashing.HashingService;
+
+import java.io.File;
 
 public class IOServicesFactory {
 

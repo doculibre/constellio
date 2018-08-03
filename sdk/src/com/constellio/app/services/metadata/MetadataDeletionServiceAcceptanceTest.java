@@ -1,39 +1,12 @@
 package com.constellio.app.services.metadata;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.CALCULATED_METADATA_SOURCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_REFERENCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_SOURCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.EXTRACTED_METADATA_SOURCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.FACET_METADATA;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.INHERITED_METADATA;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.POPULATED_METADATA;
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_ExtractedMetadataSource;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_FacetMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_InheritedMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
-import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.*;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -49,12 +22,19 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 	private RMSchemasRecordsServices rm;
@@ -370,7 +350,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 	private void assertDeletedFromCustomFolderSchema(MetadataSchemaTypes types, String localCode) {
 		try {
 			String metadataCode = customFolderSchema
-					.getCode() + "_" + localCode;
+										  .getCode() + "_" + localCode;
 			types.getMetadata(metadataCode);
 			fail("Metadata should be deleted " + metadataCode);
 		} catch (NoSuchMetadata e) {

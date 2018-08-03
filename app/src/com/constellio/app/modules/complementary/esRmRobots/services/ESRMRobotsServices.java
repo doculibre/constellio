@@ -1,12 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.List;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -20,6 +13,12 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.log4j.Logger;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ESRMRobotsServices {
 
@@ -31,7 +30,8 @@ public class ESRMRobotsServices {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public void deleteRobotFoldersAndDocuments(final User currentUser, final String robotId, final ProgressInfo progressInfo)
+	public void deleteRobotFoldersAndDocuments(final User currentUser, final String robotId,
+											   final ProgressInfo progressInfo)
 			throws Exception {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(currentUser.getCollection(), modelLayerFactory);
 		final RecordPhysicalDeleteOptions deleteOptions = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
@@ -44,7 +44,7 @@ public class ESRMRobotsServices {
 		final SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		final long total = searchServices.getResultsCount(documentsCondition)
-				+ searchServices.getResultsCount(foldersCondition);
+						   + searchServices.getResultsCount(foldersCondition);
 		progressInfo.setEnd(total);
 		if (total == 0) {
 			progressInfo.setDone(true);
@@ -69,8 +69,8 @@ public class ESRMRobotsServices {
 					}
 
 					progressInfo.setCurrentState(total
-							- searchServices.getResultsCount(documentsCondition)
-							- searchServices.getResultsCount(foldersCondition));
+												 - searchServices.getResultsCount(documentsCondition)
+												 - searchServices.getResultsCount(foldersCondition));
 
 				}
 			};

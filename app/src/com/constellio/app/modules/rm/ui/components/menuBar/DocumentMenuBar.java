@@ -10,7 +10,7 @@ public interface DocumentMenuBar extends DocumentActionsComponent {
 	void setContentVersionVO(ContentVersionVO contentVersionVO);
 
 	void buildMenuItems();
-	
+
 	void setOpenDocumentButtonVisible(boolean visible);
 
 	void setDownloadDocumentButtonVisible(boolean visible);

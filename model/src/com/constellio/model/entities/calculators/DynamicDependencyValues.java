@@ -1,12 +1,12 @@
 package com.constellio.model.entities.calculators;
 
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.List;
+import java.util.Map;
 
 public class DynamicDependencyValues {
 
@@ -17,8 +17,8 @@ public class DynamicDependencyValues {
 	private MetadataList availableMetadatasWithValue;
 
 	public DynamicDependencyValues(MetadataValueCalculator calculator, Map<String, Object> values,
-			MetadataList availableMetadatas,
-			MetadataList availableMetadatasWithValue) {
+								   MetadataList availableMetadatas,
+								   MetadataList availableMetadatasWithValue) {
 		this.calculator = calculator;
 		this.values = values;
 		this.availableMetadatas = availableMetadatas;

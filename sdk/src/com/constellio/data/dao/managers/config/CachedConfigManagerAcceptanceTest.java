@@ -1,18 +1,17 @@
 package com.constellio.data.dao.managers.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CachedConfigManagerAcceptanceTest extends ConstellioTest {
 

@@ -1,15 +1,13 @@
 package com.constellio.app.ui.pages.management.plugin;
 
-import static org.mockito.Mockito.when;
-
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
+import static org.mockito.Mockito.when;
 
 public class PluginManagementPresenterAcceptanceTest extends ConstellioTest {
 	MockedNavigation navigator;

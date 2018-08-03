@@ -52,7 +52,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		return securityServices.hasAccessToDecommissioningMainPage(user) || securityServices.hasAccessToManageContainersPage(user) || hasAccessToManageReportsPage();
 	}
-	
+
 	private boolean hasAccessToManageReportsPage() {
 		User user = getCurrentUser();
 		return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
@@ -64,12 +64,12 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 
 	public boolean isMultipleContainersButtonVisible() {
 		return (areContainersSequential() || Toggle.FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY.isEnabled())
-				&& presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+			   && presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
 	private boolean areContainersSequential() {
 		return isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER) ||
-				isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
+			   isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
 	}
 
 	private boolean isMetadataSequential(String metadataCode) {

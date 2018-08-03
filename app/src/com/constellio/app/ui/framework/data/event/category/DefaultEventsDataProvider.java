@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
@@ -20,9 +10,18 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class DefaultEventsDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
-	
+
 	private static Logger LOGGER = LoggerFactory.getLogger(DefaultEventsDataProvider.class);
 
 	transient List<EventStatistics> events;
@@ -38,7 +37,8 @@ public abstract class DefaultEventsDataProvider extends AbstractDataProvider imp
 	private String id;
 
 	public DefaultEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection,
-			String currentUserName, LocalDateTime startDate, LocalDateTime endDate, String id) {
+									 String currentUserName, LocalDateTime startDate, LocalDateTime endDate,
+									 String id) {
 		this.collection = collection;
 		this.currentUserName = currentUserName;
 		this.startDate = startDate;
@@ -59,7 +59,7 @@ public abstract class DefaultEventsDataProvider extends AbstractDataProvider imp
 
 		User currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserName, collection);
 
-		for (int i = 0; i < size(); i++){
+		for (int i = 0; i < size(); i++) {
 			EventStatistics currentEventStatistics = new EventStatistics();
 			String caption = getEventCaption(i);
 
@@ -86,10 +86,10 @@ public abstract class DefaultEventsDataProvider extends AbstractDataProvider imp
 	}
 
 	@Override
-	public int size(){
-		if(id == null || StringUtils.isBlank(id)){
+	public int size() {
+		if (id == null || StringUtils.isBlank(id)) {
 			return 0;
-		}else{
+		} else {
 			return specificSize();
 		}
 	}
@@ -97,11 +97,11 @@ public abstract class DefaultEventsDataProvider extends AbstractDataProvider imp
 	protected abstract int specificSize();
 
 	protected abstract LogicalSearchQuery createSpecificQuery(ModelLayerFactory modelLayerFactory, User currentUser,
-			String eventType, LocalDateTime startDate,
-			LocalDateTime endDate, String id);
+															  String eventType, LocalDateTime startDate,
+															  LocalDateTime endDate, String id);
 
 	public List<EventStatistics> getEvents() {
-		if (events == null){
+		if (events == null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			init(constellioFactories.getModelLayerFactory());
 		}

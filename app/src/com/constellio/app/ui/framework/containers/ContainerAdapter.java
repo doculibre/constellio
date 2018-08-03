@@ -1,16 +1,7 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import com.vaadin.data.Container;
-import com.vaadin.data.Container.Filterable;
-import com.vaadin.data.Container.Indexed;
-import com.vaadin.data.Container.ItemSetChangeNotifier;
-import com.vaadin.data.Container.PropertySetChangeNotifier;
-import com.vaadin.data.Container.Sortable;
+import com.vaadin.data.Container.*;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -18,12 +9,17 @@ import com.vaadin.data.Property.ValueChangeNotifier;
 import com.vaadin.data.util.AbstractContainer;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
 		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier, RefreshableContainer {
 
 	protected T adapted;
-	
+
 	private List<Container.ItemSetChangeListener> itemSetChangeListeners = new ArrayList<>();
 
 	public ContainerAdapter(T adapted) {
@@ -33,7 +29,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 	public T getNestedContainer() {
 		return adapted;
 	}
-	
+
 	@Override
 	public Collection<?> getContainerPropertyIds() {
 		List<Object> propertyIds = new ArrayList<>();
@@ -198,7 +194,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		}
 	}
 
-    @Deprecated
+	@Deprecated
 	@Override
 	public void addListener(ValueChangeListener listener) {
 		if (adapted instanceof ValueChangeNotifier) {
@@ -213,7 +209,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		}
 	}
 
-    @Deprecated
+	@Deprecated
 	@Override
 	public void removeListener(ValueChangeListener listener) {
 		if (adapted instanceof ValueChangeNotifier) {
@@ -221,90 +217,91 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		}
 	}
 
-    @Override
-    public void addPropertySetChangeListener(
-            Container.PropertySetChangeListener listener) {
+	@Override
+	public void addPropertySetChangeListener(
+			Container.PropertySetChangeListener listener) {
 		if (adapted instanceof PropertySetChangeNotifier) {
 			((PropertySetChangeNotifier) adapted).addPropertySetChangeListener(listener);
 		}
-    }
+	}
 
-    /**
-     * @deprecated As of 7.0, replaced by
-     *             {@link #addPropertySetChangeListener(com.vaadin.data.Container.PropertySetChangeListener)}
-     **/
-    @Deprecated
-    @Override
-    public void addListener(Container.PropertySetChangeListener listener) {
+	/**
+	 * @deprecated As of 7.0, replaced by
+	 * {@link #addPropertySetChangeListener(com.vaadin.data.Container.PropertySetChangeListener)}
+	 **/
+	@Deprecated
+	@Override
+	public void addListener(Container.PropertySetChangeListener listener) {
 		if (adapted instanceof PropertySetChangeNotifier) {
 			((PropertySetChangeNotifier) adapted).addListener(listener);
 		}
-    }
+	}
 
-    @Override
-    public void removePropertySetChangeListener(
-            Container.PropertySetChangeListener listener) {
+	@Override
+	public void removePropertySetChangeListener(
+			Container.PropertySetChangeListener listener) {
 		if (adapted instanceof PropertySetChangeNotifier) {
 			((PropertySetChangeNotifier) adapted).removePropertySetChangeListener(listener);
 		}
-    }
+	}
 
-    /**
-     * @deprecated As of 7.0, replaced by
-     *             {@link #removePropertySetChangeListener(com.vaadin.data.Container.PropertySetChangeListener)}
-     **/
-    @Deprecated
-    @Override
-    public void removeListener(Container.PropertySetChangeListener listener) {
+	/**
+	 * @deprecated As of 7.0, replaced by
+	 * {@link #removePropertySetChangeListener(com.vaadin.data.Container.PropertySetChangeListener)}
+	 **/
+	@Deprecated
+	@Override
+	public void removeListener(Container.PropertySetChangeListener listener) {
 		if (adapted instanceof PropertySetChangeNotifier) {
 			((PropertySetChangeNotifier) adapted).removeListener(listener);
 		}
-    }
+	}
 
-    // ItemSetChangeNotifier
-    /**
-     * @deprecated As of 7.0, replaced by
-     *             {@link #addItemSetChangeListener(com.vaadin.data.Container.ItemSetChangeListener)}
-     **/
-    @Deprecated
-    @Override
-    public void addListener(Container.ItemSetChangeListener listener) {
+	// ItemSetChangeNotifier
+
+	/**
+	 * @deprecated As of 7.0, replaced by
+	 * {@link #addItemSetChangeListener(com.vaadin.data.Container.ItemSetChangeListener)}
+	 **/
+	@Deprecated
+	@Override
+	public void addListener(Container.ItemSetChangeListener listener) {
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).addListener(listener);
 		}
 		itemSetChangeListeners.add(listener);
-    }
+	}
 
-    @Override
-    public void addItemSetChangeListener(
-            Container.ItemSetChangeListener listener) {
+	@Override
+	public void addItemSetChangeListener(
+			Container.ItemSetChangeListener listener) {
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).addItemSetChangeListener(listener);
 		}
 		itemSetChangeListeners.add(listener);
-    }
+	}
 
-    @Override
-    public void removeItemSetChangeListener(
-            Container.ItemSetChangeListener listener) {
+	@Override
+	public void removeItemSetChangeListener(
+			Container.ItemSetChangeListener listener) {
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).removeItemSetChangeListener(listener);
 		}
 		itemSetChangeListeners.remove(listener);
-    }
+	}
 
-    /**
-     * @deprecated As of 7.0, replaced by
-     *             {@link #removeItemSetChangeListener(com.vaadin.data.Container.ItemSetChangeListener)}
-     **/
-    @Deprecated
-    @Override
-    public void removeListener(Container.ItemSetChangeListener listener) {
+	/**
+	 * @deprecated As of 7.0, replaced by
+	 * {@link #removeItemSetChangeListener(com.vaadin.data.Container.ItemSetChangeListener)}
+	 **/
+	@Deprecated
+	@Override
+	public void removeListener(Container.ItemSetChangeListener listener) {
 		if (adapted instanceof ItemSetChangeNotifier) {
 			((ItemSetChangeNotifier) adapted).removeListener(listener);
 		}
 		itemSetChangeListeners.remove(listener);
-    }
+	}
 
 	@Override
 	public void addContainerFilter(Filter filter)
@@ -374,5 +371,5 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 			((RefreshableContainer) adapted).refresh();
 		}
 	}
-	
+
 }

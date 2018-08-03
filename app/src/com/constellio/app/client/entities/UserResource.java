@@ -1,11 +1,10 @@
 package com.constellio.app.client.entities;
 
-import java.util.List;
-import java.util.Map;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.constellio.model.entities.security.global.UserCredentialStatus;
+import java.util.List;
+import java.util.Map;
 
 @XmlRootElement
 public class UserResource {

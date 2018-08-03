@@ -1,9 +1,9 @@
 package com.constellio.model.services.records.cache;
 
-import java.util.List;
-
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
+
+import java.util.List;
 
 public interface RecordsCaches {
 

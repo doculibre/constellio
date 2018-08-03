@@ -1,17 +1,16 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.Duration;
-
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Duration;
 
-public class DurationPanel extends Panel{
+import static com.constellio.app.ui.i18n.i18n.$;
+
+public class DurationPanel extends Panel {
 	private final TextField daysComponent;
 	private final TextField hoursComponent;
 	private final TextField minComponent;
@@ -38,31 +37,31 @@ public class DurationPanel extends Panel{
 	}
 
 	public Duration getDuration() {
-		Integer days = 0, hours= 0, mns = 0;
-		if (StringUtils.isNotBlank(daysComponent.getValue())){
+		Integer days = 0, hours = 0, mns = 0;
+		if (StringUtils.isNotBlank(daysComponent.getValue())) {
 			days = Integer.valueOf(daysComponent.getValue());
 		}
-		if(StringUtils.isNotBlank(hoursComponent.getValue())){
+		if (StringUtils.isNotBlank(hoursComponent.getValue())) {
 			hours = Integer.valueOf(hoursComponent.getValue());
 		}
-		if(StringUtils.isNotBlank(minComponent.getValue())){
+		if (StringUtils.isNotBlank(minComponent.getValue())) {
 			mns = Integer.valueOf(minComponent.getValue());
 		}
-		long durationInMilliSeconds = ((((days * 24) + hours) * 60 ) + mns) * 60 * 1000;
+		long durationInMilliSeconds = ((((days * 24) + hours) * 60) + mns) * 60 * 1000;
 		return new Duration(durationInMilliSeconds);
 	}
 
 	public void setDuration(Duration duration) {
-		long days = 0, hours =0, mns =0;
+		long days = 0, hours = 0, mns = 0;
 
-		if (duration != null){
+		if (duration != null) {
 			days = duration.getStandardDays();
-			hours = duration.getStandardHours()%24;
-			mns = duration.getStandardMinutes() %60;
+			hours = duration.getStandardHours() % 24;
+			mns = duration.getStandardMinutes() % 60;
 		}
 
 		daysComponent.setValue(days + "");
-		hoursComponent.setValue(hours+ "");
-		minComponent.setValue(mns+ "");
+		hoursComponent.setValue(hours + "");
+		minComponent.setValue(mns + "");
 	}
 }

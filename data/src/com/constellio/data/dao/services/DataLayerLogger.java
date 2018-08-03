@@ -1,7 +1,15 @@
 package com.constellio.data.dao.services;
 
-import static com.constellio.data.utils.LoggerUtils.toParamsString;
-import static java.util.Arrays.asList;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.SolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -10,17 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.SolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.TransactionDTO;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import static com.constellio.data.utils.LoggerUtils.toParamsString;
+import static java.util.Arrays.asList;
 
 public class DataLayerLogger {
 
@@ -104,7 +103,7 @@ public class DataLayerLogger {
 					long numFound = response.getResults() == null ? 0 : response.getResults().getNumFound();
 					long size = response.getResults() == null ? 0 : response.getResults().size();
 					LOGGER.info(prefix + "qtime=" + response.getQTime() + ", numfound=" + numFound + ", documents=" + size
-							+ "\n" + paramString + "\n");
+								+ "\n" + paramString + "\n");
 				}
 			}
 		}

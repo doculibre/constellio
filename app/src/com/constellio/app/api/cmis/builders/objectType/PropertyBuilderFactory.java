@@ -1,20 +1,14 @@
 package com.constellio.app.api.cmis.builders.objectType;
 
-import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
-import org.apache.chemistry.opencmis.commons.enums.Cardinality;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
-import org.apache.chemistry.opencmis.commons.enums.Updatability;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AbstractPropertyDefinition;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanDefinitionImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDateTimeDefinitionImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDecimalDefinitionImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerDefinitionImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringDefinitionImpl;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.enums.Cardinality;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
 
 public class PropertyBuilderFactory {
 
@@ -59,8 +53,8 @@ public class PropertyBuilderFactory {
 		}
 		Cardinality cardinality = metadata.isMultivalue() ? Cardinality.MULTI : Cardinality.SINGLE;
 		Updatability updateability = (metadata.isUnmodifiable() || metadata.getDataEntry().getType() != DataEntryType.MANUAL) ?
-				Updatability.READONLY :
-				Updatability.READWRITE;
+									 Updatability.READONLY :
+									 Updatability.READWRITE;
 		boolean inherited = metadata.inheritDefaultSchema();
 		boolean required = metadata.isDefaultRequirement();
 
@@ -69,8 +63,10 @@ public class PropertyBuilderFactory {
 		return propertyDefinition;
 	}
 
-	private static PropertyDefinition<?> createPropertiesDefinition(String id, String displayName, PropertyType datatype,
-			Cardinality cardinality, Updatability updateability, boolean inherited, boolean required) {
+	private static PropertyDefinition<?> createPropertiesDefinition(String id, String displayName,
+																	PropertyType datatype,
+																	Cardinality cardinality, Updatability updateability,
+																	boolean inherited, boolean required) {
 		AbstractPropertyDefinition<?> propertyDefinition = null;
 
 		if (datatype == PropertyType.DATETIME) {

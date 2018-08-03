@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface ContainersByAdministrativeUnitsView extends BaseView, ArchivesManagementViewGroup {
 

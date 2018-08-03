@@ -1,30 +1,12 @@
 package com.constellio.app.services.importExport.settings;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.es.constants.ESTaxonomies;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedTab;
-import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -33,11 +15,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -48,6 +26,15 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class SettingsExportServices {
 
@@ -138,7 +125,8 @@ public class SettingsExportServices {
 	}
 
 	private ImportedType getImportedTypeFrom(String collection,
-			SchemasDisplayManager displayManager, MetadataSchemaType type, SettingsExportOptions options) {
+											 SchemasDisplayManager displayManager, MetadataSchemaType type,
+											 SettingsExportOptions options) {
 
 		ImportedType importedType = new ImportedType().setCode(type.getCode());
 		if (StringUtils.isNotBlank(type.getLabel(Language.French))) {
@@ -162,8 +150,11 @@ public class SettingsExportServices {
 		return importedType;
 	}
 
-	private List<ImportedMetadataSchema> getImportedTypeCustomSchemata(String collection, SchemasDisplayManager displayManager,
-			MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
+	private List<ImportedMetadataSchema> getImportedTypeCustomSchemata(String collection,
+																	   SchemasDisplayManager displayManager,
+																	   MetadataSchemaType type,
+																	   SchemaDisplayConfig schemaDisplayConfig,
+																	   SettingsExportOptions options) {
 		List<ImportedMetadataSchema> list = new ArrayList<>();
 		for (MetadataSchema customSchema : type.getCustomSchemas()) {
 			ImportedMetadataSchema importedSchema = new ImportedMetadataSchema().setCode(customSchema.getLocalCode());
@@ -190,7 +181,9 @@ public class SettingsExportServices {
 	}
 
 	private ImportedMetadataSchema getImportedTypeDefaultSchema(String collection, SchemasDisplayManager displayManager,
-			MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig, SettingsExportOptions options) {
+																MetadataSchemaType type,
+																SchemaDisplayConfig schemaDisplayConfig,
+																SettingsExportOptions options) {
 		MetadataSchema defaultSchema = type.getDefaultSchema();
 
 		ImportedMetadataSchema importedDefaultMetadataSchema = new ImportedMetadataSchema().setCode("default");
@@ -226,7 +219,9 @@ public class SettingsExportServices {
 	}
 
 	private List<ImportedMetadata> getImportedMetadataFromList(String collection,
-			SchemasDisplayManager displayManager, SchemaDisplayConfig schemaDisplayConfig, MetadataList metadataList) {
+															   SchemasDisplayManager displayManager,
+															   SchemaDisplayConfig schemaDisplayConfig,
+															   MetadataList metadataList) {
 
 		List<ImportedMetadata> importedMetadata = new ArrayList<>();
 		for (Metadata metadatum : metadataList) {
@@ -240,7 +235,7 @@ public class SettingsExportServices {
 	}
 
 	private ImportedMetadata getImportedMetadatumFrom(String collection, SchemasDisplayManager displayManager,
-			SchemaDisplayConfig schemaDisplayConfig, Metadata metadata) {
+													  SchemaDisplayConfig schemaDisplayConfig, Metadata metadata) {
 		ImportedMetadata importedMetadata = new ImportedMetadata()
 				.setCode(metadata.getLocalCode()).setLabel(metadata.getLabel(Language.French));
 
@@ -309,35 +304,35 @@ public class SettingsExportServices {
 
 		ImportedDataEntry importedDataEntry = null;
 		switch (dataEntry.getType()) {
-		case CALCULATED:
-			MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) dataEntry).getCalculator();
-			if (calculator instanceof JEXLMetadataValueCalculator) {
-				importedDataEntry =
-						ImportedDataEntry
-								.asJEXLScript(((JEXLMetadataValueCalculator) calculator).getExpression());
-			} else {
-				importedDataEntry =
-						ImportedDataEntry
-								.asCalculated(calculator.getClass().getName());
-			}
-			break;
+			case CALCULATED:
+				MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) dataEntry).getCalculator();
+				if (calculator instanceof JEXLMetadataValueCalculator) {
+					importedDataEntry =
+							ImportedDataEntry
+									.asJEXLScript(((JEXLMetadataValueCalculator) calculator).getExpression());
+				} else {
+					importedDataEntry =
+							ImportedDataEntry
+									.asCalculated(calculator.getClass().getName());
+				}
+				break;
 
-		case COPIED:
-			importedDataEntry.asCopied(((CopiedDataEntry) dataEntry).getReferenceMetadata(),
-					(((CopiedDataEntry) dataEntry).getCopiedMetadata()));
-			break;
+			case COPIED:
+				importedDataEntry.asCopied(((CopiedDataEntry) dataEntry).getReferenceMetadata(),
+						(((CopiedDataEntry) dataEntry).getCopiedMetadata()));
+				break;
 
-		case SEQUENCE:
-			if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getFixedSequenceCode())) {
-				importedDataEntry = ImportedDataEntry.asFixedSequence(((SequenceDataEntry) dataEntry).getFixedSequenceCode());
-			} else if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode())) {
-				importedDataEntry = ImportedDataEntry
-						.asMetadataProvidingSequence(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode());
-			}
-			break;
+			case SEQUENCE:
+				if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getFixedSequenceCode())) {
+					importedDataEntry = ImportedDataEntry.asFixedSequence(((SequenceDataEntry) dataEntry).getFixedSequenceCode());
+				} else if (StringUtils.isNotBlank(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode())) {
+					importedDataEntry = ImportedDataEntry
+							.asMetadataProvidingSequence(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode());
+				}
+				break;
 
-		default:
-			break;
+			default:
+				break;
 		}
 
 		if (importedDataEntry != null) {
