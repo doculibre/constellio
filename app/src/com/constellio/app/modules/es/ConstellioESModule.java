@@ -101,7 +101,8 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo7_7_0_42(),
 				new ESMigrationTo8_0(),
 				new ESMigrationTo8_0_1(),
-				new ESMigrationTo8_0_2()
+				new ESMigrationTo8_0_2(),
+				new ESMigrationTo8_0_3()
 		);
 	}
 

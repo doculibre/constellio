@@ -35,6 +35,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +100,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			for (ConnectorHttpDocument httpDocument : documents) {
 				String url = httpDocument.getURL();
 
-				if (!robotsTxtFactory.isAuthorizedPath(url)) {
+				if (BooleanUtils.isTrue(httpDocument.getNoFollow()) || !robotsTxtFactory.isAuthorizedPath(url)) {
 					String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
 					if (StringUtils.startsWith(path, PROTOCOL)) {
 						url = path;
@@ -259,6 +260,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 
 					ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
 					document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+					document.setNoFollow(results.isNoFollow());
 					savedDocuments.add(document);
 				}
 			}
