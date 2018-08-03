@@ -1,7 +1,6 @@
 package com.constellio.model.services.search;
 
-import com.constellio.model.services.search.Elevations.QueryElevation;
-import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
+import com.constellio.model.services.search.QueryElevation.DocElevation;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
