@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.wrappers.utils;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
