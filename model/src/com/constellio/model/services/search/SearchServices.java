@@ -24,7 +24,7 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
+import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
